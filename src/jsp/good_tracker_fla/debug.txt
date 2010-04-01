@@ -1,0 +1,20 @@
+[Starting debug log]
+TapirLink version: 0.5.1 (revision 564)
+Request URI: /tapirlink/www/tapir.php/RhincodonTypus?op=s&l=5&m=http://rs.tdwg.org/tapir/cs/dwc/1.4/model/rss2.xml
+Include path: .:/home/webadmin/whaleshark.org/html/tapirlink/www:/home/webadmin/whaleshark.org/html/tapirlink/classes:/home/webadmin/whaleshark.org/html/tapirlink/lib/pear:/home/webadmin/whaleshark.org/html/tapirlink/lib:/home/webadmin/whaleshark.org/html/tapirlink/templates:.
+Loading resources from file: /home/webadmin/whaleshark.org/html/tapirlink/config/resources.xml
+[Output model]
+Unserializing output model from cache
+Loaded output model from cache
+[Search Body]
+--------------
+Preparing SQL Builder
+Adding target: http://rs.tdwg.org/dwc/dwcore/GlobalUniqueIdentifier
+Adding target: http://rs.tdwg.org/dwc/dwcore/ScientificName
+Adding target: http://rs.tdwg.org/dwc/dwcore/CatalogNumber
+Adding target: http://rs.tdwg.org/dwc/dwcore/ScientificName
+Adding target: http://rs.tdwg.org/dwc/dwcore/CatalogNumber
+>> System message: SQL to get records: SELECT "ENCOUNTER"."ENCOUNTER_NUMBER" AS c0, 'Rhincodon typus' AS c1, "ENCOUNTER"."ENCOUNTER_NUMBER" AS c2 FROM "ENCOUNTER" WHERE "ENCOUNTER"."APPROVED" = 'true'
+[Generating XML]
+Visiting element declaration at /rss
+Element instances limit is 1

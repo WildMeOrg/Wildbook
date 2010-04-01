@@ -1,0 +1,956 @@
+<html>
+<head>
+<title>ScriptCalender</title>
+<style type="text/css">
+<!--
+body {
+	font-family: verdana, arial;
+	font-size: 10pt;
+}
+
+;
+.tableText {
+	font: 8pt courer new;
+}
+
+;
+.inputText {
+	font: 8pt courer new;
+}
+
+;
+.field {
+	width: 500px;
+}
+
+;
+.button {
+	width: 100px;
+}
+
+;
+.divInput {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	height: 200px;
+	width: 500px;
+	border: 2px solid #000000;
+	background: #99ccff;
+	padding: 5px;
+}
+
+;
+.divData {
+	
+}
+
+;
+.divDisplay {
+	background: #e0e0e0;
+	padding: 0px;
+}
+;
+-->
+</style>
+
+<script language="JavaScript">
+	var mblnDebug = false;
+
+	var maEvents = new Array();
+	var mobjXml = fGetXmlDocument();
+	var mobjPreviousRow;
+	var mstrXsltFile = "scedit.xsl";
+	var clrHighlight = "#ffffc0";
+	var mlngCurrentIndex;
+
+	// ************************************************************
+	// ***  initialize
+	// ************************************************************
+	window.onscroll = function() { watermark(); };
+	window.onresize = function() { watermark(); };
+
+	function initialize() {
+		// clear the initTimer
+		clearTimeout(mobjInitTimer);
+		// translate the dcEvent.js to XML
+		convertEvent2Xml();
+		mlngCurrentIndex = mobjXml.selectSingleNode("//events").childNodes.length;
+		// load the XML		
+		showTable(mobjXml);
+		// set blue form position
+		watermark();
+		
+		// debug
+		var inputrow_index = document.getElementById("inputrow_index")
+		if (mblnDebug) {
+			// no action
+		} else {
+			inputrow_index.style.display="none";		
+		};
+	};
+
+	// ************************************************************
+	// ***  watermark
+	// ************************************************************
+	function watermark() {
+		var obj = dcGetObj("divInput");
+
+		var lngObjHeight = 250;
+		var lngObjWidth = 600; 
+		var lngWinHeight;
+		var lngWinWidth;
+		var lngXOffset;
+		var lngYOffset;
+		
+		// Netscape implementation
+		if(navigator.appName == "Netscape") {
+			lngWinHeight = window.innerHeight;
+			lngWinWidth = window.innerWidth;
+			lngYOffset = window.pageYOffset;
+			lngXOffset = window.pageXOffset;
+
+			obj.visibility = "hide";
+			obj.top = ( lngWinHeight + lngYOffset - lngObjHeight );
+			obj.left = ( lngWinWidth + lngXOffset - lngObjWidth );
+			objvisibility= "show";
+		}
+
+		// MSIE implementation
+		if (navigator.appVersion.indexOf("MSIE") != -1 && navigator.appVersion.indexOf("Mac") == -1) {
+			obj.style.display = "none";
+
+			lngWinHeight = document.body.clientHeight;
+			lngWinWidth = document.body.clientWidth;
+			lngYOffset = document.body.scrollTop;
+			lngXOffset = document.body.scrollLeft;
+
+			obj.style.top = ( lngWinHeight + lngYOffset - lngObjHeight );
+			obj.style.left = ( lngWinWidth + lngXOffset - lngObjWidth );
+			obj.style.display = "block";
+		}
+	}
+	
+	// ************************************************************
+	// ***  functions
+	// ************************************************************
+	function showTable(objXml) {
+		var strOutput = convertXml2Table();
+		var divDisplay = dcGetObj("divDisplay");
+
+		divDisplay.innerHTML = strOutput;
+		divDisplay.style.padding="20px";
+	};
+
+	// ------------------------------------------------------------
+	function addEvent(objXml) {
+		var frm = document.frmmain;
+		var objNode;
+		
+		mlngCurrentIndex++;
+		
+		objNode = fAppendNode(objXml.documentElement, "event", "");
+
+		var strSortValue = getSortValue(parseInt(frm.txtYear.value), parseInt(frm.txtMonth.value), parseInt(frm.txtDay.value));
+		fAppendAttribute(objNode, "sortvalue", strSortValue);
+		fAppendAttribute(objNode, "index", mlngCurrentIndex);
+
+		fAppendNode(objNode, "month", frm.txtMonth.value);
+		fAppendNode(objNode, "day", frm.txtDay.value);
+		fAppendNode(objNode, "year", frm.txtYear.value);
+		fAppendNode(objNode, "text", frm.txtText.value);
+		fAppendNode(objNode, "popuplink", frm.txtPopuplink.value);
+		fAppendNode(objNode, "style", frm.txtStyle.value);
+		fAppendNode(objNode, "tooltip", frm.txtTooltip.value);
+		fAppendNode(objNode, "script", frm.txtScript.value);
+		fAppendNode(objNode, "filter", frm.txtFilter.value);
+	};
+
+	function getSortValue(y, m, d) {
+		var strYear;
+		var strMonth;
+		var strDay;
+		
+		if (y) { strYear=y.toString(); } else { strYear="0000"; };
+		if (m) { strMonth=m.toString(); } else { strMonth="00"; };
+		strDay = d.toString();
+		
+		if (strMonth.length==1) strMonth = "0" + strMonth;
+		if (strDay.length==1) strDay = "0" + strDay;
+
+		return strYear + strMonth + strDay;
+	};
+
+	// ------------------------------------------------------------
+	function clearForm() {
+		var frm = document.frmmain;
+
+		frm.txtIndex.value = "-1";
+		frm.txtMonth.value = "";
+		frm.txtDay.value = "";
+		frm.txtYear.value = "";
+		frm.txtText.value = "";
+		frm.txtPopuplink.value = "";
+		frm.txtStyle.value = "";
+		frm.txtTooltip.value = "";
+		frm.txtScript.value = "";
+		frm.txtFilter.value = "";
+	};
+		
+	// ------------------------------------------------------------
+	function highlightPreviousRow() {
+		if (mobjPreviousRow!=null) {
+			//gfntDisplayProps(mobjPreviousRow);
+			mobjPreviousRow.style.background = clrHighlight;
+		};
+	};
+
+	// ************************************************************
+	// ***  button click
+	// ************************************************************
+	function btnclick(obj) {
+		var frm = document.frmmain;
+		var strName = obj.name;
+		var lngIndex = parseInt(frm.txtIndex.value);
+			
+		if (strName=="btnAdd") {
+			var blnValid = validate();
+			if (blnValid==false) return false;
+
+			addEvent(mobjXml);	
+			showTable(mobjXml);
+		};
+				
+		if (strName=="btnUpdate") {
+			if (lngIndex==-1) {
+				alert("No event selected.");
+			} else {
+				var blnValid = validate();
+				if (blnValid==false) return false;
+
+				var nodeEvents = mobjXml.selectSingleNode("events");
+				var nodeEvent = nodeEvents.selectSingleNode("event[@index='" + lngIndex + "']");
+
+				nodeEvent.selectSingleNode("month").text = frm.txtMonth.value;
+				nodeEvent.selectSingleNode("day").text = frm.txtDay.value; 
+				nodeEvent.selectSingleNode("year").text = frm.txtYear.value;
+				nodeEvent.selectSingleNode("text").text = frm.txtText.value;
+				nodeEvent.selectSingleNode("popuplink").text = frm.txtPopuplink.value;
+				nodeEvent.selectSingleNode("style").text = frm.txtStyle.value;
+				nodeEvent.selectSingleNode("tooltip").text = frm.txtTooltip.value;
+				nodeEvent.selectSingleNode("script").text = frm.txtScript.value;
+				nodeEvent.selectSingleNode("filter").text = frm.txtFilter.value;
+
+				clearForm();
+				showTable(mobjXml);
+				frm.txtIndex.value = "-1";
+			};
+		};
+
+		if (strName=="btnDelete") {
+			if (lngIndex==-1) {
+				alert("No event selected.");
+			} else {
+				var nodeEvents = mobjXml.selectSingleNode("events");
+				var nodeEvent = nodeEvents.selectSingleNode("event[@index='" + lngIndex + "']");
+
+				nodeEvents.removeChild(nodeEvent);
+				clearForm();
+				showTable(mobjXml);
+			};
+		};
+			
+		if (strName=="btnClear") {
+			clearForm();
+		};
+
+		if (strName=="btnOutput") {
+			var cboOutput = dcGetObj("cboOutput");
+			var txtOutput = dcGetObj("txtOutput");
+
+			var strOutputType = cboOutput.value;
+			var strData;
+			
+			if (strOutputType=="1") {
+				strData = convertXml2Event();
+			};
+			if (strOutputType=="2") {
+				strData = mobjXml.xml;
+			};
+
+			txtOutput.value = strData;
+
+			// copy to clipboard
+			var objCopy = txtOutput.createTextRange();
+			objCopy.execCommand("RemoveFormat");
+			objCopy.execCommand("Copy");
+		};
+	};
+
+	// ************************************************************
+	// ***  row click
+	// ************************************************************
+	function row_click(objRow) {
+		//alert("row_click");
+
+		// fill form fields with data from selected node
+		var lngIndex = objRow.id;
+		var nodeEvents = mobjXml.selectSingleNode("events")
+		var nodeEvent = nodeEvents.selectSingleNode("event[@index='" + lngIndex +"']");
+					
+		var frm = document.frmmain;
+		frm.txtIndex.value = lngIndex;
+		frm.txtMonth.value = nodeEvent.selectSingleNode("month").text;
+		frm.txtDay.value = nodeEvent.selectSingleNode("day").text;
+		frm.txtYear.value = nodeEvent.selectSingleNode("year").text;
+		frm.txtText.value = nodeEvent.selectSingleNode("text").text;
+		frm.txtPopuplink.value = nodeEvent.selectSingleNode("popuplink").text;
+		frm.txtStyle.value = nodeEvent.selectSingleNode("style").text;
+		frm.txtTooltip.value = nodeEvent.selectSingleNode("tooltip").text;
+		frm.txtScript.value = nodeEvent.selectSingleNode("script").text;
+		frm.txtFilter.value = nodeEvent.selectSingleNode("filter").text;
+			
+		// add highlight
+		objRow.style.background = clrHighlight;
+			
+		// remove old highlight
+		if (mobjPreviousRow!=null) {
+			mobjPreviousRow.style.background = "#ffffff";
+		};
+		mobjPreviousRow = objRow;
+	};
+
+	// ************************************************************
+	// ***  converter
+	// ************************************************************
+	function convertEvent2Xml() {
+		var objRoot;
+		var i;
+		
+		// initialize
+		mobjXml.loadXML("<events/>");
+		
+		// convert individual events to xml
+		for (i=0; i<maEvents.length; i++) {
+			addEventToXML(mobjXml, maEvents[i], i+1);
+		};
+	};
+
+	// ------------------------------------------------------------
+	function convertXml2Event() {
+		// set the mode of the events node
+		var nodeEvents = mobjXml.selectSingleNode("events");
+		var nodeMode = nodeEvents.selectSingleNode("@mode");
+		if (nodeMode) {
+			nodeMode.text="js";
+		} else {
+			var dummy = fAppendAttribute(nodeEvents, "mode", "js");
+		};
+
+		// transform
+		strData = fTransformXml(mobjXml, mstrXsltFile);
+
+		// strip off transform extras
+		if (strData.substring(0,39)=='<?xml version="1.0" encoding="UTF-16"?>') {
+			strData = strData.substring(41);
+		}
+	
+		// encode special characters
+		strData = fHtmlDecode(strData);
+		
+		return strData;
+	};
+
+	// ------------------------------------------------------------
+	function convertXml2Table() {
+		// set the mode of the events node
+		var nodeEvents = mobjXml.selectSingleNode("events");
+		var objAttr = nodeEvents.selectSingleNode("@mode");
+		if (objAttr) {
+			objAttr.text="editor";
+		} else {
+			objAttr = fAppendAttribute(nodeEvents, "mode", "editor");
+		}; 
+		
+		// transform
+		strData = fTransformXml(mobjXml, mstrXsltFile);
+
+		// strip off transform extras
+		if (strData.substring(0,39)=='<?xml version="1.0" encoding="UTF-16"?>') {
+			strData = strData.substring(39);
+		}
+	
+		return strData;
+	};
+
+	// ************************************************************
+	// ***  miscellanous
+	// ************************************************************
+	function displayObject(strObjectName, blnShow) {
+		var obj = dcGetObj(strObjectName);
+		if (blnShow) {
+			obj.style.display = "block";
+		} else {
+			obj.style.display = "none";
+		}
+	}	
+
+	function forceNumeric()	{
+		//usage: onkeypress="forceNumeric();"
+		if (event.keyCode<45 || event.keyCode > 57) event.returnValue = false;
+	}
+		
+	function forceAlphaNumeric() {
+		//usage: onkeypress="forceAlphaNumeric();"
+		// double quote character (") = 34
+		// single quote character (') = 39
+		
+		if (event.keyCode==34) event.returnValue = false;
+	}	
+	
+	function validate() {
+		var txtMonth = dcGetObj("txtMonth");
+		var txtDay = dcGetObj("txtDay");
+		var txtYear = dcGetObj("txtYear");
+		var strMsg = "";
+		
+		if (txtMonth.value.length!=0) {
+			var intMonth = parseInt(txtMonth.value);
+			if (intMonth<1 || intMonth>12) strMsg += "\nThe month portion of the date is out of range.";
+		}
+		if (txtDay.value.length==0) strMsg += "\nThe day portion of the date must not be blank.";
+		if (txtYear.value.length!=0 && txtYear.value.length!=4) strMsg += "\nThe year portion of the date must be 4 characters.";
+		
+		if (strMsg.length==0) {
+			 return true;
+		} else {
+			alert("The following errors must be corrected...\n" + strMsg);
+			return false;
+		}		
+	}
+
+	// ************************************************************
+	// ***  xml fucntions
+	// ************************************************************
+
+	// ********* ********* ********* ********* *********
+	function fGetXmlDocument() {
+		// microsoft 
+		if (window.ActiveXObject) {
+			var objDoc = new ActiveXObject("Microsoft.XMLDOM");
+			return objDoc;
+		};
+		// document implemenation
+		if (document.implementation && document.implementation.createDocument) {
+			var objDoc = document.implementation.createDocument( "", "", null );
+			return objDoc;
+		};
+		alert("ERROR - fscGetXmlDocument" + "\n" + "Browser can't create DOM object.");
+		return false;
+	};
+
+	// ********* ********* ********* ********* *********
+	function fLoad(strUrl) {
+		// microsoft 
+		if (window.ActiveXObject) {
+			var objDoc = new ActiveXObject("Microsoft.XMLDOM");
+			objDoc.async = false;
+			objDoc.load(strUrl);
+			return objDoc;
+		};
+		alert("ERROR - fscLoad");
+		return false;
+	};
+
+	// ********* ********* ********* ********* *********
+	function fTransformXml(objXml, strXsltFile) {
+		var objAttr = objXml.selectSingleNode("//events/@debugmode");
+		if (objAttr) {
+			objAttr.text = mblnDebug;
+		} else {
+			fAppendAttribute(objXml.documentElement, "debugmode", mblnDebug);
+		};
+
+		// microsoft
+		if (window.ActiveXObject) {
+			var objXslt = new ActiveXObject("Microsoft.XMLDOM");
+			objXslt.async = false;
+			objXslt.load(strXsltFile);
+			var strHTML = objXml.transformNode(objXslt);
+			return strHTML;
+		};
+		// document
+		if (document.implementation) {
+			var processor = new XSLTProcessor();
+			var objXslt = fscLoad(strXsltFile, true);
+			processor.importStylesheet(objXslt);
+			var node = processor.transformToDocument(objXml);
+			var strHTML = fscSerializeXml(node);
+			return strHTML;
+		};
+		alert("ERROR - fscGetNodeText");
+		return "";
+	};
+
+	// ********* ********* ********* ********* *********
+	function fSerializeXml(objDoc) {
+		// microsoft
+		if (window.ActiveXObject) {
+			return objDoc.xml;
+		};
+		// document
+		if (document.implementation && document.implementation.createDocument) {
+			var objSerializer = new XMLSerializer();
+			return objSerializer.serializeToString(objDoc);
+		};
+		alert("ERROR - fscSerializeXml");
+		return "";
+	};
+
+	// ********* ********* ********* ********* *********
+	function fGetNodeText(objNode) {
+		var objChild;
+		
+		for (var i=0; i<objNode.childNodes.length; i++) {
+			objChild = objNode.childNodes[i];
+			if (objChild.nodeName=='#text') {
+				if (objChild.nodeValue.length != 0) {
+					return objChild.nodeValue;
+				};
+			};
+		};
+		return null;
+	};
+
+	// ********* ********* ********* ********* *********
+	function fAppendNode(objParent, strName, strValue) {
+		var objDoc = objParent.ownerDocument;
+		if (!objDoc) objDoc = objParent;
+		var objNode = objDoc.createElement(strName);
+		if (strValue) {
+			var objNodeText = objDoc.createTextNode(strValue);
+			objNode.appendChild(objNodeText);
+		};
+		objParent.appendChild(objNode);
+		return objNode;
+	};
+
+	// ********* ********* ********* ********* *********
+	function fAppendAttribute(objParent, strName, strValue) {
+		var objDoc = objParent.ownerDocument;
+		if (!objDoc) objDoc = objParent;
+		var objNode = objDoc.createAttribute(strName);
+		if (strValue) objNode.nodeValue = strValue;
+		objParent.attributes.setNamedItem(objNode);
+	};
+
+	// ********* ********* ********* ********* *********
+	function fHtmlDecode(strData) {
+		while (strData.indexOf("&lt;")>-1) strData = strData.replace("&lt;", "<");
+		while (strData.indexOf("&gt;")>-1) strData = strData.replace("&gt;", ">");
+
+		var str = String.fromCharCode(34) + "null" + String.fromCharCode(34);
+		while (strData.indexOf(str)>-1) strData = strData.replace(str, "null");
+
+		return strData;
+	};
+
+	// ************************************************************
+	// ***  EVENT class and related functions
+	// ************************************************************
+	// constructor for event class
+	function EventObj(m, d, y, szText, szPopuplink, szStyle, szTooltip, szScript, szFilter) {
+
+		// properties
+		this.day = 0;
+		if (m) this.month = m;
+		if (d) this.day = d;
+		if (y) this.year = y;
+		if (szText) this.text = szText;
+		if (szPopuplink) this.popuplink = szPopuplink;
+		if (szStyle) this.style = szStyle;
+		if (szTooltip) this.tooltip = szTooltip;
+		if (szScript) this.script = szScript;
+		if (szFilter) this.filter = szFilter;
+	};
+
+	// ------------------------------------------------------------
+	function fscEvent(m,d,y,szText,szPopuplink,szStyle,szTooltip,szScript,szFilter) {
+
+		var ev = new EventObj(m,d,y,szText,szPopuplink,szStyle,szTooltip,szScript,szFilter); 
+		maEvents[maEvents.length] = ev;
+	};
+
+	// ------------------------------------------------------------
+	function addEventToXML(objXml, objEvent, lngIndex) {
+		var objNode;
+
+		var d = "0";
+		if (objEvent.day!=0) d=objEvent.day;
+		
+		objNode = fAppendNode(objXml.documentElement, "event", "");
+
+		var strSortValue = getSortValue(objEvent.year, objEvent.month, objEvent.day);
+		fAppendAttribute(objNode, "sortvalue", strSortValue);
+		fAppendAttribute(objNode, "index", lngIndex);
+
+		fAppendNode(objNode, "month", objEvent.month);
+		fAppendNode(objNode, "day", d);
+		fAppendNode(objNode, "year", objEvent.year);
+		fAppendNode(objNode, "text", objEvent.text);
+		fAppendNode(objNode, "popuplink", objEvent.popuplink);
+		fAppendNode(objNode, "style", objEvent.style);
+		fAppendNode(objNode, "tooltip", objEvent.tooltip);
+		fAppendNode(objNode, "script", objEvent.script);
+		fAppendNode(objNode, "filter", objEvent.filter);
+	};	
+
+	// ************************************************************
+	// ***  cross browser stuff
+	// ************************************************************
+	function dcGetObj(name) {
+		if (document.getElementById) {
+			return document.getElementById(name);
+		} else if (document.all) {
+			return document.all[name];
+		} else if (document.layers) {
+			return document.layers[name];
+		} else {
+			return false;
+		};
+	};
+
+	// ------------------------------------------------------------
+	function dcGetFormElement(formName, objectName) {
+	// returns a reference to an object of a Form
+	// formName = object reference or string
+
+		// if we are passed an object rather than string
+		// (test the name property)
+		// translate the variable into the form name
+		if (formName.name!=null) formName = formName.name;
+
+		// Netscape 6.2.2 
+		// Internet Explorer 5
+		if (document.getElementById) {
+			return document.getElementById(objectName);
+		} else if (document.all) {
+			return document.all[objectName];
+		// Netscape 4.79	
+		} else if (document.layers) {
+			return document.forms[formName].elements[objectName];
+		} else {
+			return false;
+		};
+	};	
+			
+	// ************************************************************
+	// ***  utility
+	// ************************************************************
+	function gfntIsDate(dateStr) {
+		var datePat = /^(\d{1,2})(\/|-)(\d{1,2})(\/|-)(\d{2,4})$/;
+		var matchArray = dateStr.match(datePat);
+				
+		if (matchArray == null) {alert("here"); return false;};
+
+		// parse date into variables
+		var lngMonth = matchArray[1]; 
+ 		var lngDay = matchArray[3];
+		var lngYear = matchArray[5];
+
+		if (lngMonth < 1 || lngMonth > 12) return false;
+		if (lngDay < 1 || lngDay > 31) return false;
+
+		if ((lngMonth==4 || lngMonth==6 || lngMonth==9 || lngMonth==11) && lngDay==31) return false;
+
+		if (lngMonth == 2) { // check for february 29th
+			var isleap = (lngYear % 4 == 0 && (lngYear % 100 != 0 || lngYear % 400 == 0));
+			if (lngDay > 29 || (lngDay==29 && !isleap)) return false;
+		};
+
+		return true; 
+	};	
+
+	function getPath(strData) {
+		var strSlash = String.fromCharCode(47);
+		var strBackSlash = String.fromCharCode(92);
+		
+		var i = strData.lastIndexOf(strBackSlash);
+		return strData.substring(0, i+1);
+	};	
+
+	function getServerPath(strData) {
+		var strSlash = String.fromCharCode(47);
+		var strBackSlash = String.fromCharCode(92);
+		
+		var i = strData.lastIndexOf(strSlash);
+		return strData.substring(0, i+1);
+	};	
+
+	function replace(inputString, fromString, toString) {
+	// Goes through the inputString and replaces every occurrence of fromString with toString
+	var temp = inputString;
+	if (fromString == "")  return inputString;
+	if (toString.indexOf(fromString) == -1) { // If the string being replaced is not a part of the replacement string (normal situation)
+		while (temp.indexOf(fromString) != -1) {
+			var toTheLeft = temp.substring(0, temp.indexOf(fromString));
+			var toTheRight = temp.substring(temp.indexOf(fromString)+fromString.length, temp.length);
+			temp = toTheLeft + toString + toTheRight;
+		};
+	} else { // String being replaced is part of replacement string (like "+" being replaced with "++") - prevent an infinite loop
+		var midStrings = new Array("~", "`", "_", "^", "#");
+		var midStringLen = 1;
+		var midString = "";
+		// Find a string that doesn't exist in the inputString to be used
+		// as an "inbetween" string
+		while (midString == "") {
+			for (var i=0; i < midStrings.length; i++) {
+				var tempMidString = "";
+				for (var j=0; j < midStringLen; j++) { tempMidString += midStrings[i]; };
+				if (fromString.indexOf(tempMidString) == -1) {
+				midString = tempMidString;
+				i = midStrings.length + 1;
+				};
+			};
+		}; // Keep on going until we build an "inbetween" string that doesn't exist
+		// Now go through and do two replaces - first, replace the "fromString" with the "inbetween" string
+		while (temp.indexOf(fromString) != -1) {
+			var toTheLeft = temp.substring(0, temp.indexOf(fromString));
+			var toTheRight = temp.substring(temp.indexOf(fromString)+fromString.length, temp.length);
+			temp = toTheLeft + midString + toTheRight;
+		};
+		// Next, replace the "inbetween" string with the "toString"
+		while (temp.indexOf(midString) != -1) {
+			var toTheLeft = temp.substring(0, temp.indexOf(midString));
+			var toTheRight = temp.substring(temp.indexOf(midString)+midString.length, temp.length);
+			temp = toTheLeft + toString + toTheRight;
+		};
+	}; // Ends the check to see if the string being replaced is part of the replacement string or not
+	return temp; // Send the updated string back to the user
+	}; // Ends the "replaceSubstring" function
+</script>
+<script language="JavaScript" src="scevent.js"></script>
+</head>
+
+<body>
+<!--
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+-->
+
+<!-- ********* ********* ********* ********* ********* -->
+<!-- BEGIN CONTENT -->
+<!-- ********* ********* ********* ********* ********* -->
+
+<div name="divHeader" id="divHeader" style="padding: 20px">
+<p align="center"><b><a href="http://www.scriptcalendar.com">ScriptCalendar</a></b>
+<br />
+<b>Event Editor</b> <br />
+Please view this page in a Microsoft Internet Explorer browser.</p>
+
+<p>This editor enables you to add new events, modify exiting events,
+and delete exiting events. <a
+	href="javascript:displayObject('divInstructions', true);">View the
+instructions.</a></p>
+
+<ul>
+	<li>This editor must exist in the same directory as the scevent.js
+	file.</li>
+	<li>This must be used with a Microsoft Internet Explorer browser,
+	version 5.0 or greater</li>
+</ul>
+</div>
+
+<!-- ********* ********* ********* ********* ********* -->
+<!-- INPUT FORM -->
+<!-- ********* ********* ********* ********* ********* -->
+<div name="divInput" id="divInput" class="divInput">
+<form name="frmmain" id="frmmain">
+
+<table align="center" border="0" cellpadding="0" cellspacing="0">
+	<tr id="inputrow_index" name="inputrow_index" style="display: block">
+		<td class='inputText'>Index</td>
+		<td>&nbsp;</td>
+		<td><input class="field" name="txtIndex" id="txtIndex" value="-1" />
+		</td>
+	</tr>
+
+	<tr>
+		<td class='inputText'>Date</td>
+		<td>&nbsp;</td>
+		<td><input name="txtMonth" id="txtMonth" size="2" maxlength="2"
+			onKeyPress="forceNumeric();" /> &nbsp;/&nbsp; <input name="txtDay"
+			id="txtDay" size="2" maxlength="2" onKeyPress="forceNumeric();" />
+		&nbsp;/&nbsp; <input name="txtYear" id="txtYear" size="4"
+			maxlength="4" onKeyPress="forceNumeric();" /></td>
+	</tr>
+	<tr>
+		<td class='inputText'>Text</td>
+		<td>&nbsp;</td>
+		<td><input class='field' name="txtText" id="txtText" size="30"
+			onKeyPress="forceAlphaNumeric();" /></td>
+	</tr>
+	<tr>
+		<td class='inputText'>Popuplink</td>
+		<td>&nbsp;</td>
+		<td><input class='field' name="txtPopuplink" id="txtPopuplink"
+			size="30" onKeyPress="forceAlphaNumeric();" /></td>
+	</tr>
+	<tr>
+		<td class='inputText'>Style</td>
+		<td>&nbsp;</td>
+		<td><input class='field' name="txtStyle" id="txtStyle" size="30"
+			onKeyPress="forceAlphaNumeric();" /></td>
+	</tr>
+	<tr>
+		<td class='inputText'>Tooltip</td>
+		<td>&nbsp;</td>
+		<td><input class='field' name="txtTooltip" id="txtTooltip"
+			size="30" onKeyPress="forceAlphaNumeric();" /></td>
+	</tr>
+	<tr>
+		<td class='inputText'>Script</td>
+		<td>&nbsp;</td>
+		<td><input class='field' name="txtScript" id="txtScript"
+			size="30" onKeyPress="forceAlphaNumeric();" /></td>
+	</tr>
+	<tr>
+		<td class='inputText'>Filter</td>
+		<td>&nbsp;</td>
+		<td><input class='field' name="txtFilter" id="txtFilter"
+			size="30" onKeyPress="forceAlphaNumeric();" /></td>
+	</tr>
+	<tr>
+		<td colspan="3" height="10"></td>
+	</tr>
+	<tr>
+		<td colspan="3" align="center"><input class='button'
+			type="button" name="btnAdd" id="btnAdd" value="Insert Record"
+			onClick="btnclick(this);"> <input class='button'
+			type="button" name="btnUpdate" id="btnUpdate" value="Update Record"
+			onClick="btnclick(this);"> <input class='button'
+			type="button" name="btnDelete" id="btnDelete" value="Delete Record"
+			onClick="btnclick(this);"> <input class='button'
+			type="button" name="btnClear" id="btnClear" value="Clear Form"
+			onClick="btnclick(this);"> <input class='button'
+			type="button" name="btnOutput" id="btnOutput" value="View Output"
+			onClick="btnclick(this);"></td>
+	</tr>
+	<tr>
+		<td colspan="3" height="10"></td>
+	</tr>
+	<tr>
+		<td class='inputText'>Output as</td>
+		<td>&nbsp;</td>
+		<td><select class='field' name="cboOutput" id="cboOutput">
+			<option value="1">scevent.js</option>
+			<option value="2">xml</option>
+		</select></td>
+	</tr>
+</table>
+</form>
+</div>
+
+
+
+<!-- ********* ********* ********* ********* ********* -->
+<!-- DATA TABLE -->
+<!-- ********* ********* ********* ********* ********* -->
+<div name="divData" id="divData" class="divData">
+<table align="center" bgcolor="#e0e0e0">
+	<tr>
+		<td>
+		<div name="divDisplay" id="divDisplay" class="divDisplay"></div>
+		</td>
+	</tr>
+</table>
+</div>
+
+
+<!-- ********* ********* ********* ********* ********* -->
+<!-- OUTPUT -->
+<!-- ********* ********* ********* ********* ********* -->
+<p />
+<p />
+<div name="divOutput" id="divOutput" class="divOutput">
+<table align="center" bgcolor="#e0e0e0" border="0" cellpadding="10"
+	cellspacing="0">
+	<tr>
+		<td align="center"><b>output</b></td>
+	</tr>
+
+	<tr>
+		<td><textarea name="txtOutput" id="txtOutput" rows="15"
+			cols="100">
+		</textarea></td>
+	</tr>
+</table>
+</div>
+
+<!-- ********* ********* ********* ********* ********* --> <!-- INSTRUCTIONS -->
+<!-- ********* ********* ********* ********* ********* -->
+<div name="divInstructions" id="divInstructions"
+	style="display: none; padding: 10px; background-color: #e0e0e0; border: 2px solid #000000; position: absolute; top: 10; left: 10;">
+
+<a href="javascript:displayObject('divInstructions', false);">Hide
+the instructions.</a> <br />
+<br />
+<b>Insert an Event</b>
+<ol>
+	<li>Locate the blue form containing data inputs at the bottom
+	right of the page.</li>
+	<li>Enter the date, text and other data for your event. You may
+	leave some fields blank.</li>
+	<li>Click the Insert Record button. The new event is added to the
+	table of events.</li>
+</ol>
+
+<b>Update an Event</b>
+<ol>
+	<li>Click on the appropiate event in the table of events.</li>
+	<li>Locate the blue form containing data inputs at the bottom
+	right of the page.</li>
+	<li>Edit the date, text and other data for your event. You may
+	leave some fields blank.</li>
+	<li>Click the Update Record button. The event changes in the table
+	of events.</li>
+</ol>
+
+<b>Delete an Event</b>
+<ol>
+	<li>Click on the appropiate event in the table of events.</li>
+	<li>Locate the blue form containing data inputs at the bottom
+	right of the page.</li>
+	<li>Click the Delete Record button. The event is removed table of
+	events.</li>
+</ol>
+
+<b>Get the output</b>
+<ol>
+	<li>Locate the blue form containing data inputs at the bottom
+	right of the page.</li>
+	<li>Click the View Output button. The Output textarea is filled
+	with the formatted output is copied to the clipboard.</li>
+	<li>Paste the output from the clipboard into your dcevent.js file.</li>
+</ol>
+
+<a href="javascript:displayObject('divInstructions', false);">Hide
+the instructions.</a></div>
+
+
+<!-- ********* ********* ********* ********* ********* --> <!-- END CONTENT -->
+<!-- ********* ********* ********* ********* ********* -->
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</body>
+</html>
+
+<script language="javascript">
+	// begin timer
+	var mobjInitTimer = setTimeout("initialize()", 100);
+</script>

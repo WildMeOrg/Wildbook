@@ -1,0 +1,93 @@
+<!--
+SCRIPTCALENDAR 
+An incredible javascript calendar
+copyright 2005
+-->
+
+<html>
+<body topmargin="0" leftmargin="0" leftmargin="0" rightmargin="0">
+<table border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<td><!-- JAVASCRIPT COMPONENTS --> <!-- do not edit unless you have moved the component javascript files -->
+		<script language="javascript" src="../../sccomponents/scrptcal.js"></script>
+		<script language="javascript" src="../../sccomponents/scevent.js"></script>
+		<script language="javascript" src="../../sccomponents/scspcevt.js"></script>
+		<script language="javascript" src="schandlr.js"></script> <!-- STYLESHEETS -->
+		<!-- this function looks for the "scDate" parameter in the URL. --> <!-- then it loads the stylesheet based on the month.. -->
+		<!-- this allows us to have a different stylesheet each month --> <script
+			language="javascript">
+	var g_intMonth;
+
+	var strStylesheet;
+	var dteParam;
+	var strParam = fscRequestQueryString("scDate");
+	var arrMonth = new Array("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec");
+	
+	dteParam = new Date();
+	if (strParam.length != 0) dteParam = new Date(strParam);
+	g_intMonth = dteParam.getMonth() +1;
+	strStylesheet = arrMonth[dteParam.getMonth()] + ".css";
+	
+	document.write('<link rel="StyleSheet" href="' + strStylesheet + '" type="text/css" media="screen" />');
+	document.write('<link rel="StyleSheet" href="scprint.css" type="text/css" media="print" />');
+</script> <!-- Snow animation --> <!-- script by http://www.btinternet.com/~kurt.grigg/javascript -->
+		<script type="text/javascript" src="seasonal_snow.js"></script> <!-- fireworks animation -->
+		<!-- script by http://http://www.javascript-fx.com --> <script
+			type="text/javascript" src="seasonal_fireworks.js"></script> <!-- SCRIPTCALENDAR OBJECT -->
+		<!-- edit the properties as you see fit --> <script
+			language="javascript">
+	var objCal = new scriptcalendar();
+
+
+	// license key
+	objCal.license = new Array( "PMfMuaWQNr1TNH4JLuWa" );
+
+	objCal.deadCellBehavior 	= 0;		// dead date cell behavior 1=date; 2=dead text; 4=prev/next text
+	objCal.dateSelector 		= 1+2+4+8;	// date selectors
+	objCal.prevHtml 		= "&laquo;";	// PREV month link text
+	objCal.nextHtml 		= "&raquo;";	// NEXT month link text
+	objCal.dateRangeStart 		= 2004;		// start year range
+	objCal.dateRangeEnd 		= 2010;		// end year range
+	objCal.cellWidth  		= 100;		// width of date cell
+	objCal.cellHeight 		= 100;		// height of date cells 
+	objCal.padding 			= "0";		// table cellpadding
+	objCal.spacing 			= "2";		// table cellspacing
+
+	objCal.beginMonday 		= false;	// begin week on Monday
+	objCal.displayWeekNumber	= false;	// display Week Number
+	objCal.showFutureEvents		= true;		// show future events
+	objCal.showPastEvents		= true;		// show future events
+	objCal.expandEventStyle		= true;		// allow event style to grow
+	objCal.enableHandlers		= false;	// add event handlers
+
+	objCal.popupWindow		= true;		// use a popup window or a DIV element
+	objCal.popupAddParam		= true;		// append the date parameter to the popup window url
+
+	objCal.popupProperties = "width=600,height=400,scrollbars=yes,resizable=yes,titlebar=yes,toolbar=yes,menubar=yes,location=yes,status=yes";
+
+
+	/* setup pop-up window size to full screen
+	var w=400;
+	var h=300;
+	if (window.screen) {
+  		w = window.screen.availWidth;
+		h = window.screen.availHeight;
+	};
+	objCal.popupProperties = "width=" + w + ",";
+	objCal.popupProperties += "hieght=" + h + ",";
+	objCal.popupProperties += "scrollbars=yes,resizable=yes,titlebar=yes,toolbar=yes,menubar=yes,location=yes,status=yes";
+	*/
+
+	objCal.initialize();
+</script> <!-- POPUP DIV --> <!-- do not edit -->
+		<div id="scDivPopup" name="scDivPopup" class="scPopup"
+			onclick="this.style.display='none';">[close] <iframe
+			id="scIfmPopup" name="scIfmPopup" border="0" scrolling="yes"
+			width="500" height="400" src=""> </iframe></div>
+
+		</td>
+	</tr>
+</table>
+
+</body>
+</html>

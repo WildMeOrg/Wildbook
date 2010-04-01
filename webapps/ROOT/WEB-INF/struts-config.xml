@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<!DOCTYPE struts-config PUBLIC
+          "-//Apache Software Foundation//DTD Struts Configuration 1.1//EN"
+          "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">
+
+
+<struts-config>
+
+  <form-beans>
+    <form-bean name="submitForm" type="org.ecocean.servlet.SubmitForm"/>
+    <form-bean name="adoptionForm" type="org.ecocean.servlet.AdoptionForm"/>
+  </form-beans>
+
+  <action-mappings>
+    <!-- Submit Action -->
+    <action    path="/submitForm"
+               type="org.ecocean.servlet.SubmitAction"
+               name="submitForm"
+              scope="request"
+              input="/submit.jsp">
+        <forward name="confirmSubmit" path="/confirmSubmit.jsp" />
+   </action>
+   
+   
+       <action    path="/adoptionForm"
+                  type="org.ecocean.servlet.AdoptionAction"
+                  name="adoptionForm"
+                 scope="request"
+                 input="/adoption.jsp">
+           <forward name="confirmAdopt" path="/adoptions/adoptionSuccess.jsp" />
+   </action>
+   
+
+  </action-mappings>
+
+  <!-- This is where you set the maximum file size for your file uploads.
+       -1 is an unlimited size. If you
+       don't specify this here, it defaults to -1. -->
+  <controller maxFileSize="150M" />
+
+</struts-config>

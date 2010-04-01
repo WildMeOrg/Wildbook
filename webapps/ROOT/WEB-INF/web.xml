@@ -1,0 +1,1060 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  Copyright 2004 The Apache Software Foundation
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+    version="2.4">
+
+  <display-name>Photo-identification Library</display-name>
+  <description>
+    Photo-identification Library
+  </description>
+  
+<filter>
+<filter-name>UTF8Filter</filter-name>
+<filter-class>org.ecocean.servlet.StrutsUTF8Filter</filter-class>
+</filter>
+
+<!-- Define filter mappings for the defined filters -->
+<filter-mapping>
+<filter-name>UTF8Filter</filter-name>
+<url-pattern>/*</url-pattern>
+</filter-mapping>
+
+
+<filter>
+<filter-name>ImgFilter</filter-name>
+<description>Dynamic Image Filter</description>
+<filter-class>com.sunwesttek.image.servlet.ImgFilter</filter-class>
+<init-param>
+<param-name>maxSyncServlets</param-name>
+<param-value>2</param-value>
+</init-param>
+</filter>
+
+
+<filter-mapping>
+<filter-name>ImgFilter</filter-name>
+<url-pattern>/di/ImgFilter/*</url-pattern>
+</filter-mapping>
+
+
+
+
+
+
+<servlet>
+<servlet-name>ImgServlet</servlet-name>
+<description>Dynamic Image Servlet Unsynched</description>
+<servlet-class>com.sunwesttek.image.servlet.ImgServlet</servlet-class>
+</servlet>
+
+
+<servlet>
+<servlet-name>ImgSyncServlet0</servlet-name>
+<description>Dynamic Image Servlet (synchronized)</description>
+<servlet-class>com.sunwesttek.image.servlet.ImgSyncServlet</servlet-class>
+</servlet>
+
+<servlet>
+<servlet-name>ImgSyncServlet1</servlet-name>
+<description>Dynamic Image Servlet (synchronized)</description>
+<servlet-class>com.sunwesttek.image.servlet.ImgSyncServlet</servlet-class>
+</servlet>
+
+
+
+
+
+  <!-- Action Servlet Configuration -->
+
+<servlet>
+    <servlet-name>uploadAction</servlet-name>
+    <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+    <init-param>
+      <param-name>config</param-name>
+      <param-value>/WEB-INF/struts-config.xml</param-value>
+    </init-param>
+    <init-param>
+      <param-name>debug</param-name>
+      <param-value>2</param-value>
+    </init-param>
+    <init-param>
+      <param-name>detail</param-name>
+      <param-value>2</param-value>
+    </init-param>
+    <init-param>
+        <param-name>application</param-name>
+        <param-value>org.apache.struts.webapp.upload.UploadResources</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+
+  <servlet>
+    <servlet-name>action</servlet-name>
+    <servlet-class>
+      org.apache.webapp.admin.ApplicationServlet
+    </servlet-class>
+    <init-param>
+      <param-name>application</param-name>
+      <param-value>
+        org.apache.webapp.admin.ApplicationResources
+      </param-value>
+    </init-param>
+    <init-param>
+      <param-name>config</param-name>
+      <param-value>/WEB-INF/struts-config.xml</param-value>
+    </init-param>
+    <init-param>
+      <param-name>debug</param-name>
+      <param-value>0</param-value>
+    </init-param>
+    <init-param>
+      <param-name>detail</param-name>
+      <param-value>0</param-value>
+    </init-param>
+    <init-param>
+      <param-name>locale</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <init-param>
+      <param-name>nocache</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <init-param>
+      <param-name>validate</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <!-- Label to be displayed for rootnode. If absent, rootnode is not rendered -->
+    <!--
+    <init-param>
+      <param-name>rootnodename</param-name>
+      <param-value>Tomcat Root</param-value>
+    </init-param>
+    -->
+    <init-param>
+      <param-name>treebuilders</param-name>
+      <param-value>
+        org.apache.webapp.admin.TomcatTreeBuilder,
+        org.apache.webapp.admin.resources.ResourcesTreeBuilder,
+        org.apache.webapp.admin.users.UsersTreeBuilder
+    </param-value>
+    </init-param>
+    <load-on-startup>2</load-on-startup>
+  </servlet>
+
+
+
+  <servlet>
+       <servlet-name>writeOutScanTask</servlet-name>
+	<servlet-class>org.ecocean.servlet.WriteOutScanTask</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>IndividualSetNickName</servlet-name>
+	<servlet-class>org.ecocean.servlet.IndividualSetNickName</servlet-class>
+  </servlet>
+  
+    <servlet>
+         <servlet-name>IndividualSetAlternateID</servlet-name>
+  	<servlet-class>org.ecocean.servlet.IndividualSetAlternateID</servlet-class>
+  </servlet>
+  
+      <servlet>
+           <servlet-name>encounterSetAlternateID</servlet-name>
+    	<servlet-class>org.ecocean.servlet.EncounterSetAlternateID</servlet-class>
+    </servlet>
+    
+          <servlet>
+               <servlet-name>encounterSetInformOthers</servlet-name>
+        	<servlet-class>org.ecocean.servlet.EncounterSetInformOthers</servlet-class>
+    </servlet>
+
+
+  <servlet>
+       <servlet-name>imageSearch</servlet-name>
+	<servlet-class>org.ecocean.servlet.ImageSearch</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>scanAppletSupport</servlet-name>
+	<servlet-class>org.ecocean.servlet.ScanAppletSupport</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>scanResultsServlet</servlet-name>
+	<servlet-class>org.ecocean.servlet.ScanResultsServlet</servlet-class>
+  </servlet>
+  
+    <servlet>
+         <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
+  	<servlet-class>org.ecocean.servlet.EncounterSetSubmitterPhotographerContactInfo</servlet-class>
+  </servlet>
+  
+  
+<servlet>
+       <servlet-name>i3sScanResultsServlet</servlet-name>
+	<servlet-class>org.ecocean.servlet.I3sScanResultsServlet</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>interconnectSubmitSpots</servlet-name>
+	<servlet-class>org.ecocean.servlet.InterconnectSubmitSpots</servlet-class>
+  </servlet>
+
+
+  <servlet>
+       <servlet-name>keywordHandler</servlet-name>
+	<servlet-class>org.ecocean.servlet.KeywordHandler</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>IndividualAddFile</servlet-name>
+	<servlet-class>org.ecocean.servlet.IndividualAddFile</servlet-class>
+  </servlet>
+  
+    <servlet>
+         <servlet-name>EncounterApprove</servlet-name>
+  	<servlet-class>org.ecocean.servlet.EncounterApprove</servlet-class>
+  </servlet>
+  
+      <servlet>
+           <servlet-name>EncounterSetIdentifiable</servlet-name>
+    	<servlet-class>org.ecocean.servlet.EncounterSetIdentifiable</servlet-class>
+  </servlet>
+  
+        <servlet>
+             <servlet-name>EncounterSetAsUnidentifiable</servlet-name>
+      	<servlet-class>org.ecocean.servlet.EncounterSetAsUnidentifiable</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>dontTrack</servlet-name>
+	<servlet-class>org.ecocean.servlet.DontTrack</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>updateEmailAddress</servlet-name>
+	<servlet-class>org.ecocean.servlet.UpdateEmailAddress</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>trackIt</servlet-name>
+	<servlet-class>org.ecocean.servlet.TrackIt</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>mitFeed</servlet-name>
+	<servlet-class>org.ecocean.servlet.MitFeed</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>EncounterAddSpotFile</servlet-name>
+	<servlet-class>org.ecocean.servlet.EncounterAddSpotFile</servlet-class>
+  </servlet>
+  
+    <servlet>
+         <servlet-name>EncounterResetDate</servlet-name>
+  	<servlet-class>org.ecocean.servlet.EncounterResetDate</servlet-class>
+  </servlet>
+  
+
+    <servlet>
+         <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
+  	<servlet-class>org.ecocean.servlet.EncounterSetTapirLinkExposure</servlet-class>
+  </servlet>
+  
+      <servlet>
+           <servlet-name>EncounterSetLocation</servlet-name>
+    	<servlet-class>org.ecocean.servlet.EncounterSetLocation</servlet-class>
+  </servlet>
+  
+      <servlet>
+             <servlet-name>EncounterSetLocationID</servlet-name>
+      	<servlet-class>org.ecocean.servlet.EncounterSetLocationID</servlet-class>
+  </servlet>
+  
+      <servlet>
+           <servlet-name>IndividualAddComment</servlet-name>
+    	<servlet-class>org.ecocean.servlet.IndividualAddComment</servlet-class>
+  </servlet>
+  
+     <servlet>
+             <servlet-name>IndividualRemoveEncounter</servlet-name>
+      	<servlet-class>org.ecocean.servlet.IndividualRemoveEncounter</servlet-class>
+  </servlet>
+  
+  <servlet>
+               <servlet-name>IndividualCreate</servlet-name>
+        	<servlet-class>org.ecocean.servlet.IndividualCreate</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>updateConfig</servlet-name>
+	<servlet-class>org.ecocean.servlet.UpdateConfig</servlet-class>
+  </servlet>
+
+  
+  <servlet>
+         <servlet-name>IndividualAddEncounter</servlet-name>
+  	<servlet-class>org.ecocean.servlet.IndividualAddEncounter</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>trackerFeed</servlet-name>
+	<servlet-class>org.ecocean.servlet.TrackerFeed</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>ningalooRobustByMonths</servlet-name>
+	<servlet-class>org.ecocean.servlet.NingalooRobustByMonths</servlet-class>
+  </servlet>
+
+
+  <servlet>
+       <servlet-name>encounterRemoveImage</servlet-name>
+	<servlet-class>org.ecocean.servlet.EncounterRemoveImage</servlet-class>
+  </servlet>  
+
+
+  <servlet>
+       <servlet-name>ningalooPradel</servlet-name>
+	<servlet-class>org.ecocean.servlet.NingalooPradel</servlet-class>
+  </servlet> 
+  
+    <servlet>
+         <servlet-name>deleteAdoption</servlet-name>
+  	<servlet-class>org.ecocean.servlet.DeleteAdoption</servlet-class>
+  </servlet> 
+
+  <servlet>
+       <servlet-name>massSetLocationCodeFromLocationString</servlet-name>
+	<servlet-class>org.ecocean.servlet.MassSetLocationCodeFromLocationString</servlet-class>
+  </servlet> 
+  
+    <servlet>
+         <servlet-name>IndividualSetSex</servlet-name>
+  	<servlet-class>org.ecocean.servlet.IndividualSetSex</servlet-class>
+  </servlet> 
+  
+      <servlet>
+           <servlet-name>EncounterSetSex</servlet-name>
+    	<servlet-class>org.ecocean.servlet.EncounterSetSex</servlet-class>
+  </servlet> 
+  
+      <servlet>
+             <servlet-name>EncounterSetMaximumDepth</servlet-name>
+      	<servlet-class>org.ecocean.servlet.EncounterSetMaximumDepth</servlet-class>
+  </servlet> 
+  
+        <servlet>
+               <servlet-name>EncounterSetOccurrenceRemarks</servlet-name>
+        	<servlet-class>org.ecocean.servlet.EncounterSetOccurrenceRemarks</servlet-class>
+  </servlet> 
+  
+        <servlet>
+               <servlet-name>EncounterSetScarring</servlet-name>
+        	<servlet-class>org.ecocean.servlet.EncounterSetScarring</servlet-class>
+  </servlet> 
+  
+          <servlet>
+                 <servlet-name>EncounterRemoveSpots</servlet-name>
+          	<servlet-class>org.ecocean.servlet.EncounterRemoveSpots</servlet-class>
+  </servlet> 
+  
+        <servlet>
+             <servlet-name>EncounterSetGPS</servlet-name>
+      	<servlet-class>org.ecocean.servlet.EncounterSetGPS</servlet-class>
+  </servlet> 
+  
+          <servlet>
+               <servlet-name>EncounterDelete</servlet-name>
+        	<servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
+  </servlet> 
+  
+            <servlet>
+                 <servlet-name>EncounterAddComment</servlet-name>
+          	<servlet-class>org.ecocean.servlet.EncounterAddComment</servlet-class>
+  </servlet> 
+  
+        <servlet>
+             <servlet-name>EncounterSetSize</servlet-name>
+      	<servlet-class>org.ecocean.servlet.EncounterSetSize</servlet-class>
+  </servlet> 
+
+  <servlet>
+       <servlet-name>massSwapLocationCode</servlet-name>
+	<servlet-class>org.ecocean.servlet.MassSwapLocationCode</servlet-class>
+  </servlet> 
+  
+    <servlet>
+         <servlet-name>massSetInformOthers</servlet-name>
+  	<servlet-class>org.ecocean.servlet.MassSetInformOthers</servlet-class>
+  </servlet> 
+
+  <servlet>
+       <servlet-name>scanTaskHandler</servlet-name>
+	<servlet-class>org.ecocean.servlet.ScanTaskHandler</servlet-class>
+  </servlet> 
+
+  <servlet>
+       <servlet-name>IndividualRemoveDataFile</servlet-name>
+	<servlet-class>org.ecocean.servlet.IndividualRemoveDataFile</servlet-class>
+  </servlet>  
+  <servlet>
+       <servlet-name>encounterSetSubmitterID</servlet-name>
+	<servlet-class>org.ecocean.servlet.EncounterSetSubmitterID</servlet-class>
+  </servlet>  
+  <servlet>
+       <servlet-name>encounterSetMatchedBy</servlet-name>
+	<servlet-class>org.ecocean.servlet.EncounterSetMatchedBy</servlet-class>
+  </servlet>
+  
+    <servlet>
+         <servlet-name>EncounterSetLivingStatus</servlet-name>
+  	<servlet-class>org.ecocean.servlet.EncounterSetLivingStatus</servlet-class>
+  </servlet> 
+  
+<servlet>
+       <servlet-name>encounterAddImage</servlet-name>
+	<servlet-class>org.ecocean.servlet.EncounterAddImage</servlet-class>
+  </servlet>
+  <servlet>
+         <servlet-name>ningalooMultistate</servlet-name>
+  	<servlet-class>org.ecocean.servlet.NingalooMultistate</servlet-class>
+  </servlet>
+  <servlet>
+         <servlet-name>CalendarXMLServer2</servlet-name>
+  	<servlet-class>org.ecocean.servlet.CalendarXMLServer2</servlet-class>
+  </servlet>
+<servlet>
+       <servlet-name>matchAnalysis</servlet-name>
+	<servlet-class>org.ecocean.servlet.MatchAnalysis</servlet-class>
+  </servlet>
+
+
+  <servlet>
+       <servlet-name>resurrectDeletedEncounter</servlet-name>
+	<servlet-class>org.ecocean.servlet.ResurrectDeletedEncounter</servlet-class>
+  </servlet>
+  
+    <servlet>
+         <servlet-name>resurrectDeletedAdoption</servlet-name>
+  	<servlet-class>org.ecocean.servlet.ResurrectDeletedAdoption</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>scanWorkItemResultsHandler</servlet-name>
+	<servlet-class>org.ecocean.servlet.ScanWorkItemResultsHandler</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>gridHeartbeatReceiver</servlet-name>
+	<servlet-class>org.ecocean.servlet.GridHeartbeatReceiver</servlet-class>
+  </servlet>
+
+  <servlet>
+       <servlet-name>massExposeGBIF</servlet-name>
+	<servlet-class>org.ecocean.servlet.MassExposeGBIF</servlet-class>
+  </servlet>
+  
+    <servlet>
+         <servlet-name>TestServlet</servlet-name>
+  	<servlet-class>org.ecocean.servlet.TestServlet</servlet-class>
+  </servlet>
+
+  
+<servlet-mapping>
+<servlet-name>ImgSyncServlet0</servlet-name>
+<url-pattern>/ImgSyncServlet0</url-pattern>
+</servlet-mapping>
+
+
+<servlet-mapping>
+<servlet-name>ImgSyncServlet1</servlet-name>
+<url-pattern>/ImgSyncServlet1</url-pattern>
+</servlet-mapping>
+
+
+
+
+<servlet-mapping>
+       <servlet-name>interconnectSubmitSpots</servlet-name>
+       <url-pattern>/interconnectSubmitSpots</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+         <servlet-name>IndividualAddComment</servlet-name>
+         <url-pattern>/IndividualAddComment</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+           <servlet-name>IndividualCreate</servlet-name>
+           <url-pattern>/IndividualCreate</url-pattern>
+  </servlet-mapping>
+
+<servlet-mapping>
+       <servlet-name>scanTaskHandler</servlet-name>
+       <url-pattern>/scanTaskHandler</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+         <servlet-name>EncounterSetIdentifiable</servlet-name>
+         <url-pattern>/EncounterSetIdentifiable</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+           <servlet-name>EncounterResetDate</servlet-name>
+           <url-pattern>/EncounterResetDate</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+           <servlet-name>EncounterAddComment</servlet-name>
+           <url-pattern>/EncounterAddComment</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+           <servlet-name>EncounterSetAsUnidentifiable</servlet-name>
+           <url-pattern>/EncounterSetAsUnidentifiable</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+           <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
+           <url-pattern>/EncounterSetSubmitterPhotographerContactInfo</url-pattern>
+  </servlet-mapping>
+  
+  
+    <servlet-mapping>
+           <servlet-name>EncounterSetLocationID</servlet-name>
+           <url-pattern>/EncounterSetLocationID</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+             <servlet-name>EncounterRemoveSpots</servlet-name>
+             <url-pattern>/EncounterRemoveSpots</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+         <servlet-name>TestServlet</servlet-name>
+         <url-pattern>/TestServlet</url-pattern>
+  </servlet-mapping>
+
+<servlet-mapping>
+       <servlet-name>writeOutScanTask</servlet-name>
+       <url-pattern>/writeOutScanTask</url-pattern>
+  </servlet-mapping>
+
+<servlet-mapping>
+       <servlet-name>resurrectDeletedEncounter</servlet-name>
+       <url-pattern>/resurrectDeletedEncounter</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+         <servlet-name>resurrectDeletedAdoption</servlet-name>
+         <url-pattern>/resurrectDeletedAdoption</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+           <servlet-name>IndividualRemoveEncounter</servlet-name>
+           <url-pattern>/IndividualRemoveEncounter</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+             <servlet-name>IndividualAddEncounter</servlet-name>
+             <url-pattern>/IndividualAddEncounter</url-pattern>
+  </servlet-mapping>
+
+
+  <servlet-mapping>
+       <servlet-name>updateConfig</servlet-name>
+       <url-pattern>/updateConfig</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+         <servlet-name>EncounterSetSex</servlet-name>
+         <url-pattern>/EncounterSetSex</url-pattern>
+  </servlet-mapping>
+  
+     <servlet-mapping>
+           <servlet-name>EncounterSetGPS</servlet-name>
+           <url-pattern>/EncounterSetGPS</url-pattern>
+  </servlet-mapping>
+  
+     <servlet-mapping>
+             <servlet-name>EncounterSetMaximumDepth</servlet-name>
+             <url-pattern>/EncounterSetMaximumDepth</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+           <servlet-name>EncounterSetLocation</servlet-name>
+           <url-pattern>/EncounterSetLocation</url-pattern>
+  </servlet-mapping>
+
+   <servlet-mapping>
+         <servlet-name>EncounterSetSize</servlet-name>
+         <url-pattern>/EncounterSetSize</url-pattern>
+  </servlet-mapping>
+  
+     <servlet-mapping>
+           <servlet-name>EncounterDelete</servlet-name>
+           <url-pattern>/EncounterDelete</url-pattern>
+  </servlet-mapping>
+  
+     <servlet-mapping>
+           <servlet-name>EncounterSetScarring</servlet-name>
+           <url-pattern>/EncounterSetScarring</url-pattern>
+  </servlet-mapping>
+  
+    
+       <servlet-mapping>
+             <servlet-name>EncounterSetOccurrenceRemarks</servlet-name>
+             <url-pattern>/EncounterSetOccurrenceRemarks</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>massSetLocationCodeFromLocationString</servlet-name>
+       <url-pattern>/massSetLocationCodeFromLocationString</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>massSwapLocationCode</servlet-name>
+       <url-pattern>/massSwapLocationCode</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>massExposeGBIF</servlet-name>
+       <url-pattern>/massExposeGBIF</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+         <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
+         <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+           <servlet-name>EncounterApprove</servlet-name>
+           <url-pattern>/EncounterApprove</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+           <servlet-name>IndividualSetSex</servlet-name>
+           <url-pattern>/IndividualSetSex</url-pattern>
+  </servlet-mapping>
+  
+   <servlet-mapping>
+         <servlet-name>CalendarXMLServer2</servlet-name>
+         <url-pattern>/CalendarXMLServer2</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>dontTrack</servlet-name>
+       <url-pattern>/dontTrack</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+         <servlet-name>deleteAdoption</servlet-name>
+         <url-pattern>/deleteAdoption</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>mitFeed</servlet-name>
+       <url-pattern>/mitFeed</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>trackIt</servlet-name>
+       <url-pattern>/trackIt</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>imageSearch</servlet-name>
+       <url-pattern>/imageSearch</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>updateEmailAddress</servlet-name>
+       <url-pattern>/updateEmailAddress</url-pattern>
+  </servlet-mapping>
+
+
+
+  <servlet-mapping>
+       <servlet-name>matchAnalysis</servlet-name>
+       <url-pattern>/matchAnalysis</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>ningalooRobustByMonths</servlet-name>
+       <url-pattern>/ningalooRobustByMonths</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+         <servlet-name>ningalooMultistate</servlet-name>
+         <url-pattern>/ningalooMultistate</url-pattern>
+  </servlet-mapping>
+
+
+
+  <servlet-mapping>
+       <servlet-name>keywordHandler</servlet-name>
+       <url-pattern>/keywordHandler</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>IndividualSetNickName</servlet-name>
+       <url-pattern>/IndividualSetNickName</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+         <servlet-name>IndividualSetAlternateID</servlet-name>
+         <url-pattern>/IndividualSetAlternateID</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+           <servlet-name>massSetInformOthers</servlet-name>
+           <url-pattern>/massSetInformOthers</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+           <servlet-name>encounterSetAlternateID</servlet-name>
+           <url-pattern>/encounterSetAlternateID</url-pattern>
+  </servlet-mapping>
+  
+        <servlet-mapping>
+             <servlet-name>encounterSetInformOthers</servlet-name>
+             <url-pattern>/encounterSetInformOthers</url-pattern>
+  </servlet-mapping>
+
+
+<servlet-mapping>
+       <servlet-name>IndividualAddFile</servlet-name>
+       <url-pattern>/IndividualAddFile</url-pattern>
+  </servlet-mapping>
+
+<servlet-mapping>
+       <servlet-name>trackerFeed</servlet-name>
+       <url-pattern>/trackerFeed</url-pattern>
+  </servlet-mapping>
+
+<servlet-mapping>
+       <servlet-name>EncounterAddSpotFile</servlet-name>
+       <url-pattern>/EncounterAddSpotFile</url-pattern>
+  </servlet-mapping>
+
+<servlet-mapping>
+<servlet-name>ImgServlet</servlet-name>
+<url-pattern>/ImgServlet</url-pattern>
+</servlet-mapping>
+
+
+
+  <servlet-mapping>
+       <servlet-name>scanWorkItemResultsHandler</servlet-name>
+       <url-pattern>/scanWorkItemResultsHandler2</url-pattern>
+  </servlet-mapping>
+
+
+  <servlet-mapping>
+       <servlet-name>gridHeartbeatReceiver</servlet-name>
+       <url-pattern>/gridHeartbeatReceiver</url-pattern>
+  </servlet-mapping>
+
+
+  <servlet-mapping>
+       <servlet-name>ningalooPradel</servlet-name>
+       <url-pattern>/CJS</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+         <servlet-name>EncounterSetLivingStatus</servlet-name>
+         <url-pattern>/EncounterSetLivingStatus</url-pattern>
+  </servlet-mapping>
+  
+    
+
+  <servlet-mapping>
+       <servlet-name>scanAppletSupport</servlet-name>
+       <url-pattern>/scanAppletSupport</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>scanResultsServlet</servlet-name>
+       <url-pattern>/scanResultsServlet</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>i3sScanResultsServlet</servlet-name>
+       <url-pattern>/i3sScanResultsServlet</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>encounterAddImage</servlet-name>
+       <url-pattern>/encounterAddImage</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>encounterSetSubmitterID</servlet-name>
+       <url-pattern>/encounterSetSubmitterID</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>encounterSetMatchedBy</servlet-name>
+       <url-pattern>/encounterSetMatchedBy</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>encounterRemoveImage</servlet-name>
+       <url-pattern>/encounterRemoveImage</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+       <servlet-name>IndividualRemoveDataFile</servlet-name>
+       <url-pattern>/IndividualRemoveDataFile</url-pattern>
+  </servlet-mapping>
+
+  <!-- Action Servlet Mapping -->
+  <servlet-mapping>
+    <servlet-name>action</servlet-name>
+    <url-pattern>*.do</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>uploadAction</servlet-name>
+    <url-pattern>*.jh</url-pattern>
+  </servlet-mapping>
+
+<!-- Struts Tag Library Descriptors -->
+  <taglib>
+    <taglib-uri>/WEB-INF/struts-bean.tld</taglib-uri>
+    <taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
+  </taglib>
+
+  <taglib>
+    <taglib-uri>/WEB-INF/struts-html.tld</taglib-uri>
+    <taglib-location>/WEB-INF/struts-html.tld</taglib-location>
+  </taglib>
+
+  <taglib>
+    <taglib-uri>/WEB-INF/struts-logic.tld</taglib-uri>
+    <taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
+  </taglib>
+
+
+<taglib>
+		<taglib-uri>di</taglib-uri>
+		<taglib-location>/WEB-INF/lib/dilib.jar</taglib-location>
+  </taglib>
+
+<security-constraint>
+    <display-name>Tomcat Server Configuration Security Constraint</display-name>
+    <web-resource-collection>
+      <web-resource-name>Protected Area</web-resource-name>
+      <!-- Define the context-relative URL(s) to be protected -->
+      
+      <url-pattern>/welcome.jsp</url-pattern>
+	
+  
+    </web-resource-collection>
+    <auth-constraint>
+      <!-- Anyone with one of the listed roles may access this area -->
+      <role-name>admin</role-name>
+      <role-name>manager</role-name>
+	<role-name>researcher</role-name>
+	<role-name>reviewer</role-name>
+	<role-name>search</role-name>
+<role-name>local</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+
+  <security-constraint>
+    <display-name>Manager Security Constraint</display-name>
+    <web-resource-collection>
+      <web-resource-name>Protected Area</web-resource-name>
+      <!-- Define the context-relative URL(s) to be protected -->
+      
+      
+
+      <url-pattern>/encounters/searchExport</url-pattern>
+  
+    </web-resource-collection>
+    <auth-constraint>
+      <!-- Anyone with one of the listed roles may access this area -->
+      <role-name>manager</role-name>
+
+    </auth-constraint>
+  </security-constraint>
+
+
+
+  <security-constraint>
+    <display-name>Researcher Security Constraint</display-name>
+    <web-resource-collection>
+      <web-resource-name>Protected Area</web-resource-name>
+      <!-- Define the context-relative URL(s) to be protected -->
+
+<url-pattern>/appadmin/scanTaskAdmin.jsp</url-pattern>
+<url-pattern>/encounters/encounterSpotVisualizer.jsp</url-pattern>
+<url-pattern>/sharkSetAlternateID</url-pattern>
+<url-pattern>/encounterSetAlternateID</url-pattern>
+<url-pattern>/CJS</url-pattern>
+<url-pattern>/software.jsp</url-pattern>
+<url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>
+<url-pattern>/docs/*</url-pattern>
+<url-pattern>/xcalendar/*</url-pattern>
+
+  
+    </web-resource-collection>
+    <auth-constraint>
+      <!-- Anyone with one of the listed roles may access this area -->
+      <role-name>researcher</role-name>
+      <role-name>manager</role-name>
+	<role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+  
+  
+    <security-constraint>
+      <display-name>Image Processor Security Constraint</display-name>
+      <web-resource-collection>
+        <web-resource-name>Protected Area</web-resource-name>
+        <!-- Define the context-relative URL(s) to be protected -->  
+	  <url-pattern>/interconnectSubmitSpots</url-pattern>      
+      </web-resource-collection>
+      <auth-constraint>
+        <!-- Anyone with one of the listed roles may access this area -->
+        <role-name>imageProcessor</role-name>
+              <role-name>admin</role-name>
+      <role-name>manager</role-name>
+      </auth-constraint>
+  </security-constraint>
+  
+
+  <security-constraint>
+    <display-name>Search Security Constraint</display-name>
+    <web-resource-collection>
+      <web-resource-name>Protected Area</web-resource-name>
+      <!-- Define the context-relative URL(s) to be protected -->
+      
+		<url-pattern>/appadmin/kwSearch.jsp</url-pattern>
+<url-pattern>/appadmin/kwResults.jsp</url-pattern>
+<url-pattern>/individualSearch.jsp</url-pattern>
+<url-pattern>/individualSearchResults.jsp</url-pattern>
+<url-pattern>/encounters/thumbnailSearch.jsp</url-pattern>
+<url-pattern>/encounters/thumbnailSearchResults.jsp</url-pattern>
+<url-pattern>/googleSearch.jsp</url-pattern>
+<url-pattern>/googleSearchResults.jsp</url-pattern>
+
+
+  
+    </web-resource-collection>
+    <auth-constraint>
+      <!-- Anyone with one of the listed roles may access this area -->
+      <role-name>researcher</role-name>
+<role-name>search</role-name>
+	
+    </auth-constraint>
+  </security-constraint>
+
+  <security-constraint>
+    <display-name>ImageViewer Security Constraint</display-name>
+    <web-resource-collection>
+      <web-resource-name>Protected Area</web-resource-name>
+      <!-- Define the context-relative URL(s) to be protected -->
+
+<url-pattern>/encounters/imageViewer.jsp</url-pattern>
+
+  
+    </web-resource-collection>
+    <auth-constraint>
+      <!-- Anyone with one of the listed roles may access this area -->
+      <role-name>researcher</role-name>
+<role-name>search</role-name>
+<role-name>manager</role-name>
+	<role-name>local</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+
+
+
+  <security-constraint>
+    <display-name>ECOCEAN Reviewer Security Constraint</display-name>
+    <web-resource-collection>
+      <web-resource-name>Protected Area</web-resource-name>
+      <!-- Define the context-relative URL(s) to be protected -->
+      	<url-pattern>/reviews/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <!-- Anyone with one of the listed roles may access this area -->
+      <role-name>reviewer</role-name>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+  <security-constraint>
+    <display-name>ECOCEAN Admin Security Constraint</display-name>
+    <web-resource-collection>
+      <web-resource-name>Protected Area</web-resource-name>
+      <!-- Define the context-relative URL(s) to be protected -->
+      	<url-pattern>/appadmin/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <!-- Anyone with one of the listed roles may access this area -->
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+
+
+
+
+
+  <!-- Login configuration uses form-based authentication -->
+  <login-config>
+    <auth-method>FORM</auth-method>
+    <realm-name>Tomcat Server Configuration Form-Based Authentication Area</realm-name>
+    <form-login-config>
+      <form-login-page>/login.jsp</form-login-page>
+      <form-error-page>/error.jsp</form-error-page>
+    </form-login-config>
+  </login-config>
+
+    <!-- Security roles referenced by this web application -->
+    <security-role>
+      <role-name>manager</role-name>
+    </security-role>
+    <security-role>
+      <role-name>admin</role-name>
+    </security-role>
+    <security-role>
+      <role-name>researcher</role-name>
+    </security-role>
+    <security-role>
+      <role-name>reviewer</role-name>
+    </security-role>
+    <security-role>
+      <role-name>local</role-name>
+    </security-role>
+    <security-role>
+      <role-name>search</role-name>
+    </security-role>
+
+
+</web-app>
