@@ -1,0 +1,34 @@
+<project basedir="." default="package">
+  <property name="src.dir" value="src"/>
+  <property name="target.dir" value="target"/>
+  <property name="jar.name" value="shepherd"/>
+  <property name="lib.dir" value="temp_jars"/>
+  <path id="classpath">
+    <fileset dir="${lib.dir}" includes="**/*.jar"/>
+  </path>
+  <target name="clean">
+    <delete dir="${target.dir}"/>
+  </target>
+  <target name="compile">
+    <mkdir dir="${target.dir}/classes"/>
+    <javac srcdir="src" destdir="target/classes" classpathref="classpath">
+      <exclude name="org/ecocean/NNComparator.java"/>
+      <exclude name="org/ecocean/sharkGregorianCalendar.java"/>
+      <exclude name="org/ecocean/Sys.java"/>
+      <exclude name="org/ecocean/grid/grothAlgorithm.java"/>
+      <exclude name="org/ecocean/servlet/AddSpots.java"/>
+      <exclude name="org/ecocean/date/dateComparator.java"/>
+      <exclude name="org/ecocean/mahaRComparator.java"/>
+      <exclude name="org/ecocean/mahaSpotTriangle.java"/>
+    </javac>
+  </target>
+  <target name="jar" depends="compile">
+    <mkdir dir="target"/>
+    <jar destfile="target/shepherd-1.0.jar" basedir="target/classes">
+      <manifest>
+        <attribute name="Main-Class" value="foo"/>
+      </manifest>
+    </jar>
+  </target>
+  <target name="package" depends="jar"/>
+</project>
