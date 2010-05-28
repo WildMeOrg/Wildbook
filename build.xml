@@ -1,8 +1,9 @@
 <project basedir="." default="package">
   <property name="src.dir" value="src"/>
   <property name="target.dir" value="target"/>
-  <property name="jar.name" value="shepherd"/>
+  <property name="war.name" value="shepherd"/>
   <property name="lib.dir" value="temp_jars"/>
+  <property name="project.version" value="1.0"/>
   <path id="classpath">
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
   </path>
@@ -11,7 +12,7 @@
   </target>
   <target name="compile">
     <mkdir dir="${target.dir}/classes"/>
-    <javac srcdir="src" destdir="target/classes" classpathref="classpath">
+    <javac srcdir="src" destdir="target/classes" classpathref="classpath" debug="true">
       <exclude name="org/ecocean/NNComparator.java"/>
       <exclude name="org/ecocean/sharkGregorianCalendar.java"/>
       <exclude name="org/ecocean/Sys.java"/>
@@ -22,13 +23,19 @@
       <exclude name="org/ecocean/mahaSpotTriangle.java"/>
     </javac>
   </target>
-  <target name="jar" depends="compile">
-    <mkdir dir="target"/>
-    <jar destfile="target/shepherd-1.0.jar" basedir="target/classes">
-      <manifest>
-        <attribute name="Main-Class" value="foo"/>
-      </manifest>
-    </jar>
+  <target name="copy-bundles">
+    <copy todir="${target.dir}/classes/bundles">
+      <fileset dir="src/bundles"/>
+    </copy>
   </target>
-  <target name="package" depends="jar"/>
+  <target name="war" depends="compile,copy-bundles">
+    <mkdir dir="target"/>
+    <war destfile="target/${war.name}-${project.version}.war" webxml="webapps/ROOT/WEB-INF/web.xml">
+      <fileset dir="webapps/ROOT"/>
+      <fileset dir="src/jsp"/>
+      <lib dir="temp_jars"/>
+      <classes dir="target/classes"/>
+    </war>
+  </target>
+  <target name="package" depends="war"/>
 </project>
