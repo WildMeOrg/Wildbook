@@ -113,7 +113,7 @@
 	<tr>
 		<td colspan="5">
 		<h1><span class="intro"><img src="images/markedIndividualIcon.gif"
-			width="26" height="51" align="absmiddle" /></span> <%=see_all_sharks%></h1>
+			 align="absmiddle" /></span> <%=see_all_sharks%></h1>
 		</td>
 	</tr>
 	<tr>

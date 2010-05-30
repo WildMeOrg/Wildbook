@@ -156,7 +156,7 @@ try{
 %>
 
 <h1><strong><span class="para"><img
-	src="images/markedIndividualIcon.gif" width="26" height="51" align="absmiddle" /></span>
+	src="images/markedIndividualIcon.gif" align="absmiddle" /></span>
 <%=markedIndividualTypeCaps %></strong>: <%=sharky.getName()%></h1>
 <%if(request.isUserInRole("researcher")){%> <a name="alternateid"></a></a>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
@@ -556,15 +556,25 @@ catch(Exception eSharks_jsp){
 <div id="rightcol">
 <div id="menu">
 
+<%
+if(CommonConfiguration.areAdoptionsAllowed()){
+%>
 <div class="module">
 <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
 						<jsp:param name="name" value="<%=name%>" />
 				</jsp:include>
 </div>
+<%
+
+}
+%>
 
 </div>
 <!-- end menu --></div>
-<!-- end rightcol --> <%
+<!-- end rightcol --> 
+
+
+<%
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 	

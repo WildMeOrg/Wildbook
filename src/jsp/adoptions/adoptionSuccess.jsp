@@ -74,7 +74,7 @@ String langCode="en";
 		String thumbLocation="file-"+number+"/thumb.jpg";
 		addText="http://"+CommonConfiguration.getURLLocation()+"/"+CommonConfiguration.getAdoptionDirectory()+"/"+number+"/"+addText;
 
-			%> <di:img width="190" height="190" border="0" fillPaint="#ffffff"
+			%> <di:img width="190" height="190" border="0" fillPaint="#D7E0ED"
 	output="<%=thumbLocation%>" expAfter="0" threading="limited"
 	align="left" valign="left">
 	<di:image width="190" height="*" srcurl="<%=addText%>" />
@@ -90,7 +90,7 @@ Success</h1>
 us.</a></p>
 
 <p><a
-	href="http://<%=CommonConfiguration.getURLLocation()%>/<%=CommonConfiguration.getAdoptionDirectory()%> %>/adoption.jsp?number=<%=number%>">View
+	href="http://<%=CommonConfiguration.getURLLocation()%>/<%=CommonConfiguration.getAdoptionDirectory()%>/adoption.jsp?number=<%=number%>">View
 adoption #<%=number%></a>.</p>
 <p><a
 	href="http://<%=CommonConfiguration.getURLLocation()%>/individuals.jsp?number=<%=shark%>">View

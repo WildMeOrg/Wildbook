@@ -16,21 +16,14 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 	Properties props=new Properties();
 	String langCode="en";
 	
-	//check what language is requested
-	//if(request.getParameter("langCode")!=null){
 	if(session.getAttribute("langCode")!=null){
-		//if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
-		//if(request.getParameter("langCode").equals("de")) {langCode="de";}
-		//if(request.getParameter("langCode").equals("es")) {langCode="es";}
 		langCode=(String)session.getAttribute("langCode");
 	}
 	if(request.getParameter("langCode")!=null){
-	//if(session.getAttribute("langCode")!=null){
 		if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
 		if(request.getParameter("langCode").equals("de")) {langCode="de";}
 		if(request.getParameter("langCode").equals("es")) {langCode="es";}
 		if(request.getParameter("langCode").equals("en")) {langCode="en";}
-		//langCode=(String)session.getAttribute("langCode");
 	}
 	
 	//set up the file input stream
@@ -482,6 +475,9 @@ way to fit your requirements.
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Statistics</a></li>
 
+<%
+if(CommonConfiguration.areAdoptionsAllowed()){
+%>
 		<li class="drop"><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px; z-index: 100;"><strong>Adoptions</strong>
@@ -503,6 +499,8 @@ way to fit your requirements.
 			all adoptions</a></li>
 
 		</ul>
+		
+		<%} %>
 		<!--[if lte IE 6]></td></tr></table></a><![endif]--> <%}%>
 		
 	</ul>

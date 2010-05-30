@@ -980,7 +980,7 @@ previous results <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
 		<%
 			myShepherd.beginDBTransaction();
 		%>
-		<p><strong>Total encounters in the database</strong>: <%=(myShepherd.getNumEncounters()+(myShepherd.getNumRejectedEncounters()))%></p>
+		<p><strong>Total encounters in the database</strong>: <%=(myShepherd.getNumEncounters()+(myShepherd.getNumUnidentifiableEncounters()))%></p>
 		</td>
 		<%
 	  	myShepherd.rollbackDBTransaction();

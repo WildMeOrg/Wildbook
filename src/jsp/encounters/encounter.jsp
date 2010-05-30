@@ -466,7 +466,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top" class="para"><font
 					color="#990000"><img align="absmiddle"
-					src="../images/lilshark2.gif" /><br></br>
+					src="../images/markedIndividualIcon.gif" /><br></br>
 				<strong>Add to marked individual:</strong></font></td>
 			</tr>
 			<tr>
@@ -526,7 +526,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top" class="para"><font
 					color="#990000"><img align="absmiddle"
-					src="../images/lilshark2.gif" /> <strong>Create marked
+					src="../images/markedIndividualIcon.gif" /> <strong>Create marked
 				individual:</strong></font></td>
 			</tr>
 			<tr>
@@ -996,6 +996,30 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		</table>
 		</a><br> <%
 			}
+			
+			
+				//reset elevation
+		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("elevation"))){
+		%> <a name="elevation">
+		<table width="150" border="1" cellpadding="1" cellspacing="0"
+			bordercolor="#000000" bgcolor="#CCCCCC">
+			<tr>
+				<td align="left" valign="top" class="para"><strong><font
+					color="#990000">Reset elevation:</font></strong></td>
+			</tr>
+			<tr>
+				<td align="left" valign="top">
+				<form name="setencdepth" action="/EncounterSetMaximumElevation" method="post">
+						<input name="elevation" type="text" id="elevation" size="10"> Meters <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters"> 
+						<input name="number" type="hidden" value="<%=num%>" id="number"> 
+						<input name="action" type="hidden" value="setEncounterElevation"> 
+						<input name="AddDepth" type="submit" id="AddDepth" value="Set Elevation">
+					</form>
+				</td>
+			</tr>
+		</table>
+		</a><br> <%
+			}
 
 		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("user"))){
 		%> <a name="user">
@@ -1439,31 +1463,77 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			  %>
 				
 				</p>
-				<p class="para"><strong>Reported size</strong>: <%
-      	if(enc.getSize()>0) {
-      %><%=enc.getSize()%> <%=enc.getMeasureUnits()%>
+				
+				<!-- Display size so long as show_size is not false in commonCnfiguration.properties-->
 				<%
- 	} else {
- %>Unknown<%
- 	}
- %> <br> (<em>Method: <%=enc.getSizeGuess()%></em>) <%
- 	if(isOwner) {
- %><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
-				<%
- 	}
+				if(CommonConfiguration.showProperty("size")){
+				%>
+					<p class="para"><strong>Reported size</strong>: <%
+      				if(enc.getSize()>0) {%>
+						<%=enc.getSize()%> <%=enc.getMeasureUnits()%>
+					<%
+ 					} else {
+ 					%>Unknown<%
+ 					}
+					 %> <br> (<em>Method: <%=enc.getSizeGuess()%></em>) <%
+ 					if(isOwner) {%>
+						<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
+					<%
+ 					}
+				}
  %>
-				<p class="para"><strong>Water depth</strong>: <%
+		
+		<!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
+		<%
+		if(CommonConfiguration.showProperty("maximumDepthInMeters")){
+		%>
+		<p class="para"><strong>Water depth</strong>: 
+		<%
             	if(enc.getDepth()>=0) {
             %> <%=enc.getDepth()%> <%=enc.getMeasureUnits()%> <%
  	  			} else {
  	  		%> Unknown<%
- 	  			} if(isOwner) {
+ 	  			} 
+				if(isOwner) {
  	  		%><font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=depth#depth">edit</a>]</font>
 				<%
  	  			}
  	  		%>
+		</p>
+		<%
+		}
+		%>	
+		<!-- End Display maximumDepthInMeters -->
+		
+		<!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
+		<%
+		if(CommonConfiguration.showProperty("maximumElevationInMeters")){
+		%>
+		<p class="para"><strong>Elevation</strong>: 
+		<%
+           if(enc.getMaximumElevationInMeters()!=null) {
+     	%> 
+			<%=enc.getMaximumElevationInMeters()%> meters
+		<%
+ 	  		} else {
+ 	  	%> Unknown<%
+ 	  		} 
+		
+		<%
+ 	  	} 
+		if(isOwner) {
+ 	  		%><font size="-1">[<a
+					href="encounter.jsp?number=<%=num%>&edit=elevation#elevation">edit</a>]</font>
+				<%
+ 	  	}
+ 	  		%>
+		</p>
+		<%
+		}
+		%>	
+		<!-- End Display maximumElevationInMeters -->
+			
 				<p class="para"><strong>Sex</strong>: <%=enc.getSex()%> <%
  	if(isOwner) {
  %><font size="-1">[<a
@@ -1560,8 +1630,11 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  
 		 if (isOwner) {
 %>
-
-
+	<!-- Display spot patterning so long as show_spotpatterning is not false in commonCOnfiguration.properties-->
+		<%
+		if(CommonConfiguration.showProperty("spotpatterning")){
+		%>
+			
 				<p class="para"><strong>Ready to scan</strong> <a
 					href="<%=CommonConfiguration.getWikiLocation()%>processing_a_new_encounter"
 					target="_blank"><img src="../images/information_icon_svg.gif"
@@ -1578,14 +1651,14 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  	   }
  	   		
  	  }
- %> <%=ready%> <%
-	 	if((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) {
-	 %> <br><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=rmSpots#rmSpots">remove
-				left or right spots</a>]</font> <%
-	  			}
+ 		%> 
+		<%=ready%> 
+		<% 
+		if((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) { %> 
+			<br><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=rmSpots#rmSpots">remove left or right spots</a>]</font> <%
+	  	}
 
-	  			  		if(((new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml")).exists())&&(enc.getNumSpots()>0)) {
+	  	if(((new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml")).exists())&&(enc.getNumSpots()>0)) {
 	  		%> <br><br><a
 					href="scanEndApplet.jsp?writeThis=true&number=<%=num%>">Groth:
 				Left-side scan results</a> <%
@@ -1605,9 +1678,12 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					href="i3sScanEndApplet.jsp?writeThis=true&number=<%=num%>&rightSide=true&I3S=true">I3S:
 				Right-side scan results</a> <%
 	  			}
-	  			  } //end if-manager
+	  		} //end if-owner
+		} //end if show spots
 	  		%>
-				
+		<!-- End Display spot patterning so long as show_spotpatterning is not false in commonConfiguration.properties-->
+		
+		
 				</td>
 				<td align="left" valign="top">
 				<p class="para"><strong>Images</strong><br> <%
@@ -2001,14 +2077,18 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				
 				</p>
 				
-		
+		<%
+		if(CommonConfiguration.areAdoptionsAllowed()){
+		%>
 				<div class="module">
 					<jsp:include page="encounterAdoptionEmbed.jsp" flush="true">
 						<jsp:param name="num" value="<%=num%>" />
 				</jsp:include>
 				</div>
 				
-
+		<%
+		}
+		%>
 				
 				
 				</td>

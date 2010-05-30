@@ -23,7 +23,7 @@ Shepherd myShepherd=new Shepherd();
 
 <body bgcolor="#FFFFFF" link="#990000">
 <div id="wrapper">
-<div id="page"><jsp:include page="../header.jsp" flush="true">
+<div id="page"><jsp:include page="header.jsp" flush="true">
 	<jsp:param name="isResearcher"
 		value="<%=request.isUserInRole("researcher")%>" />
 	<jsp:param name="isManager"
@@ -122,7 +122,7 @@ assigned. The more keywords used, the smaller the subset returned.</p>
 } catch(Exception e) {e.printStackTrace();}
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-%> <jsp:include page="../footer.jsp" flush="true" /></div>
+%> <jsp:include page="footer.jsp" flush="true" /></div>
 </div>
 <!-- end page --></div>
 <!--end wrapper -->

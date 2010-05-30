@@ -265,8 +265,8 @@ div.module h3 {
 	font-weight: bold;
 	margin: 0px 0px 4px 0px;
 	padding: 2px 0px 2px 3px;
-	background: #09F;
-	color: #fff;
+	background: #D7E0ED;
+	color: #282460;
 	clear: both;
 }
 
@@ -277,8 +277,8 @@ div.module h3 {
 	font-weight: bold;
 	margin: 0px 0px 4px 0px;
 	padding: 2px 0px 2px 3px;
-	background: #09F;
-	color: #fff;
+	background: #D7E0ED;
+	color: #282460;
 	text-indent: 4px;
 	clear: both;
 }
@@ -880,7 +880,7 @@ html>body a.sublevel:hover,a.sublevel#active_menu {
 }
 
 #reportit {
-	background-color: #F30;
+	background-color: #D2435A;
 	margin: 0px;
 	padding: 0px;
 }

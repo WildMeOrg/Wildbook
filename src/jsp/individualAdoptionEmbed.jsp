@@ -8,36 +8,76 @@ String name=request.getParameter("name");
 try{
 %>
 
-				
-		
-<h3>Adopters</h3>
+<style type="text/css">
+<!--
+.style1 {font-weight: bold}
+
+
+table.adopter {
+	border-width: 0px 0px 0px 0px;
+	border-spacing: 0px;
+	border-style: solid solid solid solid;
+	border-color: black black black black;
+	border-collapse: separate;
+	
+}
+
+table.adopter td {
+	border-width: 1px 1px 1px 1px;
+	padding: 3px 3px 3px 3px;
+	border-style: none none none none;
+	border-color: gray gray gray gray;
+	background-color: #D7E0ED;
+	-moz-border-radius: 0px 0px 0px 0px;
+	font-size: 12px;
+	color: #330099;
+}
+
+table.adopter td.name {
+	font-size: 12px;
+	text-align:center;
+	background-color: #D7E0ED;
+	
+}
+
+table.adopter td.image {
+	padding: 0px 0px 0px 0px;
+	
+}
+.style2 {
+	font-size: x-small;
+	color: #000000;
+}
+
+-->
+</style>
+
+<table class="adopter" bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
+
 
 <%
 			 ArrayList adoptions = adoptShepherd.getAllAdoptionsForMarkedIndividual(name);
 			 int numAdoptions = adoptions.size();
-
-			 for(int ia=0;ia<numAdoptions;ia++){
+			int ia=0;
+			 for(ia=0;ia<numAdoptions;ia++){
 			 	Adoption ad = (Adoption)adoptions.get(ia);
 				%>
-<table class="adopter">
+<tr><td class="image"><img border="0" src="images/meet-adopter-frame.gif" /></td></tr>
+			
 
 	<tr>
-		<td class="image" style="padding-top: 1px;">
-		<center><img width="186px" height="186px"
+		<td class="image" style="padding-top: 0px;">
+		<center><img width="188px" height="188px"
 			src="adoptions/<%=ad.getID()%>/thumb.jpg" /></center>
 		</td>
 	</tr>
 
 
+<tr><td class="name">
+			 	<center><strong><font color="#282460" size="+1"><%=ad.getAdopterName()%></font></strong></center>
+</td></tr>
 	<tr>
-		<td class="name">
-		<table>
-			<tr>
-				<td><img src="images/adoption.gif" align="absmiddle" />
-				<td><strong><%=ad.getAdopterName()%></strong></td>
-			</tr>
-		</table>
-		</td>
+		<td>&nbsp;</td>
 	</tr>
 	<%
 			if((ad.getAdopterQuote()!=null)&&(!ad.getAdopterQuote().equals(""))){
@@ -84,31 +124,24 @@ try{
 	<%
 			 }
 			 %>
-</table>
-<p>&nbsp;</p>
+			  <tr><td>&nbsp;</td></tr>
+			
 <%
 			 }
 			 
-			 //add adoption
-			 if(request.isUserInRole("adoption")){
-			 %>
-<p><a
-	href="http://<%=CommonConfiguration.getURLLocation()%>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp?individual=<%=request.getParameter("individual")%>#create">[+]
-Add adoption</a></p>
-<%
-			 }
-			 %>
+			 if(ia>0){
+%>
 
-<table class="adopter" cellpadding="2">
-	<tr>
-		<td><img src="images/adoption.gif" align="left" /> <em><a
-			href="adoptashark.jsp?individual=<%=request.getParameter("number")%>">This
-		animal is available for adoption! <br><br>Click here to
-		learn how to support our research through adoption!
-		</a></em></td>
-	</tr>
+	  
+<tr><td class="image"><img border="0" src="images/adopter-frame-bottom.gif" /></td></tr>
+			 
+<%
+			} 
+%>
 </table>
-				
+<p>&nbsp;</p>
+
+			
 				
 				
 <%
