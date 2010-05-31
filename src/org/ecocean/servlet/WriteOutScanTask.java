@@ -921,7 +921,8 @@ public boolean writeBoostedResult(String encNumber,MatchObject[] swirs, String n
 			int resultsSize=swirs.length;
 			MatchObject[] matches=swirs;
 
-			Arrays.sort(matches, new BoostComparator(encNumber, myShepherd, props));
+			// TODO: fix!
+			//Arrays.sort(matches, new BoostComparator(encNumber, myShepherd, props));
 			StringBuffer resultsXML=new StringBuffer();
 			Document document = DocumentHelper.createDocument();
 			Element root = document.addElement( "matchSet" );
