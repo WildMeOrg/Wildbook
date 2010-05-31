@@ -87,11 +87,11 @@ public class WriteOutScanTask extends HttpServlet {
     				successfulI3SWrite=i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5);
         		
     				//write out the boosted results
-    				if(request.getParameter("boost")!=null){
-    				    Properties props = new Properties();
-    				    props = generateBoostedResults(res, encNumber, myShepherd);
-    				    successfulWrite=writeBoostedResult(encNumber, res, encNumber, newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd, props);
-    				}
+    				//if(request.getParameter("boost")!=null){
+    				//    Properties props = new Properties();
+    				//    props = generateBoostedResults(res, encNumber, myShepherd);
+    				//    successfulWrite=writeBoostedResult(encNumber, res, encNumber, newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd, props);
+    				//}
     		
 
         	
@@ -551,10 +551,10 @@ public class WriteOutScanTask extends HttpServlet {
 					
 					//let's calculate our boosted scores and write them out
 					
-					try{
-						double[] boostedResults=Predict.predict(predictInput);
-						double matchPrediction = boostedResults[0];
-						double notPrediction = boostedResults[1];
+					//try{
+					//	double[] boostedResults=Predict.predict(predictInput);
+					//	double matchPrediction = boostedResults[0];
+					//	double notPrediction = boostedResults[1];
 						
 						/*
 						Label label21 = new Label(21, i, Double.toString(matchPrediction)); 
@@ -564,10 +564,10 @@ public class WriteOutScanTask extends HttpServlet {
 							sheet.addCell(label22);
 						}
 						*/
-					}
-					catch(Exception boost_e){
-						boost_e.printStackTrace();
-					}
+				//	}
+				//	catch(Exception boost_e){
+				//		boost_e.printStackTrace();
+				//	}
 					
 
 					
@@ -1014,7 +1014,8 @@ public boolean writeBoostedResult(String encNumber,MatchObject[] swirs, String n
 		}
 	} //end writeResult method
     
-    private Properties generateBoostedResults(MatchObject[] results, String encNumber, Shepherd myShepherd){
+    /**
+     * private Properties generateBoostedResults(MatchObject[] results, String encNumber, Shepherd myShepherd){
     	Properties props = new Properties();
     	int size=results.length;
     	for(int i=0;i<size;i++){
@@ -1080,6 +1081,6 @@ public boolean writeBoostedResult(String encNumber,MatchObject[] swirs, String n
     	
     	return props;
     	
-    }
+    }*/
 
 }

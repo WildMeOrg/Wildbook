@@ -13,14 +13,7 @@
   <target name="compile">
     <mkdir dir="${target.dir}/classes"/>
     <javac srcdir="src" destdir="target/classes" classpathref="classpath" debug="true">
-      <exclude name="org/ecocean/NNComparator.java"/>
-      <exclude name="org/ecocean/sharkGregorianCalendar.java"/>
-      <exclude name="org/ecocean/Sys.java"/>
-      <exclude name="org/ecocean/grid/grothAlgorithm.java"/>
-      <exclude name="org/ecocean/servlet/AddSpots.java"/>
-      <exclude name="org/ecocean/date/dateComparator.java"/>
-      <exclude name="org/ecocean/mahaRComparator.java"/>
-      <exclude name="org/ecocean/mahaSpotTriangle.java"/>
+
     </javac>
   </target>
   <target name="copy-bundles">
