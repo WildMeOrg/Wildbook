@@ -45,7 +45,7 @@ public class Shepherd {
 	/**Constructor to create a new shepherd thread object*/
 	public Shepherd() {
 		if(pm == null || pm.isClosed()) {
-				pmf=ShepherdPMF.getPMF(CommonConfiguration.getDBLocation());
+				pmf=ShepherdPMF.getPMF();
 				try{
 					pm=pmf.getPersistenceManager();	
 				}
