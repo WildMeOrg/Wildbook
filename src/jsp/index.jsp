@@ -187,68 +187,6 @@ with you questions.</a></p>
 
 
 
- <div class="module">
-				
-				
-<%
-Adoption ad=myShepherd.getRandomAdoption();
-if(ad!=null){
-%>
-<table class="adopter" bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
-<tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="images/meet-adopter-frame.gif" /></a></td></tr>
-			 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="adoptions/<%=ad.getID()%>/thumb.jpg" /></a></td></tr>
-			 
-			 <tr><td class="name">
-			 	<center><strong><font color="#282460" size="+1"><%=ad.getAdopterName()%></font></strong></center>
-			 </td></tr>
-		<tr><td>&nbsp;</td></tr>
-		<tr><td><table cellpadding="1" border="0"><tr>
-		  <td>Adopted animal: 
-		
-		    <%
-		if((ad.getMarkedIndividual()!=null)&&(!ad.getMarkedIndividual().equals(""))) {
-		%>
-		<a href="individuals.jsp?number=<%=ad.getMarkedIndividual()%>"><%=ad.getMarkedIndividual()%></a>
-		<%
-		}
-		else if((ad.getEncounter()!=null)&&(!ad.getEncounter().equals(""))) {
-		%>
-		<a href="encounters/encounter.jsp?number=<%=ad.getEncounter()%>"><%=ad.getEncounter()%></a>
-		<%
-		}
-		%>
-		
-		</td></tr></table></td></tr>
-		<tr><td>&nbsp;</td></tr>
-		
-		<%
-			if((ad.getAdopterQuote()!=null)&&(!ad.getAdopterQuote().equals(""))){
-		%>
-		
-			 <tr><td><table cellpadding="1" border="0"><tr>
-			   <td>Why are research and conservation important for this species?</td>
-			 </tr></table></td></tr>
-			 <tr><td><table cellpadding="1" border="0"><tr><td><em>"<%=ad.getAdopterQuote()%>"</em></td></tr></table></td></tr>
-			 <tr><td>&nbsp;</td></tr>
-			
-			 
-			 <%
-			 }
-			 %>
-			
-			 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="images/meet-adopter-frame-bottom.gif" /></a></td></tr>
-			 
-			 
-			 </tr>
-
-		  </table>
-<%
-}
-%>
-
-
-</div>
-
 
  <div class="module">
 		 	<h3>Find Record</h3>
