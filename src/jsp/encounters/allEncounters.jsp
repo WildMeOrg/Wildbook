@@ -4,7 +4,7 @@
 
 <%
 
-//setup our Properties object to hold all properties
+//setup our Properties object
 	Properties props=new Properties();
 	String langCode="en";
 	
