@@ -466,7 +466,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top" class="para"><font
 					color="#990000"><img align="absmiddle"
-					src="../images/lilshark2.gif" /><br></br>
+					src="../images/markedindividual_small.gif" /><br></br>
 				<strong>Add to marked individual:</strong></font></td>
 			</tr>
 			<tr>
@@ -526,7 +526,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top" class="para"><font
 					color="#990000"><img align="absmiddle"
-					src="../images/lilshark2.gif" /> <strong>Create marked
+					src="../images/markedindividual_small.gif" /> <strong>Create marked
 				individual:</strong></font></td>
 			</tr>
 			<tr>

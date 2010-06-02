@@ -233,16 +233,16 @@ new look at whale shark motion</a>. <br />
 
 
 <p><span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img
-	src="images/lilshark2.gif" width="13" align="absmiddle" />25000+
+	src="images/markedindividual_small.gif" width="13" align="absmiddle" />25000+
 photos collected<br />
-<strong><img src="images/lilshark2.gif" width="13"
+<strong><img src="images/markedindividual_small.gif" width="13"
 	align="absmiddle" />9600+ whale shark reports</strong><br />
 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img
-	src="images/lilshark2.gif" width="13" align="absmiddle" />2100+ data
+	src="images/markedindividual_small.gif" width="13" align="absmiddle" />2100+ data
 contributors</strong></strong></span><br />
-<strong><img src="images/lilshark2.gif" width="13"
+<strong><img src="images/markedindividual_small.gif" width="13"
 	align="absmiddle" />2000+ whale sharks collaboratively tagged</strong><br />
-<strong><img src="images/lilshark2.gif" width="13"
+<strong><img src="images/markedindividual_small.gif" width="13"
 	align="absmiddle" />365 research days/year</strong><br />
 
 <p align="center"><strong><a href="adoptashark.jsp">Please
