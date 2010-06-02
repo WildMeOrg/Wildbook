@@ -1062,6 +1062,24 @@ public class Shepherd {
       }
     }
     
+    public int getNumUnidentifiableEncounters() {
+      Extent encClass=pm.getExtent(Encounter.class, true);
+      String filter="this.unidentifiable";
+      Query acceptedEncounters=pm.newQuery(encClass, filter);
+      try{
+        Collection c=(Collection)(acceptedEncounters.execute());
+        int num=c.size();
+        acceptedEncounters.closeAll();
+        acceptedEncounters=null;
+        return num;
+      }
+      catch(javax.jdo.JDOException x ) {
+        x.printStackTrace();
+        acceptedEncounters.closeAll();
+        return 0;
+      }
+    }
+    
     public Vector getUnidentifiableEncountersForMarkedIndividual(String individual) {
       Extent encClass=pm.getExtent(Encounter.class, true);
       String filter="this.unidentifiable && this.individualID == "+individual;
