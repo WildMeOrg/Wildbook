@@ -4,60 +4,10 @@
     "http://java.sun.com/dtd/jdo_2_0.dtd">
 <jdo>
     <package name="org.ecocean.grid">
-        <class
-              name="encounterLite">
-            <field
-                  name="spotsX"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="spotsY"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="rightSpotsX"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="rightSpotsY"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="leftReferenceSpotsX"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="leftReferenceSpotsY"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="rightReferenceSpotsX"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="rightReferenceSpotsY"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="size"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="sex"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="encounterNumber"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="belongsToMarkedIndividual"
-                  persistence-modifier="persistent"/>
-            <field
-                  name="date"
-                  persistence-modifier="persistent"/>
-        </class>
-        
-        <class name="scanWorkItem" identity-type="application">
-        	<field name="uniqueNum" primary-key="true">
-        	<column length="100"/>
-        	</field>
-            	<field name="props" persistence-modifier="persistent">
-                		<map key-type="java.lang.String" value-type="java.lang.String"/>
-            	</field>
-            		<field name="createTime" persistence-modifier="persistent"/>
-		</class>
-		
-        <class name="scanTask" identity-type="application">
+   
+
+
+        <class name="ScanTask" identity-type="application">
         	<field name="uniqueNum" primary-key="true">
         	<column length="100"/>
         	</field>
@@ -74,13 +24,14 @@
                 <join/>
             </field>
             <field name="workItems" persistence-modifier="transactional">
-                <collection element-type="org.ecocean.grid.scanWorkItem"/>
+                <collection element-type="org.ecocean.grid.ScanWorkItem"/>
                 <join/>
             </field>
-            <field name="workResults" persistence-modifier="transactional">
-                <collection element-type="org.ecocean.grid.scanWorkItemResult"/>
-                <join/>
+                        <field name="workResults" persistence-modifier="transactional">
+	                    <collection element-type="org.ecocean.grid.ScanWorkItemResult"/>
+	                    <join/>
             </field>
+		<fetch-group name="count"/>
             
             
         </class>
