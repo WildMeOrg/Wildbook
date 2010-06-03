@@ -265,10 +265,7 @@ way to fit your requirements.
 			href="http://<%=CommonConfiguration.getURLLocation() %>/index.jsp?langCode=<%=langCode%>"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Introduction</a></li>
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/video.jsp?langCode=<%=langCode%>"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Videos</a></li>
+		
 		<li><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/photographing.jsp?langCode=<%=langCode%>"
 			class="enclose"
