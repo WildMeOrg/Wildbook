@@ -266,11 +266,7 @@ way to fit your requirements.
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Introduction</a></li>
 
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/publications.jsp?langCode=<%=langCode%>"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Publications</a></li>
-	</ul>
+		</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 	<li class="drop"><a
 		href="http://<%=CommonConfiguration.getURLLocation() %>/submit.jsp?langCode=<%=langCode%>"
@@ -283,18 +279,6 @@ way to fit your requirements.
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Report
 		an Encounter</a></li>
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/wiki/doku.php?id=how_to_join_sharkgrid"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Join
-		sharkGrid</a></li>
-		<li><a href="http://forum.ecocean.org" class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Discuss</a></li>
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/adoptashark.jsp"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Adopt
-		a Shark</a></li>
 
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
@@ -308,22 +292,6 @@ way to fit your requirements.
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">View
 		All Sharks</a></li>
-		<% if((request.getParameter("isAdmin")!=null)&&(request.getParameter("isAdmin").equals("true"))) {%>
-		<li class="drop"><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/cjsSearch.jsp?langCode=<%=langCode%>"
-			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px; z-index: 100;"><strong>Mark-recapture</strong>
-		<img
-			src="http://<%=CommonConfiguration.getURLLocation() %>/images/white_triangle.gif"
-			border="0" align="absmiddle"><!--[if IE 7]><!--></a><!--<![endif]-->
-		<!--[if lte IE 6]><table><tr><td><![endif]-->
-		<ul>
-			<li><a
-				href="http://<%=CommonConfiguration.getURLLocation() %>/cjsSearch.jsp?langCode=<%=langCode%>"
-				class="enclose"
-				style="margin: 0px 0 0px 20px; position: relative; width: 120px; height: 25px;">CJS
-			output</a></li>
-		</ul>
-		<!--[if lte IE 6]></td></tr></table></a><![endif]--> <%}%>
 		
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
@@ -457,16 +425,7 @@ way to fit your requirements.
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Photo
 		Keywords</a></li>
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/reviews/index.jsp?langCode=<%=langCode%>"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Prototype
-		Materials</a></li>
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/stats.jsp?langCode=<%=langCode%>"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Statistics</a></li>
-
+	
 
 		<li class="drop"><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp"
@@ -496,10 +455,7 @@ way to fit your requirements.
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 
-	<li><a
-		href="http://<%=CommonConfiguration.getURLLocation() %>/contactus.jsp"
-		style="margin: 0px 0 0px 0px; position: relative; width: 90px; height: 25px; z-index: 100;"><strong>Contact
-	Us</strong></a></li>
+
 	<%if(request.getRemoteUser()==null) {%>
 	<li><a
 		href="http://<%=CommonConfiguration.getURLLocation() %>/welcome.jsp?langCode=<%=langCode%>"
