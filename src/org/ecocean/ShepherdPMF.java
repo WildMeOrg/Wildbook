@@ -11,7 +11,7 @@ public class ShepherdPMF {
 	
 private static PersistenceManagerFactory pmf;
 	
-	public synchronized static PersistenceManagerFactory getPMF(String dbLocation) {
+	public synchronized static PersistenceManagerFactory getPMF() {
 	//public static PersistenceManagerFactory getPMF(String dbLocation) {
 		try{
 			if (pmf==null) {
@@ -20,17 +20,6 @@ private static PersistenceManagerFactory pmf;
 				
 				
 				dnProperties.setProperty("datanucleus.PersistenceManagerFactoryClass","org.datanucleus.PersistenceManagerFactoryImpl");
-				
-				/*
-				dnProperties.setProperty("datanucleus.ConnectionDriverName",CommonConfiguration.getConnectionDriverName());
-				dnProperties.setProperty("datanucleus.ConnectionURL",CommonConfiguration.getConnectionURL());
-				dnProperties.setProperty("datanucleus.ConnectionUserName",CommonConfiguration.getConnectionUserName());
-				dnProperties.setProperty("datanucleus.ConnectionPassword",CommonConfiguration.getConnectionPassword());
-				dnProperties.setProperty("datanucleus.NontransactionalRead","true");
-				dnProperties.setProperty("datanucleus.Multithreaded","true");
-				dnProperties.setProperty("datanucleus.RestoreValues","true");
-				dnProperties.setProperty("datanucleus.storeManagerType","rdbms");
-				*/
 				
 				//class setup
 				Properties props=new Properties();

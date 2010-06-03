@@ -4,6 +4,10 @@
   <property name="war.name" value="shepherd"/>
   <property name="lib.dir" value="temp_jars"/>
   <property name="project.version" value="1.0"/>
+
+<property name="jdo.file.dir" value="${target.dir}/classes"/>
+
+
   <path id="classpath">
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
   </path>
@@ -21,7 +25,30 @@
       <fileset dir="src/bundles"/>
     </copy>
   </target>
-  <target name="war" depends="compile,copy-bundles">
+
+  <target name="copy-org.ecocean-JDO">
+    <copy todir="${target.dir}/classes/org/ecocean">
+      <fileset file="src/org/ecocean/package.jdo"/>
+    </copy>
+  </target>
+
+  <target name="copy-org.ecocean.grid-JDO">
+    <copy todir="${target.dir}/classes/org/ecocean/grid">
+      <fileset file="src/org/ecocean/grid/package.jdo"/>
+    </copy>
+  </target>
+
+<target name="enhance" description="DataNucleus enhancement">
+    <taskdef name="datanucleusenhancer" classpathref="enhancer.classpath" 
+                classname="org.datanucleus.enhancer.tools.EnhancerTask" />
+
+    <datanucleusenhancer classpathref="enhancer.classpath"
+        dir="${jdo.file.dir}" failonerror="true" verbose="true">
+    </datanucleusenhancer>
+</target>
+
+
+  <target name="war" depends="compile,copy-bundles,copy-org.ecocean-JDO,copy-org.ecocean.grid-JDO">
     <mkdir dir="target"/>
     <war destfile="target/${war.name}-${project.version}.war" webxml="webapps/ROOT/WEB-INF/web.xml">
       <fileset dir="webapps/ROOT"/>

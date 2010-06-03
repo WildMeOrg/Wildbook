@@ -45,7 +45,7 @@ public class Shepherd {
 	/**Constructor to create a new shepherd thread object*/
 	public Shepherd() {
 		if(pm == null || pm.isClosed()) {
-				pmf=ShepherdPMF.getPMF(CommonConfiguration.getDBLocation());
+				pmf=ShepherdPMF.getPMF();
 				try{
 					pm=pmf.getPersistenceManager();	
 				}
@@ -1047,6 +1047,24 @@ public class Shepherd {
     public int getNumUnidentifiableEncountersForMarkedIndividual(String individual) {
       Extent encClass=pm.getExtent(Encounter.class, true);
       String filter="this.unidentifiable && this.individualID == "+individual;
+      Query acceptedEncounters=pm.newQuery(encClass, filter);
+      try{
+        Collection c=(Collection)(acceptedEncounters.execute());
+        int num=c.size();
+        acceptedEncounters.closeAll();
+        acceptedEncounters=null;
+        return num;
+      }
+      catch(javax.jdo.JDOException x ) {
+        x.printStackTrace();
+        acceptedEncounters.closeAll();
+        return 0;
+      }
+    }
+    
+    public int getNumUnidentifiableEncounters() {
+      Extent encClass=pm.getExtent(Encounter.class, true);
+      String filter="this.unidentifiable";
       Query acceptedEncounters=pm.newQuery(encClass, filter);
       try{
         Collection c=(Collection)(acceptedEncounters.execute());
