@@ -200,13 +200,7 @@ with you questions.</a></p>
 		 
 		 
 <div class="module">
-<h3><%=last_sightings%></h3>
-<script language="JavaScript"
-	src="http://feed2js.org//feed2js.php?src=http%3A%2F%2F<%=CommonConfiguration.getURLLocation()%>%2Frss.xml&amp;utf=y"
-	type="text/javascript"></script>
-<noscript><a
-	href="http://feed2js.org//feed2js.php?src=http%3A%2F%2F<%=CommonConfiguration.getURLLocation()%>%2Frss.xml&amp;utf=y&amp;html=y">View
-RSS feed</a></noscript>
+<h3>RSS/Atom Feeds</h3>
 <p align="left"><a href="rss.xml"><img src="images/rssfeed.gif"
 	width="80" height="15" border="0" alt="RSS News Feed" /></a></p>
 <p align="left"><a href="atom.xml"><img

@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-        <%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
+        <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
 <%
 
 //setup our Properties object to hold all properties
@@ -53,12 +53,18 @@
 
 <html>
 <head>
-<title>ECOCEAN - Photographing a whale shark</title>
+<title><%=title%></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description" content="The ECOCEAN Whale Shark Photo-identification Library is a visual database of whale shark (Rhincodon typus) encounters and of individually catalogued whale sharks. The library is maintained and used by marine biologists to collect and analyse whale shark encounter data to learn more about these amazing creatures." />
-<meta name="Keywords" content="whale shark,whale,shark,Rhincodon typus,requin balleine,Rhineodon,Rhiniodon,big fish,ECOCEAN,Brad Norman, fish, coral, sharks, elasmobranch, mark, recapture, photo-identification, identification, conservation, citizen science" />
-<meta name="Author" content="ECOCEAN - info@ecocean.org" />
-<link href="css/ecocean.css" rel="stylesheet" type="text/css" />
+<meta name="Description"
+	content="<%=CommonConfiguration.getHTMLDescription() %>" />
+<meta name="Keywords"
+	content="<%=CommonConfiguration.getHTMLKeywords() %>" />
+<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
+<link href="<%=CommonConfiguration.getCSSURLLocation() %>"
+	rel="stylesheet" type="text/css" />
+<link rel="shortcut icon"
+	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
+
 <link rel="shortcut icon" href="images/favicon.ico" />
 
 </head>
@@ -73,23 +79,7 @@
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>"/>
 </jsp:include>	
 <div id="main">
-	<div id="leftcol">
-		<div id="menu">
-
-						
-			<div class="module">
-				<img src="images/area.jpg" width="190" height="115" border="0" title="Area to photograph" alt="Area to photograph" />
-				<p class="caption"><%=area%></p>
-			</div>
-						
-			<div class="module">
-				<img src="images/match.jpg" width="190" height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-				<p class="caption"><%=match%></p>
-			</div>
-						
-<jsp:include page="awards.jsp" flush="true" />	
-		</div><!-- end menu -->
-	</div><!-- end leftcol -->
+	
 	<div id="maincol-wide">
 
 		<div id="maintext">
