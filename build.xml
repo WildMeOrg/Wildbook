@@ -5,50 +5,59 @@
   <property name="lib.dir" value="temp_jars"/>
   <property name="project.version" value="1.0"/>
 
-<property name="jdo.file.dir" value="${target.dir}/classes"/>
-
 
   <path id="classpath">
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
   </path>
+  
   <target name="clean">
     <delete dir="${target.dir}"/>
   </target>
+  
   <target name="compile">
     <mkdir dir="${target.dir}/classes"/>
-    <javac srcdir="src" destdir="target/classes" classpathref="classpath" debug="true">
+    <javac srcdir="src" destdir="${target.dir}/classes" classpathref="classpath" debug="true">
 
     </javac>
   </target>
+  
+    <target name="copy-org.ecocean-JDO">
+      <copy todir="${target.dir}/classes/org/ecocean">
+        <fileset file="src/org/ecocean/package.jdo"/>
+      </copy>
+    </target>
+  
+    <target name="copy-org.ecocean.grid-JDO">
+      <copy todir="${target.dir}/classes/org/ecocean/grid">
+        <fileset file="src/org/ecocean/grid/package.jdo"/>
+      </copy>
+  </target>
+  
+  <target name="enhance" description="DataNucleus enhancement">
+      <taskdef name="datanucleusenhancer" classpathref="classpath" 
+                  classname="org.datanucleus.enhancer.tools.EnhancerTask" />
+  
+      <datanucleusenhancer classpathref="classpath"
+          dir="${target.dir}/classes" failonerror="true" verbose="false">
+      </datanucleusenhancer>
+  </target>
+
+  
   <target name="copy-bundles">
     <copy todir="${target.dir}/classes/bundles">
       <fileset dir="src/bundles"/>
     </copy>
   </target>
 
-  <target name="copy-org.ecocean-JDO">
-    <copy todir="${target.dir}/classes/org/ecocean">
-      <fileset file="src/org/ecocean/package.jdo"/>
-    </copy>
+   <target name="copy-servletResponseTemplate">
+      <copy todir="${target.dir}/classes">
+        <fileset file="src/servletResponseTemplate.htm"/>
+      </copy>
   </target>
 
-  <target name="copy-org.ecocean.grid-JDO">
-    <copy todir="${target.dir}/classes/org/ecocean/grid">
-      <fileset file="src/org/ecocean/grid/package.jdo"/>
-    </copy>
-  </target>
-
-<target name="enhance" description="DataNucleus enhancement">
-    <taskdef name="datanucleusenhancer" classpathref="enhancer.classpath" 
-                classname="org.datanucleus.enhancer.tools.EnhancerTask" />
-
-    <datanucleusenhancer classpathref="enhancer.classpath"
-        dir="${jdo.file.dir}" failonerror="true" verbose="true">
-    </datanucleusenhancer>
-</target>
 
 
-  <target name="war" depends="compile,copy-bundles,copy-org.ecocean-JDO,copy-org.ecocean.grid-JDO">
+  <target name="war" depends="clean, compile, enhance,copy-org.ecocean-JDO,copy-org.ecocean.grid-JDO, copy-bundles, copy-servletResponseTemplate">
     <mkdir dir="target"/>
     <war destfile="target/${war.name}-${project.version}.war" webxml="webapps/ROOT/WEB-INF/web.xml">
       <fileset dir="webapps/ROOT"/>
