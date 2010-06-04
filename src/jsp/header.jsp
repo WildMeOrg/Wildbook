@@ -284,14 +284,10 @@ way to fit your requirements.
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 	<li class="drop"><a
 		href="http://<%=CommonConfiguration.getURLLocation() %>/allIndividuals.jsp?langCode=<%=langCode%>"
-		style="margin: 0px 0 0px 0px; position: relative; width: 100px; height: 25px; z-index: 100;"><strong>View
-	Sharks</strong><!--[if IE 7]><!--></a><!--<![endif]--> <!--[if lte IE 6]><table><tr><td><![endif]-->
+		style="margin: 0px 0 0px 0px; position: relative; width: 100px; height: 25px; z-index: 100;">
+		<strong>Individuals</strong><!--[if IE 7]><!--></a><!--<![endif]--> <!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/allIndividuals.jsp?langCode=<%=langCode%>"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">View
-		All Sharks</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation() %>/allIndividuals.jsp?langCode=<%=langCode%>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">View All</a></li>
 		
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
@@ -355,7 +351,7 @@ way to fit your requirements.
 		<li><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/individualSearch.jsp?langCode=<%=langCode%>"
 			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">Shark
+			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">Individual
 		Search</a></li>
 		<li><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/kwSearch.jsp?langCode=<%=langCode%>"
@@ -407,7 +403,7 @@ way to fit your requirements.
 		<li><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/scanTaskAdmin.jsp?langCode=<%=langCode%>"
 			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">sharkGrid</a></li>
+			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Grid</a></li>
 		<%
 					}
 					if((request.getParameter("isAdmin")!=null)&&(request.getParameter("isAdmin").equals("true"))) {%>
@@ -455,7 +451,7 @@ way to fit your requirements.
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 
-
+<li><a href="http://<%=CommonConfiguration.getURLLocation() %>/contactus.jsp" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;"><strong>Contact Us</strong></a></li>
 	<%if(request.getRemoteUser()==null) {%>
 	<li><a
 		href="http://<%=CommonConfiguration.getURLLocation() %>/welcome.jsp?langCode=<%=langCode%>"
