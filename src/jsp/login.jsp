@@ -146,22 +146,19 @@ Please enter your user name and password below.</p>
 	action='<%= response.encodeURL("j_security_check") %>' name="loginForm">
 <table border="0" align="center" cellpadding="5" cellspacing="2">
 	<tr align="left" valign="top">
-		<th align="left"><font color="#000000"> <input type="text"
-			name="j_username" size="16" maxlength="16" /> <bean:message
-			key="prompt.username" /></font></th>
+		<th align="left"><font color="#000000">Username: <input type="text"
+			name="j_username" size="16" maxlength="16" /></font></th>
 	</tr>
 
 	<tr align="left" valign="top">
-		<th align="left"><font color="#0000"> <input
-			type="password" name="j_password" size="16" maxlength="16" /> <bean:message
-			key="prompt.password" /></font></th>
+		<th align="left"><font color="#0000">Password: <input
+			type="password" name="j_password" size="16" maxlength="16" /></font></th>
 	</tr>
 	<!-- login reset buttons layout -->
 	<tr align="left" valign="top">
 		<td align="left">
-		<div align="left"><input name="submit" type="submit"
-			value='<bean:message key="button.login"/>'> <input
-			name="reset" type="reset" value='<bean:message key="button.reset"/>'>
+		<div align="left">
+		<input name="submit" type="submit" value='Login' /> <input name="reset" type="reset" value='Reset' />
 		&nbsp;&nbsp; </div>
 		</td>
 	</tr>
