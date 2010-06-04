@@ -382,12 +382,12 @@ way to fit your requirements.
 	<!--[if IE 7]><!--></a><!--<![endif]--> <!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/wiki/doku.php?id=ecocean_library_access_policy"
+			href="http://<%=CommonConfiguration.getWikiLocation() %>library_access_policy"
 			target="_blank" class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Access
 		Policy</a></li>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/wiki"
+			href="http://<%=CommonConfiguration.getWikiLocation() %>"
 			target="_blank" class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">User
 		Wiki</a></li>
