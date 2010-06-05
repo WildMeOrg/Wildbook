@@ -118,44 +118,7 @@ else return true;
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="leftcol">
-<div id="menu">
-<div class="module">
-<h3><%=submit_language%></h3>
-<a href="submit.jsp"><img src="images/flag_en.gif" width="19"
-	height="12" border="0" title="English" alt="English" /></a> <a
-	href="submit.jsp?langCode=de" title="Auf Deutsch"><img
-	src="images/flag_de.gif" width="19" height="12" border="0"
-	title="Deutsch" alt="Deutsch" /></a> <a href="submit.jsp?langCode=fr"
-	title="En fran&ccedil;ais"><img src="images/flag_fr.gif" width="19"
-	height="12" border="0" title="Fran&ccedil;ais" alt="Fran&cedil;ais" /></a>
-<a href="submit.jsp?langCode=es" title="En espa&ntilde;ol"><img
-	src="images/flag_es.gif" width="19" height="12" border="0"
-	title="Espa&ntilde;ol" alt="Espa&ntilde;ol" /></a></div>
 
-<div class="module"><img src="images/area.jpg" width="190"
-	height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"><%=area%></p>
-</div>
-
-<div class="module"><img src="images/match.jpg" width="190"
-	height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-<p class="caption"><%=match%></p>
-</div>
-
-
-<jsp:include page="awards.jsp" flush="true" />
-<div class="module">
-<h3>Data Sharing</h3>
-<p><a href="http://www.gbif.org/">
-<center><img src="images/gbif.gif" border="0" /></center>
-</a></p>
-</div>
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
 <div id="maincol-wide">
 
 <div id="maintext">
@@ -1036,9 +999,7 @@ else return true;
 fields, using commas as separators</em>.</p>
 <hr>
 
-<p><a href="photographing.jsp?langCode=<%=langCode%>"><img
-	src="images/example1.jpg" width="129" height="84" border="1"
-	class="leftimg" align="left" alt="whale shark photo example" /></a><%=props.getProperty("submit_pleaseadd")%></p>
+<p><%=props.getProperty("submit_pleaseadd")%></p>
 <p><a href="photographing.jsp?langCode=<%=langCode%>"><%=click2learn%></a></p>
 <p>&nbsp;</p>
 <p align="center"><strong><%=props.getProperty("submit_image")%>
@@ -1049,12 +1010,11 @@ fields, using commas as separators</em>.</p>
 3: <input name="theFile3" type="file" size="30" /> </strong></p>
 <p align="center"><strong><%=props.getProperty("submit_image")%>
 4: <input name="theFile4" type="file" size="30" /> </strong></p>
-<p><%=props.getProperty("submit_verify")%></p>
+<p>&nbsp;</p>
 <%if(request.getRemoteUser()!=null){%> <input name="submitterID"
 	type="hidden" value="<%=request.getRemoteUser()%>" /> <%} else {%> <input
 	name="submitterID" type="hidden" value="N/A" /> <%}%>
-<p align="center"><input type="submit" name="Submit"
-	value="<%=props.getProperty("submit_send")%>" /></p>
+<p align="center"><input type="submit" name="Submit" value="<%=props.getProperty("submit_send")%>" /></p>
 <p>&nbsp;</p>
 </form>
 </div>
