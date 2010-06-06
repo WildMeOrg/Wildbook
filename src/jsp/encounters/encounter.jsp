@@ -1511,17 +1511,11 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		if(CommonConfiguration.showProperty("maximumElevationInMeters")){
 		%>
 		<p class="para"><strong>Elevation</strong>: 
-		<%
-           if(enc.getMaximumElevationInMeters()!=null) {
-     	%> 
+		
 			<%=enc.getMaximumElevationInMeters()%> meters
 		<%
- 	  		} else {
- 	  	%> Unknown<%
- 	  		} 
-		
-		<%
- 	  	} 
+ 	 
+
 		if(isOwner) {
  	  		%><font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=elevation#elevation">edit</a>]</font>
@@ -2077,18 +2071,14 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				
 				</p>
 				
-		<%
-		if(CommonConfiguration.areAdoptionsAllowed()){
-		%>
+		
 				<div class="module">
 					<jsp:include page="encounterAdoptionEmbed.jsp" flush="true">
 						<jsp:param name="num" value="<%=num%>" />
 				</jsp:include>
 				</div>
 				
-		<%
-		}
-		%>
+	
 				
 				
 				</td>
