@@ -44,27 +44,13 @@ Shepherd myShepherd=new Shepherd();
 
 
 	Encounter enc=myShepherd.getEncounter(number);
-	boolean isOwner=false;
-	if(((request.isUserInRole("imageProcessor"))&&(request.isUserInRole(enc.getLocationCode())))||(request.isUserInRole("manager"))) {
-		isOwner=true;
-	}
+	
 	myShepherd.rollbackDBTransaction();
-	if(isOwner) {%>
-<p><strong>Permission granted</strong>: <a
-	href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>">Click
-here to access the original source image</a></p>
-<%}
 
-%>
-<p><img src="../alert.gif" /> <strong>Important:</strong> The image
-below is the intellectual property of the original photographer. It may
-be used for research and conservation purposes only. It may not be used
-publicly without the express permission of the photographer. This image
-may also not be distributed beyond the users of the ECOCEAN Library or
-related conservation authorities without the express permission of the
-photographer. By copying or downloading this image or any portion of it,
-you assume responsibility for its usage and agree to hold ECOCEAN and
-other users of the ECOCEAN Library harmless for any misuse of it.</p>
+	%>
+	
+<p><a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>">Click
+here to access the original source image</a></p>
 
 <table width="720">
 	<tr>

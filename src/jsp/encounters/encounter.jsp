@@ -1795,15 +1795,14 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				boolean isVideo=false;
 				if(addTextFile.toLowerCase().indexOf(".bmp")!=-1) {isBMP=true;}
 				if((addTextFile.toLowerCase().indexOf(".mov")!=-1)||(addTextFile.toLowerCase().indexOf(".wmv")!=-1)||(addTextFile.toLowerCase().indexOf(".mpg")!=-1)||(addTextFile.toLowerCase().indexOf(".avi")!=-1)||(addTextFile.toLowerCase().indexOf(".mp4")!=-1)) {isVideo=true;}
-				if ((request.isUserInRole("researcher"))||(request.isUserInRole(enc.getLocationCode()))) {
-					if((!isBMP)&&(!isVideo)) {
+				if((!isBMP)&&(!isVideo)) {
 			%> <a href="imageViewer.jsp?number=<%=num%>&src=<%=addTextFile%>">
 								<%
 					}
 						else {
 				%> <a href="<%=addText%>"> <%
 					}
-					}
+					
 					String thumbLocation="file-"+num+"/"+imageCount+".jpg";
 					//try{}
 					//catch(Exception e){}
@@ -1814,13 +1813,11 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					if(isVideo) {
 				%> <img width="250" height="200" alt="video <%=enc.getLocation()%>"
 									src="../images/video.jpg" border="0" align="left" valign="left">
-								<%
-					if (request.isUserInRole("researcher")) {
-				%>
+		
 								</a>
 								<%
-					}
-				%> <%
+					
+			
 							}
 							else if ((!processedImage.exists())&&(!haveRendered)) {
 								haveRendered=true;

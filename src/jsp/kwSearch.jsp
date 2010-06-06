@@ -67,7 +67,7 @@ assigned. The more keywords used, the smaller the subset returned.</p>
 	<tr>
 		<td>
 		<p><strong>Select keywords to define your photo search: </strong></p>
-		<form action="kwResults.jsp" method="get" name="imageSearch"
+		<form action="kwResults.jsp" method="get" name="ImageSearch"
 			id="imageSearch">
 		<%if((request.getParameter("primaryImageName")!=null)&&(!request.getParameter("primaryImageName").equals(""))) {%>
 		<input name="primaryImageName" type="hidden"
