@@ -1015,6 +1015,9 @@
     <security-role>
       <role-name>search</role-name>
     </security-role>
+        <security-role>
+          <role-name>imageProcessor</role-name>
+    </security-role>
 
 
 </web-app>
