@@ -55,6 +55,12 @@
       </copy>
   </target>
   
+     <target name="copy-email-files">
+        <copy todir="${target.dir}/classes">
+          <fileset file="src/*.txt"/>
+        </copy>
+  </target>
+  
      <target name="copy-di-license">
         <copy todir="${target.dir}/classes">
           <fileset file="src/lic_di.key"/>
@@ -63,7 +69,7 @@
 
 
 
-  <target name="war" depends="clean, compile, enhance,copy-org.ecocean-JDO,copy-org.ecocean.grid-JDO, copy-bundles, copy-servletResponseTemplate, copy-di-license">
+  <target name="war" depends="clean, compile, enhance,copy-org.ecocean-JDO,copy-org.ecocean.grid-JDO, copy-bundles, copy-servletResponseTemplate, copy-di-license, copy-email-files">
     <mkdir dir="target"/>
     <war destfile="target/${war.name}-${project.version}.war" webxml="webapps/ROOT/WEB-INF/web.xml">
       <fileset dir="webapps/ROOT"/>
