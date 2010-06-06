@@ -386,7 +386,7 @@ public class Shepherd {
 	*@see encounter, java.util.Iterator
 	*/
 	public Iterator getUnassignedEncounters() {
-		String filter="this.individualID == \"Unassigned\" && this.rejected == false && this.approved==true";
+		String filter="this.individualID == \"Unassigned\" && this.unidentifiable == false && this.approved==true";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query orphanedEncounters=pm.newQuery(encClass, filter);
 		Collection c=(Collection)(orphanedEncounters.execute());
@@ -394,7 +394,7 @@ public class Shepherd {
 		}
 
 	public Iterator getUnassignedEncountersIncludingUnapproved() {
-		String filter="this.individualID == \"Unassigned\" && this.rejected == false";
+		String filter="this.individualID == \"Unassigned\" && this.unidentifiable == false";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query orphanedEncounters=pm.newQuery(encClass, filter);
 		Collection c=(Collection)(orphanedEncounters.execute());
@@ -402,7 +402,7 @@ public class Shepherd {
 	}		
 	
 	public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
-		String filter="this.individualID == \"Unassigned\" && this.rejected == false";
+		String filter="this.individualID == \"Unassigned\" && this.unidentifiable == false";
 		//Extent encClass=pm.getExtent(encounter.class, true);
 		orphanedEncounters.setFilter(filter);
 		Collection c=(Collection)(orphanedEncounters.execute());
@@ -498,7 +498,7 @@ public class Shepherd {
 	*/
 	public Iterator getAllEncounters() {
 		Collection c;
-		String filter="!this.rejected && this.approved == true";
+		String filter="!this.unidentifiable && this.approved == true";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query acceptedEncounters=pm.newQuery(encClass, filter);
 		try{
@@ -663,7 +663,7 @@ public class Shepherd {
 	
 	public Iterator getAllEncountersAndUnapproved() {
 		Collection c;
-		String filter="!this.rejected";
+		String filter="!this.unidentifiable";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query acceptedEncounters=pm.newQuery(encClass, filter);
 		try{
@@ -690,7 +690,7 @@ public class Shepherd {
 	*@see encounter, java.util.Iterator
 	*/
 	public Iterator getAllEncounters(String order) {
-		String filter="!this.rejected && this.approved == true";
+		String filter="!this.unidentifiable && this.approved == true";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query acceptedEncounters=pm.newQuery(encClass, filter);
 		acceptedEncounters.setOrdering(order);
@@ -766,7 +766,7 @@ public class Shepherd {
 	*@see encounter, java.util.Iterator
 	*/
 	public Iterator getAllUnidentifiableEncounters(Query rejectedEncounters) {
-		rejectedEncounters.setFilter("this.rejected");
+		rejectedEncounters.setFilter("this.unidentifiable");
 		Collection c=(Collection)(rejectedEncounters.execute());
 		ArrayList list=new ArrayList(c);
 
