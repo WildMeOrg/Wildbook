@@ -421,7 +421,7 @@ if(request.isUserInRole("admin")){
 	</tr>
 	<tr>
 		<td>
-		<form action="/resurrectDeletedAdoption" method="get"
+		<form action="../ResurrectDeletedAdoption" method="get"
 			name="restoreDeletedAdoption">Adoption #: <input name="number"
 			type="text" size="25" /> <input type="submit" name="Submit"
 			value="Submit" /></form>

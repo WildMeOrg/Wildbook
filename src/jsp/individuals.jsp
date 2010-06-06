@@ -174,7 +174,7 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 	<tr>
 		<td align="left" valign="top">
 		<form name="set_alternateid" method="post"
-			action="/IndividualSetAlternateID"><input name="individual"
+			action="IndividualSetAlternateID"><input name="individual"
 			type="hidden" value="<%=request.getParameter("number")%>"> <%=alternateID %>:
 		<input name="alternateid" type="text" id="alternateid" size="15"
 			maxlength="150"><br> <input name="Name" type="submit"
@@ -213,7 +213,7 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-					<form name="nameShark" method="post" action="/IndividualSetNickName">
+					<form name="nameShark" method="post" action="IndividualSetNickName">
 						<input name="individual" type="hidden"
 								value="<%=request.getParameter("number")%>"> <%=nickname %>:
 						<input name="nickname" type="text" id="nickname" size="15"
@@ -240,7 +240,7 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 	</tr>
 	<tr>
 		<td align="left" valign="top">
-		<form name="setxsexshark" action="/IndividualSetSex" method="post">
+		<form name="setxsexshark" action="IndividualSetSex" method="post">
 
 		<select name="selectSex" size="1" id="selectSex">
 			<option value="unsure">unsure</option>
@@ -440,7 +440,7 @@ if (request.isUserInRole("researcher")) {
 		<%} else {%> <%=none %>
 		</p>
 		<%}%>
-		<form action="/IndividualAddFile" method="post"
+		<form action="IndividualAddFile" method="post"
 			enctype="multipart/form-data" name="addDataFiles"><input
 			name="action" type="hidden" value="fileadder" id="action"> <input
 			name="individual" type="hidden" value="<%=sharky.getName()%>"
@@ -452,7 +452,7 @@ if (request.isUserInRole("researcher")) {
 		<hr>
 
 		<p>
-		<form action="/IndividualAddComment" method="post" name="addComments">
+		<form action="IndividualAddComment" method="post" name="addComments">
 		<p><input name="user" type="hidden"
 			value="<%=request.getRemoteUser()%>" id="user"> <input
 			name="individual" type="hidden" value="<%=sharky.getName()%>"

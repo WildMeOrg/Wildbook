@@ -59,7 +59,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 		<td>
 		<p><font size="+1">Restore a Deleted Encounter</font></p>
 		<form name="restoreEncounter" method="post"
-			action="/resurrectDeletedEncounter">
+			action="../ResurrectDeletedEncounter">
 		<p>Encounter number: <input name="number" type="text" id="number"
 			size="20" maxlength="50"> <br> <input name="Restore"
 			type="submit" id="Restore" value="Restore"></p>
@@ -73,7 +73,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 		<td>
 		<p><font size="+1">Update Email Address of Submitter or
 		Photographer Across the Entire Library</font></p>
-		<form name="updateEmail" method="post" action="/updateEmailAddress">
+		<form name="updateEmail" method="post" action="../UpdateEmailAddress">
 		<p>Old Email Address: <input name="findEmail" type="text"
 			id="findEmail" size="25" maxlength="50">
 		<p>New Email Address: <input name="replaceEmail" type="text"
@@ -93,7 +93,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 		the location code for encounters from an old to a new value. This is a
 		non-trivial change and should only be done after significant
 		deliberation.</p>
-		<form name="updateEmail" method="post" action="/massSwapLocationCode">
+		<form name="massSwapLocCode" method="post" action="../MassSwapLocationCode">
 		<p>Old location code: <input name="oldLocCode" type="text"
 			id="oldLocCode" size="10" maxlength="10">
 		<p>New location code: <input name="newLocCode" type="text"
@@ -110,7 +110,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 		<td>
 		<p><font size="+1">Expose all approved encounters to the
 		GBIF. </font></p>
-		<form name="exposeGBIF" method="post" action="/massExposeGBIF">
+		<form name="exposeGBIF" method="post" action="../MassExposeGBIF">
 
 		<input name="Expose to GBIF" type="submit" id="Expose to GBIF"
 			value="Expose to GBIF">
@@ -140,7 +140,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 		non-trivial change and should only be done after significant
 		deliberation.</p>
 		<form name="massSetLocationCodeFromLocationString" method="post"
-			action="/massSetLocationCodeFromLocationString">
+			action="../MassSetLocationCodeFromLocationString">
 		<p>Text string to match (case insensitive): <input
 			name="matchString" type="text" id="matchString" size="50"
 			maxlength="999">
@@ -162,7 +162,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 		<p><font size="+1">Matches are made on submitter and
 		photographer names and email addresses </font></p>
 		<form name="massSetInformOthers" method="post"
-			action="/massSetInformOthers">
+			action="../MassSetInformOthers">
 		<p>Text string to match (case insensitive): <input
 			name="matchString" type="text" id="matchString" size="50"
 			maxlength="100" />

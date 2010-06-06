@@ -75,7 +75,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 %>
 <body>
 <div id="wrapper">
-<div id="page"><jsp:include page="header.jsp" flush="true">
+<div id="page"><jsp:include page="../header.jsp" flush="true">
 	<jsp:param name="isResearcher"
 		value="<%=request.isUserInRole("researcher")%>" />
 	<jsp:param name="isManager"
@@ -115,14 +115,14 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 			<tr>
 				<td align="right" valign="top">
 				<form name="rej_save_form" method="post"
-					action="/EncounterSetAsUnidentifiable"><input name="action"
+					action="../EncounterSetAsUnidentifiable"><input name="action"
 					type="hidden" id="action" value="rej_but_save"> <input
 					name="number" type="hidden"
 					value=<%=request.getParameter("number")%>> <input
 					name="yes" type="submit" id="yes" value="Save as Unidentifiable"></form>
 				</td>
 				<td align="center" valign="top">
-				<form name="reject_form" method="post" action="/EncounterDelete">
+				<form name="reject_form" method="post" action="../EncounterDelete">
 				<input name="action" type="hidden" id="action" value="reject">
 				<input name="number" type="hidden"
 					value=<%=request.getParameter("number")%>> <input
@@ -142,7 +142,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 
 </div>
 <!-- end maintext --></div>
-<!-- end maincol --> <jsp:include page="footer.jsp" flush="true" /></div>
+<!-- end maincol --> <jsp:include page="../footer.jsp" flush="true" /></div>
 <!-- end page --></div>
 <!--end wrapper -->
 </body>

@@ -349,7 +349,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td>
-				<form name="approve_form" method="post" action="/EncounterApprove">
+				<form name="approve_form" method="post" action="../EncounterApprove">
 				<input name="action" type="hidden" id="action" value="approve">
 				<input name="number" type="hidden"
 					value=<%=request.getParameter("number")%>> <input
@@ -393,7 +393,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setAltID" action="/encounterSetAlternateID"
+				<form name="setAltID" action="../EncounterSetAlternateID"
 					method="post"><input name="alternateid" type="text"
 					size="10" maxlength="50"> <input name="encounter"
 					type="hidden" value=<%=num%>> <input name="Set"
@@ -418,7 +418,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setOthers" action="/encounterSetInformOthers"
+				<form name="setOthers" action="../EncounterSetInformOthers"
 					method="post"><input name="encounter" type="hidden"
 					value=<%=num%>> <input name="informothers" type="text"
 					size="28" <%if(enc.getInformOthers()!=null){%>
@@ -443,7 +443,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setMBT" action="/encounterSetMatchedBy" method="post">
+				<form name="setMBT" action="../EncounterSetMatchedBy" method="post">
 				<select name="matchedBy" id="matchedBy">
 					<option value="Unmatched first encounter">Unmatched first
 					encounter</option>
@@ -471,7 +471,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="add2shark" action="/IndividualAddEncounter"
+				<form name="add2shark" action="../IndividualAddEncounter"
 					method="post">Individual: <input name="individual"
 					type="text" size="10" maxlength="50"><br> Matched by:<br>
 				<select name="matchType" id="matchType">
@@ -508,7 +508,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form action="/IndividualRemoveEncounter" method="post"
+				<form action="../IndividualRemoveEncounter" method="post"
 					name="removeShark"><input name="number" type="hidden"
 					value=<%=num%>> <input name="action" type="hidden"
 					value="remove"> <input type="submit" name="Submit"
@@ -531,7 +531,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="createShark" method="post" action="/IndividualCreate">
+				<form name="createShark" method="post" action="../IndividualCreate">
 				<input name="number" type="hidden" value=<%=num%>> <input
 					name="action" type="hidden" value="create"> <input
 					name="individual" type="text" id="individual" size="10"
@@ -560,7 +560,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td>
-				<form name="resetGPSform" method="post" action="/EncounterSetGPS">
+				<form name="resetGPSform" method="post" action="../EncounterSetGPS">
 				<input name="action" type="hidden" value="resetGPS">
 				<p><strong>Latitude:</strong><br> <select name="lat"
 					id="lat">
@@ -755,7 +755,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setLocation" action="/EncounterSetLocation"
+				<form name="setLocation" action="../EncounterSetLocation"
 					method="post"><textarea name="location" size="15"><%=enc.getLocation()%></textarea>
 				<input name="number" type="hidden" value=<%=num%>> <input
 					name="action" type="hidden" value="setLocation"> <input
@@ -777,7 +777,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setComments" action="/EncounterSetOccurrenceRemarks"
+				<form name="setComments" action="../EncounterSetOccurrenceRemarks"
 					method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%></textarea>
 				<input name="number" type="hidden" value=<%=num%>> <input
 					name="action" type="hidden" value="editComments"> <input
@@ -802,7 +802,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top">
 				<form name="setPersonalDetails"
-					action="/EncounterSetSubmitterPhotographerContactInfo"
+					action="../EncounterSetSubmitterPhotographerContactInfo"
 					method="post"><label> <input type="radio"
 					name="contact" value="submitter">Submitter</label> <br><label>
 				<input type="radio" name="contact" value="photographer">Photographer</label>
@@ -832,7 +832,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setxencshark" action="/EncounterSetSex" method="post">
+				<form name="setxencshark" action="../EncounterSetSex" method="post">
 				<select name="selectSex" size="1" id="selectSex">
 					<option value="unsure" selected>unsure</option>
 					<option value="male">male</option>
@@ -857,7 +857,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="livingStatusForm" action="/EncounterSetLivingStatus"
+				<form name="livingStatusForm" action="../EncounterSetLivingStatus"
 					method="post"><select name="livingStatus" id="livingStatus">
 					<option value="alive" selected>alive</option>
 					<option value="dead">dead</option>
@@ -882,7 +882,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setxencshark" action="/EncounterResetDate" method="post">
+				<form name="setxencshark" action="../EncounterResetDate" method="post">
 				<em>Day</em> <select name="day" id="day">
 					<option value="0">?</option>
 					<%
@@ -955,7 +955,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setencsize" action="/EncounterSetSize" method="post">
+				<form name="setencsize" action="../EncounterSetSize" method="post">
 				<input name="lengthField" type="text" id="lengthField" size="8"
 					maxlength="8"> Meters<br> <em>Use 0 if unknown</em><br>
 				<input name="lengthUnits" type="hidden" id="lengthUnits"
@@ -984,7 +984,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setencdepth" action="/EncounterSetMaximumDepth"
+				<form name="setencdepth" action="../EncounterSetMaximumDepth"
 					method="post"><input name="depth" type="text" id="depth"
 					size="10"> Meters <input name="lengthUnits" type="hidden"
 					id="lengthUnits" value="Meters"> <input name="number"
@@ -1009,7 +1009,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setencdepth" action="/EncounterSetMaximumElevation" method="post">
+				<form name="setencdepth" action="../EncounterSetMaximumElevation" method="post">
 						<input name="elevation" type="text" id="elevation" size="10"> Meters <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters"> 
 						<input name="number" type="hidden" value="<%=num%>" id="number"> 
 						<input name="action" type="hidden" value="setEncounterElevation"> 
@@ -1033,7 +1033,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="asetSubmID" action="/encounterSetSubmitterID"
+				<form name="asetSubmID" action="../encounterSetSubmitterID"
 					method="post"><input name="submitter" type="text" size="10"
 					maxlength="50"> <input name="number" type="hidden"
 					value=<%=num%>> <input name="Assign" type="submit"
@@ -1055,7 +1055,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setencsize" action="/EncounterSetScarring" method="post">
+				<form name="setencsize" action="../EncounterSetScarring" method="post">
 				<select name="scars">
 					<option value="0" selected>None</option>
 					<option value="1">Tail (caudal) fin</option>
@@ -1095,7 +1095,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				algorithms</font>
 				<div id="formDiv">
 				<form name="formSharkGrid" id="formSharkGrid" method="post"
-					action="/scanTaskHandler"><input name="action" type="hidden"
+					action="../scanTaskHandler"><input name="action" type="hidden"
 					id="action" value="addTask"> <input name="encounterNumber"
 					type="hidden" value=<%=num%>>
 
@@ -1226,7 +1226,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td>
 				<form name="reacceptEncounter" method="post"
-					action="/EncounterSetIdentifiable"><input name="action"
+					action="../EncounterSetIdentifiable"><input name="action"
 					type="hidden" id="action" value="reaccept"> <input
 					name="number" type="hidden" value=<%=num%>> <input
 					name="reject" type="submit" id="reject" value="Reaccept"></form>
@@ -1250,7 +1250,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<td align="left" valign="top">
 				<center>
 				<form name="removeSpots" method="post"
-					action="/EncounterRemoveSpots">
+					action="../EncounterRemoveSpots">
 				<table width="200">
 					<tr>
 						<%
@@ -1284,7 +1284,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td class="para">
-				<form action="/EncounterAddSpotFile" method="post"
+				<form action="../EncounterAddSpotFile" method="post"
 					enctype="multipart/form-data" name="addSpotsFile"><input
 					name="action" type="hidden" value="fileadder" id="action">
 				<input name="number" type="hidden" value="<%=num%>" id="shark">
@@ -1344,7 +1344,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td>
 				<form name="approve_form" method="post"
-					action="/EncounterSetTapirLinkExposure"><input name="action"
+					action="../EncounterSetTapirLinkExposure"><input name="action"
 					type="hidden" id="action" value="tapirLinkExpose"> <input
 					name="number" type="hidden" value=<%=num%>> <input
 					name="approve" type="submit" id="approve" value="Change"></form>
@@ -1366,7 +1366,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
         </tr>
         <tr>
         	<td align="left" valign="top"> 
-           		<form name="trackShark" method="post" action="/trackIt">
+           		<form name="trackShark" method="post" action="../TrackIt">
 		  			<input name="number" type="hidden" value=<%=num%>>
               		<input name="email" type="text" id="email" size="20" maxlength="50">
               		<input name="Track" type="submit" id="Track" value="Track">
@@ -1380,7 +1380,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
         </tr>
         <tr>
         	<td align="left" valign="top"> 
-           		<form name="trackShark" method="post" action="/dontTrack">
+           		<form name="trackShark" method="post" action="../DontTrack">
 		  			<input name="number" type="hidden" value=<%=num%>>
               		<input name="email" type="text" id="email" size="20" maxlength="50">
               		<input name="Remove" type="submit" id="RemoveTrack" value="Remove">
@@ -1715,7 +1715,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 								<%
  	if (request.isUserInRole("nobody")) {
  %><form
-									action="/encounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>"
+									action="../EncounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>"
 									method="post" name="remove_photo"><input name="stupid"
 									type="text" size="5" maxlength="5"><input name="Remove"
 									type="submit" id="Rem_photo" value="Remove"></form>
@@ -1750,7 +1750,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 							</tr>
 							<tr>
 								<td>
-								<form action="/keywordHandler" method="post" name="keyword">
+								<form action="../KeywordHandler" method="post" name="keyword">
 								<table>
 									<tr>
 										<td class="para"><img align="absmiddle"
@@ -1910,7 +1910,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<table width="250" bgcolor="#99CCFF">
 					<tr>
 						<td class="para">
-						<form action="/encounterAddImage" method="post"
+						<form action="../EncounterAddImage" method="post"
 							enctype="multipart/form-data" name="encounterAddImage"><input
 							name="action" type="hidden" value="imageadder" id="action">
 						<input name="number" type="hidden" value="<%=num%>" id="shark">
@@ -1927,7 +1927,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<table width="250" bgcolor="#99CCFF">
 					<tr>
 						<td class="para">
-						<form action="/encounterRemoveImage" method="post"
+						<form action="../EncounterRemoveImage" method="post"
 							name="encounterRemoveImage"><input name="action"
 							type="hidden" value="imageremover" id="action"> <input
 							name="number" type="hidden" value=<%=num%>> <strong><img
@@ -2143,7 +2143,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<p>No GPS data is available for mapping.</p>
 		<br> <%}%> <br>
 		<hr>
-		<form action="/EncounterAddComment" method="post" name="addComments">
+		<form action="../EncounterAddComment" method="post" name="addComments">
 		<p class="para"><input name="user" type="hidden"
 			value="<%=request.getRemoteUser()%>" id="user"> <input
 			name="number" type="hidden" value="<%=enc.getEncounterNumber()%>"

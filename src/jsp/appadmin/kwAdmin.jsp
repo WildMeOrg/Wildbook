@@ -63,7 +63,7 @@ defined in the database.</p>
 	<tr>
 		<td>
 		<p><strong>Add a new keyword</strong></p>
-		<form action="/keywordHandler" method="post" name="addNew" id="addNew">
+		<form action="../KeywordHandler" method="post" name="addNew" id="addNew">
 		<p>New keyword string identifier (used by the database only): <input
 			name="keyword" type="text" id="keyword" size="20" maxlength="50">
 		<br> <em> This should be one word with no spaces or special
@@ -84,7 +84,7 @@ defined in the database.</p>
 	<tr>
 		<td>
 		<p><strong>Remove a keyword</strong></p>
-		<form action="/keywordHandler" method="post" name="removeWord"
+		<form action="../KeywordHandler" method="post" name="removeWord"
 			id="removeWord">
 		<p>Keyword to remove: <select name="keyword" id="keyword">
 
@@ -110,7 +110,7 @@ defined in the database.</p>
 	<tr>
 		<td>
 		<p><strong>Rename a keyword</strong></p>
-		<form action="/keywordHandler" method="post" name="renameWord"
+		<form action="../KeywordHandler" method="post" name="renameWord"
 			id="remnameWord">
 		<p>Keyword to rename: <select name="keyword" id="keyword">
 

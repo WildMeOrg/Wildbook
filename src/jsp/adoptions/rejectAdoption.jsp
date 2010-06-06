@@ -60,7 +60,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 		<table width="400" border="0" cellpadding="5" cellspacing="0">
 			<tr>
 				<td align="center" valign="top">
-				<form name="reject_form" method="post" action="/deleteAdoption">
+				<form name="reject_form" method="post" action="../DeleteAdoption">
 				<input name="action" type="hidden" id="action" value="reject">
 				<input name="number" type="hidden"
 					value=<%=request.getParameter("number")%>> <input

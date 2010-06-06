@@ -259,10 +259,7 @@
 	<servlet-class>org.ecocean.servlet.TrackIt</servlet-class>
   </servlet>
 
-  <servlet>
-       <servlet-name>mitFeed</servlet-name>
-	<servlet-class>org.ecocean.servlet.MitFeed</servlet-class>
-  </servlet>
+
 
   <servlet>
        <servlet-name>EncounterAddSpotFile</servlet-name>
@@ -305,10 +302,6 @@
         	<servlet-class>org.ecocean.servlet.IndividualCreate</servlet-class>
   </servlet>
 
-  <servlet>
-       <servlet-name>updateConfig</servlet-name>
-	<servlet-class>org.ecocean.servlet.UpdateConfig</servlet-class>
-  </servlet>
 
   
   <servlet>
@@ -321,10 +314,7 @@
 	<servlet-class>org.ecocean.servlet.TrackerFeed</servlet-class>
   </servlet>
 
-  <servlet>
-       <servlet-name>ningalooRobustByMonths</servlet-name>
-	<servlet-class>org.ecocean.servlet.NingalooRobustByMonths</servlet-class>
-  </servlet>
+
 
 
   <servlet>
@@ -333,10 +323,6 @@
   </servlet>  
 
 
-  <servlet>
-       <servlet-name>ningalooPradel</servlet-name>
-	<servlet-class>org.ecocean.servlet.NingalooPradel</servlet-class>
-  </servlet> 
   
     <servlet>
          <servlet-name>deleteAdoption</servlet-name>
@@ -435,10 +421,7 @@
        <servlet-name>encounterAddImage</servlet-name>
 	<servlet-class>org.ecocean.servlet.EncounterAddImage</servlet-class>
   </servlet>
-  <servlet>
-         <servlet-name>ningalooMultistate</servlet-name>
-  	<servlet-class>org.ecocean.servlet.NingalooMultistate</servlet-class>
-  </servlet>
+
   <servlet>
          <servlet-name>CalendarXMLServer2</servlet-name>
   	<servlet-class>org.ecocean.servlet.CalendarXMLServer2</servlet-class>
@@ -474,10 +457,7 @@
 	<servlet-class>org.ecocean.servlet.MassExposeGBIF</servlet-class>
   </servlet>
   
-    <servlet>
-         <servlet-name>TestServlet</servlet-name>
-  	<servlet-class>org.ecocean.servlet.TestServlet</servlet-class>
-  </servlet>
+
 
   
 <servlet-mapping>
@@ -510,8 +490,8 @@
   </servlet-mapping>
 
 <servlet-mapping>
-       <servlet-name>scanTaskHandler</servlet-name>
-       <url-pattern>/scanTaskHandler</url-pattern>
+       <servlet-name>ScanTaskHandler</servlet-name>
+       <url-pattern>/ScanTaskHandler</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
@@ -549,25 +529,21 @@
              <servlet-name>EncounterRemoveSpots</servlet-name>
              <url-pattern>/EncounterRemoveSpots</url-pattern>
   </servlet-mapping>
-  
-  <servlet-mapping>
-         <servlet-name>TestServlet</servlet-name>
-         <url-pattern>/TestServlet</url-pattern>
+
+
+<servlet-mapping>
+       <servlet-name>WriteOutScanTask</servlet-name>
+       <url-pattern>/WriteOutScanTask</url-pattern>
   </servlet-mapping>
 
 <servlet-mapping>
-       <servlet-name>writeOutScanTask</servlet-name>
-       <url-pattern>/writeOutScanTask</url-pattern>
-  </servlet-mapping>
-
-<servlet-mapping>
-       <servlet-name>resurrectDeletedEncounter</servlet-name>
-       <url-pattern>/resurrectDeletedEncounter</url-pattern>
+       <servlet-name>ResurrectDeletedEncounter</servlet-name>
+       <url-pattern>/ResurrectDeletedEncounter</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
-         <servlet-name>resurrectDeletedAdoption</servlet-name>
-         <url-pattern>/resurrectDeletedAdoption</url-pattern>
+         <servlet-name>ResurrectDeletedAdoption</servlet-name>
+         <url-pattern>/ResurrectDeletedAdoption</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
@@ -581,10 +557,7 @@
   </servlet-mapping>
 
 
-  <servlet-mapping>
-       <servlet-name>updateConfig</servlet-name>
-       <url-pattern>/updateConfig</url-pattern>
-  </servlet-mapping>
+
   
     <servlet-mapping>
          <servlet-name>EncounterSetSex</servlet-name>
@@ -629,17 +602,17 @@
 
   <servlet-mapping>
        <servlet-name>massSetLocationCodeFromLocationString</servlet-name>
-       <url-pattern>/massSetLocationCodeFromLocationString</url-pattern>
+       <url-pattern>/MassSetLocationCodeFromLocationString</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
        <servlet-name>massSwapLocationCode</servlet-name>
-       <url-pattern>/massSwapLocationCode</url-pattern>
+       <url-pattern>/MassSwapLocationCode</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
        <servlet-name>massExposeGBIF</servlet-name>
-       <url-pattern>/massExposeGBIF</url-pattern>
+       <url-pattern>/MassExposeGBIF</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
@@ -664,18 +637,15 @@
 
   <servlet-mapping>
        <servlet-name>dontTrack</servlet-name>
-       <url-pattern>/dontTrack</url-pattern>
+       <url-pattern>/DontTrack</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
          <servlet-name>deleteAdoption</servlet-name>
-         <url-pattern>/deleteAdoption</url-pattern>
+         <url-pattern>/DeleteAdoption</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-       <servlet-name>mitFeed</servlet-name>
-       <url-pattern>/mitFeed</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
        <servlet-name>trackIt</servlet-name>
@@ -689,31 +659,24 @@
 
   <servlet-mapping>
        <servlet-name>updateEmailAddress</servlet-name>
-       <url-pattern>/updateEmailAddress</url-pattern>
+       <url-pattern>/UpdateEmailAddress</url-pattern>
   </servlet-mapping>
 
 
 
   <servlet-mapping>
        <servlet-name>matchAnalysis</servlet-name>
-       <url-pattern>/matchAnalysis</url-pattern>
+       <url-pattern>/MatchAnalysis</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-       <servlet-name>ningalooRobustByMonths</servlet-name>
-       <url-pattern>/ningalooRobustByMonths</url-pattern>
-  </servlet-mapping>
+
   
-    <servlet-mapping>
-         <servlet-name>ningalooMultistate</servlet-name>
-         <url-pattern>/ningalooMultistate</url-pattern>
-  </servlet-mapping>
 
 
 
   <servlet-mapping>
        <servlet-name>keywordHandler</servlet-name>
-       <url-pattern>/keywordHandler</url-pattern>
+       <url-pattern>/KeywordHandler</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -728,17 +691,17 @@
   
       <servlet-mapping>
            <servlet-name>massSetInformOthers</servlet-name>
-           <url-pattern>/massSetInformOthers</url-pattern>
+           <url-pattern>/MassSetInformOthers</url-pattern>
   </servlet-mapping>
   
       <servlet-mapping>
            <servlet-name>encounterSetAlternateID</servlet-name>
-           <url-pattern>/encounterSetAlternateID</url-pattern>
+           <url-pattern>/EncounterSetAlternateID</url-pattern>
   </servlet-mapping>
   
         <servlet-mapping>
              <servlet-name>encounterSetInformOthers</servlet-name>
-             <url-pattern>/encounterSetInformOthers</url-pattern>
+             <url-pattern>/EncounterSetInformOthers</url-pattern>
   </servlet-mapping>
 
 
@@ -749,7 +712,7 @@
 
 <servlet-mapping>
        <servlet-name>trackerFeed</servlet-name>
-       <url-pattern>/trackerFeed</url-pattern>
+       <url-pattern>/TrackerFeed</url-pattern>
   </servlet-mapping>
 
 <servlet-mapping>
@@ -766,20 +729,17 @@
 
   <servlet-mapping>
        <servlet-name>scanWorkItemResultsHandler</servlet-name>
-       <url-pattern>/scanWorkItemResultsHandler2</url-pattern>
+       <url-pattern>/ScanWorkItemResultsHandler2</url-pattern>
   </servlet-mapping>
 
 
   <servlet-mapping>
        <servlet-name>gridHeartbeatReceiver</servlet-name>
-       <url-pattern>/gridHeartbeatReceiver</url-pattern>
+       <url-pattern>/GridHeartbeatReceiver</url-pattern>
   </servlet-mapping>
 
 
-  <servlet-mapping>
-       <servlet-name>ningalooPradel</servlet-name>
-       <url-pattern>/CJS</url-pattern>
-  </servlet-mapping>
+
   
     <servlet-mapping>
          <servlet-name>EncounterSetLivingStatus</servlet-name>
@@ -790,37 +750,37 @@
 
   <servlet-mapping>
        <servlet-name>scanAppletSupport</servlet-name>
-       <url-pattern>/scanAppletSupport</url-pattern>
+       <url-pattern>/ScanAppletSupport</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
        <servlet-name>scanResultsServlet</servlet-name>
-       <url-pattern>/scanResultsServlet</url-pattern>
+       <url-pattern>/ScanResultsServlet</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
        <servlet-name>i3sScanResultsServlet</servlet-name>
-       <url-pattern>/i3sScanResultsServlet</url-pattern>
+       <url-pattern>/I3sScanResultsServlet</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
        <servlet-name>encounterAddImage</servlet-name>
-       <url-pattern>/encounterAddImage</url-pattern>
+       <url-pattern>/EncounterAddImage</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
        <servlet-name>encounterSetSubmitterID</servlet-name>
-       <url-pattern>/encounterSetSubmitterID</url-pattern>
+       <url-pattern>/EncounterSetSubmitterID</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
        <servlet-name>encounterSetMatchedBy</servlet-name>
-       <url-pattern>/encounterSetMatchedBy</url-pattern>
+       <url-pattern>/EncounterSetMatchedBy</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
        <servlet-name>encounterRemoveImage</servlet-name>
-       <url-pattern>/encounterRemoveImage</url-pattern>
+       <url-pattern>/EncounterRemoveImage</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

@@ -202,7 +202,7 @@ if(request.getParameter("zombie")!=null){
 		<td>
 		<%if((numComplete>0)&&(numComplete>=numTaskTot)) {%>
 		<form name="scanNum<%=scanNum%>_writeOut" method="post"
-			action="/writeOutScanTask"><input name="number" type="hidden"
+			action="../WriteOutScanTask"><input name="number" type="hidden"
 			id="number" value="<%=st.getUniqueNumber()%>"> <% 
 					if(st.getUniqueNumber().equals("TuningTask")){
 					%> Boost weight for failed matches<br />
@@ -216,7 +216,7 @@ if(request.getParameter("zombie")!=null){
 				} 
 				if((request.isUserInRole("admin"))||(request.isUserInRole("manager"))||(request.getRemoteUser().equals(st.getSubmitter()))) {%>
 		<form name="scanNum<%=scanNum%>" method="post"
-			action="/scanTaskHandler"><input name="action" type="hidden"
+			action="../ScanTaskHandler"><input name="action" type="hidden"
 			id="action" value="removeTask"><input name="taskID"
 			type="hidden" id="taskID" value="<%=st.getUniqueNumber()%>"><input
 			name="delete" type="submit" id="delete" value="Delete"></form>
@@ -279,7 +279,7 @@ sharkGrid to assist in their completion.</a></p>
 		<td>
 		<%if((request.isUserInRole("admin"))||(request.isUserInRole("manager"))||(request.getRemoteUser().equals(st.getSubmitter()))) {%>
 		<form name="scanNum<%=scanNum%>" method="post"
-			action="/scanTaskHandler"><input name="action" type="hidden"
+			action="../ScanTaskHandler"><input name="action" type="hidden"
 			id="action" value="removeTask"><input name="taskID"
 			type="hidden" id="taskID" value="<%=st.getUniqueNumber()%>"><input
 			name="delete" type="submit" id="delete" value="Delete"></form>
@@ -427,7 +427,7 @@ total in queue)<br> <br>
 <h3>Tuning Tasks and Boosting Files</h3>
 <p>
 <form name="formTuningTask" id="formTuningTask" method="post"
-	action="/scanTaskHandler"><strong>Create Tuning Task</strong>
+	action="../ScanTaskHandler"><strong>Create Tuning Task</strong>
 (first delete the old one if it still exists): <br />
 Number of comparisons to make: <input name="action" type="hidden"
 	id="action" value="addTuningTask"> <em>Leave blank for all
@@ -440,7 +440,7 @@ possible comparisons.</em><br />
 </p>
 <p>
 <form name="formTuningTask" id="formFalseTuningTask" method="post"
-	action="/scanTaskHandler"><strong>Create False Match
+	action="../ScanTaskHandler"><strong>Create False Match
 Tuning Task</strong> (first delete the old one if it still exists): <br />
 Number of comparisons to make: <input name="action" type="hidden"
 	id="action" value="addFalseMatchTask"> <em>Leave blank for
