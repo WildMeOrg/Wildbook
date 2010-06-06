@@ -112,8 +112,6 @@ else {role="Local Specialist";}
 
 //email support
 	Shepherd myShepherd=new Shepherd();
-	Vector e_images=new Vector();
-	NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), "holmbergius@gmail.com", (request.getRemoteUser()+" has logged in."), (request.getRemoteUser()+" has logged in from "+request.getRemoteAddr()+".\n\nYou can check the geographic location of this IP address at:\nhttp://www.geobytes.com/IpLocator.htm"), e_images);
 
 %> <strong><%=role%></strong>.</p>
 <p>Please choose from the menu commands above to start.</p>
