@@ -4,7 +4,7 @@
 
 <%
 
-//setup our Properties object
+//setup our Properties object to hold all properties
 	Properties props=new Properties();
 	String langCode="en";
 	
@@ -63,7 +63,7 @@
 	if ((request.getParameter("start")!=null)&&(request.getParameter("end")!=null)) {
 		lowCount=(new Integer(request.getParameter("start"))).intValue();
 		highCount=(new Integer(request.getParameter("end"))).intValue();
-		if((highCount>(lowCount+9))&&(!request.isUserInRole("researcher"))) {highCount=lowCount+9;}
+		//if((highCount>(lowCount+9))&&(!request.isUserInRole("researcher"))) {highCount=lowCount+9;}
 	}	
 
 
@@ -138,7 +138,7 @@ Query query=myShepherd.getPM().newQuery(encClass);
 try{
 
 int totalCount=0;
-if ((request.getParameter("rejects")!=null)&&(request.isUserInRole("researcher"))) {   
+if (request.getParameter("rejects")!=null) {   
 	totalCount=myShepherd.getNumUnidentifiableEncounters();
 %>
 <table id="results" border="0">
@@ -155,7 +155,7 @@ if ((request.getParameter("rejects")!=null)&&(request.isUserInRole("researcher")
 </table>
 
 
-<%} else if((request.getParameter("unapproved")!=null)&&(request.isUserInRole("researcher"))) {
+<%} else if(request.getParameter("unapproved")!=null) {
 	
 %>
 <table>
@@ -297,7 +297,7 @@ if (highCount<totalCount) {%> <a
 			alt="down" /></a>
 		<%}%>
 		</td>
-		<% if((request.isUserInRole("researcher"))) {%>
+		
 		<td width="40" align="left" valign="top" bgcolor="#99CCFF"
 			class="lineitem"><strong><%=locationID %></strong> <a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=locationCodeup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
@@ -306,7 +306,7 @@ if (highCount<totalCount) {%> <a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=locationCodedown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a></td>
-		<%}%>
+	
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=size %>
 		</strong><br />
 		<%if(request.getRemoteUser()!=null){%><a
@@ -339,13 +339,11 @@ if (highCount<totalCount) {%> <a
 		<%}%>
 		</td>
 
-		<%
-	 if(request.isUserInRole("researcher")) {
-	 %>
+
 
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><font
 			color="#000000"><%=tags %></font></strong></td>
-		<%}%>
+	
 	</tr>
 	<%		
 
@@ -411,7 +409,7 @@ if (highCount<totalCount) {%> <a
 			}
 			
 			//unapproved sorting
-			else if ((request.getParameter("unapproved")!=null)&&(request.getParameter("sort")!=null)&&(request.isUserInRole("researcher"))) {
+			else if ((request.getParameter("unapproved")!=null)&&(request.getParameter("sort")!=null)) {
 
 			
 				query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
@@ -530,7 +528,7 @@ if (highCount<totalCount) {%> <a
 			}
 			//end user-based sorting
 			
-			else if((request.getParameter("unapproved")!=null)&&(request.isUserInRole("researcher"))) {
+			else if(request.getParameter("unapproved")!=null) {
 				query.setFilter("!this.unidentifiable && this.approved == false");
 				allEncounters=myShepherd.getUnapprovedEncounters(query);
 			}
@@ -640,17 +638,17 @@ if (highCount<totalCount) {%> <a
 		<td class="lineitems"><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=encNumShort%></a></td>
 		<td class="lineitems">
-		<% if((request.isUserInRole("researcher"))){%><a
+		<a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
-		<%}%><%=enc.getShortDate()%>
-		<% if((request.isUserInRole("researcher"))){%>
+		<%=enc.getShortDate()%>
+		
 		</a>
-		<%}%>
+	
 		</td>
 		<td width="90" class="lineitems"><%=enc.getLocation()%></td>
-		<% if((request.isUserInRole("researcher"))) {%>
+	
 		<td class="lineitems"><%=enc.getLocationCode()%></td>
-		<%}
+		<%
 	if(enc.getSize()!=0) {
 	%>
 		<td class="lineitems"><%=enc.getSize()%></td>
@@ -674,13 +672,13 @@ if (highCount<totalCount) {%> <a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>"><%=enc.isAssignedToMarkedIndividual()%></a></td>
 		<%
 	}
-	if(((enc.getSpots()==null)&&(enc.getRightSpots()==null))&&(request.isUserInRole("researcher"))) {%>
+	if(((enc.getSpots()==null)&&(enc.getRightSpots()==null))) {%>
 		<td class="lineitems">&nbsp;</td>
-		<% } else if((request.isUserInRole("researcher"))&&(enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
+		<% } else if((enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
 		<td class="lineitems">LR</td>
-		<%}else if((request.isUserInRole("researcher"))&&(enc.getSpots().size()>0)) {%>
+		<%}else if(enc.getSpots().size()>0) {%>
 		<td class="lineitems">L</td>
-		<%} else if((request.isUserInRole("researcher"))&&(enc.getRightSpots().size()>0)) {%>
+		<%} else if(enc.getRightSpots().size()>0) {%>
 		<td class="lineitems">R</td>
 		<%}
 	  } catch(javax.jdo.JDOUserException jdoe) {

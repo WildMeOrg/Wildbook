@@ -56,8 +56,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 	String area=props.getProperty("area");
 	String match=props.getProperty("match");
 	
-	//link path to submit page with appropriate language
-	String submitPath="submit.jsp?langCode="+langCode;
+
 
 %>
 
@@ -257,25 +256,25 @@ way to fit your requirements.
 		href="http://<%=CommonConfiguration.getURLLocation() %>"
 		style="margin: 0px 0 0px 0px; position: relative; width: 95px; height: 25px; z-index: 100;"><strong>Home</strong></a></li>
 	<li class="drop"><a
-		href="http://<%=CommonConfiguration.getURLLocation() %>/index.jsp?langCode=<%=langCode%>"
+		href="http://<%=CommonConfiguration.getURLLocation() %>/index.jsp"
 		style="margin: 0px 0 0px 0px; position: relative; width: 75px; height: 25px; z-index: 100;"><strong>Learn</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/index.jsp?langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/index.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Introduction</a></li>
 
 		</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 	<li class="drop"><a
-		href="http://<%=CommonConfiguration.getURLLocation() %>/submit.jsp?langCode=<%=langCode%>"
+		href="http://<%=CommonConfiguration.getURLLocation() %>/submit.jsp"
 		style="margin: 0px 0 0px 0px; position: relative; width: 90px; height: 25px; z-index: 100;"><strong>Participate</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/submit.jsp?langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/submit.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Report
 		an Encounter</a></li>
@@ -283,21 +282,21 @@ way to fit your requirements.
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 	<li class="drop"><a
-		href="http://<%=CommonConfiguration.getURLLocation() %>/allIndividuals.jsp?langCode=<%=langCode%>"
+		href="http://<%=CommonConfiguration.getURLLocation() %>/allIndividuals.jsp"
 		style="margin: 0px 0 0px 0px; position: relative; width: 100px; height: 25px; z-index: 100;">
 		<strong>Individuals</strong><!--[if IE 7]><!--></a><!--<![endif]--> <!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation() %>/allIndividuals.jsp?langCode=<%=langCode%>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">View All</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation() %>/allIndividuals.jsp" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">View All</a></li>
 		
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 	<li class="drop"><a
-		href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&langCode=<%=langCode%>"
+		href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10"
 		style="margin: 0px 0 0px 0px; position: relative; width: 100px; height: 25px; z-index: 100;"><strong>Encounters</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">View
 		Encounters</a></li>
@@ -313,24 +312,23 @@ way to fit your requirements.
 		Calendar</a></li>
 
 
-		<% if((request.getParameter("isResearcher")!=null)&&(request.getParameter("isResearcher").equals("true"))) {%>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&unapproved=true&langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&unapproved=true"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">View
 		Unapproved Encounters</a></li>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&user=<%=request.getRemoteUser()%>&langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&user=<%=request.getRemoteUser()%>"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">View
 		My Submissions</a></li>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&rejects=true&langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&rejects=true"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">View
 		Unidentifiable Encounters</a></li>
 
-		<%}%>
+	
 
 
 	</ul>
@@ -344,22 +342,22 @@ way to fit your requirements.
 
 
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/encounterSearch.jsp?langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/encounterSearch.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">Encounter
 		Search</a></li>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/individualSearch.jsp?langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/individualSearch.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">Individual
 		Search</a></li>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/kwSearch.jsp?langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/kwSearch.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">Keyword
 		Search</a></li>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/thumbnailSearch.jsp?langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/thumbnailSearch.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">Thumbnail
 		Search</a></li>
@@ -374,9 +372,7 @@ way to fit your requirements.
 
 
 
-	<li
-		<%if((request.getParameter("isResearcher")!=null)&&(request.getParameter("isResearcher").equals("true"))) {%>
-		class="drop" <%}%>><a
+	<li class="drop" ><a
 		href="http://<%=CommonConfiguration.getURLLocation() %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation() %>/appadmin/admin.jsp"
 		style="margin: 0px 0 0px 0px; position: relative; width: 90px; height: 25px; z-index: 100;"><strong>Administer</strong>
 	<!--[if IE 7]><!--></a><!--<![endif]--> <!--[if lte IE 6]><table><tr><td><![endif]-->
@@ -393,23 +389,17 @@ way to fit your requirements.
 		Wiki</a></li>
 
 
-		<%
-					if((request.getParameter("isResearcher")!=null)&&(request.getParameter("isResearcher").equals("true"))) {%>
 		<li><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/software.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Client
 		Software</a></li>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/scanTaskAdmin.jsp?langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/scanTaskAdmin.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Grid</a></li>
-		<%
-					}
-					if((request.getParameter("isAdmin")!=null)&&(request.getParameter("isAdmin").equals("true"))) {%>
-
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/admin.jsp?langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/admin.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">General</a></li>
 		<li><a
@@ -417,7 +407,7 @@ way to fit your requirements.
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">TapirLink</a></li>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/kwAdmin.jsp?langCode=<%=langCode%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/kwAdmin.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Photo
 		Keywords</a></li>
@@ -446,7 +436,7 @@ way to fit your requirements.
 		</ul>
 		
 
-		<!--[if lte IE 6]></td></tr></table></a><![endif]--> <%}%>
+		<!--[if lte IE 6]></td></tr></table></a><![endif]--> 
 		
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
@@ -454,11 +444,11 @@ way to fit your requirements.
 <li><a href="http://<%=CommonConfiguration.getURLLocation() %>/contactus.jsp" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;"><strong>Contact Us</strong></a></li>
 	<%if(request.getRemoteUser()==null) {%>
 	<li><a
-		href="http://<%=CommonConfiguration.getURLLocation() %>/welcome.jsp?langCode=<%=langCode%>"
+		href="http://<%=CommonConfiguration.getURLLocation() %>/welcome.jsp"
 		style="margin: 0px 0 0px 0px; position: relative; width: 76px; height: 25px; z-index: 100;"><strong>Login</strong></a></li>
 	<%} else {%>
 	<li><a
-		href="http://<%=CommonConfiguration.getURLLocation() %>/logout.jsp?langCode=<%=langCode%>"
+		href="http://<%=CommonConfiguration.getURLLocation() %>/logout.jsp"
 		style="margin: 0px 0 0px 0px; position: relative; width: 76px; height: 25px; z-index: 100;"><strong>Logout</strong></a></li>
 	<%}%>
 

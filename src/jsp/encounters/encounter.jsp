@@ -1199,7 +1199,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td>
-				<form name="reject_form" method="post" action="/reject.jsp">
+				<form name="reject_form" method="post" action="reject.jsp">
 				<input name="action" type="hidden" id="action" value="reject">
 				<input name="number" type="hidden" value=<%=num%>> <input
 					name="reject" type="submit" id="reject" value="Reject"></form>
