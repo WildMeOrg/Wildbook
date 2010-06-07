@@ -104,29 +104,8 @@
 
 <div id="main">
 
-<div id="leftcol">
-<div id="menu">
 
-
-<div class="module"><img
-	src="http://<%=CommonConfiguration.getURLLocation()%>/images/area.jpg"
-	width="190" height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"><%=area%></p>
-</div>
-
-<div class="module"><img
-	src="http://<%=CommonConfiguration.getURLLocation()%>/images/match.jpg"
-	width="190" height="94" border="0" title="We Have A Match!"
-	alt="We Have A Match!" />
-<p class="caption"><%=match%></p>
-</div>
-
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 <div id="maintext">
 <%
 
@@ -211,7 +190,7 @@ if (request.getParameter("rejects")!=null) {
 
 
 <%}%>
-<table id="results" border="0" width="100%">
+<table id="results" border="0" width="810px">
 	<tr class="paging">
 		<td align="left">
 		<%
@@ -230,7 +209,7 @@ if (highCount<totalCount) {%> <a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>"><%=previous %></a>
 		<%}%>
 		</td>
-		<td colspan="6" align="right">
+		<td colspan="8" align="right">
 		<%
  String startNum="1";
  String endNum="10";
@@ -259,7 +238,8 @@ if (highCount<totalCount) {%> <a
  }
  } catch(NumberFormatException nfe) {}
  
- %> <%=viewing %>: <%=lowCount%> - <%=highCount%><%=displaySort%></td>
+ %> 
+ <%=viewing %>: <%=lowCount%> - <%=highCount%><%=displaySort%></td>
 	</tr>
 
 	<tr class="lineitem">
@@ -699,7 +679,7 @@ if (highCount<totalCount) {%> <a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>"><%=previous %></a>
 		<%}%>
 		</td>
-		<td colspan="6" align="right"><%=viewing %>: <%=lowCount%> - <%=highCount%><%=displaySort%>
+		<td colspan="8" align="right"><%=viewing %>: <%=lowCount%> - <%=highCount%><%=displaySort%>
 
 		</td>
 	</tr>

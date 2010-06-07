@@ -109,6 +109,12 @@ a:hover {
 	overflow: hidden;
 }
 
+#maincol-wide-solo {
+	float: left;
+	width: 810px;
+	overflow: hidden;
+}
+
 #rightcol {
 	width: 200px;
 	float: right;

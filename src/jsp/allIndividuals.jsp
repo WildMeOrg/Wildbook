@@ -85,34 +85,14 @@
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="leftcol">
-<div id="menu">
 
-
-
-<div class="module"><img src="images/area.jpg" width="190"
-	height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"><%=area%></p>
-</div>
-
-<div class="module"><img src="images/match.jpg" width="190"
-	height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-<p class="caption"><%=match%></p>
-</div>
-
-
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 
 <div id="maintext">
-<table id="results" border="0">
+<table id="results" border="0" width="810px">
 	<tr>
 		<td colspan="5">
-		<h1><span class="intro"><img src="images/markedIndividualIcon.gif"
+		<h1><span class="intro"><img src="images/tag_big.gif" width="50px" height="*"
 			 align="absmiddle" /></span> <%=see_all_sharks%></h1>
 		</td>
 	</tr>
@@ -141,7 +121,8 @@
 		 else if((request.getParameter("end")!=null)&&(request.getParameter("end").equals("99999"))){
 				endNum=(new Integer(totalCount)).toString();
 			}
-		 %> <%=records%>: <%=lowCount%> - <%=highCount%><%=displaySort%></td>
+		 %> 
+		 <%=records%>: <%=lowCount%> - <%=highCount%><%=displaySort%></td>
 	</tr>
 	<tr class="lineitem">
 		<td width="101" bgcolor="#99CCFF" class="lineitem"><strong><%=image%></strong></td>

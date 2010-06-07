@@ -225,7 +225,7 @@ boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
 <%}%> <%
 	if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
 %>
-<p class="para"><img align="absmiddle" src="../images/markedIndividualIcon.gif">
+<p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
 Identified as: <%=enc.isAssignedToMarkedIndividual()%> <%
  	if(isOwner) {
  %><font size="-1">[<a
@@ -237,7 +237,7 @@ Identified as: <%=enc.isAssignedToMarkedIndividual()%> <%
 <%
 	} else {
 %>
-<p class="para"><img align="absmiddle" src="../images/markedIndividualIcon.gif">
+<p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
 Identified as: <a
 	href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a></font>
 <%
@@ -269,9 +269,7 @@ Status: <%=enc.getLivingStatus()%> <%
  %>
 </p>
 
-<%
-if(request.isUserInRole("researcher")){
-%>
+
 <p class="para"><img align="absmiddle"
 	src="../images/alternateid.gif"> Alternate ID: <%=enc.getAlternateID()%>
 <%
@@ -281,7 +279,7 @@ if(request.isUserInRole("researcher")){
  %>
 </p>
 <%
-	}
+
 
 if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 %>
@@ -466,7 +464,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top" class="para"><font
 					color="#990000"><img align="absmiddle"
-					src="../images/markedIndividualIcon.gif" /><br></br>
+					src="../images/tag_big.gif" width="50px" height="*" /><br></br>
 				<strong>Add to marked individual:</strong></font></td>
 			</tr>
 			<tr>
@@ -526,7 +524,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top" class="para"><font
 					color="#990000"><img align="absmiddle"
-					src="../images/markedIndividualIcon.gif" /> <strong>Create marked
+					src="../images/tag_big.gif" width="50px" height="*" /> <strong>Create marked
 				individual:</strong></font></td>
 			</tr>
 			<tr>
