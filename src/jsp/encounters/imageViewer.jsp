@@ -55,16 +55,17 @@ here to access the original source image</a></p>
 <table width="720">
 	<tr>
 		<td align="left" valign="top">
-		<p><object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"
-			codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,29,0"
-			width="720" height="480">
-			<param name="movie" value="view.swf?number=<%=number%>&src=<%=src%>">
-			<param name="quality" value="high">
-			<param name="wmode" value="transparent"><embed
-				src="view.swf?number=<%=number%>&src=<%=src%>" quality="high"
-				pluginspage="http://www.macromedia.com/go/getflashplayer"
-				type="application/x-shockwave-flash" width="720" height="480"></embed>
-		</object></p>
+
+		
+		<p>
+		<object style="width: 720px; height: 480px;" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="640" height="360" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,40,0">
+		<param name="src" value="keenerview.swf?image_url=http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>" />
+		<embed style="width: 640px; height: 360px;" type="application/x-shockwave-flash" width="640" height="360" src="keenerview.swf?image_url=http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>"></embed>
+		</object>
+		</p>
+		
+		
+		
 		<p>&nbsp;</p>
 		</td>
 	</tr>

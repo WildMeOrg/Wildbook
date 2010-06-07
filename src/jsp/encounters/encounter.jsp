@@ -1009,16 +1009,16 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setencdepth" action="../EncounterSetMaximumElevation" method="post">
+				<form name="setencelev" action="../EncounterSetMaximumElevation" method="post">
 						<input name="elevation" type="text" id="elevation" size="10"> Meters <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters"> 
 						<input name="number" type="hidden" value="<%=num%>" id="number"> 
 						<input name="action" type="hidden" value="setEncounterElevation"> 
-						<input name="AddDepth" type="submit" id="AddDepth" value="Set Elevation">
+						<input name="AddElev" type="submit" id="AddElev" value="Set Elevation">
 					</form>
 				</td>
 			</tr>
 		</table>
-		</a><br> <%
+		</a><br /> <%
 			}
 
 		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("user"))){
@@ -1041,7 +1041,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</td>
 			</tr>
 		</table>
-		</a><br> <%
+		</a><br /> <%
 		}
 
 	//reset scarring
@@ -1071,12 +1071,12 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</td>
 			</tr>
 		</table>
-		</a><br> <%
+		</a><br /> <%
 			}
 
 		//kick off a scan
 				if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))&&isOwner) {
-		%> <br>
+		%> <br />
 		<table width="150" border="1" cellpadding="1" cellspacing="0"
 			bgcolor="#CCCCCC">
 			<tr>
@@ -1127,7 +1127,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</table>
 
 				<input name="writeThis" type="hidden" id="writeThis" value="true">
-				<br> <input name="scan" type="submit" id="scan"
+				<br /> <input name="scan" type="submit" id="scan"
 					value="Start Scan"
 					onclick="submitForm(document.getElementById('formSharkGrid'))">
 				<input name="cutoff" type="hidden" value="0.02"></form>
@@ -1136,7 +1136,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</td>
 			</tr>
 		</table>
-		<br> <!--
+		<br /> <!--
 			<%}
 			
 			if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))&&isOwner) {%>
@@ -1174,7 +1174,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				      </form>
 		  			</td>
 				</tr>
-			</table><br>
+			</table><br />
 			--> <%
 	  	}
 
@@ -1206,7 +1206,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</td>
 			</tr>
 		</table>
-		<br> <%
+		<br /> <%
 	  	}
 	  	  if ((enc.wasRejected())&&isOwner) {
 	  %>
@@ -1233,7 +1233,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</td>
 			</tr>
 		</table>
-		<br> <%
+		<br /> <%
 	  	}
 	  	  //remove spot data
 	  	  if(isOwner) {
@@ -1276,7 +1276,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</td>
 			</tr>
 		</table>
-		</a><br> <%
+		</a><br /> <%
 	  	}
 	  	  if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("spotImage"))){
 	  %> <a name="spotImage">
@@ -1290,16 +1290,16 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<input name="number" type="hidden" value="<%=num%>" id="shark">
 				<font color="#990000"><strong><img align="absmiddle"
 					src="../images/upload_small.gif" /></strong> <strong>Set spot
-				image file:</strong></font><br> <label><input name="rightSide"
-					type="radio" value="false"> left</label><br> <label><input
-					name="rightSide" type="radio" value="true"> right</label><br>
-				<br> <input name="file2add" type="file" size="15"><br>
+				image file:</strong></font><br /> <label><input name="rightSide"
+					type="radio" value="false"> left</label><br /> <label><input
+					name="rightSide" type="radio" value="true"> right</label><br />
+				<br /> <input name="file2add" type="file" size="15"><br />
 				<input name="addtlFile" type="submit" id="addtlFile"
 					value="Upload spot image"></form>
 				</td>
 			</tr>
 		</table>
-		</a><br> <%
+		</a><br /> <%
 	  	  	}
 	  	  %>
 		<table border="1" cellpadding="2" cellspacing="0"
@@ -1314,7 +1314,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<td align="left">
 				<form action="../resetThumbnail.jsp" method="get"
 					enctype="multipart/form-data" name="resetThumbnail"><input
-					name="number" type="hidden" value="<%=num%>" id="numreset"><br>
+					name="number" type="hidden" value="<%=num%>" id="numreset"><br />
 				Use image: <select name="imageNum">
 					<%
 					for (int rmi2=1;rmi2<=numImages;rmi2++){
@@ -1323,12 +1323,12 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<%
 					}
 				%>
-				</select><br> <input name="resetSubmit" type="submit" id="resetSubmit"
+				</select><br /> <input name="resetSubmit" type="submit" id="resetSubmit"
 					value="Reset Thumbnail"></form>
 				</td>
 			</tr>
 		</table>
-		<br> <a name="tapirlink">
+		<br /> <a name="tapirlink">
 		<table width="175" border="1" cellpadding="1" cellspacing="0"
 			bordercolor="#000000" bgcolor="#CECFCE">
 			<tr>
@@ -1351,7 +1351,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</td>
 			</tr>
 		</table>
-		</a> <br> <%
+		</a> <br /> <%
 	  	//end isOwner permissions
 	  	  }
 	  	  
@@ -1360,7 +1360,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 	  	  
 	  	  //add e-mail for tracking
 	  	  if(request.isUserInRole("researcher")){
-	  %> <!--<br><table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+	  %> <!--<br /><table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
       	<tr>
         	<td align="left" valign="top" class="para"><font color="#990000">Track data changes to this encounter via email address:</font></td>
         </tr>
@@ -1373,7 +1373,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
             	</form>
 			</td>
         </tr>
-      </table><br>
+      </table><br />
 	        <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
       	<tr>
         	<td align="left" valign="top" class="para"><font color="#990000">Remove email address from tracking:</font></td>
@@ -1387,7 +1387,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
             	</form>
 			</td>
         </tr>
-      </table><br>--> <%
+      </table><br />--> <%
 			}
 		%>
 
@@ -1429,7 +1429,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					href="encounter.jsp?number=<%=num%>&edit=location#location">edit</a>]</font>
 				<%
  	}
- %><br> <%
+ %><br /> <%
               	  	  	  	if (request.isUserInRole("researcher")) {
               	  	  	  %> <em>Location ID</em>: <%=enc.getLocationCode()%>
 				<%
@@ -1440,25 +1440,25 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					target="_blank"><img src="../images/information_icon_svg.gif"
 					alt="Help" border="0" align="absmiddle"></a> <%
 					}
-				%><br> <em>Latitude</em>: <%
+				%><br /> <em>Latitude</em>: <%
 			  	if(!enc.getGPSLatitude().equals("")) {
-			  %><br><%=enc.getGPSLatitude()%> <%
+			  %><br /><%=enc.getGPSLatitude()%> <%
  	if(enc.getDWCDecimalLatitude()!=null){
  %>(<%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLatitude()))%>)<%
  	}}
- %><br> <em>Longitude</em>: <%
+ %><br /> <em>Longitude</em>: <%
 			  	if(!enc.getGPSLongitude().equals("")) {
-			  %><br><%=enc.getGPSLongitude()%> <%
+			  %><br /><%=enc.getGPSLongitude()%> <%
   	if(enc.getDWCDecimalLongitude()!=null){
   %>(<%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLongitude()))%>)<%
   	}}
-  %><br> <%
+  %><br /> <%
 			   	if(isOwner) {
 			   %><font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=gps#gps">edit</a>]</font>
 				<%
 			   	}
-			   %><br> <a href="#map">View map</a> <%
+			   %><br /> <a href="#map">View map</a> <%
 			  	}
 			  %>
 				
@@ -1475,7 +1475,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  					} else {
  					%>Unknown<%
  					}
-					 %> <br> (<em>Method: <%=enc.getSizeGuess()%></em>) <%
+					 %> <br /> (<em>Method: <%=enc.getSizeGuess()%></em>) <%
  					if(isOwner) {%>
 						<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
 					<%
@@ -1544,7 +1544,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  	}
  %>
 
-				<p class="para"><strong>Additional comments</strong><br> <%=enc.getComments()%><br>
+				<p class="para"><strong>Additional comments</strong><br /> <%=enc.getComments()%><br />
 				<%
       	if(isOwner) {
       %><font size="-1">[<a
@@ -1562,7 +1562,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
 				<%
  	}
- %><br> <%=enc.getSubmitterName()%><br> <%
+ %><br /> <%=enc.getSubmitterName()%><br /> <%
 		if (request.isUserInRole("researcher")) {
 			
 			if(enc.getSubmitterEmail().indexOf(",")!=-1) {
@@ -1570,14 +1570,14 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");
 		
 		while(stzr.hasMoreTokens()) {
-	%> <%=stzr.nextToken()%><br> <%
+	%> <%=stzr.nextToken()%><br /> <%
 				}
 				
 					}
 					else {
-			%> <%=enc.getSubmitterEmail()%><br> <%
+			%> <%=enc.getSubmitterEmail()%><br /> <%
 			}
-		%> <%=enc.getSubmitterPhone()%><br> <%=enc.getSubmitterAddress()%>
+		%> <%=enc.getSubmitterPhone()%><br /> <%=enc.getSubmitterAddress()%>
 				<%
 	}
 %>
@@ -1588,9 +1588,9 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
 				<%
  	}
- %><br> <%=enc.getPhotographerName()%><br> <%
+ %><br /> <%=enc.getPhotographerName()%><br /> <%
 	if (request.isUserInRole("researcher")) {
-%> <%=enc.getPhotographerEmail()%><br> <%=enc.getPhotographerPhone()%><br>
+%> <%=enc.getPhotographerEmail()%><br /> <%=enc.getPhotographerPhone()%><br />
 				<%=enc.getPhotographerAddress()%>
 
 
@@ -1600,7 +1600,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					href="encounter.jsp?number=<%=num%>&edit=others#others">edit</a>]</font>
 				<%
  	}
- %><br> <%
+ %><br /> <%
         	if(enc.getInformOthers()!=null){
         		
         		if(enc.getInformOthers().indexOf(",")!=-1) {
@@ -1608,12 +1608,12 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
         	StringTokenizer stzr=new StringTokenizer(enc.getInformOthers(),",");
         	
         	while(stzr.hasMoreTokens()) {
-        %> <%=stzr.nextToken()%><br> <%
+        %> <%=stzr.nextToken()%><br /> <%
 				}
 				
 					}
 					else{
-			%> <%=enc.getInformOthers()%><br> <%
+			%> <%=enc.getInformOthers()%><br /> <%
 			}
 				}
 				else {
@@ -1632,7 +1632,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<p class="para"><strong>Ready to scan</strong> <a
 					href="<%=CommonConfiguration.getWikiLocation()%>processing_a_new_encounter"
 					target="_blank"><img src="../images/information_icon_svg.gif"
-					alt="Help" border="0" align="absmiddle"></a> <br>
+					alt="Help" border="0" align="absmiddle"></a> <br />
 				<%
  	String ready="No. Please add spot data.";
  	  	if ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) {
@@ -1649,26 +1649,26 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<%=ready%> 
 		<% 
 		if((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) { %> 
-			<br><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=rmSpots#rmSpots">remove left or right spots</a>]</font> <%
+			<br /><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=rmSpots#rmSpots">remove left or right spots</a>]</font> <%
 	  	}
 
 	  	if(((new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml")).exists())&&(enc.getNumSpots()>0)) {
-	  		%> <br><br><a
+	  		%> <br /><br /><a
 					href="scanEndApplet.jsp?writeThis=true&number=<%=num%>">Groth:
 				Left-side scan results</a> <%
 	  			}
 	  			if(((new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml")).exists())&&(enc.getNumRightSpots()>0)) {
-	  		%> <br><br><a
+	  		%> <br /><br /><a
 					href="scanEndApplet.jsp?writeThis=true&number=<%=num%>&rightSide=true">Groth:
 				Right-side scan results</a> <%
 	  			}
 	  			if(((new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml")).exists())&&(enc.getNumSpots()>0)) {
-	  		%> <br><br><a
+	  		%> <br /><br /><a
 					href="i3sScanEndApplet.jsp?writeThis=true&number=<%=num%>&I3S=true">I3S:
 				Left-side scan results</a> <%
 	  			}
 	  			if(((new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml")).exists())&&(enc.getNumRightSpots()>0)) {
-	  		%> <br><br><a
+	  		%> <br /><br /><a
 					href="i3sScanEndApplet.jsp?writeThis=true&number=<%=num%>&rightSide=true&I3S=true">I3S:
 				Right-side scan results</a> <%
 	  			}
@@ -1680,7 +1680,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		
 				</td>
 				<td align="left" valign="top">
-				<p class="para"><strong>Images</strong><br> <%
+				<p class="para"><strong>Images</strong><br /> <%
 	  				if (request.isUserInRole("researcher")) {
 	  			%> <em>Click any image to view the originally submitted
 				version in your browser</em>.
@@ -1846,7 +1846,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			%> <%
 				} else if((!processedImage.exists())&&(haveRendered)) {
 			%> <img width="250" height="200" alt="photo <%=enc.getLocation()%>"
-									src="../processed.gif" border="0" align="left" valign="left">
+									src="../images/processed.gif" border="0" align="left" valign="left">
 								<%
 					if ((request.isUserInRole("researcher"))||(request.isUserInRole(enc.getLocationCode()))) {
 				%></a>
@@ -1878,7 +1878,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 							<p><img src="../alert.gif"> <strong>Unacceptable
 							file submission:</strong> <%=addTextFile%> <%
 					if (isOwner) {
-				%> <br><a
+				%> <br /><a
 								href="/encounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>">Click
 							here to remove.</a></p>
 							<%
@@ -1912,7 +1912,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 							name="action" type="hidden" value="imageadder" id="action">
 						<input name="number" type="hidden" value="<%=num%>" id="shark">
 						<strong><img align="absmiddle"
-							src="../images/upload_small.gif" /> Add new image or video file:</strong><br>
+							src="../images/upload_small.gif" /> Add new image or video file:</strong><br />
 						<input name="file2add" type="file" size="20">
 						<p><input name="addtlFile" type="submit" id="addtlFile"
 							value="Upload"></p></form>
@@ -1920,7 +1920,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 						</td>
 					</tr>
 				</table>
-				<br>
+				<br />
 				<table width="250" bgcolor="#99CCFF">
 					<tr>
 						<td class="para">
@@ -1937,7 +1937,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 							<%
 					}
 				%>
-						</select><br>
+						</select><br />
 
 						<p><input name="rmFile" type="submit" id="rmFile"
 							value="Remove"></p></form>
@@ -2040,23 +2040,23 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 								String filelocR=(num+"/"+enc.getRightSpotImageFileName());
 					%>
 				<p class="para"><strong>Spot data image files used for
-				matching</strong><br> <font size="-1">[<a
+				matching</strong><br /> <font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=spotImage#spotImage">reset
-				left or right spot data image</a>]</font><br> <br> <%
+				left or right spot data image</a>]</font><br /> <br /> <%
 				if((enc.getNumSpots()>0)) {
 			%> Left-side<em>.</em><em> Click the image to view the full size
 				original. <a href="encounterSpotVisualizer.jsp?number=<%=num%>">Click
-				here to see the left-side spots mapped to the left-side image.</a> </em><br>
+				here to see the left-side spots mapped to the left-side image.</a> </em><br />
 				<a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image"
 					width="250"></a> <%
  				}
- 			%> <br><br> <%
+ 			%> <br /><br /> <%
 				//--
 				if((enc.getNumRightSpots()>0)) {
 			%> Right-side<em>.</em><em> Click the image to view the full
 				size original. <a
 					href="encounterSpotVisualizer.jsp?number=<%=num%>&rightSide=true">Click
-				here to see the right-side spots mapped to the right-side image.</a> </em><br>
+				here to see the right-side spots mapped to the right-side image.</a> </em><br />
 				<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image"
 					width="250"></a> <%
  			              	} 
@@ -2126,7 +2126,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 						  	window.location="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>";
 						  });
 						  GEvent.addListener(marker1, "mouseover", function(){
-						  	marker1.openInfoWindowHtml("<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation()%>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>\"><%=enc.isAssignedToMarkedIndividual()%></a></strong><br><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=enc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=enc.getDate()%><br>Sex: <%=enc.getSex()%><br>Size: <%=enc.getSize()%> m<br><br><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
+						  	marker1.openInfoWindowHtml("<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation()%>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>\"><%=enc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=enc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=enc.getDate()%><br />Sex: <%=enc.getSex()%><br />Size: <%=enc.getSize()%> m<br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
 						  });
 						  map.addOverlay(marker1);
 		
@@ -2138,7 +2138,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 
 		<%} else {%>
 		<p>No GPS data is available for mapping.</p>
-		<br> <%}%> <br>
+		<br /> <%}%> <br />
 		<hr>
 		<form action="../EncounterAddComment" method="post" name="addComments">
 		<p class="para"><input name="user" type="hidden"
@@ -2151,12 +2151,12 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<%
 	if (enc.getRComments()!=null) {
 	%>
-		<p class="para"><%=enc.getRComments().replaceAll("\n","<br>")%></p>
+		<p class="para"><%=enc.getRComments().replaceAll("\n","<br />")%></p>
 		<%
 	}
 	%>
 
-		<p><textarea name="comments" cols="50" id="comments"></textarea> <br>
+		<p><textarea name="comments" cols="50" id="comments"></textarea> <br />
 		<input name="Submit" type="submit" value="Add comments">
 		</p>
 		</form>
@@ -2167,7 +2167,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 	</tr>
 
 </table>
-<br>
+<br />
 <table>
 	<tr>
 		<td>

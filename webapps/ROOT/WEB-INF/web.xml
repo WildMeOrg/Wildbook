@@ -349,6 +349,12 @@
       	<servlet-class>org.ecocean.servlet.EncounterSetMaximumDepth</servlet-class>
   </servlet> 
   
+   <servlet>
+             <servlet-name>EncounterSetMaximumElevation</servlet-name>
+      	<servlet-class>org.ecocean.servlet.EncounterSetMaximumElevation</servlet-class>
+  </servlet>
+  
+  
         <servlet>
                <servlet-name>EncounterSetOccurrenceRemarks</servlet-name>
         	<servlet-class>org.ecocean.servlet.EncounterSetOccurrenceRemarks</servlet-class>
@@ -572,6 +578,11 @@
      <servlet-mapping>
              <servlet-name>EncounterSetMaximumDepth</servlet-name>
              <url-pattern>/EncounterSetMaximumDepth</url-pattern>
+  </servlet-mapping>
+  
+       <servlet-mapping>
+               <servlet-name>EncounterSetMaximumElevation</servlet-name>
+               <url-pattern>/EncounterSetMaximumElevation</url-pattern>
   </servlet-mapping>
   
       <servlet-mapping>
