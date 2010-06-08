@@ -119,9 +119,7 @@ public class KeywordHandler extends HttpServlet {
 				//confirm success
 				out.println(ServletUtilities.getHeader());
 				out.println("<strong>Success:</strong> The keyword <i>"+oldName+"</i> has been changed to <i>"+request.getParameter("newName")+"</i>.");
-				//out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark <strong>"+request.getParameter("shark")+"</strong></a></p>\n");
-				//out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
-				out.println("<p><a href=\"../appadmin/kwAdmin.jsp\">Return to keyword administration.</a></font></p>");
+				out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/kwAdmin.jsp\">Return to keyword administration.</a></font></p>");
 				out.println(ServletUtilities.getFooter());
 			}
 			

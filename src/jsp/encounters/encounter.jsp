@@ -1,5 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
 	import="org.ecocean.servlet.*,java.util.ArrayList,java.util.GregorianCalendar,java.util.StringTokenizer,org.ecocean.*,java.text.DecimalFormat, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.FileInputStream, java.io.File, java.util.Iterator,java.util.Properties"%>
 <%@ taglib uri="di" prefix="di"%>
@@ -189,15 +188,16 @@ String livingStatus="";
 if(enc.getLivingStatus().equals("dead")){livingStatus=" (deceased)";}
 int numImages=enc.getAdditionalImageNames().size();
 
+//let's see if this user has ownership and can make edits
 boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+String loggedIn="false";
+if (session.getValue("logged")!=null) {
+		Object OBJloggedIn=session.getValue("logged");
+		loggedIn=(String)OBJloggedIn;
+}
+//end user identity and authorization check
 
-
-
-		String loggedIn="false";
-		if (session.getValue("logged")!=null) {
-			Object OBJloggedIn=session.getValue("logged");
-			loggedIn=(String)OBJloggedIn;}
-%> <%if (enc.wasRejected()) {%>
+if (enc.wasRejected()) {%>
 <table width="810">
 	<tr>
 		<td bgcolor="#0033CC">
@@ -1357,7 +1357,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 	  	  }
 	  	  
 	  	  //add e-mail for tracking
-	  	  if(request.isUserInRole("researcher")){
+	  	 
 	  %> <!--<br /><table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
       	<tr>
         	<td align="left" valign="top" class="para"><font color="#990000">Track data changes to this encounter via email address:</font></td>
@@ -1385,9 +1385,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
             	</form>
 			</td>
         </tr>
-      </table><br />--> <%
-			}
-		%>
+      </table><br />--> 
 
 		<p>&nbsp;</p>
 		<%
@@ -1401,20 +1399,13 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<table border="0" cellspacing="0" cellpadding="5">
 			<tr>
 				<td align="left" valign="top">
-				<p class="para"><strong>Date</strong>: <%
-       	if((request.isUserInRole("researcher"))){
-       %><a
-					href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
-				<%
-       	}
-       %><%=enc.getDate()%>
-				<%
-       	if((request.isUserInRole("researcher"))){
-       %>
+				<p class="para"><strong>Date</strong>: <a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+				<%=enc.getDate()%>
+			
 				</a>
 				<%
-       	}
-       %> <%
+     
+      
  	if(isOwner) {
  %><font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
@@ -1427,38 +1418,37 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					href="encounter.jsp?number=<%=num%>&edit=location#location">edit</a>]</font>
 				<%
  	}
- %><br /> <%
-              	  	  	  	if (request.isUserInRole("researcher")) {
-              	  	  	  %> <em>Location ID</em>: <%=enc.getLocationCode()%>
+ %>
+ <br /> 
+
+             <em>Location ID</em>: <%=enc.getLocationCode()%>
 				<%
- 	if(isOwner) {
- %><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=loccode#loccode">edit</a>]</font>
-				<a href="<%=CommonConfiguration.getWikiLocation()%>location_codes"
-					target="_blank"><img src="../images/information_icon_svg.gif"
-					alt="Help" border="0" align="absmiddle"></a> <%
-					}
+ 				if(isOwner) {%>
+ 					<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=loccode#loccode">edit</a>]</font>
+					<a href="<%=CommonConfiguration.getWikiLocation()%>location_codes"
+						target="_blank"><img src="../images/information_icon_svg.gif"
+						alt="Help" border="0" align="absmiddle"></a> <%
+				}
 				%><br /> <em>Latitude</em>: <%
-			  	if(!enc.getGPSLatitude().equals("")) {
-			  %><br /><%=enc.getGPSLatitude()%> <%
- 	if(enc.getDWCDecimalLatitude()!=null){
- %>(<%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLatitude()))%>)<%
- 	}}
- %><br /> <em>Longitude</em>: <%
+			  		if(!enc.getGPSLatitude().equals("")) {
+			  			%><br /><%=enc.getGPSLatitude()%> <%
+ 							if(enc.getDWCDecimalLatitude()!=null){
+ 								%>(<%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLatitude()))%>)<%
+ 							}
+			  		}
+ 				%><br /> <em>Longitude</em>: <%
 			  	if(!enc.getGPSLongitude().equals("")) {
-			  %><br /><%=enc.getGPSLongitude()%> <%
-  	if(enc.getDWCDecimalLongitude()!=null){
-  %>(<%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLongitude()))%>)<%
-  	}}
-  %><br /> <%
+			  		%><br /><%=enc.getGPSLongitude()%> <%
+  						if(enc.getDWCDecimalLongitude()!=null){
+  							%>(<%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLongitude()))%>)<%
+  						}
+			  	}
+  				%><br /> <%
 			   	if(isOwner) {
-			   %><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=gps#gps">edit</a>]</font>
+			   		%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=gps#gps">edit</a>]</font>
 				<%
 			   	}
-			   %><br /> <a href="#map">View map</a> <%
-			  	}
-			  %>
+			   %><br /> <a href="#map">View map</a> 
 				
 				</p>
 				
@@ -1561,7 +1551,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%
  	}
  %><br /> <%=enc.getSubmitterName()%><br /> <%
-		if (request.isUserInRole("researcher")) {
+		if (isOwner) {
 			
 			if(enc.getSubmitterEmail().indexOf(",")!=-1) {
 		//break up the string
@@ -1587,7 +1577,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%
  	}
  %><br /> <%=enc.getPhotographerName()%><br /> <%
-	if (request.isUserInRole("researcher")) {
+	if (isOwner) {
 %> <%=enc.getPhotographerEmail()%><br /> <%=enc.getPhotographerPhone()%><br />
 				<%=enc.getPhotographerAddress()%>
 
@@ -1679,7 +1669,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</td>
 				<td align="left" valign="top">
 				<p class="para"><strong>Images</strong><br /> <%
-	  				if (request.isUserInRole("researcher")) {
+	  				if (session.getValue("logged")!=null) {
 	  			%> <em>Click any image to view the originally submitted
 				version in your browser</em>.
 				</p>
@@ -1836,7 +1826,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 									alt="photo <%=enc.getLocation()%>"
 									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
 									valign="left"> <%
-				if (request.isUserInRole("researcher")) {
+				if (session.getValue("logged")!=null) {
 			%>
 								</a>
 								<%
@@ -1846,7 +1836,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			%> <img width="250" height="200" alt="photo <%=enc.getLocation()%>"
 									src="../images/processed.gif" border="0" align="left" valign="left">
 								<%
-					if ((request.isUserInRole("researcher"))||(request.isUserInRole(enc.getLocationCode()))) {
+					if (session.getValue("logged")!=null) {
 				%></a>
 								<%
 					}
@@ -1855,7 +1845,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			%> <img width="250" height="200" alt="photo <%=enc.getLocation()%>"
 									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
 									valign="left"> <%
-					if (request.isUserInRole("researcher")) {
+					if (session.getValue("logged")!=null) {
 				%></a>
 								<%
 					}
@@ -2082,7 +2072,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		</table>
 		<p>
 		<%
-	  	  	  	if (((request.isUserInRole("researcher"))||(request.isUserInRole("search"))&&(request.getParameter("noscript")==null))) {
+	  	  	  	if (request.getParameter("noscript")==null) {
 	  	  	  %>
 		<hr>
 		<p><a name="map"><strong><img
@@ -2136,7 +2126,16 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 
 		<%} else {%>
 		<p>No GPS data is available for mapping.</p>
-		<br /> <%}%> <br />
+		<br /> <%
+		
+		}
+		
+		
+		if(session.getValue("logged")!=null){
+		%> 
+		
+		
+		<br />
 		<hr>
 		<form action="../EncounterAddComment" method="post" name="addComments">
 		<p class="para"><input name="user" type="hidden"
@@ -2158,7 +2157,11 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<input name="Submit" type="submit" value="Add comments">
 		</p>
 		</form>
-		<%}%>
+		<%
+		}
+	  	}
+		
+		%>
 		
 		</p>
 		</td>

@@ -845,11 +845,7 @@
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
       <role-name>admin</role-name>
-      <role-name>manager</role-name>
-	<role-name>researcher</role-name>
-	<role-name>reviewer</role-name>
-	<role-name>search</role-name>
-<role-name>local</role-name>
+
     </auth-constraint>
   </security-constraint>
 
@@ -867,7 +863,7 @@
     </web-resource-collection>
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>manager</role-name>
+      <role-name>admin</role-name>
 
     </auth-constraint>
   </security-constraint>
@@ -894,8 +890,6 @@
     </web-resource-collection>
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>researcher</role-name>
-      <role-name>manager</role-name>
 	<role-name>admin</role-name>
     </auth-constraint>
   </security-constraint>
@@ -910,9 +904,7 @@
       </web-resource-collection>
       <auth-constraint>
         <!-- Anyone with one of the listed roles may access this area -->
-        <role-name>imageProcessor</role-name>
               <role-name>admin</role-name>
-      <role-name>manager</role-name>
       </auth-constraint>
   </security-constraint>
   
@@ -937,7 +929,7 @@
     </web-resource-collection>
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>researcher</role-name>
+      <role-name>admin</role-name>
 <role-name>search</role-name>
 	
     </auth-constraint>
@@ -955,10 +947,8 @@
     </web-resource-collection>
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>researcher</role-name>
-<role-name>search</role-name>
-<role-name>manager</role-name>
-	<role-name>local</role-name>
+      <role-name>admin</role-name>
+
     </auth-constraint>
   </security-constraint>
 
@@ -974,7 +964,6 @@
     </web-resource-collection>
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>reviewer</role-name>
       <role-name>admin</role-name>
     </auth-constraint>
   </security-constraint>

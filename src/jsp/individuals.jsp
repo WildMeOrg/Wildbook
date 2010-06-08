@@ -556,18 +556,13 @@ catch(Exception eSharks_jsp){
 <div id="rightcol">
 <div id="menu">
 
-<%
-if(CommonConfiguration.areAdoptionsAllowed()){
-%>
+
 <div class="module">
 <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
 						<jsp:param name="name" value="<%=name%>" />
 				</jsp:include>
 </div>
-<%
 
-}
-%>
 
 </div>
 <!-- end menu --></div>
