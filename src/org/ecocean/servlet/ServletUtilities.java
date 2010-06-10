@@ -328,13 +328,13 @@ public class ServletUtilities {
 		if(request.isUserInRole("admin")) {
 			isOwner=true;
 		}
-		else if(request.isUserInRole("manager")) {
+		else if(request.isUserInRole("admin")) {
 			isOwner=true;
 		}
-		else if((request.isUserInRole(enc.getLocationCode()))&&(request.isUserInRole("researcher"))) {
+		else if((request.isUserInRole(enc.getLocationCode()))&&(request.isUserInRole("admin"))) {
 			isOwner=true;
 		}
-		else if((((enc.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(enc.getSubmitterID().equals(request.getRemoteUser()))&&(request.isUserInRole("researcher"))))) {
+		else if((((enc.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(enc.getSubmitterID().equals(request.getRemoteUser()))&&(request.isUserInRole("admin"))))) {
 			isOwner=true;
 		}
 		return isOwner;
@@ -342,7 +342,7 @@ public class ServletUtilities {
 	
 	public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request){
 		if(request.isUserInRole("admin")){return true;}
-		if(request.isUserInRole("manager")){return true;}
+		
 		Vector encounters = sharky.getEncounters();
 		int numEncs = encounters.size();
 		for(int y=0;y<numEncs;y++){

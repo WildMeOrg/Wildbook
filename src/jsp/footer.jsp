@@ -22,8 +22,7 @@
 %>
 <div id="footer">
 <div id="credits">
-<p class="credit">All contents under copyright. Unauthorized usage of any material for any
-purpose is strictly prohibited.</p>
+<p class="credit">All contents under copyright. Unauthorized usage of any material for any purpose is strictly prohibited.</p>
 </div>
 <div id="sponsors">
 

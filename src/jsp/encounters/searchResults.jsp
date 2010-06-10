@@ -967,7 +967,7 @@ previous results <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
 		<td align="right">
 		<p><strong>Matching encounters</strong>: <%=numResults%>
 		<%
-		if(request.isUserInRole("researcher")){
+		if(request.isUserInRole("admin")){
 		%>
 			<br />
 			<%=numUniqueEncounters%> identified and unique<br />

@@ -60,7 +60,7 @@ public class ScanTaskHandler extends HttpServlet {
 				
 				//check for permissions to delete this scanTask
 				boolean deletePermission=false;
-				if(request.isUserInRole("researcher")){deletePermission=true;}
+				deletePermission=true;
 
 				if((myShepherd.isScanTask(request.getParameter("taskID")))&&(deletePermission)){
 					try {
@@ -109,7 +109,7 @@ public class ScanTaskHandler extends HttpServlet {
 				}
 			}
 			
-			else if ((action.equals("addTask"))&&(request.isUserInRole("researcher"))&&(request.getParameter("encounterNumber")!=null)) {
+			else if ((action.equals("addTask"))&&(request.getParameter("encounterNumber")!=null)) {
 				
 				myShepherd.getPM().setIgnoreCache(true);
 				
@@ -286,7 +286,7 @@ public class ScanTaskHandler extends HttpServlet {
 					else{
 						out.println(ServletUtilities.getHeader());
 						out.println("<strong>Failure:</strong> The scan could not be created or was not fully created!");
-						if(request.isUserInRole("admin")) {out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");}
+						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 						out.println(ServletUtilities.getFooter());
 
 					}
@@ -297,13 +297,13 @@ public class ScanTaskHandler extends HttpServlet {
 							if(currentNumScanTasks<taskLimit){
 								out.println("The unfinished task limit of "+taskLimit+" has been filled. Please try adding the task to the queue again after existing tasks have finished.");
 							}
-							if(request.isUserInRole("researcher")) {out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");}
+							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 							out.println(ServletUtilities.getFooter());
 				}
 			}
 			
 			
-			else if ((action.equals("addTuningTask"))&&(request.isUserInRole("admin"))) {
+			else if (action.equals("addTuningTask")) {
 				
 				//myShepherd.getPM().setIgnoreCache(true);
 				
@@ -500,7 +500,7 @@ public class ScanTaskHandler extends HttpServlet {
 					else{
 						out.println(ServletUtilities.getHeader());
 						out.println("<strong>Failure:</strong> The scan could not be created or was not fully created!");
-						if(request.isUserInRole("admin")) {out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");}
+						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 						out.println(ServletUtilities.getFooter());
 
 					}
@@ -511,14 +511,14 @@ public class ScanTaskHandler extends HttpServlet {
 							if(currentNumScanTasks<taskLimit){
 								out.println("The unfinished task limit of "+taskLimit+" has been filled. Please try adding the task to the queue again after existing tasks have finished.");
 							}
-							if(request.isUserInRole("researcher")) {out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");}
+							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 							out.println(ServletUtilities.getFooter());
 				}
 			}
 			
 			
 
-			else if ((action.equals("addFalseMatchTask"))&&(request.isUserInRole("admin"))) {
+			else if (action.equals("addFalseMatchTask")) {
 
 				boolean locked=false;
 				boolean successfulStore=false;
@@ -675,7 +675,7 @@ public class ScanTaskHandler extends HttpServlet {
 					else{
 						out.println(ServletUtilities.getHeader());
 						out.println("<strong>Failure:</strong> The scan could not be created or was not fully created!");
-						if(request.isUserInRole("admin")) {out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");}
+						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 						out.println(ServletUtilities.getFooter());
 
 					}
@@ -686,14 +686,14 @@ public class ScanTaskHandler extends HttpServlet {
 							if(currentNumScanTasks<taskLimit){
 								out.println("The unfinished task limit of "+taskLimit+" has been filled. Please try adding the task to the queue again after existing tasks have finished.");
 							}
-							if(request.isUserInRole("researcher")) {out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");}
+							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 							out.println(ServletUtilities.getFooter());
 				}
 			}
 			
 			
 			//delete all scan-related items
-			else if ((action.equals("removeAllWorkItems"))&&(request.isUserInRole("admin"))) {
+			else if (action.equals("removeAllWorkItems")) {
 				try{
 					
 					GridCleanupThread swiThread=new GridCleanupThread();
@@ -702,7 +702,7 @@ public class ScanTaskHandler extends HttpServlet {
 					//confirm success
 					out.println(ServletUtilities.getHeader());
 					out.println("<strong>Success:</strong> I removed all outstanding scanWorkItems from the database.<br>/<strong>Warning!</strong> <em>This may cause any outstanding scanTasks to fail!</em>");
-					if(request.isUserInRole("admin")) {out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");}
+					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 					out.println(ServletUtilities.getFooter());
 				}
 				catch(Exception e){
@@ -710,7 +710,7 @@ public class ScanTaskHandler extends HttpServlet {
 					myShepherd.rollbackDBTransaction();
 					out.println(ServletUtilities.getHeader());
 					out.println("<strong>Failure:</strong> I failed to remove all outstanding scanWorkItems from the database. Check the log for more information.");
-					if(request.isUserInRole("admin")) {out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");}
+					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 					out.println(ServletUtilities.getFooter());
 					
 				}
@@ -721,7 +721,7 @@ public class ScanTaskHandler extends HttpServlet {
 				
 					out.println(ServletUtilities.getHeader());
 					out.println("<p>I did not receive enough data to process your command, or you do not have the necessary permissions to perform this operation.</p>");
-					if(request.isUserInRole("admin")) {out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");}
+					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 					out.println(ServletUtilities.getFooter());
 			}
 			

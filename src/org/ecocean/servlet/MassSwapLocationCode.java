@@ -49,7 +49,7 @@ public class MassSwapLocationCode extends HttpServlet {
 		Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
 		Query query=myShepherd.getPM().newQuery(encClass);
 		
-		if ((oldLocCode!=null)&&(oldLocCode!=null)&&(!newLocCode.equals(""))&&(!newLocCode.equals(""))&&(request.isUserInRole("admin"))) {			
+		if ((oldLocCode!=null)&&(oldLocCode!=null)&&(!newLocCode.equals(""))&&(!newLocCode.equals(""))) {			
 			myShepherd.beginDBTransaction();
 			try{
 				Iterator it=myShepherd.getAllEncounters(query);

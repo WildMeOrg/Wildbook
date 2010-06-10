@@ -31,8 +31,9 @@ public class EncounterRemoveSpots extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		boolean locked=false;
 
-		boolean isOwner=false;
+		boolean isOwner=true;
 		
+		/*
 		if(request.getParameter("number")!=null){
 			myShepherd.beginDBTransaction();
 			if(myShepherd.isEncounter(request.getParameter("number"))) {
@@ -45,7 +46,7 @@ public class EncounterRemoveSpots extends HttpServlet {
 				}
 				
 				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				else if((request.isUserInRole("manager"))){
+				else if((request.isUserInRole("admin"))){
 					isOwner=true;
 				}
 				//if they have general location code permissions for the encounter's location code
@@ -53,8 +54,9 @@ public class EncounterRemoveSpots extends HttpServlet {
 			}
 			myShepherd.rollbackDBTransaction();	
 		}
+		*/
 
-		if (isOwner) {
+
 			if (request.getParameter("number")!=null) {
 				String side="left";
 				myShepherd.beginDBTransaction();
@@ -115,22 +117,14 @@ public class EncounterRemoveSpots extends HttpServlet {
 				}
 				
 				out.println(ServletUtilities.getFooter());
-
-
-			} else {
+			} 
+			else {
 							out.println(ServletUtilities.getHeader());
 							out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
 							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n"); 
 							out.println(ServletUtilities.getFooter());
 					}	
-			
-			}
-			else {
-				myShepherd.rollbackDBTransaction();
-				out.println(ServletUtilities.getHeader());
-				out.println("<strong>Error:</strong> I was unable to set the alternate ID. I cannot find the encounter that you intended it for in the database.");
-				out.println(ServletUtilities.getFooter());				
-			}
+
 			out.close();
 			myShepherd.closeDBTransaction();
     	}

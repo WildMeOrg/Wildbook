@@ -26,7 +26,7 @@ String strOutputDateTime = fmt.print(dt);
 	if ((request.getParameter("start")!=null)&&(request.getParameter("end")!=null)) {
 		lowCount=(new Integer(request.getParameter("start"))).intValue();
 		highCount=(new Integer(request.getParameter("end"))).intValue();
-		if((highCount>(lowCount+9))&&(!request.isUserInRole("researcher"))) {highCount=lowCount+9;}
+		if(highCount>(lowCount+9)) {highCount=lowCount+9;}
 	}	
 
 

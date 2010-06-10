@@ -36,7 +36,6 @@ if(request.getParameter("individual")!=null){sharkForm=request.getParameter("ind
 
 boolean isOwner=false;
 if(request.isUserInRole("admin")){isOwner=true;}
-else if(request.isUserInRole("manager")){isOwner=true;}
 else if(request.getParameter("number")!=null){
 	
 	if(tempAD.getAdoptionManager().trim().equals(request.getRemoteUser())){isOwner=true;}	
@@ -411,7 +410,7 @@ if((request.getParameter("number")!=null)&&(isOwner)){
 <%
 	}
 
-if(request.isUserInRole("admin")){
+if(isOwner){
 %>
 <table class="adoption" width="720px">
 	<tr>

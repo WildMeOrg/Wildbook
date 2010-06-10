@@ -42,7 +42,7 @@ public class MassSetInformOthers extends HttpServlet {
 		Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
 		Query query=myShepherd.getPM().newQuery(encClass);
 		
-		if ((informEmail!=null)&&(matchString!=null)&&(!matchString.equals(""))&&(!informEmail.equals(""))&&(request.isUserInRole("admin"))) {			
+		if ((informEmail!=null)&&(matchString!=null)&&(!matchString.equals(""))&&(!informEmail.equals(""))) {			
 			myShepherd.beginDBTransaction();
 			try{
 				Iterator it=myShepherd.getAllEncounters(query);

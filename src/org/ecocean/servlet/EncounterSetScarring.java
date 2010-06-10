@@ -31,8 +31,9 @@ public class EncounterSetScarring extends HttpServlet {
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
 		boolean locked=false;
-		boolean isOwner=false;
+		boolean isOwner=true;
 		
+		/**
 		if(request.getParameter("number")!=null){
 			myShepherd.beginDBTransaction();
 			if(myShepherd.isEncounter(request.getParameter("number"))) {
@@ -45,7 +46,7 @@ public class EncounterSetScarring extends HttpServlet {
 				}
 				
 				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				else if((request.isUserInRole("manager"))){
+				else if((request.isUserInRole("admin"))){
 					isOwner=true;
 				}
 				//if they have general location code permissions for the encounter's location code
@@ -53,9 +54,9 @@ public class EncounterSetScarring extends HttpServlet {
 			}
 			myShepherd.rollbackDBTransaction();	
 		}
+  */
 
 
-		if (isOwner) {
 			if (request.getParameter("scars")!=null) {
 				myShepherd.beginDBTransaction();
 				Encounter changeMe=myShepherd.getEncounter(request.getParameter("number"));
@@ -116,7 +117,7 @@ public class EncounterSetScarring extends HttpServlet {
 					
 				}
 			
-			}
+			
 			out.close();
 			myShepherd.closeDBTransaction();
     	}

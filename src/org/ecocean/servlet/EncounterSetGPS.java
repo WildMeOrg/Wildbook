@@ -32,8 +32,9 @@ public class EncounterSetGPS extends HttpServlet {
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
 		boolean locked=false;
-		boolean isOwner=false;
+		boolean isOwner=true;
 		
+		/**
 		if(request.getParameter("number")!=null){
 			myShepherd.beginDBTransaction();
 			if(myShepherd.isEncounter(request.getParameter("number"))) {
@@ -46,7 +47,7 @@ public class EncounterSetGPS extends HttpServlet {
 				}
 				
 				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				else if((request.isUserInRole("manager"))){
+				else if((request.isUserInRole("admin"))){
 					isOwner=true;
 				}
 				//if they have general location code permissions for the encounter's location code
@@ -54,10 +55,11 @@ public class EncounterSetGPS extends HttpServlet {
 			}
 			myShepherd.rollbackDBTransaction();	
 		}
+		*/
 
 
 		//reset GPS coordinates
-		if (isOwner) {
+
 				//System.out.println("Trying to resetGPS...");
 				if ((request.getParameter("number")!=null)&&(request.getParameter("lat")!=null)&&(request.getParameter("longitude")!=null)&&(request.getParameter("gpsLongitudeMinutes")!=null)&&(request.getParameter("gpsLatitudeMinutes")!=null)&&(request.getParameter("longDirection")!=null)&&(request.getParameter("latDirection")!=null)&&(request.getParameter("gpsLongitudeSeconds")!=null)&&(request.getParameter("gpsLatitudeSeconds")!=null)) {
 					myShepherd.beginDBTransaction();
@@ -198,7 +200,7 @@ public class EncounterSetGPS extends HttpServlet {
 						
 					}
 				
-				}
+				
 //end GPS reset
 			out.close();
 			myShepherd.closeDBTransaction();

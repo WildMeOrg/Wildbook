@@ -333,7 +333,7 @@ int nowYear=cal.get(1);
 			<tr>
 				<td>
 				<%
-				if(request.isUserInRole("researcher")) {
+				if(request.isUserInRole("admin")) {
 			%>
 				<p><input name="export" type="checkbox" id="export" value="true">
 				<strong>Generate a tab-delimited file of results for export
@@ -346,7 +346,7 @@ int nowYear=cal.get(1);
 				}
 				
 				
-				if(request.isUserInRole("researcher")) {
+				if(request.isUserInRole("admin")) {
 				%>
 				<p><input name="generateKML" type="checkbox" id="generateKML"
 					value="true"> <strong>Generate a KML file of
@@ -356,7 +356,7 @@ int nowYear=cal.get(1);
 				<%
 				}
 	
-				if(request.isUserInRole("manager")) {
+				if(request.isUserInRole("admin")) {
 				%>
 				<p><input name="generateEmails" type="checkbox"
 					id="generateEmails" value="true"> <strong>Generate

@@ -62,7 +62,7 @@
 	if ((request.getParameter("start")!=null)&&(request.getParameter("end")!=null)) {
 		lowCount=(new Integer(request.getParameter("start"))).intValue();
 		highCount=(new Integer(request.getParameter("end"))).intValue();
-		if((highCount>(lowCount+14))&&(!request.isUserInRole("researcher"))) {highCount=lowCount+14;}
+		if((highCount>(lowCount+14))&&(session.getAttribute("logged")==null)) {highCount=lowCount+14;}
 	}	
 
 

@@ -279,7 +279,7 @@ myShepherd.rollbackDBTransaction();
 			<tr>
 				<td>
 				<%
-				if(request.isUserInRole("manager")) {
+				if(request.isUserInRole("admin")) {
 			%>
 				<p><input name="export" type="checkbox" id="export" value="true">
 				Generate a <em>frequency format</em> capture history file for

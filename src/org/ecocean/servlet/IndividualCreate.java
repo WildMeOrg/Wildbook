@@ -33,8 +33,9 @@ public class IndividualCreate extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		boolean locked=false;
 
-		boolean isOwner=false;
+		boolean isOwner=true;
 		
+		/**
 		if(request.getParameter("number")!=null){
 			myShepherd.beginDBTransaction();
 			if(myShepherd.isEncounter(request.getParameter("number"))) {
@@ -47,7 +48,7 @@ public class IndividualCreate extends HttpServlet {
 				}
 				
 				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				else if((request.isUserInRole("manager"))){
+				else if((request.isUserInRole("admin"))){
 					isOwner=true;
 				}
 				//if they have general location code permissions for the encounter's location code
@@ -55,9 +56,10 @@ public class IndividualCreate extends HttpServlet {
 			}
 			myShepherd.rollbackDBTransaction();	
 		}
+		*/
 
 		//create a new MarkedIndividual from an encounter
-		if (isOwner) {
+	
 			if ((request.getParameter("individual")!=null)&&(request.getParameter("number")!=null)&&(!request.getParameter("individual").equals(""))&&(!request.getParameter("individual").equals(" "))) {
 				myShepherd.beginDBTransaction();
 				Encounter enc2make=myShepherd.getEncounter(request.getParameter("number"));
@@ -179,13 +181,7 @@ public class IndividualCreate extends HttpServlet {
 				}	
 						
 			
-			}
-			else {
-				myShepherd.rollbackDBTransaction();
-				out.println(ServletUtilities.getHeader());
-				out.println("<strong>Error:</strong> I was unable to set the alternate ID. I cannot find the encounter that you intended it for in the database.");
-				out.println(ServletUtilities.getFooter());				
-			}
+	
 			out.close();
 			myShepherd.closeDBTransaction();
     	}

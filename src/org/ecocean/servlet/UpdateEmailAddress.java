@@ -56,7 +56,7 @@ public class UpdateEmailAddress extends HttpServlet{
 		else{
 			ok2proceed=false;
 		}
-		if((request.isUserInRole("admin"))&&(ok2proceed)) {
+		if(ok2proceed) {
 		
 		try {
 		

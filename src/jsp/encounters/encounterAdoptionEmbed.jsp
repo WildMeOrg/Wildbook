@@ -51,7 +51,7 @@ try{
 					<%
 			 			 	 	}
 
-			 			 	 	 if(request.isUserInRole("adoption")){
+			 			 	 	 if(request.isUserInRole("admin")){
 			 			 	 %>
 					<tr>
 						<td>&nbsp;</td>
@@ -88,7 +88,7 @@ try{
 			 	}
 			 	 
 			 	 //add adoption
-			 	 if(request.isUserInRole("adoption")){
+			 	 if(request.isUserInRole("admin")){
 			 %>
 				<p><a
 					href="http://<%=CommonConfiguration.getURLLocation() %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp?individual=<%=num%>#create">[+]

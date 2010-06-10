@@ -29,9 +29,10 @@ public class IndividualRemoveEncounter extends HttpServlet {
 		//set up for response
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
-		boolean locked=false, isOwner=false;
+		boolean locked=false, isOwner=true;
 		boolean isAssigned=false;
 
+		/**
 		if(request.getParameter("number")!=null){
 			myShepherd.beginDBTransaction();
 			if(myShepherd.isEncounter(request.getParameter("number"))) {
@@ -44,7 +45,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
 				}
 				
 				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				if((request.isUserInRole("manager"))||(isAssigned)){
+				if((request.isUserInRole("admin"))||(isAssigned)){
 					isOwner=true;
 				}
 				//if they have general location code permissions for the encounter's location code
@@ -52,10 +53,10 @@ public class IndividualRemoveEncounter extends HttpServlet {
 			}
 			myShepherd.rollbackDBTransaction();	
 		}
-
+  */
 
 			//remove encounter from MarkedIndividual
-			if (isOwner) {
+		
 				if ((request.getParameter("number")!=null)) {
 					myShepherd.beginDBTransaction();
 					Encounter enc2remove=myShepherd.getEncounter(request.getParameter("number"));
@@ -131,19 +132,6 @@ public class IndividualRemoveEncounter extends HttpServlet {
 				else {out.println("I did not receive enough data to remove this encounter from a marked individual.");}	
 				
 				
-				}
-				
-					
-					
-
-		else{
-			out.println(ServletUtilities.getHeader());
-			out.println("<p>I didn't understand your command, or you are not authorized for this action.</p>");
-			out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
-			out.println(ServletUtilities.getFooter());
-			}
-		
-
 	
 			out.close();
 			myShepherd.closeDBTransaction();

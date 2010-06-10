@@ -104,10 +104,6 @@ if ((request.getParameter("reflect")!=null)) {response.sendRedirect(request.getP
 <p>I am granting you the following role: <% 
 String role="";
 if (request.isUserInRole("admin")) {role="Administrator";}
-else if (request.isUserInRole("manager")) {role="Manager";}
-else if (request.isUserInRole("researcher")) {role="Researcher";}
-else if (request.isUserInRole("reviewer")) {role="Content Reviewer";}
-else {role="Local Specialist";}
 
 
 //email support

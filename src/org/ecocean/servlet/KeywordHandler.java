@@ -38,7 +38,7 @@ public class KeywordHandler extends HttpServlet {
 		//System.out.println(request.getCharacterEncoding());
 		if(action!=null){
 			
-			if ((action.equals("addNewWord"))&&(request.isUserInRole("admin"))&&(request.getParameter("keyword")!=null)&&(request.getParameter("readableName")!=null)) {
+			if ((action.equals("addNewWord"))&&(request.getParameter("keyword")!=null)&&(request.getParameter("readableName")!=null)) {
 				String indexname=request.getParameter("keyword");
 				String readableName=request.getParameter("readableName");
 				Keyword newword=new Keyword(indexname, readableName);
@@ -54,7 +54,7 @@ public class KeywordHandler extends HttpServlet {
 				
 			}
 			
-			else if ((action.equals("removeWord"))&&(request.isUserInRole("admin"))&&(request.getParameter("keyword")!=null)) {
+			else if ((action.equals("removeWord"))&&(request.getParameter("keyword")!=null)) {
 				myShepherd.beginDBTransaction();
 				Keyword word=myShepherd.getKeyword(request.getParameter("keyword"));
 				String desc=word.getReadableName();
@@ -70,7 +70,7 @@ public class KeywordHandler extends HttpServlet {
 				out.println(ServletUtilities.getFooter());
 			}
 			
-			else if ((action.equals("addPhoto"))&&(request.isUserInRole("researcher"))&&(request.getParameter("photoName")!=null)&&(request.getParameter("keyword")!=null)&&(request.getParameter("number")!=null)) {
+			else if ((action.equals("addPhoto"))&&(request.getParameter("photoName")!=null)&&(request.getParameter("keyword")!=null)&&(request.getParameter("number")!=null)) {
 				boolean locked=false;
 				String readableName="";
 				myShepherd.beginDBTransaction();
@@ -108,7 +108,7 @@ public class KeywordHandler extends HttpServlet {
 			}
 			
 			//edit the text of a keyword
-			else if ((action.equals("rename"))&&(request.isUserInRole("admin"))&&(request.getParameter("keyword")!=null)&&(request.getParameter("newName")!=null)) {
+			else if ((action.equals("rename"))&&(request.getParameter("keyword")!=null)&&(request.getParameter("newName")!=null)) {
 				myShepherd.beginDBTransaction();
 				Keyword word=myShepherd.getKeyword(request.getParameter("keyword"));
 				String oldName=word.getReadableName();
@@ -123,7 +123,7 @@ public class KeywordHandler extends HttpServlet {
 				out.println(ServletUtilities.getFooter());
 			}
 			
-			else if ((action.equals("removePhoto"))&&(request.isUserInRole("researcher"))&&(request.getParameter("photoName")!=null)&&(request.getParameter("keyword")!=null)&&(request.getParameter("number")!=null)) {
+			else if ((action.equals("removePhoto"))&&(request.getParameter("photoName")!=null)&&(request.getParameter("keyword")!=null)&&(request.getParameter("number")!=null)) {
 				myShepherd.beginDBTransaction();
 				Keyword word=myShepherd.getKeyword(request.getParameter("keyword"));
 				word.removeImageName(request.getParameter("number")+"/"+request.getParameter("photoName"));

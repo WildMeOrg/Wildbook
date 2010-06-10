@@ -63,7 +63,6 @@
 	if ((request.getParameter("start")!=null)&&(request.getParameter("end")!=null)) {
 		lowCount=(new Integer(request.getParameter("start"))).intValue();
 		highCount=(new Integer(request.getParameter("end"))).intValue();
-		//if((highCount>(lowCount+9))&&(!request.isUserInRole("researcher"))) {highCount=lowCount+9;}
 	}	
 
 
@@ -134,7 +133,7 @@ if (request.getParameter("rejects")!=null) {
 </table>
 
 
-<%} else if(request.getParameter("unapproved")!=null) {
+<%} else if((request.getParameter("unapproved")!=null)&&(session.getAttribute("logged")!=null)) {
 	
 %>
 <table>
@@ -196,9 +195,9 @@ if (request.getParameter("rejects")!=null) {
 		<%
 
 String rejectsLink="";
-if (request.getParameter("rejects")!=null) {rejectsLink="&rejects=true";}
+if ((session.getAttribute("logged")!=null)&&(request.getParameter("rejects")!=null)) {rejectsLink="&rejects=true";}
 String unapprovedLink="";
-if (request.getParameter("unapproved")!=null) {unapprovedLink="&unapproved=true";}
+if ((session.getAttribute("logged")!=null)&&(request.getParameter("unapproved")!=null)) {unapprovedLink="&unapproved=true";}
 String userLink="";
 if (request.getParameter("user")!=null) {userLink="&user="+request.getParameter("user");}
 
@@ -331,7 +330,7 @@ if (highCount<totalCount) {%> <a
 
 			int total=totalCount;
 			int iterTotal=totalCount-1;
-			if ((request.getParameter("rejects")!=null)&&(request.getParameter("sort")!=null)) {
+			if ((session.getAttribute("logged")!=null)&&(request.getParameter("rejects")!=null)&&(request.getParameter("sort")!=null)) {
 					
 					iterTotal=totalCount-1;
 					query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
@@ -380,7 +379,7 @@ if (highCount<totalCount) {%> <a
 					}
 				else {allEncounters=myShepherd.getAllUnidentifiableEncounters(query);}
 					}
-			else if(request.getParameter("rejects")!=null) {
+			else if((session.getAttribute("logged")!=null)&&(request.getParameter("rejects")!=null)) {
 
 
 				query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
@@ -389,7 +388,7 @@ if (highCount<totalCount) {%> <a
 			}
 			
 			//unapproved sorting
-			else if ((request.getParameter("unapproved")!=null)&&(request.getParameter("sort")!=null)) {
+			else if ((session.getAttribute("logged")!=null)&&(request.getParameter("unapproved")!=null)&&(request.getParameter("sort")!=null)) {
 
 			
 				query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
@@ -508,7 +507,7 @@ if (highCount<totalCount) {%> <a
 			}
 			//end user-based sorting
 			
-			else if(request.getParameter("unapproved")!=null) {
+			else if((session.getAttribute("logged")!=null)&&(request.getParameter("unapproved")!=null)) {
 				query.setFilter("!this.unidentifiable && this.approved == false");
 				allEncounters=myShepherd.getUnapprovedEncounters(query);
 			}

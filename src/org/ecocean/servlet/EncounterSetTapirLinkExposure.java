@@ -24,9 +24,10 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
 		//set up for response
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
-		boolean locked=false, isOwner=false;
+		boolean locked=false, isOwner=true;
 		boolean isAssigned=false;
 
+		/**
 		if(request.getParameter("number")!=null){
 			myShepherd.beginDBTransaction();
 			if(myShepherd.isEncounter(request.getParameter("number"))) {
@@ -39,7 +40,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
 				}
 				
 				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				if((request.isUserInRole("manager"))||(isAssigned)){
+				if((request.isUserInRole("admin"))||(isAssigned)){
 					isOwner=true;
 				}
 				//if they have general location code permissions for the encounter's location code
@@ -47,12 +48,13 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
 			}
 			myShepherd.rollbackDBTransaction();	
 		}
+		*/
 		
 		String action=request.getParameter("action");
-		System.out.println("Action is: "+action);
+		//System.out.println("Action is: "+action);
 		if(action!=null){
 		
-			if ((action.equals("tapirLinkExpose"))&&isOwner) {
+			if ((action.equals("tapirLinkExpose"))) {
 				if (!(request.getParameter("number")==null)) {
 					myShepherd.beginDBTransaction();
 					Encounter newenc=myShepherd.getEncounter(request.getParameter("number"));

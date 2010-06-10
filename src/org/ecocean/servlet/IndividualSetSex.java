@@ -29,9 +29,7 @@ public class IndividualSetSex extends HttpServlet {
 
 		
 		String action=request.getParameter("action");
-		//System.out.println("Action is: "+action);
 
-			if ((request.isUserInRole("manager"))) {
 					if ((request.getParameter("individual")!=null)&&(request.getParameter("selectSex")!=null)) {
 						
 						myShepherd.beginDBTransaction();
@@ -90,14 +88,7 @@ public class IndividualSetSex extends HttpServlet {
 							
 						}
 					
-					}
-
-		else{
-			out.println(ServletUtilities.getHeader());
-			out.println("<p>I didn't understand your command, or you are not authorized for this action.</p>");
-			out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
-			out.println(ServletUtilities.getFooter());
-			}
+					
 		
 
 	

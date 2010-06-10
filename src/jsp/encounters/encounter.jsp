@@ -191,8 +191,8 @@ int numImages=enc.getAdditionalImageNames().size();
 //let's see if this user has ownership and can make edits
 boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
 String loggedIn="false";
-if (session.getValue("logged")!=null) {
-		Object OBJloggedIn=session.getValue("logged");
+if (session.getAttribute("logged")!=null) {
+		Object OBJloggedIn=session.getAttribute("logged");
 		loggedIn=(String)OBJloggedIn;
 }
 //end user identity and authorization check
@@ -286,7 +286,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 <p class="para"><img align="absmiddle"
 	src="../images/Crystal_Clear_app_Login_Manager.gif"> Assigned to</font><font
 	size="-1"> Library user: <%=enc.getSubmitterID()%> <%
- 	if(request.isUserInRole("manager")) {
+ 	if(isOwner) {
  %><font size="-1">[<a
 	href="encounter.jsp?number=<%=num%>&edit=user#user">edit</a>]</font>
 <%
@@ -304,7 +304,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  	//start deciding menu bar contents
 
  //if not logged in
- if((loggedIn.equals("false"))) {
+ if(session.getAttribute("logged")==null) {
  %>
 		<p class="para">If you have an account, you can <a
 			href="../welcome.jsp?reflect=<%=request.getRequestURI()%>?number=<%=num%>">login
@@ -324,7 +324,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		</p>
 		<%
 			//manager-level commands
-				if((request.isUserInRole("manager"))||(isOwner)) {
+				if(isOwner) {
 				
 			
 			//approve new encounter
@@ -536,7 +536,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					maxlength="50"
 					value="<%=getNextIndividualNumber(enc, myShepherd)%>"><br>
 				<%
-						if(request.isUserInRole("manager")){
+						if(isOwner){
 					%> <input name="noemail" type="checkbox" value="noemail">
 				suppress e-mail<br> <%
 						}
@@ -1669,7 +1669,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</td>
 				<td align="left" valign="top">
 				<p class="para"><strong>Images</strong><br /> <%
-	  				if (session.getValue("logged")!=null) {
+	  				if (session.getAttribute("logged")!=null) {
 	  			%> <em>Click any image to view the originally submitted
 				version in your browser</em>.
 				</p>
@@ -1701,7 +1701,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 									src="../images/Crystal_Clear_action_find.gif"> <strong>Image
 								Commands</strong>: <font size="-1">
 								<%
- 	if (request.isUserInRole("nobody")) {
+ 	if (isOwner) {
  %><form
 									action="../EncounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>"
 									method="post" name="remove_photo"><input name="stupid"
@@ -1729,7 +1729,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 								Keyword word=(Keyword)indexes.next();
 								if(word.isMemberOf(addText)){
 				%> &nbsp;<a
-									href="/keywordHandler?number=<%=num%>&action=removePhoto&photoName=<%=addTextFile%>&keyword=<%=word.getIndexname()%>"><%=word.getReadableName()%></a>&nbsp;|
+									href="../KeywordHandler?number=<%=num%>&action=removePhoto&photoName=<%=addTextFile%>&keyword=<%=word.getIndexname()%>"><%=word.getReadableName()%></a>&nbsp;|
 								<%
 								} //end if
 										}
@@ -1826,7 +1826,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 									alt="photo <%=enc.getLocation()%>"
 									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
 									valign="left"> <%
-				if (session.getValue("logged")!=null) {
+				if (session.getAttribute("logged")!=null) {
 			%>
 								</a>
 								<%
@@ -1836,7 +1836,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			%> <img width="250" height="200" alt="photo <%=enc.getLocation()%>"
 									src="../images/processed.gif" border="0" align="left" valign="left">
 								<%
-					if (session.getValue("logged")!=null) {
+					if (session.getAttribute("logged")!=null) {
 				%></a>
 								<%
 					}
@@ -1845,7 +1845,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			%> <img width="250" height="200" alt="photo <%=enc.getLocation()%>"
 									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
 									valign="left"> <%
-					if (session.getValue("logged")!=null) {
+					if (session.getAttribute("logged")!=null) {
 				%></a>
 								<%
 					}
@@ -2131,7 +2131,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		}
 		
 		
-		if(session.getValue("logged")!=null){
+		if(session.getAttribute("logged")!=null){
 		%> 
 		
 		
