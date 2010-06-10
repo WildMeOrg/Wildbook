@@ -235,12 +235,9 @@ z-index:99;
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">Encounter
 		Calendar</a></li>
 
-<%
 
-if(session.getAttribute("logged")!=null) {
-%>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&unapproved=true"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncountersUnapproved.jsp?start=1&end=10&sort=nosort"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">View
 		Unapproved Encounters</a></li>
@@ -257,9 +254,7 @@ if(session.getAttribute("logged")!=null) {
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">View
 		Unidentifiable Encounters</a></li>
-		<%
-}
-		%>
+
 	
 
 

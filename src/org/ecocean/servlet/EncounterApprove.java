@@ -82,7 +82,7 @@ public class EncounterApprove extends HttpServlet {
 						out.println("<strong>Success:</strong> I have approved this encounter "+request.getParameter("number")+" for inclusion in the database.");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
 						out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-						out.println("<p><a href=\"encounters/allEncounters.jsp?start=1&end=10&sort=nosort&unapproved=true\">View all unapproved encounters</a></font></p>");
+						out.println("<p><a href=\"encounters/allEncountersUnapproved.jsp?start=1&end=10&sort=nosort\">View all unapproved encounters</a></font></p>");
 						out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");			
 						out.println(ServletUtilities.getFooter());
 						String message="Encounter "+request.getParameter("number")+" was approved for inclusion in the visual database.";

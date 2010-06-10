@@ -153,8 +153,7 @@ try{
 
 %>
 
-<h1><strong><span class="para"><img
-	src="images/markedIndividualIcon.gif" align="absmiddle" /></span>
+<h1><strong><span class="para"><img src="images/tag_big.gif" width="50px" height="*" align="absmiddle" /></span>
 <%=markedIndividualTypeCaps %></strong>: <%=sharky.getName()%></h1>
 <%if(isOwner){%> <a name="alternateid"></a></a>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
@@ -229,7 +228,7 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 	href="individuals.jsp?number=<%=name%>&edit=sex#sex"><%=edit %></a>]<%}%><br>
 <%
 		//edit sex
-		if (isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))) {%>
+		if (isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))) {%>
 <br><a name="sex">
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
 	bgcolor="#99CCFF">

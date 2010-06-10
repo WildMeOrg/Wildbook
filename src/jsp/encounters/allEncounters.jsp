@@ -266,15 +266,7 @@ if (highCount<totalCount) {%> <a
 		</td>
 		<td width="90" align="left" valign="top" bgcolor="#99CCFF"
 			class="lineitem"><strong><%=location %></strong>
-		<%if(request.getRemoteUser()!=null){%><br />
-		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=locationup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
-		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=locationdown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_down.gif" width="11" height="6" border="0"
-			alt="down" /></a>
-		<%}%>
+
 		</td>
 		
 		<td width="40" align="left" valign="top" bgcolor="#99CCFF"
@@ -335,13 +327,8 @@ if (highCount<totalCount) {%> <a
 					iterTotal=totalCount-1;
 					query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 					
-				if (request.getParameter("sort").equals("locationup")) {
-					allEncounters=myShepherd.getAllUnidentifiableEncounters(query, "verbatimLocality ascending");
-					}
-				else if (request.getParameter("sort").equals("locationdown")) {
-					allEncounters=myShepherd.getAllUnidentifiableEncounters(query, "verbatimLocality descending");
-					}
-				else if (request.getParameter("sort").equals("sizeup")) {
+
+				if (request.getParameter("sort").equals("sizeup")) {
 					allEncounters=myShepherd.getAllUnidentifiableEncounters(query, "size ascending");
 					}
 				else if (request.getParameter("sort").equals("sizedown")) {
@@ -387,60 +374,6 @@ if (highCount<totalCount) {%> <a
 				allEncounters=myShepherd.getAllUnidentifiableEncounters(query);
 			}
 			
-			//unapproved sorting
-			else if ((session.getAttribute("logged")!=null)&&(request.getParameter("unapproved")!=null)&&(request.getParameter("sort")!=null)) {
-
-			
-				query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
-			
-					query.setFilter("!this.unidentifiable && this.approved == false");
-				if (request.getParameter("sort").equals("locationup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "verbatimLocality ascending");
-					}
-				else if (request.getParameter("sort").equals("locationdown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "verbatimLocality descending");
-					}
-				else if (request.getParameter("sort").equals("sizeup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "size ascending");
-					}
-				else if (request.getParameter("sort").equals("sizedown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "size descending");
-					}
-				else if (request.getParameter("sort").equals("locationCodeup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "locationID ascending");
-					}
-				else if (request.getParameter("sort").equals("locationCodedown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "locationID descending");
-					}
-				else if (request.getParameter("sort").equals("sexup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "sex ascending");
-					}
-				else if (request.getParameter("sort").equals("sexdown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "sex descending");
-					}
-				else if (request.getParameter("sort").equals("numberup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "catalogNumber ascending");
-					}
-				else if (request.getParameter("sort").equals("numberdown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "catalogNumber descending");
-					}
-				else if (request.getParameter("sort").equals("dateup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "year ascending, month ascending, day ascending, hour ascending, minutes ascending");
-					}
-				else if (request.getParameter("sort").equals("datedown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "year descending, month descending, day descending, hour descending, minutes descending");
-					}
-				else if (request.getParameter("sort").equals("assignedup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "individualID ascending");
-					}
-				else if (request.getParameter("sort").equals("assigneddown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "individualID descending");
-					}
-				else {
-					
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "dwcDateAdded descending");}
-			}
-			//end unapproved sorting
 			
 			//user-based sorting
 			else if ((request.getParameter("user")!=null)&&(request.getParameter("sort")!=null)) {
@@ -448,14 +381,8 @@ if (highCount<totalCount) {%> <a
 
 						
 						ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
-						
-				if (request.getParameter("sort").equals("locationup")) {
-					allEncounters=myShepherd.getSortedUserEncounters(query, "verbatimLocality ascending");
-					}
-				else if (request.getParameter("sort").equals("locationdown")) {
-					allEncounters=myShepherd.getSortedUserEncounters(query, "verbatimLocality descending");
-					}
-				else if (request.getParameter("sort").equals("sizeup")) {
+		
+				if (request.getParameter("sort").equals("sizeup")) {
 					allEncounters=myShepherd.getSortedUserEncounters(query, "size ascending");
 					}
 				else if (request.getParameter("sort").equals("sizedown")) {
@@ -507,10 +434,7 @@ if (highCount<totalCount) {%> <a
 			}
 			//end user-based sorting
 			
-			else if((session.getAttribute("logged")!=null)&&(request.getParameter("unapproved")!=null)) {
-				query.setFilter("!this.unidentifiable && this.approved == false");
-				allEncounters=myShepherd.getUnapprovedEncounters(query);
-			}
+		
 			else if(request.getParameter("user")!=null) {
 				query.setFilter(("this.approved && this.submitterID == \""+request.getParameter("user")+"\""));
 				allEncounters=myShepherd.getUserEncounters(query, request.getParameter("user"));
@@ -522,16 +446,8 @@ if (highCount<totalCount) {%> <a
 						
 						query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 			
-				//do something here
-				if (request.getParameter("sort").equals("locationup")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
-					allEncounters=myShepherd.getAllEncounters(query, "verbatimLocality ascending");
-					}
-				else if (request.getParameter("sort").equals("locationdown")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
-					allEncounters=myShepherd.getAllEncounters(query, "verbatimLocality descending");
-					}
-				else if (request.getParameter("sort").equals("sizeup")) {
+
+				if (request.getParameter("sort").equals("sizeup")) {
 					query.setFilter("!this.unidentifiable && this.approved == true");
 					allEncounters=myShepherd.getAllEncounters(query, "size ascending");
 					}

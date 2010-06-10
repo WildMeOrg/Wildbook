@@ -207,8 +207,7 @@ if(request.getParameter("maxGroupSize")!=null){
 			}
 			%>
 </table>
-<p><a href="http://www.sharkgrid.org">Click here to jump on the
-sharkGrid to assist in their completion.</a></p>
+
 
 
 <h3>Completed scanTasks</h3>

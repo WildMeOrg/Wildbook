@@ -120,7 +120,9 @@ public class EncounterDelete extends HttpServlet {
 						out.println(ServletUtilities.getHeader());
 						out.println("<strong>Success:</strong> I have removed encounter "+request.getParameter("number")+" from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter "+request.getParameter("number")+" to have it restored.");
 						out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-  						out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+						out.println("<p><a href=\"encounters/allEncountersUnapproved.jsp\">View all unapproved encounters</a></font></p>");
+            
+						out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
 									
 						out.println(ServletUtilities.getFooter());
 						Vector e_images=new Vector();

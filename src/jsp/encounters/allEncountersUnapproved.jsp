@@ -39,6 +39,7 @@
 	String all_encounters_text=props.getProperty("all_encounters_text");
 	String viewing=props.getProperty("viewing");
 	String view_all_user=props.getProperty("view_all_user");
+	String view_all_unapproved=props.getProperty("view_all_unapproved");
 	String number=props.getProperty("number");
 	String error=props.getProperty("error");
 	String date=props.getProperty("date");
@@ -116,11 +117,15 @@ Query query=myShepherd.getPM().newQuery(encClass);
 try{
 
 int totalCount=0;
+	totalCount=myShepherd.getNumUnapprovedEncounters();
+
+
+
 %>
-<table>
+<table width="810px">
 	<tr>
-		<td bgcolor="#CC6600">
-		<p><strong><%=unapproved_text %></strong></p>
+		<td>
+		<h1><%=view_all_unapproved %></h1>
 		</td>
 	</tr>
 </table>
@@ -128,30 +133,23 @@ int totalCount=0;
 <table>
 	<tr>
 		<td>
-		<p><%=nav_text %></p>
+		<p><%=unapproved_text.replaceAll("COUNT", Integer.toString(totalCount)) %> <%=nav_text %></p>
 		</td>
 	</tr>
 </table>
 
-<%
-  	totalCount=myShepherd.getNumUnapprovedEncounters();
-  
-  
-%>
+
 <table id="results" border="0" width="810px">
 	<tr class="paging">
 		<td align="left">
 		<%
 
-String rejectsLink="";
-String unapprovedLink="&unapproved=true";
-String userLink="";
 
 if (highCount<totalCount) {%> <a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncountersUnapproved.jsp?start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>"><%=next %></a>
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncountersUnapproved.jsp?start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=currentSort%>"><%=next %></a>
 		<%} 
   if ((lowCount-10)>=1) {%> | <a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncountersUnapproved.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>"><%=previous %></a>
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncountersUnapproved.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=currentSort%>"><%=previous %></a>
 		<%}%>
 		</td>
 		<td colspan="8" align="right">
@@ -190,73 +188,64 @@ if (highCount<totalCount) {%> <a
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=number %></strong><br />
 		(<%=last %> 4) <br />
 		<%if(request.getRemoteUser()!=null){%><a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=numberup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=numberup&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" />
 		</a><a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=numberdown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=numberdown&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /> </a>
 		<%}%>
 		</td>
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=date %></strong><br />
 		<%if(request.getRemoteUser()!=null){%><a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=dateup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=dateup&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
 		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=datedown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=datedown&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a>
 		<%}%>
 		</td>
 		<td width="90" align="left" valign="top" bgcolor="#99CCFF"
 			class="lineitem"><strong><%=location %></strong>
-		<%if(request.getRemoteUser()!=null){%><br />
-		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=locationup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
-		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=locationdown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_down.gif" width="11" height="6" border="0"
-			alt="down" /></a>
-		<%}%>
 		</td>
 		
 		<td width="40" align="left" valign="top" bgcolor="#99CCFF"
 			class="lineitem"><strong><%=locationID %></strong> <a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=locationCodeup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=locationCodeup&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
 		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=locationCodedown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=locationCodedown&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a></td>
 	
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=size %>
 		</strong><br />
 		<%if(request.getRemoteUser()!=null){%><a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=sizeup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=sizeup&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
 		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=sizedown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=sizedown&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a>
 		<%}%>
 		</td>
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=sex %></strong><br />
 		<%if(request.getRemoteUser()!=null){%><a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=sexup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=sexup&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
 		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=sexdown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=sexdown&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a>
 		<%}%>
 		</td>
 		<td width="60" align="left" valign="top" bgcolor="#99CCFF"
 			class="lineitem"><strong><%=individual%></strong> <%if(request.getRemoteUser()!=null){%><a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=assignedup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=assignedup&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
 		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=assigneddown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
+			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncountersUnapproved.jsp?sort=assigneddown&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a>
 		<%}%>
@@ -281,13 +270,8 @@ if (highCount<totalCount) {%> <a
 				query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 			
 					query.setFilter("!this.unidentifiable && this.approved == false");
-				if (request.getParameter("sort").equals("locationup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "verbatimLocality ascending");
-					}
-				else if (request.getParameter("sort").equals("locationdown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "verbatimLocality descending");
-					}
-				else if (request.getParameter("sort").equals("sizeup")) {
+
+				if (request.getParameter("sort").equals("sizeup")) {
 					allEncounters=myShepherd.getUnapprovedEncounters(query, "size ascending");
 					}
 				else if (request.getParameter("sort").equals("sizedown")) {
@@ -407,10 +391,10 @@ if (highCount<totalCount) {%> <a
 		<td align="left">
 		<%
 if (highCount<totalCount) {%> <a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncountersUnapproved.jsp?start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>"><%=next %></a>
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncountersUnapproved.jsp?start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=currentSort%>"><%=next %></a>
 		<%} 
   if ((lowCount-10)>=0) {%> | <a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncountersUnapproved.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>"><%=previous %></a>
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncountersUnapproved.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=currentSort%>"><%=previous %></a>
 		<%}%>
 		</td>
 		<td colspan="8" align="right"><%=viewing %>: <%=lowCount%> - <%=highCount%><%=displaySort%>

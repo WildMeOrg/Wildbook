@@ -92,8 +92,7 @@
 <table id="results" border="0" width="810px">
 	<tr>
 		<td colspan="5">
-		<h1><span class="intro"><img src="images/tag_big.gif" width="50px" height="*"
-			 align="absmiddle" /></span> <%=see_all_sharks%></h1>
+		<h1><span class="intro"><img src="images/tag_big.gif" width="50px" height="*" align="absmiddle" /></span> <%=see_all_sharks%></h1>
 		</td>
 	</tr>
 	<tr>
