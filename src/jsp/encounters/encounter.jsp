@@ -1732,7 +1732,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 							} //end for
 							if(!haveAddedKeyword){%>
 								
-								&nbsp;None added.
+								&nbsp;None assigned.
 								
 							<% }
 						} //end if
