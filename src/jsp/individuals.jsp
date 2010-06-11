@@ -429,7 +429,7 @@ if (isOwner) {
 				<td><img src="disk.gif"> <a
 					href="sharks/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%></a></td>
 				<td>&nbsp;&nbsp;&nbsp;[<a
-					href="/IndividualRemoveDataFile?individual=<%=name%>&filename=<%=file_name%>"><%=delete %></a>]</td>
+					href="IndividualRemoveDataFile?individual=<%=name%>&filename=<%=file_name%>"><%=delete %></a>]</td>
 			</tr>
 
 			<%}%>

@@ -61,13 +61,18 @@ public class IndividualAddFile extends HttpServlet {
 											FilePart filePart = (FilePart) part;
           									fileName = ServletUtilities.cleanFileName(filePart.getFileName());
           									if (fileName != null) {
-												
+          									  
+          									  
+          									  File individualsDir=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getMarkedIndividualDirectory())));
+          									  if(!individualsDir.exists()){individualsDir.mkdir();}
+          									  
+          									  
             									File thisSharkDir=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getMarkedIndividualDirectory()+"/"+individualName)));
-
+            									
             									
             									if (!(thisSharkDir.exists())) {thisSharkDir.mkdir();};
             									long file_size = filePart.writeTo(
-            										new File(thisSharkDir, fileName)
+            									    new File(thisSharkDir, fileName)
             										);
             
 										}

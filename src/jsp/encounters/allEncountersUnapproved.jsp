@@ -84,11 +84,6 @@
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 </head>
 
-<!-- Google Translation-->
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
-<script type="text/javascript">
-  google.load("language", "1");
-</script>
 
 <body>
 <div id="wrapper">
@@ -117,7 +112,7 @@ Query query=myShepherd.getPM().newQuery(encClass);
 try{
 
 int totalCount=0;
-	totalCount=myShepherd.getNumUnapprovedEncounters();
+totalCount=myShepherd.getNumUnapprovedEncounters();
 
 
 
@@ -262,15 +257,14 @@ if (highCount<totalCount) {%> <a
   			Iterator allEncounters;
 
 			int total=totalCount;
-			int iterTotal=totalCount-1;
-			
-			
-		
-			
+			int iterTotal=totalCount;
+
 				query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 			
 					query.setFilter("!this.unidentifiable && this.approved == false");
 
+			if(request.getParameter("sort")!=null){
+					
 				if (request.getParameter("sort").equals("sizeup")) {
 					allEncounters=myShepherd.getUnapprovedEncounters(query, "size ascending");
 					}
@@ -309,6 +303,11 @@ if (highCount<totalCount) {%> <a
 					}
 				else {
 					
+					allEncounters=myShepherd.getUnapprovedEncounters(query, "dwcDateAdded descending");
+				}
+				}
+				else {
+	
 					allEncounters=myShepherd.getUnapprovedEncounters(query, "dwcDateAdded descending");
 				}
 			

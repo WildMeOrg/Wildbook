@@ -83,11 +83,6 @@
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 </head>
 
-<!-- Google Translation-->
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
-<script type="text/javascript">
-  google.load("language", "1");
-</script>
 
 <body>
 <div id="wrapper">
@@ -321,10 +316,10 @@ if (highCount<totalCount) {%> <a
   			Iterator allEncounters;
 
 			int total=totalCount;
-			int iterTotal=totalCount-1;
+			int iterTotal=totalCount;
 			if ((session.getAttribute("logged")!=null)&&(request.getParameter("rejects")!=null)&&(request.getParameter("sort")!=null)) {
 					
-					iterTotal=totalCount-1;
+					iterTotal=totalCount;
 					query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 					
 

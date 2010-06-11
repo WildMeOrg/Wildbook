@@ -355,26 +355,22 @@ public class ServletUtilities {
 	public static Query setRange(Query query,int iterTotal,int highCount,int lowCount){
 
 	  if(iterTotal>10){
-	    int low=0;
-	    int high=9;
 		
-	    //handle low lowCount
-	    if(lowCount<0){
-	      low=0;
-	      high=9;
+	    //handle the normal situation first
+	    if((lowCount>0)&&(lowCount<=highCount)){
+	      if(highCount-lowCount>50){query.setRange((lowCount-1), (lowCount+50));}
+	      else {query.setRange(lowCount-1, highCount);}
 	    }
-	    else if((highCount>iterTotal)||(lowCount>iterTotal)){
-	      low=lowCount-1;
-	      high=iterTotal;
-	    }
-	    else{
-	      low=lowCount-1;
-	      if(low<=0)low=1;
-	      if(high>iterTotal)high=iterTotal;
-	      high=highCount;
-	    }
-	    query.setRange(low, high);
+
+	    else {
+	        query.setRange(0, 10);
+	     }
+
+	    
 		}
+	  else{
+	    query.setRange(0, iterTotal);
+	  }
 		return query;
 
 	}

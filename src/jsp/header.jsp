@@ -242,12 +242,15 @@ z-index:99;
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">View
 		Unapproved Encounters</a></li>
 		
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&user=<%=request.getRemoteUser()%>"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">View
-		My Submissions</a></li>
-		
+		<%
+		if((request.getParameter("isAdmin")!=null)&&(request.getParameter("isAdmin").equals("true"))) {
+		%>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&user=<%=request.getRemoteUser()%>"
+					class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">View My Submissions</a>
+			</li>
+		<%
+		}
+		%>
 
 		<li><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&rejects=true"
