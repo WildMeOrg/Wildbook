@@ -49,7 +49,7 @@ myShepherd.beginDBTransaction();
 <h1 class="intro">
 <table>
 	<tr>
-		<td><img src="../images/tag_big.gif" width="50" height="50"
+		<td><img src="../images/keyword_icon_large.gif" width="50" height="50"
 			hspace="3" vspace="3" align="absmiddle" /> Image Keyword
 		Administration</td>
 	</tr>

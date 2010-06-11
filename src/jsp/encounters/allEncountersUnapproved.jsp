@@ -120,7 +120,7 @@ totalCount=myShepherd.getNumUnapprovedEncounters();
 <table width="810px">
 	<tr>
 		<td>
-		<h1><%=view_all_unapproved %></h1>
+		<h1 class="unapproved_encounters"><%=view_all_unapproved %></h1>
 		</td>
 	</tr>
 </table>

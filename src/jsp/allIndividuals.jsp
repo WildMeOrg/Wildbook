@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator"%>
+	import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator"%>
 
 <%
 
@@ -159,7 +159,8 @@
 			int total=myShepherd.getNumMarkedIndividuals();
 			
 			Iterator allSharks;
-			query.setRange((totalCount-highCount),(totalCount-lowCount+1));
+			//query.setRange((totalCount-highCount),(totalCount-lowCount+1));
+			ServletUtilities.setRange(query, total, highCount, lowCount);
 			if (request.getParameter("sort")!=null) {
 				if (request.getParameter("sort").equals("sexup")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "sex ascending");}
 				else if (request.getParameter("sort").equals("sexdown")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "sex descending");}

@@ -45,26 +45,7 @@ Shepherd myShepherd=new Shepherd();
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="leftcol">
-<div id="menu">
 
-
-
-<div class="module"><img src="images/area.jpg" width="190"
-	height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"></p>
-</div>
-
-<div class="module"><img src="images/match.jpg" width="190"
-	height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-<p class="caption"></p>
-</div>
-
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
 <div id="maincol-wide">
 
 <div id="maintext">

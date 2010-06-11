@@ -1031,7 +1031,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="asetSubmID" action="../encounterSetSubmitterID"
+				<form name="asetSubmID" action="../EncounterSetSubmitterID"
 					method="post"><input name="submitter" type="text" size="10"
 					maxlength="50"> <input name="number" type="hidden"
 					value=<%=num%>> <input name="Assign" type="submit"
@@ -1668,7 +1668,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		
 				</td>
 				<td align="left" valign="top">
-				<p class="para"><strong>Images</strong><br /> <%
+				<p class="para"><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px" height="*"><strong>&nbsp;Images</strong><br /> <%
 	  				if (session.getAttribute("logged")!=null) {
 	  			%> <em>Click any image to view the originally submitted
 				version in your browser</em>.
@@ -1699,17 +1699,8 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 							<tr>
 								<td class="para"><img align="absmiddle"
 									src="../images/Crystal_Clear_action_find.gif"> <strong>Image
-								Commands</strong>: <font size="-1">
-								<%
- 	if (isOwner) {
- %><form
-									action="../EncounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>"
-									method="post" name="remove_photo"><input name="stupid"
-									type="text" size="5" maxlength="5"><input name="Remove"
-									type="submit" id="Rem_photo" value="Remove"></form>
-								<%
- 	}
- %> [<a
+								Commands</strong>:<br /> <font size="-1">
+								 [<a
 									href="../kwSearch.jsp?primaryImageName=<%=(num+"/"+(addTextFile.replaceAll(" ","%20")))%>">look
 								for similar photos</a>] </font></td>
 							</tr>
@@ -1718,6 +1709,9 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				}
 				if (isOwner) {
 					int totalKeywords=myShepherd.getNumKeywords();
+					
+					
+					
 			%>
 
 							<tr>
@@ -1725,55 +1719,85 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 									src="../images/cancel.gif"> <strong>Remove
 								keyword:</strong> <%
 					Iterator indexes=myShepherd.getAllKeywords();
+						if(totalKeywords>0){
+							boolean haveAddedKeyword=false;
 							for(int m=0;m<totalKeywords;m++) {
 								Keyword word=(Keyword)indexes.next();
 								if(word.isMemberOf(addText)){
-				%> &nbsp;<a
-									href="../KeywordHandler?number=<%=num%>&action=removePhoto&photoName=<%=addTextFile%>&keyword=<%=word.getIndexname()%>"><%=word.getReadableName()%></a>&nbsp;|
+									haveAddedKeyword=true;
+				%> 
+									&nbsp;<a href="../KeywordHandler?number=<%=num%>&action=removePhoto&photoName=<%=addTextFile%>&keyword=<%=word.getIndexname()%>"><%=word.getReadableName()%></a>&nbsp;|
 								<%
 								} //end if
-										}
+							} //end for
+							if(!haveAddedKeyword){%>
+								
+								&nbsp;None added.
+								
+							<% }
+						} //end if
+						else { %>
+							None defined.
+							
+							
+						<% }
 							%>
 								</td>
 							</tr>
 							<tr>
 								<td>
-								<form action="../KeywordHandler" method="post" name="keyword">
+								
 								<table>
 									<tr>
 										<td class="para"><img align="absmiddle"
-											src="../images/tag.gif"> <strong>Add keyword <a
-											href="<%=CommonConfiguration.getWikiLocation()%>photo_keywords"
-											target="_blank"><img
-											src="../images/information_icon_svg.gif" alt="Help"
-											border="0" align="absmiddle" /></a></strong></td>
+											src="../images/keyword_icon_small.gif"> <strong>Add keyword <a href="<%=CommonConfiguration.getWikiLocation()%>photo_keywords" target="_blank">
+											<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></strong></td>
 									</tr>
 									<tr>
-										<td><select name="keyword" id="keyword">
-											<option value=" " selected>&nbsp;</option>
-											<%
-              	Iterator keys=myShepherd.getAllKeywords(kwQuery);
-              	  	for(int n=0;n<totalKeywords;n++) {
-              			Keyword word=(Keyword)keys.next();
-              			String indexname=word.getIndexname();
-              			String readableName=word.getReadableName();
-              %>
-											<option value="<%=indexname%>"><%=readableName%></option>
-											<%
-			 	 	}
-			 	 %>
+										<td class="para">
+										<%
+										if(totalKeywords>0){
+										%>
+										<form action="../KeywordHandler" method="post" name="keyword">
+											<select name="keyword" id="keyword">
+												<option value=" " selected>&nbsp;</option>
+												<%
+              									Iterator keys=myShepherd.getAllKeywords(kwQuery);
+              	  								for(int n=0;n<totalKeywords;n++) {
+              										Keyword word=(Keyword)keys.next();
+              										String indexname=word.getIndexname();
+              										String readableName=word.getReadableName();
+              									%>
+												<option value="<%=indexname%>"><%=readableName%></option>
+												<%
+			 	 								}
+			 	 								%>
 
-										</select> <input name="number" type="hidden" value=<%=num%>> <input
-											name="action" type="hidden" value="addPhoto"> <input
-											name="photoName" type="hidden" value="<%=addTextFile%>">
-										<input name="AddKW" type="submit" id="AddKW" value="Add"></td>
+											</select> 
+											<input name="number" type="hidden" value=<%=num%>> 
+											<input name="action" type="hidden" value="addPhoto"> 
+											<input name="photoName" type="hidden" value="<%=addTextFile%>">
+											<input name="AddKW" type="submit" id="AddKW" value="Add">
+											</form>
+											<%
+										}
+										else {
+											%>
+											None defined. <a href="../appadmin/kwAdmin.jsp">Click here to add photo keywords.</a>
+										<%
+										}
+										%>
+											
+										</td>
 									</tr>
 								</table>
-								</form>
+								
 								</td>
 							</tr>
 
 							<%
+							
+					
 								}
 							%>
 							<tr>
