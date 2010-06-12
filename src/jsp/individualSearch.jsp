@@ -44,12 +44,12 @@ int nowYear=cal.get(1);
 	<tr>
 		<td>
 		<p>
-		<h1 class="intro"><strong><span class="para"><img
-			src="images/markedIndividualIcon.gif" width="26" height="51" align="absmiddle" /></span></strong>
-		Shark Search Criteria</h1>
+		<h1 class="intro"><strong><span class="para">
+		<img src="images/markedIndividualIcon.gif" width="26" height="51" align="absmiddle" /></span></strong>
+		Marked Individual Search Criteria</h1>
 		</p>
 		<p><em>Select from the criteria below to tailor your search
-		among the individually identified sharks stored in the database.</em></p>
+		among the marked individuals in the database.</em></p>
 		<form action="individualSearchResults.jsp" method="get" name="search"
 			id="search">
 		<table>
@@ -106,8 +106,13 @@ myShepherd.beginDBTransaction();
 int totalKeywords=myShepherd.getNumKeywords();
 %>
 			<tr>
-				<td>Has photos showing these feature(s). Select one or more.<br>
-				<select multiple size="5" name="keyword" id="keyword">
+				<td><p>Has photos showing these feature(s). Select one or more.</p>
+				<%
+				
+				if(totalKeywords>0){
+				%>
+				
+				<select multiple size="<%=(totalKeywords+1) %>" name="keyword" id="keyword">
 					<option value="None"></option>
 					<% 
 				
@@ -122,20 +127,31 @@ int totalKeywords=myShepherd.getNumKeywords();
 				%>
 
 				</select>
+				<%
+				}
+				else{
+					%>
+					
+					<p><em>No keywords defined.</em></p>
+					
+					<%
+					
+				}
+				%>
 				</td>
 			</tr>
 			<%
 myShepherd.rollbackDBTransaction();
 %>
 			<tr>
-				<td>Has at least <select name="numspots" id="numspots">
+				<td><p>Has at least <select name="numspots" id="numspots">
 					<option value="0" selected>0</option>
 					<option value="10">10</option>
 					<option value="20">20</option>
 					<option value="30">30</option>
 					<option value="40">40</option>
 					<option value="50">50</option>
-				</select> left-side spot(s).</td>
+				</select> left-side spot(s).</p></td>
 			</tr>
 			<tr>
 				<td><strong>Average estimated\measured length was: </strong> <select
@@ -198,8 +214,6 @@ myShepherd.rollbackDBTransaction();
 				in the location ID digit by digit to narrow the location of your
 				search. You can specify multiple location IDs separated by a comma
 				to find only those individuals sighted at least once in all.
-				Example: Use </em>1a1<em> as the location ID for Northern Ningaloo Marine
-				Park.</em></p>
 				</td>
 			</tr>
 			<tr>
@@ -278,24 +292,7 @@ myShepherd.rollbackDBTransaction();
 
 			<tr>
 				<td>
-				<%
-				if(request.isUserInRole("admin")) {
-			%>
-				<p><input name="export" type="checkbox" id="export" value="true">
-				Generate a <em>frequency format</em> capture history file for
-				modeling of results (<a
-					href="http://www.cnr.colostate.edu/~gwhite/mark/mark.htm">Program
-				Mark</a>\<a
-					href="http://www.mesc.usgs.gov/products/software/clostest/clostest.asp">CloseTest</a>)</p>
-				<p><input name="capture" type="checkbox" id="capture"
-					value="true"> Generate a CAPTURE-compatible capture history
-				file for modeling
-				<p><input name="subsampleMonths" type="checkbox"
-					id="subsampleMonths" value="subsampleMonths"> Subsample by
-				months</p>
-
-
-				<%}%>
+		
 				<p><em> <input name="submitSearch" type="submit"
 					id="submitSearch" value="Go Search"></em>
 				</td>

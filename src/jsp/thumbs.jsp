@@ -113,8 +113,7 @@ int totalCount=99999;
 		</td>
 	</tr>
 	<tr>
-		<th class="caption">Below are thumbnail images from the whale
-		shark encounters currently stored in the visual database. Click <strong>Next</strong>
+		<th class="caption">Below are thumbnail images from the encounters currently stored in the visual database. Click <strong>Next</strong>
 		to view the next set of thumbnails. Click <strong>Previous</strong> to
 		see the previous set of thumbnails.
 		</td>

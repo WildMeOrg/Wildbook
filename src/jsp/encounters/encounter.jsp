@@ -368,7 +368,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="addLocCode" action="/EncounterSetLocationID"
+				<form name="addLocCode" action="../EncounterSetLocationID"
 					method="post"><input name="code" type="text" size="5"
 					maxlength="5"> <input name="number" type="hidden"
 					value=<%=num%>> <input name="action" type="hidden"
@@ -1093,7 +1093,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				algorithms</font>
 				<div id="formDiv">
 				<form name="formSharkGrid" id="formSharkGrid" method="post"
-					action="../scanTaskHandler"><input name="action" type="hidden"
+					action="../ScanTaskHandler"><input name="action" type="hidden"
 					id="action" value="addTask"> <input name="encounterNumber"
 					type="hidden" value=<%=num%>>
 
