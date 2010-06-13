@@ -48,7 +48,7 @@ if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide")
 <html>
 <head>
 
-<title>Encounter# <%=num%></title>
+<title>Encounter <%=num%></title>
 <title><%=CommonConfiguration.getHTMLTitle() %></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
@@ -172,11 +172,16 @@ if((side.equals("Right"))&&(enc.getRightSpots()==null)) {
 													else {numSpots=enc.getSpots().size();}
 													StringBuffer xmlData=new StringBuffer();
 													
-													xmlData.append("&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;<br>&lt;encounter number=\""+num+"\" assignedToShark=\""+enc.isAssignedToMarkedIndividual()+"\"&gt;<br>");
-										%> <di:img width="<%=newEncII.getWidth()%>"
+													//xmlData.append("&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;<br>&lt;encounter number=\""+num+"\" assignedToShark=\""+enc.isAssignedToMarkedIndividual()+"\"&gt;<br>");
+													
+													String thumbLocation="file-"+num+"/"+side+"SideSpotsMapped.jpg";
+													
+										%> 
+		<di:img width="<%=newEncII.getWidth()%>"
 			height="<%=newEncII.getHeight()%>"
 			imgParams="rendering=speed,quality=low" border="0" expAfter="0"
-			threading="limited" fillPaint="#000000" align="top" valign="left">
+			threading="limited" fillPaint="#000000" align="top" valign="left"
+			output="<%=thumbLocation %>">
 			<di:image srcurl="<%=fileloc%>" />
 			<%
 			
@@ -327,7 +332,15 @@ if((side.equals("Right"))&&(enc.getRightSpots()==null)) {
 			<di:circle x="<%=intThisClusterCentroidX%>"
 				y="<%=intThisClusterCentroidY%>" radius="4" fillPaint="#00FF00"></di:circle>
 			<%}%>
-		</di:img> <%if(request.getRemoteUser().equals("admin")) {%>
+		</di:img> 
+		
+		<!-- Put the image URL in now -->
+		<img src="<%=(num+"/"+side+"SideSpotsMapped.jpg")%>" border="0" align="left" valign="left">
+		
+		
+		
+		
+		<%if(request.getRemoteUser().equals("admin")) {%>
 
 		<p>Mahalanobis distances:</p>
 		<%for (int numIter2=0;numIter2<numSpots;numIter2++) {%> <br><%=spots_MahaDistances[numIter2]%>
@@ -336,10 +349,7 @@ if((side.equals("Right"))&&(enc.getRightSpots()==null)) {
 }
 %>
 
-		<p><strong>XML Representation</strong></p>
-		<% 
-	xmlData.append("&lt;/encounter&gt;<br>");
-	%> <pre><%=(xmlData.toString())%></pre>
+	
 		</td>
 	</tr>
 </table>
@@ -353,7 +363,7 @@ if((side.equals("Right"))&&(enc.getRightSpots()==null)) {
 	
 }
 } else {%>
-<p>There is no encounter #<%=request.getParameter("number")%> in the
+<p>There is no encounter <%=request.getParameter("number")%> in the
 database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go

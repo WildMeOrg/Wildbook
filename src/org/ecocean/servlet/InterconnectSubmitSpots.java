@@ -19,10 +19,7 @@ import java.util.ArrayList;
 //adds spots to a new encounter
 public class InterconnectSubmitSpots extends HttpServlet {
 	
-
-	//static SuperSpot tempSuperSpot;
 	
-			
 	private void deleteOldScans(String side, String num){
 		try{
 			//File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+side+"Scan.xml");
@@ -143,7 +140,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
 					String s_ref2y=request.getParameter("ref2y");
 					String s_ref3x=request.getParameter("ref3x");
 					String s_ref3y=request.getParameter("ref3y");
-					System.out.println("Ref points:"+s_ref1x+","+s_ref1y+","+s_ref2x+","+s_ref2y+","+s_ref3x+","+s_ref3y);
+					//System.out.println("Ref points:"+s_ref1x+","+s_ref1y+","+s_ref2x+","+s_ref2y+","+s_ref3x+","+s_ref3y);
 					
 					
 					//let's add the three reference points
@@ -218,7 +215,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
 					}
 					
 					out.println("<p><strong>Step 2: Upload the spot "+side+"-side image that you extracted the spot data from.</strong>");
-					out.println("<form action=\"/EncounterAddSpotFile\" method=\"post\" enctype=\"multipart/form-data\" name=\"addSpotsFile\">");
+					out.println("<form action=\"EncounterAddSpotFile\" method=\"post\" enctype=\"multipart/form-data\" name=\"addSpotsFile\">");
 					out.println("<input name=\"action\" type=\"hidden\" value=\"fileadder\" id=\"action\">");
 					out.println("<input name=\"number\" type=\"hidden\" value=\""+num+"\" id=\"number\">");
 					if(side.equals("right")){
@@ -242,7 +239,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
 					}
 					
 					out.println("<p><strong>Step 2: Upload the spot "+side+"-side image that you extracted the spot data from.</strong>");
-					out.println("<form action=\"/EncounterAddSpotFile\" method=\"post\" enctype=\"multipart/form-data\" name=\"addSpotsFile\">");
+					out.println("<form action=\"EncounterAddSpotFile\" method=\"post\" enctype=\"multipart/form-data\" name=\"addSpotsFile\">");
 					out.println("<input name=\"action\" type=\"hidden\" value=\"fileadder\" id=\"action\">");
 					out.println("<input name=\"number\" type=\"hidden\" value=\""+num+"\" id=\"number\">");
 					if(side.equals("right")){

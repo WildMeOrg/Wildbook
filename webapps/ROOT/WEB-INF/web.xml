@@ -482,7 +482,7 @@
 
 <servlet-mapping>
        <servlet-name>InterconnectSubmitSpots</servlet-name>
-       <url-pattern>/interconnectSubmitSpots</url-pattern>
+       <url-pattern>/InterconnectSubmitSpots</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>

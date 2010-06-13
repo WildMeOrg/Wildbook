@@ -87,11 +87,7 @@
   var googleSearchFrameborder = 0;
   var googleSearchDomain = "www.google.com";
   var googleSearchPath = "/cse";
-</script> <script type="text/javascript"
-	src="http://www.google.com/afsonline/show_afs_search.js"></script> <!-- Google Search Result Snippet Ends -->
-
-
-
+</script> <script type="text/javascript" src="http://www.google.com/afsonline/show_afs_search.js"></script> <!-- Google Search Result Snippet Ends -->
 
 </div>
 <!-- end maintext --></div>
