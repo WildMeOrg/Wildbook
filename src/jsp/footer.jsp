@@ -22,11 +22,11 @@
 %>
 <div id="footer">
 <div id="credits">
-<p class="credit">All contents under copyright. Unauthorized usage of any material for any purpose is strictly prohibited.</p>
-</div>
-<div id="sponsors">
 
 </div>
+<p class="credit">This software is distributed under the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank">GPL v2 license</a> and is intended to support mark-recapture field studies. Dynamic Image as included in this software is used with the permission of Guang Yang and licensed only for use with the Shepherd Project Framework for mark-recapture studies. Other open source and commercially licensed products used in this framework are listed <a href="http://<%=CommonConfiguration.getURLLocation()%>/thirdparty.jsp">here</a>.</p>
+<p><a href="http://www.ecoceanusa.org" target="_blank"><img border="0" src="http://<%=CommonConfiguration.getURLLocation()%>/images/lib_bottom.gif"></a></p>
+
 
 </div>
 <!-- end footer -->

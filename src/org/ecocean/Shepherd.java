@@ -1289,32 +1289,30 @@ public class Shepherd {
 		
 		
 	/**
-	 *Uncommits (does not store and make permanent) any changes made to an open database back
+	 *Undoes any changes made to an open database.
 	 */	
 	public void rollbackDBTransaction() {
 		try{
-				//System.out.println("     shepherd:"+identifyMe+" is trying to rollback a transaction");
 			if ((pm!=null)&&(pm.currentTransaction().isActive())) {
 				//System.out.println("     Now rollingback a transaction with pm"+(String)pm.getUserObject());
 				pm.currentTransaction().rollback();
 				//System.out.println("A transaction has been successfully committed.");
 			}
-			else {System.out.println("You are trying to rollback an inactive transaction.");}
-			//logger.info("A transaction has been successfully rolled back.");
+			else {
+			  //System.out.println("You are trying to rollback an inactive transaction.");
+			 }
+
 			}
 		catch (JDOUserException jdoe) {
 			jdoe.printStackTrace();
-			//logger.error("I failed to rollback a transaction."+"\n"+jdoe.getStackTrace());
-			}
+		}
 		catch (JDOFatalUserException fdoe) {
 			fdoe.printStackTrace();
-			//logger.error("I failed to rollback a transaction."+"\n"+jdoe.getStackTrace());
-			}
+		}
 		catch (NullPointerException npe) {
 			npe.printStackTrace();
-			//logger.error("I failed to rollback a transaction."+"\n"+jdoe.getStackTrace());
-			}
 		}
+	}
 		
 	
 

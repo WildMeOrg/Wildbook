@@ -157,7 +157,7 @@ Label label26 = new Label(26, 0, "Notes");
 sheet.addCell(label26);
 Label label27 = new Label(27, 0, "Length (m)"); 
 sheet.addCell(label27);
-Label label28 = new Label(28, 0, "Shark"); 
+Label label28 = new Label(28, 0, "Marked Individual"); 
 sheet.addCell(label28);
 Label label29 = new Label(29, 0, "Location code"); 
 sheet.addCell(label29);
@@ -661,9 +661,12 @@ if(generateEmails){
   						Element viz = placeMark.addElement( "visibility" );
   						viz.setText("1");
   						
+  						/**
   						Element style = placeMark.addElement( "Style" );
   						Element iconStyle = style.addElement( "IconStyle" );
   						Element icon = iconStyle.addElement( "Icon" );
+  						
+  						
   						Element href = icon.addElement( "href" );
   						
   						String iconURL = "http://"+CommonConfiguration.getURLLocation()+"/images/geShark";
@@ -684,6 +687,7 @@ if(generateEmails){
   						iconURL +=".gif";
 
   						href.setText(iconURL);
+  						*/
   						
   						//add the descriptive HTML
   						Element description = placeMark.addElement( "description" );
@@ -736,7 +740,13 @@ if(generateEmails){
   						//add the actual lat-long points
   						Element point = placeMark.addElement( "Point" );
   						Element coords = point.addElement( "coordinates" );
-  						String coordsString = enc.getDWCDecimalLongitude()+","+enc.getDWCDecimalLatitude()+",0";
+  						String coordsString = enc.getDWCDecimalLongitude()+","+enc.getDWCDecimalLatitude();
+  						if(enc.getMaximumElevationInMeters()!=0.0){
+  							coordsString+=","+enc.getMaximumElevationInMeters();
+  						}
+  						else{
+  							coordsString+=",0";
+  						}
   						coords.setText(coordsString);
   						
   						
@@ -790,10 +800,10 @@ if(generateEmails){
   		Label lNumber = new Label(0, count, enc.getDWCDateLastModified());
   		sheet.addCell(lNumber);
   		
-  		Label lNumberx1 = new Label(1, count, "ECOCEAN");
+  		Label lNumberx1 = new Label(1, count, CommonConfiguration.getProperty("institutionCode"));
   		sheet.addCell(lNumberx1);
   		
-  		Label lNumberx2 = new Label(2, count, "RhincodonTypus");
+  		Label lNumberx2 = new Label(2, count, CommonConfiguration.getProperty("catalogCode"));
   		sheet.addCell(lNumberx2);
   		
   		Label lNumberx3 = new Label(3, count, enc.getEncounterNumber());
@@ -802,7 +812,7 @@ if(generateEmails){
   		Label lNumberx4 = new Label(4, count, ("http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+enc.getEncounterNumber()));
   		sheet.addCell(lNumberx4);
   		
-  		Label lNumberx5 = new Label(5, count, "Rhincodon typus");
+  		Label lNumberx5 = new Label(5, count, (CommonConfiguration.getProperty("genus")+" "+CommonConfiguration.getProperty("species")));
   		sheet.addCell(lNumberx5);
   		
   		Label lNumberx6 = new Label(6, count, "P");
@@ -810,29 +820,29 @@ if(generateEmails){
   		
   		Calendar toDay = Calendar.getInstance();
   		int year = toDay.get(Calendar.YEAR);
-  		Label lNumberx7 = new Label(7, count, ("Holmberg, J. and Norman, B. ECOCEAN Whale Shark Photo-identification Library version "+year+". www.whaleshark.org"));
+  		Label lNumberx7 = new Label(7, count, CommonConfiguration.getProperty("citation"));
   		sheet.addCell(lNumberx7);
   		
-  		Label lNumberx8 = new Label(8, count, "ANIMALIA");
+  		Label lNumberx8 = new Label(8, count, CommonConfiguration.getProperty("kingdom"));
   		sheet.addCell(lNumberx8);
   		
-  		Label lNumberx9 = new Label(9, count, "CHORDATA");
+  		Label lNumberx9 = new Label(9, count, CommonConfiguration.getProperty("phylum"));
   		sheet.addCell(lNumberx9);
   		
-  		Label lNumberx10 = new Label(10, count, "ELASMOBRANCHII");
+  		Label lNumberx10 = new Label(10, count, CommonConfiguration.getProperty("class"));
   		sheet.addCell(lNumberx10);
   		
-  		Label lNumberx11 = new Label(11, count, "ORECTOLOBIFORMES");
+  		Label lNumberx11 = new Label(11, count, CommonConfiguration.getProperty("order"));
   		sheet.addCell(lNumberx11);
 
   		
-  		Label lNumberx13 = new Label(12, count, "RHINCODONTIDAE");
+  		Label lNumberx13 = new Label(12, count, CommonConfiguration.getProperty("family"));
   		sheet.addCell(lNumberx13);
   		
-  		Label lNumberx14 = new Label(13, count, "Rhincodon");
+  		Label lNumberx14 = new Label(13, count, CommonConfiguration.getProperty("genus"));
   		sheet.addCell(lNumberx14);
   		
-  		Label lNumberx15 = new Label(14, count, "typus");
+  		Label lNumberx15 = new Label(14, count, CommonConfiguration.getProperty("species"));
   		sheet.addCell(lNumberx15);
   		
   		if(enc.getYear()>0){

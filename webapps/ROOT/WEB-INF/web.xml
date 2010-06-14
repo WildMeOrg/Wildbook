@@ -665,7 +665,7 @@
 
   <servlet-mapping>
        <servlet-name>ImageSearch</servlet-name>
-       <url-pattern>/imageSearch</url-pattern>
+       <url-pattern>/ImageSearch</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
