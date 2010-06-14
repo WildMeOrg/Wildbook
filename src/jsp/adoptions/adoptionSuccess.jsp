@@ -85,16 +85,12 @@ String langCode="en";
 Success</h1>
 <p><strong>The adoption was successfully added/edited. </strong></p>
 <p>For future reference, this adoption is numbered <strong><%=number%></strong>.</p>
-<p>If you have any questions, please reference this number when <a
-	href=\ "mailto:<%=CommonConfiguration.getAutoEmailAddress() %>\">contacting
-us.</a></p>
+<p>If you have any questions, please reference this number when contacting
+us.</p>
 
-<p><a
-	href="http://<%=CommonConfiguration.getURLLocation()%>/<%=CommonConfiguration.getAdoptionDirectory()%>/adoption.jsp?number=<%=number%>">View
+<p><a href="http://<%=CommonConfiguration.getURLLocation()%>/<%=CommonConfiguration.getAdoptionDirectory()%>/adoption.jsp?number=<%=number%>">View
 adoption #<%=number%></a>.</p>
-<p><a
-	href="http://<%=CommonConfiguration.getURLLocation()%>/individuals.jsp?number=<%=shark%>">View
-adopted animal <%=shark%></a>.</p>
+
 
 </div>
 <!-- end maintext --></div>

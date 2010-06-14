@@ -91,21 +91,13 @@ try{
 			 	 if(request.isUserInRole("admin")){
 			 %>
 				<p><a
-					href="http://<%=CommonConfiguration.getURLLocation() %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp?individual=<%=num%>#create">[+]
+					href="http://<%=CommonConfiguration.getURLLocation() %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp?encounter=<%=num%>#create">[+]
 				Add adoption</a></p>
 				<%
 			 	}
 			 %>
 
-				<table class="adopter" cellpadding="2" width="250px">
-					<tr>
-						<td><img src="../images/adoption.gif" align="left" /> <em><a
-							href="adoptashark.jsp?shark=<%=num%>">This individual is
-						available for adoption! <br><br>Click here to learn how
-						to support our research through adoption!
-						</a></em></td>
-					</tr>
-				</table>
+		
 
 
 				

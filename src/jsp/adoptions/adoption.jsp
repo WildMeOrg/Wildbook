@@ -30,7 +30,7 @@ String encounterForm="";
 String notes="";
 String adoptionType="";
 
-String servletURL = "/adoptionForm.jh";
+String servletURL = "../adoptionForm.jh";
 
 if(request.getParameter("individual")!=null){sharkForm=request.getParameter("individual");}
 
@@ -231,8 +231,8 @@ if(isOwner){
 			<tr>
 				<td>Shark:</td>
 				<td><input name="shark" type="text" size="30"
-					value="<%=sharkForm%>"> </input> <%if(!sharkForm.equals("")) { %> <a
-					href="../individuals.jsp?number=<%=sharkForm%>">Link</a> <%
+					value="<%=sharkForm%>"> </input> <%if(!sharkForm.equals("")) { %> 
+					<a href="../individuals.jsp?number=<%=sharkForm%>">Link</a> <%
 				}
 				%>
 				</td>

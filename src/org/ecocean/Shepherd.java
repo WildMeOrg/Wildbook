@@ -323,7 +323,7 @@ public class Shepherd {
 	public boolean isAdoption(String num) {
 		try {Adoption tempEnc=((org.ecocean.Adoption)(pm.getObjectById(pm.newObjectIdInstance(Adoption.class, num.trim()),true )));}
 		catch (Exception nsoe) {
-			nsoe.printStackTrace();
+			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
@@ -332,7 +332,7 @@ public class Shepherd {
 		try {Keyword tempEnc=((org.ecocean.Keyword)(pm.getObjectById(pm.newObjectIdInstance(Keyword.class, indexname.trim()),true )));}
 		//catch (ObjectNameNotFoundException onfe) {return false;}
 		catch (Exception nsoe) {
-			nsoe.printStackTrace();
+			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
@@ -341,7 +341,7 @@ public class Shepherd {
 		try {ScanTask tempEnc=((org.ecocean.grid.ScanTask)(pm.getObjectById(pm.newObjectIdInstance(ScanTask.class, uniqueID.trim()),true )));}
 		//catch (ObjectNameNotFoundException onfe) {return false;}
 		catch (Exception nsoe) {
-			nsoe.printStackTrace();
+			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
@@ -350,7 +350,7 @@ public class Shepherd {
 	public boolean isMarkedIndividual(String name) {
 		try {MarkedIndividual tempShark=((org.ecocean.MarkedIndividual)(pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, name.trim()),true )));}
 		catch (Exception nsoe) {
-			nsoe.printStackTrace();
+			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}

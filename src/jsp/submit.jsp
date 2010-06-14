@@ -1,7 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8"
-	language="java"
-	import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.GregorianCalendar, org.ecocean.*"%>
+<%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java" import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.GregorianCalendar, org.ecocean.*"%>
 <%
 GregorianCalendar cal=new GregorianCalendar();
 int nowYear=cal.get(1);

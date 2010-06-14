@@ -400,34 +400,7 @@ if(request.isUserInRole("admin")) {
 <p>Number of tasks creating/deleteing: <%=es.getActiveCount()%> (<%=(es.getTaskCount()-es.getCompletedTaskCount())%>
 total in queue)<br> <br>
 
-<h3>Tuning Tasks and Boosting Files</h3>
-<p>
-<form name="formTuningTask" id="formTuningTask" method="post"
-	action="../ScanTaskHandler"><strong>Create Tuning Task</strong>
-(first delete the old one if it still exists): <br />
-Number of comparisons to make: <input name="action" type="hidden"
-	id="action" value="addTuningTask"> <em>Leave blank for all
-possible comparisons.</em><br />
-<input name="maxNumWorkItems" type="text" id="maxNumWorkItems"
-	value="1000" size="10" maxlength="10" /> <input name="writeThis"
-	type="hidden" id="writeThis" value="true"> <br> <input
-	name="scan" type="submit" id="scan" value="Create New Tuning Task">
-<input name="cutoff" type="hidden" value="0.02"></form>
-</p>
-<p>
-<form name="formTuningTask" id="formFalseTuningTask" method="post"
-	action="../ScanTaskHandler"><strong>Create False Match
-Tuning Task</strong> (first delete the old one if it still exists): <br />
-Number of comparisons to make: <input name="action" type="hidden"
-	id="action" value="addFalseMatchTask"> <em>Leave blank for
-all possible false comparisons (not recommended).</em><br />
-<input name="maxNumWorkItems" type="text" id="maxNumWorkItems"
-	value="1000" size="10" maxlength="10" /> <input name="writeThis"
-	type="hidden" id="writeThis" value="true"> <br> <input
-	name="scan" type="submit" id="scan"
-	value="Create New False Match Tuning Task"> <input
-	name="cutoff" type="hidden" value="0.02"></form>
-</p>
+
 <%}%>
 
 </p>

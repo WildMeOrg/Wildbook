@@ -463,8 +463,8 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><font
-					color="#990000"><img align="absmiddle"
-					src="../images/tag_big.gif" width="50px" height="*" /><br></br>
+					color="#990000">
+					<img align="absmiddle" src="../images/tag_small.gif" /><br></br>
 				<strong>Add to marked individual:</strong></font></td>
 			</tr>
 			<tr>
@@ -523,14 +523,13 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><font
-					color="#990000"><img align="absmiddle"
-					src="../images/tag_big.gif" width="50px" height="*" /> <strong>Create marked
-				individual:</strong></font></td>
+					color="#990000">
+					<img align="absmiddle" src="../images/tag_small.gif" /> <strong>Create marked individual:</strong></font></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
 				<form name="createShark" method="post" action="../IndividualCreate">
-				<input name="number" type="hidden" value=<%=num%>> <input
+				<input name="number" type="hidden" value="<%=num%>"> <input
 					name="action" type="hidden" value="create"> <input
 					name="individual" type="text" id="individual" size="10"
 					maxlength="50"
