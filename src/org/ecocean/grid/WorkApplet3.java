@@ -79,7 +79,7 @@ public class WorkApplet3 extends JApplet {
 	ImageIcon i;
 	
 	//origin of the applet
-	public static final String thisURLRoot="www.whaleshark.org";
+	public static String thisURLRoot="";
 	
 	//constructor
 	public WorkApplet3(){}
@@ -94,7 +94,7 @@ public class WorkApplet3 extends JApplet {
 		if(!newEncounterNumber.equals("")){
 			encNumParam="&newEncounterNumber="+newEncounterNumber;
 		}
-		URL u = new URL( "http://"+thisURLRoot+"/scanAppletSupport?version="+version+"&nodeIdentifier="+nodeIdentifier+"&action="+action+encNumParam+"&groupSize="+groupSize+"&numProcessors="+numProcessors );
+		URL u = new URL( thisURLRoot+"/ScanAppletSupport?version="+version+"&nodeIdentifier="+nodeIdentifier+"&action="+action+encNumParam+"&groupSize="+groupSize+"&numProcessors="+numProcessors );
 		System.out.println("...Using nodeIdentifier: "+nodeIdentifier+"...");
 		URLConnection con = u.openConnection();
 		con.setDoInput( true );
@@ -125,7 +125,8 @@ public class WorkApplet3 extends JApplet {
 
     public static void main(String args[]){
 
-         JFrame frame = new JFrame("sharkGrid Client");
+      thisURLRoot=args[0];
+         JFrame frame = new JFrame("Grid Client");
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -135,6 +136,8 @@ public class WorkApplet3 extends JApplet {
         frame.setSize(WIDTH, HEIGHT);   // Set the size of the frame
         frame.setVisible(true);   // Show the frame
         frame.setSize(800,225);
+        
+        
 
     }
 	
@@ -157,7 +160,7 @@ public class WorkApplet3 extends JApplet {
 		
 		JLabel instructions=new JLabel("Your computer is now helping us match whale shark spot patterns!");
 		
-		JLabel version=new JLabel("sharkGrid Client Node 1.22");
+		JLabel version=new JLabel("Grid Client Node 1.22");
 			
 		comparisons=new JLabel("Total comparisons made by your computer: 0");
 		potentialMatches=new JLabel("Potential matches found by your computer: 0");
@@ -312,12 +315,6 @@ public class WorkApplet3 extends JApplet {
      		status.setIndeterminate(true);
      	}
 
-       		
-       	//AppletContext appletContext;
-       	//try{
-       	//	appletContext=getAppletContext();
-       	//}
-       	//catch(NullPointerException npe){}	
 		String holdEncNumber="";
 		
 		//check whether this applet is working on a specific task
@@ -367,9 +364,6 @@ public class WorkApplet3 extends JApplet {
 
 		try{
 		
-			//let's allocate an object to handle an OutOfMemoryError
-     		URL recoverURL=new URL("http://"+thisURLRoot+"/encounters/sharkGrid.jsp?groupSize=1&autorestart=true"+targeted+"&numComparisons="+numComparisons);
-			
 			//check the number of processors
 			Runtime rt=Runtime.getRuntime();
 			int numProcessors=rt.availableProcessors();
@@ -377,7 +371,7 @@ public class WorkApplet3 extends JApplet {
 			
 			System.out.println();
 			System.out.println();
-			System.out.println("***Welcome to sharkGrid!***");
+			System.out.println("***Welcome to the Shepherd Grid!***");
 			System.out.println("...I have "+numProcessors+" processor(s) to work with...");
 		
 			//set the start groupSize used-i.e. number of scans to tackle in the first returned Vector of work items
@@ -533,7 +527,7 @@ public class WorkApplet3 extends JApplet {
 						//if we have results to send, send 'em!
 						if(resultsSize>0){
 						
-							URL finishScan = new URL( "http://"+thisURLRoot+"/scanWorkItemResultsHandler2?"+targeted+"group=true&nodeIdentifier="+nodeIdentifier);
+							URL finishScan = new URL( thisURLRoot+"/ScanWorkItemResultsHandler2?"+targeted+"group=true&nodeIdentifier="+nodeIdentifier);
 							URLConnection finishConnection = finishScan.openConnection();  
 
 							// inform the connection that we will send output and accept input
@@ -567,7 +561,7 @@ public class WorkApplet3 extends JApplet {
        							System.out.println("Successful transmit to and return code from the servlet.");
        						
        							numComparisons+=(workItemResults.size());
-       							recoverURL=new URL("http://"+thisURLRoot+"/encounters/sharkGrid.jsp?groupSize=1&autorestart=true"+targeted+"&numComparisons="+numComparisons);
+       							//recoverURL=new URL(thisURLRoot+"/encounters/sharkGrid.jsp?groupSize=1&autorestart=true"+targeted+"&numComparisons="+numComparisons);
 
        							//kick off a thread to update the UI labels
        							
@@ -609,7 +603,7 @@ public class WorkApplet3 extends JApplet {
 		} //end while
 		
 	}
-	catch(MalformedURLException mue){
+	catch(Exception mue){
 		System.out.println("I hit a MalformedURLException while trying to create the recoverURL for OutOfMemoryErrors");
 		mue.printStackTrace();
 		
@@ -621,7 +615,7 @@ public class WorkApplet3 extends JApplet {
 			sideAddition="&rightSide=true";
 	}
 	try{
-		URL resultsURL=new URL("http://"+thisURLRoot+"/writeOutScanTask?number="+getParameter("encounter"));
+		URL resultsURL=new URL(thisURLRoot+"/writeOutScanTask?number="+getParameter("encounter"));
 		hb.setFinished(true);
        	//getAppletContext().showDocument(resultsURL); 
     }
