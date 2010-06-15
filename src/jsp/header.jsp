@@ -320,7 +320,7 @@ z-index:99;
 
 
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/software.jsp"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/software/software.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Client
 		Software</a></li>
