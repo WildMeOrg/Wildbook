@@ -18,6 +18,7 @@ import jxl.*;
 import jxl.write.*;
 
 import java.util.Properties;
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 public class WriteOutScanTask extends HttpServlet {
@@ -96,8 +97,12 @@ public class WriteOutScanTask extends HttpServlet {
 
         	
 
-			myShepherd.rollbackDBTransaction();
+			myShepherd.commitDBTransaction();
 			myShepherd.closeDBTransaction();
+			
+			//let's cleanup after a successful commit
+      ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
+      es.execute(new ScanTaskCleanupThread(request.getParameter("number")));
 			
 			//let's go see the written results
 			String sideAddition="";
@@ -465,31 +470,7 @@ public class WriteOutScanTask extends HttpServlet {
 					}
 					
 					
-					//populate reference for encB
-					/*Label label6a = new Label(6, i, ref1x_A); 
-					
-					Label label7a = new Label(7, i, ref1y_A); 
 
-					Label label8a = new Label(8, i, ref2x_A); 
-
-					Label label9a = new Label(9, i, ref2y_A); 
-
-					Label label10aa = new Label(10, i, ref3x_A); 
-
-					Label label11aa = new Label(11, i, ref3y_A); 
-
-					Label label6ab = new Label(12, i, ref1x_B); 
-
-					Label label7ab = new Label(13, i, ref1y_B); 
-
-					Label label8ab = new Label(14, i, ref2x_B); 
-
-					Label label9ab = new Label(15, i, ref2y_B); 
-
-					Label label10ab = new Label(16, i, ref3x_B); 
-
-					Label label11ab = new Label(17, i, ref3y_B); 
-					*/
 					
 					//Spot maps
 					String aSpot = "false";
@@ -514,63 +495,14 @@ public class WriteOutScanTask extends HttpServlet {
 					}
 					
 					
-					//Label label11aaaa = new Label(18, i, aSpot); 
-					
-					//Label label11aabb = new Label(19, i, bSpot); 
-					
-					
+	
 					String side = "l";
 					if(swi.rightScan){side = "r";}
-					//Label label20 = new Label(20, i, side); 
-					
-					if(!request.getParameter("number").equals("TuningTask")){
-						/*
-						sheet.addCell(label20);
-						sheet.addCell(label11aabb);
-						sheet.addCell(label11ab);
-						sheet.addCell(label5a);
-						sheet.addCell(label0a);
-						sheet.addCell(label1a);
-						sheet.addCell(label2aaa);
-						sheet.addCell(label2aa);
-						sheet.addCell(label3a);
-						sheet.addCell(label10ab);
-						sheet.addCell(label9ab);
-						sheet.addCell(label8ab);
-						sheet.addCell(label7ab);
-						sheet.addCell(label6ab);
-						sheet.addCell(label11aa);
-						sheet.addCell(label10aa);
-						sheet.addCell(label9a);
-						sheet.addCell(label8a);
-						sheet.addCell(label7a);
-						sheet.addCell(label6a);
-						*/
-					}
-					
-					
-					//let's calculate our boosted scores and write them out
-					
-					//try{
-					//	double[] boostedResults=Predict.predict(predictInput);
-					//	double matchPrediction = boostedResults[0];
-					//	double notPrediction = boostedResults[1];
-						
-						/*
-						Label label21 = new Label(21, i, Double.toString(matchPrediction)); 
-						Label label22 = new Label(22, i, Double.toString(notPrediction)); 
-						if(!request.getParameter("number").equals("TuningTask")){
-							sheet.addCell(label21);
-							sheet.addCell(label22);
-						}
-						*/
-				//	}
-				//	catch(Exception boost_e){
-				//		boost_e.printStackTrace();
-				//	}
-					
+	
 
 					
+					
+									
 					
 				}
 				
@@ -888,10 +820,7 @@ public class WriteOutScanTask extends HttpServlet {
     			output.close();
     		}
 
-    	
-    	//write out the test file .test
-    		//File file2=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"appadmin"+File.separator+"boostedResults_"+number+".test");	
-    		File file2=new File(getServletContext().getRealPath(("/appadmin/"+"boostedResults_"+number+".test")));
+    	File file2=new File(getServletContext().getRealPath(("/appadmin/"+"boostedResults_"+number+".test")));
 			
     		
     		//use buffering
@@ -995,7 +924,6 @@ public boolean writeBoostedResult(String encNumber,MatchObject[] swirs, String n
 			if(rightSide) {
 				fileAddition="Right";
 			}
-			//File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastBoost"+fileAddition+"Scan.xml");
 			File file=new File(getServletContext().getRealPath(("/encounters/"+num+"/lastBoost"+fileAddition+"Scan.xml")));
 			
 			
@@ -1015,73 +943,6 @@ public boolean writeBoostedResult(String encNumber,MatchObject[] swirs, String n
 		}
 	} //end writeResult method
     
-    /**
-     * private Properties generateBoostedResults(MatchObject[] results, String encNumber, Shepherd myShepherd){
-    	Properties props = new Properties();
-    	int size=results.length;
-    	for(int i=0;i<size;i++){
-    		Encounter newEnc = myShepherd.getEncounter(encNumber);
-    		Encounter existingEncA = myShepherd.getEncounter(results[i].encounterNumber);
 
-
-    		String[] predictInputA = new String[10];
-
-        
-    		//boost sex
-    		if(newEnc.getSex().equals(existingEncA.getSex())){
-    			predictInputA[0]=newEnc.getSex();
-    		}
-		else{
-			predictInputA[0]="unsure";
-		}
-		
-		
-    		//boost locationCode
-    		predictInputA[1]=newEnc.getLocationCode().trim();
-
-    		predictInputA[2] = existingEncA.getLocationCode().trim();
-
-    		predictInputA[3]=Double.toString(results[i].i3sMatchValue);
-
-    		//boost Groth score
-			predictInputA[4]=Double.toString((results[i].getMatchValue()));
-			
-			predictInputA[5]=Double.toString((results[i].getAdjustedMatchValue()));
-			
-			String logM="";
-			try{
-				logM=(new Double(results[i].getLogMStdDev()).toString());
-			} catch(java.lang.NumberFormatException nfe) {
-				logM="0.01";
-			}
-			predictInputA[6]=logM;
-			
-			//boost time difference in absolute years
-			predictInputA[7]=Integer.toString(Math.abs((newEnc.getYear()-existingEncA.getYear())));
-			
-			//boost num matching keywords
-			ArrayList keywords=myShepherd.getKeywordsInCommon(existingEncA.getEncounterNumber(), newEnc.getEncounterNumber());
-			int keywordsSize=keywords.size(); 
-			predictInputA[8]=Integer.toString(keywordsSize);
-			
-			String sizeDiffString = "unknown";
-			if((existingEncA.getSize()>0)&&(newEnc.getSize()>0)){
-				double sizeDiff=Math.abs((existingEncA.getSize()-newEnc.getSize()));
-				if(sizeDiff<=2.0){sizeDiffString = "small";}
-				else{sizeDiffString = "large";}
-			}
-			predictInputA[9]=sizeDiffString;
-			
-    		double matchBoostScore = (Predict.predict(predictInputA))[0];
-    		double notBoostScore = (Predict.predict(predictInputA))[1];
-    		//System.out.println("Trying to props: "+results[i].getEncounterNumber()+":"+matchBoostScore);                                                         
-    		props.put(results[i].getEncounterNumber(), Double.toString(matchBoostScore));
-    		props.put(("not"+results[i].getEncounterNumber()), Double.toString(notBoostScore));
-    		
-    	}
-    	
-    	return props;
-    	
-    }*/
 
 }
