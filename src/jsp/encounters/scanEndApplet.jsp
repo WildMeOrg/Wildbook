@@ -98,7 +98,8 @@ String side2="";
 		value="<%=request.isUserInRole("reviewer")%>" />
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
-<body>
+<div id="page">
+
 
 
 
@@ -115,12 +116,16 @@ String side2="";
 	String fileSider=""; 
 	File finalXMLFile;
 	if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-		finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
+		//finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
+		finalXMLFile=new File(getServletContext().getRealPath(("/encounters/"+num+"/lastFullRightI3SScan.xml")));
+
+		
 		side2="right";
 		fileSider="&rightSide=true";
 	}
 	else {
-		finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
+		//finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
+		finalXMLFile=new File(getServletContext().getRealPath(("/encounters/"+num+"/lastFullI3SScan.xml")));
 	}	
 	if(finalXMLFile.exists()) {
 %>
@@ -129,23 +134,7 @@ String side2="";
 		href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a></li>
 	<%
 	}
-	File finalXMLFile3;
-	if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-		finalXMLFile3=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastBoostRightScan.xml");
-		side2="right";
-		fileSider="&rightSide=true";
-	}
-	else {
-		finalXMLFile3=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastBoostScan.xml");
-	}	
-	if(finalXMLFile3.exists()) {
-%>
 
-	<li><a
-		href="scanBoostEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%><%=fileSider%>">sharkBoost</a></li>
-
-	<%
-	}
 %>
 
 
@@ -169,11 +158,16 @@ else{
 //read from the written XML here if flagged
 try {
 	if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-		file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml");
+		//file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml");
+		file=new File(getServletContext().getRealPath(("/encounters/"+num+"/lastFullRightScan.xml")));
+
+		
 		side="right";
 	}
 	else {
-		file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml");
+		//file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml");
+		file=new File(getServletContext().getRealPath(("/encounters/"+num+"/lastFullScan.xml")));
+
 	}
 	doc = xmlReader.read(file);
 	root=doc.getRootElement();
@@ -441,7 +435,7 @@ System.out.println("I made it to the Flash without exception.");
 	height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
 	<PARAM NAME="movie"
 		VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation()%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
-	<PARAM NAME="quality" VALUE="high">
+	<PARAM NAME="qualidty" VALUE="high">
 	<PARAM NAME="scale" VALUE="exactfit">
 	<PARAM NAME="bgcolor" VALUE="#ddddff"><EMBED
 		src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation()%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"

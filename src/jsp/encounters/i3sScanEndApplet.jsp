@@ -99,43 +99,25 @@ String side2="";
 	String fileSider=""; 
 	File finalXMLFile;
 	if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-		finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml");
+		finalXMLFile=new File(getServletContext().getRealPath(("/encounters/"+num+"/lastFullRightScan.xml")));
+
 		side2="right";
 		fileSider="&rightSide=true";
 	}
 	else {
-		finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml");
+		finalXMLFile=new File(getServletContext().getRealPath(("/encounters/"+num+"/lastFullScan.xml")));
+
 	}	
 	if(finalXMLFile.exists()) {
 %>
-	<li><a
-		href="scanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%><%=fileSider%>">Modified
-	Groth</a></li>
+	<li><a href="scanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%><%=fileSider%>">Modified Groth</a></li>
 
 	<%
 }
 %>
 	<li><a class="active">I3S</a></li>
 
-	<%
-	File finalXMLFile3;
-	if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-		finalXMLFile3=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastBoostRightScan.xml");
-		side2="right";
-		fileSider="&rightSide=true";
-	}
-	else {
-		finalXMLFile3=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastBoostScan.xml");
-	}	
-	if(finalXMLFile3.exists()) {
-%>
 
-	<li><a
-		href="scanBoostEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%><%=fileSider%>">sharkBoost</a></li>
-
-	<%
-	}
-%>
 </ul>
 
 <%
@@ -155,11 +137,14 @@ else{
 //read from the written XML here if flagged
 try {
 	if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-		file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
+		//file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
+		file=new File(getServletContext().getRealPath(("/encounters/"+num+"/lastFullRightI3SScan.xml")));
+
 		side="right";
 	}
 	else {
-		file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
+		//file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
+		file=new File(getServletContext().getRealPath(("/encounters/"+num+"/lastFullI3SScan.xml")));
 	}
 	doc = xmlReader.read(file);
 	root=doc.getRootElement();
