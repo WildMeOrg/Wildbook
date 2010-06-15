@@ -86,7 +86,7 @@
 		  <h1 class="intro">Third Party Software</h1>
 		</div>
 			
-		<p>The following third party software is used with permission and/or under license within the Shepherd Project Framework:</p>
+		<p>The following third party software is used with permission and/or under an appropriate license within the Shepherd Project Framework.</p>
 		<p><strong>Third Party Commercial Licenses (used with permission and/or under non-commercial guidelines)</strong></p>
 		<ul>
 		  <li>Dynamic Image as included in this software is used with the permission of its developer Guang Yang and licensed only for use with the Shepherd Project Framework for non-commercial, mark-recapture studies.</li>
@@ -94,8 +94,12 @@
 		</ul>
 		<p><strong>Open Source Components </strong></p>
 		<ul>
-		<li>KeenerView for Flex-based image display is used under the MIT license: <a href="http://code.google.com/p/keenerview/">http://code.google.com/p/keenerview/</a></li>
-		<li>DataNucleus Access Platform is used for object-relational mapping and persistence under the Apache 2 License: <a href="http://www.datanucleus.org%20">http://www.datanucleus.org</a></li>
+		<li>KeenerView for Flex-based image display is used under the MIT license. <a href="http://code.google.com/p/keenerview/">http://code.google.com/p/keenerview/</a></li>
+		<li>DataNucleus Access Platform is used for object-relational mapping and persistence under the Apache 2 License.<a href="http://www.datanucleus.org%20">http://www.datanucleus.org</a></li>
+		<li>Joda Time for date manipulation and standardization is used under the Apache 2 License.<a href="http://joda-time.sourceforge.net/">http://joda-time.sourceforge.net/</a></li>
+		<li>Crystal Clear icons are used under the GNU Lesser General Public License. <a href="http://commons.wikimedia.org/wiki/Crystal_Clear">http://commons.wikimedia.org/wiki/Crystal_Clear</a></li>
+		<li>A Derby database is embedded for default usage and is available under the Apache 2 License. <a href="http://db.apache.org/derby/">http://db.apache.org/derby/</a></li>
+		<li>Project Rome is used for writing out Atom feeds. <a href="https://rome.dev.java.net/">https://rome.dev.java.net/</a></li>
 		<li>Many, many more...TBD </li>
 		</ul>
 
