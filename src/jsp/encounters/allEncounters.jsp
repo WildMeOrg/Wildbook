@@ -133,7 +133,7 @@ if (request.getParameter("rejects")!=null) {
 %>
 <table>
 	<tr>
-		<td bgcolor="#CC6600">
+		<td bgcolor="#CC6600" colspan="4">
 		<p><strong><%=unapproved_text %></strong></p>
 		</td>
 	</tr>
@@ -157,8 +157,8 @@ if (request.getParameter("rejects")!=null) {
 
 <table>
 	<tr>
-		<td bgcolor="#CC6600">
-		<p><strong><font size="+1"><%=from_user %>:</font></strong> <font size="+1"><em><%=request.getParameter("user")%></em></font></p>
+		<td colspan="4">
+		<h1><%=from_user %>: <em><%=request.getParameter("user")%></em></h1>
 
 		</td>
 	</tr>
