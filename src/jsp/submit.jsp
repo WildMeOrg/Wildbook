@@ -117,7 +117,7 @@ else return true;
 </jsp:include>
 <div id="main">
 
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 
 <div id="maintext">
 <h1 class="intro"><%=props.getProperty("submit_report")%></h1>
