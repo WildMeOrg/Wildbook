@@ -158,7 +158,7 @@ public class WorkApplet3 extends JApplet {
 		start.setAlignmentX ( CENTER_ALIGNMENT );
 		start.setAlignmentY ( CENTER_ALIGNMENT );
 		
-		JLabel instructions=new JLabel("Your computer is now helping us match whale shark spot patterns!");
+		JLabel instructions=new JLabel("Your computer is now helping to match spot patterns!");
 		
 		JLabel version=new JLabel("Grid Client Node 1.22");
 			
