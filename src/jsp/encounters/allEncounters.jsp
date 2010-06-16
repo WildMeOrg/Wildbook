@@ -155,20 +155,18 @@ if (request.getParameter("rejects")!=null) {
 	totalCount=myShepherd.getNumUserEncounters(request.getParameter("user"));
 %>
 
-<table>
+<table id="results" border="0">
 	<tr>
 		<td colspan="4">
 		<h1><%=from_user %>: <em><%=request.getParameter("user")%></em></h1>
 
 		</td>
 	</tr>
-</table>
-<table>
 
 
 
 	<tr>
-		<td>
+		<td class="caption">
 		<p><%=view_all_user.replaceAll("COUNT", Integer.toString(totalCount)).replaceAll("USERNAME", request.getParameter("user")
 				) %> <%=nav_text %></p>
 		</td>
@@ -186,7 +184,7 @@ if (request.getParameter("rejects")!=null) {
 		</td>
 	</tr>
 	<tr>
-		<th class="caption" colspan="4"><%=all_encounters_text.replaceAll("COUNT", Integer.toString(totalCount)) %> <%=nav_text %>
+		<td class="caption" colspan="4"><%=all_encounters_text.replaceAll("COUNT", Integer.toString(totalCount)) %> <%=nav_text %>
 		</td>
 	</tr>
 </table>
