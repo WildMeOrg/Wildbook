@@ -110,9 +110,6 @@ boolean haveRendered=false;
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 <style type="text/css">
 <!--
-.style1 {
-	color: #000066
-}
 
 .style2 {
 	color: #000000;
@@ -1048,21 +1045,13 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Reset scarring:</font></strong></td>
+					color="#990000">Edit scarring description:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
 				<form name="setencsize" action="../EncounterSetScarring" method="post">
-				<select name="scars">
-					<option value="0" selected>None</option>
-					<option value="1">Tail (caudal) fin</option>
-					<option value="2">1st dorsal fin</option>
-					<option value="3">2nd dorsal fin</option>
-					<option value="4">Left pectoral fin</option>
-					<option value="5">Right pectoral fin</option>
-					<option value="6">Head</option>
-					<option value="7">Body</option>
-				</select> <input name="number" type="hidden" value="<%=num%>" id="number">
+				<textarea name="scars" size="15"><%=enc.getDistinguishingScar()%></textarea> 
+				<input name="number" type="hidden" value="<%=num%>" id="number">
 				<input name="action" type="hidden" value="setScarring"> <input
 					name="Add" type="submit" id="scar" value="Reset Scarring"></form>
 				</td>

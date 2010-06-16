@@ -61,16 +61,11 @@ public class EncounterSetScarring extends HttpServlet {
 				myShepherd.beginDBTransaction();
 				Encounter changeMe=myShepherd.getEncounter(request.getParameter("number"));
 				setDateLastModified(changeMe);
-				int scarring=((new Integer(request.getParameter("scars"))).intValue());
 				String scar="None";
+				scar=request.getParameter("scars");
+				
 				String oldScar="None";
-				if(scarring==1) {scar="Tail (caudal) fin";}
-				else if(scarring==2) {scar="1st dorsal fin";}
-				else if(scarring==3) {scar="2nd dorsal fin";}
-				else if(scarring==4) {scar="Left pectoral fin";}
-				else if(scarring==5) {scar="Right pectoral fin";}
-				else if(scarring==6) {scar="Head";}
-				else if(scarring==7) {scar="Body";}
+
 				
 				try{
 				

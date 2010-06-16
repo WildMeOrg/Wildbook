@@ -924,16 +924,8 @@ else return true;
 
 	<tr class="form_row">
 		<td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>
-		<td colspan="2"><select name="scars">
-			<option value="0" selected="selected"><%=props.getProperty("submit_none")%></option>
-			<option value="1"><%=props.getProperty("submit_tail")%></option>
-			<option value="2"><%=props.getProperty("submit_1stdorsal")%></option>
-			<option value="3"><%=props.getProperty("submit_2nddorsal")%></option>
-			<option value="4"><%=props.getProperty("submit_leftpec")%></option>
-			<option value="5"><%=props.getProperty("submit_rightpec")%></option>
-			<option value="6"><%=props.getProperty("submit_head")%></option>
-			<option value="7"><%=props.getProperty("submit_body")%></option>
-		</select></td>
+		<td colspan="2">
+		<input name="scars" type="text" id="scars" size="75" /></td>
 	</tr>
 	<tr class="form_row">
 		<td class="form_label"><strong><%=props.getProperty("submit_comments")%>:</strong></td>
