@@ -4,11 +4,17 @@
   <property name="war.name" value="shepherd"/>
   <property name="lib.dir" value="temp_jars"/>
   <property name="project.version" value="alpha1"/>
+  
+    
 
 
   <path id="classpath">
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
+    <fileset dir="${target.dir}/classes"/>
   </path>
+  
+
+  
   
   <target name="clean">
     <delete dir="${target.dir}"/>
@@ -17,7 +23,7 @@
   <target name="compile">
     <mkdir dir="${target.dir}/classes"/>
     <javac srcdir="src" destdir="${target.dir}/classes" classpathref="classpath" debug="true">
-
+    	<compilerarg value="-proc:none" />
     </javac>
   </target>
   
@@ -33,14 +39,17 @@
       </copy>
   </target>
   
-  <target name="enhance" description="DataNucleus enhancement">
-      <taskdef name="datanucleusenhancer" classpathref="classpath" 
-                  classname="org.datanucleus.enhancer.tools.EnhancerTask" />
   
-      <datanucleusenhancer classpathref="classpath"
-          dir="${target.dir}/classes" failonerror="true" verbose="false">
+
+
+  <target name="enhance" description="DataNucleus enhancement">
+      <taskdef name="datanucleusenhancer" classpath="temp_jars/asm-all-3.2.jar;temp_jars/datanucleus-enhancer-2.0.0-release.jar;temp_jars/datanucleus-core-2.0.0-release.jar;temp_jars/jdo2-api-2.3-eb.jar;target/classes" classname="org.datanucleus.enhancer.tools.EnhancerTask" />
+  
+      <datanucleusenhancer dir="${target.dir}/classes" classpath="temp_jars/asm-all-3.2.jar;temp_jars/datanucleus-enhancer-2.0.0-release.jar;temp_jars/datanucleus-core-2.0.0-release.jar;temp_jars/jdo2-api-2.3-eb.jar;target/classes" failonerror="true" verbose="true">
       </datanucleusenhancer>
+
   </target>
+
 
   
   <target name="copy-bundles">
@@ -69,7 +78,7 @@
 
 
 
-  <target name="war" depends="clean, compile, enhance,copy-org.ecocean-JDO,copy-org.ecocean.grid-JDO, copy-bundles, copy-servletResponseTemplate, copy-di-license, copy-email-files">
+  <target name="war" depends="clean, compile,copy-org.ecocean-JDO,copy-org.ecocean.grid-JDO, enhance, copy-bundles, copy-servletResponseTemplate, copy-di-license, copy-email-files">
     <mkdir dir="target"/>
     <war destfile="target/${war.name}-${project.version}.war" webxml="webapps/ROOT/WEB-INF/web.xml">
       <fileset dir="webapps/ROOT"/>
@@ -78,5 +87,9 @@
       <classes dir="target/classes"/>
     </war>
   </target>
+  
+  
   <target name="package" depends="war"/>
+
+
 </project>
