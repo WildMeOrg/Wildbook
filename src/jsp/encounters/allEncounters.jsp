@@ -34,7 +34,7 @@
 	String individual=props.getProperty("individual");
 	String view_all_unidentified=props.getProperty("view_all_unidentified");
 	String nav_text=props.getProperty("nav_text");
-	String from_user=props.getProperty("nav_text");
+	String from_user=props.getProperty("from_user");
 	String view_all=props.getProperty("view_all");
 	String all_encounters_text=props.getProperty("all_encounters_text");
 	String viewing=props.getProperty("viewing");
@@ -150,11 +150,23 @@ if (request.getParameter("rejects")!=null) {
 <%
   	totalCount=myShepherd.getNumUnapprovedEncounters();
   
-  } else if(request.getParameter("user")!=null) {
+  } 
+  else if(request.getParameter("user")!=null) {
 	totalCount=myShepherd.getNumUserEncounters(request.getParameter("user"));
 %>
-<p><strong><font size="+1"><%=from_user %>:</font></strong> <font size="+1"><em><%=request.getParameter("user")%></em></font></p>
+
 <table>
+	<tr>
+		<td bgcolor="#CC6600">
+		<p><strong><font size="+1"><%=from_user %>:</font></strong> <font size="+1"><em><%=request.getParameter("user")%></em></font></p>
+
+		</td>
+	</tr>
+</table>
+<table>
+
+
+
 	<tr>
 		<td>
 		<p><%=view_all_user.replaceAll("COUNT", Integer.toString(totalCount)).replaceAll("USERNAME", request.getParameter("user")
