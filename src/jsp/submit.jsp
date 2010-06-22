@@ -990,7 +990,6 @@ fields, using commas as separators</em>.</p>
 <hr>
 
 <p><%=props.getProperty("submit_pleaseadd")%></p>
-<p><a href="photographing.jsp?langCode=<%=langCode%>"><%=click2learn%></a></p>
 <p>&nbsp;</p>
 <p align="center"><strong><%=props.getProperty("submit_image")%>
 1:</strong> <input name="theFile1" type="file" size="30" /></p>
