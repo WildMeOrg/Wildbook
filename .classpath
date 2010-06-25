@@ -4,7 +4,6 @@
 	<classpathentry kind="src" path="flash"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="temp_jars/servlet-api.jar"/>
-	<classpathentry kind="lib" path="temp_jars/postgresql-8.0-322.jdbc3.jar"/>
 	<classpathentry kind="lib" path="temp_jars/bcel-5.1.jar"/>
 	<classpathentry kind="lib" path="temp_jars/struts.jar"/>
 	<classpathentry kind="lib" path="temp_jars/batik-awt-util-1.6.jar"/>
@@ -13,7 +12,6 @@
 	<classpathentry kind="lib" path="temp_jars/batik-util-1.6.jar"/>
 	<classpathentry kind="lib" path="temp_jars/batik-xml-1.6.jar"/>
 	<classpathentry kind="lib" path="temp_jars/catalina-root.jar"/>
-	<classpathentry kind="lib" path="temp_jars/cewolf-1.0.jar"/>
 	<classpathentry kind="lib" path="temp_jars/commons-beanutils.jar"/>
 	<classpathentry kind="lib" path="temp_jars/commons-collections.jar"/>
 	<classpathentry kind="lib" path="temp_jars/commons-digester.jar"/>
@@ -40,7 +38,6 @@
 	<classpathentry kind="lib" path="temp_jars/mjxml.jar"/>
 	<classpathentry kind="lib" path="temp_jars/mx4j-jmx.jar"/>
 	<classpathentry kind="lib" path="temp_jars/activation.jar"/>
-	<classpathentry kind="lib" path="temp_jars/InetAddressLocator.jar"/>
 	<classpathentry kind="lib" path="temp_jars/joda-time-1.5.2.jar"/>
 	<classpathentry kind="lib" path="temp_jars/rome-1.0RC1.jar"/>
 	<classpathentry kind="lib" path="temp_jars/jdom.jar"/>

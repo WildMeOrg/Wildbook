@@ -100,7 +100,7 @@ if((request.getParameter("locCode")!=null)&&(!request.getParameter("locCode").eq
 		}
 		%>
 		scheduler.setLoadMode("month");
-		scheduler.load("/CalendarXMLServer2?locCode=<%=locCode%>");
+		scheduler.load("../CalendarXMLServer2?locCode=<%=locCode%>");
 		
 	}
 </script>

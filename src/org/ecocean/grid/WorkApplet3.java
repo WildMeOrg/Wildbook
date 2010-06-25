@@ -71,7 +71,7 @@ public class WorkApplet3 extends JApplet {
 	private static String version="1.2";
 	
 	//polling heartbeat thread
-	AppletHeartbeatThread hb;
+	org.ecocean.grid.AppletHeartbeatThread hb;
 	
 	//thread pool handling comparison threads
 	ThreadPoolExecutor threadHandler;

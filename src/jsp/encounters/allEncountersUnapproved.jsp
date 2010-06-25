@@ -328,8 +328,11 @@ if (highCount<totalCount) {%> <a
 			src="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"
 			width="100" height="75" alt="whale shark photo" border="0" /></a></td>
 		<%
-	int encNumLast=enc.getEncounterNumber().length();
-	String encNumShort=enc.getEncounterNumber().substring((encNumLast-4),encNumLast);
+		int encNumLast=enc.getEncounterNumber().length();
+		String encNumShort=enc.getEncounterNumber();
+		if(encNumLast>4){
+			encNumShort=enc.getEncounterNumber().substring((encNumLast-4),encNumLast);
+		}
 	
 	%>
 		<td class="lineitems"><a

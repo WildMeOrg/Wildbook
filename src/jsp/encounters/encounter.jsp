@@ -1417,21 +1417,23 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 						target="_blank"><img src="../images/information_icon_svg.gif"
 						alt="Help" border="0" align="absmiddle"></a> <%
 				}
-				%><br /> <em>Latitude</em>: <%
-			  		if(!enc.getGPSLatitude().equals("")) {
-			  			%><br /><%=enc.getGPSLatitude()%> <%
- 							if(enc.getDWCDecimalLatitude()!=null){
- 								%>(<%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLatitude()))%>)<%
- 							}
-			  		}
- 				%><br /> <em>Longitude</em>: <%
-			  	if(!enc.getGPSLongitude().equals("")) {
-			  		%><br /><%=enc.getGPSLongitude()%> <%
-  						if(enc.getDWCDecimalLongitude()!=null){
-  							%>(<%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLongitude()))%>)<%
-  						}
-			  	}
-  				%><br /> <%
+				%><br /> <em>Latitude</em>: 
+					<%
+			  			if((enc.getDWCDecimalLatitude()!=null)&&(!enc.getDWCDecimalLatitude().equals("-9999.0"))) {
+			  		%>
+			  				<br /> <%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLatitude()))%>
+			  		<%
+			  			}
+ 					%>
+ 				<br /> <em>Longitude</em>: 
+ 					<%
+			  			if((enc.getDWCDecimalLongitude()!=null)&&(!enc.getDWCDecimalLongitude().equals("-9999.0"))) {
+			  		%>
+			  				<br /> <%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLongitude()))%>
+			  		<%
+			  			}
+ 					%>
+  				<br /> <%
 			   	if(isOwner) {
 			   		%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=gps#gps">edit</a>]</font>
 				<%

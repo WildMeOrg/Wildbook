@@ -194,6 +194,12 @@ else return true;
 		</td>
 		<td colspan="2"><select name="hour" id="hour">
 			<option value="-1" selected="selected">?</option>
+			<option value="0">12 am</option>
+			<option value="1">1 am</option>
+			<option value="2">2 am</option>
+			<option value="3">3 am</option>
+			<option value="4">4 am</option>
+			<option value="5">5 am</option>
 			<option value="6">6 am</option>
 			<option value="7">7 am</option>
 			<option value="8">8 am</option>
@@ -209,7 +215,11 @@ else return true;
 			<option value="18">6 pm</option>
 			<option value="19">7 pm</option>
 			<option value="20">8 pm</option>
-		</select> <select name="minutes" id="minutes">
+			<option value="21">9 pm</option>
+			<option value="22">10 pm</option>
+			<option value="23">11 pm</option>
+		</select> 
+		<select name="minutes" id="minutes">
 			<option value="00" selected="selected">:00</option>
 			<option value="15">:15</option>
 			<option value="30">:30</option>

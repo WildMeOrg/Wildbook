@@ -85,7 +85,7 @@ public class IndividualAddEncounter extends HttpServlet {
 							}
 							enc2add.setMatchedBy(request.getParameter("matchType"));
 							enc2add.addComments("<p><em>"+request.getRemoteUser()+" on "+(new java.util.Date()).toString()+"</em><br>"+"Added to "+request.getParameter("individual")+".</p>");
-							addToMe.addComments("<p><em>"+request.getRemoteUser()+" on "+(new java.util.Date()).toString()+"</em><br>"+"Added encounter#"+request.getParameter("number")+".</p>");
+							addToMe.addComments("<p><em>"+request.getRemoteUser()+" on "+(new java.util.Date()).toString()+"</em><br>"+"Added encounter "+request.getParameter("number")+".</p>");
 							if (!(addToMe.getSex().equals(enc2add.getSex()))) {
 								if (addToMe.getSex().equals("Unknown")) {addToMe.setSex(enc2add.getSex());}
 								else if(((addToMe.getSex().equals("Male"))&(enc2add.getSex().equals("Female")))||((addToMe.getSex().equals("Female"))&(enc2add.getSex().equals("Male")))) {
