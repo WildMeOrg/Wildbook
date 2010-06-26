@@ -187,7 +187,7 @@ if (highCount<totalCount) {%> <a
 					%>
 
 		<td><a href="<%=link%>"><img src="<%=thumbLink%>"
-			alt="whale shark photo" border="1" /></a></td>
+			alt="encounter photo" border="1" /></a></td>
 		<%
 					
 					countMe++;
