@@ -45,7 +45,7 @@ public class NotificationMailer implements Runnable{
 		   try { 
 		     //set up to, from, and the text of the message
 		     message.setFrom(new InternetAddress(from3));
-		     message.addRecipients(Message.RecipientType.BCC, to3);
+		     message.addRecipients(Message.RecipientType.TO, to3);
 		     message.setSubject(subject3);
 		     message.setText(text3);
 		     Transport.send(message);

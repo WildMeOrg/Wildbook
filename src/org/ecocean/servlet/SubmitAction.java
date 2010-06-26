@@ -107,7 +107,7 @@ public class SubmitAction extends Action{
 			additionalImageNames=theForm.getAdditionalImageNames();
 			encounterNumber=theForm.getEncounterNumber();
 			livingStatus=theForm.getLivingStatus();
-			informothers = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getInformothers());
+			informothers = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getInformothers().replaceAll(";", ",").replaceAll(" ",""));
 			//check for spamBots
 			boolean spamBot=false;
 			StringBuffer spamFields=new StringBuffer();

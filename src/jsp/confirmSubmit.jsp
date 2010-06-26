@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="org.ecocean.servlet.*,java.util.concurrent.ThreadPoolExecutor,java.util.Vector, java.io.FileReader, java.io.BufferedReader, java.util.Properties, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*"%>
+	import="org.ecocean.servlet.*,java.util.concurrent.ThreadPoolExecutor,java.util.Vector, java.io.FileReader, java.io.BufferedReader, java.util.Properties, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*,java.util.StringTokenizer"%>
 <%@ taglib uri="di" prefix="di"%>
 <%
 String number=request.getParameter("number");
@@ -22,8 +22,6 @@ Shepherd myShepherd=new Shepherd();
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 
 	
-	//FileInputStream propsInputStream2=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/en/confirmSubmitEmails.properties"));
-	//email_props.load(propsInputStream2);
 	email_props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/confirmSubmitEmails.properties"));
 
 	
@@ -119,6 +117,7 @@ Shepherd myShepherd=new Shepherd();
 		String addText="";
 		boolean hasImages=true;
 		String submitter="";
+		String informOthers="";
 		String informMe="";
 		if(!number.equals("fail")) {
 		
@@ -145,7 +144,12 @@ Shepherd myShepherd=new Shepherd();
 				if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals("None"))&&(!enc.getPhotographerEmail().equals(""))){
 					photographer=enc.getPhotographerEmail();
 					emailPhoto=true;
+				}	
+				
+				if((enc.getInformOthers()!=null)&&(!enc.getInformOthers().equals(""))){
+					informOthers=enc.getInformOthers();
 				}			
+				
 			}
 			catch(Exception e) {System.out.println("Error encountered in confirmSubmit.jsp:");e.printStackTrace();}
 			myShepherd.rollbackDBTransaction();	
@@ -171,10 +175,8 @@ Shepherd myShepherd=new Shepherd();
 	href="mailto:<%=CommonConfiguration.getAutoEmailAddress() %>">contacting
 us.</a></p>
 
-<p><a
-	href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=number%>&langCode=<%=langCode%>">View
-encounter #<%=number%></a>. <em>This may initially take a minute or
-more to fully load as we dynamically copy-protect your new image(s).</em></p>
+<p><a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=number%>&langCode=<%=langCode%>">View
+encounter #<%=number%></a>. <em>This may initially take a minute or more to fully load as we dynamically copy-protect your new image(s).</em></p>
 <%
 		
 		Vector e_images=new Vector();
@@ -183,21 +185,86 @@ more to fully load as we dynamically copy-protect your new image(s).</em></p>
 		ThreadPoolExecutor es=MailThreadExecutorService.getExecutorService();
 
 
-		//email the webmaster
+		//email the new submission address defined in commonConfiguration.properties
 		es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), CommonConfiguration.getNewSubmissionEmail(), ("New encounter submission: "+number), new_message.toString(), e_images));
 
 		//now email those assigned this location code
 		if(informMe!=null) {
-			es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), informMe, ("New encounter submission: "+number), new_message.toString(), e_images));
+		
+			if(informMe.indexOf(",")!=-1){
+				
+				StringTokenizer str=new StringTokenizer(informMe, ",");
+				while(str.hasMoreTokens()){
+					String token=str.nextToken().trim();
+					if(!token.equals("")){
+						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("New encounter submission: "+number), new_message.toString(), e_images));
+						
+					}
+				}
+				
+			}
+			else{
+				es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), informMe, ("New encounter submission: "+number), new_message.toString(), e_images));
+			}
 		}
 
 		//thank the submitter and photographer
 		String thanksmessage=ServletUtilities.getText("thankyou.txt")+"\nEncounter :"+number+"\nhttp://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+number;
-		es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("New encounter submission: "+number), thanksmessage, e_images));
+		
+		
+		//es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("New encounter submission: "+number), thanksmessage, e_images));
+	
+		
+			if(submitter.indexOf(",")!=-1){
+				
+				StringTokenizer str=new StringTokenizer(submitter, ",");
+				while(str.hasMoreTokens()){
+					String token=str.nextToken().trim();
+					if(!token.equals("")){
+						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("New encounter submission: "+number), thanksmessage, e_images));
+						
+					}
+				}
+				
+			}
+			else{
+				es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("New encounter submission: "+number), thanksmessage, e_images));
+			}
+	
+		
+		
+		
 		if(emailPhoto){
-
-			es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), photographer, ("New encounter submission: "+number), thanksmessage, e_images));
+			if(photographer.indexOf(",")!=-1){
+				StringTokenizer str=new StringTokenizer(photographer, ",");
+				while(str.hasMoreTokens()){
+					String token=str.nextToken().trim();
+					if(!token.equals("")){
+						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("New encounter submission: "+number), thanksmessage, e_images));
+					}
+				}				
+			}
+			else{
+				es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), photographer, ("New encounter submission: "+number), thanksmessage, e_images));
+			}
 		}
+		
+		if(!informOthers.equals("")){
+			if(informOthers.indexOf(",")!=-1){
+				StringTokenizer str=new StringTokenizer(informOthers, ",");
+				while(str.hasMoreTokens()){
+					String token=str.nextToken().trim();
+					if(!token.equals("")){
+						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("New encounter submission: "+number), thanksmessage, e_images));
+					}
+				}				
+			}
+			else{
+				es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), informOthers, ("New encounter submission: "+number), thanksmessage, e_images));
+			}
+		}
+		
+		
 		%>
 </div>
 <!-- end maintext --></div>
