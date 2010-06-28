@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.ecocean.*;
 
@@ -106,8 +108,14 @@ public class IndividualAddEncounter extends HttpServlet {
 						if(!locked){
 							
 							myShepherd.commitDBTransaction(action);
-							//myShepherd.closeDBTransaction();
 							Vector e_images=new Vector();
+							
+							
+							//let's get ready for emailing
+							ThreadPoolExecutor es=MailThreadExecutorService.getExecutorService();
+              
+							
+							
 							myShepherd.beginDBTransaction();
 						
 							String emailUpdate="\nPreviously identified record: "+request.getParameter("individual");
@@ -120,31 +128,78 @@ public class IndividualAddEncounter extends HttpServlet {
 							if(request.getParameter("noemail")==null) {
 							
 								
-								//notify the submitters
+								//notify the administrators
 								NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), CommonConfiguration.getAutoEmailAddress(), ("Encounter update sent to submitters: "+request.getParameter("number")), ServletUtilities.getText("add2MarkedIndividual.txt")+emailUpdate, e_images);
+								
+								
 								StringBuffer allSubs=new StringBuffer();
 								
 								//notify other submitters
 								for(int l=0;l<numEncounters;l++) {
 									Encounter tempEnc=addToMe.getEncounter(l);
+									
+									
 									if (!(tempEnc.getSubmitterEmail().equals(enc2add.getSubmitterEmail()))&&(allSubs.indexOf(tempEnc.getSubmitterEmail())==-1)) {
-								
-										mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), tempEnc.getSubmitterEmail(), ("Sighting update: "+request.getParameter("individual")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images);
-				
-										allSubs.append(tempEnc.getSubmitterEmail());
+										
+									  String submitter=tempEnc.getSubmitterEmail();
+		                if(submitter.indexOf(",")!=-1){
+		                  StringTokenizer str=new StringTokenizer(submitter, ",");
+		                  while(str.hasMoreTokens()){
+		                    String token=str.nextToken().trim();
+		                    if(!token.equals("")){
+		                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+		                      allSubs.append(token);
+		                    }
+		                  }       
+		                }
+		                else{
+		                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+		                  allSubs.append(submitter);
+		                }
+
+									  
 									}
 									if ((tempEnc.getPhotographerEmail()!=null)&&(!tempEnc.getPhotographerEmail().equals(""))&&(!tempEnc.getPhotographerEmail().equals(enc2add.getPhotographerEmail()))&&(allSubs.indexOf(tempEnc.getPhotographerEmail())==-1)) {
 								
-										mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), tempEnc.getPhotographerEmail(), ("Sighting update: "+request.getParameter("individual")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images);
-				
-										allSubs.append(tempEnc.getPhotographerEmail());
+                    String submitter=tempEnc.getPhotographerEmail();
+                    if(submitter.indexOf(",")!=-1){
+                      StringTokenizer str=new StringTokenizer(submitter, ",");
+                      while(str.hasMoreTokens()){
+                        String token=str.nextToken().trim();
+                        if(!token.equals("")){
+                          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+                          allSubs.append(token);
+                        }
+                      }       
+                    }
+                    else{
+                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+                      allSubs.append(submitter);
+                    }
+										
 									}
+									
+									
 									if ((tempEnc.getInformOthers()!=null)&&(!tempEnc.getInformOthers().equals(""))&&(allSubs.indexOf(tempEnc.getInformOthers())==-1)) {
 										
-										mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), tempEnc.getInformOthers(), ("Sighting update: "+request.getParameter("individual")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images);
-				
-										allSubs.append(tempEnc.getInformOthers());
+                    String submitter=tempEnc.getInformOthers();
+                    if(submitter.indexOf(",")!=-1){
+                      StringTokenizer str=new StringTokenizer(submitter, ",");
+                      while(str.hasMoreTokens()){
+                        String token=str.nextToken().trim();
+                        if(!token.equals("")){
+                          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+                          allSubs.append(token);
+                        }
+                      }       
+                    }
+                    else{
+                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+                      allSubs.append(submitter);
+                    }
 									}
+									
+									
 
 								}
 								
@@ -153,12 +208,9 @@ public class IndividualAddEncounter extends HttpServlet {
 								for(int t=0;t<adopters.size();t++) {
 									String adEmail=(String)adopters.get(t);
 									if ((allSubs.indexOf(adEmail)==-1)) {
-										
-										mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), adEmail, ("Sighting update: "+request.getParameter("individual")), ServletUtilities.getText("adopterUpdate.txt")+emailUpdate, e_images);
-				
-										allSubs.append(adEmail);
+									  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), adEmail, ("Sighting update: "+request.getParameter("individual")), ServletUtilities.getText("adopterUpdate.txt")+emailUpdate, e_images));
+									  allSubs.append(adEmail); 
 									}
-								
 								}
 								
 								String rssTitle=request.getParameter("individual")+" Resight";
@@ -179,7 +231,7 @@ public class IndividualAddEncounter extends HttpServlet {
 							
 						//print successful result notice	
 						out.println(ServletUtilities.getHeader());
-						out.println("<strong>Success:</strong> Encounter #"+request.getParameter("number")+" was successfully added to "+request.getParameter("individual")+".");
+						out.println("<strong>Success:</strong> Encounter "+request.getParameter("number")+" was successfully added to "+request.getParameter("individual")+".");
 						if (sexMismatch) {
 							out.println("<p><strong>Warning! There is conflict between the designated sex of the new encounter and the designated sex in previous records. You should resolve this conflict for consistency.</strong></p>");
 							}
