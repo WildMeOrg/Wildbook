@@ -150,14 +150,7 @@ Please enter your user name and password below.</p>
     document.forms["loginForm"].elements["j_username"].focus()
   // -->
 </script>
-<p align="center"><font size="-1">*If you have problems
-logging in or would like to know more about gaining higher privileges,
-please contact:<br />
-<br />
-<img
-	src="http://<%=CommonConfiguration.getURLLocation() %>/images/webmaster.gif"
-	width="228" height="18" /></font></p>
-<p align="center"><font size="-1"></font></p>
+
 <p>&nbsp;</p>
 
 </td>
