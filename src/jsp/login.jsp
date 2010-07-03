@@ -72,18 +72,18 @@
 </script>
 
 <head>
-<title>ECOCEAN - Login</title>
+<title><%=CommonConfiguration.getHTMLTitle() %></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
-	content="The ECOCEAN Whale Shark Photo-identification Library is a visual database of whale shark (Rhincodon typus) encounters and of individually catalogued whale sharks. The library is maintained and used by marine biologists to collect and analyse whale shark encounter data to learn more about these amazing creatures." />
+	content="<%=CommonConfiguration.getHTMLDescription() %>" />
 <meta name="Keywords"
-	content="whale shark,whale,shark,Rhincodon typus,requin balleine,Rhineodon,Rhiniodon,big fish,ECOCEAN,Brad Norman, fish, coral, sharks, elasmobranch, mark, recapture, photo-identification, identification, conservation, citizen science" />
-<meta name="Author" content="ECOCEAN - info@ecocean.org" />
-<link
-	href="http://<%=CommonConfiguration.getURLLocation() %>/css/ecocean.css"
+	content="<%=CommonConfiguration.getHTMLKeywords() %>" />
+<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
+<link href="<%=CommonConfiguration.getCSSURLLocation() %>"
 	rel="stylesheet" type="text/css" />
 <link rel="shortcut icon"
-	href="http://<%=CommonConfiguration.getURLLocation() %>/images/favicon.ico" />
+	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
+
 <style type="text/css">
 <!--
 .style1 {
