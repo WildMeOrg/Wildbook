@@ -85,7 +85,7 @@ String langCode="en";
 	
 //let's load encounters.properties
 Properties encprops=new Properties();
-encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounters.properties"));
+encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounter.properties"));
 				
 
 String num=request.getParameter("number").replaceAll("\\+","").trim();
