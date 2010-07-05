@@ -62,8 +62,7 @@
 GregorianCalendar cal=new GregorianCalendar();
 int nowYear=cal.get(1);
 
-
-
+			
 //handle some cache-related security
 response.setHeader("Cache-Control","no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 response.setHeader("Cache-Control","no-store"); //Directs caches not to store the page under any circumstance
@@ -82,6 +81,12 @@ String langCode="en";
 		if(request.getParameter("langCode").equals("de")) {langCode="de";}
 		if(request.getParameter("langCode").equals("es")) {langCode="es";}
 	}
+	
+	
+//let's load encounters.properties
+Properties encprops=new Properties();
+encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounters.properties"));
+				
 
 String num=request.getParameter("number").replaceAll("\\+","").trim();
 
@@ -97,7 +102,7 @@ boolean haveRendered=false;
 
 <html>
 <head>
-<title>Encounter# <%=num%></title>
+<title>Encounter <%=num%></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
 	content="<%=CommonConfiguration.getHTMLDescription() %>" />
@@ -198,8 +203,7 @@ if (enc.wasRejected()) {%>
 <table width="810">
 	<tr>
 		<td bgcolor="#0033CC">
-		<p><font color="#FFFFFF" size="4">Unidentifiable Encounter
-		Number: <%=num%><%=livingStatus %> </font>
+		<p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unidentifiable_title") %>: <%=num%><%=livingStatus %> </font>
 		</td>
 	</tr>
 </table>
@@ -210,20 +214,19 @@ if (enc.wasRejected()) {%>
 <table width="810">
 	<tr>
 		<td bgcolor="#CC6600">
-		<p><font color="#FFFFFF" size="4">UNAPPROVED Encounter
-		Number: <%=num%><%=livingStatus %></font>
+		<p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unapproved_title") %>: <%=num%><%=livingStatus %></font>
 		</td>
 	</tr>
 </table>
 <%} else {
 %>
-<p><font size="4"><strong>Encounter Number</strong>: <%=num%><%=livingStatus %>
+<p><font size="4"><strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %>
 </font></p>
 <%}%> <%
 	if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
 %>
 <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
-Identified as: <%=enc.isAssignedToMarkedIndividual()%> <%
+<%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> <%
  	if(isOwner) {
  %><font size="-1">[<a
 	href="encounter.jsp?number=<%=num%>&edit=manageShark">edit</a>]</font>
@@ -235,7 +238,7 @@ Identified as: <%=enc.isAssignedToMarkedIndividual()%> <%
 	} else {
 %>
 <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
-Identified as: <a
+<%=encprops.getProperty("identified_as") %>: <a
 	href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a></font>
 <%
  	if(isOwner) {
@@ -243,7 +246,7 @@ Identified as: <a
  	}
  	if (isOwner) {
  %><br> <img align="absmiddle"
-	src="../images/Crystal_Clear_app_matchedBy.gif"> Matched by: <%=enc.getMatchedBy()%>
+	src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>: <%=enc.getMatchedBy()%>
 <%
  	if(isOwner) {
  %>[<a
@@ -258,7 +261,7 @@ Identified as: <a
 
 %>
 <p class="para"><img align="absmiddle" src="../images/life_icon.gif">
-Status: <%=enc.getLivingStatus()%> <%
+<%=encprops.getProperty("status")%>: <%=enc.getLivingStatus()%> <%
  	if(isOwner) {
  %>[<a
 	href="encounter.jsp?number=<%=num%>&edit=livingStatus#livingStatus">edit</a>]<%
@@ -268,7 +271,7 @@ Status: <%=enc.getLivingStatus()%> <%
 
 
 <p class="para"><img align="absmiddle"
-	src="../images/alternateid.gif"> Alternate ID: <%=enc.getAlternateID()%>
+	src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>: <%=enc.getAlternateID()%>
 <%
  	if(isOwner) {
  %>[<a href="encounter.jsp?number=<%=num%>&edit=alternateid#alternateid">edit</a>]<%
@@ -281,11 +284,9 @@ Status: <%=enc.getLivingStatus()%> <%
 if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 %>
 <p class="para"><img align="absmiddle"
-	src="../images/Crystal_Clear_app_Login_Manager.gif"> Assigned to</font><font
-	size="-1"> Library user: <%=enc.getSubmitterID()%> <%
+	src="../images/Crystal_Clear_app_Login_Manager.gif"> <%=encprops.getProperty("assigned_user")%>: <%=enc.getSubmitterID()%> <%
  	if(isOwner) {
- %><font size="-1">[<a
-	href="encounter.jsp?number=<%=num%>&edit=user#user">edit</a>]</font>
+ 	%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=user#user">edit</a>]</font>
 <%
  	}
  %>
@@ -313,11 +314,8 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		else {
 		%>
 		<p align="center" class="para"><font color="#000000" size="+1"><strong>
-		Action <font color="#000000" size="+1"><strong><img
-			src="../images/Crystal_Clear_app_advancedsettings.gif" width="29"
-			height="29" align="absmiddle" /></strong></font> Edit</strong></font><br> <br> <em><font
-			size="-1">This area contains commands currently available to
-		you or edit commands that you have selected from the right.</font></em>
+		<%=encprops.getProperty("action") %> <font color="#000000" size="+1"><strong><img src="../images/Crystal_Clear_app_advancedsettings.gif" width="29" height="29" align="absmiddle" /></strong></font> <%=encprops.getProperty("uppercaseEdit") %> </strong></font><br> <br> <em><font
+			size="-1"><%=encprops.getProperty("editarea")%></font></em>
 		</p>
 		<%
 			//manager-level commands
@@ -1387,7 +1385,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<table border="0" cellspacing="0" cellpadding="5">
 			<tr>
 				<td align="left" valign="top">
-				<p class="para"><strong>Date</strong>: <a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+				<p class="para"><strong><%=encprops.getProperty("date") %></strong>: <a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
 				<%=enc.getDate()%>
 			
 				</a>
@@ -1395,21 +1393,19 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
      
       
  	if(isOwner) {
- %><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
+ %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
         	}
         %>
-				<p class="para"><strong>Location</strong>: <%=enc.getLocation()%>
+				<p class="para"><strong><%=encprops.getProperty("location") %></strong>: <%=enc.getLocation()%>
 				<%
  	if(isOwner) {
- %><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=location#location">edit</a>]</font>
+ %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=location#location">edit</a>]</font>
 				<%
  	}
  %>
  <br /> 
 
-             <em>Location ID</em>: <%=enc.getLocationCode()%>
+             <em><%=encprops.getProperty("locationID") %></em>: <%=enc.getLocationCode()%>
 				<%
  				if(isOwner) {%>
  					<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=loccode#loccode">edit</a>]</font>
@@ -1417,7 +1413,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 						target="_blank"><img src="../images/information_icon_svg.gif"
 						alt="Help" border="0" align="absmiddle"></a> <%
 				}
-				%><br /> <em>Latitude</em>: 
+				%><br /> <em><%=encprops.getProperty("latitude") %></em>: 
 					<%
 			  			if((enc.getDWCDecimalLatitude()!=null)&&(!enc.getDWCDecimalLatitude().equals("-9999.0"))) {
 			  		%>
@@ -1425,7 +1421,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			  		<%
 			  			}
  					%>
- 				<br /> <em>Longitude</em>: 
+ 				<br /> <em><%=encprops.getProperty("longitude") %></em>: 
  					<%
 			  			if((enc.getDWCDecimalLongitude()!=null)&&(!enc.getDWCDecimalLongitude().equals("-9999.0"))) {
 			  		%>
@@ -1438,7 +1434,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			   		%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=gps#gps">edit</a>]</font>
 				<%
 			   	}
-			   %><br /> <a href="#map">View map</a> 
+			   %><br /> <a href="#map"><%=encprops.getProperty("view_map") %></a> 
 				
 				</p>
 				
@@ -1446,14 +1442,14 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%
 				if(CommonConfiguration.showProperty("size")){
 				%>
-					<p class="para"><strong>Reported size</strong>: <%
+					<p class="para"><strong><%=encprops.getProperty("size") %></strong>: <%
       				if(enc.getSize()>0) {%>
 						<%=enc.getSize()%> <%=enc.getMeasureUnits()%>
 					<%
  					} else {
- 					%>Unknown<%
+ 					%><%=encprops.getProperty("unknown") %><%
  					}
-					 %> <br /> (<em>Method: <%=enc.getSizeGuess()%></em>) <%
+					 %> <br /> (<em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%></em>) <%
  					if(isOwner) {%>
 						<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
 					<%
@@ -1465,16 +1461,15 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<%
 		if(CommonConfiguration.showProperty("maximumDepthInMeters")){
 		%>
-		<p class="para"><strong>Water depth</strong>: 
+		<p class="para"><strong><%=encprops.getProperty("depth") %></strong>: 
 		<%
             	if(enc.getDepth()>=0) {
             %> <%=enc.getDepth()%> <%=enc.getMeasureUnits()%> <%
  	  			} else {
- 	  		%> Unknown<%
+ 	  		%> <%=encprops.getProperty("unknown") %><%
  	  			} 
 				if(isOwner) {
- 	  		%><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=depth#depth">edit</a>]</font>
+ 	  		%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=depth#depth">edit</a>]</font>
 				<%
  	  			}
  	  		%>
@@ -1488,15 +1483,14 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<%
 		if(CommonConfiguration.showProperty("maximumElevationInMeters")){
 		%>
-		<p class="para"><strong>Elevation</strong>: 
+		<p class="para"><strong><%=encprops.getProperty("elevation") %></strong>: 
 		
 			<%=enc.getMaximumElevationInMeters()%> meters
 		<%
  	 
 
 		if(isOwner) {
- 	  		%><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=elevation#elevation">edit</a>]</font>
+ 	  		%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=elevation#elevation">edit</a>]</font>
 				<%
  	  	}
  	  		%>
@@ -1506,27 +1500,25 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		%>	
 		<!-- End Display maximumElevationInMeters -->
 			
-				<p class="para"><strong>Sex</strong>: <%=enc.getSex()%> <%
+				<p class="para"><strong><%=encprops.getProperty("sex") %></strong>: <%=enc.getSex()%> <%
  	if(isOwner) {
  %><font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=sex#sex">edit</a>]</font>
 				<%
  	}
  %>
-				<p class="para"><strong>Noticeable scarring</strong>: <%=enc.getDistinguishingScar()%>
+				<p class="para"><strong><%=encprops.getProperty("scarring") %></strong>: <%=enc.getDistinguishingScar()%>
 				<%
  	if(isOwner) {
- %><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=scar#scar">edit</a>]</font>
+ %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=scar#scar">edit</a>]</font>
 				<%
  	}
  %>
 
-				<p class="para"><strong>Additional comments</strong><br /> <%=enc.getComments()%><br />
+				<p class="para"><strong><%=encprops.getProperty("comments") %></strong><br /> <%=enc.getComments()%><br />
 				<%
       	if(isOwner) {
-      %><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=comments#comments">edit</a>]</font>
+      %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=comments#comments">edit</a>]</font>
 				<%
       	}
       %>
@@ -1534,10 +1526,9 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</p>
 
 
-				<p class="para"><strong>Submitter</strong> <%
+				<p class="para"><strong><%=encprops.getProperty("submitter") %></strong> <%
  	if(isOwner) {
- %><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
+ %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
 				<%
  	}
  %><br /> <%=enc.getSubmitterName()%><br /> <%
@@ -1560,7 +1551,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 	}
 %>
 
-				<p class="para"><strong>Photographer</strong> <%
+				<p class="para"><strong><%=encprops.getProperty("photographer") %></strong> <%
  	if(isOwner) {
  %><font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
@@ -1572,10 +1563,9 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%=enc.getPhotographerAddress()%>
 
 
-				<p class="para"><strong>Others to inform</strong> <%
+				<p class="para"><strong><%=encprops.getProperty("inform_others") %></strong> <%
  	if(isOwner) {
- %><font size="-1">[<a
-					href="encounter.jsp?number=<%=num%>&edit=others#others">edit</a>]</font>
+ %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=others#others">edit</a>]</font>
 				<%
  	}
  %><br /> <%
@@ -1595,7 +1585,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			}
 				}
 				else {
-		%>None<%
+		%><%=encprops.getProperty("none") %><%
 			}
 		%> <%
 	}
@@ -1658,10 +1648,9 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		
 				</td>
 				<td align="left" valign="top">
-				<p class="para"><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px" height="*"><strong>&nbsp;Images</strong><br /> <%
+				<p class="para"><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px" height="*"><strong>&nbsp;<%=encprops.getProperty("images")%></strong><br /> <%
 	  				if (session.getAttribute("logged")!=null) {
-	  			%> <em>Click any image to view the originally submitted
-				version in your browser</em>.
+	  			%> <em><%=encprops.getProperty("click2view")%></em>
 				</p>
 				<%
 			}
@@ -1681,18 +1670,16 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 						<td>
 						<table>
 							<tr>
-								<td class="para"><em>Image <%=imageCount%></em></td>
+								<td class="para"><em><%=encprops.getProperty("image") %> <%=imageCount%></em></td>
 							</tr>
 							<%
 					if (isOwner) {
 				%>
 							<tr>
 								<td class="para"><img align="absmiddle"
-									src="../images/Crystal_Clear_action_find.gif"> <strong>Image
-								Commands</strong>:<br /> <font size="-1">
+									src="../images/Crystal_Clear_action_find.gif"> <strong><%=encprops.getProperty("image_commands") %></strong>:<br /> <font size="-1">
 								 [<a
-									href="../kwSearch.jsp?primaryImageName=<%=(num+"/"+(addTextFile.replaceAll(" ","%20")))%>">look
-								for similar photos</a>] </font></td>
+									href="../kwSearch.jsp?primaryImageName=<%=(num+"/"+(addTextFile.replaceAll(" ","%20")))%>"><%=encprops.getProperty("look4photos") %></a>] </font></td>
 							</tr>
 
 							<%
@@ -1706,8 +1693,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 
 							<tr>
 								<td class="para"><img align="absmiddle"
-									src="../images/cancel.gif"> <strong>Remove
-								keyword:</strong> <%
+									src="../images/cancel.gif"> <strong><%=encprops.getProperty("remove_keyword") %>:</strong> <%
 					Iterator indexes=myShepherd.getAllKeywords();
 						if(totalKeywords>0){
 							boolean haveAddedKeyword=false;
@@ -1740,7 +1726,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 								<table>
 									<tr>
 										<td class="para"><img align="absmiddle"
-											src="../images/keyword_icon_small.gif"> <strong>Add keyword <a href="<%=CommonConfiguration.getWikiLocation()%>photo_keywords" target="_blank">
+											src="../images/keyword_icon_small.gif"> <strong><%=encprops.getProperty("add_keyword") %> <a href="<%=CommonConfiguration.getWikiLocation()%>photo_keywords" target="_blank">
 											<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></strong></td>
 									</tr>
 									<tr>
@@ -1767,13 +1753,13 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 											<input name="number" type="hidden" value=<%=num%>> 
 											<input name="action" type="hidden" value="addPhoto"> 
 											<input name="photoName" type="hidden" value="<%=addTextFile%>">
-											<input name="AddKW" type="submit" id="AddKW" value="Add">
+											<input name="AddKW" type="submit" id="AddKW" value="<%=encprops.getProperty("add") %>">
 											</form>
 											<%
 										}
 										else {
 											%>
-											None defined. <a href="../appadmin/kwAdmin.jsp">Click here to add photo keywords.</a>
+											<%=encprops.getProperty("no_keywords") %>
 										<%
 										}
 										%>
@@ -1835,7 +1821,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 										height="13" fillPaint="#99CCFF"></di:rectangle>
 									<di:image x="229" y="47" srcurl="copyright.gif"></di:image>
 									<di:text x="4" y="50" align="left" font="Arial-bold-11"
-										fillPaint="#000000">Unauthorised copying not permitted</di:text>
+										fillPaint="#000000"><%=encprops.getProperty("nocopying") %></di:text>
 								</di:img> <img width="250" height="200"
 									alt="photo <%=enc.getLocation()%>"
 									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
@@ -1877,12 +1863,9 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					%>
 						<tr>
 							<td>
-							<p><img src="../alert.gif"> <strong>Unacceptable
-							file submission:</strong> <%=addTextFile%> <%
+							<p><img src="../alert.gif"> <strong><%=encprops.getProperty("badfile") %>:</strong> <%=addTextFile%> <%
 					if (isOwner) {
-				%> <br /><a
-								href="/encounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>">Click
-							here to remove.</a></p>
+				%> <br /><a href="/encounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>"><%=encprops.getProperty("clickremove") %></a></p>
 							<%
 					}
 				%>
@@ -1914,7 +1897,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 							name="action" type="hidden" value="imageadder" id="action">
 						<input name="number" type="hidden" value="<%=num%>" id="shark">
 						<strong><img align="absmiddle"
-							src="../images/upload_small.gif" /> Add new image or video file:</strong><br />
+							src="../images/upload_small.gif" /> <%=encprops.getProperty("addfile") %>:</strong><br />
 						<input name="file2add" type="file" size="20">
 						<p><input name="addtlFile" type="submit" id="addtlFile"
 							value="Upload"></p></form>
@@ -1930,8 +1913,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 							name="encounterRemoveImage"><input name="action"
 							type="hidden" value="imageremover" id="action"> <input
 							name="number" type="hidden" value=<%=num%>> <strong><img
-							align="absmiddle" src="../images/cancel.gif" /> Remove
-						image\video: </strong> <select name="position">
+							align="absmiddle" src="../images/cancel.gif" /> <%=encprops.getProperty("removefile") %>: </strong> <select name="position">
 							<%
 					for (int rmi=1;rmi<=imageCount;rmi++){
 				%>
@@ -2091,14 +2073,11 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<hr>
 		<p><a name="map"><strong><img
 			src="../images/2globe_128.gif" width="56" height="56"
-			align="absmiddle" /></a>Mapping</strong></p>
+			align="absmiddle" /></a><%=encprops.getProperty("mapping") %></strong></p>
 		<%
 	  	if((enc.getDWCDecimalLatitude()!=null)&&(enc.getDWCDecimalLongitude()!=null)) {
 	  %>
-		<p><i>Note</i>: If you zoom in too quickly, Google Maps may claim
-		that it does not have the needed maps. Zoom back out, wait a few
-		seconds to allow maps to load in the background, and then zoom in
-		again.</p>
+		<p><%=encprops.getProperty("map_note") %></p>
 
 
 		<script
@@ -2139,7 +2118,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<div id="map_canvas" style="width: 510px; height: 350px"></div>
 
 		<%} else {%>
-		<p>No GPS data is available for mapping.</p>
+		<p><%=encprops.getProperty("nomap") %></p>
 		<br /> <%
 		
 		}
@@ -2157,8 +2136,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			name="number" type="hidden" value="<%=enc.getEncounterNumber()%>"
 			id="number"> <input name="action" type="hidden"
 			value="enc_comments" id="action"> <img align="absmiddle"
-			src="../images/Crystal_Clear_app_kaddressbook.gif"> <strong>Automated\Researcher
-		comments</strong> (<em>Text or HTML</em>): </p>
+			src="../images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=encprops.getProperty("auto_comments")%>: </p>
 		<%
 	if (enc.getRComments()!=null) {
 	%>
@@ -2168,7 +2146,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 	%>
 
 		<p><textarea name="comments" cols="50" id="comments"></textarea> <br />
-		<input name="Submit" type="submit" value="Add comments">
+		<input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>">
 		</p>
 		</form>
 		<%
