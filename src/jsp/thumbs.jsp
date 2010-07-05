@@ -17,35 +17,9 @@
 	
 	//set up the file input stream
 	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/encounters.properties"));
-	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounters.properties"));
+	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounter.properties"));
 	
-	
-	//load our variables for the submit page
-	String title=props.getProperty("title");
-	String submit_maintext=props.getProperty("maintext");
-	String submit_reportit=props.getProperty("reportit");
-	String submit_language=props.getProperty("language");
-	String what_do=props.getProperty("what_do");
-	String read_overview=props.getProperty("read_overview");
-	String see_all_encounters=props.getProperty("see_all_encounters");
-	String see_all_sharks=props.getProperty("see_all_sharks");
-	String report_encounter=props.getProperty("report_encounter");
-	String log_in=props.getProperty("log_in");
-	String contact_us=props.getProperty("contact_us");
-	String search=props.getProperty("search");
-	String encounter=props.getProperty("encounter");
-	String shark=props.getProperty("shark");
-	String join_the_dots=props.getProperty("join_the_dots");
-	String menu=props.getProperty("menu");
-	String last_sightings=props.getProperty("last_sightings");
-	String more=props.getProperty("more");
-	String ws_info=props.getProperty("ws_info");
-	String contributors=props.getProperty("contributors");
-	String about=props.getProperty("about");
-	String forum=props.getProperty("forum");
-	String blog=props.getProperty("blog");
-	String area=props.getProperty("area");
-	String match=props.getProperty("match");
+
 	
 
 	Shepherd myShepherd=new Shepherd();
@@ -239,7 +213,7 @@ myShepherd=null;
 
 <p><strong>An error was encountered trying to load the
 page. Please click re-load in your browser. If the error message
-reappears, please email webmaster@whaleshark.org to inform us of the
+reappears, please email the webmaster to inform us of the
 error. Thank you!</strong></p>
 <p></p>
 
