@@ -623,8 +623,7 @@ if(generateEmails){
 		ID</strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Size</strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Sex</strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Assigned
-		to shark</strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Assigned to</strong></td>
 	</tr>
 
 	<%
