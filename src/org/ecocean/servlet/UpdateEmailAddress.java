@@ -75,7 +75,7 @@ public class UpdateEmailAddress extends HttpServlet{
 					madeChanges=true;
 					numChanges++;
 				}
-        if(tempEnc.getInformOthers().indexOf(findEmail)!=-1) {
+        if((tempEnc.getInformOthers()!=null)&&(tempEnc.getInformOthers().indexOf(findEmail)!=-1)) {
           String newPhotographerEmail=tempEnc.getInformOthers().replaceAll(findEmail,replaceEmail);
           tempEnc.setInformOthers(newPhotographerEmail);
           madeChanges=true;

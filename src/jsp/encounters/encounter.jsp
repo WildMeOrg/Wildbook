@@ -304,9 +304,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  //if not logged in
  if(session.getAttribute("logged")==null) {
  %>
-		<p class="para">If you have an account, you can <a
-			href="../welcome.jsp?reflect=<%=request.getRequestURI()%>?number=<%=num%>">login
-		here</a>.</p>
+		<p class="para"><a href="../welcome.jsp?reflect=<%=request.getRequestURI()%>?number=<%=num%>"><%=encprops.getProperty("login")%></a></p>
 
 		<%
 			} 
@@ -330,14 +328,10 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td height="30" class="para">
 				<p><font color="#990000"><font color="#990000">&nbsp;<img
-					align="absmiddle" src="../images/check_green.png" /></font> <strong>Approve
-				encounter</strong></font></p>
+					align="absmiddle" src="../images/check_green.png" /></font> <strong><%=encprops.getProperty("approve_encounter")%></strong></font></p>
 				<p><font color="#990000"><font color="#990000"><a
 					href="<%=CommonConfiguration.getWikiLocation()%>approving_an_encounter"
-					target="_blank">&nbsp;<img
-					src="../images/information_icon_svg.gif" alt="Help" border="0"
-					align="absmiddle" /></a></font> </font><span class="style2">Approval
-				checklist</span></p>
+					target="_blank">&nbsp;<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></font> </font><span class="style2"><%=encprops.getProperty("approval_checklist")%></span></p>
 				</td>
 			</tr>
 			<tr>
@@ -346,7 +340,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<input name="action" type="hidden" id="action" value="approve">
 				<input name="number" type="hidden"
 					value=<%=request.getParameter("number")%>> <input
-					name="approve" type="submit" id="approve" value="Approve"></form>
+					name="approve" type="submit" id="approve" value="<%=encprops.getProperty("approve")%> "></form>
 				</td>
 			</tr>
 		</table>
@@ -359,7 +353,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Set location ID:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("setLocationID")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -368,7 +362,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					maxlength="5"> <input name="number" type="hidden"
 					value=<%=num%>> <input name="action" type="hidden"
 					value="addLocCode"> <input name="Set Location ID"
-					type="submit" id="Add" value="Set Location ID"></form>
+					type="submit" id="Add" value="<%=encprops.getProperty("setLocationID")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -382,7 +376,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Set alternate ID:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("setAlternateID")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -390,7 +384,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					method="post"><input name="alternateid" type="text"
 					size="10" maxlength="50"> <input name="encounter"
 					type="hidden" value=<%=num%>> <input name="Set"
-					type="submit" id="Set" value="Set"></form>
+					type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
 				</td>
 			</tr>
 		</table>
@@ -404,9 +398,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<table width="150" border="1" cellpadding="1" cellspacing="0"
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
-				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Set others to inform:</font></strong><br> Separate
-				multiple email addresses with a comma. 
+				<td align="left" valign="top" class="para"><strong><%=encprops.getProperty("setOthersToInform")%> 
 				</td>
 			</tr>
 			<tr>
@@ -416,7 +408,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					value=<%=num%>> <input name="informothers" type="text"
 					size="28" <%if(enc.getInformOthers()!=null){%>
 					value="<%=enc.getInformOthers().trim()%>" <%}%> maxlength="1000">
-				<br> <input name="Set" type="submit" id="Set" value="Set"></form>
+				<br> <input name="Set" type="submit" id="Set" value="<%=encprops.getProperty("set")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -431,19 +423,17 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top" class="para"><font
 					color="#990000"><img align="absmiddle"
-					src="../images/Crystal_Clear_app_matchedBy.gif" /> <strong>Matched
-				by:</strong></font></td>
+					src="../images/Crystal_Clear_app_matchedBy.gif" /> <strong><%=encprops.getProperty("matchedBy")%>:</strong></font></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
 				<form name="setMBT" action="../EncounterSetMatchedBy" method="post">
 				<select name="matchedBy" id="matchedBy">
-					<option value="Unmatched first encounter">Unmatched first
-					encounter</option>
-					<option value="Visual inspection">Visual inspection</option>
-					<option value="Pattern match" selected>Pattern match</option>
+					<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+					<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+					<option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
 				</select> <input name="number" type="hidden" value=<%=num%>> <input
-					name="setMB" type="submit" id="setMB" value="Set"></form>
+					name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -460,23 +450,22 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<td align="left" valign="top" class="para"><font
 					color="#990000">
 					<img align="absmiddle" src="../images/tag_small.gif" /><br></br>
-				<strong>Add to marked individual:</strong></font></td>
+				<strong><%=encprops.getProperty("add2MarkedIndividual")%>:</strong></font></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
 				<form name="add2shark" action="../IndividualAddEncounter"
-					method="post">Individual: <input name="individual"
-					type="text" size="10" maxlength="50"><br> Matched by:<br>
+					method="post"><%=encprops.getProperty("individual")%>: <input name="individual"
+					type="text" size="10" maxlength="50"><br> <%=encprops.getProperty("matchedBy")%>:<br>
 				<select name="matchType" id="matchType">
-					<option value="Unmatched first encounter">Unmatched first
-					encounter</option>
-					<option value="Visual inspection">Visual inspection</option>
-					<option value="Pattern match" selected>Pattern match</option>
+					<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+					<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+					<option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
 				</select> <br> <input name="noemail" type="checkbox" value="noemail">
-				suppress e-mail/RSS<br> <input name="number" type="hidden"
+				<%=encprops.getProperty("suppressEmail")%><br> <input name="number" type="hidden"
 					value=<%=num%>> <input name="action" type="hidden"
 					value="add"> <input name="Add" type="submit" id="Add"
-					value="Add"></form>
+					value="<%=encprops.getProperty("add")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -494,7 +483,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<tr>
 						<td><font color="#990000"><img align="absmiddle"
 							src="../images/cancel.gif" /></font></td>
-						<td><strong> Remove from marked individual</strong></td>
+						<td><strong> <%=encprops.getProperty("removeFromMarkedIndividual")%></strong></td>
 					</tr>
 				</table>
 				</font></td>
@@ -505,7 +494,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					name="removeShark"><input name="number" type="hidden"
 					value=<%=num%>> <input name="action" type="hidden"
 					value="remove"> <input type="submit" name="Submit"
-					value="Remove"></form>
+					value="<%=encprops.getProperty("remove")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -519,7 +508,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top" class="para"><font
 					color="#990000">
-					<img align="absmiddle" src="../images/tag_small.gif" /> <strong>Create marked individual:</strong></font></td>
+					<img align="absmiddle" src="../images/tag_small.gif" /> <strong><%=encprops.getProperty("createMarkedIndividual")%>:</strong></font></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -532,9 +521,9 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%
 						if(isOwner){
 					%> <input name="noemail" type="checkbox" value="noemail">
-				suppress e-mail<br> <%
+				<%=encprops.getProperty("suppressEmail")%><br> <%
 						}
-					%> <input name="Create" type="submit" id="Create" value="Create"></form>
+					%> <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -546,15 +535,14 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><span class="style3"><font
-					color="#990000">Reset GPS:</font></span><br> <em><font size="-1">Note</font></em><font
-					size="-1">: Reset to all blanks if unknown. </font>
+					color="#990000"><%=encprops.getProperty("resetGPS")%>:</font></span><br> <font size="-1"><%=encprops.getProperty("noteGPS")%></font>
 				</td>
 			</tr>
 			<tr>
 				<td>
 				<form name="resetGPSform" method="post" action="../EncounterSetGPS">
 				<input name="action" type="hidden" value="resetGPS">
-				<p><strong>Latitude:</strong><br> <select name="lat"
+				<p><strong><%=encprops.getProperty("latitude")%>:</strong><br> <select name="lat"
 					id="lat">
 					<option value="" selected="selected"></option>
 					<%
@@ -639,9 +627,9 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<option value="59">59</option>
 				</select> <font size="+1">&quot;</font> <select name="latDirection"
 					id="latDirection">
-					<option value="South" selected>South</option>
-					<option value="North">North</option>
-				</select><br> <strong>Longitude:</strong><br> <select
+					<option value="South" selected><%=encprops.getProperty("south")%></option>
+					<option value="North"><%=encprops.getProperty("north")%></option>
+				</select><br> <strong><%=encprops.getProperty("latitude")%>:</strong><br> <select
 					name="longitude" id="longitude">
 					<option value="" selected="selected"></option>
 					<%
@@ -726,10 +714,10 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<option value="59">59</option>
 				</select> <font size="+1">&quot;</font> <select name="longDirection"
 					id="longDirection">
-					<option value="West" selected>West</option>
-					<option value="East">East</option>
+					<option value="West" selected><%=encprops.getProperty("west")%></option>
+					<option value="East"><%=encprops.getProperty("east")%></option>
 				</select> <input name="number" type="hidden" value=<%=num%>> <input
-					name="setGPSbutton" type="submit" id="setGPSbutton" value="Set GPS">
+					name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>">
 				</p></form>
 				</td>
 			</tr>
@@ -743,7 +731,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Set location:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("setLocation")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -751,7 +739,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					method="post"><textarea name="location" size="15"><%=enc.getLocation()%></textarea>
 				<input name="number" type="hidden" value=<%=num%>> <input
 					name="action" type="hidden" value="setLocation"> <input
-					name="Add" type="submit" id="Add" value="Set Location"></form>
+					name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setLocation")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -765,7 +753,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Edit submitted comments:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("editSubmittedComments")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -773,7 +761,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%></textarea>
 				<input name="number" type="hidden" value=<%=num%>> <input
 					name="action" type="hidden" value="editComments"> <input
-					name="EditComm" type="submit" id="EditComm" value="Submit Edit"></form>
+					name="EditComm" type="submit" id="EditComm" value="<%=encprops.getProperty("submitEdit")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -786,7 +774,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Edit contact information:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("editContactInfo")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td></td>
@@ -796,12 +784,12 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<form name="setPersonalDetails"
 					action="../EncounterSetSubmitterPhotographerContactInfo"
 					method="post"><label> <input type="radio"
-					name="contact" value="submitter">Submitter</label> <br><label>
-				<input type="radio" name="contact" value="photographer">Photographer</label>
-				<br> Name<br><input name="name" type="text" size="20"
-					maxlength="100"> Email<br><input name="email"
-					type="text" size="20"> Phone<br><input name="phone"
-					type="text" size="20" maxlength="100"> Address<br><input
+					name="contact" value="submitter"><%=encprops.getProperty("submitter")%></label> <br><label>
+				<input type="radio" name="contact" value="photographer"><%=encprops.getProperty("photographer")%></label>
+				<br> <%=encprops.getProperty("name")%><br><input name="name" type="text" size="20"
+					maxlength="100"> <%=encprops.getProperty("email")%><br><input name="email"
+					type="text" size="20"> <%=encprops.getProperty("phone")%><br><input name="phone"
+					type="text" size="20" maxlength="100"> <%=encprops.getProperty("phone")%><br><input
 					name="address" type="text" size="20" maxlength="100"> <input
 					name="number" type="hidden" value=<%=num%>> <input
 					name="action" type="hidden" value="editcontact"> <input
@@ -820,18 +808,18 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Reset sex:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("resetSex")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
 				<form name="setxencshark" action="../EncounterSetSex" method="post">
 				<select name="selectSex" size="1" id="selectSex">
-					<option value="unsure" selected>unsure</option>
-					<option value="male">male</option>
-					<option value="female">female</option>
+					<option value="unsure" selected><%=encprops.getProperty("unsure")%></option>
+					<option value="male"><%=encprops.getProperty("male")%></option>
+					<option value="female"><%=encprops.getProperty("female")%></option>
 				</select> <input name="number" type="hidden" value="<%=num%>" id="number">
 				<input name="action" type="hidden" value="setEncounterSex">
-				<input name="Add" type="submit" id="Add" value="Set Sex"></form>
+				<input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetSex")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -845,16 +833,16 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
 					color="#990000"><img align="absmiddle"
-					src="../images/life_icon.gif"> Reset status:</font></strong></td>
+					src="../images/life_icon.gif"> <%=encprops.getProperty("resetStatus")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
 				<form name="livingStatusForm" action="../EncounterSetLivingStatus"
 					method="post"><select name="livingStatus" id="livingStatus">
-					<option value="alive" selected>alive</option>
-					<option value="dead">dead</option>
+					<option value="alive" selected><%=encprops.getProperty("alive")%></option>
+					<option value="dead"><%=encprops.getProperty("dead")%></option>
 				</select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
-				<input name="Add" type="submit" id="Add" value="Set Status"></form>
+				<input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetStatus")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -870,12 +858,12 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Reset encounter date:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("resetEncounterDate")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
 				<form name="setxencshark" action="../EncounterResetDate" method="post">
-				<em>Day</em> <select name="day" id="day">
+				<em><%=encprops.getProperty("day")%></em> <select name="day" id="day">
 					<option value="0">?</option>
 					<%
 									for(int pday=1;pday<32;pday++) {
@@ -884,7 +872,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<%
       								}
       							%>
-				</select><br> <em>&nbsp;Month</em> <select name="month" id="month">
+				</select><br> <em>&nbsp;<%=encprops.getProperty("month")%></em> <select name="month" id="month">
 					<option value="-1">?</option>
 					<%
       								for(int pmonth=1;pmonth<13;pmonth++) {
@@ -893,7 +881,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<%
       								}
       							%>
-				</select><br> <em>&nbsp;Year</em> <select name="year" id="year">
+				</select><br> <em>&nbsp;<%=encprops.getProperty("year")%></em> <select name="year" id="year">
 					<option value="-1">?</option>
 
 					<%
@@ -903,7 +891,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<%
       								}
       							%>
-				</select><br> <em>&nbsp;Hour</em> <select name="hour" id="hour">
+				</select><br> <em>&nbsp;<%=encprops.getProperty("hour")%></em> <select name="hour" id="hour">
 					<option value="-1" selected>?</option>
 					<option value="6">6 am</option>
 					<option value="7">7 am</option>
@@ -920,7 +908,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<option value="18">6 pm</option>
 					<option value="19">7 pm</option>
 					<option value="20">8 pm</option>
-				</select><br> <em>&nbsp;Minutes</em> <select name="minutes" id="minutes">
+				</select><br> <em>&nbsp;<%=encprops.getProperty("minutes")%></em> <select name="minutes" id="minutes">
 					<option value="00" selected>:00</option>
 					<option value="15">:15</option>
 					<option value="30">:30</option>
@@ -928,7 +916,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</select><br> <input name="number" type="hidden" value="<%=num%>"
 					id="number"> <input name="action" type="hidden"
 					value="changeEncounterDate"> <input name="AddDate"
-					type="submit" id="AddDate" value="Set Date">
+					type="submit" id="AddDate" value="<%=encprops.getProperty("setDate")%>">
 				</form>
 				</td>
 			</tr>
@@ -943,22 +931,21 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Reset reported size:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("setSize")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
 				<form name="setencsize" action="../EncounterSetSize" method="post">
 				<input name="lengthField" type="text" id="lengthField" size="8"
-					maxlength="8"> Meters<br> <em>Use 0 if unknown</em><br>
+					maxlength="8"> <%=encprops.getProperty("meters")%><br> <em><%=encprops.getProperty("useZeroIfUnknown")%></em><br>
 				<input name="lengthUnits" type="hidden" id="lengthUnits"
 					value="Meters"> <select name="guessList" id="guessList">
-					<option value="directly measured">directly measured</option>
-					<option value="submitter's guess">personal guess</option>
-					<option value="guide/researcher's guess" selected>guess of
-					guide/researcher</option>
+					<option value="directly measured"><%=encprops.getProperty("directlyMeasured")%></option>
+					<option value="submitter's guess"><%=encprops.getProperty("personalGuess")%></option>
+					<option value="guide/researcher's guess" selected><%=encprops.getProperty("guessOfGuide")%></option>
 				</select> <input name="number" type="hidden" value="<%=num%>" id="number">
 				<input name="action" type="hidden" value="setEncounterSize">
-				<input name="Add" type="submit" id="Add" value="Set Size"></form>
+				<input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setSize")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -972,17 +959,17 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Reset water depth:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("setDepth")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setencdepth" action="../EncounterSetMaximumDepth"
-					method="post"><input name="depth" type="text" id="depth"
-					size="10"> Meters <input name="lengthUnits" type="hidden"
+				<form name="setencdepth" action="../EncounterSetMaximumDepth" method="post">
+					<input name="depth" type="text" id="depth" size="10"> <%=encprops.getProperty("meters")%> <input name="lengthUnits" type="hidden"
 					id="lengthUnits" value="Meters"> <input name="number"
 					type="hidden" value="<%=num%>" id="number"> <input
 					name="action" type="hidden" value="setEncounterDepth"> <input
-					name="AddDepth" type="submit" id="AddDepth" value="Set Depth"></form>
+					name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>">
+				</form>
 				</td>
 			</tr>
 		</table>
@@ -997,7 +984,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Reset elevation:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("setElevation")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -1005,7 +992,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 						<input name="elevation" type="text" id="elevation" size="10"> Meters <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters"> 
 						<input name="number" type="hidden" value="<%=num%>" id="number"> 
 						<input name="action" type="hidden" value="setEncounterElevation"> 
-						<input name="AddElev" type="submit" id="AddElev" value="Set Elevation">
+						<input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>">
 					</form>
 				</td>
 			</tr>
@@ -1015,13 +1002,11 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 
 		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("user"))){
 		%> <a name="user">
-		<table width="150" border="1" cellpadding="1" cellspacing="0"
-			bordercolor="#000000" bgcolor="#CCCCCC">
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><font
 					color="#990000"><img align="absmiddle"
-					src="../images/Crystal_Clear_app_Login_Manager.gif" /> <strong>Assign
-				to user:</strong></font></td>
+					src="../images/Crystal_Clear_app_Login_Manager.gif" /> <strong><%=encprops.getProperty("assignUser")%>:</strong></font></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -1029,7 +1014,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					method="post"><input name="submitter" type="text" size="10"
 					maxlength="50"> <input name="number" type="hidden"
 					value=<%=num%>> <input name="Assign" type="submit"
-					id="Assign" value="Assign"></form>
+					id="Assign" value="<%=encprops.getProperty("assign")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -1043,7 +1028,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font
-					color="#990000">Edit scarring description:</font></strong></td>
+					color="#990000"><%=encprops.getProperty("editScarring")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -1051,7 +1036,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<textarea name="scars" size="15"><%=enc.getDistinguishingScar()%></textarea> 
 				<input name="number" type="hidden" value="<%=num%>" id="number">
 				<input name="action" type="hidden" value="setScarring"> <input
-					name="Add" type="submit" id="scar" value="Reset Scarring"></form>
+					name="Add" type="submit" id="scar" value="<%=encprops.getProperty("resetScarring")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -1166,19 +1151,15 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 	  //reject encounter
 	  if (isOwner) {
 	  %>
-		<table width="150" border="1" cellpadding="1" cellspacing="0"
-			bordercolor="#000000" bgcolor="#CECFCE">
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CECFCE">
 			<tr>
 				<td>
 				<p class="para"><font color="#990000"><img
-					align="absmiddle" src="../images/cancel.gif" /> <strong>Reject
-				encounter</strong></font></p>
-				<p class="para"><font color="#990000"><strong><font
-					color="#990000"><font color="#990000"><a
+					align="absmiddle" src="../images/cancel.gif" /> <strong><%=encprops.getProperty("rejectEncounter")%></strong></font></p>
+				<p class="para"><font color="#990000"><strong><font color="#990000"><font color="#990000"><a
 					href="<%=CommonConfiguration.getWikiLocation()%>approving_an_encounter"
 					target="_blank"><img src="../images/information_icon_svg.gif"
-					alt="Help" border="0" align="absmiddle" /></a> </font></font></strong></font><span class="style4">More
-				info </span></p>
+					alt="Help" border="0" align="absmiddle" /></a> </font></font></strong></font><span class="style4"><%=encprops.getProperty("moreInfo")%> </span></p>
 				</td>
 			</tr>
 			<tr>
@@ -1186,7 +1167,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<form name="reject_form" method="post" action="reject.jsp">
 				<input name="action" type="hidden" id="action" value="reject">
 				<input name="number" type="hidden" value=<%=num%>> <input
-					name="reject" type="submit" id="reject" value="Reject"></form>
+					name="reject" type="submit" id="reject" value="<%=encprops.getProperty("rejectEncounter")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -1198,13 +1179,11 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			bordercolor="#000000" bgcolor="#CECFCE">
 			<tr>
 				<td class="para">
-				<p><strong><font color="#990000">Reset as
-				Identifiable</font></strong></p>
+				<p><strong><font color="#990000"><%=encprops.getProperty("setIdentifiable")%></font></strong></p>
 				<p><font color="#990000"><font color="#990000"><a
 					href="<%=CommonConfiguration.getWikiLocation()%>approving_an_encounter"
 					target="_blank"><img src="../images/information_icon_svg.gif"
-					alt="Help" border="0" align="absmiddle" /></a></font> </font><span class="style4">More
-				info </span></p>
+					alt="Help" border="0" align="absmiddle" /></a></font> </font><span class="style4"><%=encprops.getProperty("moreInfo")%> </span></p>
 				</td>
 			</tr>
 			<tr>
@@ -1213,7 +1192,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					action="../EncounterSetIdentifiable"><input name="action"
 					type="hidden" id="action" value="reaccept"> <input
 					name="number" type="hidden" value=<%=num%>> <input
-					name="reject" type="submit" id="reject" value="Reaccept"></form>
+					name="reject" type="submit" id="reject" value="<%=encprops.getProperty("reaccept")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -1286,20 +1265,17 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		</a><br /> <%
 	  	  	}
 	  	  %>
-		<table border="1" cellpadding="2" cellspacing="0"
-			bordercolor="#000000" bgcolor="#CCCCCC">
+		<table border="1" cellpadding="2" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
-				<td align="left" valign="top" class="para"><font
-					color="#990000"><font color="#990000"><img
-					align="absmiddle" src="../images/thumbnail_image.gif" /></font> <strong>Reset
-				thumbnail</strong>&nbsp;</font></td>
+				<td align="left" valign="top" class="para">
+				<font color="#990000"><img
+					align="absmiddle" src="../images/thumbnail_image.gif" /></font> <strong><%=encprops.getProperty("resetThumbnail")%></strong>&nbsp;</font></td>
 			</tr>
 			<tr>
 				<td align="left">
-				<form action="../resetThumbnail.jsp" method="get"
-					enctype="multipart/form-data" name="resetThumbnail"><input
-					name="number" type="hidden" value="<%=num%>" id="numreset"><br />
-				Use image: <select name="imageNum">
+				<form action="../resetThumbnail.jsp" method="get" enctype="multipart/form-data" name="resetThumbnail">
+				<input name="number" type="hidden" value="<%=num%>" id="numreset"><br />
+				<%=encprops.getProperty("useImage")%>: <select name="imageNum">
 					<%
 					for (int rmi2=1;rmi2<=numImages;rmi2++){
 				%>
@@ -1307,8 +1283,8 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<%
 					}
 				%>
-				</select><br /> <input name="resetSubmit" type="submit" id="resetSubmit"
-					value="Reset Thumbnail"></form>
+				</select><br /> 
+				<input name="resetSubmit" type="submit" id="resetSubmit" value="<%=encprops.getProperty("resetThumbnail")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -1323,7 +1299,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					alt="Help" border="0" align="absmiddle" /></a></font></td>
 			</tr>
 			<tr>
-				<td height="30" class="para">&nbsp; Current value is: <%=enc.getOKExposeViaTapirLink()%></td>
+				<td height="30" class="para">&nbsp; <%=encprops.getProperty("currentValue")%>: <%=enc.getOKExposeViaTapirLink()%></td>
 			</tr>
 			<tr>
 				<td>
@@ -1331,7 +1307,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					action="../EncounterSetTapirLinkExposure"><input name="action"
 					type="hidden" id="action" value="tapirLinkExpose"> <input
 					name="number" type="hidden" value=<%=num%>> <input
-					name="approve" type="submit" id="approve" value="Change"></form>
+					name="approve" type="submit" id="approve" value="<%=encprops.getProperty("change")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -1708,12 +1684,12 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 							} //end for
 							if(!haveAddedKeyword){%>
 								
-								&nbsp;None assigned.
+								&nbsp;<%=encprops.getProperty("none_assigned")%>
 								
 							<% }
 						} //end if
 						else { %>
-							None defined.
+							<%=encprops.getProperty("none_defined")%>
 							
 							
 						<% }
@@ -2168,8 +2144,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
   Vector trackers=enc.getInterestedResearchers();
 if((isOwner)&&(trackers.size()>0)) {%>
 
-		<p><font size="-1">E-mail addresses currently tracking this
-		encounter: <%
+		<p><font size="-1"><%=encprops.getProperty("trackingEmails")%>: <%
 	  
 	  	int numTrack=trackers.size();
 		for(int track=0;track<numTrack;track++) {%> <a

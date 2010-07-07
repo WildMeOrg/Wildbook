@@ -873,7 +873,10 @@ public class Encounter implements java.io.Serializable{
 			return otherCatalogNumbers;
 		}
 		
-		public String getInformOthers(){return informothers;}
+		public String getInformOthers(){
+		  if(informothers==null){return "";}
+		  return informothers;
+		 }
 		
 		public void setInformOthers(String others){this.informothers=others;}
 		
