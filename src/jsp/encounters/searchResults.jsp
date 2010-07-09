@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="org.ecocean.servlet.*,org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.StringTokenizer,org.dom4j.Document, org.dom4j.DocumentHelper, org.dom4j.io.OutputFormat, org.dom4j.io.XMLWriter, java.lang.Integer, org.dom4j.Element, java.lang.NumberFormatException, java.io.*, java.util.Vector, java.util.Iterator, jxl.*, jxl.write.*, java.util.Calendar,java.util.Properties,java.util.StringTokenizer,java.util.ArrayList"%>
+	import="org.ecocean.servlet.*,org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.StringTokenizer,org.dom4j.Document, org.dom4j.DocumentHelper, org.dom4j.io.OutputFormat, org.dom4j.io.XMLWriter, java.lang.Integer, org.dom4j.Element, java.lang.NumberFormatException, java.io.*, java.util.Vector, java.util.Iterator, jxl.*, jxl.write.*, java.util.Calendar,java.util.Properties,java.util.StringTokenizer,java.util.ArrayList,java.util.Properties"%>
 
 
 <html>
@@ -72,9 +72,19 @@ return contributors.toString();
 
 
 <%
-	Shepherd myShepherd=new Shepherd();
 
-//setup our Properties object to hold locale properties
+
+//let's load encounterSearch.properties
+String langCode="en";
+if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
+
+Properties encprops=new Properties();
+encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/searchResults.properties"));
+				
+
+Shepherd myShepherd=new Shepherd();
+
+//setup our locale properties for use with Excel export
 Properties props=new Properties();
 try{
 	props.load(getClass().getResourceAsStream("/bundles/en/locales.properties"));
@@ -576,10 +586,8 @@ if(generateEmails){
 	<tr>
 		<td>
 		<p>
-		<h1 class="intro">Encounter Search Results</h1>
-		</p>
-		<p>Below are encounters <%=startNum%> - <%=endNum%> that matched
-		your search. Click any column heading to sort by that field.</p>
+		<h1 class="intro"><%=encprops.getProperty("title")%></h1>
+		</p>		<p><%=encprops.getProperty("belowMatches")%></p>
 		</td>
 	</tr>
 </table>
@@ -587,27 +595,27 @@ if(generateEmails){
 <%
 	if (request.getParameter("export")!=null) {
 %>
-<p>Exported Excel spreadsheet (.xls) file: <a
+<p><%=encprops.getProperty("exportedExcel")%>: <a
 	href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=filename%>"><%=filename%></a><br>
-<em>Right-click the link and save to your local hard drive.</em>
+<em><%=encprops.getProperty("rightClickLink")%></em>
 </p>
 <%
 	}
 %> <%
 	if (request.getParameter("generateKML")!=null) {
 %>
-<p>Exported Google Earth KML file: <a
+<p><%=encprops.getProperty("exportedKML")%>: <a
 	href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=kmlFilename%>"><%=kmlFilename%></a><br>
-<em>Right-click the link and save to your local hard drive.</em>
+<em><%=encprops.getProperty("rightClickLink")%></em>
 </p>
 <%
 	}
 %> <%
 	if (generateEmails) {
 %>
-<p>Exported contributors file: <a
+<p><%=encprops.getProperty("exportedEmail")%>: <a
 	href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=emailFilename%>"><%=emailFilename%></a><br>
-<em>Right-click the link and save to your local hard drive.</em>
+<em><%=encprops.getProperty("rightClickLink")%></em>
 </p>
 <%
 	}
@@ -616,14 +624,13 @@ if(generateEmails){
 <table width="720" border="1">
 	<tr>
 		<td bgcolor="#99CCFF"></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Number</strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Date</strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Location</strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Location
-		ID</strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Size</strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Sex</strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Assigned to</strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("number")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("date")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("location")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("locationID")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("size")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("sex")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("markedIndividual")%></strong></td>
 	</tr>
 
 	<%
@@ -757,8 +764,7 @@ if(generateEmails){
   				if((numResults>=startNum)&&(numResults<=endNum)) {
   				%>
 	<tr>
-		<td width="102" bgcolor="#000000"><img
-			src="<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"></td>
+		<td width="102" bgcolor="#000000"><img src="<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"></td>
 		<td><a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=enc.getEncounterNumber()%></a>
 
@@ -772,12 +778,12 @@ if(generateEmails){
 		<td><%=enc.getDate()%></td>
 		<td><%=enc.getLocation()%></td>
 		<td><%=enc.getLocationCode()%></td>
-		<td><%=enc.getSize()%> <%=enc.getMeasureUnits()%></td>
+		<td><%=enc.getSize()%></td>
 		<td><%=enc.getSex()%></td>
 		<%
 	if (enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned")) {
 %>
-		<td>Unassigned</td>
+		<td><%=encprops.getProperty("unassigned")%></td>
 		<%
 	} else {
 %>
@@ -957,15 +963,13 @@ if(generateEmails){
  if(startNum<numResults) {
  %>
 <p><a
-	href="searchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=startNum%>&endNum=<%=endNum%>">See
-next results <%=startNum%> - <%=endNum%></a></p>
+	href="searchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("seeNextResults")%> <%=startNum%> - <%=endNum%></a></p>
 <%
 	}
 if((startNum-10)>1) {
 %>
 <p><a
-	href="searchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>">See
-previous results <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
+	href="searchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>"><%=encprops.getProperty("seePreviousResults")%> <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
 
 <%
 	}
@@ -974,14 +978,14 @@ previous results <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td align="right">
-		<p><strong>Matching encounters</strong>: <%=numResults%>
+		<p><strong><%=encprops.getProperty("matchingEncounters")%></strong>: <%=numResults%>
 		<%
 		if(request.isUserInRole("admin")){
 		%>
 			<br />
-			<%=numUniqueEncounters%> identified and unique<br />
-			<%=numUnidentifiedEncounters%> unidentified<br />
-			<%=(numDuplicateEncounters)%> duplicates
+			<%=numUniqueEncounters%> <%=encprops.getProperty("identifiedUnique")%><br />
+			<%=numUnidentifiedEncounters%> <%=encprops.getProperty("unidentified")%><br />
+			<%=(numDuplicateEncounters)%> <%=encprops.getProperty("dailyDuplicates")%>
 			<%
 		}
 			%>
@@ -989,7 +993,7 @@ previous results <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
 		<%
 			myShepherd.beginDBTransaction();
 		%>
-		<p><strong>Total encounters in the database</strong>: <%=(myShepherd.getNumEncounters()+(myShepherd.getNumUnidentifiableEncounters()))%></p>
+		<p><strong><%=encprops.getProperty("totalEncounters")%></strong>: <%=(myShepherd.getNumEncounters()+(myShepherd.getNumUnidentifiableEncounters()))%></p>
 		</td>
 		<%
 	  	myShepherd.rollbackDBTransaction();
@@ -1015,16 +1019,14 @@ if(generateKML){
 
 
 <p><strong><img src="../images/2globe_128.gif" width="64"
-	height="64" align="absmiddle" /> Mapped Results</strong></p>
+	height="64" align="absmiddle" /> <%=encprops.getProperty("mappedResults")%></strong></p>
 <%
 	  	if(haveGPSData.size()>0) {
 	  	  myShepherd.beginDBTransaction();
 	  	  try{
 	  %>
 
-<p><i>Note</i>: If you zoom in too quickly, Google Maps may claim
-that it does not have the needed maps. Zoom back out, wait a few seconds
-to allow maps to load in the background, and then zoom in again.</p>
+<p><%=encprops.getProperty("mapNote")%></p>
 <script
 	src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
 	type="text/javascript"></script> <script type="text/javascript">
@@ -1087,7 +1089,7 @@ to allow maps to load in the background, and then zoom in again.</p>
 	haveGPSData=null;
 	  
 	  } else {%>
-<p>No GPS data is available for mapping.</p>
+<p><%=encprops.getProperty("noGPS")%></p>
 <br> <%}%> <jsp:include page="../footer.jsp" flush="true" />
 </div>
 </div>
