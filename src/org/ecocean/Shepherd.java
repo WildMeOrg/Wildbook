@@ -1532,6 +1532,15 @@ public class Shepherd {
 		return al;
 	}
 	
+	public int getEarliestSightingYear(){
+	  Query q = pm.newQuery("SELECT min(year) FROM org.ecocean.Encounter");
+	  return ((Integer)q.execute()).intValue();
+	}
+	
+	 public int getLastSightingYear(){
+	    Query q = pm.newQuery("SELECT max(year) FROM org.ecocean.Encounter");
+	    return ((Integer)q.execute()).intValue();
+	  }
 	
 } //end shepherd
 
