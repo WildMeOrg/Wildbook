@@ -76,11 +76,7 @@ DecimalFormat gpsFormat = new DecimalFormat("###.####");
 String langCode="en";
 	
 	//check what language is requested
-	if(request.getParameter("langCode")!=null){
-		if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
-		if(request.getParameter("langCode").equals("de")) {langCode="de";}
-		if(request.getParameter("langCode").equals("es")) {langCode="es";}
-	}
+if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
 	
 	
 //let's load encounters.properties

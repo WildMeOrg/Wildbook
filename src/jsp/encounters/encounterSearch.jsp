@@ -33,6 +33,9 @@ catch(Exception e){
 }
 
 //let's load encounterSearch.properties
+String langCode="en";
+if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
+
 Properties encprops=new Properties();
 encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSearch.properties"));
 				
@@ -121,7 +124,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 
 			<tr>
 				<td><input name="resightOnly" type="checkbox" id="resightOnly"
-					value="true"> <%=encprops.getProperty("includes")%> <select
+					value="true"> <%=encprops.getProperty("include")%> <select
 					name="numResights" id="numResights">
 					<option value="1" selected>1</option>
 					<option value="2">2</option>
