@@ -633,6 +633,8 @@ if(generateEmails){
 		
 		
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("date")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("vessel")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("eventID")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("location")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("locationID")%></strong></td>
 		
@@ -806,6 +808,8 @@ if(generateEmails){
 		</td>
 		<td><%=enc.getSubmitterName()%></td>
 		<td><%=enc.getDate()%></td>
+		<td><%=enc.getVessel()%></td>
+		<td><%=enc.getEventID()%></td>
 		<td><%=enc.getLocation()%></td>
 		<td><%=enc.getLocationCode()%></td>
 		
