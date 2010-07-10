@@ -135,15 +135,20 @@
 				<column jdbc-type="LONGVARCHAR" />
 			</field>
 			
+		
+				
 			
 			
-			<field name="gpsLatitude" persistence-modifier="persistent">
+			
+			<field name="behavior" persistence-modifier="persistent">
 				<column jdbc-type="LONGVARCHAR" allows-null="true" />
 			</field>
-			<field name="gpsLongitude" persistence-modifier="persistent">
+			<field name="vessel" persistence-modifier="persistent">
 				<column jdbc-type="LONGVARCHAR" allows-null="true" />
 			</field>
-			
+			<field name="eventID" persistence-modifier="persistent">
+				<column jdbc-type="LONGVARCHAR" />
+			</field>
 			
 			
 			

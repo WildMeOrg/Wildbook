@@ -20,7 +20,7 @@
     xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
     version="2.4">
 
-  <display-name>Photo-identification Library</display-name>
+  <display-name>Shepherd Project Framework for Mark-Recapture Studies</display-name>
   <description>
     Photo-identification Library
   </description>
@@ -162,7 +162,7 @@
 
 
   <servlet>
-       <servlet-name>writeOutScanTask</servlet-name>
+       <servlet-name>WriteOutScanTask</servlet-name>
 	<servlet-class>org.ecocean.servlet.WriteOutScanTask</servlet-class>
   </servlet>
 
@@ -177,28 +177,28 @@
   </servlet>
   
       <servlet>
-           <servlet-name>encounterSetAlternateID</servlet-name>
+           <servlet-name>EncounterSetAlternateID</servlet-name>
     	<servlet-class>org.ecocean.servlet.EncounterSetAlternateID</servlet-class>
     </servlet>
     
           <servlet>
-               <servlet-name>encounterSetInformOthers</servlet-name>
+               <servlet-name>EncounterSetInformOthers</servlet-name>
         	<servlet-class>org.ecocean.servlet.EncounterSetInformOthers</servlet-class>
     </servlet>
 
 
   <servlet>
-       <servlet-name>imageSearch</servlet-name>
+       <servlet-name>ImageSearch</servlet-name>
 	<servlet-class>org.ecocean.servlet.ImageSearch</servlet-class>
   </servlet>
 
   <servlet>
-       <servlet-name>scanAppletSupport</servlet-name>
+       <servlet-name>ScanAppletSupport</servlet-name>
 	<servlet-class>org.ecocean.servlet.ScanAppletSupport</servlet-class>
   </servlet>
 
   <servlet>
-       <servlet-name>scanResultsServlet</servlet-name>
+       <servlet-name>ScanResultsServlet</servlet-name>
 	<servlet-class>org.ecocean.servlet.ScanResultsServlet</servlet-class>
   </servlet>
   
@@ -209,18 +209,18 @@
   
   
 <servlet>
-       <servlet-name>i3sScanResultsServlet</servlet-name>
+       <servlet-name>I3SScanResultsServlet</servlet-name>
 	<servlet-class>org.ecocean.servlet.I3sScanResultsServlet</servlet-class>
   </servlet>
 
   <servlet>
-       <servlet-name>interconnectSubmitSpots</servlet-name>
+       <servlet-name>InterconnectSubmitSpots</servlet-name>
 	<servlet-class>org.ecocean.servlet.InterconnectSubmitSpots</servlet-class>
   </servlet>
 
 
   <servlet>
-       <servlet-name>keywordHandler</servlet-name>
+       <servlet-name>KeywordHandler</servlet-name>
 	<servlet-class>org.ecocean.servlet.KeywordHandler</servlet-class>
   </servlet>
 
@@ -245,24 +245,21 @@
   </servlet>
 
   <servlet>
-       <servlet-name>dontTrack</servlet-name>
+       <servlet-name>DontTrack</servlet-name>
 	<servlet-class>org.ecocean.servlet.DontTrack</servlet-class>
   </servlet>
 
   <servlet>
-       <servlet-name>updateEmailAddress</servlet-name>
+       <servlet-name>UpdateEmailAddress</servlet-name>
 	<servlet-class>org.ecocean.servlet.UpdateEmailAddress</servlet-class>
   </servlet>
 
   <servlet>
-       <servlet-name>trackIt</servlet-name>
+       <servlet-name>TrackIt</servlet-name>
 	<servlet-class>org.ecocean.servlet.TrackIt</servlet-class>
   </servlet>
 
-  <servlet>
-       <servlet-name>mitFeed</servlet-name>
-	<servlet-class>org.ecocean.servlet.MitFeed</servlet-class>
-  </servlet>
+
 
   <servlet>
        <servlet-name>EncounterAddSpotFile</servlet-name>
@@ -305,10 +302,6 @@
         	<servlet-class>org.ecocean.servlet.IndividualCreate</servlet-class>
   </servlet>
 
-  <servlet>
-       <servlet-name>updateConfig</servlet-name>
-	<servlet-class>org.ecocean.servlet.UpdateConfig</servlet-class>
-  </servlet>
 
   
   <servlet>
@@ -317,34 +310,27 @@
   </servlet>
 
   <servlet>
-       <servlet-name>trackerFeed</servlet-name>
+       <servlet-name>TrackerFeed</servlet-name>
 	<servlet-class>org.ecocean.servlet.TrackerFeed</servlet-class>
   </servlet>
 
-  <servlet>
-       <servlet-name>ningalooRobustByMonths</servlet-name>
-	<servlet-class>org.ecocean.servlet.NingalooRobustByMonths</servlet-class>
-  </servlet>
+
 
 
   <servlet>
-       <servlet-name>encounterRemoveImage</servlet-name>
+       <servlet-name>EncounterRemoveImage</servlet-name>
 	<servlet-class>org.ecocean.servlet.EncounterRemoveImage</servlet-class>
   </servlet>  
 
 
-  <servlet>
-       <servlet-name>ningalooPradel</servlet-name>
-	<servlet-class>org.ecocean.servlet.NingalooPradel</servlet-class>
-  </servlet> 
   
     <servlet>
-         <servlet-name>deleteAdoption</servlet-name>
+         <servlet-name>DeleteAdoption</servlet-name>
   	<servlet-class>org.ecocean.servlet.DeleteAdoption</servlet-class>
   </servlet> 
 
   <servlet>
-       <servlet-name>massSetLocationCodeFromLocationString</servlet-name>
+       <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
 	<servlet-class>org.ecocean.servlet.MassSetLocationCodeFromLocationString</servlet-class>
   </servlet> 
   
@@ -362,6 +348,12 @@
              <servlet-name>EncounterSetMaximumDepth</servlet-name>
       	<servlet-class>org.ecocean.servlet.EncounterSetMaximumDepth</servlet-class>
   </servlet> 
+  
+   <servlet>
+             <servlet-name>EncounterSetMaximumElevation</servlet-name>
+      	<servlet-class>org.ecocean.servlet.EncounterSetMaximumElevation</servlet-class>
+  </servlet>
+  
   
         <servlet>
                <servlet-name>EncounterSetOccurrenceRemarks</servlet-name>
@@ -399,17 +391,17 @@
   </servlet> 
 
   <servlet>
-       <servlet-name>massSwapLocationCode</servlet-name>
+       <servlet-name>MassSwapLocationCode</servlet-name>
 	<servlet-class>org.ecocean.servlet.MassSwapLocationCode</servlet-class>
   </servlet> 
   
     <servlet>
-         <servlet-name>massSetInformOthers</servlet-name>
+         <servlet-name>MassSetInformOthers</servlet-name>
   	<servlet-class>org.ecocean.servlet.MassSetInformOthers</servlet-class>
   </servlet> 
 
   <servlet>
-       <servlet-name>scanTaskHandler</servlet-name>
+       <servlet-name>ScanTaskHandler</servlet-name>
 	<servlet-class>org.ecocean.servlet.ScanTaskHandler</servlet-class>
   </servlet> 
 
@@ -418,11 +410,11 @@
 	<servlet-class>org.ecocean.servlet.IndividualRemoveDataFile</servlet-class>
   </servlet>  
   <servlet>
-       <servlet-name>encounterSetSubmitterID</servlet-name>
+       <servlet-name>EncounterSetSubmitterID</servlet-name>
 	<servlet-class>org.ecocean.servlet.EncounterSetSubmitterID</servlet-class>
   </servlet>  
   <servlet>
-       <servlet-name>encounterSetMatchedBy</servlet-name>
+       <servlet-name>EncounterSetMatchedBy</servlet-name>
 	<servlet-class>org.ecocean.servlet.EncounterSetMatchedBy</servlet-class>
   </servlet>
   
@@ -432,52 +424,46 @@
   </servlet> 
   
 <servlet>
-       <servlet-name>encounterAddImage</servlet-name>
+       <servlet-name>EncounterAddImage</servlet-name>
 	<servlet-class>org.ecocean.servlet.EncounterAddImage</servlet-class>
   </servlet>
-  <servlet>
-         <servlet-name>ningalooMultistate</servlet-name>
-  	<servlet-class>org.ecocean.servlet.NingalooMultistate</servlet-class>
-  </servlet>
+
   <servlet>
          <servlet-name>CalendarXMLServer2</servlet-name>
   	<servlet-class>org.ecocean.servlet.CalendarXMLServer2</servlet-class>
   </servlet>
 <servlet>
-       <servlet-name>matchAnalysis</servlet-name>
+       <servlet-name>MatchAnalysis</servlet-name>
 	<servlet-class>org.ecocean.servlet.MatchAnalysis</servlet-class>
   </servlet>
 
 
   <servlet>
-       <servlet-name>resurrectDeletedEncounter</servlet-name>
+       <servlet-name>ResurrectDeletedEncounter</servlet-name>
 	<servlet-class>org.ecocean.servlet.ResurrectDeletedEncounter</servlet-class>
   </servlet>
   
     <servlet>
-         <servlet-name>resurrectDeletedAdoption</servlet-name>
+         <servlet-name>ResurrectDeletedAdoption</servlet-name>
   	<servlet-class>org.ecocean.servlet.ResurrectDeletedAdoption</servlet-class>
   </servlet>
 
   <servlet>
-       <servlet-name>scanWorkItemResultsHandler</servlet-name>
+       <servlet-name>ScanWorkItemResultsHandler</servlet-name>
 	<servlet-class>org.ecocean.servlet.ScanWorkItemResultsHandler</servlet-class>
   </servlet>
 
   <servlet>
-       <servlet-name>gridHeartbeatReceiver</servlet-name>
+       <servlet-name>GridHeartbeatReceiver</servlet-name>
 	<servlet-class>org.ecocean.servlet.GridHeartbeatReceiver</servlet-class>
   </servlet>
 
   <servlet>
-       <servlet-name>massExposeGBIF</servlet-name>
+       <servlet-name>MassExposeGBIF</servlet-name>
 	<servlet-class>org.ecocean.servlet.MassExposeGBIF</servlet-class>
   </servlet>
   
-    <servlet>
-         <servlet-name>TestServlet</servlet-name>
-  	<servlet-class>org.ecocean.servlet.TestServlet</servlet-class>
-  </servlet>
+
 
   
 <servlet-mapping>
@@ -495,8 +481,8 @@
 
 
 <servlet-mapping>
-       <servlet-name>interconnectSubmitSpots</servlet-name>
-       <url-pattern>/interconnectSubmitSpots</url-pattern>
+       <servlet-name>InterconnectSubmitSpots</servlet-name>
+       <url-pattern>/InterconnectSubmitSpots</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
@@ -510,8 +496,8 @@
   </servlet-mapping>
 
 <servlet-mapping>
-       <servlet-name>scanTaskHandler</servlet-name>
-       <url-pattern>/scanTaskHandler</url-pattern>
+       <servlet-name>ScanTaskHandler</servlet-name>
+       <url-pattern>/ScanTaskHandler</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
@@ -549,25 +535,21 @@
              <servlet-name>EncounterRemoveSpots</servlet-name>
              <url-pattern>/EncounterRemoveSpots</url-pattern>
   </servlet-mapping>
-  
-  <servlet-mapping>
-         <servlet-name>TestServlet</servlet-name>
-         <url-pattern>/TestServlet</url-pattern>
+
+
+<servlet-mapping>
+       <servlet-name>WriteOutScanTask</servlet-name>
+       <url-pattern>/WriteOutScanTask</url-pattern>
   </servlet-mapping>
 
 <servlet-mapping>
-       <servlet-name>writeOutScanTask</servlet-name>
-       <url-pattern>/writeOutScanTask</url-pattern>
-  </servlet-mapping>
-
-<servlet-mapping>
-       <servlet-name>resurrectDeletedEncounter</servlet-name>
-       <url-pattern>/resurrectDeletedEncounter</url-pattern>
+       <servlet-name>ResurrectDeletedEncounter</servlet-name>
+       <url-pattern>/ResurrectDeletedEncounter</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
-         <servlet-name>resurrectDeletedAdoption</servlet-name>
-         <url-pattern>/resurrectDeletedAdoption</url-pattern>
+         <servlet-name>ResurrectDeletedAdoption</servlet-name>
+         <url-pattern>/ResurrectDeletedAdoption</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
@@ -581,10 +563,7 @@
   </servlet-mapping>
 
 
-  <servlet-mapping>
-       <servlet-name>updateConfig</servlet-name>
-       <url-pattern>/updateConfig</url-pattern>
-  </servlet-mapping>
+
   
     <servlet-mapping>
          <servlet-name>EncounterSetSex</servlet-name>
@@ -599,6 +578,11 @@
      <servlet-mapping>
              <servlet-name>EncounterSetMaximumDepth</servlet-name>
              <url-pattern>/EncounterSetMaximumDepth</url-pattern>
+  </servlet-mapping>
+  
+       <servlet-mapping>
+               <servlet-name>EncounterSetMaximumElevation</servlet-name>
+               <url-pattern>/EncounterSetMaximumElevation</url-pattern>
   </servlet-mapping>
   
       <servlet-mapping>
@@ -628,18 +612,18 @@
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>massSetLocationCodeFromLocationString</servlet-name>
-       <url-pattern>/massSetLocationCodeFromLocationString</url-pattern>
+       <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
+       <url-pattern>/MassSetLocationCodeFromLocationString</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>massSwapLocationCode</servlet-name>
-       <url-pattern>/massSwapLocationCode</url-pattern>
+       <servlet-name>MassSwapLocationCode</servlet-name>
+       <url-pattern>/MassSwapLocationCode</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>massExposeGBIF</servlet-name>
-       <url-pattern>/massExposeGBIF</url-pattern>
+       <servlet-name>MassExposeGBIF</servlet-name>
+       <url-pattern>/MassExposeGBIF</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
@@ -663,57 +647,47 @@
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>dontTrack</servlet-name>
-       <url-pattern>/dontTrack</url-pattern>
+       <servlet-name>DontTrack</servlet-name>
+       <url-pattern>/DontTrack</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
-         <servlet-name>deleteAdoption</servlet-name>
-         <url-pattern>/deleteAdoption</url-pattern>
+         <servlet-name>DeleteAdoption</servlet-name>
+         <url-pattern>/DeleteAdoption</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-       <servlet-name>mitFeed</servlet-name>
-       <url-pattern>/mitFeed</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
-       <servlet-name>trackIt</servlet-name>
+       <servlet-name>TrackIt</servlet-name>
        <url-pattern>/trackIt</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>imageSearch</servlet-name>
-       <url-pattern>/imageSearch</url-pattern>
+       <servlet-name>ImageSearch</servlet-name>
+       <url-pattern>/ImageSearch</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>updateEmailAddress</servlet-name>
-       <url-pattern>/updateEmailAddress</url-pattern>
+       <servlet-name>UpdateEmailAddress</servlet-name>
+       <url-pattern>/UpdateEmailAddress</url-pattern>
   </servlet-mapping>
 
 
 
   <servlet-mapping>
-       <servlet-name>matchAnalysis</servlet-name>
-       <url-pattern>/matchAnalysis</url-pattern>
+       <servlet-name>MatchAnalysis</servlet-name>
+       <url-pattern>/MatchAnalysis</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-       <servlet-name>ningalooRobustByMonths</servlet-name>
-       <url-pattern>/ningalooRobustByMonths</url-pattern>
-  </servlet-mapping>
+
   
-    <servlet-mapping>
-         <servlet-name>ningalooMultistate</servlet-name>
-         <url-pattern>/ningalooMultistate</url-pattern>
-  </servlet-mapping>
 
 
 
   <servlet-mapping>
-       <servlet-name>keywordHandler</servlet-name>
-       <url-pattern>/keywordHandler</url-pattern>
+       <servlet-name>KeywordHandler</servlet-name>
+       <url-pattern>/KeywordHandler</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -727,18 +701,18 @@
   </servlet-mapping>
   
       <servlet-mapping>
-           <servlet-name>massSetInformOthers</servlet-name>
-           <url-pattern>/massSetInformOthers</url-pattern>
+           <servlet-name>MassSetInformOthers</servlet-name>
+           <url-pattern>/MassSetInformOthers</url-pattern>
   </servlet-mapping>
   
       <servlet-mapping>
-           <servlet-name>encounterSetAlternateID</servlet-name>
-           <url-pattern>/encounterSetAlternateID</url-pattern>
+           <servlet-name>EncounterSetAlternateID</servlet-name>
+           <url-pattern>/EncounterSetAlternateID</url-pattern>
   </servlet-mapping>
   
         <servlet-mapping>
-             <servlet-name>encounterSetInformOthers</servlet-name>
-             <url-pattern>/encounterSetInformOthers</url-pattern>
+             <servlet-name>EncounterSetInformOthers</servlet-name>
+             <url-pattern>/EncounterSetInformOthers</url-pattern>
   </servlet-mapping>
 
 
@@ -748,8 +722,8 @@
   </servlet-mapping>
 
 <servlet-mapping>
-       <servlet-name>trackerFeed</servlet-name>
-       <url-pattern>/trackerFeed</url-pattern>
+       <servlet-name>TrackerFeed</servlet-name>
+       <url-pattern>/TrackerFeed</url-pattern>
   </servlet-mapping>
 
 <servlet-mapping>
@@ -765,21 +739,18 @@
 
 
   <servlet-mapping>
-       <servlet-name>scanWorkItemResultsHandler</servlet-name>
-       <url-pattern>/scanWorkItemResultsHandler2</url-pattern>
+       <servlet-name>ScanWorkItemResultsHandler</servlet-name>
+       <url-pattern>/ScanWorkItemResultsHandler2</url-pattern>
   </servlet-mapping>
 
 
   <servlet-mapping>
-       <servlet-name>gridHeartbeatReceiver</servlet-name>
-       <url-pattern>/gridHeartbeatReceiver</url-pattern>
+       <servlet-name>GridHeartbeatReceiver</servlet-name>
+       <url-pattern>/GridHeartbeatReceiver</url-pattern>
   </servlet-mapping>
 
 
-  <servlet-mapping>
-       <servlet-name>ningalooPradel</servlet-name>
-       <url-pattern>/CJS</url-pattern>
-  </servlet-mapping>
+
   
     <servlet-mapping>
          <servlet-name>EncounterSetLivingStatus</servlet-name>
@@ -789,38 +760,38 @@
     
 
   <servlet-mapping>
-       <servlet-name>scanAppletSupport</servlet-name>
-       <url-pattern>/scanAppletSupport</url-pattern>
+       <servlet-name>ScanAppletSupport</servlet-name>
+       <url-pattern>/ScanAppletSupport</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>scanResultsServlet</servlet-name>
-       <url-pattern>/scanResultsServlet</url-pattern>
+       <servlet-name>ScanResultsServlet</servlet-name>
+       <url-pattern>/ScanResultsServlet</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>i3sScanResultsServlet</servlet-name>
-       <url-pattern>/i3sScanResultsServlet</url-pattern>
+       <servlet-name>I3SScanResultsServlet</servlet-name>
+       <url-pattern>/I3sScanResultsServlet</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>encounterAddImage</servlet-name>
-       <url-pattern>/encounterAddImage</url-pattern>
+       <servlet-name>EncounterAddImage</servlet-name>
+       <url-pattern>/EncounterAddImage</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>encounterSetSubmitterID</servlet-name>
-       <url-pattern>/encounterSetSubmitterID</url-pattern>
+       <servlet-name>EncounterSetSubmitterID</servlet-name>
+       <url-pattern>/EncounterSetSubmitterID</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>encounterSetMatchedBy</servlet-name>
-       <url-pattern>/encounterSetMatchedBy</url-pattern>
+       <servlet-name>EncounterSetMatchedBy</servlet-name>
+       <url-pattern>/EncounterSetMatchedBy</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
-       <servlet-name>encounterRemoveImage</servlet-name>
-       <url-pattern>/encounterRemoveImage</url-pattern>
+       <servlet-name>EncounterRemoveImage</servlet-name>
+       <url-pattern>/EncounterRemoveImage</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -874,11 +845,7 @@
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
       <role-name>admin</role-name>
-      <role-name>manager</role-name>
-	<role-name>researcher</role-name>
-	<role-name>reviewer</role-name>
-	<role-name>search</role-name>
-<role-name>local</role-name>
+
     </auth-constraint>
   </security-constraint>
 
@@ -896,7 +863,7 @@
     </web-resource-collection>
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>manager</role-name>
+      <role-name>admin</role-name>
 
     </auth-constraint>
   </security-constraint>
@@ -916,112 +883,31 @@
 <url-pattern>/CJS</url-pattern>
 <url-pattern>/software.jsp</url-pattern>
 <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>
-<url-pattern>/docs/*</url-pattern>
 <url-pattern>/xcalendar/*</url-pattern>
 
+ <url-pattern>/interconnectSubmitSpots</url-pattern>
+ 
+ 		<url-pattern>/appadmin/kwSearch.jsp</url-pattern>
+ <url-pattern>/appadmin/kwResults.jsp</url-pattern>
+ <url-pattern>/individualSearch.jsp</url-pattern>
+ <url-pattern>/individualSearchResults.jsp</url-pattern>
+ <url-pattern>/encounters/thumbnailSearch.jsp</url-pattern>
+ <url-pattern>/encounters/thumbnailSearchResults.jsp</url-pattern>
+  <url-pattern>/encounters/encounterSearch.jsp</url-pattern>
+    <url-pattern>/encounters/searchResults.jsp</url-pattern>
+ <url-pattern>/googleSearch.jsp</url-pattern>
+<url-pattern>/googleSearchResults.jsp</url-pattern>
+<url-pattern>/encounters/imageViewer.jsp</url-pattern>
+<url-pattern>/encounters/allEncountersUnapproved.jsp</url-pattern>
+  	<url-pattern>/appadmin/*</url-pattern>
   
     </web-resource-collection>
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>researcher</role-name>
-      <role-name>manager</role-name>
 	<role-name>admin</role-name>
     </auth-constraint>
   </security-constraint>
   
-  
-    <security-constraint>
-      <display-name>Image Processor Security Constraint</display-name>
-      <web-resource-collection>
-        <web-resource-name>Protected Area</web-resource-name>
-        <!-- Define the context-relative URL(s) to be protected -->  
-	  <url-pattern>/interconnectSubmitSpots</url-pattern>      
-      </web-resource-collection>
-      <auth-constraint>
-        <!-- Anyone with one of the listed roles may access this area -->
-        <role-name>imageProcessor</role-name>
-              <role-name>admin</role-name>
-      <role-name>manager</role-name>
-      </auth-constraint>
-  </security-constraint>
-  
-
-  <security-constraint>
-    <display-name>Search Security Constraint</display-name>
-    <web-resource-collection>
-      <web-resource-name>Protected Area</web-resource-name>
-      <!-- Define the context-relative URL(s) to be protected -->
-      
-		<url-pattern>/appadmin/kwSearch.jsp</url-pattern>
-<url-pattern>/appadmin/kwResults.jsp</url-pattern>
-<url-pattern>/individualSearch.jsp</url-pattern>
-<url-pattern>/individualSearchResults.jsp</url-pattern>
-<url-pattern>/encounters/thumbnailSearch.jsp</url-pattern>
-<url-pattern>/encounters/thumbnailSearchResults.jsp</url-pattern>
-<url-pattern>/googleSearch.jsp</url-pattern>
-<url-pattern>/googleSearchResults.jsp</url-pattern>
-
-
-  
-    </web-resource-collection>
-    <auth-constraint>
-      <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>researcher</role-name>
-<role-name>search</role-name>
-	
-    </auth-constraint>
-  </security-constraint>
-
-  <security-constraint>
-    <display-name>ImageViewer Security Constraint</display-name>
-    <web-resource-collection>
-      <web-resource-name>Protected Area</web-resource-name>
-      <!-- Define the context-relative URL(s) to be protected -->
-
-<url-pattern>/encounters/imageViewer.jsp</url-pattern>
-
-  
-    </web-resource-collection>
-    <auth-constraint>
-      <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>researcher</role-name>
-<role-name>search</role-name>
-<role-name>manager</role-name>
-	<role-name>local</role-name>
-    </auth-constraint>
-  </security-constraint>
-
-
-
-
-  <security-constraint>
-    <display-name>ECOCEAN Reviewer Security Constraint</display-name>
-    <web-resource-collection>
-      <web-resource-name>Protected Area</web-resource-name>
-      <!-- Define the context-relative URL(s) to be protected -->
-      	<url-pattern>/reviews/*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>reviewer</role-name>
-      <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
-
-  <security-constraint>
-    <display-name>ECOCEAN Admin Security Constraint</display-name>
-    <web-resource-collection>
-      <web-resource-name>Protected Area</web-resource-name>
-      <!-- Define the context-relative URL(s) to be protected -->
-      	<url-pattern>/appadmin/*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
-
-
 
 
 
@@ -1037,24 +923,11 @@
   </login-config>
 
     <!-- Security roles referenced by this web application -->
-    <security-role>
-      <role-name>manager</role-name>
-    </security-role>
+
     <security-role>
       <role-name>admin</role-name>
     </security-role>
-    <security-role>
-      <role-name>researcher</role-name>
-    </security-role>
-    <security-role>
-      <role-name>reviewer</role-name>
-    </security-role>
-    <security-role>
-      <role-name>local</role-name>
-    </security-role>
-    <security-role>
-      <role-name>search</role-name>
-    </security-role>
+  
 
 
 </web-app>

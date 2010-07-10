@@ -31,8 +31,9 @@ public class EncounterApprove extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		boolean locked=false;
 
-		boolean isOwner=false;
+		boolean isOwner=true;
 		
+		/**
 		if(request.getParameter("number")!=null){
 			myShepherd.beginDBTransaction();
 			if(myShepherd.isEncounter(request.getParameter("number"))) {
@@ -45,16 +46,16 @@ public class EncounterApprove extends HttpServlet {
 				}
 				
 				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				else if((request.isUserInRole("manager"))){
+				else if((request.isUserInRole("admin"))){
 					isOwner=true;
 				}
 				//if they have general location code permissions for the encounter's location code
 				else if(request.isUserInRole(locCode)){isOwner=true;}
 			}
 			myShepherd.rollbackDBTransaction();	
-		}
+		}*/
 
-		if (isOwner) {
+
 			if (!(request.getParameter("number")==null)) {
 				myShepherd.beginDBTransaction();
 				Encounter newenc=myShepherd.getEncounter(request.getParameter("number"));
@@ -81,7 +82,7 @@ public class EncounterApprove extends HttpServlet {
 						out.println("<strong>Success:</strong> I have approved this encounter "+request.getParameter("number")+" for inclusion in the database.");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
 						out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-						out.println("<p><a href=\"encounters/allEncounters.jsp?start=1&end=10&sort=nosort&unapproved=true\">View all unapproved encounters</a></font></p>");
+						out.println("<p><a href=\"encounters/allEncountersUnapproved.jsp?start=1&end=10&sort=nosort\">View all unapproved encounters</a></font></p>");
 						out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");			
 						out.println(ServletUtilities.getFooter());
 						String message="Encounter "+request.getParameter("number")+" was approved for inclusion in the visual database.";
@@ -102,13 +103,7 @@ public class EncounterApprove extends HttpServlet {
 						out.println("<strong>Error:</strong> I don't know which new encounter you're trying to approve.");
 						out.println(ServletUtilities.getFooter());	
 				}
-			}
-			else {
-				myShepherd.rollbackDBTransaction();
-				out.println(ServletUtilities.getHeader());
-				out.println("<strong>Error:</strong> I was unable to set the alternate ID. I cannot find the encounter that you intended it for in the database.");
-				out.println(ServletUtilities.getFooter());				
-			}
+
 			out.close();
 			myShepherd.closeDBTransaction();
     	}

@@ -328,13 +328,13 @@ public class ServletUtilities {
 		if(request.isUserInRole("admin")) {
 			isOwner=true;
 		}
-		else if(request.isUserInRole("manager")) {
+		else if(request.isUserInRole("admin")) {
 			isOwner=true;
 		}
-		else if((request.isUserInRole(enc.getLocationCode()))&&(request.isUserInRole("researcher"))) {
+		else if((request.isUserInRole(enc.getLocationCode()))&&(request.isUserInRole("admin"))) {
 			isOwner=true;
 		}
-		else if((((enc.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(enc.getSubmitterID().equals(request.getRemoteUser()))&&(request.isUserInRole("researcher"))))) {
+		else if((((enc.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(enc.getSubmitterID().equals(request.getRemoteUser()))&&(request.isUserInRole("admin"))))) {
 			isOwner=true;
 		}
 		return isOwner;
@@ -342,7 +342,7 @@ public class ServletUtilities {
 	
 	public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request){
 		if(request.isUserInRole("admin")){return true;}
-		if(request.isUserInRole("manager")){return true;}
+		
 		Vector encounters = sharky.getEncounters();
 		int numEncs = encounters.size();
 		for(int y=0;y<numEncs;y++){
@@ -354,24 +354,23 @@ public class ServletUtilities {
 	
 	public static Query setRange(Query query,int iterTotal,int highCount,int lowCount){
 
-		int low=0;
-		int high=9;
+	  if(iterTotal>10){
 		
-		//handle low lowCount
-		if(lowCount<0){
-			low=0;
-			high=9;
-		}
-		else if((highCount>iterTotal)||(lowCount>iterTotal)){
-			low=lowCount-1;
-			high=iterTotal;
-		}
-		else{
-			low=lowCount-1;
-			high=highCount;
-		}
+	    //handle the normal situation first
+	    if((lowCount>0)&&(lowCount<=highCount)){
+	      if(highCount-lowCount>50){query.setRange((lowCount-1), (lowCount+50));}
+	      else {query.setRange(lowCount-1, highCount);}
+	    }
 
-		query.setRange(low, high);
+	    else {
+	        query.setRange(0, 10);
+	     }
+
+	    
+		}
+	  else{
+	    query.setRange(0, iterTotal);
+	  }
 		return query;
 
 	}

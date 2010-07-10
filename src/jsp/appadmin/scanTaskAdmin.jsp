@@ -46,17 +46,7 @@ if(request.getParameter("maxGroupSize")!=null){
 	}
 	catch(NumberFormatException nfe){}
 }
-if(request.getParameter("zombie")!=null){
-	try{
 
-		GridNode zNode = gm.getGridNode(request.getParameter("zombie"));
-		if(zNode!=null){
-			if(zNode.isZombie){zNode.isZombie = false;}
-			else{zNode.isZombie = true;}
-		}
-	}
-	catch(NumberFormatException nfe){}
-}
 
 
 //setup our Properties object to hold all properties
@@ -70,9 +60,6 @@ if(request.getParameter("zombie")!=null){
 		if(request.getParameter("langCode").equals("es")) {langCode="es";}
 	}
 	
-	//set up the file input stream
-	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
-	//props.load(propsInputStream);
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 	
 	
@@ -102,9 +89,7 @@ if(request.getParameter("zombie")!=null){
 	String blog=props.getProperty("blog");
 	String area=props.getProperty("area");
 	String match=props.getProperty("match");
-	
-	//link path to submit page with appropriate language
-	String submitPath="submit.jsp?langCode="+langCode;
+
 	
 %>
 
@@ -148,18 +133,14 @@ if(request.getParameter("zombie")!=null){
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="leftcol"></div>
-<!-- end leftcol -->
+
 <div id="maincol-wide">
 
 <div id="maintext">
-<h1 class="intro">Grid Administration <a
-	href="<%=CommonConfiguration.getWikiLocation()%>sharkgrid"
-	target="_blank"><img src="../images/information_icon_svg.gif"
-	alt="Help" border="0" align="absmiddle"></a></h1>
+<h1 class="intro">Grid Administration 
+	<a href="<%=CommonConfiguration.getWikiLocation()%>sharkgrid" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a></h1>
 
-<%
-			
+<%			
 			myShepherd.beginDBTransaction();
 			try{
 			
@@ -182,11 +163,8 @@ if(request.getParameter("zombie")!=null){
 				scanNum++;
 				int numTotal=st.getNumComparisons();
 				
-				//change - use gm
-				//int numComplete=myShepherd.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
 				int numComplete = gm.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
 				
-				//int numGenerated=myShepherd.getNumWorkItemsInTask(st.getUniqueNumber());
 				int numGenerated=gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
 				
 				int numTaskTot = numComplete+numGenerated;
@@ -202,7 +180,7 @@ if(request.getParameter("zombie")!=null){
 		<td>
 		<%if((numComplete>0)&&(numComplete>=numTaskTot)) {%>
 		<form name="scanNum<%=scanNum%>_writeOut" method="post"
-			action="/writeOutScanTask"><input name="number" type="hidden"
+			action="../WriteOutScanTask"><input name="number" type="hidden"
 			id="number" value="<%=st.getUniqueNumber()%>"> <% 
 					if(st.getUniqueNumber().equals("TuningTask")){
 					%> Boost weight for failed matches<br />
@@ -210,13 +188,12 @@ if(request.getParameter("zombie")!=null){
 			size="5" maxlength="10" /> <br />
 		<%
 					}
-					%> <input name="scanNum<%=scanNum%>_WriteResult" type="submit"
-			id="scanNum<%=scanNum%>_WriteResult" value="Write Result"></form>
+					%> <input name="scanNum<%=scanNum%>_WriteResult" type="submit" id="scanNum<%=scanNum%>_WriteResult" value="Write Result"></form>
 		<br> <%
 				} 
-				if((request.isUserInRole("admin"))||(request.isUserInRole("manager"))||(request.getRemoteUser().equals(st.getSubmitter()))) {%>
+				if((request.isUserInRole("admin"))||(request.getRemoteUser().equals(st.getSubmitter()))) {%>
 		<form name="scanNum<%=scanNum%>" method="post"
-			action="/scanTaskHandler"><input name="action" type="hidden"
+			action="../ScanTaskHandler"><input name="action" type="hidden"
 			id="action" value="removeTask"><input name="taskID"
 			type="hidden" id="taskID" value="<%=st.getUniqueNumber()%>"><input
 			name="delete" type="submit" id="delete" value="Delete"></form>
@@ -230,8 +207,7 @@ if(request.getParameter("zombie")!=null){
 			}
 			%>
 </table>
-<p><a href="http://www.sharkgrid.org">Click here to jump on the
-sharkGrid to assist in their completion.</a></p>
+
 
 
 <h3>Completed scanTasks</h3>
@@ -277,9 +253,9 @@ sharkGrid to assist in their completion.</a></p>
 			name="viewresult" type="submit" id="viewresult" value="View"></form>
 		</td>
 		<td>
-		<%if((request.isUserInRole("admin"))||(request.isUserInRole("manager"))||(request.getRemoteUser().equals(st.getSubmitter()))) {%>
+		<%if((request.isUserInRole("admin"))||(request.getRemoteUser().equals(st.getSubmitter()))) {%>
 		<form name="scanNum<%=scanNum%>" method="post"
-			action="/scanTaskHandler"><input name="action" type="hidden"
+			action="../ScanTaskHandler"><input name="action" type="hidden"
 			id="action" value="removeTask"><input name="taskID"
 			type="hidden" id="taskID" value="<%=st.getUniqueNumber()%>"><input
 			name="delete" type="submit" id="delete" value="Delete"></form>
@@ -424,34 +400,7 @@ if(request.isUserInRole("admin")) {
 <p>Number of tasks creating/deleteing: <%=es.getActiveCount()%> (<%=(es.getTaskCount()-es.getCompletedTaskCount())%>
 total in queue)<br> <br>
 
-<h3>Tuning Tasks and Boosting Files</h3>
-<p>
-<form name="formTuningTask" id="formTuningTask" method="post"
-	action="/scanTaskHandler"><strong>Create Tuning Task</strong>
-(first delete the old one if it still exists): <br />
-Number of comparisons to make: <input name="action" type="hidden"
-	id="action" value="addTuningTask"> <em>Leave blank for all
-possible comparisons.</em><br />
-<input name="maxNumWorkItems" type="text" id="maxNumWorkItems"
-	value="1000" size="10" maxlength="10" /> <input name="writeThis"
-	type="hidden" id="writeThis" value="true"> <br> <input
-	name="scan" type="submit" id="scan" value="Create New Tuning Task">
-<input name="cutoff" type="hidden" value="0.02"></form>
-</p>
-<p>
-<form name="formTuningTask" id="formFalseTuningTask" method="post"
-	action="/scanTaskHandler"><strong>Create False Match
-Tuning Task</strong> (first delete the old one if it still exists): <br />
-Number of comparisons to make: <input name="action" type="hidden"
-	id="action" value="addFalseMatchTask"> <em>Leave blank for
-all possible false comparisons (not recommended).</em><br />
-<input name="maxNumWorkItems" type="text" id="maxNumWorkItems"
-	value="1000" size="10" maxlength="10" /> <input name="writeThis"
-	type="hidden" id="writeThis" value="true"> <br> <input
-	name="scan" type="submit" id="scan"
-	value="Create New False Match Tuning Task"> <input
-	name="cutoff" type="hidden" value="0.02"></form>
-</p>
+
 <%}%>
 
 </p>

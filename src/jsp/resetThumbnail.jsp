@@ -10,9 +10,7 @@ try{
 }
 catch(Exception cce){}
 
-//System.out.println(number);
-//int number=(new Integer(num)).intValue();
-Shepherd myShepherd=new Shepherd();
+
 
 	
 %>
@@ -45,44 +43,34 @@ Shepherd myShepherd=new Shepherd();
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="leftcol">
-<div id="menu">
 
-
-
-<div class="module"><img src="images/area.jpg" width="190"
-	height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"></p>
-</div>
-
-<div class="module"><img src="images/match.jpg" width="190"
-	height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-<p class="caption"></p>
-</div>
-
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
 <div id="maincol-wide">
 
 <div id="maintext">
 <%
-		myShepherd.beginDBTransaction();
-		Encounter enc=myShepherd.getEncounter(number);
-		//Enumeration images=enc.getAdditionalImageNames().elements();
-		String addText=(String)enc.getAdditionalImageNames().get((imageNum-1));	
-		//String addText="";
-		if(myShepherd.isAcceptableVideoFile(addText)){addText="images/video_thumb.jpg";}
-		else{addText="encounters/"+request.getParameter("number")+"/"+addText;}
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
-		String thumbLocation="file-encounters/"+number+"/thumb.jpg";
 		
-		System.gc();
+		String addText="";
+		if(request.getParameter("imageName")!=null){
+			addText=request.getParameter("imageName");
+			addText="encounters/"+request.getParameter("number")+"/"+addText;
+			
+		}
+		else {
+			Shepherd myShepherd=new Shepherd();
+			myShepherd.beginDBTransaction();
+			Encounter enc=myShepherd.getEncounter(number);
+			addText=(String)enc.getAdditionalImageNames().get((imageNum-1));	
+			if(myShepherd.isAcceptableVideoFile(addText)){addText="images/video_thumb.jpg";}
+			else{addText="encounters/"+request.getParameter("number")+"/"+addText;}
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+		}
+		
+		
+		String thumbLocation="file-encounters/"+number+"/thumb.jpg";
+
 		//generate the thumbnail image
-			%> <di:img width="100" height="75" border="0" fillPaint="#000000"
+			%> <di:img width="100" height="75" border="0" fillPaint="#ffffff"
 	output="<%=thumbLocation%>" expAfter="0" threading="limited"
 	align="left" valign="left">
 	<di:image width="100" height="*" srcurl="<%=addText%>" />

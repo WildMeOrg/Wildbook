@@ -51,7 +51,7 @@ else {
 	pi_name="NONE_AMP_";
 }
 String processedRequest=pi_name+request.getParameter("search1")+"_AMP_"+request.getParameter("search2")+"_AMP_"+request.getParameter("search3")+locCodeQuery;
-String earl="http://"+CommonConfiguration.getURLLocation()+"/imageSearch?queryString="+processedRequest.replaceAll("%20"," ").replaceAll("%2F","/").replaceAll("%2520"," ");
+String earl="http://"+CommonConfiguration.getURLLocation()+"/ImageSearch?queryString="+processedRequest.replaceAll("%20"," ").replaceAll("%2F","/").replaceAll("%2520"," ");
 //System.out.println(earl);
 %>
 <h1 class="intro">

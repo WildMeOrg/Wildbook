@@ -14,13 +14,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 //setup our Properties object to hold all properties
 	Properties props=new Properties();
 	String langCode="en";
-	
-	//check what language is requested
-	//if(request.getParameter("langCode")!=null){
-		//if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
-		//if(request.getParameter("langCode").equals("de")) {langCode="de";}
-		//if(request.getParameter("langCode").equals("es")) {langCode="es";}
-	//}
+
 	if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
 	
 	
@@ -66,6 +60,10 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 	String name=request.getParameter("number").trim();
 	Shepherd myShepherd=new Shepherd();
 
+	
+	boolean isOwner=false;
+	if(request.isUserInRole("admin")){isOwner=true;}
+	
 %>
 
 <html>
@@ -155,10 +153,9 @@ try{
 
 %>
 
-<h1><strong><span class="para"><img
-	src="images/markedIndividualIcon.gif" align="absmiddle" /></span>
+<h1><strong><span class="para"><img src="images/tag_big.gif" width="50px" height="*" align="absmiddle" /></span>
 <%=markedIndividualTypeCaps %></strong>: <%=sharky.getName()%></h1>
-<%if(request.isUserInRole("researcher")){%> <a name="alternateid"></a></a>
+<%if(isOwner){%> <a name="alternateid"></a></a>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
 <%=sharky.getAlternateID()%> <%if(hasAuthority) {%>[<a
 	href="individuals.jsp?number=<%=name%>&edit=alternateid#alternateid"><%=edit%></a>]<%}%>
@@ -174,7 +171,7 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 	<tr>
 		<td align="left" valign="top">
 		<form name="set_alternateid" method="post"
-			action="/IndividualSetAlternateID"><input name="individual"
+			action="IndividualSetAlternateID"><input name="individual"
 			type="hidden" value="<%=request.getParameter("number")%>"> <%=alternateID %>:
 		<input name="alternateid" type="text" id="alternateid" size="15"
 			maxlength="150"><br> <input name="Name" type="submit"
@@ -204,7 +201,7 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 <br />
 <%
 
-	 if(request.isUserInRole("manager")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("nickname"))){%>
+	 if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("nickname"))){%>
 		<br /><br />
 		<a name="nickname">
 		<table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
@@ -213,7 +210,7 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-					<form name="nameShark" method="post" action="/IndividualSetNickName">
+					<form name="nameShark" method="post" action="IndividualSetNickName">
 						<input name="individual" type="hidden"
 								value="<%=request.getParameter("number")%>"> <%=nickname %>:
 						<input name="nickname" type="text" id="nickname" size="15"
@@ -227,11 +224,11 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 	<br /> <%}%>
 
 </p>
-<p><%=sex %>: <%=sharky.getSex()%> <%if(request.isUserInRole("manager")) {%>[<a
+<p><%=sex %>: <%=sharky.getSex()%> <%if(isOwner) {%>[<a
 	href="individuals.jsp?number=<%=name%>&edit=sex#sex"><%=edit %></a>]<%}%><br>
 <%
 		//edit sex
-		if ((request.isUserInRole("manager"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))) {%>
+		if (isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))) {%>
 <br><a name="sex">
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
 	bgcolor="#99CCFF">
@@ -240,7 +237,7 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 	</tr>
 	<tr>
 		<td align="left" valign="top">
-		<form name="setxsexshark" action="/IndividualSetSex" method="post">
+		<form name="setxsexshark" action="IndividualSetSex" method="post">
 
 		<select name="selectSex" size="1" id="selectSex">
 			<option value="unsure">unsure</option>
@@ -262,7 +259,7 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 		<td align="left" valign="top">
 		<%
 boolean showLogEncs=false;
-if (request.isUserInRole("researcher")) {
+if (isOwner) {
 	showLogEncs=true;
 }%>
 		<p><strong><%=(sharky.totalEncounters()+sharky.totalLogEncounters())%></strong>
@@ -277,7 +274,7 @@ if (request.isUserInRole("researcher")) {
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=size %></strong></td>
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %></strong></td>
 				<%
-	 if(request.isUserInRole("manager")) {
+	 if(isOwner) {
 	 %>
 
 				<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=spots %></strong></td>
@@ -289,7 +286,7 @@ if (request.isUserInRole("researcher")) {
 			int total=dateSortedEncs.length;
 			for (int i=0; i<total;i++) {
 				Encounter enc=dateSortedEncs[i];
-					if((enc.isApproved())||(request.isUserInRole("manager"))) {
+					if((enc.isApproved())||(isOwner)) {
 						Vector encImages=enc.getAdditionalImageNames();
 						String imgName="";
 						if(enc.isApproved()){
@@ -321,13 +318,13 @@ if (request.isUserInRole("researcher")) {
 				<td class="lineitem"><%=unknown %></td>
 				<%}%>
 				<td class="lineitem"><%=enc.getSex()%></td>
-				<%if(((enc.getSpots().size()==0)&&(enc.getRightSpots().size()==0))&&(request.isUserInRole("manager"))) {%>
+				<%if(((enc.getSpots().size()==0)&&(enc.getRightSpots().size()==0))&&(isOwner)) {%>
 				<td class="lineitem">&nbsp;</td>
-				<% } else if((request.isUserInRole("manager"))&&(enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
+				<% } else if(isOwner&&(enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
 				<td class="lineitem">LR</td>
-				<%}else if((request.isUserInRole("manager"))&&(enc.getSpots().size()>0)) {%>
+				<%}else if(isOwner&&(enc.getSpots().size()>0)) {%>
 				<td class="lineitem">L</td>
-				<%} else if((request.isUserInRole("manager"))&&(enc.getRightSpots().size()>0)) {%>
+				<%} else if(isOwner&&(enc.getRightSpots().size()>0)) {%>
 				<td class="lineitem">R</td>
 				<%}%>
 			</tr>
@@ -341,7 +338,7 @@ if (request.isUserInRole("researcher")) {
 
 		</table>
 		<%
-    if (request.isUserInRole("researcher")) {
+    if (isOwner) {
 	%>
 		<p><strong><img src="images/2globe_128.gif" width="64"
 			height="64" align="absmiddle" /><%=mapping %></strong></p>
@@ -416,7 +413,7 @@ if (request.isUserInRole("researcher")) {
 		<%} else {%>
 		<p><%=noGPS %></p>
 		<br> <%}%> <%}%> <%
-    if (request.isUserInRole("researcher")) {
+    if (isOwner) {
 %>
 		<hr>
 		<p><strong><%=additionalDataFiles %></strong>: <%if (sharky.getDataFiles().size()>0) {%>
@@ -432,7 +429,7 @@ if (request.isUserInRole("researcher")) {
 				<td><img src="disk.gif"> <a
 					href="sharks/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%></a></td>
 				<td>&nbsp;&nbsp;&nbsp;[<a
-					href="/IndividualRemoveDataFile?individual=<%=name%>&filename=<%=file_name%>"><%=delete %></a>]</td>
+					href="IndividualRemoveDataFile?individual=<%=name%>&filename=<%=file_name%>"><%=delete %></a>]</td>
 			</tr>
 
 			<%}%>
@@ -440,7 +437,7 @@ if (request.isUserInRole("researcher")) {
 		<%} else {%> <%=none %>
 		</p>
 		<%}%>
-		<form action="/IndividualAddFile" method="post"
+		<form action="IndividualAddFile" method="post"
 			enctype="multipart/form-data" name="addDataFiles"><input
 			name="action" type="hidden" value="fileadder" id="action"> <input
 			name="individual" type="hidden" value="<%=sharky.getName()%>"
@@ -452,7 +449,7 @@ if (request.isUserInRole("researcher")) {
 		<hr>
 
 		<p>
-		<form action="/IndividualAddComment" method="post" name="addComments">
+		<form action="IndividualAddComment" method="post" name="addComments">
 		<p><input name="user" type="hidden"
 			value="<%=request.getRemoteUser()%>" id="user"> <input
 			name="individual" type="hidden" value="<%=sharky.getName()%>"
@@ -556,18 +553,13 @@ catch(Exception eSharks_jsp){
 <div id="rightcol">
 <div id="menu">
 
-<%
-if(CommonConfiguration.areAdoptionsAllowed()){
-%>
+
 <div class="module">
 <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
 						<jsp:param name="name" value="<%=name%>" />
 				</jsp:include>
 </div>
-<%
 
-}
-%>
 
 </div>
 <!-- end menu --></div>

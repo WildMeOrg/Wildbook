@@ -4,7 +4,7 @@
 
 <%
 
-//setup our Properties object
+//setup our Properties object to hold all properties
 	Properties props=new Properties();
 	String langCode="en";
 	
@@ -34,7 +34,7 @@
 	String individual=props.getProperty("individual");
 	String view_all_unidentified=props.getProperty("view_all_unidentified");
 	String nav_text=props.getProperty("nav_text");
-	String from_user=props.getProperty("nav_text");
+	String from_user=props.getProperty("from_user");
 	String view_all=props.getProperty("view_all");
 	String all_encounters_text=props.getProperty("all_encounters_text");
 	String viewing=props.getProperty("viewing");
@@ -63,7 +63,6 @@
 	if ((request.getParameter("start")!=null)&&(request.getParameter("end")!=null)) {
 		lowCount=(new Integer(request.getParameter("start"))).intValue();
 		highCount=(new Integer(request.getParameter("end"))).intValue();
-		if((highCount>(lowCount+9))&&(!request.isUserInRole("researcher"))) {highCount=lowCount+9;}
 	}	
 
 
@@ -84,11 +83,6 @@
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 </head>
 
-<!-- Google Translation-->
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
-<script type="text/javascript">
-  google.load("language", "1");
-</script>
 
 <body>
 <div id="wrapper">
@@ -104,29 +98,8 @@
 
 <div id="main">
 
-<div id="leftcol">
-<div id="menu">
 
-
-<div class="module"><img
-	src="http://<%=CommonConfiguration.getURLLocation()%>/images/area.jpg"
-	width="190" height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"><%=area%></p>
-</div>
-
-<div class="module"><img
-	src="http://<%=CommonConfiguration.getURLLocation()%>/images/match.jpg"
-	width="190" height="94" border="0" title="We Have A Match!"
-	alt="We Have A Match!" />
-<p class="caption"><%=match%></p>
-</div>
-
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 <div id="maintext">
 <%
 
@@ -138,7 +111,7 @@ Query query=myShepherd.getPM().newQuery(encClass);
 try{
 
 int totalCount=0;
-if ((request.getParameter("rejects")!=null)&&(request.isUserInRole("researcher"))) {   
+if (request.getParameter("rejects")!=null) {   
 	totalCount=myShepherd.getNumUnidentifiableEncounters();
 %>
 <table id="results" border="0">
@@ -155,12 +128,12 @@ if ((request.getParameter("rejects")!=null)&&(request.isUserInRole("researcher")
 </table>
 
 
-<%} else if((request.getParameter("unapproved")!=null)&&(request.isUserInRole("researcher"))) {
+<%} else if((request.getParameter("unapproved")!=null)&&(session.getAttribute("logged")!=null)) {
 	
 %>
 <table>
 	<tr>
-		<td bgcolor="#CC6600">
+		<td bgcolor="#CC6600" colspan="4">
 		<p><strong><%=unapproved_text %></strong></p>
 		</td>
 	</tr>
@@ -177,13 +150,23 @@ if ((request.getParameter("rejects")!=null)&&(request.isUserInRole("researcher")
 <%
   	totalCount=myShepherd.getNumUnapprovedEncounters();
   
-  } else if(request.getParameter("user")!=null) {
+  } 
+  else if(request.getParameter("user")!=null) {
 	totalCount=myShepherd.getNumUserEncounters(request.getParameter("user"));
 %>
-<p><strong><font size="+1"><%=from_user %>:</font></strong> <font size="+1"><em><%=request.getParameter("user")%></em></font></p>
-<table>
+
+<table id="results" border="0">
 	<tr>
-		<td>
+		<td colspan="4">
+		<h1><%=from_user %>: <em><%=request.getParameter("user")%></em></h1>
+
+		</td>
+	</tr>
+
+
+
+	<tr>
+		<td class="caption">
 		<p><%=view_all_user.replaceAll("COUNT", Integer.toString(totalCount)).replaceAll("USERNAME", request.getParameter("user")
 				) %> <%=nav_text %></p>
 		</td>
@@ -201,7 +184,7 @@ if ((request.getParameter("rejects")!=null)&&(request.isUserInRole("researcher")
 		</td>
 	</tr>
 	<tr>
-		<th class="caption" colspan="4"><%=all_encounters_text.replaceAll("COUNT", Integer.toString(totalCount)) %> <%=nav_text %>
+		<td class="caption" colspan="4"><%=all_encounters_text.replaceAll("COUNT", Integer.toString(totalCount)) %> <%=nav_text %>
 		</td>
 	</tr>
 </table>
@@ -211,15 +194,15 @@ if ((request.getParameter("rejects")!=null)&&(request.isUserInRole("researcher")
 
 
 <%}%>
-<table id="results" border="0" width="100%">
+<table id="results" border="0" width="810px">
 	<tr class="paging">
 		<td align="left">
 		<%
 
 String rejectsLink="";
-if (request.getParameter("rejects")!=null) {rejectsLink="&rejects=true";}
+if ((session.getAttribute("logged")!=null)&&(request.getParameter("rejects")!=null)) {rejectsLink="&rejects=true";}
 String unapprovedLink="";
-if (request.getParameter("unapproved")!=null) {unapprovedLink="&unapproved=true";}
+if ((session.getAttribute("logged")!=null)&&(request.getParameter("unapproved")!=null)) {unapprovedLink="&unapproved=true";}
 String userLink="";
 if (request.getParameter("user")!=null) {userLink="&user="+request.getParameter("user");}
 
@@ -230,7 +213,7 @@ if (highCount<totalCount) {%> <a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>"><%=previous %></a>
 		<%}%>
 		</td>
-		<td colspan="6" align="right">
+		<td colspan="8" align="right">
 		<%
  String startNum="1";
  String endNum="10";
@@ -259,7 +242,8 @@ if (highCount<totalCount) {%> <a
  }
  } catch(NumberFormatException nfe) {}
  
- %> <%=viewing %>: <%=lowCount%> - <%=highCount%><%=displaySort%></td>
+ %> 
+ <%=viewing %>: <%=lowCount%> - <%=highCount%><%=displaySort%></td>
 	</tr>
 
 	<tr class="lineitem">
@@ -287,17 +271,9 @@ if (highCount<totalCount) {%> <a
 		</td>
 		<td width="90" align="left" valign="top" bgcolor="#99CCFF"
 			class="lineitem"><strong><%=location %></strong>
-		<%if(request.getRemoteUser()!=null){%><br />
-		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=locationup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
-		<a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=locationdown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_down.gif" width="11" height="6" border="0"
-			alt="down" /></a>
-		<%}%>
+
 		</td>
-		<% if((request.isUserInRole("researcher"))) {%>
+		
 		<td width="40" align="left" valign="top" bgcolor="#99CCFF"
 			class="lineitem"><strong><%=locationID %></strong> <a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=locationCodeup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
@@ -306,7 +282,7 @@ if (highCount<totalCount) {%> <a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=locationCodedown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="/images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a></td>
-		<%}%>
+	
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=size %>
 		</strong><br />
 		<%if(request.getRemoteUser()!=null){%><a
@@ -339,32 +315,25 @@ if (highCount<totalCount) {%> <a
 		<%}%>
 		</td>
 
-		<%
-	 if(request.isUserInRole("researcher")) {
-	 %>
+
 
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><font
 			color="#000000"><%=tags %></font></strong></td>
-		<%}%>
+	
 	</tr>
 	<%		
 
   			Iterator allEncounters;
 
 			int total=totalCount;
-			int iterTotal=totalCount-1;
-			if ((request.getParameter("rejects")!=null)&&(request.getParameter("sort")!=null)) {
+			int iterTotal=totalCount;
+			if ((session.getAttribute("logged")!=null)&&(request.getParameter("rejects")!=null)&&(request.getParameter("sort")!=null)) {
 					
-					iterTotal=totalCount-1;
+					iterTotal=totalCount;
 					query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 					
-				if (request.getParameter("sort").equals("locationup")) {
-					allEncounters=myShepherd.getAllUnidentifiableEncounters(query, "verbatimLocality ascending");
-					}
-				else if (request.getParameter("sort").equals("locationdown")) {
-					allEncounters=myShepherd.getAllUnidentifiableEncounters(query, "verbatimLocality descending");
-					}
-				else if (request.getParameter("sort").equals("sizeup")) {
+
+				if (request.getParameter("sort").equals("sizeup")) {
 					allEncounters=myShepherd.getAllUnidentifiableEncounters(query, "size ascending");
 					}
 				else if (request.getParameter("sort").equals("sizedown")) {
@@ -402,7 +371,7 @@ if (highCount<totalCount) {%> <a
 					}
 				else {allEncounters=myShepherd.getAllUnidentifiableEncounters(query);}
 					}
-			else if(request.getParameter("rejects")!=null) {
+			else if((session.getAttribute("logged")!=null)&&(request.getParameter("rejects")!=null)) {
 
 
 				query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
@@ -410,60 +379,6 @@ if (highCount<totalCount) {%> <a
 				allEncounters=myShepherd.getAllUnidentifiableEncounters(query);
 			}
 			
-			//unapproved sorting
-			else if ((request.getParameter("unapproved")!=null)&&(request.getParameter("sort")!=null)&&(request.isUserInRole("researcher"))) {
-
-			
-				query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
-			
-					query.setFilter("!this.unidentifiable && this.approved == false");
-				if (request.getParameter("sort").equals("locationup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "verbatimLocality ascending");
-					}
-				else if (request.getParameter("sort").equals("locationdown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "verbatimLocality descending");
-					}
-				else if (request.getParameter("sort").equals("sizeup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "size ascending");
-					}
-				else if (request.getParameter("sort").equals("sizedown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "size descending");
-					}
-				else if (request.getParameter("sort").equals("locationCodeup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "locationID ascending");
-					}
-				else if (request.getParameter("sort").equals("locationCodedown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "locationID descending");
-					}
-				else if (request.getParameter("sort").equals("sexup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "sex ascending");
-					}
-				else if (request.getParameter("sort").equals("sexdown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "sex descending");
-					}
-				else if (request.getParameter("sort").equals("numberup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "catalogNumber ascending");
-					}
-				else if (request.getParameter("sort").equals("numberdown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "catalogNumber descending");
-					}
-				else if (request.getParameter("sort").equals("dateup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "year ascending, month ascending, day ascending, hour ascending, minutes ascending");
-					}
-				else if (request.getParameter("sort").equals("datedown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "year descending, month descending, day descending, hour descending, minutes descending");
-					}
-				else if (request.getParameter("sort").equals("assignedup")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "individualID ascending");
-					}
-				else if (request.getParameter("sort").equals("assigneddown")) {
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "individualID descending");
-					}
-				else {
-					
-					allEncounters=myShepherd.getUnapprovedEncounters(query, "dwcDateAdded descending");}
-			}
-			//end unapproved sorting
 			
 			//user-based sorting
 			else if ((request.getParameter("user")!=null)&&(request.getParameter("sort")!=null)) {
@@ -471,14 +386,8 @@ if (highCount<totalCount) {%> <a
 
 						
 						ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
-						
-				if (request.getParameter("sort").equals("locationup")) {
-					allEncounters=myShepherd.getSortedUserEncounters(query, "verbatimLocality ascending");
-					}
-				else if (request.getParameter("sort").equals("locationdown")) {
-					allEncounters=myShepherd.getSortedUserEncounters(query, "verbatimLocality descending");
-					}
-				else if (request.getParameter("sort").equals("sizeup")) {
+		
+				if (request.getParameter("sort").equals("sizeup")) {
 					allEncounters=myShepherd.getSortedUserEncounters(query, "size ascending");
 					}
 				else if (request.getParameter("sort").equals("sizedown")) {
@@ -530,10 +439,7 @@ if (highCount<totalCount) {%> <a
 			}
 			//end user-based sorting
 			
-			else if((request.getParameter("unapproved")!=null)&&(request.isUserInRole("researcher"))) {
-				query.setFilter("!this.unidentifiable && this.approved == false");
-				allEncounters=myShepherd.getUnapprovedEncounters(query);
-			}
+		
 			else if(request.getParameter("user")!=null) {
 				query.setFilter(("this.approved && this.submitterID == \""+request.getParameter("user")+"\""));
 				allEncounters=myShepherd.getUserEncounters(query, request.getParameter("user"));
@@ -545,16 +451,8 @@ if (highCount<totalCount) {%> <a
 						
 						query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 			
-				//do something here
-				if (request.getParameter("sort").equals("locationup")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
-					allEncounters=myShepherd.getAllEncounters(query, "verbatimLocality ascending");
-					}
-				else if (request.getParameter("sort").equals("locationdown")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
-					allEncounters=myShepherd.getAllEncounters(query, "verbatimLocality descending");
-					}
-				else if (request.getParameter("sort").equals("sizeup")) {
+
+				if (request.getParameter("sort").equals("sizeup")) {
 					query.setFilter("!this.unidentifiable && this.approved == true");
 					allEncounters=myShepherd.getAllEncounters(query, "size ascending");
 					}
@@ -634,23 +532,26 @@ if (highCount<totalCount) {%> <a
 			width="100" height="75" alt="whale shark photo" border="0" /></a></td>
 		<%
 	int encNumLast=enc.getEncounterNumber().length();
-	String encNumShort=enc.getEncounterNumber().substring((encNumLast-4),encNumLast);
+		String encNumShort=enc.getEncounterNumber();
+		if(encNumLast>4){
+			encNumShort=enc.getEncounterNumber().substring((encNumLast-4),encNumLast);
+		}
 	
 	%>
 		<td class="lineitems"><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=encNumShort%></a></td>
 		<td class="lineitems">
-		<% if((request.isUserInRole("researcher"))){%><a
+		<a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
-		<%}%><%=enc.getShortDate()%>
-		<% if((request.isUserInRole("researcher"))){%>
+		<%=enc.getShortDate()%>
+		
 		</a>
-		<%}%>
+	
 		</td>
 		<td width="90" class="lineitems"><%=enc.getLocation()%></td>
-		<% if((request.isUserInRole("researcher"))) {%>
+	
 		<td class="lineitems"><%=enc.getLocationCode()%></td>
-		<%}
+		<%
 	if(enc.getSize()!=0) {
 	%>
 		<td class="lineitems"><%=enc.getSize()%></td>
@@ -674,13 +575,13 @@ if (highCount<totalCount) {%> <a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>"><%=enc.isAssignedToMarkedIndividual()%></a></td>
 		<%
 	}
-	if(((enc.getSpots()==null)&&(enc.getRightSpots()==null))&&(request.isUserInRole("researcher"))) {%>
+	if(((enc.getSpots()==null)&&(enc.getRightSpots()==null))) {%>
 		<td class="lineitems">&nbsp;</td>
-		<% } else if((request.isUserInRole("researcher"))&&(enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
+		<% } else if((enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
 		<td class="lineitems">LR</td>
-		<%}else if((request.isUserInRole("researcher"))&&(enc.getSpots().size()>0)) {%>
+		<%}else if(enc.getSpots().size()>0) {%>
 		<td class="lineitems">L</td>
-		<%} else if((request.isUserInRole("researcher"))&&(enc.getRightSpots().size()>0)) {%>
+		<%} else if(enc.getRightSpots().size()>0) {%>
 		<td class="lineitems">R</td>
 		<%}
 	  } catch(javax.jdo.JDOUserException jdoe) {
@@ -701,7 +602,7 @@ if (highCount<totalCount) {%> <a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>"><%=previous %></a>
 		<%}%>
 		</td>
-		<td colspan="6" align="right"><%=viewing %>: <%=lowCount%> - <%=highCount%><%=displaySort%>
+		<td colspan="8" align="right"><%=viewing %>: <%=lowCount%> - <%=highCount%><%=displaySort%>
 
 		</td>
 	</tr>

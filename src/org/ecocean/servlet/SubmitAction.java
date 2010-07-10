@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.NullPointerException;
-import java.io.FileInputStream;
+//import java.io.FileInputStream;
 import java.util.Properties;
 import java.io.File;
 import java.lang.Exception;
@@ -22,17 +22,15 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.upload.FormFile;
 import java.util.Calendar;
 import java.util.Vector;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
+//import java.text.CharacterIterator;
+//import java.text.StringCharacterIterator;
 import java.util.Random;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.*;
 
 import java.lang.SecurityException;
 
@@ -109,7 +107,7 @@ public class SubmitAction extends Action{
 			additionalImageNames=theForm.getAdditionalImageNames();
 			encounterNumber=theForm.getEncounterNumber();
 			livingStatus=theForm.getLivingStatus();
-			informothers = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getInformothers());
+			informothers = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getInformothers().replaceAll(";", ",").replaceAll(" ",""));
 			//check for spamBots
 			boolean spamBot=false;
 			StringBuffer spamFields=new StringBuffer();
@@ -425,58 +423,7 @@ public class SubmitAction extends Action{
 		DateTimeFormatter fmt = ISODateTimeFormat.date();
 		String strOutputDateTime = fmt.print(dt);
 		enc.setDWCDateAdded(strOutputDateTime);
-		enc.setDWCDateLastModified(strOutputDateTime);
-		//enc.setDateAdded(System.currentTimeMillis());
-		
-		//set DarwinCore lat and long
-		/*
-		if((!enc.getGPSLatitude().equals(""))&&(!enc.getGPSLongitude().equals(""))){
-			//add the GPS data
-			//encounter latitude
-			double myLat=enc.getLatInteger();
-			//see if I can get more specific with latitude
-			if(enc.getGPSLatitude().indexOf("&deg; ")!=-1) {
-				try {
-					int startPlace=enc.getGPSLatitude().indexOf("&deg; ")+6;
-					String tempLat=enc.getGPSLatitude().substring(startPlace);
-					int endPlace=tempLat.indexOf("\'");
-					tempLat=tempLat.substring(0,endPlace);
-					double minutes=(new Double(tempLat)).doubleValue();
-					if(myLat<0) {minutes=minutes*-1;}
-					myLat=myLat+minutes/60;
-					try{
-						int seconds = (new Integer(gpsLatitudeSeconds)).intValue();
-						myLat=myLat+seconds/3600;
-					}
-					catch(Exception e){}
-				}
-				catch(Exception e) {}
-			}
-			enc.setDWCDecimalLatitude(myLat);
-			
-			
-			double myLong=enc.getLongInteger();
-			if(enc.getGPSLongitude().indexOf("&deg; ")!=-1) {
-				try {
-					int startPlace2=enc.getGPSLongitude().indexOf("&deg; ")+6;
-					String tempLong=enc.getGPSLongitude().substring(startPlace2);
-
-					int endPlace2=tempLong.indexOf("\'");
-					tempLong=tempLong.substring(0,endPlace2);
-					double minutes2=(new Double(tempLong)).doubleValue();
-					if(myLong<0) {minutes2=minutes2*-1;}
-					myLong=myLong+minutes2/60;
-					try{
-						int seconds = (new Integer(gpsLongitudeSeconds)).intValue();
-						myLong=myLong+seconds/3600;
-					}
-					catch(Exception e){}
-				}
-				catch(Exception e) {}
-			}
-			enc.setDWCDecimalLongitude(myLong);
-}*/
-		
+		enc.setDWCDateLastModified(strOutputDateTime);	
 		
 		String newnum="";
 		if(!spamBot) {

@@ -31,8 +31,9 @@ public class EncounterSetScarring extends HttpServlet {
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
 		boolean locked=false;
-		boolean isOwner=false;
+		boolean isOwner=true;
 		
+		/**
 		if(request.getParameter("number")!=null){
 			myShepherd.beginDBTransaction();
 			if(myShepherd.isEncounter(request.getParameter("number"))) {
@@ -45,7 +46,7 @@ public class EncounterSetScarring extends HttpServlet {
 				}
 				
 				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				else if((request.isUserInRole("manager"))){
+				else if((request.isUserInRole("admin"))){
 					isOwner=true;
 				}
 				//if they have general location code permissions for the encounter's location code
@@ -53,23 +54,18 @@ public class EncounterSetScarring extends HttpServlet {
 			}
 			myShepherd.rollbackDBTransaction();	
 		}
+  */
 
 
-		if (isOwner) {
 			if (request.getParameter("scars")!=null) {
 				myShepherd.beginDBTransaction();
 				Encounter changeMe=myShepherd.getEncounter(request.getParameter("number"));
 				setDateLastModified(changeMe);
-				int scarring=((new Integer(request.getParameter("scars"))).intValue());
 				String scar="None";
+				scar=request.getParameter("scars");
+				
 				String oldScar="None";
-				if(scarring==1) {scar="Tail (caudal) fin";}
-				else if(scarring==2) {scar="1st dorsal fin";}
-				else if(scarring==3) {scar="2nd dorsal fin";}
-				else if(scarring==4) {scar="Left pectoral fin";}
-				else if(scarring==5) {scar="Right pectoral fin";}
-				else if(scarring==6) {scar="Head";}
-				else if(scarring==7) {scar="Body";}
+
 				
 				try{
 				
@@ -116,7 +112,7 @@ public class EncounterSetScarring extends HttpServlet {
 					
 				}
 			
-			}
+			
 			out.close();
 			myShepherd.closeDBTransaction();
     	}

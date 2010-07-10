@@ -28,7 +28,6 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread{
 		this.encounterNumber=encounterNum;
 		gm=GridManagerFactory.getGridManager();
 		threadCreationObject=new Thread(this, ("scanWorkItemCreation_"+taskID));
-		//threadCreationObject.start();
 		
 	}
 		
@@ -56,14 +55,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread{
 			rightScan="true";
 		}
 		props2.setProperty("rightScan", rightScan);
-		
-		//Modified Groth algorithm parameters
-		//props2.setProperty("epsilon", "0.01");
-		//props2.setProperty("R", "8");
-		//props2.setProperty("Sizelim", "0.85");
-		//props2.setProperty("maxTriangleRotation", "10");
-		//props2.setProperty("C", "0.99");
-		//props2.setProperty("secondRun", secondRun);
+	
 		
 		//Modified Groth algorithm parameters
 		//pulled from the gridManager
@@ -86,7 +78,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread{
 			int count=0;
 			
 			while (encounters.hasNext()) {
-				System.out.println("Iterating encounters to create scanWorkItems...");
+				//System.out.println("Iterating encounters to create scanWorkItems...");
 				Encounter enc=(Encounter)encounters.next();
 				if(!enc.getEncounterNumber().equals(encounterNumber)){
 					String wiIdentifier=taskID+"_"+(new Integer(count)).toString();
@@ -94,11 +86,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread{
 						//add the workItem
 						ScanWorkItem swi=new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier,taskID,props2);
 						String uniqueNum=swi.getUniqueNumber();
-						//change
-						//newSWIs.add(uniqueNum);
-						
-						//change
-						//addThese.add(swi);
+
 						gm.addWorkItem(swi);
 						
 						//System.out.println("Added a new right-side scan task!");
@@ -107,35 +95,21 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread{
 					else if(!rightSide&&(enc.getSpots()!=null)&&(enc.getSpots().size()>0)){
 						//add the workItem
 						ScanWorkItem swi=new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier,taskID,props2);
-						//gm.addWorkItem(swi);
-						
+
 						String uniqueNum=swi.getUniqueNumber();
 						
-						//change
-						//newSWIs.add(uniqueNum);
-						
-						//change
-						//addThese.add(swi);
+
 						gm.addWorkItem(swi);
 						//System.out.println("Added a new left-side scan task: " + count);
 						count++;
 					}
 				}
-				//change
-				/*if(count % 10 == 0){
-					System.out.println("Trying to commit the add of the scanWorkItems");
-					//myShepherd.getPM().makePersistentAll(addThese);
-					myShepherd.commitDBTransaction();
-					addThese=new Vector();
-					myShepherd.beginDBTransaction();
-				}*/
+
 			}
 			
-			//change
-			//myShepherd.getPM().makePersistentAll(addThese);
+
 			
-			
-			System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");
+			//System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");
 			myShepherd.commitDBTransaction();
 			myShepherd.closeDBTransaction();
 			finished=true;

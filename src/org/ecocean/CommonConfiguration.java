@@ -58,5 +58,6 @@ public class CommonConfiguration {
 	
 	public static String getProperty(String name){initialize();return props.getProperty(name);}
 
+	public static boolean showProperty(String thisString){return true;}
 	
 }

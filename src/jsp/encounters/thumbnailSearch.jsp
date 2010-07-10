@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-	import="org.ecocean.*"%>
+	import="org.ecocean.*,java.util.GregorianCalendar"%>
 
 <html>
 <head>
@@ -17,6 +17,11 @@
 <link rel="shortcut icon"
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 </head>
+<%
+
+GregorianCalendar cal=new GregorianCalendar();
+int nowYear=cal.get(1);
+%>
 
 <body>
 <div id="wrapper">
@@ -79,7 +84,7 @@
 
 			<tr>
 				<td><input name="resightOnly" type="checkbox" id="resightOnly"
-					value="true"> Include only thumbnails for identified sharks
+					value="true"> Include only thumbnails for marked individuals
 				that have been sighted at least <select name="numResights"
 					id="numResights">
 					<option value="1" selected>1</option>
@@ -146,8 +151,7 @@
 					target="_blank"><img src="../images/information_icon_svg.gif"
 					alt="Help" border="0" align="absmiddle" /></a></span> <br> Leave blank
 				to accept all locations in your search, fill in the location code
-				digit by digit to narrow the location of your search. Example: Use </em>1a<em>
-				as the location code for Ningaloo Marine Park. </em></p>
+				digit by digit to narrow the location of your search.</em></p>
 				</td>
 			</tr>
 			<tr>
@@ -214,35 +218,20 @@
 							<option value="11">11</option>
 							<option value="12">12</option>
 						</select> Year</em> <select name="year1" id="year1">
+							<option><%=nowYear%></option>
+							<% for(int p=1;p<30;p++) { 
+			  	if(p!=29){
+			  
+			  %>
+							<option value="<%=(nowYear-p)%>"><%=(nowYear-p)%></option>
 
-							<option>1980</option>
-							<option>1981</option>
-							<option>1982</option>
-							<option>1983</option>
-							<option>1984</option>
-							<option>1985</option>
-							<option>1986</option>
-							<option>1987</option>
-							<option>1988</option>
-							<option>1989</option>
-							<option>1990</option>
-							<option>1991</option>
-							<option>1992</option>
-							<option>1993</option>
-							<option>1994</option>
-							<option selected>1995</option>
-							<option>1996</option>
-							<option>1997</option>
-							<option>1998</option>
-							<option>1999</option>
-							<option>2000</option>
-							<option>2001</option>
-							<option>2002</option>
-							<option>2003</option>
-							<option>2004</option>
-							<option>2005</option>
-							<option>2006</option>
-							<option>2007</option>
+							<% 
+				}
+				else { %>
+							<option value="<%=(nowYear-p)%>" selected><%=(nowYear-p)%></option>
+
+							<%}
+				} %>
 						</select> &nbsp;to <em>&nbsp;Day</em> <em> <select name="day2"
 							id="day2">
 							<option value="1">1</option>
@@ -290,30 +279,11 @@
 							<option value="11">11</option>
 							<option value="12" selected>12</option>
 						</select> Year</em> <select name="year2" id="year2">
-							<option>1985</option>
-							<option>1986</option>
-							<option>1987</option>
-							<option>1988</option>
-							<option>1989</option>
-							<option>1990</option>
-							<option>1991</option>
-							<option>1992</option>
-							<option>1993</option>
-							<option>1994</option>
-							<option>1995</option>
-							<option>1996</option>
-							<option>1997</option>
-							<option>1998</option>
-							<option>1999</option>
-							<option>2000</option>
-							<option>2001</option>
-							<option>2002</option>
-							<option>2003</option>
-							<option>2004</option>
-							<option>2005</option>
-							<option>2006</option>
-							<option>2007</option>
-							<option selected="selected">2008</option>
+							<option selected="selected"><%=nowYear%></option>
+							<% for(int p=1;p<30;p++) { %>
+							<option vale="<%=(nowYear-p)%>"><%=(nowYear-p)%></option>
+
+							<% } %>
 						</select></label></td>
 					</tr>
 				</table>

@@ -274,7 +274,7 @@ scored above)</font></p>
 
 <p>
 <%
-String feedURL="http://"+CommonConfiguration.getURLLocation()+"/trackerFeed?number="+num;
+String feedURL="http://"+CommonConfiguration.getURLLocation()+"/TrackerFeed?number="+num;
 String baseURL="http://"+CommonConfiguration.getURLLocation()+"/encounters/";
 
 

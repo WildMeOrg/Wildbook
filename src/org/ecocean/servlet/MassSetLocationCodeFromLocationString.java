@@ -45,7 +45,7 @@ public class MassSetLocationCodeFromLocationString extends HttpServlet {
 		Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
 		Query query=myShepherd.getPM().newQuery(encClass);
 		
-		if ((locCode!=null)&&(matchString!=null)&&(!matchString.equals(""))&&(!locCode.equals(""))&&(request.isUserInRole("admin"))) {			
+		if ((locCode!=null)&&(matchString!=null)&&(!matchString.equals(""))&&(!locCode.equals(""))) {			
 			myShepherd.beginDBTransaction();
 			try{
 				Iterator it=myShepherd.getAllEncounters(query);

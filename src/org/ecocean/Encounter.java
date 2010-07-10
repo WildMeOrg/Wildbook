@@ -40,6 +40,8 @@ public class Encounter implements java.io.Serializable{
 	private String occurrenceID;
 	private String recordedBy;
 	private String otherCatalogNumbers;
+	private String behavior;
+	private String eventID;
 	
 	
 	/*
@@ -108,6 +110,9 @@ public class Encounter implements java.io.Serializable{
 	public String matchedBy="";
 	private int numSpotsLeft=0;
 	private int numSpotsRight=0;
+	
+	//the vessel or tour associated with collecting data for this encounter
+	public String vessel="";
 	
 	
 	//SPOTS
@@ -873,7 +878,10 @@ public class Encounter implements java.io.Serializable{
 			return otherCatalogNumbers;
 		}
 		
-		public String getInformOthers(){return informothers;}
+		public String getInformOthers(){
+		  if(informothers==null){return "";}
+		  return informothers;
+		 }
 		
 		public void setInformOthers(String others){this.informothers=others;}
 		
@@ -913,6 +921,21 @@ public class Encounter implements java.io.Serializable{
 		
 		public String getLivingStatus(){return livingStatus;}
 		public void setLivingStatus(String status){this.livingStatus=status;}
+		
+		public String getVessel(){return vessel;}
+		public void setVessel(String vess){
+		  this.vessel=vess;
+		}
+		
+    public String getBehavior(){return behavior;}
+    public void setBehavior(String beh){
+      this.behavior=beh;
+    }
+    
+    public String getEventID(){return eventID;}
+    public void setEventID(String id){
+      this.eventID=id;
+    }
 		
 }
 	

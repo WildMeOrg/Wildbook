@@ -72,18 +72,18 @@
 </script>
 
 <head>
-<title>ECOCEAN - Login</title>
+<title><%=CommonConfiguration.getHTMLTitle() %></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
-	content="The ECOCEAN Whale Shark Photo-identification Library is a visual database of whale shark (Rhincodon typus) encounters and of individually catalogued whale sharks. The library is maintained and used by marine biologists to collect and analyse whale shark encounter data to learn more about these amazing creatures." />
+	content="<%=CommonConfiguration.getHTMLDescription() %>" />
 <meta name="Keywords"
-	content="whale shark,whale,shark,Rhincodon typus,requin balleine,Rhineodon,Rhiniodon,big fish,ECOCEAN,Brad Norman, fish, coral, sharks, elasmobranch, mark, recapture, photo-identification, identification, conservation, citizen science" />
-<meta name="Author" content="ECOCEAN - info@ecocean.org" />
-<link
-	href="http://<%=CommonConfiguration.getURLLocation() %>/css/ecocean.css"
+	content="<%=CommonConfiguration.getHTMLKeywords() %>" />
+<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
+<link href="<%=CommonConfiguration.getCSSURLLocation() %>"
 	rel="stylesheet" type="text/css" />
 <link rel="shortcut icon"
-	href="http://<%=CommonConfiguration.getURLLocation() %>/images/favicon.ico" />
+	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
+
 <style type="text/css">
 <!--
 .style1 {
@@ -112,27 +112,6 @@
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="leftcol">
-<div id="menu">
-
-
-<div class="module"><img
-	src="http://<%=CommonConfiguration.getURLLocation() %>/images/area.jpg"
-	width="190" height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"><%=area%></p>
-</div>
-
-<div class="module"><img
-	src="http://<%=CommonConfiguration.getURLLocation() %>/images/match.jpg"
-	width="190" height="94" border="0" title="We Have A Match!"
-	alt="We Have A Match!" />
-<p class="caption"><%=match%></p>
-</div>
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
 <div id="maincol-wide">
 
 <div id="maintext">
@@ -146,22 +125,19 @@ Please enter your user name and password below.</p>
 	action='<%= response.encodeURL("j_security_check") %>' name="loginForm">
 <table border="0" align="center" cellpadding="5" cellspacing="2">
 	<tr align="left" valign="top">
-		<th align="left"><font color="#000000"> <input type="text"
-			name="j_username" size="16" maxlength="16" /> <bean:message
-			key="prompt.username" /></font></th>
+		<th align="left"><font color="#000000">Username: <input type="text"
+			name="j_username" size="16" maxlength="16" /></font></th>
 	</tr>
 
 	<tr align="left" valign="top">
-		<th align="left"><font color="#0000"> <input
-			type="password" name="j_password" size="16" maxlength="16" /> <bean:message
-			key="prompt.password" /></font></th>
+		<th align="left"><font color="#0000">Password: <input
+			type="password" name="j_password" size="16" maxlength="16" /></font></th>
 	</tr>
 	<!-- login reset buttons layout -->
 	<tr align="left" valign="top">
 		<td align="left">
-		<div align="left"><input name="submit" type="submit"
-			value='<bean:message key="button.login"/>'> <input
-			name="reset" type="reset" value='<bean:message key="button.reset"/>'>
+		<div align="left">
+		<input name="submit" type="submit" value='Login' /> <input name="reset" type="reset" value='Reset' />
 		&nbsp;&nbsp; </div>
 		</td>
 	</tr>
@@ -174,14 +150,7 @@ Please enter your user name and password below.</p>
     document.forms["loginForm"].elements["j_username"].focus()
   // -->
 </script>
-<p align="center"><font size="-1">*If you have problems
-logging in or would like to know more about gaining higher privileges,
-please contact:<br />
-<br />
-<img
-	src="http://<%=CommonConfiguration.getURLLocation() %>/images/webmaster.gif"
-	width="228" height="18" /></font></p>
-<p align="center"><font size="-1"></font></p>
+
 <p>&nbsp;</p>
 
 </td>

@@ -44,41 +44,28 @@ Shepherd myShepherd=new Shepherd();
 
 
 	Encounter enc=myShepherd.getEncounter(number);
-	boolean isOwner=false;
-	if(((request.isUserInRole("imageProcessor"))&&(request.isUserInRole(enc.getLocationCode())))||(request.isUserInRole("manager"))) {
-		isOwner=true;
-	}
+	
 	myShepherd.rollbackDBTransaction();
-	if(isOwner) {%>
-<p><strong>Permission granted</strong>: <a
-	href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>">Click
-here to access the original source image</a></p>
-<%}
 
-%>
-<p><img src="../alert.gif" /> <strong>Important:</strong> The image
-below is the intellectual property of the original photographer. It may
-be used for research and conservation purposes only. It may not be used
-publicly without the express permission of the photographer. This image
-may also not be distributed beyond the users of the ECOCEAN Library or
-related conservation authorities without the express permission of the
-photographer. By copying or downloading this image or any portion of it,
-you assume responsibility for its usage and agree to hold ECOCEAN and
-other users of the ECOCEAN Library harmless for any misuse of it.</p>
+	%>
+	
+<p><a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>">Click
+here to access the original source image</a></p>
 
 <table width="720">
 	<tr>
 		<td align="left" valign="top">
-		<p><object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"
-			codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,29,0"
-			width="720" height="480">
-			<param name="movie" value="view.swf?number=<%=number%>&src=<%=src%>">
-			<param name="quality" value="high">
-			<param name="wmode" value="transparent"><embed
-				src="view.swf?number=<%=number%>&src=<%=src%>" quality="high"
-				pluginspage="http://www.macromedia.com/go/getflashplayer"
-				type="application/x-shockwave-flash" width="720" height="480"></embed>
-		</object></p>
+
+		
+		<p>
+		<object style="width: 720px; height: 480px;" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="640" height="360" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,40,0">
+		<param name="src" value="keenerview.swf?image_url=http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>" />
+		<embed style="width: 640px; height: 360px;" type="application/x-shockwave-flash" width="640" height="360" src="keenerview.swf?image_url=http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>"></embed>
+		</object>
+		</p>
+		
+		
+		
 		<p>&nbsp;</p>
 		</td>
 	</tr>

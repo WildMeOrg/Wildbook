@@ -93,7 +93,7 @@ table.adopter td.image {
 	<%
 			 }
 
-			 if(request.isUserInRole("adoption")){
+			 if(request.isUserInRole("admin")){
 			 %>
 	<tr>
 		<td>&nbsp;</td>

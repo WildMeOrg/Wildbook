@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator"%>
+	import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator"%>
 
 <%
 
@@ -47,7 +47,7 @@
 	if ((request.getParameter("start")!=null)&&(request.getParameter("end")!=null)) {
 		lowCount=(new Integer(request.getParameter("start"))).intValue();
 		highCount=(new Integer(request.getParameter("end"))).intValue();
-		if((highCount>(lowCount+9))&&(!request.isUserInRole("researcher"))) {highCount=lowCount+9;}
+		if((highCount>(lowCount+9))&&(session.getAttribute("logged")!=null)) {highCount=lowCount+9;}
 	}	
 
 	myShepherd.beginDBTransaction();
@@ -85,35 +85,14 @@
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="leftcol">
-<div id="menu">
 
-
-
-<div class="module"><img src="images/area.jpg" width="190"
-	height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"><%=area%></p>
-</div>
-
-<div class="module"><img src="images/match.jpg" width="190"
-	height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-<p class="caption"><%=match%></p>
-</div>
-
-
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 
 <div id="maintext">
-<table id="results" border="0">
+<table id="results" border="0" width="810px">
 	<tr>
 		<td colspan="5">
-		<h1><span class="intro"><img src="images/markedIndividualIcon.gif"
-			 align="absmiddle" /></span> <%=see_all_sharks%></h1>
+		<h1><span class="intro"><img src="images/tag_big.gif" width="50px" height="*" align="absmiddle" /></span> <%=see_all_sharks%></h1>
 		</td>
 	</tr>
 	<tr>
@@ -141,7 +120,8 @@
 		 else if((request.getParameter("end")!=null)&&(request.getParameter("end").equals("99999"))){
 				endNum=(new Integer(totalCount)).toString();
 			}
-		 %> <%=records%>: <%=lowCount%> - <%=highCount%><%=displaySort%></td>
+		 %> 
+		 <%=records%>: <%=lowCount%> - <%=highCount%><%=displaySort%></td>
 	</tr>
 	<tr class="lineitem">
 		<td width="101" bgcolor="#99CCFF" class="lineitem"><strong><%=image%></strong></td>
@@ -179,7 +159,8 @@
 			int total=myShepherd.getNumMarkedIndividuals();
 			
 			Iterator allSharks;
-			query.setRange((totalCount-highCount),(totalCount-lowCount+1));
+			//query.setRange((totalCount-highCount),(totalCount-lowCount+1));
+			ServletUtilities.setRange(query, total, highCount, lowCount);
 			if (request.getParameter("sort")!=null) {
 				if (request.getParameter("sort").equals("sexup")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "sex ascending");}
 				else if (request.getParameter("sort").equals("sexdown")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "sex descending");}

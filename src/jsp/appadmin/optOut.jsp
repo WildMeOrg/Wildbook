@@ -40,7 +40,7 @@ Shepherd myShepherd=new Shepherd();
 <%=request.getParameter("name")%> mailing list?</strong></font></p>
 <p>You have followed a link that will remove you from the <%=request.getParameter("name")%>
 mailing list. Do you want to be removed?</p>
-<form action="/mailHandler" method="post" name="optOut" id="optOut">
+<form action="../MailHandler" method="post" name="optOut" id="optOut">
 <div align="center"><input name="action" type="hidden"
 	value="removeEmail"> <input name="address" type="hidden"
 	value="<%=request.getParameter("address")%>"> <input

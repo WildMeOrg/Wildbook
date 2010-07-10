@@ -53,15 +53,12 @@ public class UpdateEmailAddress extends HttpServlet{
 			findEmail=request.getParameter("findEmail").trim();
 			
 		}
-		else{
-			ok2proceed=false;
-		}
-		if((request.isUserInRole("admin"))&&(ok2proceed)) {
+
 		
 		try {
 		
 
-	    	myShepherd.beginDBTransaction();
+	    myShepherd.beginDBTransaction();
 			Iterator it=myShepherd.getAllEncountersAndUnapproved();
 			while(it.hasNext()) {
 		
@@ -78,6 +75,12 @@ public class UpdateEmailAddress extends HttpServlet{
 					madeChanges=true;
 					numChanges++;
 				}
+        if((tempEnc.getInformOthers()!=null)&&(tempEnc.getInformOthers().indexOf(findEmail)!=-1)) {
+          String newPhotographerEmail=tempEnc.getInformOthers().replaceAll(findEmail,replaceEmail);
+          tempEnc.setInformOthers(newPhotographerEmail);
+          madeChanges=true;
+          numChanges++;
+        }
 
 			}
 			if(madeChanges) {myShepherd.commitDBTransaction();}
@@ -102,13 +105,7 @@ public class UpdateEmailAddress extends HttpServlet{
 			out.println(ServletUtilities.getFooter());
 			e.printStackTrace();
 		}
-	}
-	else {
-					out.println(ServletUtilities.getHeader());
-					out.println("<strong>Error:</strong> I didn't receive all of the information I needed, or you do not have permissions to make this change. ");
-					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/appadmin/admin.jsp\">Return to Administration</a></p>\n");
-					out.println(ServletUtilities.getFooter());
-	}
+
 	out.close();
 	
 }

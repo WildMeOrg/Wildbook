@@ -35,6 +35,8 @@ public class IndividualSetAlternateID extends HttpServlet {
 			alternateID=request.getParameter("alternateid");										
 			try{
 				myShark.setAlternateID(alternateID);
+				myShark.addComments("<p><em>"+request.getRemoteUser()+" on "+(new java.util.Date()).toString()+"</em><br>"+"Set alternate ID: "+alternateID+".");
+	       
 			}
 			catch(Exception le){
 				locked=true;

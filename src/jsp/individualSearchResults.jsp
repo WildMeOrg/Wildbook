@@ -77,7 +77,7 @@ while (allSharks.hasNext()) {
 }
 
 			
-//sharks in a particular location ID
+//individuals in a particular location ID
 if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").equals(""))) {
 				for(int q=0;q<rSharks.size();q++) {
 					MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
@@ -94,7 +94,7 @@ if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("lo
 				} 		//end for
 }//end if in locationCode
 
-//sharks with a particular alternateID
+//individuals with a particular alternateID
 if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
 				for(int q=0;q<rSharks.size();q++) {
 					MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
@@ -107,7 +107,7 @@ if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alt
 }//end if with alternateID
 
 
-//sharks with a photo keyword assigned to one of their encounters
+//individuals with a photo keyword assigned to one of their encounters
 if(request.getParameterValues("keyword")!=null){
 String[] keywords=request.getParameterValues("keyword");
 int kwLength=keywords.length;
@@ -128,7 +128,7 @@ for(int kwIter=0;kwIter<kwLength;kwIter++) {
 
 
 
-//sharks of a particular sex
+//individuals of a particular sex
 if(request.getParameter("sex")!=null) {
 				for(int q=0;q<rSharks.size();q++) {
 					MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
@@ -154,7 +154,7 @@ if(request.getParameter("sex")!=null) {
 
 
 
-//sharks of a particular size
+//individuals of a particular size
 if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)) {
 				try {
 					double size;
@@ -284,8 +284,8 @@ if(rSharks.size()<listNum) {listNum=rSharks.size();}
 		<td>
 		<h1 class="intro"><span class="para"><img
 			src="images/markedIndividualIcon.gif" width="26" height="51" align="absmiddle" />
-		Shark Search Results</h1>
-		<p>Below are sharks <%=startNum%> - <%=listNum%> that matched your
+		Marked Individuals Search Results</h1>
+		<p>Below are marked individuals <%=startNum%> - <%=listNum%> that matched your
 		search. Click any column heading to sort by that field.</p>
 		</td>
 	</tr>
@@ -297,7 +297,7 @@ if(rSharks.size()<listNum) {listNum=rSharks.size();}
 	<tr>
 		<td bgcolor="#99CCFF"></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><a
-			href="individualSearchResults.jsp?<%=qString%>&sort=name&startNum=<%=startNum%>&endNum=<%=endNum%>">Shark</a></strong></td>
+			href="individualSearchResults.jsp?<%=qString%>&sort=name&startNum=<%=startNum%>&endNum=<%=endNum%>">Individual</a></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><a
 			href="individualSearchResults.jsp?<%=qString%>&sort=numberEncounters&startNum=<%=startNum%>&endNum=<%=endNum%>">Encounters</a></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><a
@@ -440,11 +440,11 @@ previous results <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td align="right">
-		<p><strong>Matching sharks</strong>: <%=count%><br />
+		<p><strong>Matching marked individuals</strong>: <%=count%><br />
 		Number first sighted in the specified period: <%=numNewlyMarked %>
 		</p>
 		<%myShepherd.beginDBTransaction();%>
-		<p><strong>Total sharks in the database</strong>: <%=(myShepherd.getNumMarkedIndividuals())%></p>
+		<p><strong>Total marked individuals in the database</strong>: <%=(myShepherd.getNumMarkedIndividuals())%></p>
 		</td>
 		<%
 	  myShepherd.rollbackDBTransaction();

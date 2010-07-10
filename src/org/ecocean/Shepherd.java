@@ -323,7 +323,7 @@ public class Shepherd {
 	public boolean isAdoption(String num) {
 		try {Adoption tempEnc=((org.ecocean.Adoption)(pm.getObjectById(pm.newObjectIdInstance(Adoption.class, num.trim()),true )));}
 		catch (Exception nsoe) {
-			nsoe.printStackTrace();
+			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
@@ -332,7 +332,7 @@ public class Shepherd {
 		try {Keyword tempEnc=((org.ecocean.Keyword)(pm.getObjectById(pm.newObjectIdInstance(Keyword.class, indexname.trim()),true )));}
 		//catch (ObjectNameNotFoundException onfe) {return false;}
 		catch (Exception nsoe) {
-			nsoe.printStackTrace();
+			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
@@ -341,7 +341,7 @@ public class Shepherd {
 		try {ScanTask tempEnc=((org.ecocean.grid.ScanTask)(pm.getObjectById(pm.newObjectIdInstance(ScanTask.class, uniqueID.trim()),true )));}
 		//catch (ObjectNameNotFoundException onfe) {return false;}
 		catch (Exception nsoe) {
-			nsoe.printStackTrace();
+			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
@@ -350,7 +350,7 @@ public class Shepherd {
 	public boolean isMarkedIndividual(String name) {
 		try {MarkedIndividual tempShark=((org.ecocean.MarkedIndividual)(pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, name.trim()),true )));}
 		catch (Exception nsoe) {
-			nsoe.printStackTrace();
+			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
@@ -386,7 +386,7 @@ public class Shepherd {
 	*@see encounter, java.util.Iterator
 	*/
 	public Iterator getUnassignedEncounters() {
-		String filter="this.individualID == \"Unassigned\" && this.rejected == false && this.approved==true";
+		String filter="this.individualID == \"Unassigned\" && this.unidentifiable == false && this.approved==true";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query orphanedEncounters=pm.newQuery(encClass, filter);
 		Collection c=(Collection)(orphanedEncounters.execute());
@@ -394,7 +394,7 @@ public class Shepherd {
 		}
 
 	public Iterator getUnassignedEncountersIncludingUnapproved() {
-		String filter="this.individualID == \"Unassigned\" && this.rejected == false";
+		String filter="this.individualID == \"Unassigned\" && this.unidentifiable == false";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query orphanedEncounters=pm.newQuery(encClass, filter);
 		Collection c=(Collection)(orphanedEncounters.execute());
@@ -402,7 +402,7 @@ public class Shepherd {
 	}		
 	
 	public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
-		String filter="this.individualID == \"Unassigned\" && this.rejected == false";
+		String filter="this.individualID == \"Unassigned\" && this.unidentifiable == false";
 		//Extent encClass=pm.getExtent(encounter.class, true);
 		orphanedEncounters.setFilter(filter);
 		Collection c=(Collection)(orphanedEncounters.execute());
@@ -498,7 +498,7 @@ public class Shepherd {
 	*/
 	public Iterator getAllEncounters() {
 		Collection c;
-		String filter="!this.rejected && this.approved == true";
+		String filter="!this.unidentifiable && this.approved == true";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query acceptedEncounters=pm.newQuery(encClass, filter);
 		try{
@@ -663,7 +663,7 @@ public class Shepherd {
 	
 	public Iterator getAllEncountersAndUnapproved() {
 		Collection c;
-		String filter="!this.rejected";
+		String filter="!this.unidentifiable";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query acceptedEncounters=pm.newQuery(encClass, filter);
 		try{
@@ -690,7 +690,7 @@ public class Shepherd {
 	*@see encounter, java.util.Iterator
 	*/
 	public Iterator getAllEncounters(String order) {
-		String filter="!this.rejected && this.approved == true";
+		String filter="!this.unidentifiable && this.approved == true";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query acceptedEncounters=pm.newQuery(encClass, filter);
 		acceptedEncounters.setOrdering(order);
@@ -766,7 +766,7 @@ public class Shepherd {
 	*@see encounter, java.util.Iterator
 	*/
 	public Iterator getAllUnidentifiableEncounters(Query rejectedEncounters) {
-		rejectedEncounters.setFilter("this.rejected");
+		rejectedEncounters.setFilter("this.unidentifiable");
 		Collection c=(Collection)(rejectedEncounters.execute());
 		ArrayList list=new ArrayList(c);
 
@@ -1289,32 +1289,30 @@ public class Shepherd {
 		
 		
 	/**
-	 *Uncommits (does not store and make permanent) any changes made to an open database back
+	 *Undoes any changes made to an open database.
 	 */	
 	public void rollbackDBTransaction() {
 		try{
-				//System.out.println("     shepherd:"+identifyMe+" is trying to rollback a transaction");
 			if ((pm!=null)&&(pm.currentTransaction().isActive())) {
 				//System.out.println("     Now rollingback a transaction with pm"+(String)pm.getUserObject());
 				pm.currentTransaction().rollback();
 				//System.out.println("A transaction has been successfully committed.");
 			}
-			else {System.out.println("You are trying to rollback an inactive transaction.");}
-			//logger.info("A transaction has been successfully rolled back.");
+			else {
+			  //System.out.println("You are trying to rollback an inactive transaction.");
+			 }
+
 			}
 		catch (JDOUserException jdoe) {
 			jdoe.printStackTrace();
-			//logger.error("I failed to rollback a transaction."+"\n"+jdoe.getStackTrace());
-			}
+		}
 		catch (JDOFatalUserException fdoe) {
 			fdoe.printStackTrace();
-			//logger.error("I failed to rollback a transaction."+"\n"+jdoe.getStackTrace());
-			}
+		}
 		catch (NullPointerException npe) {
 			npe.printStackTrace();
-			//logger.error("I failed to rollback a transaction."+"\n"+jdoe.getStackTrace());
-			}
 		}
+	}
 		
 	
 
@@ -1534,6 +1532,15 @@ public class Shepherd {
 		return al;
 	}
 	
+	public int getEarliestSightingYear(){
+	  Query q = pm.newQuery("SELECT min(year) FROM org.ecocean.Encounter");
+	  return ((Integer)q.execute()).intValue();
+	}
+	
+	 public int getLastSightingYear(){
+	    Query q = pm.newQuery("SELECT max(year) FROM org.ecocean.Encounter");
+	    return ((Integer)q.execute()).intValue();
+	  }
 	
 } //end shepherd
 

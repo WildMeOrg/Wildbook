@@ -30,13 +30,12 @@ String encounterForm="";
 String notes="";
 String adoptionType="";
 
-String servletURL = "/adoptionForm.jh";
+String servletURL = "../adoptionForm.jh";
 
 if(request.getParameter("individual")!=null){sharkForm=request.getParameter("individual");}
 
 boolean isOwner=false;
 if(request.isUserInRole("admin")){isOwner=true;}
-else if(request.isUserInRole("manager")){isOwner=true;}
 else if(request.getParameter("number")!=null){
 	
 	if(tempAD.getAdoptionManager().trim().equals(request.getRemoteUser())){isOwner=true;}	
@@ -232,8 +231,8 @@ if(isOwner){
 			<tr>
 				<td>Shark:</td>
 				<td><input name="shark" type="text" size="30"
-					value="<%=sharkForm%>"> </input> <%if(!sharkForm.equals("")) { %> <a
-					href="../individuals.jsp?number=<%=sharkForm%>">Link</a> <%
+					value="<%=sharkForm%>"> </input> <%if(!sharkForm.equals("")) { %> 
+					<a href="../individuals.jsp?number=<%=sharkForm%>">Link</a> <%
 				}
 				%>
 				</td>
@@ -411,7 +410,7 @@ if((request.getParameter("number")!=null)&&(isOwner)){
 <%
 	}
 
-if(request.isUserInRole("admin")){
+if(isOwner){
 %>
 <table class="adoption" width="720px">
 	<tr>
@@ -421,7 +420,7 @@ if(request.isUserInRole("admin")){
 	</tr>
 	<tr>
 		<td>
-		<form action="/resurrectDeletedAdoption" method="get"
+		<form action="../ResurrectDeletedAdoption" method="get"
 			name="restoreDeletedAdoption">Adoption #: <input name="number"
 			type="text" size="25" /> <input type="submit" name="Submit"
 			value="Submit" /></form>

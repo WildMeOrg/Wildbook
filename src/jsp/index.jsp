@@ -20,12 +20,7 @@ Shepherd myShepherd=new Shepherd();
 	//language setup
 	String langCode="en";
 	if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
-	if(request.getParameter("langCode")!=null){
-		if(request.getParameter("langCode").equals("en")) {langCode="en";}
-		if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
-		if(request.getParameter("langCode").equals("de")) {langCode="de";}
-		if(request.getParameter("langCode").equals("es")) {langCode="es";}
-	}
+
 	Properties props=new Properties();
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/overview.properties"));
 	
@@ -138,11 +133,7 @@ table.adopter td.image {
 		if(request.getParameter("langCode").equals("de")) {langCode="de";}
 		if(request.getParameter("langCode").equals("es")) {langCode="es";}
 	}
-	%> <jsp:include page="language.jsp" flush="true">
-
-	<jsp:param name="langCode" value="<%=langCode%>" />
-
-</jsp:include>
+	%> 
 
 
 
@@ -154,18 +145,20 @@ table.adopter td.image {
 
 <div class="module">
 <h3>Data Sharing</h3>
-<p>If you are sharing data, this is a great place to let others know about it... </p>
+<span class="caption">If you are sharing data, this is a great place to let others know about it... </span>
+<br />
 </div>
 
 </div>
 <!-- end menu --></div>
 <!-- end leftcol -->
 <div id="maincol">
-<div id="maintext">This is a great place to present an overview description of this mark-recapture project and library..
 
+<div id="maintext">
+<h1 class="intro">Overview</h1>
+<p class="caption">This is a great place to present an overview description of this mark-recapture project and library...</p>
+<br/>
 </div>
-
-
 
 <div>
 <h1 class="intro">Data Contributors</h1>
@@ -202,15 +195,9 @@ with you questions.</a></p>
 		 
 		 
 <div class="module">
-<h3><%=last_sightings%></h3>
-<script language="JavaScript"
-	src="http://feed2js.org//feed2js.php?src=http%3A%2F%2F<%=CommonConfiguration.getURLLocation()%>%2Frss.xml&amp;utf=y"
-	type="text/javascript"></script>
-<noscript><a
-	href="http://feed2js.org//feed2js.php?src=http%3A%2F%2F<%=CommonConfiguration.getURLLocation()%>%2Frss.xml&amp;utf=y&amp;html=y">View
-RSS feed</a></noscript>
+<h3>RSS/Atom Feeds</h3>
 <p align="left"><a href="rss.xml"><img src="images/rssfeed.gif"
-	width="80" height="15" border="0" alt="Whaleshark.org RSS News Feed" /></a></p>
+	width="80" height="15" border="0" alt="RSS News Feed" /></a></p>
 <p align="left"><a href="atom.xml"><img
 	src="images/atom-feed-icon.gif" border="0" alt="ATOM News Feed" /></a></p>
 </div>

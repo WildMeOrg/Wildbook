@@ -33,8 +33,9 @@ public class EncounterDelete extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		boolean locked=false;
 
-		boolean isOwner=false;
+		boolean isOwner=true;
 		
+		/**
 		if(request.getParameter("number")!=null){
 			myShepherd.beginDBTransaction();
 			if(myShepherd.isEncounter(request.getParameter("number"))) {
@@ -47,16 +48,16 @@ public class EncounterDelete extends HttpServlet {
 				}
 				
 				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				else if((request.isUserInRole("manager"))){
+				else if((request.isUserInRole("admin"))){
 					isOwner=true;
 				}
 				//if they have general location code permissions for the encounter's location code
 				else if(request.isUserInRole(locCode)){isOwner=true;}
 			}
 			myShepherd.rollbackDBTransaction();	
-		}
+		}*/
 
-		if (isOwner) {
+
 			if (!(request.getParameter("number")==null)) {
 				String message="Encounter #"+request.getParameter("number")+" was deleted from the database.";
 				ServletUtilities.informInterestedParties(request.getParameter("number"), message);
@@ -119,7 +120,9 @@ public class EncounterDelete extends HttpServlet {
 						out.println(ServletUtilities.getHeader());
 						out.println("<strong>Success:</strong> I have removed encounter "+request.getParameter("number")+" from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter "+request.getParameter("number")+" to have it restored.");
 						out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-  						out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+						out.println("<p><a href=\"encounters/allEncountersUnapproved.jsp\">View all unapproved encounters</a></font></p>");
+            
+						out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
 									
 						out.println(ServletUtilities.getFooter());
 						Vector e_images=new Vector();
@@ -153,13 +156,7 @@ public class EncounterDelete extends HttpServlet {
 					
 				}
 			
-			}
-			else {
-				myShepherd.rollbackDBTransaction();
-				out.println(ServletUtilities.getHeader());
-				out.println("<strong>Error:</strong> I was unable to set the alternate ID. I cannot find the encounter that you intended it for in the database.");
-				out.println(ServletUtilities.getFooter());				
-			}
+
 			out.close();
 			myShepherd.closeDBTransaction();
     	}

@@ -4,7 +4,8 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 import java.util.Vector;
-
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.StringTokenizer;
 import org.ecocean.*;
 
 
@@ -33,31 +34,11 @@ public class IndividualCreate extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		boolean locked=false;
 
-		boolean isOwner=false;
+		boolean isOwner=true;
 		
-		if(request.getParameter("number")!=null){
-			myShepherd.beginDBTransaction();
-			if(myShepherd.isEncounter(request.getParameter("number"))) {
-				Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-				String locCode=verifyMyOwner.getLocationCode();
-				
-				//check if the encounter is assigned
-				if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-					isOwner=true;
-				}
-				
-				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				else if((request.isUserInRole("manager"))){
-					isOwner=true;
-				}
-				//if they have general location code permissions for the encounter's location code
-				else if(request.isUserInRole(locCode)){isOwner=true;}
-			}
-			myShepherd.rollbackDBTransaction();	
-		}
 
 		//create a new MarkedIndividual from an encounter
-		if (isOwner) {
+	
 			if ((request.getParameter("individual")!=null)&&(request.getParameter("number")!=null)&&(!request.getParameter("individual").equals(""))&&(!request.getParameter("individual").equals(" "))) {
 				myShepherd.beginDBTransaction();
 				Encounter enc2make=myShepherd.getEncounter(request.getParameter("number"));
@@ -94,16 +75,61 @@ public class IndividualCreate extends HttpServlet {
 								//send the e-mail
 								Vector e_images=new Vector();
 								String emailUpdate="\nNewly marked: "+request.getParameter("individual")+"\nhttp://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("individual")+"\n\nEncounter: "+request.getParameter("number")+"\nhttp://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\n";
-								NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), CommonConfiguration.getNewSubmissionEmail(), ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images);
-								mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images);
-								if((photographer!=null)&&(!photographer.equals(""))) {
-										mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), photographer, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images);
+								ThreadPoolExecutor es=MailThreadExecutorService.getExecutorService();
+								
+								//notify the admins
+					      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), CommonConfiguration.getNewSubmissionEmail(), ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images));
+								
+					      if(submitter.indexOf(",")!=-1){
+					        StringTokenizer str=new StringTokenizer(submitter, ",");
+					        while(str.hasMoreTokens()){
+					          String token=str.nextToken().trim();
+					          if(!token.equals("")){
+					            es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images));
+			              }
+					        }       
+					      }
+								else{
+								  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images));
 								}
+								
+                if(photographer.indexOf(",")!=-1){
+                  StringTokenizer str=new StringTokenizer(photographer, ",");
+                  while(str.hasMoreTokens()){
+                    String token=str.nextToken().trim();
+                    if(!token.equals("")){
+                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images));
+                    }
+                  }       
+                }
+                else{
+                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), photographer, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images));
+                }
+                
+                
+                
+                
 								if ((informers!=null)&&(!informers.equals(""))) {
 									
-									mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), informers, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images);
-							
+									if(informers.indexOf(",")!=-1){
+	                  StringTokenizer str=new StringTokenizer(informers, ",");
+	                  while(str.hasMoreTokens()){
+	                    String token=str.nextToken().trim();
+	                    if(!token.equals("")){
+	                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images));
+	                    }
+	                  }       
+	                }
+	                else{
+	                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), informers, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("createdMarkedIndividual.txt")+emailUpdate, e_images));
+	                }
+									
+									
+									
 								}
+								
+								
+								
 								String rssTitle="New marked individual: "+request.getParameter("individual");
 								String rssLink="http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("individual");
 								String rssDescription=request.getParameter("individual")+" has been added.";
@@ -179,13 +205,7 @@ public class IndividualCreate extends HttpServlet {
 				}	
 						
 			
-			}
-			else {
-				myShepherd.rollbackDBTransaction();
-				out.println(ServletUtilities.getHeader());
-				out.println("<strong>Error:</strong> I was unable to set the alternate ID. I cannot find the encounter that you intended it for in the database.");
-				out.println(ServletUtilities.getFooter());				
-			}
+	
 			out.close();
 			myShepherd.closeDBTransaction();
     	}

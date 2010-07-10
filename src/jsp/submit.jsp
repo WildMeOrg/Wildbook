@@ -1,7 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8"
-	language="java"
-	import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.GregorianCalendar, org.ecocean.*"%>
+<%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java" import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.GregorianCalendar, org.ecocean.*"%>
 <%
 GregorianCalendar cal=new GregorianCalendar();
 int nowYear=cal.get(1);
@@ -118,45 +116,8 @@ else return true;
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="leftcol">
-<div id="menu">
-<div class="module">
-<h3><%=submit_language%></h3>
-<a href="submit.jsp"><img src="images/flag_en.gif" width="19"
-	height="12" border="0" title="English" alt="English" /></a> <a
-	href="submit.jsp?langCode=de" title="Auf Deutsch"><img
-	src="images/flag_de.gif" width="19" height="12" border="0"
-	title="Deutsch" alt="Deutsch" /></a> <a href="submit.jsp?langCode=fr"
-	title="En fran&ccedil;ais"><img src="images/flag_fr.gif" width="19"
-	height="12" border="0" title="Fran&ccedil;ais" alt="Fran&cedil;ais" /></a>
-<a href="submit.jsp?langCode=es" title="En espa&ntilde;ol"><img
-	src="images/flag_es.gif" width="19" height="12" border="0"
-	title="Espa&ntilde;ol" alt="Espa&ntilde;ol" /></a></div>
 
-<div class="module"><img src="images/area.jpg" width="190"
-	height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"><%=area%></p>
-</div>
-
-<div class="module"><img src="images/match.jpg" width="190"
-	height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-<p class="caption"><%=match%></p>
-</div>
-
-
-<jsp:include page="awards.jsp" flush="true" />
-<div class="module">
-<h3>Data Sharing</h3>
-<p><a href="http://www.gbif.org/">
-<center><img src="images/gbif.gif" border="0" /></center>
-</a></p>
-</div>
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 
 <div id="maintext">
 <h1 class="intro"><%=props.getProperty("submit_report")%></h1>
@@ -233,6 +194,12 @@ else return true;
 		</td>
 		<td colspan="2"><select name="hour" id="hour">
 			<option value="-1" selected="selected">?</option>
+			<option value="0">12 am</option>
+			<option value="1">1 am</option>
+			<option value="2">2 am</option>
+			<option value="3">3 am</option>
+			<option value="4">4 am</option>
+			<option value="5">5 am</option>
 			<option value="6">6 am</option>
 			<option value="7">7 am</option>
 			<option value="8">8 am</option>
@@ -248,7 +215,11 @@ else return true;
 			<option value="18">6 pm</option>
 			<option value="19">7 pm</option>
 			<option value="20">8 pm</option>
-		</select> <select name="minutes" id="minutes">
+			<option value="21">9 pm</option>
+			<option value="22">10 pm</option>
+			<option value="23">11 pm</option>
+		</select> 
+		<select name="minutes" id="minutes">
 			<option value="00" selected="selected">:00</option>
 			<option value="15">:15</option>
 			<option value="30">:30</option>
@@ -963,16 +934,8 @@ else return true;
 
 	<tr class="form_row">
 		<td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>
-		<td colspan="2"><select name="scars">
-			<option value="0" selected="selected"><%=props.getProperty("submit_none")%></option>
-			<option value="1"><%=props.getProperty("submit_tail")%></option>
-			<option value="2"><%=props.getProperty("submit_1stdorsal")%></option>
-			<option value="3"><%=props.getProperty("submit_2nddorsal")%></option>
-			<option value="4"><%=props.getProperty("submit_leftpec")%></option>
-			<option value="5"><%=props.getProperty("submit_rightpec")%></option>
-			<option value="6"><%=props.getProperty("submit_head")%></option>
-			<option value="7"><%=props.getProperty("submit_body")%></option>
-		</select></td>
+		<td colspan="2">
+		<input name="scars" type="text" id="scars" size="75" /></td>
 	</tr>
 	<tr class="form_row">
 		<td class="form_label"><strong><%=props.getProperty("submit_comments")%>:</strong></td>
@@ -1036,10 +999,7 @@ else return true;
 fields, using commas as separators</em>.</p>
 <hr>
 
-<p><a href="photographing.jsp?langCode=<%=langCode%>"><img
-	src="images/example1.jpg" width="129" height="84" border="1"
-	class="leftimg" align="left" alt="whale shark photo example" /></a><%=props.getProperty("submit_pleaseadd")%></p>
-<p><a href="photographing.jsp?langCode=<%=langCode%>"><%=click2learn%></a></p>
+<p><%=props.getProperty("submit_pleaseadd")%></p>
 <p>&nbsp;</p>
 <p align="center"><strong><%=props.getProperty("submit_image")%>
 1:</strong> <input name="theFile1" type="file" size="30" /></p>
@@ -1049,12 +1009,11 @@ fields, using commas as separators</em>.</p>
 3: <input name="theFile3" type="file" size="30" /> </strong></p>
 <p align="center"><strong><%=props.getProperty("submit_image")%>
 4: <input name="theFile4" type="file" size="30" /> </strong></p>
-<p><%=props.getProperty("submit_verify")%></p>
+<p>&nbsp;</p>
 <%if(request.getRemoteUser()!=null){%> <input name="submitterID"
 	type="hidden" value="<%=request.getRemoteUser()%>" /> <%} else {%> <input
 	name="submitterID" type="hidden" value="N/A" /> <%}%>
-<p align="center"><input type="submit" name="Submit"
-	value="<%=props.getProperty("submit_send")%>" /></p>
+<p align="center"><input type="submit" name="Submit" value="<%=props.getProperty("submit_send")%>" /></p>
 <p>&nbsp;</p>
 </form>
 </div>
