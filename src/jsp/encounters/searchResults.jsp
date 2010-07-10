@@ -624,13 +624,20 @@ if(generateEmails){
 <table width="720" border="1">
 	<tr>
 		<td bgcolor="#99CCFF"></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("markedIndividual")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("number")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("alternateID")%></strong></td>
+		
+		
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("submitterName")%></strong></td>
+		
+		
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("date")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("location")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("locationID")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("size")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("sex")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("markedIndividual")%></strong></td>
+		
+
+		
 	</tr>
 
 	<%
@@ -764,23 +771,9 @@ if(generateEmails){
   				if((numResults>=startNum)&&(numResults<=endNum)) {
   				%>
 	<tr>
-		<td width="102" bgcolor="#000000"><img src="<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"></td>
-		<td><a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=enc.getEncounterNumber()%></a>
-
-		<%
-					  	if((enc.getAlternateID()!=null)&&(!enc.getAlternateID().equals("None"))){
-					  %> <br><font size="-1"><%=enc.getAlternateID()%></font> <%
-		  	}
-		  %>
+	<td width="102" bgcolor="#000000"><img src="<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"></td>
 		
-		</td>
-		<td><%=enc.getDate()%></td>
-		<td><%=enc.getLocation()%></td>
-		<td><%=enc.getLocationCode()%></td>
-		<td><%=enc.getSize()%></td>
-		<td><%=enc.getSex()%></td>
-		<%
+			<%
 	if (enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned")) {
 %>
 		<td><%=encprops.getProperty("unassigned")%></td>
@@ -792,6 +785,31 @@ if(generateEmails){
 		<%
 	}
 %>
+<td><a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=enc.getEncounterNumber()%></a>
+
+	<td>
+		<%
+			if((enc.getAlternateID()!=null)&&(!enc.getAlternateID().equals("None"))){
+		%> 
+				<br><font size="-1"><%=enc.getAlternateID()%></font> <%
+		 	} else {
+		 %>
+		 None
+		 <%
+		 }
+		 %>
+
+	</td>	
+		
+
+		
+		</td>
+		<td><%=enc.getSubmitterName()%></td>
+		<td><%=enc.getDate()%></td>
+		<td><%=enc.getLocation()%></td>
+		<td><%=enc.getLocationCode()%></td>
+		
+
 
 
 	</tr>
@@ -1051,7 +1069,7 @@ if(generateKML){
         	map.addControl(new GMapTypeControl());
 			map.setMapType(G_HYBRID_MAP);
 			<%for(int t=0;t<haveGPSData.size();t++) {
-
+				if(t<101){
 				Encounter mapEnc=(Encounter)haveGPSData.get(t);
 				double myLat=(new Double(mapEnc.getDWCDecimalLatitude())).doubleValue();
 				double myLong=(new Double(mapEnc.getDWCDecimalLongitude())).doubleValue();%>
@@ -1068,7 +1086,8 @@ if(generateKML){
 						  map.addOverlay(marker<%=t%>);
 			
 		<%	
-			}
+			}	
+		}
 		%>
 		
 		
