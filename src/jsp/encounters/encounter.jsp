@@ -216,8 +216,17 @@ if (enc.wasRejected()) {%>
 </table>
 <%} else {
 %>
-<p><font size="4"><strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %>
-</font></p>
+
+<p><font size="4"><strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %></font></p>
+<%
+if(enc.getEventID()!=null){
+%>
+<p class="para"><%=encprops.getProperty("eventID") %>: 
+<%=enc.getEventID() %>
+</p>
+<%
+}
+%>
 <%}%> <%
 	if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
 %>
@@ -348,8 +357,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<table width="150" border="1" cellpadding="1" cellspacing="0"
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
-				<td align="left" valign="top" class="para"><strong><font
-					color="#990000"><%=encprops.getProperty("setLocationID")%>:</font></strong></td>
+				<td align="left" valign="top" class="para"><strong><font color="#990000"><%=encprops.getProperty("setLocationID")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -1381,11 +1389,12 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%
  				if(isOwner) {%>
  					<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=loccode#loccode">edit</a>]</font>
-					<a href="<%=CommonConfiguration.getWikiLocation()%>location_codes"
-						target="_blank"><img src="../images/information_icon_svg.gif"
-						alt="Help" border="0" align="absmiddle"></a> <%
+					<a href="<%=CommonConfiguration.getWikiLocation()%>location_codes" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
 				}
-				%><br /> <em><%=encprops.getProperty("latitude") %></em>: 
+				%><br /> 
+				<em><%=encprops.getProperty("vessel") %></em>: <%=enc.getVessel()%>
+				<br />
+				<em><%=encprops.getProperty("latitude") %></em>: 
 					<%
 			  			if((enc.getDWCDecimalLatitude()!=null)&&(!enc.getDWCDecimalLatitude().equals("-9999.0"))) {
 			  		%>
@@ -1486,6 +1495,21 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%
  	}
  %>
+
+<p class="para"><strong><%=encprops.getProperty("behavior") %>: </strong> 
+<%
+if(enc.getBehavior()!=null){
+%>
+<%=enc.getBehavior()%></p>
+<%
+}
+else {
+%>
+None reported
+<%
+}
+%>
+
 
 				<p class="para"><strong><%=encprops.getProperty("comments") %></strong><br /> <%=enc.getComments()%><br />
 				<%
