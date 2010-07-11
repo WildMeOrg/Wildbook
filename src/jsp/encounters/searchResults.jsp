@@ -582,7 +582,7 @@ if(generateEmails){
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<table width="720" border="0" cellspacing="0" cellpadding="0">
+<table width="810px" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
 		<p>
@@ -621,25 +621,18 @@ if(generateEmails){
 	}
 %>
 
-<table width="720" border="1">
+<table width="810px" border="1">
 	<tr>
 		<td bgcolor="#99CCFF"></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("markedIndividual")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("number")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("alternateID")%></strong></td>
-		
-		
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("submitterName")%></strong></td>
-		
-		
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("date")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("vessel")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("eventID")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("location")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("locationID")%></strong></td>
-		
-
-		
 	</tr>
 
 	<%
@@ -793,7 +786,7 @@ if(generateEmails){
 		<%
 			if((enc.getAlternateID()!=null)&&(!enc.getAlternateID().equals("None"))){
 		%> 
-				<br><font size="-1"><%=enc.getAlternateID()%></font> <%
+				<%=enc.getAlternateID()%><%
 		 	} else {
 		 %>
 		 None

@@ -66,7 +66,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 		<table>
 			<tr>
 				<td>
-				<table width="715" align="left">
+				<table width="810px" align="left">
 					<tr>
 						<td width="154"><strong><%=encprops.getProperty("types2search")%></strong>:</td>
 						<td width="208"><label> 
