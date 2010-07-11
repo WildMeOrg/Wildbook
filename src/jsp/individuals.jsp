@@ -69,7 +69,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 <html>
 <head>
 
-<title><%=CommonConfiguration.getHTMLTitle() %> <%=props.size()%></title>
+<title><%=CommonConfiguration.getHTMLTitle() %></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
 	content="<%=CommonConfiguration.getHTMLDescription() %>" />

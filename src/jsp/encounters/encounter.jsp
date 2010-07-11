@@ -98,7 +98,7 @@ boolean haveRendered=false;
 
 <html>
 <head>
-<title>Encounter <%=num%></title>
+<title><%=encprops.getProperty("encounter") %> <%=num%></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
 	content="<%=CommonConfiguration.getHTMLDescription() %>" />
