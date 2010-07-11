@@ -337,11 +337,8 @@ if (isOwner) {
 
 
 		</table>
-		<%
-    if (isOwner) {
-	%>
-		<p><strong><img src="images/2globe_128.gif" width="64"
-			height="64" align="absmiddle" /><%=mapping %></strong></p>
+
+		<p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle" /><%=mapping %></strong></p>
 		<%
 	  Vector haveGPSData=new Vector();
 	  haveGPSData=sharky.returnEncountersWithGPSData();
@@ -412,7 +409,10 @@ if (isOwner) {
 
 		<%} else {%>
 		<p><%=noGPS %></p>
-		<br> <%}%> <%}%> <%
+		<br> 
+		<%}
+		
+	
     if (isOwner) {
 %>
 		<hr>
