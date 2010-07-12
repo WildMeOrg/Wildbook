@@ -550,6 +550,10 @@ catch(Exception eSharks_jsp){
 <!-- end maintext --></div>
 <!-- end main-wide -->
 
+<%
+if(CommonConfiguration.allowAdoptions()){
+%>
+
 <div id="rightcol">
 <div id="menu">
 
@@ -564,7 +568,9 @@ catch(Exception eSharks_jsp){
 </div>
 <!-- end menu --></div>
 <!-- end rightcol --> 
-
+<%
+}
+%>
 
 <%
 		myShepherd.rollbackDBTransaction();

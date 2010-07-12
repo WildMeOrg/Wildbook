@@ -2049,12 +2049,18 @@ None reported
 				</p>
 				
 		
+		
+		<%
+		if(CommonConfiguration.allowAdoptions()){
+		%>
 				<div class="module">
 					<jsp:include page="encounterAdoptionEmbed.jsp" flush="true">
 						<jsp:param name="num" value="<%=num%>" />
 				</jsp:include>
 				</div>
-				
+		<%
+		}
+		%>
 	
 				
 				

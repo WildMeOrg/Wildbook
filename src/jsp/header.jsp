@@ -342,7 +342,9 @@ z-index:99;
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Photo
 		Keywords</a></li>
 	
-
+		<%
+		if(CommonConfiguration.allowAdoptions()){
+		%>
 		<li class="drop"><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px; z-index: 100;"><strong>Adoptions</strong>
@@ -364,6 +366,11 @@ z-index:99;
 			all adoptions</a></li>
 
 		</ul>
+		</li>
+		
+		<%
+		}
+		%>
 		
 
 		<!--[if lte IE 6]></td></tr></table></a><![endif]--> 
