@@ -155,12 +155,12 @@ try{
 
 <h1><strong><span class="para"><img src="images/tag_big.gif" width="50px" height="*" align="absmiddle" /></span>
 <%=markedIndividualTypeCaps %></strong>: <%=sharky.getName()%></h1>
-<%if(isOwner){%> <a name="alternateid"></a></a>
+ <a name="alternateid"></a>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
 <%=sharky.getAlternateID()%> <%if(hasAuthority) {%>[<a
 	href="individuals.jsp?number=<%=name%>&edit=alternateid#alternateid"><%=edit%></a>]<%}%>
 </p>
-<%}
+<%
 if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){%>
 <br>
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
@@ -269,9 +269,11 @@ if (isOwner) {
 			<tr class="lineitem">
 				<td class="lineitem" bgcolor="#99CCFF"></td>
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encnumber %></strong></td>
+				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=alternateID %></strong></td>
+				
+				
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %></strong></td>
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %></strong></td>
-				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=size %></strong></td>
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %></strong></td>
 				<%
 	 if(isOwner) {
@@ -302,21 +304,24 @@ if (isOwner) {
 				<td width="100" class="lineitem"><a
 					href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><img
 					src="<%=imgName%>" alt="encounter" border="0" /></a></td>
-				<td class="lineitem"><a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%></a>
-				<%
-		  if((enc.getAlternateID()!=null)&&(!enc.getAlternateID().equals("None"))){
-		  %> <br><%=enc.getAlternateID()%> <%
-		  }
-		  %>
+				<td class="lineitem"><a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%></a></td>
 				
-				</td>
+				<%
+				if(enc.getAlternateID()!=null){
+				%>
+				<td class="lineitem"><%=enc.getAlternateID()%></td>
+				<%
+				}
+				else {
+				%>
+				<td class="lineitem"><%=none%></td>
+				<%
+				}
+				%>
+				
+				
 				<td class="lineitem"><%=enc.getDate()%></td>
 				<td class="lineitem"><%=enc.getLocation()%></td>
-				<%if(enc.getSize()!=0.0) {%>
-				<td class="lineitem"><%=enc.getSize()%> <%=enc.getMeasureUnits()%></td>
-				<%} else {%>
-				<td class="lineitem"><%=unknown %></td>
-				<%}%>
 				<td class="lineitem"><%=enc.getSex()%></td>
 				<%if(((enc.getSpots().size()==0)&&(enc.getRightSpots().size()==0))&&(isOwner)) {%>
 				<td class="lineitem">&nbsp;</td>
