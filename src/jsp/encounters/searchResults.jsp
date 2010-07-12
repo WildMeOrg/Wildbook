@@ -400,7 +400,7 @@ if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField"
 		for(int q=0;q<rEncounters.size();q++) {
 			Encounter rEnc=(Encounter)rEncounters.get(q);
 			String locString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase();
-			if((rEnc.getSubmitterName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)){
+			if((rEnc.getSubmitterName()!=null)&&(rEnc.getSubmitterName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerName()!=null)&&(rEnc.getPhotographerName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getSubmitterEmail()!=null)&&(rEnc.getSubmitterEmail().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerEmail()!=null)&&(rEnc.getPhotographerEmail().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)){
 				rEncounters.remove(q);
 				q--;
 				}
