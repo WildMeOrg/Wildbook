@@ -343,7 +343,8 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 							><%=q%></option>
 
 							<% } %>
-						</select></label></td>
+						</select>
+						</label></td>
 					</tr>
 				</table>
 				</td>

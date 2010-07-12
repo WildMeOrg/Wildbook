@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=iso-8859-1" language="java"
+<%@ page contentType="text/html; charset=utf-8" language="java"
 	import="org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.util.Iterator, java.util.GregorianCalendar"%>
 <%
 Shepherd myShepherd=new Shepherd();
@@ -9,6 +9,16 @@ Query kwQuery=myShepherd.getPM().newQuery(allKeywords);
 
 GregorianCalendar cal=new GregorianCalendar();
 int nowYear=cal.get(1);
+
+int firstYear = 1980;
+myShepherd.beginDBTransaction();
+try{
+	firstYear = myShepherd.getEarliestSightingYear();
+	nowYear = myShepherd.getLastSightingYear();
+}
+catch(Exception e){
+	e.printStackTrace();
+}
 
 %>
 
@@ -249,22 +259,25 @@ myShepherd.rollbackDBTransaction();
 							<option value="10">10</option>
 							<option value="11">11</option>
 							<option value="12">12</option>
-						</select> Year</em> <select name="year1" id="year1">
-							<option><%=nowYear%></option>
-							<% for(int p=1;p<30;p++) { 
-			  	if(p!=29){
-			  
-			  %>
-							<option value="<%=(nowYear-p)%>"><%=(nowYear-p)%></option>
+						</select> Year</em> 
+						
+						<select name="year1" id="year1">
+							<% for(int q=firstYear;q<=nowYear;q++) { %>
+							<option value="<%=q%>" 
+							
+							<%
+							if(q==firstYear){
+							%>
+								selected
+							<%
+							}
+							%>
+							><%=q%></option>
 
-							<% 
-				}
-				else { %>
-							<option value="<%=(nowYear-p)%>" selected><%=(nowYear-p)%></option>
-
-							<%}
-				} %>
-						</select> &nbsp;to <em>&nbsp;</em><em>Month</em> <em> <select
+							<% } %>
+						</select>
+						
+						&nbsp;to <em>&nbsp;</em><em>Month</em> <em> <select
 							name="month2" id="month2">
 							<option value="1">1</option>
 							<option value="2">2</option>
@@ -278,13 +291,25 @@ myShepherd.rollbackDBTransaction();
 							<option value="10">10</option>
 							<option value="11">11</option>
 							<option value="12" selected>12</option>
-						</select> Year</em> <select name="year2" id="year2">
-							<option selected="selected"><%=nowYear%></option>
-							<% for(int p=1;p<30;p++) { %>
-							<option vale="<%=(nowYear-p)%>"><%=(nowYear-p)%></option>
+						</select> Year</em> 
+						
+						<select name="year2" id="year2">
+							<% for(int q=nowYear;q>=firstYear;q--) { %>
+							<option value="<%=q%>" 
+							
+							<%
+							if(q==nowYear){
+							%>
+								selected
+							<%
+							}
+							%>
+							><%=q%></option>
 
 							<% } %>
-						</select> </label></td>
+						</select>
+						
+						 </label></td>
 					</tr>
 				</table>
 				</td>
