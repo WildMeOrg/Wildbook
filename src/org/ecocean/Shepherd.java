@@ -1541,6 +1541,11 @@ public class Shepherd {
 	    Query q = pm.newQuery("SELECT max(year) FROM org.ecocean.Encounter");
 	    return ((Integer)q.execute()).intValue();
 	  }
+	 
+   public int getLastMonthOfSightingYear(int yearHere){
+     Query q = pm.newQuery("SELECT max(month) FROM org.ecocean.Encounter WHERE this.year == "+yearHere);
+     return ((Integer)q.execute()).intValue();
+   }
 	
 } //end shepherd
 

@@ -3,8 +3,6 @@
 
 <%
 
-Calendar cal=Calendar.getInstance();
-String dato=(new Integer(cal.get(Calendar.MONTH)+1)).toString()+"/1/"+(new Integer(cal.get(Calendar.YEAR))).toString();
 
 //handle some cache-related security
 response.setHeader("Cache-Control","no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -230,7 +228,7 @@ z-index:99;
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">View
 		Images</a></li>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/xcalendar/calendar.jsp?scDate=<%=dato%>"
+			href="http://<%=CommonConfiguration.getURLLocation() %>/xcalendar/calendar.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">Encounter
 		Calendar</a></li>
