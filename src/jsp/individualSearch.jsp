@@ -61,7 +61,7 @@ props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/individualSearc
 		<td>
 		<p>
 		<h1 class="intro"><strong><span class="para">
-		<img src="images/markedIndividualIcon.gif" width="26" height="51" align="absmiddle" /></span></strong>
+		<img src="images/tag_big.gif" width="50" align="absmiddle" /></span></strong>
 		<%=props.getProperty("title")%></h1>
 		</p>
 		<p><em><%=props.getProperty("instructions")%></em></p>
