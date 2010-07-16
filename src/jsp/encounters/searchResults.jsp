@@ -435,8 +435,30 @@ if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alt
 
 //location code filter--------------------------------------------------------------------------------------
 	
+//keyword filters
+if(request.getParameterValues("keyword")!=null){
+String[] keywords=request.getParameterValues("keyword");
+int kwLength=keywords.length;
+for(int kwIter=0;kwIter<kwLength;kwIter++) {
+		String kwParam=keywords[kwIter];
+		if(myShepherd.isKeyword(kwParam)) {
+			Keyword word=myShepherd.getKeyword(kwParam);
+			
+			for(int q=0;q<rEncounters.size();q++) {
+				Encounter tShark=(Encounter)rEncounters.get(q);
+				if(!word.isMemberOf(tShark)) {
+					rEncounters.remove(q);
+					q--;
+				}
+			} //end for
+		} //end if isKeyword
+}
+}
+//end keyword filters	
+	
+	
+	
 //filter for date------------------------------------------
-if(request.getParameter("dateLimit")!=null) {
 	if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
 		try{
 		
@@ -508,7 +530,7 @@ if(request.getParameter("dateLimit")!=null) {
 	nfe.printStackTrace();
 		}
 	}
-}
+
 //date filter--------------------------------------------------------------------------------------
 
 

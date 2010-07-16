@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,java.util.GregorianCalendar, java.util.Properties"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="javax.jdo.*,org.ecocean.*,java.util.GregorianCalendar, java.util.Properties, java.util.Iterator"%>
 
 <html>
 <head>
@@ -22,7 +22,10 @@
 GregorianCalendar cal=new GregorianCalendar();
 int nowYear=cal.get(1);
 int firstYear = 1980;
+
 Shepherd myShepherd=new Shepherd();
+Extent allKeywords=myShepherd.getPM().getExtent(Keyword.class,true);		
+Query kwQuery=myShepherd.getPM().newQuery(allKeywords);
 myShepherd.beginDBTransaction();
 try{
 	firstYear = myShepherd.getEarliestSightingYear();
@@ -193,6 +196,53 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 				</td>
 			</tr>
 
+<%
+
+int totalKeywords=myShepherd.getNumKeywords();
+%>
+			<tr>
+				<td><p><%=encprops.getProperty("hasKeywordPhotos")%></p>
+				<%
+				
+				if(totalKeywords>0){
+				%>
+				
+				<select multiple size="<%=(totalKeywords+1) %>" name="keyword" id="keyword">
+					<option value="None"></option>
+					<% 
+				
+
+			  	Iterator keys=myShepherd.getAllKeywords(kwQuery);
+			  	for(int n=0;n<totalKeywords;n++) {
+					Keyword word=(Keyword)keys.next();
+				%>
+					<option value="<%=word.getIndexname()%>"><%=word.getReadableName()%></option>
+					<%}
+				
+				%>
+
+				</select>
+				<%
+				}
+				else{
+					%>
+					
+					<p><em><%=encprops.getProperty("noKeywords")%></em></p>
+					
+					<%
+					
+				}
+				%>
+				</td>
+			</tr>
+			<%
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+%>
+
+
+
+
 
 			<tr>
 				<td>
@@ -221,8 +271,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 				<td>
 				<table width="720">
 					<tr>
-						<td width="670"><label> <input name="dateLimit"
-							type="checkbox" id="dateLimit" value="dateLimit"> <%=encprops.getProperty("range")%>:<em>
+						<td width="670"><label><em>
 						&nbsp;<%=encprops.getProperty("day")%></em> <em> <select name="day1" id="day1">
 							<option value="1" selected>1</option>
 							<option value="2">2</option>
