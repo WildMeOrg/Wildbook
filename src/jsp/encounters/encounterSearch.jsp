@@ -195,7 +195,26 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 					alt="Help" border="0" align="absmiddle" /></a></span> <br> <%=encprops.getProperty("locationIDExample")%></em></p>
 				</td>
 			</tr>
+			
+			
+			<tr>
+				<td>
+				<p><strong><%=encprops.getProperty("vessel")%>:</strong><em> 
+				<input name="vesselField" type="text" id="vesselField" size="7"> <span class="para">
+				<a href="<%=CommonConfiguration.getWikiLocation()%>vessel" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></span> 
+				</em></p>
+				</td>
+			</tr>
 
+
+			<tr>
+				<td>
+				<p><strong><%=encprops.getProperty("behavior")%>:</strong><em> 
+				<input name="behaviorField" type="text" id="behaviorField" size="7"> <span class="para">
+				<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></span> 
+				</em></p>
+				</td>
+			</tr>
 <%
 
 int totalKeywords=myShepherd.getNumKeywords();

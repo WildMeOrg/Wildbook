@@ -413,7 +413,34 @@ if((request.getParameter("locationField")!=null)&&(!request.getParameter("locati
 				}
 		}
 }
-//location filter--------------------------------------------------------------------------------------
+//end location filter--------------------------------------------------------------------------------------
+
+//filter for vessel------------------------------------------
+if((request.getParameter("vesselField")!=null)&&(!request.getParameter("vesselField").equals(""))) {
+		for(int q=0;q<rEncounters.size();q++) {
+			Encounter rEnc=(Encounter)rEncounters.get(q);
+			String vesString=request.getParameter("vesselField").toLowerCase();
+			if(rEnc.getVessel().toLowerCase().indexOf(vesString)==-1){
+				rEncounters.remove(q);
+				q--;
+				}
+		}
+}
+//end vessel filter--------------------------------------------------------------------------------------
+
+//filter for behavior------------------------------------------
+if((request.getParameter("behaviorField")!=null)&&(!request.getParameter("behaviorField").equals(""))) {
+		for(int q=0;q<rEncounters.size();q++) {
+			Encounter rEnc=(Encounter)rEncounters.get(q);
+			String behString=request.getParameter("behaviorField").toLowerCase();
+			if(rEnc.getBehavior().toLowerCase().indexOf(behString)==-1){
+				rEncounters.remove(q);
+				q--;
+				}
+		}
+}
+//end behavior filter--------------------------------------------------------------------------------------
+
 
 //submitter or photographer name filter------------------------------------------
 if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
