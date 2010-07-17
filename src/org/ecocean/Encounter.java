@@ -409,16 +409,16 @@ public class Encounter implements java.io.Serializable{
 		else if(month==-1) {return (new Integer(year)).toString();}
 		
 		if(hour!=-1) {
-			time=", "+(new Integer(hour)).toString()+":"+minutes;
+			time=(new Integer(hour)).toString()+":"+minutes;
 		}
 
 		if(day>0) {
 		
-			date=(new Integer(day)).toString()+"/"+(new Integer(month)).toString()+"/"+(new Integer(year)).toString()+time;
+			date=(new Integer(year)).toString()+"-"+(new Integer(month)).toString()+"-"+(new Integer(day)).toString()+" "+time;
 		
 		} else {
 			
-			date=(new Integer(month)).toString()+"/"+(new Integer(year)).toString()+time;
+			date=(new Integer(year)).toString()+"-"+(new Integer(month)).toString()+" "+time;
 		}
 		
 		return date;
