@@ -420,7 +420,7 @@ if((request.getParameter("vesselField")!=null)&&(!request.getParameter("vesselFi
 		for(int q=0;q<rEncounters.size();q++) {
 			Encounter rEnc=(Encounter)rEncounters.get(q);
 			String vesString=request.getParameter("vesselField").toLowerCase();
-			if(rEnc.getVessel().toLowerCase().indexOf(vesString)==-1){
+			if((rEnc.getVessel()==null)||(rEnc.getVessel().toLowerCase().indexOf(vesString)==-1)){
 				rEncounters.remove(q);
 				q--;
 				}
@@ -433,7 +433,7 @@ if((request.getParameter("behaviorField")!=null)&&(!request.getParameter("behavi
 		for(int q=0;q<rEncounters.size();q++) {
 			Encounter rEnc=(Encounter)rEncounters.get(q);
 			String behString=request.getParameter("behaviorField").toLowerCase();
-			if(rEnc.getBehavior().toLowerCase().indexOf(behString)==-1){
+			if((rEnc.getBehavior()==null)||(rEnc.getBehavior().toLowerCase().indexOf(behString)==-1)){
 				rEncounters.remove(q);
 				q--;
 				}

@@ -43,9 +43,9 @@
 
 
   <target name="enhance" description="DataNucleus enhancement">
-      <taskdef name="datanucleusenhancer" classpath="temp_jars/asm-all-3.2.jar;temp_jars/datanucleus-enhancer-2.0.0-release.jar;temp_jars/datanucleus-core-2.0.0-release.jar;temp_jars/jdo2-api-2.3-eb.jar;target/classes" classname="org.datanucleus.enhancer.tools.EnhancerTask" />
+      <taskdef name="datanucleusenhancer" classpath="temp_jars/asm-all-3.2.jar;temp_jars/datanucleus-enhancer-2.1.0-release.jar;temp_jars/datanucleus-core-2.1.1.jar;temp_jars/jdo-api-3.0.jar;target/classes" classname="org.datanucleus.enhancer.tools.EnhancerTask" />
   
-      <datanucleusenhancer dir="${target.dir}/classes" classpath="temp_jars/asm-all-3.2.jar;temp_jars/datanucleus-enhancer-2.0.0-release.jar;temp_jars/datanucleus-core-2.0.0-release.jar;temp_jars/jdo2-api-2.3-eb.jar;target/classes" failonerror="true" verbose="true">
+      <datanucleusenhancer dir="${target.dir}/classes" classpath="temp_jars/asm-all-3.2.jar;temp_jars/datanucleus-enhancer-2.1.0-release.jar;temp_jars/datanucleus-core-2.1.1.jar;temp_jars/jdo-api-3.0.jar;target/classes" failonerror="true" verbose="true">
       </datanucleusenhancer>
 
   </target>
