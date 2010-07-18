@@ -58,5 +58,7 @@
 	<classpathentry kind="lib" path="temp_jars/datanucleus-rdbms-2.1.1.jar"/>
 	<classpathentry kind="lib" path="temp_jars/datanucleus-spatial-2.1.0-release.jar"/>
 	<classpathentry kind="lib" path="temp_jars/jdo-api-3.0.jar"/>
+	<classpathentry kind="lib" path="temp_jars/datanucleus-rest-2.0.0-release.jar"/>
+	<classpathentry kind="lib" path="temp_jars/flexjson.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
