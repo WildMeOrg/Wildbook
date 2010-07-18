@@ -468,7 +468,7 @@
           <servlet-class>org.datanucleus.rest.RestServlet</servlet-class>
           <init-param>
               <param-name>persistence-context</param-name>
-              <param-value>transactions-optional</param-value>
+              <param-value>ShepherdProject</param-value>
           </init-param>	     
       </servlet>
       
