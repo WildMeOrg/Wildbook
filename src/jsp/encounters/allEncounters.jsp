@@ -252,20 +252,20 @@ if (highCount<totalCount) {%> <a
 		(<%=last %> 4) <br />
 		<%if(request.getRemoteUser()!=null){%><a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=numberup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" />
+			src="../images/arrow_up.gif" width="11" height="6" border="0" alt="up" />
 		</a><a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=numberdown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_down.gif" width="11" height="6" border="0"
+			src="../images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /> </a>
 		<%}%>
 		</td>
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=date %></strong><br />
 		<%if(request.getRemoteUser()!=null){%><a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=dateup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
+			src="../images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
 		<a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=datedown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_down.gif" width="11" height="6" border="0"
+			src="../images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a>
 		<%}%>
 		</td>
@@ -277,40 +277,40 @@ if (highCount<totalCount) {%> <a
 		<td width="40" align="left" valign="top" bgcolor="#99CCFF"
 			class="lineitem"><strong><%=locationID %></strong> <a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=locationCodeup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
+			src="../images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
 		<a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=locationCodedown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_down.gif" width="11" height="6" border="0"
+			src="../images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a></td>
 	
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=size %>
 		</strong><br />
 		<%if(request.getRemoteUser()!=null){%><a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=sizeup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
+			src="../images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
 		<a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=sizedown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_down.gif" width="11" height="6" border="0"
+			src="../images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a>
 		<%}%>
 		</td>
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=sex %></strong><br />
 		<%if(request.getRemoteUser()!=null){%><a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=sexup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
+			src="../images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
 		<a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=sexdown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_down.gif" width="11" height="6" border="0"
+			src="../images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a>
 		<%}%>
 		</td>
 		<td width="60" align="left" valign="top" bgcolor="#99CCFF"
 			class="lineitem"><strong><%=individual%></strong> <%if(request.getRemoteUser()!=null){%><a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=assignedup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
+			src="../images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
 		<a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=assigneddown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="/images/arrow_down.gif" width="11" height="6" border="0"
+			src="../images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a>
 		<%}%>
 		</td>
