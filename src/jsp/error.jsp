@@ -61,7 +61,7 @@
 <div id="maintext">
 <h1 class="intro">You could not be logged in.</h1>
 <br>
-<p><a href="welcome.jsp">Click here to try again.</a></p>
+<p><a href="<%=CommonConfiguration.getURLLocation() %>/welcome.jsp">Click here to try again.</a></p>
 </div>
 <!-- end maintext --></div>
 <!-- end maincol --> <jsp:include page="footer.jsp" flush="true" /></div>
