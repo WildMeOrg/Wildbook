@@ -60,7 +60,7 @@ if ((request.getParameter("reflect")!=null)) {response.sendRedirect(request.getP
 
 <div id="maintext">
 
-<h1 class="intro"><%=encprops.getProperty("loginSuccess")%></h1>
+<h1 class="intro"><%=props.getProperty("loginSuccess")%></h1>
 
 
 <p><%=props.getProperty("loggedInAs")%> <strong><%=request.getRemoteUser()%></strong>.
