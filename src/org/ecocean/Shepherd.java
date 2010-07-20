@@ -1506,7 +1506,7 @@ public class Shepherd {
 	}
 	
 	public ArrayList getMarkedIndividualsByAlternateID(String altID) {
-		String filter="this.alternateid == '"+altID+"'";
+		String filter="this.alternateid.startsWith('"+altID+"')";
 		Extent encClass=pm.getExtent(MarkedIndividual.class, true);
 		Query acceptedEncounters=pm.newQuery(encClass, filter);
 		Collection c=(Collection)(acceptedEncounters.execute());
@@ -1515,7 +1515,7 @@ public class Shepherd {
 	}
 	
 	public ArrayList getEncountersByAlternateID(String altID) {
-		String filter="this.otherCatalogNumbers == '"+altID+"'";
+		String filter="this.otherCatalogNumbers.startsWith('"+altID+"')";
 		Extent encClass=pm.getExtent(Encounter.class, true);
 		Query acceptedEncounters=pm.newQuery(encClass, filter);
 		Collection c=(Collection)(acceptedEncounters.execute());
@@ -1524,7 +1524,7 @@ public class Shepherd {
 	}
 	
 	public ArrayList getMarkedIndividualsByNickname(String altID) {
-		String filter="this.nickName == '"+altID+"'";
+		String filter="this.nickName.startsWith('"+altID+"')";
 		Extent encClass=pm.getExtent(MarkedIndividual.class, true);
 		Query acceptedEncounters=pm.newQuery(encClass, filter);
 		Collection c=(Collection)(acceptedEncounters.execute());
