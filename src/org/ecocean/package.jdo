@@ -143,11 +143,16 @@
 			<field name="behavior" persistence-modifier="persistent">
 				<column jdbc-type="LONGVARCHAR" allows-null="true" />
 			</field>
-			<field name="vessel" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" allows-null="true" />
-			</field>
+
 			<field name="eventID" persistence-modifier="persistent">
 				<column jdbc-type="LONGVARCHAR" />
+			</field>
+			
+			<field name="dynamicProperties" persistence-modifier="persistent">
+							<column jdbc-type="LONGVARCHAR" />
+			</field>
+			<field name="identificationRemarks" persistence-modifier="persistent">
+										<column jdbc-type="LONGVARCHAR" />
 			</field>
 			
 			

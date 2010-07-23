@@ -3,6 +3,8 @@ package org.ecocean;
 import java.lang.Math;
 import java.util.Vector;
 import java.util.ArrayList;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 
 /**
@@ -42,6 +44,10 @@ public class Encounter implements java.io.Serializable{
 	private String otherCatalogNumbers;
 	private String behavior;
 	private String eventID;
+	private String measurementUnit; 
+	private String verbatimEventDate;
+	private String dynamicProperties;
+	public String identificationRemarks="";
 	
 	
 	/*
@@ -61,10 +67,7 @@ public class Encounter implements java.io.Serializable{
 	
 	//Size of the individual in meters
 	private double size;
-	
-	//Text descriptor of the units of measure (size, depth, etc.) used in the encounter report
-	private String measureUnits; 
-	
+		
 	//Additional comments added by library users
 	private String researcherComments="None";
 	
@@ -107,12 +110,9 @@ public class Encounter implements java.io.Serializable{
 	//we also use keywords to be more specific
 	public String distinguishingScar="None"; 
 	//describes how this encounter was matched to an existing shark - by eye, by pattern recognition algorithm etc.
-	public String matchedBy="";
+
 	private int numSpotsLeft=0;
 	private int numSpotsRight=0;
-	
-	//the vessel or tour associated with collecting data for this encounter
-	public String vessel="";
 	
 	
 	//SPOTS
@@ -214,12 +214,13 @@ public class Encounter implements java.io.Serializable{
 	/**Sets the units of the recorded size and depth of the shark for this encounter.
 	 *Acceptable entries are either "Feet" or "Meters"
 	 */
-	public void setMeasureUnits(String measure){measureUnits=measure;}
+	public void setMeasureUnits(String measure){measurementUnit=measure;}
 	
 	/**Returns the units of the recorded size and depth of the shark for this encounter.
 	 *@return	the units of measure used by the recorded of this encounter, either "feet" or "meters"
 	 */
-	public String getMeasureUnits(){return measureUnits;}
+	public String getMeasureUnits(){return measurementUnit;}
+	public String getMeasurementUnit(){return measurementUnit;}
 	
 	/**Returns the recorded location of this encounter.
 	 *@return	the location of this encounter
@@ -523,12 +524,12 @@ public class Encounter implements java.io.Serializable{
 		}
 	
 	public String getMatchedBy(){
-		if((matchedBy==null)||(matchedBy.equals(""))){return "Unknown";}
-		return matchedBy;
+		if((identificationRemarks==null)||(identificationRemarks.equals(""))){return "Unknown";}
+		return identificationRemarks;
 	}
 	
 	public void setMatchedBy(String matchType) {
-		matchedBy=matchType;
+		identificationRemarks=matchType;
 	}
 	
 
@@ -921,11 +922,7 @@ public class Encounter implements java.io.Serializable{
 		
 		public String getLivingStatus(){return livingStatus;}
 		public void setLivingStatus(String status){this.livingStatus=status;}
-		
-		public String getVessel(){return vessel;}
-		public void setVessel(String vess){
-		  this.vessel=vess;
-		}
+	
 		
     public String getBehavior(){return behavior;}
     public void setBehavior(String beh){
@@ -937,6 +934,85 @@ public class Encounter implements java.io.Serializable{
       this.eventID=id;
     }
 		
+    public String getVerbatimEventDate(){return verbatimEventDate;}
+    public void setVerbatimEventDate(String dt){
+      this.verbatimEventDate=dt;
+    }
+    
+    public String getDynamicProperties(){
+      return dynamicProperties;
+    }
+    public void setDynamicProperty(String name, String value){
+      name=name.replaceAll(";", "_").trim();
+      value=value.replaceAll(";", "_").trim();
+      
+      if(dynamicProperties==null){dynamicProperties=name+"="+value+";";}
+      else{
+        
+        //let's create a TreeMap of the properties
+        TreeMap<String,String> tm=new TreeMap<String,String>();
+        StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+        while(st.hasMoreTokens()){
+          String token = st.nextToken();
+          int equalPlace=token.indexOf("=");
+          tm.put(token.substring(0,(equalPlace-1)), token.substring(equalPlace+1));
+        }
+        if(tm.containsKey(name)){
+          tm.remove(name);
+          tm.put(name, value);
+          
+          //now let's recreate the dynamicProperties String
+          String newProps=tm.toString();
+          int stringSize=newProps.length();
+          dynamicProperties=newProps.substring(1,(stringSize-2)).replaceAll(", ", ";")+";";
+        }
+        else{
+          dynamicProperties=dynamicProperties+name+"="+value+";";
+        }
+      }
+    }
+    public String getDynamicPropertyValue(String name){
+      if(dynamicProperties!=null){
+        //let's create a TreeMap of the properties
+        TreeMap<String,String> tm=new TreeMap<String,String>();
+        StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+        while(st.hasMoreTokens()){
+          String token = st.nextToken();
+          int equalPlace=token.indexOf("=");
+          tm.put(token.substring(0,equalPlace), token.substring(equalPlace+1));
+        }
+        if(tm.containsKey(name)){return tm.get(name);}
+      }
+      return null;
+    }
+    
+    public void removeDynamicProperty(String name){
+      name=name.replaceAll(";", "_").trim();
+      if(dynamicProperties!=null){
+        
+        //let's create a TreeMap of the properties
+        TreeMap<String,String> tm=new TreeMap<String,String>();
+        StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+        while(st.hasMoreTokens()){
+          String token = st.nextToken();
+          int equalPlace=token.indexOf("=");
+          tm.put(token.substring(0,(equalPlace-1)), token.substring(equalPlace+1));
+        }
+        if(tm.containsKey(name)){
+          tm.remove(name);
+          
+          //now let's recreate the dynamicProperties String
+          String newProps=tm.toString();
+          int stringSize=newProps.length();
+          dynamicProperties=newProps.substring(1,(stringSize-2)).replaceAll(", ", ";")+";";
+        }
+      }
+    }
+    
+    
+    public String getIdentificationRemarks(){return identificationRemarks;}
+    
+    
 }
 	
 	

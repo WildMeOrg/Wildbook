@@ -420,7 +420,7 @@ if((request.getParameter("vesselField")!=null)&&(!request.getParameter("vesselFi
 		for(int q=0;q<rEncounters.size();q++) {
 			Encounter rEnc=(Encounter)rEncounters.get(q);
 			String vesString=request.getParameter("vesselField").toLowerCase();
-			if((rEnc.getVessel()==null)||(rEnc.getVessel().toLowerCase().indexOf(vesString)==-1)){
+			if((rEnc.getDynamicPropertyValue("vessel")==null)||(rEnc.getDynamicPropertyValue("vessel").toLowerCase().indexOf(vesString)==-1)){
 				rEncounters.remove(q);
 				q--;
 				}
@@ -482,7 +482,7 @@ if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alt
 
 //location code filter--------------------------------------------------------------------------------------
 	
-//keyword filters
+//keyword filters-------------------------------------------------
 if(request.getParameterValues("keyword")!=null){
 String[] keywords=request.getParameterValues("keyword");
 int kwLength=keywords.length;
@@ -501,7 +501,7 @@ for(int kwIter=0;kwIter<kwLength;kwIter++) {
 		} //end if isKeyword
 }
 }
-//end keyword filters	
+//end keyword filters-----------------------------------------------	
 	
 	
 	

@@ -171,6 +171,50 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/thumbnailSea
 				<p><strong><%=encprops.getProperty("submitterName")%>:</strong> <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%></em></p>
 				</td>
 			</tr>
+			
+			<%
+
+int totalKeywords=myShepherd.getNumKeywords();
+%>
+			<tr>
+				<td><p><%=encprops.getProperty("hasKeywordPhotos")%></p>
+				<%
+				
+				if(totalKeywords>0){
+				%>
+				
+				<select multiple size="<%=(totalKeywords+1) %>" name="keyword" id="keyword">
+					<option value="None"></option>
+					<% 
+				
+
+			  	Iterator keys=myShepherd.getAllKeywords(kwQuery);
+			  	for(int n=0;n<totalKeywords;n++) {
+					Keyword word=(Keyword)keys.next();
+				%>
+					<option value="<%=word.getIndexname()%>"><%=word.getReadableName()%></option>
+					<%}
+				
+				%>
+
+				</select>
+				<%
+				}
+				else{
+					%>
+					
+					<p><em><%=encprops.getProperty("noKeywords")%></em></p>
+					
+					<%
+					
+				}
+				%>
+				</td>
+			</tr>
+			<%
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+%>
 
 			<tr>
 				<td><strong><%=encprops.getProperty("sightingDates")%></strong></td>

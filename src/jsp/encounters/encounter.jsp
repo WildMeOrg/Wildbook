@@ -1392,7 +1392,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<a href="<%=CommonConfiguration.getWikiLocation()%>location_codes" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
 				}
 				%><br /> 
-				<em><%=encprops.getProperty("vessel") %></em>: <%=enc.getVessel()%>
+				<em><%=encprops.getProperty("vessel") %></em>: <%=enc.getDynamicPropertyValue("vessel")%>
 				<br />
 				<em><%=encprops.getProperty("latitude") %></em>: 
 					<%

@@ -194,6 +194,30 @@ if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("lo
 }
 //location code filter--------------------------------------------------------------------------------------
 			
+//keyword filters-------------------------------------------------
+if(request.getParameterValues("keyword")!=null){
+String[] keywords=request.getParameterValues("keyword");
+int kwLength=keywords.length;
+for(int kwIter=0;kwIter<kwLength;kwIter++) {
+		String kwParam=keywords[kwIter];
+		if(myShepherd.isKeyword(kwParam)) {
+			Keyword word=myShepherd.getKeyword(kwParam);
+			
+			for(int q=0;q<rEncounters.size();q++) {
+				Encounter tShark=(Encounter)rEncounters.get(q);
+				if(!word.isMemberOf(tShark)) {
+					rEncounters.remove(q);
+					q--;
+				}
+			} //end for
+		} //end if isKeyword
+}
+}
+//end keyword filters-----------------------------------------------	
+			
+			
+			
+			
 //filter for date------------------------------------------
 	if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
 		try{
@@ -321,37 +345,36 @@ if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("lo
 
 			
 			
-	for(int rows=0;rows<5;rows++) {		%>
+					for(int rows=0;rows<5;rows++) {		%>
 
-	<tr>
+						<tr>
 
-		<%
-				for(int columns=0;columns<3;columns++){
-					if(countMe<thumbLocs.size()) {
-						String combined=(String)thumbLocs.get(countMe);
-						StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
-						String thumbLink=stzr.nextToken();
-						String encNum=stzr.nextToken();
-						String fileName=stzr.nextToken();
-						boolean video=true;
-						if(!thumbLink.endsWith("video.jpg")){
-							thumbLink="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+thumbLink;
-							video=false;
-						}
-						String link="http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+encNum;
+							<%
+							for(int columns=0;columns<3;columns++){
+								if(countMe<thumbLocs.size()) {
+									String combined=(String)thumbLocs.get(countMe);
+									StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
+									String thumbLink=stzr.nextToken();
+									String encNum=stzr.nextToken();
+									String fileName=stzr.nextToken();
+									boolean video=true;
+									if(!thumbLink.endsWith("video.jpg")){
+										thumbLink="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+thumbLink;
+										video=false;
+									}
+									String link="http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+encNum;
 						
-					%>
+							%>
 
-		<td><a href="<%=link%>"><img src="<%=thumbLink%>"
-			alt="photo" border="1" /></a></td>
-		<%
+									<td><a href="<%=link%>"><img src="<%=thumbLink%>" alt="photo" border="1" /></a></td>
+							<%
 					
-					countMe++;
-					}
-				} //endFor
-				%>
-	</tr>
-	<%} //endFor
+								countMe++;
+								} //end if
+							} //endFor
+							%>
+					</tr>
+				<%} //endFor
 	
 				} catch(Exception e) {
 				%>
