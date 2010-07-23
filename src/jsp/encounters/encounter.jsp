@@ -1365,17 +1365,27 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<table border="0" cellspacing="0" cellpadding="5">
 			<tr>
 				<td align="left" valign="top">
-				<p class="para"><strong><%=encprops.getProperty("date") %></strong>: <a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
-				<%=enc.getDate()%>
-			
-				</a>
+				<p class="para"><strong><%=encprops.getProperty("date") %></strong>: 
+				<a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+					<%=enc.getDate()%>
+				</a><br />
+				
+				<%=encprops.getProperty("verbatimEventDate")%>: 
 				<%
-     
-      
- 	if(isOwner) {
- %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
-        	}
-        %>
+				if(enc.getVerbatimEventDate()!=null){
+				%>
+				<%=enc.getVerbatimEventDate()%>
+				<%
+				}
+				else {
+				%>
+				None
+				<%
+				}
+ 				if(isOwner) {
+ 					%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
+        		}
+        		%>
 				<p class="para"><strong><%=encprops.getProperty("location") %></strong>: <%=enc.getLocation()%>
 				<%
  	if(isOwner) {
@@ -1392,8 +1402,6 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<a href="<%=CommonConfiguration.getWikiLocation()%>location_codes" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
 				}
 				%><br /> 
-				<em><%=encprops.getProperty("vessel") %></em>: <%=enc.getDynamicPropertyValue("vessel")%>
-				<br />
 				<em><%=encprops.getProperty("latitude") %></em>: 
 					<%
 			  			if((enc.getDWCDecimalLatitude()!=null)&&(!enc.getDWCDecimalLatitude().equals("-9999.0"))) {
