@@ -420,7 +420,7 @@ if((request.getParameter("vesselField")!=null)&&(!request.getParameter("vesselFi
 		for(int q=0;q<rEncounters.size();q++) {
 			Encounter rEnc=(Encounter)rEncounters.get(q);
 			String vesString=request.getParameter("vesselField").toLowerCase();
-			if((rEnc.getDynamicPropertyValue("vessel")==null)||(rEnc.getDynamicPropertyValue("vessel").toLowerCase().indexOf(vesString)==-1)){
+			if((rEnc.getDynamicPropertyValue("Vessel")==null)||(rEnc.getDynamicPropertyValue("Vessel").toLowerCase().indexOf(vesString)==-1)){
 				rEncounters.remove(q);
 				q--;
 				}
@@ -870,7 +870,7 @@ if(generateEmails){
 		</td>
 		<td><%=enc.getSubmitterName()%></td>
 		<td><%=enc.getDate()%></td>
-		<td><%=enc.getVessel()%></td>
+		<td><%=enc.getDynamicPropertyValue("Vessel")%></td>
 		<td><%=enc.getEventID()%></td>
 		<td><%=enc.getLocation()%></td>
 		<td><%=enc.getLocationCode()%></td>
@@ -998,8 +998,8 @@ if(generateEmails){
 		}
 		Label lNumberx32e = new Label(4, count, enc.getDate());
 		sheetExport.addCell(lNumberx32e);
-  		if(enc.getVessel()!=null){
-			Label lNumberx33e = new Label(5, count, enc.getVessel());
+  		if(enc.getDynamicPropertyValue("Vessel")!=null){
+			Label lNumberx33e = new Label(5, count, enc.getDynamicPropertyValue("Vessel"));
 			sheetExport.addCell(lNumberx33e);
 		}
   		if(enc.getEventID()!=null){
