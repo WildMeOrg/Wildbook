@@ -1515,7 +1515,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 <%
 if(enc.getBehavior()!=null){
 %>
-<%=enc.getBehavior()%></p>
+<%=enc.getBehavior()%>
 <%
 }
 else {
@@ -1525,10 +1525,12 @@ else {
 }
 if(isOwner) {
  	%>
- 	<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=behavior#behavior">edit</a>]</font>
+ 	 <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=behavior#behavior">edit</a>]</font>
 	<%
  	}
- 	%>
+%>
+</p>
+<%
 
 if(enc.getDynamicProperties()!=null){
 		 //let's create a TreeMap of the properties
