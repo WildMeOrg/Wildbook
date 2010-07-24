@@ -955,7 +955,7 @@ public class Encounter implements java.io.Serializable{
         while(st.hasMoreTokens()){
           String token = st.nextToken();
           int equalPlace=token.indexOf("=");
-          tm.put(token.substring(0,(equalPlace-1)), token.substring(equalPlace+1));
+          tm.put(token.substring(0,equalPlace), token.substring(equalPlace+1));
         }
         if(tm.containsKey(name)){
           tm.remove(name);

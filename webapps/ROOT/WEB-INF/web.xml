@@ -385,6 +385,11 @@
           	<servlet-class>org.ecocean.servlet.EncounterAddComment</servlet-class>
   </servlet> 
   
+              <servlet>
+                   <servlet-name>EncounterSetDynamicProperty</servlet-name>
+            	<servlet-class>org.ecocean.servlet.EncounterSetDynamicProperty</servlet-class>
+  </servlet> 
+  
         <servlet>
              <servlet-name>EncounterSetSize</servlet-name>
       	<servlet-class>org.ecocean.servlet.EncounterSetSize</servlet-class>
@@ -520,6 +525,11 @@
   </servlet-mapping>
   
     <servlet-mapping>
+           <servlet-name>EncounterSetDynamicProperty</servlet-name>
+           <url-pattern>/EncounterSetDynamicProperty</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
            <servlet-name>EncounterResetDate</servlet-name>
            <url-pattern>/EncounterResetDate</url-pattern>
   </servlet-mapping>
@@ -624,6 +634,7 @@
              <servlet-name>EncounterSetOccurrenceRemarks</servlet-name>
              <url-pattern>/EncounterSetOccurrenceRemarks</url-pattern>
   </servlet-mapping>
+  
 
   <servlet-mapping>
        <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>

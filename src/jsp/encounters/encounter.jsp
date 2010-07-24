@@ -1368,7 +1368,13 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<p class="para"><strong><%=encprops.getProperty("date") %></strong>: 
 				<a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
 					<%=enc.getDate()%>
-				</a><br />
+				</a> 
+				<%
+				if(isOwner) {
+ 					%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
+        		}
+        		%>
+				<br />
 				
 				<%=encprops.getProperty("verbatimEventDate")%>: 
 				<%
@@ -1379,11 +1385,11 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				}
 				else {
 				%>
-				None
+				<%=encprops.getProperty("none") %>
 				<%
 				}
- 				if(isOwner) {
- 					%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
+				if(isOwner) {
+ 					%> <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=verbatimdate#verbatimdate">edit</a>]</font> <%
         		}
         		%>
 				<p class="para"><strong><%=encprops.getProperty("location") %></strong>: <%=enc.getLocation()%>
@@ -1497,12 +1503,13 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  	}
  %>
 				<p class="para"><strong><%=encprops.getProperty("scarring") %></strong>: <%=enc.getDistinguishingScar()%>
-				<%
+	<%
  	if(isOwner) {
- %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=scar#scar">edit</a>]</font>
-				<%
+ 	%>
+ 	<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=scar#scar">edit</a>]</font>
+	<%
  	}
- %>
+ 	%>
 
 <p class="para"><strong><%=encprops.getProperty("behavior") %>: </strong> 
 <%
@@ -1513,13 +1520,48 @@ if(enc.getBehavior()!=null){
 }
 else {
 %>
-None reported
+<%=encprops.getProperty("none")%>
+<%
+}
+if(isOwner) {
+ 	%>
+ 	<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=behavior#behavior">edit</a>]</font>
+	<%
+ 	}
+ 	%>
+
+if(enc.getDynamicProperties()!=null){
+		 //let's create a TreeMap of the properties
+        StringTokenizer st=new StringTokenizer(enc.getDynamicProperties(), ";");
+        while(st.hasMoreTokens()){
+          String token = st.nextToken();
+          int equalPlace=token.indexOf("=");
+		  String nm=token.substring(0,(equalPlace));
+		  String vl=token.substring(equalPlace+1);
+		  %>
+		  <p><strong><%=nm%></strong>: <%=vl%>
+		  <%
+		  if(isOwner) {
+ 		  %>
+ 		       <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty">edit</a>]</font>
+		  <%
+ 	      }
+ 		  %>
+		  </p>
+		  
+		  
+		  
+		  <%
+        }
+
+%>
+
+
 <%
 }
 %>
 
-
-				<p class="para"><strong><%=encprops.getProperty("comments") %></strong><br /> <%=enc.getComments()%><br />
+		<p class="para"><strong><%=encprops.getProperty("comments") %></strong><br /> <%=enc.getComments()%><br />
 				<%
       	if(isOwner) {
       %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=comments#comments">edit</a>]</font>
