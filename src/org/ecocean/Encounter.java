@@ -964,7 +964,7 @@ public class Encounter implements java.io.Serializable{
           //now let's recreate the dynamicProperties String
           String newProps=tm.toString();
           int stringSize=newProps.length();
-          dynamicProperties=newProps.substring(1,(stringSize-2)).replaceAll(", ", ";")+";";
+          dynamicProperties=newProps.substring(1,(stringSize-1)).replaceAll(", ", ";")+";";
         }
         else{
           dynamicProperties=dynamicProperties+name+"="+value+";";

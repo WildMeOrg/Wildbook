@@ -373,8 +373,8 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		</a><br> <%
 			}
 				
-				//set alternateid
-			if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){
+		//set alternateid
+		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){
 		%> <a name="alternateid"><br>
 		<table width="150" border="1" cellpadding="1" cellspacing="0"
 			bordercolor="#000000" bgcolor="#CCCCCC">
@@ -393,7 +393,40 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 		</table>
 		</a><br> <%
-			}
+		}
+		
+		//encounter set dynamic property
+		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
+		%> <a name="dynamicproperty"><br>
+		<table width="150" border="1" cellpadding="1" cellspacing="0"
+			bordercolor="#000000" bgcolor="#CCCCCC">
+			<tr>
+				<td align="left" valign="top" class="para"><strong><font
+					color="#990000"><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("initCapsSet")%> <%=request.getParameter("name")%></font></strong></td>
+			</tr>
+			<tr>
+				<td align="left" valign="top">
+				<form name="setDynProp" action="../EncounterSetDynamicProperty" method="post">
+				<%
+				if(enc.getDynamicPropertyValue(request.getParameter("name"))!=null){
+				%>
+				<input name="value" type="text" size="10" maxlength="50" value="<%=enc.getDynamicPropertyValue(request.getParameter("name"))%>">
+				<%
+				}
+				else{
+				%>
+				<input name="value" type="text" size="10" maxlength="50">
+				<%
+				}
+				%>
+					<input name="number" type="hidden" value=<%=num%>> 
+					<input name="name" type="hidden" value=<%=request.getParameter("name")%>> 
+					<input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>"></form>
+				</td>
+			</tr>
+		</table>
+		</a><br> <%
+		}
 				
 				
 				//set informothers
@@ -1541,7 +1574,7 @@ if(enc.getDynamicProperties()!=null){
 		  String nm=token.substring(0,(equalPlace));
 		  String vl=token.substring(equalPlace+1);
 		  %>
-		  <p><strong><%=nm%></strong>: <%=vl%>
+		  <p class="para"><img align="absmiddle" src="../images/lightning_dynamic_props.gif"> <strong><%=nm%></strong>: <%=vl%>
 		  <%
 		  if(isOwner) {
  		  %>

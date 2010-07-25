@@ -31,9 +31,7 @@ public class EncounterSetDynamicProperty extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked=false;
-    boolean isOwner=true;
     
-    String sharky=request.getParameter("encounter");
     //-------------------------------
     //set a dynamic property
 
@@ -96,7 +94,7 @@ public class EncounterSetDynamicProperty extends HttpServlet {
                   
                 }
                 
-                out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
+                out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter "+request.getParameter("number")+"</a></p>\n");
                 out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
                     out.println("<p><a href=\"allIndividuals.jsp\">View all marked individuals</a></font></p>");
                     out.println(ServletUtilities.getFooter());
