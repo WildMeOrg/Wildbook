@@ -315,10 +315,13 @@ if (highCount<totalCount) {%> <a
 		<%}%>
 		</td>
 
-
-
-		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><font
-			color="#000000"><%=tags %></font></strong></td>
+		<%
+		if(CommonConfiguration.useSpotPatternRecognition()){
+		%>
+			<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><font color="#000000"><%=tags %></font></strong></td>
+		<%
+		}
+		%>
 	
 	</tr>
 	<%		
@@ -571,19 +574,28 @@ if (highCount<totalCount) {%> <a
 		<%
 	} else {
 %>
-		<td class="lineitems"><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>"><%=enc.isAssignedToMarkedIndividual()%></a></td>
+		<td class="lineitems"><a href="http://<%=CommonConfiguration.getURLLocation() %>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>"><%=enc.isAssignedToMarkedIndividual()%></a></td>
 		<%
 	}
+	
+	//spot patterning data
+	if(CommonConfiguration.useSpotPatternRecognition()){
 	if(((enc.getSpots()==null)&&(enc.getRightSpots()==null))) {%>
 		<td class="lineitems">&nbsp;</td>
-		<% } else if((enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
+		<% } 
+	else if((enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
 		<td class="lineitems">LR</td>
-		<%}else if(enc.getSpots().size()>0) {%>
-		<td class="lineitems">L</td>
-		<%} else if(enc.getRightSpots().size()>0) {%>
-		<td class="lineitems">R</td>
 		<%}
+	else if(enc.getSpots().size()>0) {%>
+		<td class="lineitems">L</td>
+		<%} 
+	else if(enc.getRightSpots().size()>0) {%>
+			<td class="lineitems">R</td>
+	<%}
+	}	
+		
+		
+		
 	  } catch(javax.jdo.JDOUserException jdoe) {
   		
 		System.out.println("I hit a javax.jdo.JDOUserException in allEncounters.jsp!!!!");

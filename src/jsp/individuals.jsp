@@ -276,11 +276,11 @@ if (isOwner) {
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %></strong></td>
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %></strong></td>
 				<%
-	 if(isOwner) {
+	 if(isOwner && CommonConfiguration.useSpotPatternRecognition()) {
 	 %>
 
 				<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=spots %></strong></td>
-				<%}%>
+	<%}%>
 			</tr>
 			<%
 			Encounter[] dateSortedEncs=sharky.getDateSortedEncounters(showLogEncs);
@@ -323,6 +323,10 @@ if (isOwner) {
 				<td class="lineitem"><%=enc.getDate()%></td>
 				<td class="lineitem"><%=enc.getLocation()%></td>
 				<td class="lineitem"><%=enc.getSex()%></td>
+				
+				<%
+				if(CommonConfiguration.useSpotPatternRecognition()){
+				%>
 				<%if(((enc.getSpots().size()==0)&&(enc.getRightSpots().size()==0))&&(isOwner)) {%>
 				<td class="lineitem">&nbsp;</td>
 				<% } else if(isOwner&&(enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
@@ -331,7 +335,10 @@ if (isOwner) {
 				<td class="lineitem">L</td>
 				<%} else if(isOwner&&(enc.getRightSpots().size()>0)) {%>
 				<td class="lineitem">R</td>
-				<%}%>
+				<%
+				}
+				}
+				%>
 			</tr>
 			<%}
 		} //end for

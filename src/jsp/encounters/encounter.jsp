@@ -1692,7 +1692,7 @@ if(enc.getDynamicProperties()!=null){
 %>
 	<!-- Display spot patterning so long as show_spotpatterning is not false in commonCOnfiguration.properties-->
 		<%
-		if(CommonConfiguration.showProperty("spotpatterning")){
+		if(CommonConfiguration.useSpotPatternRecognition()){
 		%>
 			
 				<p class="para"><strong>Ready to scan</strong> <a
@@ -1700,15 +1700,15 @@ if(enc.getDynamicProperties()!=null){
 					target="_blank"><img src="../images/information_icon_svg.gif"
 					alt="Help" border="0" align="absmiddle"></a> <br />
 				<%
- 	String ready="No. Please add spot data.";
- 	  	if ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) {
- 	           ready="Yes. ";
- 	   if(enc.getNumSpots()>0) {
- 	   		ready+=" "+enc.getNumSpots()+" left-side spots added.";
- 	   }
- 	   if(enc.getNumRightSpots()>0) {
- 	   	ready+=" "+enc.getNumRightSpots()+" right-side spots added.";
- 	   }
+ 				String ready="No. Please add spot data.";
+ 	  			if ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) {
+ 	           		ready="Yes. ";
+ 	   			if(enc.getNumSpots()>0) {
+ 	   				ready+=" "+enc.getNumSpots()+" left-side spots added.";
+ 	   			}
+ 	   			if(enc.getNumRightSpots()>0) {
+ 	   				ready+=" "+enc.getNumRightSpots()+" right-side spots added.";
+ 	   			}
  	   		
  	  }
  		%> 
@@ -2038,7 +2038,7 @@ if(enc.getDynamicProperties()!=null){
 
 				<p>
 				<%
-		 	if (isOwner&&((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
+		 	if (isOwner&&CommonConfiguration.useSpotPatternRecognition()&&((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
 		 	
 
 		 			

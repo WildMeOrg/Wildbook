@@ -68,4 +68,12 @@ public class CommonConfiguration {
 	  return canAdopt;
 	}
 	
+	 public static boolean useSpotPatternRecognition(){
+	    boolean useSpotPatternRecognition = true;
+	    if((props.getProperty("useSpotPatternRecognition")!=null)&&(props.getProperty("useSpotPatternRecognition").equals("false"))){
+	      useSpotPatternRecognition=false;
+	    }
+	    return useSpotPatternRecognition;
+	  }
+	
 }
