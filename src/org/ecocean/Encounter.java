@@ -943,7 +943,7 @@ public class Encounter implements java.io.Serializable{
       return dynamicProperties;
     }
     public void setDynamicProperty(String name, String value){
-      name=name.replaceAll(";", "_").trim();
+      name=name.replaceAll(";", "_").trim().replaceAll("%20", " ");
       value=value.replaceAll(";", "_").trim();
       
       if(dynamicProperties==null){dynamicProperties=name+"="+value+";";}
@@ -973,6 +973,7 @@ public class Encounter implements java.io.Serializable{
     }
     public String getDynamicPropertyValue(String name){
       if(dynamicProperties!=null){
+        name=name.replaceAll("%20", " ");
         //let's create a TreeMap of the properties
         TreeMap<String,String> tm=new TreeMap<String,String>();
         StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
@@ -987,7 +988,7 @@ public class Encounter implements java.io.Serializable{
     }
     
     public void removeDynamicProperty(String name){
-      name=name.replaceAll(";", "_").trim();
+      name=name.replaceAll(";", "_").trim().replaceAll("%20", " ");
       if(dynamicProperties!=null){
         
         //let's create a TreeMap of the properties
@@ -996,7 +997,7 @@ public class Encounter implements java.io.Serializable{
         while(st.hasMoreTokens()){
           String token = st.nextToken();
           int equalPlace=token.indexOf("=");
-          tm.put(token.substring(0,(equalPlace-1)), token.substring(equalPlace+1));
+          tm.put(token.substring(0,(equalPlace)), token.substring(equalPlace+1));
         }
         if(tm.containsKey(name)){
           tm.remove(name);
@@ -1004,7 +1005,7 @@ public class Encounter implements java.io.Serializable{
           //now let's recreate the dynamicProperties String
           String newProps=tm.toString();
           int stringSize=newProps.length();
-          dynamicProperties=newProps.substring(1,(stringSize-2)).replaceAll(", ", ";")+";";
+          dynamicProperties=newProps.substring(1,(stringSize-1)).replaceAll(", ", ";")+";";
         }
       }
     }

@@ -401,8 +401,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<table width="150" border="1" cellpadding="1" cellspacing="0"
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
-				<td align="left" valign="top" class="para"><strong><font
-					color="#990000"><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("initCapsSet")%> <%=request.getParameter("name")%></font></strong></td>
+				<td align="left" valign="top" class="para"><table><tr><td><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /></td><td><strong><font color="#990000"> <%=encprops.getProperty("initCapsSet")%> <%=request.getParameter("name")%></font></strong></td></tr></table></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -410,40 +409,59 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%
 				if(enc.getDynamicPropertyValue(request.getParameter("name"))!=null){
 				%>
-				<input name="value" type="text" size="10" maxlength="50" value="<%=enc.getDynamicPropertyValue(request.getParameter("name"))%>">
+				<input name="value" type="text" size="10" maxlength="500" value="<%=enc.getDynamicPropertyValue(request.getParameter("name"))%>">
 				<%
 				}
 				else{
 				%>
-				<input name="value" type="text" size="10" maxlength="50">
+				<input name="value" type="text" size="10" maxlength="500">
 				<%
 				}
 				%>
-					<input name="number" type="hidden" value=<%=num%>> 
-					<input name="name" type="hidden" value=<%=request.getParameter("name")%>> 
+					<input name="number" type="hidden" value="<%=num%>"> 
+					<input name="name" type="hidden" value="<%=request.getParameter("name")%>"> 
 					<input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>"></form>
 				</td>
 			</tr>
 		</table>
 		</a><br> <%
 		}
+		
+		//encounter add dynamic property
+		if(isOwner){
+		%> <a name="add_dynamicproperty"><br>
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+			<tr>
+				<td align="left" valign="top" class="para"><table><tr><td><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /></td><td><strong><font color="#990000"><%=encprops.getProperty("addDynamicProperty")%></font></strong></td></tr></table></td>
+			</tr>
+			<tr>
+				<td align="left" valign="top" class="para">
+				<form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">
+					<%=encprops.getProperty("propertyName")%>:<br /><input name="name" type="text" size="10" maxlength="50"><br />
+					<%=encprops.getProperty("propertyValue")%>:<br /><input name="value" type="text" size="10" maxlength="500">
+					<input name="number" type="hidden" value="<%=num%>"> 
+					<input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>"></form>
+				</td>
+			</tr>
+		</table>
+		</a><br> <%
+		}
+		
 				
 				
 				//set informothers
 			if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("others"))){
 		%> <a name="others"><br>
-		<table width="150" border="1" cellpadding="1" cellspacing="0"
-			bordercolor="#000000" bgcolor="#CCCCCC">
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><%=encprops.getProperty("setOthersToInform")%> 
 				</td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setOthers" action="../EncounterSetInformOthers"
-					method="post"><input name="encounter" type="hidden"
-					value=<%=num%>> <input name="informothers" type="text"
-					size="28" <%if(enc.getInformOthers()!=null){%>
+				<form name="setOthers" action="../EncounterSetInformOthers" method="post">
+				<input name="encounter" type="hidden" value="<%=num%>"> 
+				<input name="informothers" type="text" size="28" <%if(enc.getInformOthers()!=null){%>
 					value="<%=enc.getInformOthers().trim()%>" <%}%> maxlength="1000">
 				<br> <input name="Set" type="submit" id="Set" value="<%=encprops.getProperty("set")%>"></form>
 				</td>
@@ -469,8 +487,8 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
 					<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
 					<option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
-				</select> <input name="number" type="hidden" value=<%=num%>> <input
-					name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>"></form>
+				</select> <input name="number" type="hidden" value=<%=num%>> 
+				<input name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -492,8 +510,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top">
 				<form name="add2shark" action="../IndividualAddEncounter"
-					method="post"><%=encprops.getProperty("individual")%>: <input name="individual"
-					type="text" size="10" maxlength="50"><br> <%=encprops.getProperty("matchedBy")%>:<br>
+					method="post"><%=encprops.getProperty("individual")%>: <input name="individual" type="text" size="10" maxlength="50"><br> <%=encprops.getProperty("matchedBy")%>:<br>
 				<select name="matchType" id="matchType">
 					<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
 					<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
@@ -1398,7 +1415,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<table border="0" cellspacing="0" cellpadding="5">
 			<tr>
 				<td align="left" valign="top">
-				<p class="para"><strong><%=encprops.getProperty("date") %></strong>: 
+				<p class="para"><strong><%=encprops.getProperty("date") %></strong><br /> 
 				<a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
 					<%=enc.getDate()%>
 				</a> 
@@ -1425,7 +1442,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  					%> <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=verbatimdate#verbatimdate">edit</a>]</font> <%
         		}
         		%>
-				<p class="para"><strong><%=encprops.getProperty("location") %></strong>: <%=enc.getLocation()%>
+				<p class="para"><strong><%=encprops.getProperty("location") %></strong><br /> <%=enc.getLocation()%>
 				<%
  	if(isOwner) {
  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=location#location">edit</a>]</font>
@@ -1470,7 +1487,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%
 				if(CommonConfiguration.showProperty("size")){
 				%>
-					<p class="para"><strong><%=encprops.getProperty("size") %></strong>: <%
+					<p class="para"><strong><%=encprops.getProperty("size") %></strong><br /> <%
       				if(enc.getSize()>0) {%>
 						<%=enc.getSize()%> <%=enc.getMeasureUnits()%>
 					<%
@@ -1489,7 +1506,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<%
 		if(CommonConfiguration.showProperty("maximumDepthInMeters")){
 		%>
-		<p class="para"><strong><%=encprops.getProperty("depth") %></strong>: 
+		<p class="para"><strong><%=encprops.getProperty("depth") %></strong><br /> 
 		<%
             	if(enc.getDepth()>=0) {
             %> <%=enc.getDepth()%> <%=enc.getMeasureUnits()%> <%
@@ -1511,7 +1528,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<%
 		if(CommonConfiguration.showProperty("maximumElevationInMeters")){
 		%>
-		<p class="para"><strong><%=encprops.getProperty("elevation") %></strong>: 
+		<p class="para"><strong><%=encprops.getProperty("elevation") %></strong><br /> 
 		
 			<%=enc.getMaximumElevationInMeters()%> meters
 		<%
@@ -1528,14 +1545,14 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		%>	
 		<!-- End Display maximumElevationInMeters -->
 			
-				<p class="para"><strong><%=encprops.getProperty("sex") %></strong>: <%=enc.getSex()%> <%
+				<p class="para"><strong><%=encprops.getProperty("sex") %></strong><br /> <%=enc.getSex()%> <%
  	if(isOwner) {
  %><font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=sex#sex">edit</a>]</font>
 				<%
  	}
  %>
-				<p class="para"><strong><%=encprops.getProperty("scarring") %></strong>: <%=enc.getDistinguishingScar()%>
+				<p class="para"><strong><%=encprops.getProperty("scarring") %></strong><br /> <%=enc.getDistinguishingScar()%>
 	<%
  	if(isOwner) {
  	%>
@@ -1544,7 +1561,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  	}
  	%>
 
-<p class="para"><strong><%=encprops.getProperty("behavior") %>: </strong> 
+<p class="para"><strong><%=encprops.getProperty("behavior") %></strong> <br /> 
 <%
 if(enc.getBehavior()!=null){
 %>
@@ -1574,7 +1591,7 @@ if(enc.getDynamicProperties()!=null){
 		  String nm=token.substring(0,(equalPlace));
 		  String vl=token.substring(equalPlace+1);
 		  %>
-		  <p class="para"><img align="absmiddle" src="../images/lightning_dynamic_props.gif"> <strong><%=nm%></strong>: <%=vl%>
+		  <p class="para"><img align="absmiddle" src="../images/lightning_dynamic_props.gif"> <strong><%=nm%></strong><br />  <%=vl%>
 		  <%
 		  if(isOwner) {
  		  %>

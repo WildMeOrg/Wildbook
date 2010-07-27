@@ -40,15 +40,15 @@ public class EncounterSetDynamicProperty extends HttpServlet {
         Encounter changeMe=myShepherd.getEncounter(request.getParameter("number"));
         
         String name=request.getParameter("name");
-        String newValue="";
-        String oldValue="";
+        String newValue="null";
+        String oldValue="null";
         
         if(changeMe.getDynamicPropertyValue(name)!=null){
           oldValue=changeMe.getDynamicPropertyValue(name);
         }
         
         
-        if (request.getParameter("value")!=null){
+        if ((request.getParameter("value")!=null)&&(!request.getParameter("value").equals(""))){
           newValue=request.getParameter("value");
         }
         
@@ -58,7 +58,7 @@ public class EncounterSetDynamicProperty extends HttpServlet {
               
               try{
               
-                  if(newValue.equals("")){
+                  if(newValue.equals("null")){
                     changeMe.removeDynamicProperty(name);
                     changeMe.addComments("<p><em>"+request.getRemoteUser()+" on "+(new java.util.Date()).toString()+"</em><br>Removed dynamic property <em>"+name+"</em>. The old Value was <em>"+oldValue+".</em></p>");
                   }
