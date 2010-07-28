@@ -185,7 +185,7 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 
 <p>
 <%
-
+if(CommonConfiguration.allowNicknames()){
 
 		String myNickname="";
 		if(sharky.getNickName()!=null){myNickname=sharky.getNickName();}
@@ -200,6 +200,8 @@ if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("ed
 
 <br />
 <%
+	}
+
 
 	 if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("nickname"))){%>
 		<br /><br />

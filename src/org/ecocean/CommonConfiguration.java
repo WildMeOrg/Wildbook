@@ -68,6 +68,14 @@ public class CommonConfiguration {
 	  return canAdopt;
 	}
 	
+	 public static boolean allowNicknames(){
+	    boolean canNickname = true;
+	    if((props.getProperty("allowNicknames")!=null)&&(props.getProperty("allowNicknames").equals("false"))){
+	      canNickname=false;
+	    }
+	    return canNickname;
+	  }
+	
 	 public static boolean useSpotPatternRecognition(){
 	    boolean useSpotPatternRecognition = true;
 	    if((props.getProperty("useSpotPatternRecognition")!=null)&&(props.getProperty("useSpotPatternRecognition").equals("false"))){
