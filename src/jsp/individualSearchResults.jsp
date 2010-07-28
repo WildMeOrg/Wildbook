@@ -1,12 +1,20 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=iso-8859-1" language="java"
-	import="org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.lang.Integer, java.lang.NumberFormatException, java.io.*, java.util.Vector, java.util.Iterator, java.util.StringTokenizer"%>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+	import="org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.lang.Integer, java.lang.NumberFormatException, java.io.*, java.util.Vector, java.util.Iterator, java.util.StringTokenizer, java.util.Properties"%>
 <%@ taglib uri="di" prefix="di"%>
 
 <html>
 <head>
 <%
+
+//let's load out properties
+Properties props=new Properties();
+String langCode="en";
+if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
+props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/individualSearchResults.properties"));
+
+
 int startNum=1;
 int endNum=10;
 
@@ -32,6 +40,7 @@ try{month1=(new Integer(request.getParameter("month1"))).intValue();} catch(Numb
 try{month2=(new Integer(request.getParameter("month2"))).intValue();} catch(NumberFormatException nfe) {}
 try{year1=(new Integer(request.getParameter("year1"))).intValue();} catch(NumberFormatException nfe) {}
 try{year2=(new Integer(request.getParameter("year2"))).intValue();} catch(NumberFormatException nfe) {}
+
 
 
 //qStringParams for links
@@ -282,11 +291,9 @@ if(rSharks.size()<listNum) {listNum=rSharks.size();}
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
-		<h1 class="intro"><span class="para"><img
-			src="images/markedIndividualIcon.gif" width="26" height="51" align="absmiddle" />
-		Marked Individuals Search Results</h1>
-		<p>Below are marked individuals <%=startNum%> - <%=listNum%> that matched your
-		search. Click any column heading to sort by that field.</p>
+		<h1 class="intro"><span class="para"><img src="images/tag_big.gif" width="50" align="absmiddle" />
+		<%=props.getProperty("title")%></h1>
+		<p><%=props.getProperty("instructions")%></p>
 		</td>
 	</tr>
 </table>
@@ -296,14 +303,9 @@ if(rSharks.size()<listNum) {listNum=rSharks.size();}
 <table width="720" border="1">
 	<tr>
 		<td bgcolor="#99CCFF"></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><a
-			href="individualSearchResults.jsp?<%=qString%>&sort=name&startNum=<%=startNum%>&endNum=<%=endNum%>">Individual</a></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><a
-			href="individualSearchResults.jsp?<%=qString%>&sort=numberEncounters&startNum=<%=startNum%>&endNum=<%=endNum%>">Encounters</a></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><a
-			href="individualSearchResults.jsp?<%=qString%>&sort=sex&startNum=<%=startNum%>&endNum=<%=endNum%>">Sex</a></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong>Max
-		Years Between Resights</strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("markedIndividual")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numEncounters")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("maxYearsBetweenResights")%></strong></td>
 
 	</tr>
 
@@ -345,14 +347,14 @@ for(int f=0;f<rSharks.size();f++) {
 			href="http://<%=CommonConfiguration.getURLLocation()%>/individuals.jsp?number=<%=shark.getName()%>"><%=shark.getName()%></a>
 		<%
 		  if((shark.getAlternateID()!=null)&&(!shark.getAlternateID().equals("None"))){
-		  %> <br><font size="-1">AlternateID: <%=shark.getAlternateID()%></font> <%
+		  %> <br><font size="-1"><%=props.getProperty("alternateID")%>: <%=shark.getAlternateID()%></font> <%
 		  }
-		  %>
-		  <br><font size="-1">First identified: <%=temp.getMonth() %>/<%=temp.getYear() %></font>
+			%>
+		  <br><font size="-1"><%=props.getProperty("firstIdentified")%>: <%=temp.getMonth() %>/<%=temp.getYear() %></font>
 		
 		</td>
 		<td><%=shark.totalEncounters()%></td>
-		<td><%=shark.getSex()%></td>
+		
 		<td><%=shark.getMaxNumYearsBetweenSightings()%></td>
 	</tr>
 	<%
@@ -427,24 +429,22 @@ numResults=count;
 
 if(startNum<numResults) {%>
 <p><a
-	href="individualSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>">See
-next results <%=startNum%> - <%=endNum%></a></p>
+	href="individualSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><%=props.getProperty("seeNextResults")%> <%=startNum%> - <%=endNum%></a></p>
 <%}
 if((startNum-10)>1) {%>
 <p><a
-	href="individualSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>">See
-previous results <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
+	href="individualSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><%=props.getProperty("seePreviousResults")%> <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
 
 <%}%>
 <p>
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td align="right">
-		<p><strong>Matching marked individuals</strong>: <%=count%><br />
-		Number first sighted in the specified period: <%=numNewlyMarked %>
+		<p><strong><%=props.getProperty("matchingMarkedIndividuals")%></strong>: <%=count%><br />
+		<%=props.getProperty("numFirstSighted")%>: <%=numNewlyMarked %>
 		</p>
 		<%myShepherd.beginDBTransaction();%>
-		<p><strong>Total marked individuals in the database</strong>: <%=(myShepherd.getNumMarkedIndividuals())%></p>
+		<p><strong><%=props.getProperty("totalMarkedIndividuals")%></strong>: <%=(myShepherd.getNumMarkedIndividuals())%></p>
 		</td>
 		<%
 	  myShepherd.rollbackDBTransaction();

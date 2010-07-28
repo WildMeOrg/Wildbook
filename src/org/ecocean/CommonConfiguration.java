@@ -60,4 +60,20 @@ public class CommonConfiguration {
 
 	public static boolean showProperty(String thisString){return true;}
 	
+	public static boolean allowAdoptions(){
+	  boolean canAdopt = true;
+	  if((props.getProperty("allowAdoptions")!=null)&&(props.getProperty("allowAdoptions").equals("false"))){
+	    canAdopt=false;
+	  }
+	  return canAdopt;
+	}
+	
+	 public static boolean useSpotPatternRecognition(){
+	    boolean useSpotPatternRecognition = true;
+	    if((props.getProperty("useSpotPatternRecognition")!=null)&&(props.getProperty("useSpotPatternRecognition").equals("false"))){
+	      useSpotPatternRecognition=false;
+	    }
+	    return useSpotPatternRecognition;
+	  }
+	
 }

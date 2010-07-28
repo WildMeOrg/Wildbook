@@ -69,7 +69,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 <html>
 <head>
 
-<title><%=CommonConfiguration.getHTMLTitle() %> <%=props.size()%></title>
+<title><%=CommonConfiguration.getHTMLTitle() %></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
 	content="<%=CommonConfiguration.getHTMLDescription() %>" />
@@ -139,7 +139,7 @@ table.adopter td.image {
 </jsp:include>
 <div id="main">
 
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 
 <div id="maintext">
 <%
@@ -155,12 +155,12 @@ try{
 
 <h1><strong><span class="para"><img src="images/tag_big.gif" width="50px" height="*" align="absmiddle" /></span>
 <%=markedIndividualTypeCaps %></strong>: <%=sharky.getName()%></h1>
-<%if(isOwner){%> <a name="alternateid"></a></a>
+ <a name="alternateid"></a>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
 <%=sharky.getAlternateID()%> <%if(hasAuthority) {%>[<a
 	href="individuals.jsp?number=<%=name%>&edit=alternateid#alternateid"><%=edit%></a>]<%}%>
 </p>
-<%}
+<%
 if(hasAuthority&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){%>
 <br>
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
@@ -269,16 +269,18 @@ if (isOwner) {
 			<tr class="lineitem">
 				<td class="lineitem" bgcolor="#99CCFF"></td>
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encnumber %></strong></td>
+				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=alternateID %></strong></td>
+				
+				
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %></strong></td>
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %></strong></td>
-				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=size %></strong></td>
 				<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %></strong></td>
 				<%
-	 if(isOwner) {
+	 if(isOwner && CommonConfiguration.useSpotPatternRecognition()) {
 	 %>
 
 				<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=spots %></strong></td>
-				<%}%>
+	<%}%>
 			</tr>
 			<%
 			Encounter[] dateSortedEncs=sharky.getDateSortedEncounters(showLogEncs);
@@ -302,22 +304,29 @@ if (isOwner) {
 				<td width="100" class="lineitem"><a
 					href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><img
 					src="<%=imgName%>" alt="encounter" border="0" /></a></td>
-				<td class="lineitem"><a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%></a>
-				<%
-		  if((enc.getAlternateID()!=null)&&(!enc.getAlternateID().equals("None"))){
-		  %> <br><%=enc.getAlternateID()%> <%
-		  }
-		  %>
+				<td class="lineitem"><a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%></a></td>
 				
-				</td>
+				<%
+				if(enc.getAlternateID()!=null){
+				%>
+				<td class="lineitem"><%=enc.getAlternateID()%></td>
+				<%
+				}
+				else {
+				%>
+				<td class="lineitem"><%=none%></td>
+				<%
+				}
+				%>
+				
+				
 				<td class="lineitem"><%=enc.getDate()%></td>
 				<td class="lineitem"><%=enc.getLocation()%></td>
-				<%if(enc.getSize()!=0.0) {%>
-				<td class="lineitem"><%=enc.getSize()%> <%=enc.getMeasureUnits()%></td>
-				<%} else {%>
-				<td class="lineitem"><%=unknown %></td>
-				<%}%>
 				<td class="lineitem"><%=enc.getSex()%></td>
+				
+				<%
+				if(CommonConfiguration.useSpotPatternRecognition()){
+				%>
 				<%if(((enc.getSpots().size()==0)&&(enc.getRightSpots().size()==0))&&(isOwner)) {%>
 				<td class="lineitem">&nbsp;</td>
 				<% } else if(isOwner&&(enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
@@ -326,7 +335,10 @@ if (isOwner) {
 				<td class="lineitem">L</td>
 				<%} else if(isOwner&&(enc.getRightSpots().size()>0)) {%>
 				<td class="lineitem">R</td>
-				<%}%>
+				<%
+				}
+				}
+				%>
 			</tr>
 			<%}
 		} //end for
@@ -337,11 +349,8 @@ if (isOwner) {
 
 
 		</table>
-		<%
-    if (isOwner) {
-	%>
-		<p><strong><img src="images/2globe_128.gif" width="64"
-			height="64" align="absmiddle" /><%=mapping %></strong></p>
+
+		<p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle" /><%=mapping %></strong></p>
 		<%
 	  Vector haveGPSData=new Vector();
 	  haveGPSData=sharky.returnEncountersWithGPSData();
@@ -412,7 +421,10 @@ if (isOwner) {
 
 		<%} else {%>
 		<p><%=noGPS %></p>
-		<br> <%}%> <%}%> <%
+		<br> 
+		<%}
+		
+	
     if (isOwner) {
 %>
 		<hr>
@@ -550,6 +562,10 @@ catch(Exception eSharks_jsp){
 <!-- end maintext --></div>
 <!-- end main-wide -->
 
+<%
+if(CommonConfiguration.allowAdoptions()){
+%>
+
 <div id="rightcol">
 <div id="menu">
 
@@ -564,7 +580,9 @@ catch(Exception eSharks_jsp){
 </div>
 <!-- end menu --></div>
 <!-- end rightcol --> 
-
+<%
+}
+%>
 
 <%
 		myShepherd.rollbackDBTransaction();

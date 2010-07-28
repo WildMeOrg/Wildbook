@@ -8,52 +8,14 @@
 <%
 
 //setup our Properties object to hold all properties
-	Properties props=new Properties();
-	String langCode="en";
-	
-	//check what language is requested
-	if(request.getParameter("langCode")!=null){
-		if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
-		if(request.getParameter("langCode").equals("de")) {langCode="de";}
-		if(request.getParameter("langCode").equals("es")) {langCode="es";}
-	}
-	
-	//set up the file input stream
-	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
-	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
-	
-	
-	//load our variables for the submit page
-	String title=props.getProperty("submit_title");
-	String submit_maintext=props.getProperty("submit_maintext");
-	String submit_reportit=props.getProperty("reportit");
-	String submit_language=props.getProperty("language");
-	String what_do=props.getProperty("what_do");
-	String read_overview=props.getProperty("read_overview");
-	String see_all_encounters=props.getProperty("see_all_encounters");
-	String see_all_sharks=props.getProperty("see_all_sharks");
-	String report_encounter=props.getProperty("report_encounter");
-	String log_in=props.getProperty("log_in");
-	String contact_us=props.getProperty("contact_us");
-	String search=props.getProperty("search");
-	String encounter=props.getProperty("encounter");
-	String shark=props.getProperty("shark");
-	String join_the_dots=props.getProperty("join_the_dots");
-	String menu=props.getProperty("menu");
-	String last_sightings=props.getProperty("last_sightings");
-	String more=props.getProperty("more");
-	String ws_info=props.getProperty("ws_info");
-	String about=props.getProperty("about");
-	String contributors=props.getProperty("contributors");
-	String forum=props.getProperty("forum");
-	String blog=props.getProperty("blog");
-	String area=props.getProperty("area");
-	String match=props.getProperty("match");
-	
-	//link path to submit page with appropriate language
-	String submitPath="submit.jsp?langCode="+langCode;
-	
-	Shepherd myShepherd=new Shepherd();
+String langCode="en";
+if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
+
+
+//set up the file input stream
+Properties props=new Properties();
+props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/login.properties"));
+
 	
 %>
 
@@ -112,32 +74,31 @@
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 
 <div id="maintext">
 
-<h1 class="intro">Database login</h1>
+<h1 class="intro"><%=props.getProperty("databaseLogin")%></h1>
 
-<p align="center">You have requested a higher level of privileges*.
-Please enter your user name and password below.</p>
+<p align="center"><%=props.getProperty("requested")%></p>
 <p>
 <form method="POST"
 	action='<%= response.encodeURL("j_security_check") %>' name="loginForm">
 <table border="0" align="center" cellpadding="5" cellspacing="2">
 	<tr align="left" valign="top">
-		<th align="left"><font color="#000000">Username: <input type="text"
+		<th align="left"><font color="#000000"><%=props.getProperty("username")%>: <input type="text"
 			name="j_username" size="16" maxlength="16" /></font></th>
 	</tr>
 
 	<tr align="left" valign="top">
-		<th align="left"><font color="#0000">Password: <input
+		<th align="left"><font color="#0000"><%=props.getProperty("password") %>: <input
 			type="password" name="j_password" size="16" maxlength="16" /></font></th>
 	</tr>
 	<!-- login reset buttons layout -->
 	<tr align="left" valign="top">
 		<td align="left">
 		<div align="left">
-		<input name="submit" type="submit" value='Login' /> <input name="reset" type="reset" value='Reset' />
+		<input name="submit" type="submit" value='<%=props.getProperty("login") %>' /> <input name="reset" type="reset" value='<%=props.getProperty("reset") %>' />
 		&nbsp;&nbsp; </div>
 		</td>
 	</tr>

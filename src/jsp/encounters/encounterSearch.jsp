@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,java.util.GregorianCalendar, java.util.Properties"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="javax.jdo.*,org.ecocean.*,java.util.GregorianCalendar, java.util.Properties, java.util.Iterator"%>
 
 <html>
 <head>
@@ -22,7 +22,10 @@
 GregorianCalendar cal=new GregorianCalendar();
 int nowYear=cal.get(1);
 int firstYear = 1980;
+
 Shepherd myShepherd=new Shepherd();
+Extent allKeywords=myShepherd.getPM().getExtent(Keyword.class,true);		
+Query kwQuery=myShepherd.getPM().newQuery(allKeywords);
 myShepherd.beginDBTransaction();
 try{
 	firstYear = myShepherd.getEarliestSightingYear();
@@ -66,7 +69,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 		<table>
 			<tr>
 				<td>
-				<table width="715" align="left">
+				<table width="810px" align="left">
 					<tr>
 						<td width="154"><strong><%=encprops.getProperty("types2search")%></strong>:</td>
 						<td width="208"><label> 
@@ -192,6 +195,72 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 					alt="Help" border="0" align="absmiddle" /></a></span> <br> <%=encprops.getProperty("locationIDExample")%></em></p>
 				</td>
 			</tr>
+			
+			
+			<tr>
+				<td>
+				<p><strong><%=encprops.getProperty("vessel")%>:</strong><em> 
+				<input name="vesselField" type="text" id="vesselField" size="7"> <span class="para">
+				<a href="<%=CommonConfiguration.getWikiLocation()%>vessel" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></span> 
+				</em></p>
+				</td>
+			</tr>
+
+
+			<tr>
+				<td>
+				<p><strong><%=encprops.getProperty("behavior")%>:</strong><em> 
+				<input name="behaviorField" type="text" id="behaviorField" size="7"> <span class="para">
+				<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></span> 
+				</em></p>
+				</td>
+			</tr>
+<%
+
+int totalKeywords=myShepherd.getNumKeywords();
+%>
+			<tr>
+				<td><p><%=encprops.getProperty("hasKeywordPhotos")%></p>
+				<%
+				
+				if(totalKeywords>0){
+				%>
+				
+				<select multiple size="<%=(totalKeywords+1) %>" name="keyword" id="keyword">
+					<option value="None"></option>
+					<% 
+				
+
+			  	Iterator keys=myShepherd.getAllKeywords(kwQuery);
+			  	for(int n=0;n<totalKeywords;n++) {
+					Keyword word=(Keyword)keys.next();
+				%>
+					<option value="<%=word.getIndexname()%>"><%=word.getReadableName()%></option>
+					<%}
+				
+				%>
+
+				</select>
+				<%
+				}
+				else{
+					%>
+					
+					<p><em><%=encprops.getProperty("noKeywords")%></em></p>
+					
+					<%
+					
+				}
+				%>
+				</td>
+			</tr>
+			<%
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+%>
+
+
+
 
 
 			<tr>
@@ -221,8 +290,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 				<td>
 				<table width="720">
 					<tr>
-						<td width="670"><label> <input name="dateLimit"
-							type="checkbox" id="dateLimit" value="dateLimit"> <%=encprops.getProperty("range")%>:<em>
+						<td width="670"><label><em>
 						&nbsp;<%=encprops.getProperty("day")%></em> <em> <select name="day1" id="day1">
 							<option value="1" selected>1</option>
 							<option value="2">2</option>
@@ -343,7 +411,8 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 							><%=q%></option>
 
 							<% } %>
-						</select></label></td>
+						</select>
+						</label></td>
 					</tr>
 				</table>
 				</td>

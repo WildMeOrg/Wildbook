@@ -98,7 +98,7 @@ boolean haveRendered=false;
 
 <html>
 <head>
-<title>Encounter <%=num%></title>
+<title><%=encprops.getProperty("encounter") %> <%=num%></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
 	content="<%=CommonConfiguration.getHTMLDescription() %>" />
@@ -216,8 +216,17 @@ if (enc.wasRejected()) {%>
 </table>
 <%} else {
 %>
-<p><font size="4"><strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %>
-</font></p>
+
+<p><font size="4"><strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %></font></p>
+<%
+if(enc.getEventID()!=null){
+%>
+<p class="para"><%=encprops.getProperty("eventID") %>: 
+<%=enc.getEventID() %>
+</p>
+<%
+}
+%>
 <%}%> <%
 	if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
 %>
@@ -348,8 +357,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<table width="150" border="1" cellpadding="1" cellspacing="0"
 			bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
-				<td align="left" valign="top" class="para"><strong><font
-					color="#990000"><%=encprops.getProperty("setLocationID")%>:</font></strong></td>
+				<td align="left" valign="top" class="para"><strong><font color="#990000"><%=encprops.getProperty("setLocationID")%>:</font></strong></td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
@@ -365,8 +373,8 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		</a><br> <%
 			}
 				
-				//set alternateid
-			if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){
+		//set alternateid
+		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){
 		%> <a name="alternateid"><br>
 		<table width="150" border="1" cellpadding="1" cellspacing="0"
 			bordercolor="#000000" bgcolor="#CCCCCC">
@@ -385,24 +393,75 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 		</table>
 		</a><br> <%
-			}
+		}
+		
+		//encounter set dynamic property
+		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
+		%> <a name="dynamicproperty"><br>
+		<table width="150" border="1" cellpadding="1" cellspacing="0"
+			bordercolor="#000000" bgcolor="#CCCCCC">
+			<tr>
+				<td align="left" valign="top" class="para"><table><tr><td><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /></td><td><strong><font color="#990000"> <%=encprops.getProperty("initCapsSet")%> <%=request.getParameter("name")%></font></strong></td></tr></table></td>
+			</tr>
+			<tr>
+				<td align="left" valign="top">
+				<form name="setDynProp" action="../EncounterSetDynamicProperty" method="post">
+				<%
+				if(enc.getDynamicPropertyValue(request.getParameter("name"))!=null){
+				%>
+				<input name="value" type="text" size="10" maxlength="500" value="<%=enc.getDynamicPropertyValue(request.getParameter("name"))%>">
+				<%
+				}
+				else{
+				%>
+				<input name="value" type="text" size="10" maxlength="500">
+				<%
+				}
+				%>
+					<input name="number" type="hidden" value="<%=num%>"> 
+					<input name="name" type="hidden" value="<%=request.getParameter("name")%>"> 
+					<input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>"></form>
+				</td>
+			</tr>
+		</table>
+		</a><br> <%
+		}
+		
+		//encounter add dynamic property
+		if(isOwner){
+		%> <a name="add_dynamicproperty"><br>
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+			<tr>
+				<td align="left" valign="top" class="para"><table><tr><td><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /></td><td><strong><font color="#990000"><%=encprops.getProperty("addDynamicProperty")%></font></strong></td></tr></table></td>
+			</tr>
+			<tr>
+				<td align="left" valign="top" class="para">
+				<form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">
+					<%=encprops.getProperty("propertyName")%>:<br /><input name="name" type="text" size="10" maxlength="50"><br />
+					<%=encprops.getProperty("propertyValue")%>:<br /><input name="value" type="text" size="10" maxlength="500">
+					<input name="number" type="hidden" value="<%=num%>"> 
+					<input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>"></form>
+				</td>
+			</tr>
+		</table>
+		</a><br> <%
+		}
+		
 				
 				
 				//set informothers
 			if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("others"))){
 		%> <a name="others"><br>
-		<table width="150" border="1" cellpadding="1" cellspacing="0"
-			bordercolor="#000000" bgcolor="#CCCCCC">
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><%=encprops.getProperty("setOthersToInform")%> 
 				</td>
 			</tr>
 			<tr>
 				<td align="left" valign="top">
-				<form name="setOthers" action="../EncounterSetInformOthers"
-					method="post"><input name="encounter" type="hidden"
-					value=<%=num%>> <input name="informothers" type="text"
-					size="28" <%if(enc.getInformOthers()!=null){%>
+				<form name="setOthers" action="../EncounterSetInformOthers" method="post">
+				<input name="encounter" type="hidden" value="<%=num%>"> 
+				<input name="informothers" type="text" size="28" <%if(enc.getInformOthers()!=null){%>
 					value="<%=enc.getInformOthers().trim()%>" <%}%> maxlength="1000">
 				<br> <input name="Set" type="submit" id="Set" value="<%=encprops.getProperty("set")%>"></form>
 				</td>
@@ -428,8 +487,8 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
 					<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
 					<option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
-				</select> <input name="number" type="hidden" value=<%=num%>> <input
-					name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>"></form>
+				</select> <input name="number" type="hidden" value=<%=num%>> 
+				<input name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>"></form>
 				</td>
 			</tr>
 		</table>
@@ -451,8 +510,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			<tr>
 				<td align="left" valign="top">
 				<form name="add2shark" action="../IndividualAddEncounter"
-					method="post"><%=encprops.getProperty("individual")%>: <input name="individual"
-					type="text" size="10" maxlength="50"><br> <%=encprops.getProperty("matchedBy")%>:<br>
+					method="post"><%=encprops.getProperty("individual")%>: <input name="individual" type="text" size="10" maxlength="50"><br> <%=encprops.getProperty("matchedBy")%>:<br>
 				<select name="matchType" id="matchType">
 					<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
 					<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
@@ -1357,18 +1415,34 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<table border="0" cellspacing="0" cellpadding="5">
 			<tr>
 				<td align="left" valign="top">
-				<p class="para"><strong><%=encprops.getProperty("date") %></strong>: <a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
-				<%=enc.getDate()%>
-			
-				</a>
+				<p class="para"><strong><%=encprops.getProperty("date") %></strong><br /> 
+				<a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+					<%=enc.getDate()%>
+				</a> 
 				<%
-     
-      
- 	if(isOwner) {
- %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
-        	}
-        %>
-				<p class="para"><strong><%=encprops.getProperty("location") %></strong>: <%=enc.getLocation()%>
+				if(isOwner) {
+ 					%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
+        		}
+        		%>
+				<br />
+				
+				<%=encprops.getProperty("verbatimEventDate")%>: 
+				<%
+				if(enc.getVerbatimEventDate()!=null){
+				%>
+				<%=enc.getVerbatimEventDate()%>
+				<%
+				}
+				else {
+				%>
+				<%=encprops.getProperty("none") %>
+				<%
+				}
+				if(isOwner) {
+ 					%> <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=verbatimdate#verbatimdate">edit</a>]</font> <%
+        		}
+        		%>
+				<p class="para"><strong><%=encprops.getProperty("location") %></strong><br /> <%=enc.getLocation()%>
 				<%
  	if(isOwner) {
  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=location#location">edit</a>]</font>
@@ -1381,11 +1455,10 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%
  				if(isOwner) {%>
  					<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=loccode#loccode">edit</a>]</font>
-					<a href="<%=CommonConfiguration.getWikiLocation()%>location_codes"
-						target="_blank"><img src="../images/information_icon_svg.gif"
-						alt="Help" border="0" align="absmiddle"></a> <%
+					<a href="<%=CommonConfiguration.getWikiLocation()%>location_codes" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
 				}
-				%><br /> <em><%=encprops.getProperty("latitude") %></em>: 
+				%><br /> 
+				<em><%=encprops.getProperty("latitude") %></em>: 
 					<%
 			  			if((enc.getDWCDecimalLatitude()!=null)&&(!enc.getDWCDecimalLatitude().equals("-9999.0"))) {
 			  		%>
@@ -1414,7 +1487,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%
 				if(CommonConfiguration.showProperty("size")){
 				%>
-					<p class="para"><strong><%=encprops.getProperty("size") %></strong>: <%
+					<p class="para"><strong><%=encprops.getProperty("size") %></strong><br /> <%
       				if(enc.getSize()>0) {%>
 						<%=enc.getSize()%> <%=enc.getMeasureUnits()%>
 					<%
@@ -1433,7 +1506,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<%
 		if(CommonConfiguration.showProperty("maximumDepthInMeters")){
 		%>
-		<p class="para"><strong><%=encprops.getProperty("depth") %></strong>: 
+		<p class="para"><strong><%=encprops.getProperty("depth") %></strong><br /> 
 		<%
             	if(enc.getDepth()>=0) {
             %> <%=enc.getDepth()%> <%=enc.getMeasureUnits()%> <%
@@ -1455,7 +1528,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<%
 		if(CommonConfiguration.showProperty("maximumElevationInMeters")){
 		%>
-		<p class="para"><strong><%=encprops.getProperty("elevation") %></strong>: 
+		<p class="para"><strong><%=encprops.getProperty("elevation") %></strong><br /> 
 		
 			<%=enc.getMaximumElevationInMeters()%> meters
 		<%
@@ -1472,22 +1545,75 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		%>	
 		<!-- End Display maximumElevationInMeters -->
 			
-				<p class="para"><strong><%=encprops.getProperty("sex") %></strong>: <%=enc.getSex()%> <%
+				<p class="para"><strong><%=encprops.getProperty("sex") %></strong><br /> <%=enc.getSex()%> <%
  	if(isOwner) {
  %><font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=sex#sex">edit</a>]</font>
 				<%
  	}
  %>
-				<p class="para"><strong><%=encprops.getProperty("scarring") %></strong>: <%=enc.getDistinguishingScar()%>
-				<%
+				<p class="para"><strong><%=encprops.getProperty("scarring") %></strong><br /> <%=enc.getDistinguishingScar()%>
+	<%
  	if(isOwner) {
- %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=scar#scar">edit</a>]</font>
-				<%
+ 	%>
+ 	<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=scar#scar">edit</a>]</font>
+	<%
  	}
- %>
+ 	%>
 
-				<p class="para"><strong><%=encprops.getProperty("comments") %></strong><br /> <%=enc.getComments()%><br />
+<p class="para"><strong><%=encprops.getProperty("behavior") %></strong> <br /> 
+<%
+if(enc.getBehavior()!=null){
+%>
+<%=enc.getBehavior()%>
+<%
+}
+else {
+%>
+<%=encprops.getProperty("none")%>
+<%
+}
+if(isOwner) {
+ 	%>
+ 	 <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=behavior#behavior">edit</a>]</font>
+	<%
+ 	}
+%>
+</p>
+<%
+
+if(enc.getDynamicProperties()!=null){
+		 //let's create a TreeMap of the properties
+        StringTokenizer st=new StringTokenizer(enc.getDynamicProperties(), ";");
+        while(st.hasMoreTokens()){
+          String token = st.nextToken();
+          int equalPlace=token.indexOf("=");
+		  String nm=token.substring(0,(equalPlace));
+		  String vl=token.substring(equalPlace+1);
+		  %>
+		  <p class="para"><img align="absmiddle" src="../images/lightning_dynamic_props.gif"> <strong><%=nm%></strong><br />  <%=vl%>
+		  <%
+		  if(isOwner) {
+ 		  %>
+ 		       <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty">edit</a>]</font>
+		  <%
+ 	      }
+ 		  %>
+		  </p>
+		  
+		  
+		  
+		  <%
+        }
+
+%>
+
+
+<%
+}
+%>
+
+		<p class="para"><strong><%=encprops.getProperty("comments") %></strong><br /> <%=enc.getComments()%><br />
 				<%
       	if(isOwner) {
       %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=comments#comments">edit</a>]</font>
@@ -1566,7 +1692,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 %>
 	<!-- Display spot patterning so long as show_spotpatterning is not false in commonCOnfiguration.properties-->
 		<%
-		if(CommonConfiguration.showProperty("spotpatterning")){
+		if(CommonConfiguration.useSpotPatternRecognition()){
 		%>
 			
 				<p class="para"><strong>Ready to scan</strong> <a
@@ -1574,15 +1700,15 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 					target="_blank"><img src="../images/information_icon_svg.gif"
 					alt="Help" border="0" align="absmiddle"></a> <br />
 				<%
- 	String ready="No. Please add spot data.";
- 	  	if ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) {
- 	           ready="Yes. ";
- 	   if(enc.getNumSpots()>0) {
- 	   		ready+=" "+enc.getNumSpots()+" left-side spots added.";
- 	   }
- 	   if(enc.getNumRightSpots()>0) {
- 	   	ready+=" "+enc.getNumRightSpots()+" right-side spots added.";
- 	   }
+ 				String ready="No. Please add spot data.";
+ 	  			if ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) {
+ 	           		ready="Yes. ";
+ 	   			if(enc.getNumSpots()>0) {
+ 	   				ready+=" "+enc.getNumSpots()+" left-side spots added.";
+ 	   			}
+ 	   			if(enc.getNumRightSpots()>0) {
+ 	   				ready+=" "+enc.getNumRightSpots()+" right-side spots added.";
+ 	   			}
  	   		
  	  }
  		%> 
@@ -1912,7 +2038,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 
 				<p>
 				<%
-		 	if (isOwner&&((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
+		 	if (isOwner&&CommonConfiguration.useSpotPatternRecognition()&&((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
 		 	
 
 		 			
@@ -2025,12 +2151,18 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				</p>
 				
 		
+		
+		<%
+		if(CommonConfiguration.allowAdoptions()){
+		%>
 				<div class="module">
 					<jsp:include page="encounterAdoptionEmbed.jsp" flush="true">
 						<jsp:param name="num" value="<%=num%>" />
 				</jsp:include>
 				</div>
-				
+		<%
+		}
+		%>
 	
 				
 				

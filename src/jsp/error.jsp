@@ -1,22 +1,15 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java"
-	import="org.ecocean.*,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException"%>
 <%
 
-//setup our Properties object to hold all properties
-	Properties props=new Properties();
+	//setup our Properties object to hold all properties
 	String langCode="en";
-	
-	//check what language is requested
-	if(request.getParameter("langCode")!=null){
-		if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
-		if(request.getParameter("langCode").equals("de")) {langCode="de";}
-		if(request.getParameter("langCode").equals("es")) {langCode="es";}
-	}
-	
+	if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
 
 	
-	Shepherd myShepherd=new Shepherd();
+	//set up the file input stream
+	Properties props=new Properties();
+	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/error.properties"));
 	
 %>
 <%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean"%>
@@ -59,9 +52,9 @@
 <div id="maincol-wide">
 
 <div id="maintext">
-<h1 class="intro">You could not be logged in.</h1>
+<h1 class="intro"><%=props.getProperty("notLogged")%></h1>
 <br>
-<p><a href="welcome.jsp">Click here to try again.</a></p>
+<p><a href="http://<%=CommonConfiguration.getURLLocation() %>/welcome.jsp"><%=props.getProperty("clickHere")%></a></p>
 </div>
 <!-- end maintext --></div>
 <!-- end maincol --> <jsp:include page="footer.jsp" flush="true" /></div>

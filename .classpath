@@ -48,15 +48,17 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="temp_jars/jcs-1.3.jar"/>
 	<classpathentry kind="lib" path="temp_jars/datanucleus-xmltypeoracle-2.0.0-release.jar"/>
-	<classpathentry kind="lib" path="temp_jars/datanucleus-cache-2.0.0-release.jar"/>
-	<classpathentry kind="lib" path="temp_jars/datanucleus-connectionpool-2.0.0-release.jar"/>
-	<classpathentry kind="lib" path="temp_jars/datanucleus-core-2.0.0-release.jar"/>
-	<classpathentry kind="lib" path="temp_jars/datanucleus-enhancer-2.0.0-release.jar"/>
-	<classpathentry kind="lib" path="temp_jars/datanucleus-jodatime-2.0.0-release.jar"/>
-	<classpathentry kind="lib" path="temp_jars/datanucleus-jpa-2.0.0-release.jar"/>
+	<classpathentry kind="lib" path="temp_jars/datanucleus-cache-2.1.0-release.jar"/>
+	<classpathentry kind="lib" path="temp_jars/datanucleus-connectionpool-2.0.3.jar"/>
+	<classpathentry kind="lib" path="temp_jars/datanucleus-core-2.1.1.jar"/>
+	<classpathentry kind="lib" path="temp_jars/datanucleus-enhancer-2.1.0-release.jar"/>
+	<classpathentry kind="lib" path="temp_jars/datanucleus-jodatime-2.1.0-release.jar"/>
+	<classpathentry kind="lib" path="temp_jars/datanucleus-jpa-2.1.0-release.jar"/>
 	<classpathentry kind="lib" path="temp_jars/datanucleus-management-1.0.2.jar"/>
-	<classpathentry kind="lib" path="temp_jars/datanucleus-rdbms-2.0.0-release.jar"/>
-	<classpathentry kind="lib" path="temp_jars/datanucleus-spatial-2.0.0-release.jar"/>
-	<classpathentry kind="lib" path="temp_jars/jdo2-api-2.3-eb.jar"/>
+	<classpathentry kind="lib" path="temp_jars/datanucleus-rdbms-2.1.1.jar"/>
+	<classpathentry kind="lib" path="temp_jars/datanucleus-spatial-2.1.0-release.jar"/>
+	<classpathentry kind="lib" path="temp_jars/jdo-api-3.0.jar"/>
+	<classpathentry kind="lib" path="temp_jars/datanucleus-rest-2.0.0-release.jar"/>
+	<classpathentry kind="lib" path="temp_jars/flexjson.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

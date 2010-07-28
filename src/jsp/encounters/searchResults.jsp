@@ -101,14 +101,19 @@ File emailFile=new File(getServletContext().getRealPath(("/encounters/"+emailFil
 
 
 //let's set up our Excel spreasheeting operations
-String filename="searchResults_"+request.getRemoteUser()+".xls";
+String filenameOBIS="searchResults_OBIS_"+request.getRemoteUser()+".xls";
+String filenameExport="searchResults_"+request.getRemoteUser()+".xls";
 String kmlFilename="KMLExport_"+request.getRemoteUser()+".kml";
-//File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+filename);
-File file=new File(getServletContext().getRealPath(("/encounters/"+filename)));
+File fileOBIS=new File(getServletContext().getRealPath(("/encounters/"+filenameOBIS)));
+File fileExport=new File(getServletContext().getRealPath(("/encounters/"+filenameExport)));
 
+//let's set up some cell formats
+WritableCellFormat floatFormat = new WritableCellFormat (NumberFormats.FLOAT); 
+WritableCellFormat integerFormat = new WritableCellFormat (NumberFormats.INTEGER); 
 
-WritableWorkbook workbook = Workbook.createWorkbook(file); 
-WritableSheet sheet = workbook.createSheet("Search Results", 0);
+//let's write out headers for the OBIS export file
+WritableWorkbook workbookOBIS = Workbook.createWorkbook(fileOBIS); 
+WritableSheet sheet = workbookOBIS.createSheet("Search Results", 0);
 Label label0 = new Label(0, 0, "Date Last Modified"); 
 sheet.addCell(label0);
 Label label1 = new Label(1, 0, "Institution Code"); 
@@ -145,7 +150,6 @@ Label label16 = new Label(16, 0, "Month Identified");
 sheet.addCell(label16);
 Label label17 = new Label(17, 0, "Day Identified"); 
 sheet.addCell(label17);
-
 Label label18 = new Label(18, 0, "Year Collected"); 
 sheet.addCell(label18);
 Label label19 = new Label(19, 0, "Month Collected"); 
@@ -156,7 +160,6 @@ Label label21 = new Label(21, 0, "Time of Day");
 sheet.addCell(label21);
 Label label22 = new Label(22, 0, "Locality"); 
 sheet.addCell(label22);
-
 Label label23 = new Label(23, 0, "Longitude"); 
 sheet.addCell(label23);
 Label label24 = new Label(24, 0, "Latitude"); 
@@ -172,8 +175,29 @@ sheet.addCell(label28);
 Label label29 = new Label(29, 0, "Location code"); 
 sheet.addCell(label29);
 
-WritableCellFormat floatFormat = new WritableCellFormat (NumberFormats.FLOAT); 
-WritableCellFormat integerFormat = new WritableCellFormat (NumberFormats.INTEGER); 
+//let's write out headers for the normal export file
+WritableWorkbook workbookExport = Workbook.createWorkbook(fileExport); 
+WritableSheet sheetExport = workbookExport.createSheet("Search Results", 0);
+Label label0E = new Label(0, 0, encprops.getProperty("markedIndividual")); 
+sheetExport.addCell(label0E);
+Label label0F = new Label(1, 0, encprops.getProperty("number")); 
+sheetExport.addCell(label0F);
+Label label1E = new Label(2, 0, encprops.getProperty("alternateID")); 
+sheetExport.addCell(label1E);
+Label label2E = new Label(3, 0, encprops.getProperty("submitterName")); 
+sheetExport.addCell(label2E);
+Label label2aE = new Label(4, 0, encprops.getProperty("date")); 
+sheetExport.addCell(label2aE);
+Label label3E = new Label(5, 0, encprops.getProperty("vessel")); 
+sheetExport.addCell(label3E);
+Label label5E = new Label(6, 0, encprops.getProperty("eventID")); 
+sheetExport.addCell(label5E);
+Label label6E = new Label(7, 0, encprops.getProperty("location")); 
+sheetExport.addCell(label6E);
+Label label7E = new Label(8, 0, encprops.getProperty("locationID")); 
+sheetExport.addCell(label7E);
+
+
 
 //setup the KML output
 Document document = DocumentHelper.createDocument();
@@ -213,13 +237,9 @@ try{
 	endNum=10;
 }
 
-StringBuffer exportString=new StringBuffer();
-exportString.append("Number\tSex\tSize(m)\tDepth(m)\tLocation\tLocationCode\tLatitude\tLongitude\tDate\tMarkedIndividual\n");
-
-
 int numResults=0;
 
-  			Iterator allEncounters;
+  	Iterator allEncounters;
 	Vector rEncounters=new Vector();			
 
 	myShepherd.beginDBTransaction();
@@ -393,14 +413,41 @@ if((request.getParameter("locationField")!=null)&&(!request.getParameter("locati
 				}
 		}
 }
-//location filter--------------------------------------------------------------------------------------
+//end location filter--------------------------------------------------------------------------------------
+
+//filter for vessel------------------------------------------
+if((request.getParameter("vesselField")!=null)&&(!request.getParameter("vesselField").equals(""))) {
+		for(int q=0;q<rEncounters.size();q++) {
+			Encounter rEnc=(Encounter)rEncounters.get(q);
+			String vesString=request.getParameter("vesselField").toLowerCase();
+			if((rEnc.getDynamicPropertyValue("Vessel")==null)||(rEnc.getDynamicPropertyValue("Vessel").toLowerCase().indexOf(vesString)==-1)){
+				rEncounters.remove(q);
+				q--;
+				}
+		}
+}
+//end vessel filter--------------------------------------------------------------------------------------
+
+//filter for behavior------------------------------------------
+if((request.getParameter("behaviorField")!=null)&&(!request.getParameter("behaviorField").equals(""))) {
+		for(int q=0;q<rEncounters.size();q++) {
+			Encounter rEnc=(Encounter)rEncounters.get(q);
+			String behString=request.getParameter("behaviorField").toLowerCase();
+			if((rEnc.getBehavior()==null)||(rEnc.getBehavior().toLowerCase().indexOf(behString)==-1)){
+				rEncounters.remove(q);
+				q--;
+				}
+		}
+}
+//end behavior filter--------------------------------------------------------------------------------------
+
 
 //submitter or photographer name filter------------------------------------------
 if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
 		for(int q=0;q<rEncounters.size();q++) {
 			Encounter rEnc=(Encounter)rEncounters.get(q);
 			String locString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase();
-			if((rEnc.getSubmitterName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)){
+			if((rEnc.getSubmitterName()!=null)&&(rEnc.getSubmitterName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerName()!=null)&&(rEnc.getPhotographerName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getSubmitterEmail()!=null)&&(rEnc.getSubmitterEmail().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerEmail()!=null)&&(rEnc.getPhotographerEmail().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)){
 				rEncounters.remove(q);
 				q--;
 				}
@@ -435,8 +482,30 @@ if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alt
 
 //location code filter--------------------------------------------------------------------------------------
 	
+//keyword filters-------------------------------------------------
+if(request.getParameterValues("keyword")!=null){
+String[] keywords=request.getParameterValues("keyword");
+int kwLength=keywords.length;
+for(int kwIter=0;kwIter<kwLength;kwIter++) {
+		String kwParam=keywords[kwIter];
+		if(myShepherd.isKeyword(kwParam)) {
+			Keyword word=myShepherd.getKeyword(kwParam);
+			
+			for(int q=0;q<rEncounters.size();q++) {
+				Encounter tShark=(Encounter)rEncounters.get(q);
+				if(!word.isMemberOf(tShark)) {
+					rEncounters.remove(q);
+					q--;
+				}
+			} //end for
+		} //end if isKeyword
+}
+}
+//end keyword filters-----------------------------------------------	
+	
+	
+	
 //filter for date------------------------------------------
-if(request.getParameter("dateLimit")!=null) {
 	if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
 		try{
 		
@@ -508,7 +577,7 @@ if(request.getParameter("dateLimit")!=null) {
 	nfe.printStackTrace();
 		}
 	}
-}
+
 //date filter--------------------------------------------------------------------------------------
 
 
@@ -582,7 +651,7 @@ if(generateEmails){
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<table width="720" border="0" cellspacing="0" cellpadding="0">
+<table width="810px" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
 		<p>
@@ -595,8 +664,12 @@ if(generateEmails){
 <%
 	if (request.getParameter("export")!=null) {
 %>
-<p><%=encprops.getProperty("exportedExcel")%>: <a
-	href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=filename%>"><%=filename%></a><br>
+<p><%=encprops.getProperty("exportedExcel")%>: 
+<a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=filenameExport%>"><%=filenameExport%></a><br>
+<em><%=encprops.getProperty("rightClickLink")%></em>
+</p>
+<p><%=encprops.getProperty("exportedOBIS")%>: 
+<a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=filenameOBIS%>"><%=filenameOBIS%></a><br>
 <em><%=encprops.getProperty("rightClickLink")%></em>
 </p>
 <%
@@ -621,23 +694,18 @@ if(generateEmails){
 	}
 %>
 
-<table width="720" border="1">
+<table width="810px" border="1">
 	<tr>
 		<td bgcolor="#99CCFF"></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("markedIndividual")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("number")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("alternateID")%></strong></td>
-		
-		
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("submitterName")%></strong></td>
-		
-		
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("date")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("vessel")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("eventID")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("location")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("locationID")%></strong></td>
-		
-
-		
 	</tr>
 
 	<%
@@ -791,27 +859,21 @@ if(generateEmails){
 		<%
 			if((enc.getAlternateID()!=null)&&(!enc.getAlternateID().equals("None"))){
 		%> 
-				<br><font size="-1"><%=enc.getAlternateID()%></font> <%
+				<%=enc.getAlternateID()%><%
 		 	} else {
 		 %>
 		 None
 		 <%
 		 }
 		 %>
-
 	</td>	
-		
-
-		
 		</td>
 		<td><%=enc.getSubmitterName()%></td>
 		<td><%=enc.getDate()%></td>
+		<td><%=enc.getDynamicPropertyValue("Vessel")%></td>
+		<td><%=enc.getEventID()%></td>
 		<td><%=enc.getLocation()%></td>
 		<td><%=enc.getLocationCode()%></td>
-		
-
-
-
 	</tr>
 	<%
   	} //end if to control number displayed
@@ -820,129 +882,140 @@ if(generateEmails){
 
    if ((request.getParameter("export")!=null)&&(ServletUtilities.isUserAuthorizedForEncounter(enc,request))) {
   	try{
+  		
+  		//OBIS formt export
   		Label lNumber = new Label(0, count, enc.getDWCDateLastModified());
   		sheet.addCell(lNumber);
-  		
   		Label lNumberx1 = new Label(1, count, CommonConfiguration.getProperty("institutionCode"));
   		sheet.addCell(lNumberx1);
-  		
   		Label lNumberx2 = new Label(2, count, CommonConfiguration.getProperty("catalogCode"));
   		sheet.addCell(lNumberx2);
-  		
   		Label lNumberx3 = new Label(3, count, enc.getEncounterNumber());
   		sheet.addCell(lNumberx3);
-  		
   		Label lNumberx4 = new Label(4, count, ("http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+enc.getEncounterNumber()));
   		sheet.addCell(lNumberx4);
-  		
   		Label lNumberx5 = new Label(5, count, (CommonConfiguration.getProperty("genus")+" "+CommonConfiguration.getProperty("species")));
   		sheet.addCell(lNumberx5);
-  		
   		Label lNumberx6 = new Label(6, count, "P");
   		sheet.addCell(lNumberx6);
-  		
   		Calendar toDay = Calendar.getInstance();
   		int year = toDay.get(Calendar.YEAR);
   		Label lNumberx7 = new Label(7, count, CommonConfiguration.getProperty("citation"));
   		sheet.addCell(lNumberx7);
-  		
   		Label lNumberx8 = new Label(8, count, CommonConfiguration.getProperty("kingdom"));
   		sheet.addCell(lNumberx8);
-  		
   		Label lNumberx9 = new Label(9, count, CommonConfiguration.getProperty("phylum"));
   		sheet.addCell(lNumberx9);
-  		
   		Label lNumberx10 = new Label(10, count, CommonConfiguration.getProperty("class"));
   		sheet.addCell(lNumberx10);
-  		
   		Label lNumberx11 = new Label(11, count, CommonConfiguration.getProperty("order"));
   		sheet.addCell(lNumberx11);
-
-  		
   		Label lNumberx13 = new Label(12, count, CommonConfiguration.getProperty("family"));
   		sheet.addCell(lNumberx13);
-  		
   		Label lNumberx14 = new Label(13, count, CommonConfiguration.getProperty("genus"));
   		sheet.addCell(lNumberx14);
-  		
   		Label lNumberx15 = new Label(14, count, CommonConfiguration.getProperty("species"));
   		sheet.addCell(lNumberx15);
-  		
   		if(enc.getYear()>0){
-  	Label lNumberx16 = new Label(15, count, Integer.toString(enc.getYear()));
-  	sheet.addCell(lNumberx16);
-  	Label lNumberx19 = new Label(18, count, Integer.toString(enc.getYear()));
-  	sheet.addCell(lNumberx19);
+  			Label lNumberx16 = new Label(15, count, Integer.toString(enc.getYear()));
+  			sheet.addCell(lNumberx16);
+  			Label lNumberx19 = new Label(18, count, Integer.toString(enc.getYear()));
+  			sheet.addCell(lNumberx19);
   		}
   		if(enc.getMonth()>0){
-  	Label lNumberx17 = new Label(16, count, Integer.toString(enc.getMonth()));
-  	sheet.addCell(lNumberx17);
-  	Label lNumberx20 = new Label(19, count, Integer.toString(enc.getMonth()));
-  	sheet.addCell(lNumberx20);
+  			Label lNumberx17 = new Label(16, count, Integer.toString(enc.getMonth()));
+  			sheet.addCell(lNumberx17);
+  			Label lNumberx20 = new Label(19, count, Integer.toString(enc.getMonth()));
+  			sheet.addCell(lNumberx20);
   		}
   		if(enc.getDay()>0){
-  	Label lNumberx18 = new Label(17, count, Integer.toString(enc.getDay()));
-  	sheet.addCell(lNumberx18);
-  	Label lNumberx21 = new Label(20, count, Integer.toString(enc.getDay()));
-  	sheet.addCell(lNumberx21);
+  			Label lNumberx18 = new Label(17, count, Integer.toString(enc.getDay()));
+  			sheet.addCell(lNumberx18);
+  			Label lNumberx21 = new Label(20, count, Integer.toString(enc.getDay()));
+  			sheet.addCell(lNumberx21);
   		}
-  		
   		Label lNumberx22 = new Label(21, count, (enc.getDay()+":"+enc.getMinutes()));
   		sheet.addCell(lNumberx22);
-  		
   		Label lNumberx23 = new Label(22, count, enc.getLocation());
   		sheet.addCell(lNumberx23);
-  		
   		if((enc.getDWCDecimalLatitude()!=null)&&(enc.getDWCDecimalLongitude()!=null)){
-  	Label lNumberx24 = new Label(23, count, enc.getDWCDecimalLongitude());
-  	sheet.addCell(lNumberx24);
-  	Label lNumberx25 = new Label(24, count, enc.getDWCDecimalLatitude());
-  	sheet.addCell(lNumberx25);
+  			Label lNumberx24 = new Label(23, count, enc.getDWCDecimalLongitude());
+  			sheet.addCell(lNumberx24);
+  			Label lNumberx25 = new Label(24, count, enc.getDWCDecimalLatitude());
+  			sheet.addCell(lNumberx25);
   		}
-  		//check for available locale oordinates
+  		//check for available locale coordinates
   		//this functionality is primarily used for data export to iobis.org
   		else if((enc.getLocationCode()!=null)&&(!enc.getLocationCode().equals(""))){
-  	try{
-  		String lc = enc.getLocationCode();
-  		if(props.getProperty(lc)!=null){
-  		
-  			String gps=props.getProperty(lc);
-  			StringTokenizer st=new StringTokenizer(gps,",");
-  			Label lNumberx25 = new Label(24, count, st.nextToken());
-  			sheet.addCell(lNumberx25);
-  			Label lNumberx24 = new Label(23, count, st.nextToken());
-  			sheet.addCell(lNumberx24);
-
+  			try{
+  				String lc = enc.getLocationCode();
+  				if(props.getProperty(lc)!=null){
+  						String gps=props.getProperty(lc);
+  						StringTokenizer st=new StringTokenizer(gps,",");
+  						Label lNumberx25 = new Label(24, count, st.nextToken());
+  						sheet.addCell(lNumberx25);
+  						Label lNumberx24 = new Label(23, count, st.nextToken());
+  						sheet.addCell(lNumberx24);
+  				}
+  			}
+  			catch(Exception e){e.printStackTrace();System.out.println("     I hit an error getting locales in searchResults.jsp.");}
   		}
-  	}
-  	catch(Exception e){e.printStackTrace();System.out.println("     I hit an error getting locales in searchResults.jsp.");}
-  		}
-  		
-  		
   		if(!enc.getSex().equals("unsure")) {
-  	Label lSex = new Label(25, count, enc.getSex());
-  	sheet.addCell(lSex);
+  			Label lSex = new Label(25, count, enc.getSex());
+  			sheet.addCell(lSex);
   		}
   		Label lNumberx26 = new Label(26, count, enc.getComments().replaceAll("<br>",". ").replaceAll("\n","").replaceAll("\r",""));
   		sheet.addCell(lNumberx26);
   		
   		if(enc.getSize()>0){
-  	Label lNumberx27 = new Label(27, count, Double.toString(enc.getSize()));
-  	sheet.addCell(lNumberx27);
+  			Label lNumberx27 = new Label(27, count, Double.toString(enc.getSize()));
+  			sheet.addCell(lNumberx27);
   		}
   		if(!enc.isAssignedToMarkedIndividual().equals("Unassigned")){
-  	Label lNumberx28 = new Label(28, count, enc.isAssignedToMarkedIndividual());
-  	sheet.addCell(lNumberx28);
+  			Label lNumberx28 = new Label(28, count, enc.isAssignedToMarkedIndividual());
+  			sheet.addCell(lNumberx28);
   		}
   		if(enc.getLocationCode()!=null){
-  	Label lNumberx29 = new Label(29, count, enc.getLocationCode());
-  	sheet.addCell(lNumberx29);
+  			Label lNumberx29 = new Label(29, count, enc.getLocationCode());
+  			sheet.addCell(lNumberx29);
   		}
   		
-
-
-    		
-  	} catch(Exception we) {System.out.println("jExcel error processing search results...");we.printStackTrace();}
+  	
+  		//whew - now let's generate the simple export format
+  		if((enc.isAssignedToMarkedIndividual()!=null)&&(!enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+  			Label lNumberx28e = new Label(0, count, enc.isAssignedToMarkedIndividual());
+  			sheetExport.addCell(lNumberx28e);
+  		}
+		Label lNumberx29e = new Label(1, count, enc.getEncounterNumber());
+		sheetExport.addCell(lNumberx29e);
+  		if(enc.getAlternateID()!=null){
+			Label lNumberx30e = new Label(2, count, enc.getAlternateID());
+			sheetExport.addCell(lNumberx30e);
+		}
+  		if(enc.getSubmitterName()!=null){
+			Label lNumberx31e = new Label(3, count, enc.getSubmitterName());
+			sheetExport.addCell(lNumberx31e);
+		}
+		Label lNumberx32e = new Label(4, count, enc.getDate());
+		sheetExport.addCell(lNumberx32e);
+  		if(enc.getDynamicPropertyValue("Vessel")!=null){
+			Label lNumberx33e = new Label(5, count, enc.getDynamicPropertyValue("Vessel"));
+			sheetExport.addCell(lNumberx33e);
+		}
+  		if(enc.getEventID()!=null){
+			Label lNumberx34e = new Label(6, count, enc.getEventID());
+			sheetExport.addCell(lNumberx34e);
+		}
+  		if(enc.getLocation()!=null){
+			Label lNumberx35e = new Label(7, count, enc.getLocation());
+			sheetExport.addCell(lNumberx35e);
+		}
+  		if(enc.getLocationID()!=null){
+			Label lNumberx36e = new Label(8, count, enc.getLocationID());
+			sheetExport.addCell(lNumberx36e);
+		}
+  	} 
+  	catch(Exception we) {System.out.println("jExcel error processing search results...");we.printStackTrace();}
     	}
     
 
@@ -955,10 +1028,12 @@ if(generateEmails){
 
 
 <%
- 	if ((request.getParameter("export")!=null)&&(request.getParameter("startNum")==null)) {
- 		finalize(workbook);
+ if ((request.getParameter("export")!=null)&&(request.getParameter("startNum")==null)) {
+ 		finalize(workbookOBIS);
+ 		finalize(workbookExport);
  }
- workbook.close();
+ workbookOBIS.close();
+ workbookExport.close();
 
  myShepherd.rollbackDBTransaction();
 

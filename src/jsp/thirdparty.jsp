@@ -80,7 +80,7 @@
 </jsp:include>	
 <div id="main">
 	
-	<div id="maincol-wide">
+	<div id="maincol-wide-solo">
 
 		<div id="maintext">
 		  <h1 class="intro">Third Party Software</h1>

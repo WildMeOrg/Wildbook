@@ -1,7 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=iso-8859-1" language="java"
-	import="java.util.StringTokenizer,org.ecocean.*, java.lang.Integer, java.lang.NumberFormatException, java.util.Vector, java.util.Iterator"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.StringTokenizer,org.ecocean.*, java.lang.Integer, java.lang.NumberFormatException, java.util.Vector, java.util.Iterator, java.util.GregorianCalendar, java.util.Properties, javax.jdo.*"%>
 
 <html>
 <head>
@@ -24,6 +23,13 @@ try{
 	startNum=1;
 	endNum=15;
 }
+
+//let's load thumbnailSearch.properties
+String langCode="en";
+if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
+
+Properties encprops=new Properties();
+encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/thumbnailSearchResults.properties"));
 
 
 Shepherd myShepherd=new Shepherd();
@@ -188,8 +194,31 @@ if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("lo
 }
 //location code filter--------------------------------------------------------------------------------------
 			
+//keyword filters-------------------------------------------------
+if(request.getParameterValues("keyword")!=null){
+String[] keywords=request.getParameterValues("keyword");
+int kwLength=keywords.length;
+for(int kwIter=0;kwIter<kwLength;kwIter++) {
+		String kwParam=keywords[kwIter];
+		if(myShepherd.isKeyword(kwParam)) {
+			Keyword word=myShepherd.getKeyword(kwParam);
+			
+			for(int q=0;q<rEncounters.size();q++) {
+				Encounter tShark=(Encounter)rEncounters.get(q);
+				if(!word.isMemberOf(tShark)) {
+					rEncounters.remove(q);
+					q--;
+				}
+			} //end for
+		} //end if isKeyword
+}
+}
+//end keyword filters-----------------------------------------------	
+			
+			
+			
+			
 //filter for date------------------------------------------
-if(request.getParameter("dateLimit")!=null) {
 	if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
 		try{
 		
@@ -260,7 +289,6 @@ if(request.getParameter("dateLimit")!=null) {
 			//do nothing, just skip on
 		}
 	}
-}
 //date filter--------------------------------------------------------------------------------------
 
 
@@ -299,10 +327,9 @@ if(request.getParameter("dateLimit")!=null) {
 	<tr>
 		<td>
 		<p>
-		<h1 class="intro">Thumbnail Image\Video Search Results</h1>
+		<h1 class="intro"><%=encprops.getProperty("title")%></h1>
 		</p>
-		<p>Below are thumbnails <%=startNum%> - <%=endNum%> that matched
-		your search.</p>
+		<p><%=encprops.getProperty("belowMatches")%> <%=startNum%> - <%=endNum%> <%=encprops.getProperty("thatMatched")%></p>
 		</td>
 	</tr>
 </table>
@@ -318,43 +345,42 @@ if(request.getParameter("dateLimit")!=null) {
 
 			
 			
-	for(int rows=0;rows<5;rows++) {		%>
+					for(int rows=0;rows<5;rows++) {		%>
 
-	<tr>
+						<tr>
 
-		<%
-				for(int columns=0;columns<3;columns++){
-					if(countMe<thumbLocs.size()) {
-						String combined=(String)thumbLocs.get(countMe);
-						StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
-						String thumbLink=stzr.nextToken();
-						String encNum=stzr.nextToken();
-						String fileName=stzr.nextToken();
-						boolean video=true;
-						if(!thumbLink.endsWith("video.jpg")){
-							thumbLink="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+thumbLink;
-							video=false;
-						}
-						String link="http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+encNum;
+							<%
+							for(int columns=0;columns<3;columns++){
+								if(countMe<thumbLocs.size()) {
+									String combined=(String)thumbLocs.get(countMe);
+									StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
+									String thumbLink=stzr.nextToken();
+									String encNum=stzr.nextToken();
+									String fileName=stzr.nextToken();
+									boolean video=true;
+									if(!thumbLink.endsWith("video.jpg")){
+										thumbLink="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+thumbLink;
+										video=false;
+									}
+									String link="http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+encNum;
 						
-					%>
+							%>
 
-		<td><a href="<%=link%>"><img src="<%=thumbLink%>"
-			alt="shark photo" border="1" /></a></td>
-		<%
+									<td><a href="<%=link%>"><img src="<%=thumbLink%>" alt="photo" border="1" /></a></td>
+							<%
 					
-					countMe++;
-					}
-				} //endFor
-				%>
-	</tr>
-	<%} //endFor
+								countMe++;
+								} //end if
+							} //endFor
+							%>
+					</tr>
+				<%} //endFor
 	
 				} catch(Exception e) {
 				%>
 	<tr>
 		<td>
-		<p>Tried to get the thumbnails from shepherd, but I hit an error.</p>
+		<p><%=encprops.getProperty("error")%></p>.</p>
 		</td>
 	</tr>
 	<%}
@@ -383,13 +409,11 @@ if(startNumIndex>-1) {
 
 %>
 <p><a
-	href="thumbnailSearchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=startNum%>&endNum=<%=endNum%>">See
-next results (<%=startNum%> - <%=endNum%></a>)</p>
+	href="thumbnailSearchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("seeNextResults")%> (<%=startNum%> - <%=endNum%></a>)</p>
 <%
 if((startNum-15)>1) {%>
 <p><a
-	href="thumbnailSearchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=(startNum-30)%>&endNum=<%=(startNum-16)%>">See
-previous results (<%=(startNum-30)%> - <%=(startNum-16)%>)</a></p>
+	href="thumbnailSearchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=(startNum-30)%>&endNum=<%=(startNum-16)%>"><%=encprops.getProperty("seePreviousResults")%> (<%=(startNum-30)%> - <%=(startNum-16)%>)</a></p>
 
 <%}
 if((startNum-15)==1) {
@@ -398,7 +422,7 @@ if((startNum-15)==1) {
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td align="right">
-		<p><strong>Matching images\videos</strong>: <%=myShepherd.getNumThumbnails(rEncounters.iterator())%></p>
+		<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=myShepherd.getNumThumbnails(rEncounters.iterator())%></p>
 	</tr>
 </table>
 </p>

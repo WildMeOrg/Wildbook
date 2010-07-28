@@ -21,40 +21,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 	}
 	
 	//set up the file input stream
-	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
-	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
-	
-	
-	//load our variables for the submit page
-	String title=props.getProperty("submit_title");
-	String submit_maintext=props.getProperty("submit_maintext");
-	String submit_reportit=props.getProperty("reportit");
-	String submit_language=props.getProperty("language");
-	String what_do=props.getProperty("what_do");
-	String read_overview=props.getProperty("read_overview");
-	String see_all_encounters=props.getProperty("see_all_encounters");
-	String see_all_sharks=props.getProperty("see_all_sharks");
-	String report_encounter=props.getProperty("report_encounter");
-	String log_in=props.getProperty("log_in");
-	String contact_us=props.getProperty("contact_us");
-	String search=props.getProperty("search");
-	String encounter=props.getProperty("encounter");
-	String shark=props.getProperty("shark");
-	String join_the_dots=props.getProperty("join_the_dots");
-	String menu=props.getProperty("menu");
-	String last_sightings=props.getProperty("last_sightings");
-	String more=props.getProperty("more");
-	String ws_info=props.getProperty("ws_info");
-	String about=props.getProperty("about");
-	String contributors=props.getProperty("contributors");
-	String forum=props.getProperty("forum");
-	String blog=props.getProperty("blog");
-	String area=props.getProperty("area");
-	String match=props.getProperty("match");
-	
-	//link path to submit page with appropriate language
-	String submitPath="submit.jsp?langCode="+langCode;
-	
+	//props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 	
 	
 %>
@@ -132,47 +99,21 @@ else return true;
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="leftcol">
-<div id="menu">
 
-
-
-<div class="module"><img src="images/area.jpg" width="190"
-	height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"><%=area%></p>
-</div>
-
-<div class="module"><img src="images/match.jpg" width="190"
-	height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-<p class="caption"><%=match%></p>
-</div>
-
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 <div id="maintext">
 <p>
 <h1 class="intro">Logout</h1>
 </p>
 </div>
 
-<p>Thank you for using the ECOCEAN Whale Shark Photo-identification
-Library! You are now safely logged out.</p>
+<p>Thank you for using this software! You are now safely logged out.</p>
 <p>Click <a href="welcome.jsp">here</a> to log back in.</p>
 <p>&nbsp;</p>
 </div>
 <!-- end maintext --></div>
-<!-- end maincol --> <%
-//email support
-if(!request.getRemoteUser().equals("admin")) {
-	Shepherd myShepherd=new Shepherd();
-	Vector e_images=new Vector();
-	NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), "holmbergius@yahoo.com", (request.getRemoteUser()+" has logged out."), (request.getRemoteUser()+" has logged out from "+request.getRemoteAddr()+".\n\nYou can check the geographic location of this IP address at:\nhttp://www.geobytes.com/IpLocator.htm"), e_images);
-}
-%> <jsp:include page="footer.jsp" flush="true" /></div>
+<!-- end maincol -->
+<jsp:include page="footer.jsp" flush="true" /></div>
 <!-- end page --></div>
 <!--end wrapper -->
 </body>

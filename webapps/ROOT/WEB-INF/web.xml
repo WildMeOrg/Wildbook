@@ -385,6 +385,11 @@
           	<servlet-class>org.ecocean.servlet.EncounterAddComment</servlet-class>
   </servlet> 
   
+              <servlet>
+                   <servlet-name>EncounterSetDynamicProperty</servlet-name>
+            	<servlet-class>org.ecocean.servlet.EncounterSetDynamicProperty</servlet-class>
+  </servlet> 
+  
         <servlet>
              <servlet-name>EncounterSetSize</servlet-name>
       	<servlet-class>org.ecocean.servlet.EncounterSetSize</servlet-class>
@@ -463,6 +468,20 @@
 	<servlet-class>org.ecocean.servlet.MassExposeGBIF</servlet-class>
   </servlet>
   
+      <servlet>
+          <servlet-name>DataNucleus</servlet-name>
+          <servlet-class>org.datanucleus.rest.RestServlet</servlet-class>
+          <init-param>
+              <param-name>persistence-context</param-name>
+              <param-value>ShepherdProject</param-value>
+          </init-param>	     
+      </servlet>
+      
+      <servlet-mapping>
+          <servlet-name>DataNucleus</servlet-name>
+          <url-pattern>/dn/*</url-pattern>
+      </servlet-mapping>
+
 
 
   
@@ -503,6 +522,11 @@
   <servlet-mapping>
          <servlet-name>EncounterSetIdentifiable</servlet-name>
          <url-pattern>/EncounterSetIdentifiable</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+           <servlet-name>EncounterSetDynamicProperty</servlet-name>
+           <url-pattern>/EncounterSetDynamicProperty</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
@@ -610,6 +634,7 @@
              <servlet-name>EncounterSetOccurrenceRemarks</servlet-name>
              <url-pattern>/EncounterSetOccurrenceRemarks</url-pattern>
   </servlet-mapping>
+  
 
   <servlet-mapping>
        <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
