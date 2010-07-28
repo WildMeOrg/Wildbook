@@ -64,13 +64,18 @@ table.adopter td.image {
 				%>
 <tr><td class="image"><img border="0" src="images/meet-adopter-frame.gif" /></td></tr>
 			
-
+	<%
+	if((ad.getAdopterImage()!=null)&&(!ad.getAdopterImage().equals(""))){
+	%>	
 	<tr>
 		<td class="image" style="padding-top: 0px;">
 		<center><img width="188px" height="188px"
 			src="adoptions/<%=ad.getID()%>/thumb.jpg" /></center>
 		</td>
 	</tr>
+	<%
+	}
+	%>
 
 
 <tr><td class="name">
