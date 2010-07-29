@@ -1,6 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java"
-	import="java.util.ArrayList,org.ecocean.servlet.*,org.ecocean.*, java.util.Vector, java.util.Enumeration, java.lang.Math,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.ArrayList,org.ecocean.servlet.*,org.ecocean.*, java.util.Vector, java.util.Enumeration, java.lang.Math,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException"%>
 
 <%
 
@@ -157,7 +156,7 @@ try{
 <%=markedIndividualTypeCaps %></strong>: <%=sharky.getName()%></h1>
  <a name="alternateid"></a>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
-<%=sharky.getAlternateID()%> <%if(hasAuthority) {%>[<a
+<%=sharky.getAlternateID()%> <%if(hasAuthority&&CommonConfiguration.isCatalogEditable()) {%>[<a
 	href="individuals.jsp?number=<%=name%>&edit=alternateid#alternateid"><%=edit%></a>]<%}%>
 </p>
 <%
@@ -194,7 +193,7 @@ if(CommonConfiguration.allowNicknames()){
 	
 	%>
 <%=nickname %>: <%=myNickname%> 
-	<%if(hasAuthority) {%>[<a href="individuals.jsp?number=<%=name%>&edit=nickname#nickname"><%=edit %></a>]<%}%>
+	<%if(hasAuthority&&CommonConfiguration.isCatalogEditable()) {%>[<a href="individuals.jsp?number=<%=name%>&edit=nickname#nickname"><%=edit %></a>]<%}%>
  <br />
  <%=nicknamer %>: <%=myNicknamer%>
 
@@ -203,7 +202,7 @@ if(CommonConfiguration.allowNicknames()){
 	}
 
 
-	 if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("nickname"))){%>
+	 if(CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("nickname"))){%>
 		<br /><br />
 		<a name="nickname">
 		<table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
@@ -226,11 +225,11 @@ if(CommonConfiguration.allowNicknames()){
 	<br /> <%}%>
 
 </p>
-<p><%=sex %>: <%=sharky.getSex()%> <%if(isOwner) {%>[<a
+<p><%=sex %>: <%=sharky.getSex()%> <%if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>[<a
 	href="individuals.jsp?number=<%=name%>&edit=sex#sex"><%=edit %></a>]<%}%><br>
 <%
 		//edit sex
-		if (isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))) {%>
+		if (CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))) {%>
 <br><a name="sex">
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
 	bgcolor="#99CCFF">
@@ -450,7 +449,9 @@ if (isOwner) {
 		</table>
 		<%} else {%> <%=none %>
 		</p>
-		<%}%>
+		<%}
+		if(CommonConfiguration.isCatalogEditable()){
+		%>
 		<form action="IndividualAddFile" method="post"
 			enctype="multipart/form-data" name="addDataFiles"><input
 			name="action" type="hidden" value="fileadder" id="action"> <input
@@ -460,28 +461,33 @@ if (isOwner) {
 		<p><input name="file2add" type="file" size="50"></p>
 		<p><input name="addtlFile" type="submit" id="addtlFile"
 			value="<%=sendFile %>"></p></form>
-		<hr>
+			<%
+		}
+			%>
+		<hr />
 
+		
+		<p><strong><%=researcherComments %></strong>: </p>
+		<p><%=sharky.getComments().replaceAll("\n","<br>")%></p>
+		<%
+		if(CommonConfiguration.isCatalogEditable()){
+		%>
 		<p>
 		<form action="IndividualAddComment" method="post" name="addComments">
-		<p><input name="user" type="hidden"
-			value="<%=request.getRemoteUser()%>" id="user"> <input
-			name="individual" type="hidden" value="<%=sharky.getName()%>"
-			id="individual"> <input name="action" type="hidden"
-			value="comments" id="action"> <strong><%=researcherComments %></strong>: </p>
-		<p><%=sharky.getComments().replaceAll("\n","<br>")%></p>
+		<input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user"> 
+		<input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual"> 
+		<input name="action" type="hidden" value="comments" id="action"> 
 		<p><textarea name="comments" cols="60" id="comments"></textarea> <br>
 		<input name="Submit" type="submit" value="<%=addComments %>">
-		</p>
 		</form>
 		</p>
-		<%}%>
-		
+		<%
+		}
+		}
+		%>
 		</td>
-
 	</tr>
 </table>
-
 
 <%
 
