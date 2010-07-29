@@ -2266,7 +2266,7 @@ if(enc.getDynamicProperties()!=null){
 		<img align="absmiddle"  src="../images/Crystal_Clear_app_kaddressbook.gif"> 
 		</td>
 		<td valign="top">
-		<strong><%=encprops.getProperty("auto_comments")%>: </p>
+		<%=encprops.getProperty("auto_comments")%>: </p>
 		<%
 		if (enc.getRComments()!=null) {
 		%>
