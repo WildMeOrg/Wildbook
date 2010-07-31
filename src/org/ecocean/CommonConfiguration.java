@@ -53,6 +53,10 @@ public class CommonConfiguration {
 	public static String getGlobalUniqueIdentifierPrefix(){initialize();return props.getProperty("GlobalUniqueIdentifierPrefix");}
 	
 	public static String getURLToMastheadGraphic(){initialize();return props.getProperty("urlToMastheadGraphic");}
+	
+	public static String getTapirLinkURL(){initialize();return props.getProperty("tapirLinkURL");}
+  
+	
 	public static String getURLToFooterGraphic(){initialize();return props.getProperty("urlToFooterGraphic");}
 	public static String getGoogleMapsKey(){initialize();return props.getProperty("googleMapsKey");}
 	public static String getGoogleSearchKey(){initialize();return props.getProperty("googleSearchKey");}

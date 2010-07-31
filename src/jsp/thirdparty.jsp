@@ -95,12 +95,12 @@
 		<p><strong>Open Source Components </strong></p>
 		<ul>
 		<li>KeenerView for Flex-based image display is used under the MIT license. <a href="http://code.google.com/p/keenerview/">http://code.google.com/p/keenerview/</a></li>
-		<li>DataNucleus Access Platform is used for object-relational mapping and persistence under the Apache 2 License.<a href="http://www.datanucleus.org%20">http://www.datanucleus.org</a></li>
+		<li>DataNucleus Access Platform 2.1 is used for object-relational mapping and persistence under the Apache 2 License.<a href="http://www.datanucleus.org%20">http://www.datanucleus.org</a></li>
 		<li>Joda Time for date manipulation and standardization is used under the Apache 2 License.<a href="http://joda-time.sourceforge.net/">http://joda-time.sourceforge.net/</a></li>
 		<li>Crystal Clear icons are used under the GNU Lesser General Public License. <a href="http://commons.wikimedia.org/wiki/Crystal_Clear">http://commons.wikimedia.org/wiki/Crystal_Clear</a></li>
 		<li>A Derby database is embedded for default usage and is available under the Apache 2 License. <a href="http://db.apache.org/derby/">http://db.apache.org/derby/</a></li>
 		<li>Project Rome is used for writing out Atom feeds. <a href="https://rome.dev.java.net/">https://rome.dev.java.net/</a></li>
-		<li>Many, many more...TBD </li>
+		<li>A Java version of the <a href="http://www.reijns.com/i3s/">I3S algorithm</a> is used under the GPL v2 license as one of two spot pattern recognition algorithms.</li>
 		</ul>
 
 	  </div>
