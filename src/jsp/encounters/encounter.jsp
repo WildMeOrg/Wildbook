@@ -870,7 +870,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<td align="left" valign="top">
 				<form name="setxencshark" action="../EncounterSetSex" method="post">
 				<select name="selectSex" size="1" id="selectSex">
-					<option value="unsure" selected><%=encprops.getProperty("unsure")%></option>
+					<option value="unknown" selected><%=encprops.getProperty("unknown")%></option>
 					<option value="male"><%=encprops.getProperty("male")%></option>
 					<option value="female"><%=encprops.getProperty("female")%></option>
 				</select> <input name="number" type="hidden" value="<%=num%>" id="number">

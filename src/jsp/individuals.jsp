@@ -241,7 +241,7 @@ if(CommonConfiguration.allowNicknames()){
 		<form name="setxsexshark" action="IndividualSetSex" method="post">
 
 		<select name="selectSex" size="1" id="selectSex">
-			<option value="unsure">unsure</option>
+			<option value="unknown">unknown</option>
 			<option value="male">male</option>
 			<option value="female">female</option>
 		</select><br> <input name="individual" type="hidden" value="<%=name%>"

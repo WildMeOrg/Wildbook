@@ -626,7 +626,7 @@ if(generateEmails){
   			}
   			catch(Exception e){e.printStackTrace();System.out.println("     I hit an error getting locales in searchResults.jsp.");}
   		}
-  		if(!enc.getSex().equals("unsure")) {
+  		if(!enc.getSex().equals("unknown")) {
   			Label lSex = new Label(25, count, enc.getSex());
   			sheet.addCell(lSex);
   		}

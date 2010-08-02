@@ -23,21 +23,28 @@ public class EncounterQueryProcessor {
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
       String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals("")){filter="this.verbatimLocality.indexOf('"+locString+"') != -1";}
-      else{filter=" && this.verbatimLocality.indexOf('"+locString+"') != -1";}
+      else{filter+=" && this.verbatimLocality.indexOf('"+locString+"') != -1";}
     }
     //end location filter--------------------------------------------------------------------------------------
     
     //filter for unidentifiable encounters------------------------------------------
     if(request.getParameter("unidentifiable")==null) {
       if(filter.equals("")){filter="!this.unidentifiable";}
-      else{filter=" && !this.unidentifiable";}
+      else{filter+=" && !this.unidentifiable";}
     }
     //-----------------------------------------------------
     
     //---filter out approved
     if(request.getParameter("approved")==null) {
       if(filter.equals("")){filter="!this.approved";}
-      else{filter=" && !this.approved";}
+      else{filter+=" && !this.approved";}
+    }
+    //----------------------------
+    
+    //---filter out unapproved
+    if(request.getParameter("unapproved")==null) {
+      if(filter.equals("")){filter="(!this.approved && !this.unidentifiable)";}
+      else{filter+=" && (!this.approved && !this.unidentifiable)";}
     }
     //----------------------------
     
@@ -46,7 +53,7 @@ public class EncounterQueryProcessor {
       String locString=request.getParameter("locationCodeField").toLowerCase().replaceAll("%20", " ").trim();
       //System.out.println("locString: "+locString);
       if(filter.equals("")){filter="this.locationID.startsWith('"+locString+"')";}
-      else{filter=" && this.locationID.startsWith('"+locString+"')";}
+      else{filter+=" && this.locationID.startsWith('"+locString+"')";}
 
     }
     //------------------------------------------------------------------
@@ -55,17 +62,43 @@ public class EncounterQueryProcessor {
     if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
       String altID=request.getParameter("alternateIDField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals("")){filter="this.otherCatalogNumbers.startsWith('"+altID+"')";}
-      else{filter=" && this.otherCatalogNumbers.startsWith('"+altID+"')";}
+      else{filter+=" && this.otherCatalogNumbers.startsWith('"+altID+"')";}
       
     }
     //filter for behavior------------------------------------------
     if((request.getParameter("behaviorField")!=null)&&(!request.getParameter("behaviorField").equals(""))) {
       String behString=request.getParameter("behaviorField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals("")){filter="this.behavior.toLowerCase().indexOf('"+behString+"') != -1";}
-      else{filter=" && this.behavior.toLowerCase().indexOf('"+behString+"') != -1";}
+      else{filter+=" && this.behavior.toLowerCase().indexOf('"+behString+"') != -1";}
       
     }
     //end behavior filter--------------------------------------------------------------------------------------
+
+    //filter for sex------------------------------------------
+    if(request.getParameter("male")==null) {
+      if(filter.equals("")){filter="!this.sex.startsWith('male')";}
+      else{filter+=" && !this.sex.startsWith('male')";}
+    }
+    if(request.getParameter("female")==null) {
+      if(filter.equals("")){filter="!this.sex.startsWith('female')";}
+      else{filter+=" && !this.sex.startsWith('female')";}
+    }
+    if(request.getParameter("unknown")==null) {
+      if(filter.equals("")){filter="!this.sex.startsWith('unknown')";}
+      else{filter+=" && !this.sex.startsWith('unknown')";}
+    }
+    //filter by sex--------------------------------------------------------------------------------------
+
+    //filter by alive/dead status------------------------------------------
+    if(request.getParameter("alive")==null) {
+      if(filter.equals("")){filter="!this.livingStatus.startsWith('alive')";}
+      else{filter+=" && !this.livingStatus.startsWith('alive')";}
+    }
+    if(request.getParameter("dead")==null) {
+      if(filter.equals("")){filter="!this.livingStatus.startsWith('dead')";}
+      else{filter+=" && !this.livingStatus.startsWith('dead')";}
+    }
+    //filter by alive/dead status--------------------------------------------------------------------------------------
 
     
     
@@ -118,78 +151,8 @@ public class EncounterQueryProcessor {
     }
   //end if resightOnly--------------------------------------------------------------------------------------
 
-  //filter for only approved and unapproved encounters------------------------------------------
- /* if(request.getParameter("unidentifiable")==null) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if(rEnc.wasRejected()){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }*/
-  if(request.getParameter("unapproved")==null) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if((!rEnc.isApproved())&&(!rEnc.wasRejected())){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
 
-  //accepted and unapproved only filter--------------------------------------------------------------------------------------
-
-  //filter for sex------------------------------------------
-  if(request.getParameter("male")==null) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if(rEnc.getSex().equals("male")){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-  if(request.getParameter("female")==null) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if(rEnc.getSex().equals("female")){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-  if(request.getParameter("unknown")==null) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if(rEnc.getSex().equals("unsure")){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-  //filter by sex--------------------------------------------------------------------------------------
-
-  //filter by alive/dead status------------------------------------------
-  if(request.getParameter("alive")==null) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if(rEnc.getLivingStatus().equals("alive")){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-  if(request.getParameter("dead")==null) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if(rEnc.getLivingStatus().equals("dead")){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-  //filter by alive/dead status--------------------------------------------------------------------------------------
+ 
 
 
 

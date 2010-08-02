@@ -52,7 +52,7 @@ public class SubmitAction extends Action{
 	Random ran=new Random();
 	String uniqueID=(new Integer(date.get(Calendar.DAY_OF_MONTH))).toString()+(new Integer(date.get(Calendar.MONTH)+1)).toString()+(new Integer(date.get(Calendar.YEAR))).toString()+(new Integer(date.get(Calendar.HOUR_OF_DAY))).toString()+(new Integer(date.get(Calendar.MINUTE))).toString()+(new Integer(date.get(Calendar.SECOND))).toString()+(new Integer(ran.nextInt(99))).toString();
 	double size=0, depth=-1000;
-	String measureUnits="", location="", sex="unsure", comments="", primaryImageName="", guess="no estimate provided";
+	String measureUnits="", location="", sex="unknown", comments="", primaryImageName="", guess="no estimate provided";
 	String submitterName="", submitterEmail="", submitterPhone="", submitterAddress="";
 	String photographerName="", photographerEmail="", photographerPhone="", photographerAddress="";
 	Vector additionalImageNames=new Vector();

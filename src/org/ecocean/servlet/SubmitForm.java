@@ -22,7 +22,7 @@ public class SubmitForm extends ActionForm {
 		private Calendar date=Calendar.getInstance();
 		private String uniqueID=(new Integer(date.get(Calendar.DAY_OF_MONTH))).toString()+(new Integer(date.get(Calendar.MONTH)+1)).toString()+(new Integer(date.get(Calendar.YEAR))).toString()+(new Integer(date.get(Calendar.HOUR_OF_DAY))).toString()+(new Integer(date.get(Calendar.MINUTE))).toString()+(new Integer(date.get(Calendar.SECOND))).toString();
 		private double size=0, depth=-1000;
-		private String measureUnits="", location="", sex="unsure", comments="", primaryImageName="", guess="no estimate provided";
+		private String measureUnits="", location="", sex="unknown", comments="", primaryImageName="", guess="no estimate provided";
 		private String submitterName="", submitterEmail="", submitterPhone="", submitterAddress="";
 		private String photographerName="", photographerEmail="", photographerPhone="", photographerAddress="";
 		private Vector additionalImageNames=new Vector();
@@ -74,7 +74,7 @@ public class SubmitForm extends ActionForm {
 			depth=-1000;
 			measureUnits=""; 
 			location=""; 
-			sex="unsure"; 
+			sex="unknown"; 
 			comments=""; 
 			primaryImageName="";
 			guess="no estimate provided";

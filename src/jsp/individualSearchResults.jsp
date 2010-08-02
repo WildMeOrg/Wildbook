@@ -149,11 +149,11 @@ if(request.getParameter("sex")!=null) {
 						rSharks.remove(q);
 						q--;
 					}
-					else if((request.getParameter("sex").equals("unsure"))&&(!tShark.getSex().equals("unsure"))) {
+					else if((request.getParameter("sex").equals("unknown"))&&(!tShark.getSex().equals("unknown"))) {
 						rSharks.remove(q);
 						q--;
 					}
-					else if((request.getParameter("sex").equals("mf"))&&(tShark.getSex().equals("unsure"))) {
+					else if((request.getParameter("sex").equals("mf"))&&(tShark.getSex().equals("unknown"))) {
 						rSharks.remove(q);
 						q--;
 					}

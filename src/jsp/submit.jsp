@@ -343,8 +343,8 @@ else return true;
 			value="male" /> <%=props.getProperty("submit_male")%></label> <label>
 		<input type="radio" name="sex" value="female" /> <%=props.getProperty("submit_female")%></label>
 
-		<label> <input name="sex" type="radio" value="unsure"
-			checked="checked" /> <%=props.getProperty("submit_unsure")%> </label></td>
+		<label> <input name="sex" type="radio" value="unknown"
+			checked="checked" /> <%=props.getProperty("submit_unknown")%> </label></td>
 	</tr>
 
 	<tr class="form_row">
