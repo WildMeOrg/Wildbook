@@ -2,32 +2,26 @@ package org.ecocean;
 
 import java.util.Vector;
 import java.util.Iterator;
-
 import javax.jdo.Extent;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
-import javax.jdo.*;
+import java.util.regex.Pattern;
 
 public class EncounterQueryProcessor {
   
   public static Vector<Encounter> processQuery(Shepherd myShepherd, HttpServletRequest request){
     
     Vector<Encounter> rEncounters=new Vector<Encounter>();  
-    Iterator allEncounters;
+    Iterator<Encounter> allEncounters;
     
-    Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
+    Extent<Encounter> encClass=myShepherd.getPM().getExtent(Encounter.class, true);
     Query query=myShepherd.getPM().newQuery(encClass);
-    //String filter="this.individualID == \"Unassigned\" && this.unidentifiable == false";
     String filter="";
-
-    //Iterator allsharks=getAllMarkedIndividuals(query);
-    
-    
 
 
     //filter for location------------------------------------------
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
-      String locString=request.getParameter("locationField").toLowerCase();
+      String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals("")){filter="this.verbatimLocality.indexOf('"+locString+"') != -1";}
       else{filter=" && this.verbatimLocality.indexOf('"+locString+"') != -1";}
     }
@@ -40,12 +34,63 @@ public class EncounterQueryProcessor {
     }
     //-----------------------------------------------------
     
+    //---filter out approved
+    if(request.getParameter("approved")==null) {
+      if(filter.equals("")){filter="!this.approved";}
+      else{filter=" && !this.approved";}
+    }
+    //----------------------------
+    
+    //filter for location ID------------------------------------------
+    if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").equals(""))) {
+      String locString=request.getParameter("locationCodeField").toLowerCase().replaceAll("%20", " ").trim();
+      //System.out.println("locString: "+locString);
+      if(filter.equals("")){filter="this.locationID.startsWith('"+locString+"')";}
+      else{filter=" && this.locationID.startsWith('"+locString+"')";}
+
+    }
+    //------------------------------------------------------------------
+
+    //filter for alternate ID------------------------------------------
+    if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
+      String altID=request.getParameter("alternateIDField").toLowerCase().replaceAll("%20", " ").trim();
+      if(filter.equals("")){filter="this.otherCatalogNumbers.startsWith('"+altID+"')";}
+      else{filter=" && this.otherCatalogNumbers.startsWith('"+altID+"')";}
+      
+    }
+    //filter for behavior------------------------------------------
+    if((request.getParameter("behaviorField")!=null)&&(!request.getParameter("behaviorField").equals(""))) {
+      String behString=request.getParameter("behaviorField").toLowerCase().replaceAll("%20", " ").trim();
+      if(filter.equals("")){filter="this.behavior.toLowerCase().indexOf('"+behString+"') != -1";}
+      else{filter=" && this.behavior.toLowerCase().indexOf('"+behString+"') != -1";}
+      
+    }
+    //end behavior filter--------------------------------------------------------------------------------------
+
+    
+    
     query.setFilter(filter);
     allEncounters=myShepherd.getAllEncountersNoQuery();
     while (allEncounters.hasNext()) {
       Encounter temp_enc=(Encounter)allEncounters.next();
       rEncounters.add(temp_enc);
     }
+    
+    //submitter or photographer name filter------------------------------------------
+    if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
+      String locString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase();
+        
+      for(int q=0;q<rEncounters.size();q++) {
+          Encounter rEnc=(Encounter)rEncounters.get(q);
+          if((rEnc.getSubmitterName()!=null)&&(rEnc.getSubmitterName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerName()!=null)&&(rEnc.getPhotographerName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getSubmitterEmail()!=null)&&(rEnc.getSubmitterEmail().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerEmail()!=null)&&(rEnc.getPhotographerEmail().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)){
+            rEncounters.remove(q);
+            q--;
+            }
+        }
+    }
+    //end name filter--------------------------------------------------------------------------------------
+
+    
     
   //filter for encounters of MarkedIndividuals that have been resighted------------------------------------------
     if((request.getParameter("resightOnly")!=null)&&(request.getParameter("numResights")!=null)) {
@@ -92,15 +137,7 @@ public class EncounterQueryProcessor {
           }
       }
   }
-  if(request.getParameter("approved")==null) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if(rEnc.isApproved()){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
+
   //accepted and unapproved only filter--------------------------------------------------------------------------------------
 
   //filter for sex------------------------------------------
@@ -213,60 +250,9 @@ public class EncounterQueryProcessor {
   }
   //end vessel filter--------------------------------------------------------------------------------------
 
-  //filter for behavior------------------------------------------
-  if((request.getParameter("behaviorField")!=null)&&(!request.getParameter("behaviorField").equals(""))) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        String behString=request.getParameter("behaviorField").toLowerCase();
-        if((rEnc.getBehavior()==null)||(rEnc.getBehavior().toLowerCase().indexOf(behString)==-1)){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-  //end behavior filter--------------------------------------------------------------------------------------
 
 
-  //submitter or photographer name filter------------------------------------------
-  if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        String locString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase();
-        if((rEnc.getSubmitterName()!=null)&&(rEnc.getSubmitterName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerName()!=null)&&(rEnc.getPhotographerName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getSubmitterEmail()!=null)&&(rEnc.getSubmitterEmail().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerEmail()!=null)&&(rEnc.getPhotographerEmail().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-  //end name filter--------------------------------------------------------------------------------------
 
-  //filter for location code------------------------------------------
-  if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").equals(""))) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        String locString=request.getParameter("locationCodeField").toLowerCase();
-
-        if(!rEnc.getLocationCode().toLowerCase().startsWith(locString)){
-          rEncounters.remove(q);
-          q--;
-        }
-      }
-  }
-
-  //filter for alternate ID------------------------------------------
-  if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        String altID=request.getParameter("alternateIDField").toLowerCase();
-        if(!rEnc.getAlternateID().toLowerCase().startsWith(altID)){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-
-  //location code filter--------------------------------------------------------------------------------------
-    
   //keyword filters-------------------------------------------------
   if(request.getParameterValues("keyword")!=null){
   String[] keywords=request.getParameterValues("keyword");
