@@ -25,41 +25,12 @@ Shepherd myShepherd=new Shepherd();
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/overview.properties"));
 	
 	
-	//load our variables for the overview page
-	String title=props.getProperty("overview_title");
-	String overview_maintext=props.getProperty("overview_maintext");
-	String overview_reportit=props.getProperty("overview_reportit");
-	String overview_language=props.getProperty("overview_language");
-	String what_do=props.getProperty("what_do");
-	String read_overview=props.getProperty("read_overview");
-	String see_all_encounters=props.getProperty("see_all_encounters");
-	String see_all_sharks=props.getProperty("see_all_sharks");
-	String report_encounter=props.getProperty("report_encounter");
-	String log_in=props.getProperty("log_in");
-	String contact_us=props.getProperty("contact_us");
-	String search=props.getProperty("search");
-	String encounter=props.getProperty("encounter");
-	String shark=props.getProperty("shark");
-	String join_the_dots=props.getProperty("join_the_dots");
-	String menu=props.getProperty("menu");
-	String last_sightings=props.getProperty("last_sightings");
-	String more=props.getProperty("more");
-	String ws_info=props.getProperty("ws_info");
-	String about=props.getProperty("about");
-	String contributors=props.getProperty("contributors");
-	String forum=props.getProperty("forum");
-	String blog=props.getProperty("blog");
-	String area=props.getProperty("area");
-	String match=props.getProperty("match");
-	
-	//link path to submit page with appropriate language
-	String submitPath="submit.jsp?langCode="+langCode;
 
 %>
 
 <html>
 <head>
-<title><%=title%></title>
+<title><%=CommonConfiguration.getHTMLTitle()%></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
 	content="<%=CommonConfiguration.getHTMLDescription() %>" />
