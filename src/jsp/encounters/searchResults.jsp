@@ -844,7 +844,6 @@ if(generateKML){
 		
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
-	allEncounters=null;
 	rEncounters=null;
 	haveGPSData=null;
 	  
