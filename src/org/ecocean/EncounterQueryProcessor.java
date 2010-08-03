@@ -100,6 +100,38 @@ public class EncounterQueryProcessor {
     }
     //filter by alive/dead status--------------------------------------------------------------------------------------
 
+    //submitter or photographer name filter------------------------------------------
+    if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
+      String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
+      
+      String filterString="((this.recordedBy.indexOf('"+nameString+"') != -1)||(this.submitterEmail.indexOf('"+nameString+"') != -1)||(this.photographerName.indexOf('"+nameString+"') != -1)||(this.photographerEmail.indexOf('"+nameString+"') != -1))";
+      if(filter.equals("")){filter=filterString;}
+      else{filter+=(" && "+filterString);}
+
+    }
+    //end name and email filter--------------------------------------------------------------------------------------
+
+    //filter for length------------------------------------------
+    if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)&&(!request.getParameter("lengthField").equals("skip"))&&(!request.getParameter("selectLength").equals(""))) {
+
+      String size=request.getParameter("lengthField").trim();
+      
+      if(request.getParameter("selectLength").equals("gt")) {
+        String filterString="this.size > "+size;
+        if(filter.equals("")){filter=filterString;}
+        else{filter+=(" && "+filterString);}
+      }
+      else if(request.getParameter("selectLength").equals("lt")) {
+        String filterString="this.size < "+size;
+        if(filter.equals("")){filter=filterString;}
+        else{filter+=(" && "+filterString);}
+      }
+      else if(request.getParameter("selectLength").equals("eq")) {
+        String filterString="this.size == "+size;
+        if(filter.equals("")){filter=filterString;}
+        else{filter+=(" && "+filterString);}
+      }
+    }
     
     
     query.setFilter(filter);
@@ -109,19 +141,6 @@ public class EncounterQueryProcessor {
       rEncounters.add(temp_enc);
     }
     
-    //submitter or photographer name filter------------------------------------------
-    if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
-      String locString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase();
-        
-      for(int q=0;q<rEncounters.size();q++) {
-          Encounter rEnc=(Encounter)rEncounters.get(q);
-          if((rEnc.getSubmitterName()!=null)&&(rEnc.getSubmitterName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerName()!=null)&&(rEnc.getPhotographerName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getSubmitterEmail()!=null)&&(rEnc.getSubmitterEmail().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerEmail()!=null)&&(rEnc.getPhotographerEmail().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)){
-            rEncounters.remove(q);
-            q--;
-            }
-        }
-    }
-    //end name filter--------------------------------------------------------------------------------------
 
     
     
@@ -151,53 +170,6 @@ public class EncounterQueryProcessor {
     }
   //end if resightOnly--------------------------------------------------------------------------------------
 
-
- 
-
-
-
-  //filter for length------------------------------------------
-  if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)&&(!request.getParameter("lengthField").equals("skip"))&&(!request.getParameter("selectLength").equals(""))) {
-
-  try {
-
-  double dbl_size=(new Double(request.getParameter("lengthField"))).doubleValue();
-
-  if(request.getParameter("selectLength").equals("gt")) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if(rEnc.getSize()<dbl_size){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-  if(request.getParameter("selectLength").equals("lt")) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if((rEnc.getSize()>dbl_size)||(rEnc.getSize()<0.1)){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-  if(request.getParameter("selectLength").equals("eq")) {
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        if(rEnc.getSize()!=dbl_size){
-          rEncounters.remove(q);
-          q--;
-          }
-      }
-  }
-
-  } catch(NumberFormatException nfe) {
-    //do nothing, just skip on
-    nfe.printStackTrace();
-  }
-
-  }
-  //filter by length--------------------------------------------------------------------------------------
 
 
   //filter for vessel------------------------------------------
@@ -319,4 +291,5 @@ public class EncounterQueryProcessor {
   }
   
 
+  
 }
