@@ -189,23 +189,36 @@ public class EncounterQueryProcessor {
 
 
   //keyword filters-------------------------------------------------
-  if(request.getParameterValues("keyword")!=null){
   String[] keywords=request.getParameterValues("keyword");
-  int kwLength=keywords.length;
-  for(int kwIter=0;kwIter<kwLength;kwIter++) {
-      String kwParam=keywords[kwIter];
-      if(myShepherd.isKeyword(kwParam)) {
-        Keyword word=myShepherd.getKeyword(kwParam);
+  if((keywords!=null)&&(!keywords[0].equals("None"))){
+      int kwLength=keywords.length;
+        
         
         for(int q=0;q<rEncounters.size();q++) {
           Encounter tShark=(Encounter)rEncounters.get(q);
-          if(!word.isMemberOf(tShark)) {
+          String memberOf="";
+          
+         
+          boolean hasNeededKeyword=false;
+          for(int kwIter=0;kwIter<kwLength;kwIter++) {
+            String kwParam=keywords[kwIter];
+            if(myShepherd.isKeyword(kwParam)) {
+              Keyword word=myShepherd.getKeyword(kwParam);
+              if(word.isMemberOf(tShark)) {
+                hasNeededKeyword=true;
+                memberOf+=word.getReadableName();
+              }
+            } //end if isKeyword
+          }
+          if(!hasNeededKeyword){
             rEncounters.remove(q);
             q--;
           }
+
+
         } //end for
-      } //end if isKeyword
-  }
+      
+
   }
   //end keyword filters-----------------------------------------------  
     

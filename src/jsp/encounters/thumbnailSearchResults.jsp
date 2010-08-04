@@ -87,11 +87,12 @@ Shepherd myShepherd=new Shepherd();
 <table id="results" border="0" width="100%">
 	<%		
 
+			String[] keywords=request.getParameterValues("keyword");
 			int countMe=0;
 			Vector thumbLocs=new Vector();
 			
 			try {
-				thumbLocs=myShepherd.getThumbnails(rEncounters.iterator(), startNum, endNum);
+				thumbLocs=myShepherd.getThumbnails(rEncounters.iterator(), startNum, endNum, keywords);
 
 			
 			
@@ -106,7 +107,8 @@ Shepherd myShepherd=new Shepherd();
 									StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
 									String thumbLink=stzr.nextToken();
 									String encNum=stzr.nextToken();
-									String fileName=stzr.nextToken();
+									int fileNamePos=combined.lastIndexOf("BREAK")+5;
+									String fileName=combined.substring(fileNamePos);
 									boolean video=true;
 									if(!thumbLink.endsWith("video.jpg")){
 										thumbLink="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+thumbLink;
@@ -116,7 +118,47 @@ Shepherd myShepherd=new Shepherd();
 						
 							%>
 
-									<td><a href="<%=link%>"><img src="<%=thumbLink%>" alt="photo" border="1" /></a></td>
+									<td>
+										<table>
+										<tr>
+											<td>
+												<a href="<%=link%>"><img src="<%=thumbLink%>" alt="photo" border="1" /></a>
+											</td>
+										</tr>
+										<%
+										if((keywords!=null)&&(keywords.length>0)&&(!keywords[0].equals("None"))){	
+										int kwLength=keywords.length;
+										%>
+										<tr>
+										<td>
+											<strong><%=encprops.getProperty("matchingKeywords") %></strong>
+											<%
+									          for(int kwIter=0;kwIter<kwLength;kwIter++) {
+									              String kwParam=keywords[kwIter];
+									              if(myShepherd.isKeyword(kwParam)) {
+									                Keyword word=myShepherd.getKeyword(kwParam);
+									                if(word.isMemberOf(encNum+"/"+fileName)) {
+									                	%>
+														<br /><%= word.getReadableName()%>
+														
+														<%
+														
+									                  
+									                }
+									              } //end if isKeyword
+									            }
+											%>
+										</td>
+										</tr>
+											<%
+											
+											}
+											%>
+
+
+										
+										</table>
+									</td>
 							<%
 					
 								countMe++;
@@ -127,6 +169,7 @@ Shepherd myShepherd=new Shepherd();
 				<%} //endFor
 	
 				} catch(Exception e) {
+					e.printStackTrace();
 				%>
 	<tr>
 		<td>
@@ -172,7 +215,7 @@ if((startNum-15)==1) {
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td align="right">
-		<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=myShepherd.getNumThumbnails(rEncounters.iterator())%></p>
+		<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=thumbLocs.size()%></p>
 	</tr>
 </table>
 </p>

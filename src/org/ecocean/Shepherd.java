@@ -1412,7 +1412,7 @@ public class Shepherd {
 		return thumbs;
 	}
 	
-	public Vector getThumbnails(Iterator it, int startNum, int endNum) {
+	public Vector getThumbnails(Iterator it, int startNum, int endNum, String[] keywords) {
 		Vector thumbs=new Vector();
 		boolean stopMe=false;
 		int count=0;
@@ -1425,13 +1425,36 @@ public class Shepherd {
 						String m_thumb="";
 						
 						//check for video or image
-						String addTextFile=(String)enc.getAdditionalImageNames().get(i);
-						if((addTextFile.toLowerCase().indexOf(".mov")!=-1)||(addTextFile.toLowerCase().indexOf(".wmv")!=-1)||(addTextFile.toLowerCase().indexOf(".mpg")!=-1)||(addTextFile.toLowerCase().indexOf(".avi")!=-1)) {
-							m_thumb="http://"+CommonConfiguration.getURLLocation()+"/images/video.jpg"+"BREAK"+enc.getEncounterNumber()+"BREAK"+addTextFile;
+						String imageName=(String)enc.getAdditionalImageNames().get(i);
+						
+						//check if this image has one of the assigned keywords
+						boolean hasKeyword=false;
+						if((keywords==null)||(keywords.length==0)){hasKeyword=true;}
+						else{
+						  int numKeywords=keywords.length;
+						  for(int n=0;n<numKeywords;n++){
+						    if(!keywords[n].equals("None")){
+						      Keyword word=getKeyword(keywords[n]);
+						      if(word.isMemberOf(enc.getCatalogNumber()+"/"+imageName)){
+						        hasKeyword=true;
+						        //System.out.println("member of: "+word.getReadableName());
+						      }
+						    }
+						    else {
+						      hasKeyword=true;
+						    }
+						    
+						  }
+						  
+						}
+						
+						
+						if(hasKeyword&&isAcceptableVideoFile(imageName)) {
+							m_thumb="http://"+CommonConfiguration.getURLLocation()+"/images/video.jpg"+"BREAK"+enc.getEncounterNumber()+"BREAK"+imageName;
 							thumbs.add(m_thumb);
 						}
-						else if(isAcceptableImageFile(addTextFile)) {
-							m_thumb=enc.getEncounterNumber()+"/"+(i+1)+".jpg"+"BREAK"+enc.getEncounterNumber()+"BREAK"+addTextFile;
+						else if(hasKeyword&&isAcceptableImageFile(imageName)) {
+							m_thumb=enc.getEncounterNumber()+"/"+(i+1)+".jpg"+"BREAK"+enc.getEncounterNumber()+"BREAK"+imageName;
 							thumbs.add(m_thumb);
 						}
 						else {count--;}
