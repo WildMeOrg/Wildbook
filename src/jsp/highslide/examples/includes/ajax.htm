@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://
+www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<link rel="stylesheet" href="styles.css" type="text/css" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>AJAX content</title>
+</head>
+<body>
+
+<div id="intro">
+	<h3>AJAX content</h3>
+	<p>Highslide's AJAX engine lets you put your content in a separate file and display
+	it within a Highslide popup. If the file is HTML, you can specify a specific <code>id</code>
+	for Highslide to fetch. In this case, the <code>id</code> <i>intro</i> was fetched.</p>
+	<p>To see the source of the linked AJAX file, right click on the anchor link that you clicked
+	to open this popup, then choose <i>Open in new window</i>.</p>
+	<p>Highslide caches the AJAX content upon page load, so that it sits ready to display
+	instantly when the user clicks the thumbnail or link.</p>
+</div>
+
+<div id="dynamic">
+	<h3>Dynamic content</h3>
+	<p>Highslide HTML allows the popup size to be recalculated after the content has been
+	changed, either through internal scripts or through external AJAX calls.</p>
+	<p>This example also has <code>hs.preserveContent</code> set to <code>true</code>. Try updating
+	the content and move the popup, then close it and open it again.</p>
+	<div>
+		<a href="javascript:;" onclick="var r=hs.getElementByClass(this.parentNode,'div','readmore').style;r.display=(r.display=='none')?'':'none';this.innerHTML=(r.display=='none')?'Read more':'Hide';try {hs.getExpander(this).reflow();} catch(e){};return false;">Read more</a>
+		<div class="readmore" style="display:none">
+			Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aliquam dapibus leo quis nisl. In lectus. Vivamus consectetuer pede in nisl. Mauris cursus pretium mauris. Suspendisse condimentum mi ac tellus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec sed enim. Ut vel ipsum. Cras consequat velit et justo. Donec mollis, mi at tincidunt vehicula, nisl mi luctus risus, quis scelerisque arcu nibh ac nisi. Sed risus. Curabitur urna. Aliquam vitae nisl. Quisque imperdiet semper justo. Pellentesque nonummy pretium tellus.</div>
+	</div>
+</div>
+
+<div id="div3">
+<h3>Header for div3</h3>
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aliquam dapibus leo quis nisl. In lectus. Vivamus consectetuer pede in nisl. Mauris cursus pretium mauris. Suspendisse condimentum mi ac tellus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec sed enim. Ut vel ipsum. Cras consequat velit et justo. Donec mollis, mi at tincidunt vehicula, nisl mi luctus risus, quis scelerisque arcu nibh ac nisi. Sed risus. Curabitur urna. Aliquam vitae nisl. Quisque imperdiet semper justo. Pellentesque nonummy pretium tellus.
+</div>
+
+<div id="div4">
+<h3>Header for div4</h3>
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aliquam dapibus leo quis nisl. In lectus. Vivamus consectetuer pede in nisl. Mauris cursus pretium mauris. Suspendisse condimentum mi ac tellus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec sed enim. Ut vel ipsum. Cras consequat velit et justo. Donec mollis, mi at tincidunt vehicula, nisl mi luctus risus, quis scelerisque arcu nibh ac nisi. Sed risus. Curabitur urna. Aliquam vitae nisl. Quisque imperdiet semper justo. Pellentesque nonummy pretium tellus.
+</div>
+</body>
+</html>

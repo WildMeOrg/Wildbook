@@ -59,6 +59,47 @@ Shepherd myShepherd=new Shepherd();
 	rel="stylesheet" type="text/css" />
 <link rel="shortcut icon"
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
+	
+<!--
+	1 ) Reference to the files containing the JavaScript and CSS.
+	These files must be located on your server.
+-->
+
+<script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
+<link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css" />
+
+<!--
+	2) Optionally override the settings defined at the top
+	of the highslide.js file. The parameter hs.graphicsDir is important!
+-->
+
+<script type="text/javascript">
+hs.graphicsDir = '../highslide/highslide/graphics/';
+hs.align = 'center';
+hs.transitions = ['expand', 'crossfade'];
+hs.outlineType = 'rounded-white';
+hs.fadeInOut = true;
+//hs.dimmingOpacity = 0.75;
+
+// Add the controlbar
+hs.addSlideshow({
+	//slideshowGroup: 'group1',
+	interval: 5000,
+	repeat: false,
+	useControls: true,
+	fixedControls: 'fit',
+	overlayOptions: {
+		opacity: 0.75,
+		position: 'bottom center',
+		hideOnMouseOut: true
+	}
+});
+
+</script>
+
+	
+	
+	
 </head>
 
 <body>
@@ -114,7 +155,7 @@ Shepherd myShepherd=new Shepherd();
 										thumbLink="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+thumbLink;
 										video=false;
 									}
-									String link="http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+encNum;
+									String link="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+encNum+"/"+fileName;
 						
 							%>
 
@@ -122,16 +163,22 @@ Shepherd myShepherd=new Shepherd();
 										<table>
 										<tr>
 											<td>
-												<a href="<%=link%>"><img src="<%=thumbLink%>" alt="photo" border="1" /></a>
-											</td>
-										</tr>
+												<a href="<%=link%>" class="highslide" onclick="return hs.expand(this)"><img src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge" /></a>
+												<div class="highslide-caption">
+												<table>
 										<%
-										if((keywords!=null)&&(keywords.length>0)&&(!keywords[0].equals("None"))){	
+											
 										int kwLength=keywords.length;
+										Encounter thisEnc = myShepherd.getEncounter(encNum);
 										%>
+										<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <%=thisEnc.getIndividualID() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <%=thisEnc.getCatalogNumber() %></span></td></tr>
 										<tr>
-										<td>
-											<strong><%=encprops.getProperty("matchingKeywords") %></strong>
+										<td><span class="caption">
+											<%=encprops.getProperty("matchingKeywords") %>
 											<%
 									          for(int kwIter=0;kwIter<kwLength;kwIter++) {
 									              String kwParam=keywords[kwIter];
@@ -148,14 +195,39 @@ Shepherd myShepherd=new Shepherd();
 									              } //end if isKeyword
 									            }
 											%>
-										</td>
+										</span></td>
 										</tr>
+										</table>
+</div>
+												</div>
+											</td>
+										</tr>
+<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <%=thisEnc.getIndividualID() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <%=thisEnc.getCatalogNumber() %></span></td></tr>
+										<tr>
+										<td><span class="caption">
+											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-											
-											}
+									          for(int kwIter=0;kwIter<kwLength;kwIter++) {
+									              String kwParam=keywords[kwIter];
+									              if(myShepherd.isKeyword(kwParam)) {
+									                Keyword word=myShepherd.getKeyword(kwParam);
+									                if(word.isMemberOf(encNum+"/"+fileName)) {
+									                	%>
+														<br /><%= word.getReadableName()%>
+														
+														<%
+														
+									                  
+									                }
+									              } //end if isKeyword
+									            }
 											%>
-
-
+										</span></td>
+										</tr>
 										
 										</table>
 									</td>
