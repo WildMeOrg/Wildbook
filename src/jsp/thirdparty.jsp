@@ -91,6 +91,7 @@
 		<ul>
 		  <li>Dynamic Image as included in this software is used with the permission of its developer Guang Yang and licensed only for use with the Shepherd Project Framework for non-commercial, mark-recapture studies.</li>
 	    <li>CSSPlay for dropdown navigation menus is used under non-commercial guidelines. <a href="http://www.cssplay.co.uk/menus/simple_vertical.html">http://www.cssplay.co.uk/menus/simple_vertical.html</a></li>
+		<li>Highslide JS 4.1.9 is used under non-commercial guidelines. <a href="http://highslide.com/">http://highslide.com/</a></li>
 		</ul>
 		<p><strong>Open Source Components </strong></p>
 		<ul>

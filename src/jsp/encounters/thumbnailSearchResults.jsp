@@ -43,7 +43,7 @@ Shepherd myShepherd=new Shepherd();
 			
   			String[] keywords=request.getParameterValues("keyword");
 
-
+  			int numThumbnails = myShepherd.getNumThumbnails(rEncounters.iterator(), keywords);
 
 
 
@@ -121,7 +121,7 @@ hs.addSlideshow({
 		<p>
 		<h1 class="intro"><%=encprops.getProperty("title")%></h1>
 		</p>
-			<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=myShepherd.getNumThumbnails(rEncounters.iterator(), keywords)%></p>
+			<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=numThumbnails%></p>
 	
 		<p><%=encprops.getProperty("belowMatches")%> <%=startNum%> - <%=endNum%> <%=encprops.getProperty("thatMatched")%></p>
 		</td>
@@ -194,6 +194,7 @@ if((startNum)>1) {%>
 										int kwLength=keywords.length;
 										Encounter thisEnc = myShepherd.getEncounter(encNum);
 										%>
+										<tr><td><span class="caption"><em><%=(countMe+startNum) %>/<%=numThumbnails %></em></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
@@ -225,7 +226,9 @@ if((startNum)>1) {%>
 												</div>
 											</td>
 										</tr>
-<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption"><em><%=(countMe+startNum) %>/<%=numThumbnails %></em></span></td></tr>
+										
+										<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
