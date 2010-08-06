@@ -8,7 +8,7 @@
 
 <%
 int startNum=1;
-int endNum=15;
+int endNum=45;
 
 try{ 
 
@@ -21,7 +21,7 @@ try{
 
 } catch(NumberFormatException nfe) {
 	startNum=1;
-	endNum=15;
+	endNum=45;
 }
 
 //let's load thumbnailSearch.properties
@@ -41,7 +41,7 @@ Shepherd myShepherd=new Shepherd();
   			
   			rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request);
 			
-
+  			String[] keywords=request.getParameterValues("keyword");
 
 
 
@@ -114,21 +114,44 @@ hs.addSlideshow({
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
+
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
 		<p>
 		<h1 class="intro"><%=encprops.getProperty("title")%></h1>
 		</p>
+			<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=myShepherd.getNumThumbnails(rEncounters.iterator(), keywords)%></p>
+	
 		<p><%=encprops.getProperty("belowMatches")%> <%=startNum%> - <%=endNum%> <%=encprops.getProperty("thatMatched")%></p>
 		</td>
 	</tr>
 </table>
 
+<%
+String qString=request.getQueryString();
+int startNumIndex=qString.indexOf("&startNum");
+if(startNumIndex>-1) {
+	qString=qString.substring(0,startNumIndex);
+}
+
+%>
+<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><%=encprops.getProperty("seeNextResults")%> (<%=(startNum+45)%> - <%=(endNum+45)%>)</a></p>
+<%
+if((startNum)>1) {%>
+<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=encprops.getProperty("seePreviousResults")%> (<%=(startNum-45)%> - <%=(startNum-1)%>)</a></p>
+
+<%
+}
+%>
+
+
+
+
 <table id="results" border="0" width="100%">
 	<%		
 
-			String[] keywords=request.getParameterValues("keyword");
+			
 			int countMe=0;
 			Vector thumbLocs=new Vector();
 			
@@ -137,7 +160,7 @@ hs.addSlideshow({
 
 			
 			
-					for(int rows=0;rows<5;rows++) {		%>
+					for(int rows=0;rows<15;rows++) {		%>
 
 						<tr>
 
@@ -174,8 +197,8 @@ hs.addSlideshow({
 										<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <%=thisEnc.getIndividualID() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <%=thisEnc.getCatalogNumber() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
 										<tr>
 										<td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
@@ -205,8 +228,8 @@ hs.addSlideshow({
 <tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <%=thisEnc.getIndividualID() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <%=thisEnc.getCatalogNumber() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
 										<tr>
 										<td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
@@ -258,44 +281,23 @@ hs.addSlideshow({
 
 
 
-	startNum=startNum+15;	
-	endNum=endNum+15;
-
-
-String numberResights="";
-if(request.getParameter("numResights")!=null){
-	numberResights="&numResights="+request.getParameter("numResights");
-}
-String qString=request.getQueryString();
-int startNumIndex=qString.indexOf("&startNum");
-if(startNumIndex>-1) {
-	qString=qString.substring(0,startNumIndex);
-}
+	startNum=startNum+45;	
+	endNum=endNum+45;
 
 %>
-<p><a
-	href="thumbnailSearchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("seeNextResults")%> (<%=startNum%> - <%=endNum%></a>)</p>
+<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("seeNextResults")%> (<%=startNum%> - <%=endNum%>)</a></p>
 <%
-if((startNum-15)>1) {%>
-<p><a
-	href="thumbnailSearchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=(startNum-30)%>&endNum=<%=(startNum-16)%>"><%=encprops.getProperty("seePreviousResults")%> (<%=(startNum-30)%> - <%=(startNum-16)%>)</a></p>
+if((startNum-45)>1) {%>
+<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=encprops.getProperty("seePreviousResults")%> (<%=(startNum-90)%> - <%=(startNum-46)%>)</a></p>
 
-<%}
-if((startNum-15)==1) {
-%>
-<p>
-<table width="720" border="0" cellspacing="0" cellpadding="0">
-	<tr>
-		<td align="right">
-		<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=thumbLocs.size()%></p>
-	</tr>
-</table>
-</p>
-<%}
+<%
+}
+
 
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-%> <br> <jsp:include page="../footer.jsp" flush="true" />
+%> 
+<br> <jsp:include page="../footer.jsp" flush="true" />
 </div>
 </div>
 <!-- end page --></div>

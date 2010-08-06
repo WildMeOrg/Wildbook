@@ -1468,18 +1468,67 @@ public class Shepherd {
 		return thumbs;
 	}
 	
+	 public int getNumThumbnails(Iterator it, String[] keywords) {
+	    //Vector thumbs=new Vector();
+	    //boolean stopMe=false;
+	    int count=0;
+	    while(it.hasNext()) {
+	      Encounter enc=(Encounter)it.next();
+	        for(int i=0;i<enc.getAdditionalImageNames().size();i++) {
+	          count++;
+	            //String m_thumb="";
+	            
+	            //check for video or image
+	            String imageName=(String)enc.getAdditionalImageNames().get(i);
+	            
+	            //check if this image has one of the assigned keywords
+	            boolean hasKeyword=false;
+	            if((keywords==null)||(keywords.length==0)){hasKeyword=true;}
+	            else{
+	              int numKeywords=keywords.length;
+	              for(int n=0;n<numKeywords;n++){
+	                if(!keywords[n].equals("None")){
+	                  Keyword word=getKeyword(keywords[n]);
+	                  if(word.isMemberOf(enc.getCatalogNumber()+"/"+imageName)){
+	                    hasKeyword=true;
+	                    //System.out.println("member of: "+word.getReadableName());
+	                  }
+	                }
+	                else {
+	                  hasKeyword=true;
+	                }
+	                
+	              }
+	              
+	            }
+	                  
+	            if(hasKeyword&&isAcceptableVideoFile(imageName)) {
+	              //m_thumb="http://"+CommonConfiguration.getURLLocation()+"/images/video.jpg"+"BREAK"+enc.getEncounterNumber()+"BREAK"+imageName;
+	              //thumbs.add(m_thumb);
+	            }
+	            else if(hasKeyword&&isAcceptableImageFile(imageName)) {
+	              //m_thumb=enc.getEncounterNumber()+"/"+(i+1)+".jpg"+"BREAK"+enc.getEncounterNumber()+"BREAK"+imageName;
+	              //thumbs.add(m_thumb);
+	            }
+	            else {count--;}
+
+	        }
+
+	      
+	      }//end while
+	    return count;
+	  }
+	
 	/**
 	 * Returns the number of acceptable images/videos in the enter Iterator.
 	 * @param it The filtered iterator of encounters to count the number of images/videos in.
 	 * @return The number of acceptable images/videos in the Iterator of encounters.
 	 */
-	public int getNumThumbnails(Iterator it) {
+	public int getNumThumbnails(Vector it) {
 		int count=0;
-		while(it.hasNext()) {
-			Encounter enc;
-			try {
-				enc=(Encounter)it.next();
-			} catch(ClassCastException cce) {cce.printStackTrace();return 0;}
+		int numEncs = it.size();
+		for(int f=0;f<numEncs;f++){
+			Encounter enc=(Encounter)it.get(f);
 			for(int i=0;i<enc.getAdditionalImageNames().size();i++) {
 					count++;
 						
