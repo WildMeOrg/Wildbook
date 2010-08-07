@@ -95,13 +95,56 @@ hs.addSlideshow({
 	}
 });
 
-</script>
-
-	
-	
-	
+</script>	
 </head>
+<style type="text/css">
+#tabmenu {
+	color: #000;
+	border-bottom: 2px solid black;
+	margin: 12px 0px 0px 0px;
+	padding: 0px;
+	z-index: 1;
+	padding-left: 10px
+}
 
+#tabmenu li {
+	display: inline;
+	overflow: hidden;
+	list-style-type: none;
+}
+
+#tabmenu a,a.active {
+	color: #DEDECF;
+	background: #000;
+	font: bold 1em "Trebuchet MS", Arial, sans-serif;
+	border: 2px solid black;
+	padding: 2px 5px 0px 5px;
+	margin: 0;
+	text-decoration: none;
+	border-bottom: 0px solid #FFFFFF;
+}
+
+#tabmenu a.active {
+	background: #FFFFFF;
+	color: #000000;
+	border-bottom: 2px solid #FFFFFF;
+}
+
+#tabmenu a:hover {
+	color: #ffffff;
+	background: #7484ad;
+}
+
+#tabmenu a:visited {
+	color: #E8E9BE;
+}
+
+#tabmenu a.active:hover {
+	background: #7484ad;
+	color: #DEDECF;
+	border-bottom: 2px solid #000000;
+}
+</style>
 <body>
 <div id="wrapper">
 <div id="page"><jsp:include page="../header.jsp" flush="true">
@@ -114,6 +157,14 @@ hs.addSlideshow({
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
+
+<ul id="tabmenu">
+
+	<li><a href="searchResults.jsp?<%=request.getQueryString() %>">Table</a></li>
+	<li><a class="active">Matching Images/Videos</a></li>
+	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>">Mapped Results</a></li>
+	
+</ul>
 
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>

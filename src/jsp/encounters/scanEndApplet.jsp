@@ -201,7 +201,6 @@ if(!xmlOK) {
 	Sizelim=request.getParameter("Sizelim");
 	epsilon=request.getParameter("epsilon");
 }
-//matchObject[] matches=shepherd.matches;
 %>
 
 <p>

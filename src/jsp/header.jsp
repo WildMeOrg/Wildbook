@@ -236,14 +236,6 @@ z-index:99;
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;"><%=props.getProperty("individualSearch")%></a></li>
 		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/kwSearch.jsp"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;"><%=props.getProperty("keywordSearch")%></a></li>
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/thumbnailSearch.jsp"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;"><%=props.getProperty("thumbnailSearch")%></a></li>
-		<li><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/googleSearch.jsp"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;"><%=props.getProperty("googleSearch")%></a></li>
