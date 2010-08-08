@@ -371,9 +371,9 @@ if(generateEmails){
 
 <ul id="tabmenu">
 
-	<li><a class="active">Table</a></li>
-	<li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>">Matching Images/Videos</a></li>
-	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>">Mapped Results</a></li>
+	<li><a class="active"><%=encprops.getProperty("table")%></a></li>
+	<li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%></a></li>
+	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults")%></a></li>
 	
 </ul>
 
@@ -449,119 +449,6 @@ if(generateEmails){
   						   haveGPSData.add(enc);
   					}
 
-  				//populate KML file ====================================================
-  				if(generateKML){
-  					if((enc.getDWCDecimalLongitude()!=null)&&(enc.getDWCDecimalLatitude()!=null)){
-  						Element placeMark = docElement.addElement( "Placemark" );
-  						Element name = placeMark.addElement( "name" );
-  						String nameText = "";
-  						
-  						//add the name
-  						if(enc.isAssignedToMarkedIndividual().equals("Unassigned")){
-  							nameText = "Encounter "+enc.getEncounterNumber();
-  						}
-  						else{
-  							nameText = enc.isAssignedToMarkedIndividual()+": Encounter "+enc.getEncounterNumber();
-  						}
-  						name.setText(nameText);
-  						
-  						//add the visibility element
-  						Element viz = placeMark.addElement( "visibility" );
-  						viz.setText("1");
-  						
-  						/**
-  						Element style = placeMark.addElement( "Style" );
-  						Element iconStyle = style.addElement( "IconStyle" );
-  						Element icon = iconStyle.addElement( "Icon" );
-  						
-  						
-  						Element href = icon.addElement( "href" );
-  						
-  						String iconURL = "http://"+CommonConfiguration.getURLLocation()+"/images/geShark";
-  						
-  						if(enc.getSex().equals("male")){
-  							iconURL +="_male";
-  						}
-  						else if(enc.getSex().equals("female")){
-  							iconURL +="_female";
-  						}
-  						
-  						//filter by size
-  						if(enc.getSize()>0){
-  							int intsize = (new Double(enc.getSize())).intValue();
-  							iconURL +=("_"+intsize);
-  						}
-  						
-  						iconURL +=".gif";
-
-  						href.setText(iconURL);
-  						*/
-  						
-  						//add the descriptive HTML
-  						Element description = placeMark.addElement( "description" );
-  						
-  						String descHTML = "<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?noscript=true&number="+enc.getEncounterNumber()+"\">Direct Link</a></p>";
-  						descHTML+= "<p> <strong>Date:</strong> "+enc.getDate()+"</p>";
-  						descHTML+= "<p> <strong>Location:</strong><br>"+enc.getLocation()+"</p>";
-  						if(enc.getSize()>0){
-  							descHTML+= "<p> <strong>Size:</strong> "+enc.getSize()+" meters</p>";
-  						}
-  						descHTML+= "<p> <strong>Sex:</strong> "+enc.getSex()+"</p>";
-  						if(!enc.getComments().equals("")){
-  							descHTML+= "<p> <strong>Comments:</strong> "+enc.getComments()+"</p>";
-  						}
-  						
-  						descHTML+="<strong>Images</strong><br>";
-  						Vector imgs = enc.getAdditionalImageNames();
-  						int imgsNum = enc.getAdditionalImageNames().size();
-  						for(int imgNum = 0;imgNum<imgsNum;imgNum++){
-  							descHTML+= ("<br>"+"<a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?noscript=true&number="+enc.getEncounterNumber()+"\"><img src=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/"+enc.getEncounterNumber()+"/"+(imgNum+1)+".jpg\"></a>");
-  						}
-  						
-  						description.addCDATA(descHTML); 
-  						
-  						if(addTimeStamp){
-  							//add the timestamp
-  							String stampString = "";
-  							if(enc.getYear()!=-1){
-  								stampString+=enc.getYear();
-  								if(enc.getMonth()!=-1){
-  									String tsMonth = Integer.toString(enc.getMonth());
-  									if(tsMonth.length()==1){tsMonth="0"+tsMonth;}
-  									stampString+=("-"+tsMonth);
-  									if(enc.getDay()!=-1){
-  										String tsDay = Integer.toString(enc.getDay());
-  										if(tsDay.length()==1){tsDay="0"+tsDay;}
-  										stampString+=("-"+tsDay);
-  									}
-  								}
-  							}
-  						
-  							if(!stampString.equals("")){
-  								Element timeStamp = placeMark.addElement( "TimeStamp" );
-  								timeStamp.addNamespace("gx","http://www.google.com/kml/ext/2.2");
-  								Element when = timeStamp.addElement( "when" );
-  								when.setText(stampString);
-  							}
-  						}
-  						
-  						//add the actual lat-long points
-  						Element point = placeMark.addElement( "Point" );
-  						Element coords = point.addElement( "coordinates" );
-  						String coordsString = enc.getDWCDecimalLongitude()+","+enc.getDWCDecimalLatitude();
-  						if(enc.getMaximumElevationInMeters()!=0.0){
-  							coordsString+=","+enc.getMaximumElevationInMeters();
-  						}
-  						else{
-  							coordsString+=",0";
-  						}
-  						coords.setText(coordsString);
-  						
-  						
-  						
-  					}
-  				}
-  				//end KML ==============================================================
 
   				if((numResults>=startNum)&&(numResults<=endNum)) {
   				%>
@@ -742,7 +629,8 @@ if(generateEmails){
 			sheetExport.addCell(lNumberx36e);
 		}
   	} 
-  	catch(Exception we) {System.out.println("jExcel error processing search results...");we.printStackTrace();}
+  	catch(Exception we) {System.out.println("jExcel error processing search results...");
+  	we.printStackTrace();}
     	}
     
 
@@ -821,96 +709,15 @@ if((startNum-10)>1) {
 	</tr>
 </table>
 </p>
-<br> <%
-	//let's print out the KML file
-if(generateKML){
-	
-	//File kmlFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+kmlFilename);
-	File kmlFile=new File(getServletContext().getRealPath(("/encounters/"+kmlFilename)));
+<br>
 
-	FileWriter kmlWriter=new FileWriter(kmlFile);
-	org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
-	format.setLineSeparator(System.getProperty("line.separator"));
-	org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(kmlWriter, format); 
-	writer.write(document);
-	writer.close(); 
-}
-%>
-
-
-<p><strong><img src="../images/2globe_128.gif" width="64"
-	height="64" align="absmiddle" /> <%=encprops.getProperty("mappedResults")%></strong></p>
-<%
-	  	if(haveGPSData.size()>0) {
-	  	  myShepherd.beginDBTransaction();
-	  	  try{
-	  %>
-
-<p><%=encprops.getProperty("mapNote")%></p>
-<script
-	src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
-	type="text/javascript"></script> <script type="text/javascript">
-    function initialize() {
-      if (GBrowserIsCompatible()) {
-        var map = new GMap2(document.getElementById("map_canvas"));
-        
-		
-		<%double centroidX=0;
-			int countPoints=0;
-			double centroidY=0;
-			for(int c=0;c<haveGPSData.size();c++) {
-				Encounter mapEnc=(Encounter)haveGPSData.get(c);
-				countPoints++;
-				centroidX=centroidX+Double.parseDouble(mapEnc.getDWCDecimalLatitude());
-				centroidY=centroidY+Double.parseDouble(mapEnc.getDWCDecimalLongitude());
-			}
-			centroidX=centroidX/countPoints;
-			centroidY=centroidY/countPoints;%>
-			map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
-			map.addControl(new GSmallMapControl());
-        	map.addControl(new GMapTypeControl());
-			map.setMapType(G_HYBRID_MAP);
-			<%for(int t=0;t<haveGPSData.size();t++) {
-				if(t<101){
-				Encounter mapEnc=(Encounter)haveGPSData.get(t);
-				double myLat=(new Double(mapEnc.getDWCDecimalLatitude())).doubleValue();
-				double myLong=(new Double(mapEnc.getDWCDecimalLongitude())).doubleValue();%>
-				          var point<%=t%> = new GLatLng(<%=myLat%>,<%=myLong%>, false);
-						  var marker<%=t%> = new GMarker(point<%=t%>);
-						  GEvent.addListener(marker<%=t%>, "click", function(){
-						  	window.location="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>";
-						  });
-						  GEvent.addListener(marker<%=t%>, "mouseover", function(){
-						  	marker<%=t%>.openInfoWindowHtml("Shark: <strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation()%>/individuals.jsp?number=<%=mapEnc.isAssignedToMarkedIndividual()%>\"><%=mapEnc.isAssignedToMarkedIndividual()%></a></strong><br><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=mapEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=mapEnc.getDate()%><br>Sex: <%=mapEnc.getSex()%><br>Size: <%=mapEnc.getSize()%> m<br><br><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
-						  });
-
-						  
-						  map.addOverlay(marker<%=t%>);
-			
-		<%	
-			}	
-		}
-		%>
-		
-		
-      }
-    }
-    </script>
-<div id="map_canvas" style="width: 510px; height: 350px"></div>
-<%
-	  	
-	}
-	catch(Exception e){e.printStackTrace();}	
-		
-		
+<%	
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 	rEncounters=null;
-	haveGPSData=null;
-	  
-	  } else {%>
-<p><%=encprops.getProperty("noGPS")%></p>
-<br> <%}%> <jsp:include page="../footer.jsp" flush="true" />
+
+%>	  
+	  <jsp:include page="../footer.jsp" flush="true" />
 </div>
 </div>
 <!-- end page --></div>

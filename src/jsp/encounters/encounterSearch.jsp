@@ -427,15 +427,11 @@ myShepherd.closeDBTransaction();
 					id="locales" value="true"> <%=encprops.getProperty("localeExport")%></p>
 				</p>
 				
-				<p><input name="generateKML" type="checkbox" id="generateKML"
-					value="true"> <strong><%=encprops.getProperty("generateKMLFile")%></strong><br> &nbsp;&nbsp;&nbsp;&nbsp;<input
-					name="addTimeStamp" type="checkbox" id="addTimeStamp" value="true">
-				<%=encprops.getProperty("addTimestamp2KML")%></p>
+				<p><input name="addTimeStamp" type="checkbox" id="addTimeStamp" value="true">
+				<strong><%=encprops.getProperty("addTimestamp2KML")%></strong></p>
 				
 				<p><input name="generateEmails" type="checkbox"
 					id="generateEmails" value="true"> <strong><%=encprops.getProperty("generateEmailList")%></strong></p>
-				
-
 				</p>
 				<p><em> <input name="submitSearch" type="submit"
 					id="submitSearch" value="<%=encprops.getProperty("goSearch")%>"></em>

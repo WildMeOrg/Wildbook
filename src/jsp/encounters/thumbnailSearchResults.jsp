@@ -160,9 +160,9 @@ hs.addSlideshow({
 
 <ul id="tabmenu">
 
-	<li><a href="searchResults.jsp?<%=request.getQueryString() %>">Table</a></li>
-	<li><a class="active">Matching Images/Videos</a></li>
-	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>">Mapped Results</a></li>
+	<li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%></a></li>
+	<li><a class="active"><%=encprops.getProperty("matchingImages")%></a></li>
+	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults")%></a></li>
 	
 </ul>
 

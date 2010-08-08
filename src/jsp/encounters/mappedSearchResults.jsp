@@ -154,9 +154,9 @@ int numResults=0;
 
 <ul id="tabmenu">
 
-	<li><a href="searchResults.jsp?<%=request.getQueryString() %>">Table</a></li>
-	<li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>">Matching Images/Videos</a></li>
-	<li><a class="active">Mapped Results</a></li>
+	<li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%></a></li>
+	<li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%></a></li>
+	<li><a class="active"><%=encprops.getProperty("mappedResults")%></a></li>
 	
 </ul>
 <table width="810px" border="0" cellspacing="0" cellpadding="0">
