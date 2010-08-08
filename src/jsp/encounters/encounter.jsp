@@ -1947,18 +1947,15 @@ if(enc.getDynamicProperties()!=null){
 				boolean isVideo=false;
 				if(addTextFile.toLowerCase().indexOf(".bmp")!=-1) {isBMP=true;}
 				if((addTextFile.toLowerCase().indexOf(".mov")!=-1)||(addTextFile.toLowerCase().indexOf(".wmv")!=-1)||(addTextFile.toLowerCase().indexOf(".mpg")!=-1)||(addTextFile.toLowerCase().indexOf(".avi")!=-1)||(addTextFile.toLowerCase().indexOf(".mp4")!=-1)) {isVideo=true;}
-				if((!isBMP)&&(!isVideo)) {
+				if(isOwner&&(!isBMP)&&(!isVideo)) {
 			%> <a href="<%=num%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)" title="Click to enlarge">
 								<%
 					}
-						else {
+						else if(isOwner) {
 				%> <a href="<%=addText%>" class="highslide" onclick="return hs.expand(this)" title="Click to enlarge"> <%
 					}
 					
 					String thumbLocation="file-"+num+"/"+imageCount+".jpg";
-					//try{}
-					//catch(Exception e){}
-					//File processedImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+num+"/"+imageCount+".jpg");
 					File processedImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/"+imageCount+".jpg")));
 
 					
@@ -1975,8 +1972,8 @@ if(enc.getDynamicProperties()!=null){
 							}
 							else if ((!processedImage.exists())&&(!haveRendered)) {
 								haveRendered=true;
-								System.out.println("Using DynamicImage to render thumbnail: "+num);
-								System.gc();
+								//System.out.println("Using DynamicImage to render thumbnail: "+num);
+								//System.gc();
 						%> <di:img width="250" height="200"
 									imgParams="rendering=speed,quality=low" border="0"
 									output="<%=thumbLocation%>" expAfter="0" threading="limited"
@@ -1992,7 +1989,7 @@ if(enc.getDynamicProperties()!=null){
 									alt="photo <%=enc.getLocation()%>"
 									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
 									valign="left"> <%
-				if (session.getAttribute("logged")!=null) {
+				if (isOwner) {
 			%>
 								</a>
 								<%
