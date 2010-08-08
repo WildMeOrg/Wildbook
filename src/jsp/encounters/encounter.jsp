@@ -155,6 +155,44 @@ table.adopter td.image {
 }
 -->
 </style>
+
+
+<!--
+	1 ) Reference to the files containing the JavaScript and CSS.
+	These files must be located on your server.
+-->
+
+<script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
+<link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css" />
+
+<!--
+	2) Optionally override the settings defined at the top
+	of the highslide.js file. The parameter hs.graphicsDir is important!
+-->
+
+<script type="text/javascript">
+hs.graphicsDir = '../highslide/highslide/graphics/';
+hs.align = 'center';
+hs.transitions = ['expand', 'crossfade'];
+hs.outlineType = 'rounded-white';
+hs.fadeInOut = true;
+//hs.dimmingOpacity = 0.75;
+
+// Add the controlbar
+hs.addSlideshow({
+	//slideshowGroup: 'group1',
+	interval: 5000,
+	repeat: false,
+	useControls: true,
+	fixedControls: 'fit',
+	overlayOptions: {
+		opacity: 0.75,
+		position: 'bottom center',
+		hideOnMouseOut: true
+	}
+});
+
+</script>	
 </head>
 
 <body <%if(request.getParameter("noscript")==null){%>
@@ -1910,11 +1948,11 @@ if(enc.getDynamicProperties()!=null){
 				if(addTextFile.toLowerCase().indexOf(".bmp")!=-1) {isBMP=true;}
 				if((addTextFile.toLowerCase().indexOf(".mov")!=-1)||(addTextFile.toLowerCase().indexOf(".wmv")!=-1)||(addTextFile.toLowerCase().indexOf(".mpg")!=-1)||(addTextFile.toLowerCase().indexOf(".avi")!=-1)||(addTextFile.toLowerCase().indexOf(".mp4")!=-1)) {isVideo=true;}
 				if((!isBMP)&&(!isVideo)) {
-			%> <a href="imageViewer.jsp?number=<%=num%>&src=<%=addTextFile%>">
+			%> <a href="<%=num%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)" title="Click to enlarge">
 								<%
 					}
 						else {
-				%> <a href="<%=addText%>"> <%
+				%> <a href="<%=addText%>" class="highslide" onclick="return hs.expand(this)" title="Click to enlarge"> <%
 					}
 					
 					String thumbLocation="file-"+num+"/"+imageCount+".jpg";
@@ -1929,6 +1967,8 @@ if(enc.getDynamicProperties()!=null){
 									src="../images/video.jpg" border="0" align="left" valign="left">
 		
 								</a>
+								
+								
 								<%
 					
 			
