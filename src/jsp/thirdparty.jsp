@@ -101,7 +101,8 @@
 		<li>Crystal Clear icons are used under the GNU Lesser General Public License. <a href="http://commons.wikimedia.org/wiki/Crystal_Clear">http://commons.wikimedia.org/wiki/Crystal_Clear</a></li>
 		<li>A Derby database is embedded for default usage and is available under the Apache 2 License. <a href="http://db.apache.org/derby/">http://db.apache.org/derby/</a></li>
 		<li>Project Rome is used for writing out Atom feeds. <a href="https://rome.dev.java.net/">https://rome.dev.java.net/</a></li>
-		<li>A Java version of the <a href="http://www.reijns.com/i3s/">I3S algorithm</a> is used under the GPL v2 license as one of two spot pattern recognition algorithms.</li>
+		<li>A Java version of the <a href="http://www.reijns.com/i3s/">I3S 1.0 algorithm</a> is used under the GPL v2 license as one of two spot pattern recognition algorithms.</li>
+		<li>Metadata Extractor 2.3.1 for EXIF image data extraction. <a href="http://www.drewnoakes.com/code/exif/">http://www.drewnoakes.com/code/exif/</a></li>
 		</ul>
 
 	  </div>

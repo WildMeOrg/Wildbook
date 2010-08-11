@@ -60,5 +60,6 @@
 	<classpathentry kind="lib" path="temp_jars/jdo-api-3.0.jar"/>
 	<classpathentry kind="lib" path="temp_jars/datanucleus-rest-2.0.0-release.jar"/>
 	<classpathentry kind="lib" path="temp_jars/flexjson.jar"/>
+	<classpathentry kind="lib" path="temp_jars/metadata-extractor-2.3.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

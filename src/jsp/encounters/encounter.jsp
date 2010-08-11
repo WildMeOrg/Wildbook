@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="org.ecocean.servlet.*,java.util.ArrayList,java.util.GregorianCalendar,java.util.StringTokenizer,org.ecocean.*,java.text.DecimalFormat, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.FileInputStream, java.io.File, java.util.Iterator,java.util.Properties"%>
+	import="com.drew.imaging.jpeg.*, com.drew.metadata.*, org.ecocean.servlet.*,java.util.ArrayList,java.util.GregorianCalendar,java.util.StringTokenizer,org.ecocean.*,java.text.DecimalFormat, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.FileInputStream, java.io.File, java.util.Iterator,java.util.Properties"%>
 <%@ taglib uri="di" prefix="di"%>
 
 <%!
@@ -193,8 +193,7 @@ hs.addSlideshow({
 });
 
 </script>	
-<script type="text/javascript" src="binaryajax.js"></script>
-<script type="text/javascript" src="exif.js"></script>
+
 
 
 </head>
@@ -2020,12 +2019,34 @@ if(enc.getDynamicProperties()!=null){
 									valign="left"> <%
 					if (session.getAttribute("logged")!=null) {
 				%></a>
-												<div class="highslide-caption">
-
+					<div class="highslide-caption">
+					<h3>Image Metadata</h3>
+						<ul>
+					<%
+					if((addTextFile.toLowerCase().endsWith("jpg"))||(addTextFile.toLowerCase().endsWith("jpg"))){
+						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/"+addTextFile)));
+						Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+						// iterate through metadata directories 
+						Iterator directories = metadata.getDirectoryIterator();
+						while (directories.hasNext()) { 
+							Directory directory = (Directory)directories.next(); 
+							// iterate through tags and print to System.out  
+							Iterator tags = directory.getTagIterator(); 
+							while (tags.hasNext()) { 
+								Tag tag = (Tag)tags.next(); 
+								
+								%>
+								<li><%=tag.toString() %></li>
+								<% 
+							} 
+						} 
+					
+					}					
+					%>
    									
-   								
+   								</ul>
    
-   								</div>
+   					</div>
    								
 								<%
 					}
