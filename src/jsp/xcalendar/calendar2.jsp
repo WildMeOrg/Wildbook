@@ -175,7 +175,7 @@ calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.pro
 	
 			scheduler.init('scheduler_here', date,"month");
 			scheduler.setLoadMode("month");
-			scheduler.load("../CalendarXMLServer?locCode=<%=locCode%>");
+			scheduler.load("../CalendarXMLServer?<%=request.getQueryString() %>");
 		
 	}
 </script>
@@ -200,7 +200,7 @@ calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.pro
 
 	<li><a href="../encounters/searchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("table")%></a></li>
 	<li><a href="../encounters/thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("matchingImages")%></a></li>
-	<li><a href="../encounters/mappedSearchResults.jsp?<%=request.getQueryString() %<%=request.getQueryString() %" ><%=calprops.getProperty("mappedResults")%></a></li>
+	<li><a href="../encounters/mappedSearchResults.jsp?<%=request.getQueryString() %>"> <%=calprops.getProperty("mappedResults")%></a></li>
 	<li><a class="active"><%=calprops.getProperty("resultsCalendar")%></a></li>
 	
 </ul>

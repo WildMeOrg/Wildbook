@@ -374,7 +374,7 @@ if(generateEmails){
 	<li><a class="active"><%=encprops.getProperty("table")%></a></li>
 	<li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%></a></li>
 	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults")%></a></li>
-	<li><a href="../xcalendar/calendar.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
+	<li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
 	
 </ul>
 
