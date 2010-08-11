@@ -9,13 +9,14 @@ import java.util.regex.Pattern;
 
 public class EncounterQueryProcessor {
   
-  public static Vector<Encounter> processQuery(Shepherd myShepherd, HttpServletRequest request){
+  public static Vector<Encounter> processQuery(Shepherd myShepherd, HttpServletRequest request, String order){
     
     Vector<Encounter> rEncounters=new Vector<Encounter>();  
     Iterator<Encounter> allEncounters;
     
     Extent<Encounter> encClass=myShepherd.getPM().getExtent(Encounter.class, true);
     Query query=myShepherd.getPM().newQuery(encClass);
+    if(!order.equals("")){query.setOrdering(order);}
     String filter="";
 
 
