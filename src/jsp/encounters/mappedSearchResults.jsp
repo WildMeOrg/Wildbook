@@ -69,8 +69,8 @@ int numResults=0;
 	Vector rEncounters=new Vector();			
 
 	myShepherd.beginDBTransaction();
-	
-	rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request);
+	String order="";
+	rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     
 
 %>
@@ -157,6 +157,7 @@ int numResults=0;
 	<li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%></a></li>
 	<li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%></a></li>
 	<li><a class="active"><%=encprops.getProperty("mappedResults")%></a></li>
+	<li><a href="../xcalendar/calendar.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
 	
 </ul>
 <table width="810px" border="0" cellspacing="0" cellpadding="0">

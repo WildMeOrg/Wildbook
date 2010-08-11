@@ -39,7 +39,7 @@ Shepherd myShepherd=new Shepherd();
 
   			myShepherd.beginDBTransaction();
   			
-  			rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request);
+  			rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "");
 			
   			String[] keywords=request.getParameterValues("keyword");
 
@@ -163,6 +163,7 @@ hs.addSlideshow({
 	<li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%></a></li>
 	<li><a class="active"><%=encprops.getProperty("matchingImages")%></a></li>
 	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults")%></a></li>
+	<li><a href="../xcalendar/calendar.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
 	
 </ul>
 
