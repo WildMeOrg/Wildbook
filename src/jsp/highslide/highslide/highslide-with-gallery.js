@@ -1260,12 +1260,24 @@ imageCreate : function() {
 	var exp = this;
 	
 	var img = document.createElement('img');
-    this.content = img;
-    img.onload = function () {
-    	if (hs.expanders[exp.key]) exp.contentLoaded(); 
+	img.setAttribute("exif", "true");
+	//img.id = "highslider";
+    	this.content = img;
+    	img.onload = function () {
+    		if (hs.expanders[exp.key]) exp.contentLoaded();
+    		//var divTag = img.getParent();
+		//var d = document.createElement("p");
+		//d.textContent = EXIF.pretty(img);
+    		//divTag.appendChild(d);
+    		//alert("I was taken by a " + EXIF.getTag(img, "Make") + " " + EXIF.getTag(img, "Model"));
+    		//alert("Hello!");
+    		//alert(EXIF.pretty(img));
+    		//alert(img.src);
 	};
     if (hs.blockRightClick) img.oncontextmenu = function() { return false; };
     img.className = 'highslide-image';
+    
+
     hs.setStyles(img, {
     	visibility: 'hidden',
     	display: 'block',
@@ -1277,7 +1289,6 @@ imageCreate : function() {
 	if (hs.safari && hs.uaVersion < 525) hs.container.appendChild(img);
     if (hs.ie && hs.flushImgSize) img.src = null;
 	img.src = this.src;
-	
 	this.showLoading();
 },
 

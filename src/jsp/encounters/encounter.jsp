@@ -193,6 +193,10 @@ hs.addSlideshow({
 });
 
 </script>	
+<script type="text/javascript" src="binaryajax.js"></script>
+<script type="text/javascript" src="exif.js"></script>
+
+
 </head>
 
 <body <%if(request.getParameter("noscript")==null){%>
@@ -232,11 +236,14 @@ if (session.getAttribute("logged")!=null) {
 		loggedIn=(String)OBJloggedIn;
 }
 //end user identity and authorization check
-
+%>
+<table width="720" border="0" cellpadding="3" cellspacing="5">
+<tr><td>
+<%
 if (enc.wasRejected()) {%>
 <table width="810">
 	<tr>
-		<td bgcolor="#0033CC">
+		<td bgcolor="#0033CC" colspan="3">
 		<p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unidentifiable_title") %>: <%=num%><%=livingStatus %> </font>
 		</td>
 	</tr>
@@ -337,8 +344,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 <%
 	}
 %>
-
-<table width="720" border="0" cellpadding="3" cellspacing="5">
+</td></tr>
 	<tr>
 	<%
 	if(CommonConfiguration.isCatalogEditable()){
@@ -1087,7 +1093,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 						<input name="number" type="hidden" value="<%=num%>" id="number"> 
 						<input name="action" type="hidden" value="setEncounterElevation"> 
 						<input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>">
-					</form>
+				  </form>
 				</td>
 			</tr>
 		</table>
@@ -1455,11 +1461,11 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		}
 		%>
 
-
-		<td align="left" valign="top">
-		<table border="0" cellspacing="0" cellpadding="5">
+<td align="left" valign="top">
+<table border="0" cellspacing="0" cellpadding="5">
+		
 			<tr>
-				<td align="left" valign="top">
+				<td width="300" align="left" valign="top">
 				<p class="para"><strong><%=encprops.getProperty("date") %></strong><br /> 
 				<a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
 					<%=enc.getDate()%>
@@ -1789,8 +1795,12 @@ if(enc.getDynamicProperties()!=null){
 		<!-- End Display spot patterning so long as show_spotpatterning is not false in commonConfiguration.properties-->
 		
 		
-				</td>
-				<td align="left" valign="top">
+			  </td>
+				
+				
+				
+	
+				<td width="250" align="left" valign="top">
 				<p class="para"><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px" height="*"><strong>&nbsp;<%=encprops.getProperty("images")%></strong><br /> <%
 	  				if (session.getAttribute("logged")!=null) {
 	  			%> <em><%=encprops.getProperty("click2view")%></em>
@@ -1915,7 +1925,7 @@ if(enc.getDynamicProperties()!=null){
 											<input name="action" type="hidden" value="addPhoto"> 
 											<input name="photoName" type="hidden" value="<%=addTextFile%>">
 											<input name="AddKW" type="submit" id="AddKW" value="<%=encprops.getProperty("add") %>">
-											</form>
+										  </form>
 											<%
 										}
 										else {
@@ -2005,14 +2015,21 @@ if(enc.getDynamicProperties()!=null){
 					}
 				%> <%
 				}else {
-			%> <img width="250" height="200" alt="photo <%=enc.getLocation()%>"
+			%> <img id="img<%=imageCount%> " width="250" height="200" alt="photo <%=enc.getLocation()%>"
 									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
 									valign="left"> <%
 					if (session.getAttribute("logged")!=null) {
 				%></a>
+												<div class="highslide-caption">
+
+   									
+   								
+   
+   								</div>
+   								
 								<%
 					}
-				%> <%
+				
 								}
 							%>
 								</td>
@@ -2024,7 +2041,7 @@ if(enc.getDynamicProperties()!=null){
 						}
 							else {
 					%>
-						<tr>
+				  <tr>
 							<td>
 							<p><img src="../alert.gif"> <strong><%=encprops.getProperty("badfile") %>:</strong> <%=addTextFile%> <%
 					if (isOwner&&CommonConfiguration.isCatalogEditable()) {
@@ -2033,7 +2050,7 @@ if(enc.getDynamicProperties()!=null){
 					}
 				%>
 							</td>
-						</tr>
+				  </tr>
 						<%
 					} //close else of if
 						} //close try
@@ -2227,14 +2244,9 @@ if(enc.getDynamicProperties()!=null){
 				</div>
 		<%
 		}
-		%>
-	
-				
-				
-				</td>
+		%>			  </td>
 			</tr>
-
-		</table>
+	  </table>
 		<p>
 		<%
 	  	  	  	if (request.getParameter("noscript")==null) {
@@ -2332,7 +2344,7 @@ if(enc.getDynamicProperties()!=null){
 		%>
 		
 		</p>
-		</td>
+	  </td>
 	</tr>
 
 </table>
