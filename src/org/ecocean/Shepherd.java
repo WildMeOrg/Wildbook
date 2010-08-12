@@ -1619,5 +1619,14 @@ public class Shepherd {
      return ((Integer)q.execute()).intValue();
    }
 	
-} //end shepherd
+   public ArrayList<String> getAllLocationIDs(){
+     Query q = pm.newQuery (Encounter.class);
+     q.setResult ("distinct locationID");
+     q.setOrdering("locationID ascending");
+     Collection results = (Collection)q.execute (); 
+     return (new ArrayList(results));
+   }
+   
+   
+} //end Shepherd class
 
