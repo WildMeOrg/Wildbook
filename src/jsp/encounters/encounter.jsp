@@ -2020,7 +2020,7 @@ if(enc.getDynamicProperties()!=null){
 					if (session.getAttribute("logged")!=null) {
 				%></a>
 					<div class="highslide-caption">
-					<h3>Image Metadata</h3>
+					<h3><%=encprops.getProperty("imageMetadata") %></h3>
 						<ul>
 					<%
 					if((addTextFile.toLowerCase().endsWith("jpg"))||(addTextFile.toLowerCase().endsWith("jpg"))){
