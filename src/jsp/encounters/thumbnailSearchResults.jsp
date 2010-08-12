@@ -292,6 +292,11 @@ if((startNum)>1) {%>
 										</tr>
 										</table>
 										</td>
+										
+										<%
+										if(CommonConfiguration.showEXIFData()){
+										%>
+										
 												<td align="left" valign="top">
 												<span class="caption">
 						<ul>
@@ -322,6 +327,9 @@ if((startNum)>1) {%>
 												
 												
 												</td>
+									<%
+										}
+									%>
 											</tr>
 										</table>
 </div>

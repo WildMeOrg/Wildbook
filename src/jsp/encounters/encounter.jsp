@@ -2059,6 +2059,10 @@ if(enc.getDynamicProperties()!=null){
    						</td>
 					
 					
+					
+										<%
+										if(CommonConfiguration.showEXIFData()){
+										%>
 					<td align="left" valign="top">
 					
 					
@@ -2089,6 +2093,9 @@ if(enc.getDynamicProperties()!=null){
    								</ul>
    								</span>
    								</td>
+   					<%
+					}
+   					%>
    							
    								
    								</tr></table>

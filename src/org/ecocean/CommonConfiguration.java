@@ -112,5 +112,17 @@ public class CommonConfiguration {
      }
      return isCatalogEditable;
    }
+   
+   /**
+    * This configuration option defines whether users can edit this catalog. Some studies may wish to use the framework only for data display.
+    * @return true if edits are allows. False otherwise.
+    */
+   public static boolean showEXIFData(){
+     boolean showEXIF = true;
+     if((props.getProperty("showEXIF")!=null)&&(props.getProperty("showEXIF").equals("false"))){
+       showEXIF=false;
+     }
+     return showEXIF;
+   }
 	
 }
