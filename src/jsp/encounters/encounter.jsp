@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="com.drew.imaging.jpeg.*, com.drew.metadata.*, org.ecocean.servlet.*,java.util.ArrayList,java.util.GregorianCalendar,java.util.StringTokenizer,org.ecocean.*,java.text.DecimalFormat, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.FileInputStream, java.io.File, java.util.Iterator,java.util.Properties"%>
+	import="com.drew.imaging.jpeg.*, com.drew.metadata.*, org.ecocean.servlet.*,java.util.ArrayList,java.util.GregorianCalendar,java.util.StringTokenizer,org.ecocean.*,java.text.DecimalFormat, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.FileInputStream, java.io.File, java.util.Iterator,java.util.Properties, java.util.Iterator"%>
 <%@ taglib uri="di" prefix="di"%>
 
 <%!
@@ -1844,7 +1844,7 @@ if(enc.getDynamicProperties()!=null){
 			%>
 
 							<tr>
-								<td class="para"><img align="absmiddle" src="../images/cancel.gif"> <strong><%=encprops.getProperty("remove_keyword") %>:</strong> <%
+								<td class="para"><img align="absmiddle" src="../images/cancel.gif"> <strong><%=encprops.getProperty("remove_keyword") %>:</strong><br /> <%
 					Iterator indexes=myShepherd.getAllKeywords();
 						if(totalKeywords>0){
 							boolean haveAddedKeyword=false;
@@ -2021,9 +2021,51 @@ if(enc.getDynamicProperties()!=null){
 				%></a>
 					<div class="highslide-caption">
 					<h3><%=encprops.getProperty("imageMetadata") %></h3>
+					<table ><tr>
+						<td align="left" valign="top">
+   								
+   						<table>
+   						<tr><td align="left" valign="top"><span class="caption"><%=encprops.getProperty("location") %>: <%=enc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=enc.getLocationID() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=enc.getDate() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=enc.getIndividualID() %>"><%=enc.getIndividualID() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a></span></td></tr>
+										<tr>
+										<td><span class="caption">
+											<%=encprops.getProperty("matchingKeywords") %>
+											<%
+									        Iterator it = myShepherd.getAllKeywords();  
+											while(it.hasNext()) {
+												Keyword word=(Keyword)it.next();
+									              
+									              
+									                if(word.isMemberOf(num+"/"+addTextFile)) {
+									                	%>
+														<br /><%= word.getReadableName()%>
+														
+														<%
+														
+									                  
+									                }
+									          
+									            }
+											%>
+										</span></td>
+										</tr>
+   						
+   						</table>
+   						
+   								
+   						</td>
+					
+					
+					<td align="left" valign="top">
+					
+					
+					<span class="caption">
 						<ul>
 					<%
-					if((addTextFile.toLowerCase().endsWith("jpg"))||(addTextFile.toLowerCase().endsWith("jpg"))){
+					if((addTextFile.toLowerCase().endsWith("jpg"))||(addTextFile.toLowerCase().endsWith("jpeg"))){
 						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/"+addTextFile)));
 						Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
 						// iterate through metadata directories 
@@ -2045,6 +2087,11 @@ if(enc.getDynamicProperties()!=null){
 					%>
    									
    								</ul>
+   								</span>
+   								</td>
+   							
+   								
+   								</tr></table>
    
    					</div>
    								

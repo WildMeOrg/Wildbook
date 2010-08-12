@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.StringTokenizer,org.ecocean.*, java.lang.Integer, java.lang.NumberFormatException, java.util.Vector, java.util.Iterator, java.util.GregorianCalendar, java.util.Properties, javax.jdo.*"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="java.io.File,com.drew.imaging.jpeg.*, com.drew.metadata.*,java.util.StringTokenizer,org.ecocean.*, java.lang.Integer, java.lang.NumberFormatException, java.util.Vector, java.util.Iterator, java.util.GregorianCalendar, java.util.Properties, javax.jdo.*"%>
 
 <html>
 <head>
@@ -42,6 +42,7 @@ Shepherd myShepherd=new Shepherd();
   			rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "");
 			
   			String[] keywords=request.getParameterValues("keyword");
+  			if(keywords==null){keywords=new String[0];}
 
   			int numThumbnails = myShepherd.getNumThumbnails(rEncounters.iterator(), keywords);
 
@@ -239,7 +240,16 @@ if((startNum)>1) {%>
 										<tr>
 											<td>
 												<a href="<%=link%>" class="highslide" onclick="return hs.expand(this)"><img src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge" /></a>
-												<div class="highslide-caption">
+										
+										<div class="highslide-caption">
+										
+										<h3><%=(countMe+startNum) %>/<%=numThumbnails %></h3>
+										<h4><%=encprops.getProperty("imageMetadata") %></h4>
+										
+										<table>
+											<tr>
+												<td align="left" valign="top">
+										
 												<table>
 										<%
 											
@@ -274,11 +284,44 @@ if((startNum)>1) {%>
 										</span></td>
 										</tr>
 										</table>
+										</td>
+												<td align="left" valign="top">
+												<span class="caption">
+						<ul>
+					<%
+					if((fileName.toLowerCase().endsWith("jpg"))||(fileName.toLowerCase().endsWith("jpeg"))){
+						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+thisEnc.getCatalogNumber()+"/"+fileName)));
+						Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+						// iterate through metadata directories 
+						Iterator directories = metadata.getDirectoryIterator();
+						while (directories.hasNext()) { 
+							Directory directory = (Directory)directories.next(); 
+							// iterate through tags and print to System.out  
+							Iterator tags = directory.getTagIterator(); 
+							while (tags.hasNext()) { 
+								Tag tag = (Tag)tags.next(); 
+								
+								%>
+								<li><%=tag.toString() %></li>
+								<% 
+							} 
+						} 
+					
+					}					
+					%>
+   									
+   								</ul>
+   								</span>
+												
+												
+												</td>
+											</tr>
+										</table>
 </div>
 												</div>
 											</td>
 										</tr>
-										<tr><td><span class="caption"><em><%=(countMe+startNum) %>/<%=numThumbnails %></em></span></td></tr>
+							
 										
 										<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>

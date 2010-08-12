@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="javax.jdo.*,org.ecocean.*,java.util.GregorianCalendar, java.util.Properties, java.util.Iterator"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.ArrayList,javax.jdo.*,org.ecocean.*,java.util.GregorianCalendar, java.util.Properties, java.util.Iterator"%>
 
 <html>
 <head>
@@ -187,12 +187,40 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 			</tr>
 			<tr>
 				<td>
-				<p><strong><%=encprops.getProperty("locationID")%>:</strong><em> <input
-					name="locationCodeField" type="text" id="locationCodeField"
-					size="7"> <span class="para"><a
-					href="<%=CommonConfiguration.getWikiLocation()%>location_codes"
+				<p><strong><%=encprops.getProperty("locationID")%>:</strong> <span class="para"><a href="<%=CommonConfiguration.getWikiLocation()%>locationID"
 					target="_blank"><img src="../images/information_icon_svg.gif"
-					alt="Help" border="0" align="absmiddle" /></a></span> <br> <%=encprops.getProperty("locationIDExample")%></em></p>
+					alt="Help" border="0" align="absmiddle" /></a></span> <br> 
+					(<em><%=encprops.getProperty("locationIDExample")%></em>)</p>
+
+				<%
+				ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
+				int totalLocIDs=locIDs.size();
+
+				
+				if(totalLocIDs>0){
+				%>
+				
+				<select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
+					<option value="None"></option>
+				<% 
+			  	for(int n=0;n<totalLocIDs;n++) {
+					String word=locIDs.get(n);
+					if(!word.equals("")){
+				%>
+					<option value="<%=word%>"><%=word%></option>
+				<%}
+					}
+				%>
+				</select>
+				<%
+				}
+				else{
+					%>
+					<p><em><%=encprops.getProperty("noLocationIDs")%></em></p>
+					<%
+				}
+				%>
+				
 				</td>
 			</tr>
 			
@@ -215,8 +243,8 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 				</em></p>
 				</td>
 			</tr>
-<%
 
+<%
 int totalKeywords=myShepherd.getNumKeywords();
 %>
 			<tr>
