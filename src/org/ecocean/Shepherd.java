@@ -1627,6 +1627,14 @@ public class Shepherd {
      return (new ArrayList(results));
    }
    
+   public ArrayList<String> getAllVerbatimEventDates(){
+     Query q = pm.newQuery (Encounter.class);
+     q.setResult ("distinct verbatimEventDate");
+     q.setOrdering("verbatimEventDate ascending");
+     Collection results = (Collection)q.execute (); 
+     return (new ArrayList(results));
+   }
+   
    
 } //end Shepherd class
 

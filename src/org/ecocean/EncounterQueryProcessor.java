@@ -49,14 +49,6 @@ public class EncounterQueryProcessor {
     }
     //----------------------------
     
-    //filter for location ID------------------------------------------
-    /*if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").equals(""))) {
-      String locString=request.getParameter("locationCodeField").toLowerCase().replaceAll("%20", " ").trim();
-      //System.out.println("locString: "+locString);
-      if(filter.equals("")){filter="this.locationID.startsWith('"+locString+"')";}
-      else{filter+=" && this.locationID.startsWith('"+locString+"')";}
-
-    }*/
     
     
     //------------------------------------------------------------------
@@ -80,12 +72,42 @@ public class EncounterQueryProcessor {
               }
             }
             locIDFilter+=" )";
-            System.out.println("locIDFilter: "+locIDFilter);
+            //System.out.println("locIDFilter: "+locIDFilter);
             if(filter.equals("")){filter=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
-            System.out.println("filter: "+filter);
+            //System.out.println("filter: "+filter);
     }
     //end locationID filters-----------------------------------------------  
+    
+    
+    //------------------------------------------------------------------
+    //locationID filters-------------------------------------------------
+    String[] verbatimEventDates=request.getParameterValues("verbatimEventDateField");
+    if((verbatimEventDates!=null)&&(!verbatimEventDates[0].equals("None"))){
+          int kwLength=verbatimEventDates.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              
+              String kwParam=verbatimEventDates[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" this.verbatimEventDate == \""+kwParam+"\"";
+                }
+                else{
+                  locIDFilter+=" || this.verbatimEventDate == \""+kwParam+"\"";
+                }
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals("")){filter=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+           
+    }
+    //end locationID filters-----------------------------------------------  
+    
+    
+    
+    
 
     //filter for alternate ID------------------------------------------
     if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {

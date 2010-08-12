@@ -282,10 +282,7 @@ int totalKeywords=myShepherd.getNumKeywords();
 				%>
 				</td>
 			</tr>
-			<%
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-%>
+
 
 
 
@@ -445,6 +442,53 @@ myShepherd.closeDBTransaction();
 				</table>
 				</td>
 			</tr>
+			
+			<tr>
+				<td>
+				<p><strong><%=encprops.getProperty("verbatimEventDate")%>:</strong> <span class="para"><a href="<%=CommonConfiguration.getWikiLocation()%>verbatimEventDate"
+					target="_blank"><img src="../images/information_icon_svg.gif"
+					alt="Help" border="0" align="absmiddle" /></a></span></p>
+
+				<%
+				ArrayList<String> vbds = myShepherd.getAllVerbatimEventDates();
+				int totalVBDs=vbds.size();
+
+				
+				if(totalVBDs>0){
+				%>
+				
+				<select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField" id="verbatimEventDateField">
+					<option value="None"></option>
+					<%
+					for(int f=0;f<totalVBDs;f++) {
+						String word=vbds.get(f);
+						if(word!=null){
+							%>
+							<option value="<%=word%>"><%=word%></option>
+						<%	
+							
+						}
+
+					}
+					%>
+					</select>
+					<%
+
+				}
+				else{
+					%>
+					<p><em><%=encprops.getProperty("noVBDs")%></em></p>
+					<%
+				}
+				%>
+				
+				</td>
+			</tr>
+			
+						<%
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+%>
 
 			<tr>
 				<td>
