@@ -1844,24 +1844,36 @@ if(enc.getDynamicProperties()!=null){
 			%>
 
 							<tr>
-								<td class="para"><img align="absmiddle" src="../images/cancel.gif"> <strong><%=encprops.getProperty("remove_keyword") %>:</strong><br /> <%
-					Iterator indexes=myShepherd.getAllKeywords();
-						if(totalKeywords>0){
-							boolean haveAddedKeyword=false;
-							for(int m=0;m<totalKeywords;m++) {
-								Keyword word=(Keyword)indexes.next();
-								if(word.isMemberOf(addText)){
-									haveAddedKeyword=true;
-				%> 
-									&nbsp;
-									<%
+								<td class="para">
+								<%
+		 						if (isOwner&&CommonConfiguration.isCatalogEditable()) {
+		 						%>
+								<img align="absmiddle" src="../images/cancel.gif"> <strong><%=encprops.getProperty("remove_keyword") %></strong>
+								<%
+		 						}
+		 						else {
+								%>
+								<strong><%=encprops.getProperty("matchingKeywords") %></strong>
+								<%
+		 						}
+								%>
+								<br /> 
+								<%
+								Iterator indexes=myShepherd.getAllKeywords();
+								if(totalKeywords>0){
+								boolean haveAddedKeyword=false;
+								for(int m=0;m<totalKeywords;m++) {
+									Keyword word=(Keyword)indexes.next();
+									if(word.isMemberOf(addText)){
+										haveAddedKeyword=true;
+							
 									if(CommonConfiguration.isCatalogEditable()){
 									%>
 									<a href="../KeywordHandler?number=<%=num%>&action=removePhoto&photoName=<%=addTextFile%>&keyword=<%=word.getIndexname()%>">
 									<%
 									}
 									%>
-									<%=word.getReadableName()%>
+									"<%=word.getReadableName()%>"
 									<%
 									if(CommonConfiguration.isCatalogEditable()){
 									%>
@@ -1869,13 +1881,13 @@ if(enc.getDynamicProperties()!=null){
 									<%
 									}
 									%>
-									&nbsp;|
+									&nbsp;
 								<%
 								} //end if
 							} //end for
 							if(!haveAddedKeyword){%>
 								
-								&nbsp;<%=encprops.getProperty("none_assigned")%>
+								<%=encprops.getProperty("none_assigned")%>
 								
 							<% }
 						} //end if
