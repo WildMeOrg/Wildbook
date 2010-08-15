@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="java.util.GregorianCalendar,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.StringTokenizer, org.ecocean.*"%>
+	import="java.util.Calendar,java.util.GregorianCalendar,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.StringTokenizer, org.ecocean.*"%>
 
 
 <%
@@ -18,6 +18,14 @@ String locCode="NONE";
 if((request.getParameter("locCode")!=null)&&(!request.getParameter("locCode").equals(""))) {
 				locCode=request.getParameter("locCode");
 }
+
+//let's load encounterSearch.properties
+String langCode="en";
+if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
+Properties calprops=new Properties();
+calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.properties"));
+	
+
 
 %>
 
@@ -39,6 +47,54 @@ if((request.getParameter("locCode")!=null)&&(!request.getParameter("locCode").eq
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 
 </head>
+<style type="text/css">
+#tabmenu {
+	color: #000;
+	border-bottom: 2px solid black;
+	margin: 12px 0px 0px 0px;
+	padding: 0px;
+	z-index: 1;
+	padding-left: 10px
+}
+
+#tabmenu li {
+	display: inline;
+	overflow: hidden;
+	list-style-type: none;
+}
+
+#tabmenu a,a.active {
+	color: #DEDECF;
+	background: #000;
+	font: bold 1em "Trebuchet MS", Arial, sans-serif;
+	border: 2px solid black;
+	padding: 2px 5px 0px 5px;
+	margin: 0;
+	text-decoration: none;
+	border-bottom: 0px solid #FFFFFF;
+}
+
+#tabmenu a.active {
+	background: #FFFFFF;
+	color: #000000;
+	border-bottom: 2px solid #FFFFFF;
+}
+
+#tabmenu a:hover {
+	color: #ffffff;
+	background: #7484ad;
+}
+
+#tabmenu a:visited {
+	color: #E8E9BE;
+}
+
+#tabmenu a.active:hover {
+	background: #7484ad;
+	color: #DEDECF;
+	border-bottom: 2px solid #000000;
+}
+</style>
 
 <script src="codebase/dhtmlxscheduler.js?v=091201"
 	type="text/javascript" charset="utf-8"></script>
@@ -79,9 +135,36 @@ if((request.getParameter("locCode")!=null)&&(!request.getParameter("locCode").eq
 		
 		scheduler.config.show_loading=true;
 		<%
+		
+		
+		String dateString="";
 		if(request.getParameter("scDate")!=null){
-			String dateString=request.getParameter("scDate");
+			dateString=request.getParameter("scDate");
+		}
+		else{
 			
+			Calendar cal=Calendar.getInstance();
+			int nowYear = cal.get(Calendar.YEAR);
+			int nowMonth = cal.get(Calendar.MONTH)+1;
+			Shepherd myShepherd = new Shepherd();
+			myShepherd.beginDBTransaction();
+			try{
+				
+				nowYear = myShepherd.getLastSightingYear();
+				nowMonth = myShepherd.getLastMonthOfSightingYear(nowYear)+1;
+				
+			}
+			catch(Exception e){
+				e.printStackTrace();
+			}
+			finally{
+				myShepherd.rollbackDBTransaction();
+				myShepherd.closeDBTransaction();
+			}
+
+			dateString=(new Integer(nowMonth)).toString()+"/1/"+(new Integer(nowYear)).toString();
+		}
+
 		%>
 			var date = new Date();
 			var str = "<%=dateString%>";
@@ -91,16 +174,8 @@ if((request.getParameter("locCode")!=null)&&(!request.getParameter("locCode").eq
 			date.setDate(parseInt(dateArray[1])); 
 	
 			scheduler.init('scheduler_here', date,"month");
-		<%	
-		}
-		else{
-		%>
-			scheduler.init('scheduler_here',null,"month");
-		<%
-		}
-		%>
-		scheduler.setLoadMode("month");
-		scheduler.load("http://<%=CommonConfiguration.getURLLocation()%>/CalendarXMLServer2?locCode=<%=locCode%>");
+			scheduler.setLoadMode("month");
+			scheduler.load("../CalendarXMLServer?<%=request.getQueryString() %>");
 		
 	}
 </script>
@@ -121,9 +196,19 @@ if((request.getParameter("locCode")!=null)&&(!request.getParameter("locCode").eq
 
 <div id="main" style='overflow: auto;'>
 
+<ul id="tabmenu">
+
+	<li><a href="../encounters/searchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("table")%></a></li>
+	<li><a href="../encounters/thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("matchingImages")%></a></li>
+	<li><a href="../encounters/mappedSearchResults.jsp?<%=request.getQueryString() %>"> <%=calprops.getProperty("mappedResults")%></a></li>
+	<li><a class="active"><%=calprops.getProperty("resultsCalendar")%></a></li>
+	
+</ul>
+
 <div id="maincol-calendar" style='overflow: auto; z-index: 0;'>
 <div id="maintext" style='overflow: auto; z-index: 0;'>
 
+<h1><%=calprops.getProperty("title") %></h1>
 
 <div align="center" id="scheduler_here" class="dhx_cal_container"
 	style='width: 810px; height: 800px; overflow: auto; margin-left: auto; margin-right: auto; position: relative; z-index: 0;'>

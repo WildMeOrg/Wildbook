@@ -37,6 +37,7 @@ Shepherd myShepherd=new Shepherd();
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
+<div id="maincol-wide-solo">
 <h1 class="intro">Viewing Image <%=src%> of Encounter <%=number%></h1>
 <%
 	myShepherd.beginDBTransaction();
@@ -58,9 +59,9 @@ here to access the original source image</a></p>
 
 		
 		<p>
-		<object style="width: 720px; height: 480px;" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="640" height="360" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,40,0">
+		<object style="width: 810px; height: 540px;" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="640" height="360" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,40,0">
 		<param name="src" value="keenerview.swf?image_url=http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>" />
-		<embed style="width: 640px; height: 360px;" type="application/x-shockwave-flash" width="640" height="360" src="keenerview.swf?image_url=http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>"></embed>
+		<embed style="width: 810px; height: 540px;" type="application/x-shockwave-flash" width="640" height="360" src="keenerview.swf?image_url=http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=number%>/<%=src%>"></embed>
 		</object>
 		</p>
 		
@@ -71,6 +72,7 @@ here to access the original source image</a></p>
 	</tr>
 </table>
 <jsp:include page="../footer.jsp" flush="true" /></div>
+</div>
 </div>
 <!-- end page --></div>
 <!--end wrapper -->

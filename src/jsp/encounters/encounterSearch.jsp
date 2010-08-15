@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="javax.jdo.*,org.ecocean.*,java.util.GregorianCalendar, java.util.Properties, java.util.Iterator"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.ArrayList,javax.jdo.*,org.ecocean.*,java.util.GregorianCalendar, java.util.Properties, java.util.Iterator"%>
 
 <html>
 <head>
@@ -187,12 +187,40 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 			</tr>
 			<tr>
 				<td>
-				<p><strong><%=encprops.getProperty("locationID")%>:</strong><em> <input
-					name="locationCodeField" type="text" id="locationCodeField"
-					size="7"> <span class="para"><a
-					href="<%=CommonConfiguration.getWikiLocation()%>location_codes"
+				<p><strong><%=encprops.getProperty("locationID")%>:</strong> <span class="para"><a href="<%=CommonConfiguration.getWikiLocation()%>locationID"
 					target="_blank"><img src="../images/information_icon_svg.gif"
-					alt="Help" border="0" align="absmiddle" /></a></span> <br> <%=encprops.getProperty("locationIDExample")%></em></p>
+					alt="Help" border="0" align="absmiddle" /></a></span> <br> 
+					(<em><%=encprops.getProperty("locationIDExample")%></em>)</p>
+
+				<%
+				ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
+				int totalLocIDs=locIDs.size();
+
+				
+				if(totalLocIDs>0){
+				%>
+				
+				<select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
+					<option value="None"></option>
+				<% 
+			  	for(int n=0;n<totalLocIDs;n++) {
+					String word=locIDs.get(n);
+					if(!word.equals("")){
+				%>
+					<option value="<%=word%>"><%=word%></option>
+				<%}
+					}
+				%>
+				</select>
+				<%
+				}
+				else{
+					%>
+					<p><em><%=encprops.getProperty("noLocationIDs")%></em></p>
+					<%
+				}
+				%>
+				
 				</td>
 			</tr>
 			
@@ -215,8 +243,8 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 				</em></p>
 				</td>
 			</tr>
-<%
 
+<%
 int totalKeywords=myShepherd.getNumKeywords();
 %>
 			<tr>
@@ -254,10 +282,7 @@ int totalKeywords=myShepherd.getNumKeywords();
 				%>
 				</td>
 			</tr>
-			<%
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-%>
+
 
 
 
@@ -417,6 +442,53 @@ myShepherd.closeDBTransaction();
 				</table>
 				</td>
 			</tr>
+			
+			<tr>
+				<td>
+				<p><strong><%=encprops.getProperty("verbatimEventDate")%>:</strong> <span class="para"><a href="<%=CommonConfiguration.getWikiLocation()%>verbatimEventDate"
+					target="_blank"><img src="../images/information_icon_svg.gif"
+					alt="Help" border="0" align="absmiddle" /></a></span></p>
+
+				<%
+				ArrayList<String> vbds = myShepherd.getAllVerbatimEventDates();
+				int totalVBDs=vbds.size();
+
+				
+				if(totalVBDs>0){
+				%>
+				
+				<select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField" id="verbatimEventDateField">
+					<option value="None"></option>
+					<%
+					for(int f=0;f<totalVBDs;f++) {
+						String word=vbds.get(f);
+						if(word!=null){
+							%>
+							<option value="<%=word%>"><%=word%></option>
+						<%	
+							
+						}
+
+					}
+					%>
+					</select>
+					<%
+
+				}
+				else{
+					%>
+					<p><em><%=encprops.getProperty("noVBDs")%></em></p>
+					<%
+				}
+				%>
+				
+				</td>
+			</tr>
+			
+						<%
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+%>
 
 			<tr>
 				<td>
@@ -427,15 +499,11 @@ myShepherd.closeDBTransaction();
 					id="locales" value="true"> <%=encprops.getProperty("localeExport")%></p>
 				</p>
 				
-				<p><input name="generateKML" type="checkbox" id="generateKML"
-					value="true"> <strong><%=encprops.getProperty("generateKMLFile")%></strong><br> &nbsp;&nbsp;&nbsp;&nbsp;<input
-					name="addTimeStamp" type="checkbox" id="addTimeStamp" value="true">
-				<%=encprops.getProperty("addTimestamp2KML")%></p>
+				<p><input name="addTimeStamp" type="checkbox" id="addTimeStamp" value="true">
+				<strong><%=encprops.getProperty("addTimestamp2KML")%></strong></p>
 				
 				<p><input name="generateEmails" type="checkbox"
 					id="generateEmails" value="true"> <strong><%=encprops.getProperty("generateEmailList")%></strong></p>
-				
-
 				</p>
 				<p><em> <input name="submitSearch" type="submit"
 					id="submitSearch" value="<%=encprops.getProperty("goSearch")%>"></em>

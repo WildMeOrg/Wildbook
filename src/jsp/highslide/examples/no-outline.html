@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "xhtml11.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<title>Highslide JS</title>
+
+<!--
+	1 ) Reference to the files containing the JavaScript and CSS.
+	These files must be located on your server.
+-->
+
+<script type="text/javascript" src="../highslide/highslide.js"></script>
+<link rel="stylesheet" type="text/css" href="../highslide/highslide.css" />
+
+
+<!--
+    2) Optionally override the settings defined at the top
+    of the highslide.js file. The parameter hs.graphicsDir is important!
+-->
+
+<script type="text/javascript">
+    hs.graphicsDir = '../highslide/graphics/';
+    hs.outlineType = null;
+    hs.wrapperClassName = 'colored-border';
+</script>
+
+</head>
+<body>
+
+<div>
+<!--
+    3) This is how you mark up the thumbnail image with an anchor tag around it.
+    The anchor's href attribute defines the URL of the full-size image.
+-->
+<a id="thumb1" href="../images/full-image.jpg" class="highslide" onclick="return hs.expand(this)">
+	<img src="../images/thumbnail.jpg" alt="Highslide JS"
+		title="Click to enlarge" height="120" width="107" /></a>
+
+<!--
+    4 (optional). This is how you mark up the caption. The caption must be directly
+    after the anchor above.
+-->
+
+<div class="highslide-caption">
+    This caption can be styled using CSS.
+</div>
+
+
+</div>
+</body>
+</html>

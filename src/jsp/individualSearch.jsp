@@ -85,7 +85,7 @@ props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/individualSearc
 						<td width="79"><label> <input type="radio" name="sex"
 							value="female"><%=props.getProperty("female")%></label></td>
 						<td width="112"><label> <input type="radio"
-							name="sex" value="unsure"> <%=props.getProperty("unknown")%></label></td>
+							name="sex" value="unknown"> <%=props.getProperty("unknown")%></label></td>
 					</tr>
 				</table>
 				</td>

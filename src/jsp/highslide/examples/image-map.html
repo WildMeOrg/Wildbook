@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "xhtml11.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<title>Highslide JS</title>
+
+<!--
+	1 ) Reference to the files containing the JavaScript and CSS.
+	These files must be located on your server.
+-->
+
+<script type="text/javascript" src="../highslide/highslide-full.js"></script>
+<link rel="stylesheet" type="text/css" href="../highslide/highslide.css" />
+
+<!--
+	2) Optionally override the settings defined at the top
+	of the highslide.js file. The parameter hs.graphicsDir is important!
+-->
+
+<script type="text/javascript">
+	hs.graphicsDir = '../highslide/graphics/';
+	hs.outlineType = 'rounded-white';
+	hs.fadeInOut = true;
+	hs.headingEval = 'this.a.title';
+	//hs.dimmingOpacity = 0.75;
+</script>
+
+</head>
+
+<body>
+
+<div>
+
+<!--
+	3) Add onclick attributes to the area tags like below.
+-->
+
+<img src="../images/nordic.gif" alt="" usemap="#imgmap1" style="border: none" />
+<map id="imgmap1" name="imgmap1">
+	<area shape="rect" alt="Iceland" title="Iceland" coords="1,43,110,135" href="../images/gallery2.jpg" onclick="return hs.expand(this)" />
+	<area shape="circle" alt="Denmark" title="Denmark" coords="239,352,36" href="../images/gallery1.jpg" onclick="return hs.expand(this)" />
+	<area shape="poly" alt="Norway" title="Norway" coords="208,307,171,294,176,206,240,145,244,87,283,19,348,-1,408,1,405,43,391,43,393,34,377,21,366,33,367,55,362,65,354,58,346,64,331,51,324,62,320,79,308,69,307,86,301,84,293,97,296,106,282,129,274,162,277,168,276,175,268,175,258,194,263,226,272,236,264,242,267,254,266,264,260,267,261,287,249,282,247,307,231,310" href="../images/gallery3.jpg" onclick="return hs.expand(this)" />
+	<area shape="poly" alt="Sweden" title="Sweden" coords="352,357,359,294,331,228,368,134,354,74,325,57,319,70,306,70,294,97,295,107,274,163,281,168,280,178,266,175,258,194,264,225,271,235,265,243,269,262,259,269,260,288,255,287,245,309,270,344,276,376,276,390,323,381,341,368" href="../images/gallery1.jpg" onclick="return hs.expand(this)" />
+	<area shape="poly" alt="Finland" title="Finland" coords="440,256,355,289,331,228,369,130,353,70,347,64,356,58,364,62,370,50,364,28,380,20,394,36,392,43,437,91,450,140,461,224" href="../images/gallery2.jpg" onclick="return hs.expand(this)" />
+</map>
+</div>
+</body>
+</html>

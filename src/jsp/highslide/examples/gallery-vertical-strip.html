@@ -1,0 +1,178 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "xhtml11.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Highslide JS</title>
+
+<!--
+	1 ) Reference to the files containing the JavaScript and CSS.
+	These files must be located on your server.
+-->
+
+<script type="text/javascript" src="../highslide/highslide-with-gallery.js"></script>
+<link rel="stylesheet" type="text/css" href="../highslide/highslide.css" />
+<!--[if lt IE 7]>
+<link rel="stylesheet" type="text/css" href="../highslide/highslide-ie6.css" />
+<![endif]-->
+
+
+
+<!--
+    2) Optionally override the settings defined at the top
+    of the highslide.js file. The parameter hs.graphicsDir is important!
+-->
+
+<script type="text/javascript">
+	hs.graphicsDir = '../highslide/graphics/';
+	hs.align = 'center';
+	hs.transitions = ['expand', 'crossfade'];
+	hs.fadeInOut = true;
+	hs.dimmingOpacity = 0.8;
+	hs.wrapperClassName = 'borderless floating-caption';
+	hs.captionEval = 'this.thumb.alt';
+	hs.marginLeft = 100; // make room for the thumbstrip
+	hs.marginBottom = 80 // make room for the controls and the floating caption
+	hs.numberPosition = 'caption';
+	hs.lang.number = '%1/%2';
+
+	// Add the slideshow providing the controlbar and the thumbstrip
+	hs.addSlideshow({
+		//slideshowGroup: 'group1',
+		interval: 5000,
+		repeat: false,
+		useControls: true,
+		overlayOptions: {
+			className: 'text-controls',
+			position: 'bottom center',
+			relativeTo: 'viewport',
+			offsetX: 50,
+			offsetY: -5
+
+		},
+		thumbstrip: {
+			position: 'middle left',
+			mode: 'vertical',
+			relativeTo: 'viewport'
+		}
+	});
+
+	// Add the simple close button
+	hs.registerOverlay({
+		html: '<div class="closebutton" onclick="return hs.close(this)" title="Close"></div>',
+		position: 'top right',
+		fade: 2 // fading the semi-transparent overlay looks bad in IE
+	});
+</script>
+
+<!--
+	3) Add some extra CSS for this example
+-->
+<style type="text/css">
+/* Center the text in the caption */
+.highslide-caption {
+	width: 100%;
+	text-align: center;
+}
+/* Remove the close button from the controls since we already have one in the corner of the image */
+.highslide-close {
+	display: none !important;
+}
+/* Put the image number in front of the caption */
+.highslide-number {
+	display: inline;
+	padding-right: 1em;
+	color: white;
+}
+</style>
+
+</head>
+
+<body>
+
+<!--
+	4) Put the thumbnails inside a div for styling
+-->
+
+<div class="highslide-gallery" style="width: 600px; margin: auto">
+<!--
+	5) This is how you mark up the thumbnail images with an anchor tag around it.
+	The anchor's href attribute defines the URL of the full-size image. Given the captionEval
+	option is set to 'this.img.alt', the caption is grabbed from the alt attribute of
+	the thumbnail image.
+-->
+	<a class='highslide' href='../images/thumbstrip01.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip01.thumb.png' alt='Mountain valley'/></a>
+
+	<a class='highslide' href='../images/thumbstrip02.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip02.thumb.png' alt='Windy landscape'/></a>
+
+	<a class='highslide' href='../images/thumbstrip03.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip03.thumb.png' alt='Sunset in the mountain'/></a>
+
+	<a class='highslide' href='../images/thumbstrip04.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip04.thumb.png' alt='Resting skier'/></a>
+
+	<a class='highslide' href='../images/thumbstrip05.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip05.thumb.png' alt='Contemplating dog'/></a>
+
+	<a class='highslide' href='../images/thumbstrip06.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip06.thumb.png' alt='Cabins'/></a>
+
+	<a class='highslide' href='../images/thumbstrip07.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip07.thumb.png' alt='Dark skies in sunny landscape'/></a>
+
+	<a class='highslide' href='../images/thumbstrip08.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip08.thumb.png' alt='Blue sky'/></a>
+
+	<a class='highslide' href='../images/thumbstrip09.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip09.thumb.png' alt='Ptarmigan'/></a>
+
+	<a class='highslide' href='../images/thumbstrip10.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip10.thumb.png' alt='Ptarmigans'/></a>
+
+	<a class='highslide' href='../images/thumbstrip11.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip11.thumb.png' alt='Two cabins'/></a>
+
+	<a class='highslide' href='../images/thumbstrip12.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip12.thumb.png' alt='Patterns in the snow'/></a>
+
+	<a class='highslide' href='../images/thumbstrip13.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip13.thumb.png' alt='Cabins'/></a>
+
+	<a class='highslide' href='../images/thumbstrip14.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip14.thumb.png' alt='Old stone cabins'/></a>
+
+	<a class='highslide' href='../images/thumbstrip15.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip15.thumb.png' alt='A litte open water'/></a>
+
+	<a class='highslide' href='../images/thumbstrip16.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip16.thumb.png' alt='Dipper'/></a>
+
+	<a class='highslide' href='../images/thumbstrip17.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip17.thumb.png' alt='Dipper'/></a>
+
+	<a class='highslide' href='../images/thumbstrip18.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip18.thumb.png' alt='Mountains'/></a>
+
+	<a class='highslide' href='../images/thumbstrip19.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip19.thumb.png' alt='Birch trees'/></a>
+
+	<a class='highslide' href='../images/thumbstrip20.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip20.thumb.png' alt='Highland woods'/></a>
+
+	<a class='highslide' href='../images/thumbstrip21.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip21.thumb.png' alt='Frozen lake'/></a>
+
+	<a class='highslide' href='../images/thumbstrip22.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip22.thumb.png' alt='Spring in the mountains'/></a>
+
+	<a class='highslide' href='../images/thumbstrip23.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip23.thumb.png' alt='Spring in the mountains'/></a>
+
+	<a class='highslide' href='../images/thumbstrip24.jpg' onclick="return hs.expand(this)">
+		<img src='../images/thumbstrip24.thumb.png' alt='Fjord landscape'/></a>
+
+
+</div>
+</body>
+</html>

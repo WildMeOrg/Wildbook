@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.StringTokenizer,org.ecocean.*, java.lang.Integer, java.lang.NumberFormatException, java.util.Vector, java.util.Iterator, java.util.GregorianCalendar, java.util.Properties, javax.jdo.*"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="java.io.File,com.drew.imaging.jpeg.*, com.drew.metadata.*,java.util.StringTokenizer,org.ecocean.*, java.lang.Integer, java.lang.NumberFormatException, java.util.Vector, java.util.Iterator, java.util.GregorianCalendar, java.util.Properties, javax.jdo.*"%>
 
 <html>
 <head>
@@ -8,7 +8,7 @@
 
 <%
 int startNum=1;
-int endNum=15;
+int endNum=45;
 
 try{ 
 
@@ -21,7 +21,7 @@ try{
 
 } catch(NumberFormatException nfe) {
 	startNum=1;
-	endNum=15;
+	endNum=45;
 }
 
 //let's load thumbnailSearch.properties
@@ -35,265 +35,16 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/thumbnailSea
 Shepherd myShepherd=new Shepherd();
 
   			Iterator allEncounters;
-			Vector rEncounters=new Vector();			
+  			Vector rEncounters=new Vector();			
 
-			myShepherd.beginDBTransaction();
+  			myShepherd.beginDBTransaction();
+  			
+  			rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "");
 			
-			allEncounters=myShepherd.getAllEncountersNoQuery();
-			while (allEncounters.hasNext()) {
-				Encounter temp_enc=(Encounter)allEncounters.next();
-				rEncounters.add(temp_enc);
-			}
+  			String[] keywords=request.getParameterValues("keyword");
+  			if(keywords==null){keywords=new String[0];}
 
-//filter for encounters of MarkedIndividuals that have been resighted------------------------------------------
-			if((request.getParameter("resightOnly")!=null)&&(request.getParameter("numResights")!=null)) {
-				int numResights=1;
-
-				try{
-					numResights=(new Integer(request.getParameter("numResights"))).intValue();
-					}
-				catch(NumberFormatException nfe) {}
-
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					if(rEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
-						rEncounters.remove(q);
-						q--;
-						}
-					else{
-						MarkedIndividual s=myShepherd.getMarkedIndividual(rEnc.isAssignedToMarkedIndividual());
-						if(s.totalEncounters()<numResights) {
-							rEncounters.remove(q);
-							q--;
-						}
-					}
-				}
-			}
-//end if resightOnly--------------------------------------------------------------------------------------
-
-//filter for only approved and unapproved encounters------------------------------------------
-if((request.getParameter("enctype")!=null)&&(request.getParameter("enctype").equals("acceptedEncounters"))) {
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					if(rEnc.wasRejected()){
-						rEncounters.remove(q);
-						q--;
-						}
-				}
-}
-//accepted and unapproved only filter--------------------------------------------------------------------------------------
-
-//filter for sex------------------------------------------
-if(request.getParameter("male")==null) {
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					if(rEnc.getSex().equals("male")){
-						rEncounters.remove(q);
-						q--;
-						}
-				}
-}
-if(request.getParameter("female")==null) {
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					if(rEnc.getSex().equals("female")){
-						rEncounters.remove(q);
-						q--;
-						}
-				}
-}
-if(request.getParameter("unknown")==null) {
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					if(rEnc.getSex().equals("unsure")){
-						rEncounters.remove(q);
-						q--;
-						}
-				}
-}
-//filter by sex--------------------------------------------------------------------------------------
-
-//filter for length------------------------------------------
-if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)&&(!request.getParameter("lengthField").equals("skip"))&&(!request.getParameter("selectLength").equals(""))) {
-
-try {
-
-double dbl_size=(new Double(request.getParameter("lengthField"))).doubleValue();
-
-if(request.getParameter("selectLength").equals("gt")) {
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					if(rEnc.getSize()<dbl_size){
-						rEncounters.remove(q);
-						q--;
-						}
-				}
-}
-if(request.getParameter("selectLength").equals("lt")) {
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					if((rEnc.getSize()>dbl_size)||(rEnc.getSize()<0.1)){
-						rEncounters.remove(q);
-						q--;
-						}
-				}
-}
-if(request.getParameter("selectLength").equals("eq")) {
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					if(rEnc.getSize()!=dbl_size){
-						rEncounters.remove(q);
-						q--;
-						}
-				}
-}
-
-} catch(NumberFormatException nfe) {
-//do nothing, just skip on
-}
-
-}
-//filter by length--------------------------------------------------------------------------------------
-
-//filter for location------------------------------------------
-if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					String locString=request.getParameter("locationField").toLowerCase();
-					if(rEnc.getLocation().toLowerCase().indexOf(locString)==-1){
-						rEncounters.remove(q);
-						q--;
-						}
-				}
-}
-//location filter--------------------------------------------------------------------------------------
-
-//submitter or photographer name filter------------------------------------------
-if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					String locString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase();
-					if((rEnc.getSubmitterName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)&&(rEnc.getPhotographerName().toLowerCase().replaceAll("%20"," ").indexOf(locString)<0)){
-						rEncounters.remove(q);
-						q--;
-						}
-				}
-}
-//end name filter--------------------------------------------------------------------------------------
-
-//filter for location code------------------------------------------
-if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").equals(""))) {
-				for(int q=0;q<rEncounters.size();q++) {
-					Encounter rEnc=(Encounter)rEncounters.get(q);
-					String locString=request.getParameter("locationCodeField").toLowerCase();
-					if(!rEnc.getLocationCode().toLowerCase().startsWith(locString)){
-						rEncounters.remove(q);
-						q--;
-						}
-				}
-}
-//location code filter--------------------------------------------------------------------------------------
-			
-//keyword filters-------------------------------------------------
-if(request.getParameterValues("keyword")!=null){
-String[] keywords=request.getParameterValues("keyword");
-int kwLength=keywords.length;
-for(int kwIter=0;kwIter<kwLength;kwIter++) {
-		String kwParam=keywords[kwIter];
-		if(myShepherd.isKeyword(kwParam)) {
-			Keyword word=myShepherd.getKeyword(kwParam);
-			
-			for(int q=0;q<rEncounters.size();q++) {
-				Encounter tShark=(Encounter)rEncounters.get(q);
-				if(!word.isMemberOf(tShark)) {
-					rEncounters.remove(q);
-					q--;
-				}
-			} //end for
-		} //end if isKeyword
-}
-}
-//end keyword filters-----------------------------------------------	
-			
-			
-			
-			
-//filter for date------------------------------------------
-	if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
-		try{
-		
-			//get our date values
-			int day1=(new Integer(request.getParameter("day1"))).intValue();
-			int day2=(new Integer(request.getParameter("day2"))).intValue();
-			int month1=(new Integer(request.getParameter("month1"))).intValue();
-			int month2=(new Integer(request.getParameter("month2"))).intValue();
-			int year1=(new Integer(request.getParameter("year1"))).intValue();
-			int year2=(new Integer(request.getParameter("year2"))).intValue();
-			
-			//order our values
-			int minYear=year1;
-			int minMonth=month1;
-			int minDay=day1;
-			int maxYear=year2;
-			int maxMonth=month2;
-			int maxDay=day2;
-			if(year1>year2) {
-				minDay=day2;
-				minMonth=month2;
-				minYear=year2;
-				maxDay=day1;
-				maxMonth=month1;
-				maxYear=year1;
-			}
-			else if(year1==year2) {
-				if(month1>month2) {
-					minDay=day2;
-					minMonth=month2;
-					minYear=year2;
-					maxDay=day1;
-					maxMonth=month1;
-					maxYear=year1;
-				}
-				else if(month1==month2) {
-					if(day1>day2) {
-						minDay=day2;
-						minMonth=month2;
-						minYear=year2;
-						maxDay=day1;
-						maxMonth=month1;
-						maxYear=year1;
-					}
-				}
-			}
-
-			
-			for(int q=0;q<rEncounters.size();q++) {
-				Encounter rEnc=(Encounter)rEncounters.get(q);
-				int m_day=rEnc.getDay();
-				int m_month=rEnc.getMonth();
-				int m_year=rEnc.getYear();
-				if((m_year>maxYear)||(m_year<minYear)){
-					rEncounters.remove(q);
-					q--;
-				}
-				else if(((m_year==minYear)&&(m_month<minMonth))||((m_year==maxYear)&&(m_month>maxMonth))) {
-					rEncounters.remove(q);
-					q--;
-				}
-				else if(((m_year==minYear)&&(m_month==minMonth)&&(m_day<minDay))||((m_year==maxYear)&&(m_month==maxMonth)&&(m_day>maxDay))) {
-					rEncounters.remove(q);
-					q--;
-				}
-			} //end for
-		} catch(NumberFormatException nfe) {
-			//do nothing, just skip on
-		}
-	}
-//date filter--------------------------------------------------------------------------------------
-
-
-
-
+  			int numThumbnails = myShepherd.getNumThumbnails(rEncounters.iterator(), keywords);
 
 
 
@@ -309,8 +60,92 @@ for(int kwIter=0;kwIter<kwLength;kwIter++) {
 	rel="stylesheet" type="text/css" />
 <link rel="shortcut icon"
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
-</head>
+	
+<!--
+	1 ) Reference to the files containing the JavaScript and CSS.
+	These files must be located on your server.
+-->
 
+<script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
+<link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css" />
+
+<!--
+	2) Optionally override the settings defined at the top
+	of the highslide.js file. The parameter hs.graphicsDir is important!
+-->
+
+<script type="text/javascript">
+hs.graphicsDir = '../highslide/highslide/graphics/';
+hs.align = 'center';
+hs.transitions = ['expand', 'crossfade'];
+hs.outlineType = 'rounded-white';
+hs.fadeInOut = true;
+//hs.dimmingOpacity = 0.75;
+
+// Add the controlbar
+hs.addSlideshow({
+	//slideshowGroup: 'group1',
+	interval: 5000,
+	repeat: false,
+	useControls: true,
+	fixedControls: 'fit',
+	overlayOptions: {
+		opacity: 0.75,
+		position: 'bottom center',
+		hideOnMouseOut: true
+	}
+});
+
+</script>	
+</head>
+<style type="text/css">
+#tabmenu {
+	color: #000;
+	border-bottom: 2px solid black;
+	margin: 12px 0px 0px 0px;
+	padding: 0px;
+	z-index: 1;
+	padding-left: 10px
+}
+
+#tabmenu li {
+	display: inline;
+	overflow: hidden;
+	list-style-type: none;
+}
+
+#tabmenu a,a.active {
+	color: #DEDECF;
+	background: #000;
+	font: bold 1em "Trebuchet MS", Arial, sans-serif;
+	border: 2px solid black;
+	padding: 2px 5px 0px 5px;
+	margin: 0;
+	text-decoration: none;
+	border-bottom: 0px solid #FFFFFF;
+}
+
+#tabmenu a.active {
+	background: #FFFFFF;
+	color: #000000;
+	border-bottom: 2px solid #FFFFFF;
+}
+
+#tabmenu a:hover {
+	color: #ffffff;
+	background: #7484ad;
+}
+
+#tabmenu a:visited {
+	color: #E8E9BE;
+}
+
+#tabmenu a.active:hover {
+	background: #7484ad;
+	color: #DEDECF;
+	border-bottom: 2px solid #000000;
+}
+</style>
 <body>
 <div id="wrapper">
 <div id="page"><jsp:include page="../header.jsp" flush="true">
@@ -323,29 +158,62 @@ for(int kwIter=0;kwIter<kwLength;kwIter++) {
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
+
+<ul id="tabmenu">
+
+	<li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%></a></li>
+	<li><a class="active"><%=encprops.getProperty("matchingImages")%></a></li>
+	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults")%></a></li>
+	<li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
+	
+</ul>
+
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
 		<p>
 		<h1 class="intro"><%=encprops.getProperty("title")%></h1>
 		</p>
+			<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=numThumbnails%></p>
+	
 		<p><%=encprops.getProperty("belowMatches")%> <%=startNum%> - <%=endNum%> <%=encprops.getProperty("thatMatched")%></p>
 		</td>
 	</tr>
 </table>
 
+<%
+String qString=request.getQueryString();
+int startNumIndex=qString.indexOf("&startNum");
+if(startNumIndex>-1) {
+	qString=qString.substring(0,startNumIndex);
+}
+
+%>
+<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><%=encprops.getProperty("seeNextResults")%> (<%=(startNum+45)%> - <%=(endNum+45)%>)</a></p>
+<%
+if((startNum)>1) {%>
+<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=encprops.getProperty("seePreviousResults")%> (<%=(startNum-45)%> - <%=(startNum-1)%>)</a></p>
+
+<%
+}
+%>
+
+
+
+
 <table id="results" border="0" width="100%">
 	<%		
 
+			
 			int countMe=0;
 			Vector thumbLocs=new Vector();
 			
 			try {
-				thumbLocs=myShepherd.getThumbnails(rEncounters.iterator(), startNum, endNum);
+				thumbLocs=myShepherd.getThumbnails(rEncounters.iterator(), startNum, endNum, keywords);
 
 			
 			
-					for(int rows=0;rows<5;rows++) {		%>
+					for(int rows=0;rows<15;rows++) {		%>
 
 						<tr>
 
@@ -356,17 +224,149 @@ for(int kwIter=0;kwIter<kwLength;kwIter++) {
 									StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
 									String thumbLink=stzr.nextToken();
 									String encNum=stzr.nextToken();
-									String fileName=stzr.nextToken();
+									int fileNamePos=combined.lastIndexOf("BREAK")+5;
+									String fileName=combined.substring(fileNamePos);
 									boolean video=true;
 									if(!thumbLink.endsWith("video.jpg")){
 										thumbLink="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+thumbLink;
 										video=false;
 									}
-									String link="http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+encNum;
+									String link="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+encNum+"/"+fileName;
 						
 							%>
 
-									<td><a href="<%=link%>"><img src="<%=thumbLink%>" alt="photo" border="1" /></a></td>
+									<td>
+										<table>
+										<tr>
+											<td>
+												<a href="<%=link%>" class="highslide" onclick="return hs.expand(this)"><img src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge" /></a>
+										
+										<div class="highslide-caption">
+										
+										<h3><%=(countMe+startNum) %>/<%=numThumbnails %></h3>
+										<h4><%=encprops.getProperty("imageMetadata") %></h4>
+										
+										<table>
+											<tr>
+												<td align="left" valign="top">
+										
+												<table>
+										<%
+											
+										int kwLength=keywords.length;
+										Encounter thisEnc = myShepherd.getEncounter(encNum);
+										%>
+										<tr><td><span class="caption"><em><%=(countMe+startNum) %>/<%=numThumbnails %></em></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
+										<%
+										if(thisEnc.getVerbatimEventDate()!=null){
+										%>
+											<tr><td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
+										<%
+										}
+										%>
+										<tr>
+										<td><span class="caption">
+											<%=encprops.getProperty("matchingKeywords") %>
+											<%
+									          for(int kwIter=0;kwIter<kwLength;kwIter++) {
+									              String kwParam=keywords[kwIter];
+									              if(myShepherd.isKeyword(kwParam)) {
+									                Keyword word=myShepherd.getKeyword(kwParam);
+									                if(word.isMemberOf(encNum+"/"+fileName)) {
+									                	%>
+														<br /><%= word.getReadableName()%>
+														
+														<%
+														
+									                  
+									                }
+									              } //end if isKeyword
+									            }
+											%>
+										</span></td>
+										</tr>
+										</table>
+										</td>
+										
+										<%
+										if(CommonConfiguration.showEXIFData()){
+										%>
+										
+												<td align="left" valign="top">
+												<span class="caption">
+						<ul>
+					<%
+					if((fileName.toLowerCase().endsWith("jpg"))||(fileName.toLowerCase().endsWith("jpeg"))){
+						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+thisEnc.getCatalogNumber()+"/"+fileName)));
+						Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+						// iterate through metadata directories 
+						Iterator directories = metadata.getDirectoryIterator();
+						while (directories.hasNext()) { 
+							Directory directory = (Directory)directories.next(); 
+							// iterate through tags and print to System.out  
+							Iterator tags = directory.getTagIterator(); 
+							while (tags.hasNext()) { 
+								Tag tag = (Tag)tags.next(); 
+								
+								%>
+								<li><%=tag.toString() %></li>
+								<% 
+							} 
+						} 
+					
+					}					
+					%>
+   									
+   								</ul>
+   								</span>
+												
+												
+												</td>
+									<%
+										}
+									%>
+											</tr>
+										</table>
+</div>
+												</div>
+											</td>
+										</tr>
+							
+										
+										<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
+										<tr>
+										<td><span class="caption">
+											<%=encprops.getProperty("matchingKeywords") %>
+											<%
+									          for(int kwIter=0;kwIter<kwLength;kwIter++) {
+									              String kwParam=keywords[kwIter];
+									              if(myShepherd.isKeyword(kwParam)) {
+									                Keyword word=myShepherd.getKeyword(kwParam);
+									                if(word.isMemberOf(encNum+"/"+fileName)) {
+									                	%>
+														<br /><%= word.getReadableName()%>
+														
+														<%
+														
+									                  
+									                }
+									              } //end if isKeyword
+									            }
+											%>
+										</span></td>
+										</tr>
+										
+										</table>
+									</td>
 							<%
 					
 								countMe++;
@@ -377,6 +377,7 @@ for(int kwIter=0;kwIter<kwLength;kwIter++) {
 				<%} //endFor
 	
 				} catch(Exception e) {
+					e.printStackTrace();
 				%>
 	<tr>
 		<td>
@@ -393,44 +394,23 @@ for(int kwIter=0;kwIter<kwLength;kwIter++) {
 
 
 
-	startNum=startNum+15;	
-	endNum=endNum+15;
-
-
-String numberResights="";
-if(request.getParameter("numResights")!=null){
-	numberResights="&numResights="+request.getParameter("numResights");
-}
-String qString=request.getQueryString();
-int startNumIndex=qString.indexOf("&startNum");
-if(startNumIndex>-1) {
-	qString=qString.substring(0,startNumIndex);
-}
+	startNum=startNum+45;	
+	endNum=endNum+45;
 
 %>
-<p><a
-	href="thumbnailSearchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("seeNextResults")%> (<%=startNum%> - <%=endNum%></a>)</p>
+<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("seeNextResults")%> (<%=startNum%> - <%=endNum%>)</a></p>
 <%
-if((startNum-15)>1) {%>
-<p><a
-	href="thumbnailSearchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=(startNum-30)%>&endNum=<%=(startNum-16)%>"><%=encprops.getProperty("seePreviousResults")%> (<%=(startNum-30)%> - <%=(startNum-16)%>)</a></p>
+if((startNum-45)>1) {%>
+<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=encprops.getProperty("seePreviousResults")%> (<%=(startNum-90)%> - <%=(startNum-46)%>)</a></p>
 
-<%}
-if((startNum-15)==1) {
-%>
-<p>
-<table width="720" border="0" cellspacing="0" cellpadding="0">
-	<tr>
-		<td align="right">
-		<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=myShepherd.getNumThumbnails(rEncounters.iterator())%></p>
-	</tr>
-</table>
-</p>
-<%}
+<%
+}
+
 
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-%> <br> <jsp:include page="../footer.jsp" flush="true" />
+%> 
+<br> <jsp:include page="../footer.jsp" flush="true" />
 </div>
 </div>
 <!-- end page --></div>

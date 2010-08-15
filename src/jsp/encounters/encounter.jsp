@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="org.ecocean.servlet.*,java.util.ArrayList,java.util.GregorianCalendar,java.util.StringTokenizer,org.ecocean.*,java.text.DecimalFormat, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.FileInputStream, java.io.File, java.util.Iterator,java.util.Properties"%>
+	import="com.drew.imaging.jpeg.*, com.drew.metadata.*, org.ecocean.servlet.*,java.util.ArrayList,java.util.GregorianCalendar,java.util.StringTokenizer,org.ecocean.*,java.text.DecimalFormat, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.FileInputStream, java.io.File, java.util.Iterator,java.util.Properties, java.util.Iterator"%>
 <%@ taglib uri="di" prefix="di"%>
 
 <%!
@@ -155,6 +155,47 @@ table.adopter td.image {
 }
 -->
 </style>
+
+
+<!--
+	1 ) Reference to the files containing the JavaScript and CSS.
+	These files must be located on your server.
+-->
+
+<script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
+<link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css" />
+
+<!--
+	2) Optionally override the settings defined at the top
+	of the highslide.js file. The parameter hs.graphicsDir is important!
+-->
+
+<script type="text/javascript">
+hs.graphicsDir = '../highslide/highslide/graphics/';
+hs.align = 'center';
+hs.transitions = ['expand', 'crossfade'];
+hs.outlineType = 'rounded-white';
+hs.fadeInOut = true;
+//hs.dimmingOpacity = 0.75;
+
+// Add the controlbar
+hs.addSlideshow({
+	//slideshowGroup: 'group1',
+	interval: 5000,
+	repeat: false,
+	useControls: true,
+	fixedControls: 'fit',
+	overlayOptions: {
+		opacity: 0.75,
+		position: 'bottom center',
+		hideOnMouseOut: true
+	}
+});
+
+</script>	
+
+
+
 </head>
 
 <body <%if(request.getParameter("noscript")==null){%>
@@ -194,11 +235,14 @@ if (session.getAttribute("logged")!=null) {
 		loggedIn=(String)OBJloggedIn;
 }
 //end user identity and authorization check
-
+%>
+<table width="720" border="0" cellpadding="3" cellspacing="5">
+<tr><td>
+<%
 if (enc.wasRejected()) {%>
 <table width="810">
 	<tr>
-		<td bgcolor="#0033CC">
+		<td bgcolor="#0033CC" colspan="3">
 		<p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unidentifiable_title") %>: <%=num%><%=livingStatus %> </font>
 		</td>
 	</tr>
@@ -232,7 +276,7 @@ if(enc.getEventID()!=null){
 %>
 <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
 <%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> <%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %><font size="-1">[<a
 	href="encounter.jsp?number=<%=num%>&edit=manageShark">edit</a>]</font>
 <%
@@ -246,14 +290,14 @@ if(enc.getEventID()!=null){
 <%=encprops.getProperty("identified_as") %>: <a
 	href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a></font>
 <%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %>[<a href="encounter.jsp?number=<%=num%>&edit=manageShark">edit</a>]<%
  	}
  	if (isOwner) {
  %><br> <img align="absmiddle"
 	src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>: <%=enc.getMatchedBy()%>
 <%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %>[<a
 	href="encounter.jsp?number=<%=num%>&edit=manageMatchedBy#matchedBy">edit</a>]<%
  	}
@@ -267,7 +311,7 @@ if(enc.getEventID()!=null){
 %>
 <p class="para"><img align="absmiddle" src="../images/life_icon.gif">
 <%=encprops.getProperty("status")%>: <%=enc.getLivingStatus()%> <%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %>[<a
 	href="encounter.jsp?number=<%=num%>&edit=livingStatus#livingStatus">edit</a>]<%
  	}
@@ -278,7 +322,7 @@ if(enc.getEventID()!=null){
 <p class="para"><img align="absmiddle"
 	src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>: <%=enc.getAlternateID()%>
 <%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %>[<a href="encounter.jsp?number=<%=num%>&edit=alternateid#alternateid">edit</a>]<%
  	}
  %>
@@ -290,7 +334,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 %>
 <p class="para"><img align="absmiddle"
 	src="../images/Crystal_Clear_app_Login_Manager.gif"> <%=encprops.getProperty("assigned_user")%>: <%=enc.getSubmitterID()%> <%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  	%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=user#user">edit</a>]</font>
 <%
  	}
@@ -299,9 +343,11 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 <%
 	}
 %>
-
-<table width="720" border="0" cellpadding="3" cellspacing="5">
+</td></tr>
 	<tr>
+	<%
+	if(CommonConfiguration.isCatalogEditable()){
+	%>
 		<td width="170" align="left" valign="top" bgcolor="#99CCFF">
 		<%
  	//start deciding menu bar contents
@@ -396,10 +442,9 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		}
 		
 		//encounter set dynamic property
-		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
+		if(CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
 		%> <a name="dynamicproperty"><br>
-		<table width="150" border="1" cellpadding="1" cellspacing="0"
-			bordercolor="#000000" bgcolor="#CCCCCC">
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><table><tr><td><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /></td><td><strong><font color="#990000"> <%=encprops.getProperty("initCapsSet")%> <%=request.getParameter("name")%></font></strong></td></tr></table></td>
 			</tr>
@@ -428,7 +473,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		}
 		
 		//encounter add dynamic property
-		if(isOwner){
+		if(isOwner&&CommonConfiguration.isCatalogEditable()){
 		%> <a name="add_dynamicproperty"><br>
 		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
@@ -526,7 +571,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		</a><br> <%
 		  	}
 		  	  //Remove from MarkedIndividual if not unassigned
-		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned"))&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageShark"))) {
+		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned"))&&CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageShark"))) {
 		  %>
 		<table width="150" border="1" cellpadding="1" cellspacing="0"
 			bordercolor="#000000" bgcolor="#CCCCCC">
@@ -868,7 +913,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<td align="left" valign="top">
 				<form name="setxencshark" action="../EncounterSetSex" method="post">
 				<select name="selectSex" size="1" id="selectSex">
-					<option value="unsure" selected><%=encprops.getProperty("unsure")%></option>
+					<option value="unknown" selected><%=encprops.getProperty("unknown")%></option>
 					<option value="male"><%=encprops.getProperty("male")%></option>
 					<option value="female"><%=encprops.getProperty("female")%></option>
 				</select> <input name="number" type="hidden" value="<%=num%>" id="number">
@@ -1047,7 +1092,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 						<input name="number" type="hidden" value="<%=num%>" id="number"> 
 						<input name="action" type="hidden" value="setEncounterElevation"> 
 						<input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>">
-					</form>
+				  </form>
 				</td>
 			</tr>
 		</table>
@@ -1203,7 +1248,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 
 
 	  //reject encounter
-	  if (isOwner) {
+	  if (isOwner&&CommonConfiguration.isCatalogEditable()) {
 	  %>
 		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CECFCE">
 			<tr>
@@ -1318,6 +1363,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		</table>
 		</a><br /> <%
 	  	  	}
+			if(CommonConfiguration.isCatalogEditable()){
 	  	  %>
 		<table border="1" cellpadding="2" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
@@ -1366,6 +1412,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			</tr>
 		</table>
 		</a> <br /> <%
+		}
 	  	//end isOwner permissions
 	  	  }
 	  	  
@@ -1409,18 +1456,21 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			%>
 		
 		</td>
+		<%
+		}
+		%>
 
-
-		<td align="left" valign="top">
-		<table border="0" cellspacing="0" cellpadding="5">
+<td align="left" valign="top">
+<table border="0" cellspacing="0" cellpadding="5">
+		
 			<tr>
-				<td align="left" valign="top">
+				<td width="300" align="left" valign="top">
 				<p class="para"><strong><%=encprops.getProperty("date") %></strong><br /> 
 				<a href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
 					<%=enc.getDate()%>
 				</a> 
 				<%
-				if(isOwner) {
+				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  					%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
         		}
         		%>
@@ -1438,13 +1488,13 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 				<%=encprops.getProperty("none") %>
 				<%
 				}
-				if(isOwner) {
+				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  					%> <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=verbatimdate#verbatimdate">edit</a>]</font> <%
         		}
         		%>
 				<p class="para"><strong><%=encprops.getProperty("location") %></strong><br /> <%=enc.getLocation()%>
 				<%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=location#location">edit</a>]</font>
 				<%
  	}
@@ -1453,7 +1503,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 
              <em><%=encprops.getProperty("locationID") %></em>: <%=enc.getLocationCode()%>
 				<%
- 				if(isOwner) {%>
+ 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
  					<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=loccode#loccode">edit</a>]</font>
 					<a href="<%=CommonConfiguration.getWikiLocation()%>location_codes" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
 				}
@@ -1475,7 +1525,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 			  			}
  					%>
   				<br /> <%
-			   	if(isOwner) {
+			   	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
 			   		%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=gps#gps">edit</a>]</font>
 				<%
 			   	}
@@ -1495,7 +1545,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  					%><%=encprops.getProperty("unknown") %><%
  					}
 					 %> <br /> (<em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%></em>) <%
- 					if(isOwner) {%>
+ 					if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
 						<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
 					<%
  					}
@@ -1513,7 +1563,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  	  			} else {
  	  		%> <%=encprops.getProperty("unknown") %><%
  	  			} 
-				if(isOwner) {
+				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  	  		%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=depth#depth">edit</a>]</font>
 				<%
  	  			}
@@ -1534,7 +1584,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<%
  	 
 
-		if(isOwner) {
+		if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  	  		%><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=elevation#elevation">edit</a>]</font>
 				<%
  	  	}
@@ -1546,7 +1596,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
 		<!-- End Display maximumElevationInMeters -->
 			
 				<p class="para"><strong><%=encprops.getProperty("sex") %></strong><br /> <%=enc.getSex()%> <%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %><font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=sex#sex">edit</a>]</font>
 				<%
@@ -1554,7 +1604,7 @@ if((loggedIn.equals("true"))&&(enc.getSubmitterID()!=null)) {
  %>
 				<p class="para"><strong><%=encprops.getProperty("scarring") %></strong><br /> <%=enc.getDistinguishingScar()%>
 	<%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  	%>
  	<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=scar#scar">edit</a>]</font>
 	<%
@@ -1573,7 +1623,7 @@ else {
 <%=encprops.getProperty("none")%>
 <%
 }
-if(isOwner) {
+if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  	%>
  	 <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=behavior#behavior">edit</a>]</font>
 	<%
@@ -1593,7 +1643,7 @@ if(enc.getDynamicProperties()!=null){
 		  %>
 		  <p class="para"><img align="absmiddle" src="../images/lightning_dynamic_props.gif"> <strong><%=nm%></strong><br />  <%=vl%>
 		  <%
-		  if(isOwner) {
+		  if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  		  %>
  		       <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty">edit</a>]</font>
 		  <%
@@ -1615,7 +1665,7 @@ if(enc.getDynamicProperties()!=null){
 
 		<p class="para"><strong><%=encprops.getProperty("comments") %></strong><br /> <%=enc.getComments()%><br />
 				<%
-      	if(isOwner) {
+      	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
       %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=comments#comments">edit</a>]</font>
 				<%
       	}
@@ -1625,7 +1675,7 @@ if(enc.getDynamicProperties()!=null){
 
 
 				<p class="para"><strong><%=encprops.getProperty("submitter") %></strong> <%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
 				<%
  	}
@@ -1650,7 +1700,7 @@ if(enc.getDynamicProperties()!=null){
 %>
 
 				<p class="para"><strong><%=encprops.getProperty("photographer") %></strong> <%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %><font size="-1">[<a
 					href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
 				<%
@@ -1662,7 +1712,7 @@ if(enc.getDynamicProperties()!=null){
 
 
 				<p class="para"><strong><%=encprops.getProperty("inform_others") %></strong> <%
- 	if(isOwner) {
+ 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=others#others">edit</a>]</font>
 				<%
  	}
@@ -1744,8 +1794,12 @@ if(enc.getDynamicProperties()!=null){
 		<!-- End Display spot patterning so long as show_spotpatterning is not false in commonConfiguration.properties-->
 		
 		
-				</td>
-				<td align="left" valign="top">
+			  </td>
+				
+				
+				
+	
+				<td width="250" align="left" valign="top">
 				<p class="para"><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px" height="*"><strong>&nbsp;<%=encprops.getProperty("images")%></strong><br /> <%
 	  				if (session.getAttribute("logged")!=null) {
 	  			%> <em><%=encprops.getProperty("click2view")%></em>
@@ -1790,23 +1844,50 @@ if(enc.getDynamicProperties()!=null){
 			%>
 
 							<tr>
-								<td class="para"><img align="absmiddle"
-									src="../images/cancel.gif"> <strong><%=encprops.getProperty("remove_keyword") %>:</strong> <%
-					Iterator indexes=myShepherd.getAllKeywords();
-						if(totalKeywords>0){
-							boolean haveAddedKeyword=false;
-							for(int m=0;m<totalKeywords;m++) {
-								Keyword word=(Keyword)indexes.next();
-								if(word.isMemberOf(addText)){
-									haveAddedKeyword=true;
-				%> 
-									&nbsp;<a href="../KeywordHandler?number=<%=num%>&action=removePhoto&photoName=<%=addTextFile%>&keyword=<%=word.getIndexname()%>"><%=word.getReadableName()%></a>&nbsp;|
+								<td class="para">
+								<%
+		 						if (isOwner&&CommonConfiguration.isCatalogEditable()) {
+		 						%>
+								<img align="absmiddle" src="../images/cancel.gif"> <strong><%=encprops.getProperty("remove_keyword") %></strong>
+								<%
+		 						}
+		 						else {
+								%>
+								<strong><%=encprops.getProperty("matchingKeywords") %></strong>
+								<%
+		 						}
+								%>
+								<br /> 
+								<%
+								Iterator indexes=myShepherd.getAllKeywords();
+								if(totalKeywords>0){
+								boolean haveAddedKeyword=false;
+								for(int m=0;m<totalKeywords;m++) {
+									Keyword word=(Keyword)indexes.next();
+									if(word.isMemberOf(addText)){
+										haveAddedKeyword=true;
+							
+									if(CommonConfiguration.isCatalogEditable()){
+									%>
+									<a href="../KeywordHandler?number=<%=num%>&action=removePhoto&photoName=<%=addTextFile%>&keyword=<%=word.getIndexname()%>">
+									<%
+									}
+									%>
+									"<%=word.getReadableName()%>"
+									<%
+									if(CommonConfiguration.isCatalogEditable()){
+									%>
+									</a>
+									<%
+									}
+									%>
+									&nbsp;
 								<%
 								} //end if
 							} //end for
 							if(!haveAddedKeyword){%>
 								
-								&nbsp;<%=encprops.getProperty("none_assigned")%>
+								<%=encprops.getProperty("none_assigned")%>
 								
 							<% }
 						} //end if
@@ -1818,6 +1899,9 @@ if(enc.getDynamicProperties()!=null){
 							%>
 								</td>
 							</tr>
+							<%
+							if(CommonConfiguration.isCatalogEditable()){
+							%>
 							<tr>
 								<td>
 								
@@ -1852,7 +1936,7 @@ if(enc.getDynamicProperties()!=null){
 											<input name="action" type="hidden" value="addPhoto"> 
 											<input name="photoName" type="hidden" value="<%=addTextFile%>">
 											<input name="AddKW" type="submit" id="AddKW" value="<%=encprops.getProperty("add") %>">
-											</form>
+										  </form>
 											<%
 										}
 										else {
@@ -1868,6 +1952,9 @@ if(enc.getDynamicProperties()!=null){
 								
 								</td>
 							</tr>
+							<%
+							}
+							%>
 
 							<%
 							
@@ -1881,18 +1968,15 @@ if(enc.getDynamicProperties()!=null){
 				boolean isVideo=false;
 				if(addTextFile.toLowerCase().indexOf(".bmp")!=-1) {isBMP=true;}
 				if((addTextFile.toLowerCase().indexOf(".mov")!=-1)||(addTextFile.toLowerCase().indexOf(".wmv")!=-1)||(addTextFile.toLowerCase().indexOf(".mpg")!=-1)||(addTextFile.toLowerCase().indexOf(".avi")!=-1)||(addTextFile.toLowerCase().indexOf(".mp4")!=-1)) {isVideo=true;}
-				if((!isBMP)&&(!isVideo)) {
-			%> <a href="imageViewer.jsp?number=<%=num%>&src=<%=addTextFile%>">
+				if(isOwner&&(!isBMP)&&(!isVideo)) {
+			%> <a href="<%=num%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)" title="Click to enlarge">
 								<%
 					}
-						else {
-				%> <a href="<%=addText%>"> <%
+						else if(isOwner) {
+				%> <a href="<%=addText%>" class="highslide" onclick="return hs.expand(this)" title="Click to enlarge"> <%
 					}
 					
 					String thumbLocation="file-"+num+"/"+imageCount+".jpg";
-					//try{}
-					//catch(Exception e){}
-					//File processedImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+num+"/"+imageCount+".jpg");
 					File processedImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/"+imageCount+".jpg")));
 
 					
@@ -1901,14 +1985,16 @@ if(enc.getDynamicProperties()!=null){
 									src="../images/video.jpg" border="0" align="left" valign="left">
 		
 								</a>
+								
+								
 								<%
 					
 			
 							}
 							else if ((!processedImage.exists())&&(!haveRendered)) {
 								haveRendered=true;
-								System.out.println("Using DynamicImage to render thumbnail: "+num);
-								System.gc();
+								//System.out.println("Using DynamicImage to render thumbnail: "+num);
+								//System.gc();
 						%> <di:img width="250" height="200"
 									imgParams="rendering=speed,quality=low" border="0"
 									output="<%=thumbLocation%>" expAfter="0" threading="limited"
@@ -1924,7 +2010,7 @@ if(enc.getDynamicProperties()!=null){
 									alt="photo <%=enc.getLocation()%>"
 									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
 									valign="left"> <%
-				if (session.getAttribute("logged")!=null) {
+				if (isOwner) {
 			%>
 								</a>
 								<%
@@ -1940,14 +2026,97 @@ if(enc.getDynamicProperties()!=null){
 					}
 				%> <%
 				}else {
-			%> <img width="250" height="200" alt="photo <%=enc.getLocation()%>"
+			%> <img id="img<%=imageCount%> " width="250" height="200" alt="photo <%=enc.getLocation()%>"
 									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
 									valign="left"> <%
 					if (session.getAttribute("logged")!=null) {
 				%></a>
+					<div class="highslide-caption">
+					<h3><%=encprops.getProperty("imageMetadata") %></h3>
+					<table ><tr>
+						<td align="left" valign="top">
+   								
+   						<table>
+   						<tr><td align="left" valign="top"><span class="caption"><%=encprops.getProperty("location") %>: <%=enc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=enc.getLocationID() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=enc.getDate() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=enc.getIndividualID() %>"><%=enc.getIndividualID() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a></span></td></tr>
+										<tr>
+										<td><span class="caption">
+											<%=encprops.getProperty("matchingKeywords") %>
+											<%
+									        Iterator it = myShepherd.getAllKeywords();  
+											while(it.hasNext()) {
+												Keyword word=(Keyword)it.next();
+									              
+									              
+									                if(word.isMemberOf(num+"/"+addTextFile)) {
+									                	%>
+														<br /><%= word.getReadableName()%>
+														
+														<%
+														
+									                  
+									                }
+									          
+									            }
+											%>
+										</span></td>
+										</tr>
+   						
+   						</table>
+   						
+   								
+   						</td>
+					
+					
+					
+										<%
+										if(CommonConfiguration.showEXIFData()){
+										%>
+					<td align="left" valign="top">
+					
+					
+					<span class="caption">
+						<ul>
+					<%
+					if((addTextFile.toLowerCase().endsWith("jpg"))||(addTextFile.toLowerCase().endsWith("jpeg"))){
+						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/"+addTextFile)));
+						Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+						// iterate through metadata directories 
+						Iterator directories = metadata.getDirectoryIterator();
+						while (directories.hasNext()) { 
+							Directory directory = (Directory)directories.next(); 
+							// iterate through tags and print to System.out  
+							Iterator tags = directory.getTagIterator(); 
+							while (tags.hasNext()) { 
+								Tag tag = (Tag)tags.next(); 
+								
+								%>
+								<li><%=tag.toString() %></li>
+								<% 
+							} 
+						} 
+					
+					}					
+					%>
+   									
+   								</ul>
+   								</span>
+   								</td>
+   					<%
+					}
+   					%>
+   							
+   								
+   								</tr></table>
+   
+   					</div>
+   								
 								<%
 					}
-				%> <%
+				
 								}
 							%>
 								</td>
@@ -1959,16 +2128,16 @@ if(enc.getDynamicProperties()!=null){
 						}
 							else {
 					%>
-						<tr>
+				  <tr>
 							<td>
 							<p><img src="../alert.gif"> <strong><%=encprops.getProperty("badfile") %>:</strong> <%=addTextFile%> <%
-					if (isOwner) {
+					if (isOwner&&CommonConfiguration.isCatalogEditable()) {
 				%> <br /><a href="/encounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>"><%=encprops.getProperty("clickremove") %></a></p>
 							<%
 					}
 				%>
 							</td>
-						</tr>
+				  </tr>
 						<%
 					} //close else of if
 						} //close try
@@ -1985,7 +2154,7 @@ if(enc.getDynamicProperties()!=null){
 
 				<p class="para">
 				<%
-		 			if (isOwner) {
+		 			if (isOwner&&CommonConfiguration.isCatalogEditable()) {
 		 		%>
 				<table width="250" bgcolor="#99CCFF">
 					<tr>
@@ -2162,14 +2331,9 @@ if(enc.getDynamicProperties()!=null){
 				</div>
 		<%
 		}
-		%>
-	
-				
-				
-				</td>
+		%>			  </td>
 			</tr>
-
-		</table>
+	  </table>
 		<p>
 		<%
 	  	  	  	if (request.getParameter("noscript")==null) {
@@ -2234,33 +2398,40 @@ if(enc.getDynamicProperties()!=null){
 		
 		<br />
 		<hr>
+		<table><tr><td valign="top">
+		<img align="absmiddle"  src="../images/Crystal_Clear_app_kaddressbook.gif"> 
+		</td>
+		<td valign="top">
+		<%=encprops.getProperty("auto_comments")%>: </p>
+		<%
+		if (enc.getRComments()!=null) {
+		%>
+			<p class="para"><%=enc.getRComments().replaceAll("\n","<br />")%></p>
+		<%
+		}
+		if(CommonConfiguration.isCatalogEditable()){
+		%>
 		<form action="../EncounterAddComment" method="post" name="addComments">
-		<p class="para"><input name="user" type="hidden"
-			value="<%=request.getRemoteUser()%>" id="user"> <input
-			name="number" type="hidden" value="<%=enc.getEncounterNumber()%>"
-			id="number"> <input name="action" type="hidden"
-			value="enc_comments" id="action"> <img align="absmiddle"
-			src="../images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=encprops.getProperty("auto_comments")%>: </p>
-		<%
-	if (enc.getRComments()!=null) {
-	%>
-		<p class="para"><%=enc.getRComments().replaceAll("\n","<br />")%></p>
-		<%
-	}
-	%>
+		<p class="para">
+			<input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user"> 
+			<input name="number" type="hidden" value="<%=enc.getEncounterNumber()%>" id="number"> 
+			<input name="action" type="hidden" value="enc_comments" id="action"> 
 
-		<p><textarea name="comments" cols="50" id="comments"></textarea> <br />
-		<input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>">
+		<p>
+			<textarea name="comments" cols="50" id="comments"></textarea> <br />
+			<input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>">
 		</p>
 		</form>
+		</td></tr></table>
 		<%
+		}
 		}
 	  	}
 		
 		%>
 		
 		</p>
-		</td>
+	  </td>
 	</tr>
 
 </table>

@@ -282,8 +282,8 @@ public class WriteOutScanTask extends HttpServlet {
 						predictInput[0]=encA.getSex();
 					}
 					else{
-						boostString+="unsure,";
-						predictInput[0]="unsure";
+						boostString+="unknown,";
+						predictInput[0]="unknwon";
 					}
 					
 					

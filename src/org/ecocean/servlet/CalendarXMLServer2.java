@@ -150,7 +150,7 @@ public class CalendarXMLServer2 extends HttpServlet {
       					
 							String sex="-";
 							MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.isAssignedToMarkedIndividual());
-							if((!sharky.getSex().equals("Unknown"))&&(!sharky.getSex().equals("unsure"))) {
+							if((!sharky.getSex().equals("Unknown"))&&(!sharky.getSex().equals("unknown"))) {
 								if(sharky.getSex().equals("male")){
 									sex="M";
 								}
@@ -170,7 +170,7 @@ public class CalendarXMLServer2 extends HttpServlet {
    							out.println(outputXML);
       				 } else{
       				 	String sex="-";
-      				 	if((!tempEnc.getSex().equals("Unknown"))&&(!tempEnc.getSex().equals("unsure"))) {
+      				 	if((!tempEnc.getSex().equals("Unknown"))&&(!tempEnc.getSex().equals("unknown"))) {
 							if(tempEnc.getSex().equals("male")){
 									sex="M";
 								}

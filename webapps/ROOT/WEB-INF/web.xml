@@ -437,6 +437,10 @@
          <servlet-name>CalendarXMLServer2</servlet-name>
   	<servlet-class>org.ecocean.servlet.CalendarXMLServer2</servlet-class>
   </servlet>
+    <servlet>
+           <servlet-name>CalendarXMLServer</servlet-name>
+    	<servlet-class>org.ecocean.servlet.CalendarXMLServer</servlet-class>
+  </servlet>
 <servlet>
        <servlet-name>MatchAnalysis</servlet-name>
 	<servlet-class>org.ecocean.servlet.MatchAnalysis</servlet-class>
@@ -669,6 +673,11 @@
    <servlet-mapping>
          <servlet-name>CalendarXMLServer2</servlet-name>
          <url-pattern>/CalendarXMLServer2</url-pattern>
+  </servlet-mapping>
+  
+     <servlet-mapping>
+           <servlet-name>CalendarXMLServer</servlet-name>
+           <url-pattern>/CalendarXMLServer</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
