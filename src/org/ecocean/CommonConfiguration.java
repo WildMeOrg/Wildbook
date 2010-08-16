@@ -115,7 +115,7 @@ public class CommonConfiguration {
    
    /**
     * This configuration option defines whether users can edit this catalog. Some studies may wish to use the framework only for data display.
-    * @return true if edits are allows. False otherwise.
+    * @return true if EXIF data should be shown. False otherwise.
     */
    public static boolean showEXIFData(){
      boolean showEXIF = true;
@@ -124,5 +124,18 @@ public class CommonConfiguration {
      }
      return showEXIF;
    }
+   
+   /**
+    * This configuration option defines whether a pre-installed TapirLink provider will be used in conjunction with this database to expose mark-recapture data to biodiversity frameworks, such as the GBIF.
+    * @return true if a TapirLink provider is used with the framework. False otherwise.
+    */
+   public static boolean useTapirLinkURL(){
+     boolean useTapirLink = true;
+     if((props.getProperty("tapirLinkURL")!=null)&&(props.getProperty("tapirLinkURL").equals("false"))){
+       useTapirLink=false;
+     }
+     return useTapirLink ;
+   }
+   
 	
 }
