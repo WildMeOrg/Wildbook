@@ -44,8 +44,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 <table border="0">
 	<tr>
 		<td>
-		<h1 class="intro"><img src="../images/adoption.gif"
-			align="absmiddle" /> Delete an adoption</h1>
+		<h1 class="intro">Delete an adoption</h1>
 		<p>You are about to <strong>DELETE</strong> an adoption from the
 		database. If you choose <strong>Permanently delete</strong>, all data
 		contained within this adoption will be removed from the database<em>.

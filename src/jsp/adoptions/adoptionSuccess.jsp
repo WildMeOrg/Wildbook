@@ -80,9 +80,7 @@ String langCode="en";
 	<di:image width="190" height="*" srcurl="<%=addText%>" />
 </di:img>
 
-<h1 class="intro"><img src="http"
-	//<%=CommonConfiguration.getURLLocation() %>/images/adoption.gif" align="absmiddle" />
-Success</h1>
+<h1 class="intro">Success</h1>
 <p><strong>The adoption was successfully added/edited. </strong></p>
 <p>For future reference, this adoption is numbered <strong><%=number%></strong>.</p>
 <p>If you have any questions, please reference this number when contacting

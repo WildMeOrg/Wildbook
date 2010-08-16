@@ -30,7 +30,6 @@ try{
 						<td class="name">
 						<table>
 							<tr>
-								<td><img src="../images/adoption.gif" align="absmiddle" />
 								<td><strong><%=ad.getAdopterName()%></strong></td>
 							</tr>
 						</table>
