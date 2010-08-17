@@ -103,6 +103,7 @@
 		<li>Project Rome is used for writing out Atom feeds. <a href="https://rome.dev.java.net/">https://rome.dev.java.net/</a></li>
 		<li>A Java version of the <a href="http://www.reijns.com/i3s/">I3S 1.0 algorithm</a> is used under the GPL v2 license as one of two spot pattern recognition algorithms.</li>
 		<li>Metadata Extractor 2.3.1 for EXIF image data extraction. <a href="http://www.drewnoakes.com/code/exif/">http://www.drewnoakes.com/code/exif/</a></li>
+		<li>Sanselan 0.97 for image size detection. <a href="http://incubator.apache.org/sanselan/site/index.html">http://incubator.apache.org/sanselan/site/index.html</a></li>
 		</ul>
 
 	  </div>

@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="com.drew.imaging.jpeg.*, com.drew.metadata.*, org.ecocean.servlet.*,java.util.ArrayList,java.util.GregorianCalendar,java.util.StringTokenizer,org.ecocean.*,java.text.DecimalFormat, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.FileInputStream, java.io.File, java.util.Iterator,java.util.Properties, java.util.Iterator"%>
+	import="java.awt.Dimension, org.apache.sanselan.*, com.drew.imaging.jpeg.*, com.drew.metadata.*, org.ecocean.servlet.*,java.util.ArrayList,java.util.GregorianCalendar,java.util.StringTokenizer,org.ecocean.*,java.text.DecimalFormat, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.FileInputStream, java.io.File, java.util.Iterator,java.util.Properties, java.util.Iterator"%>
 <%@ taglib uri="di" prefix="di"%>
 
 <%!
@@ -237,7 +237,7 @@ if (session.getAttribute("logged")!=null) {
 //end user identity and authorization check
 %>
 <table width="720" border="0" cellpadding="3" cellspacing="5">
-<tr><td>
+<tr ><td colspan="3">
 <%
 if (enc.wasRejected()) {%>
 <table width="810">
@@ -253,7 +253,7 @@ if (enc.wasRejected()) {%>
 } else if(!enc.approved){%>
 <table width="810">
 	<tr>
-		<td bgcolor="#CC6600">
+		<td bgcolor="#CC6600" colspan="3">
 		<p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unapproved_title") %>: <%=num%><%=livingStatus %></font>
 		</td>
 	</tr>
@@ -1967,18 +1967,49 @@ if(enc.getDynamicProperties()!=null){
 				boolean isBMP=false;
 				boolean isVideo=false;
 				if(addTextFile.toLowerCase().indexOf(".bmp")!=-1) {isBMP=true;}
-				if((addTextFile.toLowerCase().indexOf(".mov")!=-1)||(addTextFile.toLowerCase().indexOf(".wmv")!=-1)||(addTextFile.toLowerCase().indexOf(".mpg")!=-1)||(addTextFile.toLowerCase().indexOf(".avi")!=-1)||(addTextFile.toLowerCase().indexOf(".mp4")!=-1)) {isVideo=true;}
-				if(isOwner&&(!isBMP)&&(!isVideo)) {
-			%> <a href="<%=num%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)" title="Click to enlarge">
-								<%
-					}
-						else if(isOwner) {
-				%> <a href="<%=addText%>" class="highslide" onclick="return hs.expand(this)" title="Click to enlarge"> <%
-					}
+				if(myShepherd.isAcceptableVideoFile(addTextFile)) {isVideo=true;}
+			if(isOwner&&(!isBMP)&&(!isVideo)) {
+			%> 
+				<a href="<%=num%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)" title="Click to enlarge">
+			<%
+			}
+			else if(isOwner) {
+				%> 
+				<a href="<%=addText%>" class="highslide" onclick="return hs.expand(this)" title="Click to enlarge"> <%
+			}
 					
 					String thumbLocation="file-"+num+"/"+imageCount+".jpg";
 					File processedImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/"+imageCount+".jpg")));
 
+					
+					
+					int intWidth = 250;
+					int intHeight = 200;
+					int thumbnailHeight=200;
+					int thumbnailWidth = 250;
+					
+					File file2process=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+addText)));
+					Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
+						
+					String width = Double.toString(imageDimensions.getWidth());
+					String height = Double.toString(imageDimensions.getHeight());
+					
+					intHeight=((new Double(height)).intValue());
+					intWidth=((new Double(width)).intValue());
+				
+					if(intWidth>thumbnailWidth){
+						double scalingFactor = intWidth/thumbnailWidth;
+						intWidth=(int)(intWidth/scalingFactor);
+						intHeight=(int)(intHeight/scalingFactor);
+						if(intHeight<thumbnailHeight){thumbnailHeight = intHeight;}
+					}
+					else{
+						thumbnailWidth = intWidth;
+						thumbnailHeight = intHeight;
+					}
+					int copyrightTextPosition=(int)(thumbnailHeight/3);
+					
+					
 					
 					if(isVideo) {
 				%> <img width="250" height="200" alt="video <%=enc.getLocation()%>"
@@ -1991,25 +2022,25 @@ if(enc.getDynamicProperties()!=null){
 					
 			
 							}
-							else if ((!processedImage.exists())&&(!haveRendered)) {
+					else if ((!processedImage.exists())&&(!haveRendered)) {
 								haveRendered=true;
 								//System.out.println("Using DynamicImage to render thumbnail: "+num);
 								//System.gc();
-						%> <di:img width="250" height="200"
+								
+
+								
+								
+						%> 
+						<di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>"
 									imgParams="rendering=speed,quality=low" border="0"
 									output="<%=thumbLocation%>" expAfter="0" threading="limited"
 									fillPaint="#FFFFFF" align="left" valign="left">
-									<di:image width="250" height="*" composite="70"
-										srcurl="<%=addText%>" />
-									<di:rectangle x="0" y="50" width="300" composite="30"
-										height="13" fillPaint="#99CCFF"></di:rectangle>
-									<di:image x="229" y="47" srcurl="copyright.gif"></di:image>
-									<di:text x="4" y="50" align="left" font="Arial-bold-11"
-										fillPaint="#000000"><%=encprops.getProperty("nocopying") %></di:text>
-								</di:img> <img width="250" height="200"
-									alt="photo <%=enc.getLocation()%>"
-									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
-									valign="left"> <%
+								<di:image width="<%=Integer.toString(thumbnailWidth) %>" height="<%=Integer.toString(thumbnailHeight) %>" composite="70" srcurl="<%=addText%>" />
+								<di:rectangle x="0" y="<%=copyrightTextPosition %>" width="<%=thumbnailWidth %>" composite="30" height="13" fillPaint="#99CCFF"></di:rectangle>
+								
+								<di:text x="4" y="<%=copyrightTextPosition %>" align="left" font="Arial-bold-11" fillPaint="#000000"><%=encprops.getProperty("nocopying") %></di:text>
+						 </di:img> 
+						 <img width="<%=thumbnailWidth %>" alt="photo <%=enc.getLocation()%>" src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left" valign="left"> <%
 				if (isOwner) {
 			%>
 								</a>
@@ -2026,7 +2057,7 @@ if(enc.getDynamicProperties()!=null){
 					}
 				%> <%
 				}else {
-			%> <img id="img<%=imageCount%> " width="250" height="200" alt="photo <%=enc.getLocation()%>"
+			%> <img id="img<%=imageCount%> " width="<%=thumbnailWidth %>" alt="photo <%=enc.getLocation()%>"
 									src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
 									valign="left"> <%
 					if (session.getAttribute("logged")!=null) {
@@ -2126,7 +2157,7 @@ if(enc.getDynamicProperties()!=null){
 
 						<%
 						}
-							else {
+				else {
 					%>
 				  <tr>
 							<td>
@@ -2143,11 +2174,12 @@ if(enc.getDynamicProperties()!=null){
 						} //close try
 						catch(Exception e){
 							e.printStackTrace();
-				%>
-						<p>I hit an error trying to display a file: <%=addTextFile%></p>
-						<%
+							%>
+							<p>I hit an error trying to display a file: <%=addTextFile%></p>
+							<p><%=e.getMessage()%></p>
+							<%
 						}
-						} //close while
+					} //close while
 					%>
 						
 				</table>
@@ -2240,21 +2272,28 @@ if(enc.getDynamicProperties()!=null){
 		 			//System.out.println(extractImage.exists());
 		 			//System.out.println(uploadedFile.exists());
 		 			//System.out.println(iInfo.check());
-		 			ImageInfo iInfo=new ImageInfo();
+		 			//ImageInfo iInfo=new ImageInfo();
 		 			
-
+					
 		 			
 		 			if((uploadedFile.exists())&&(uploadedFile.length()>0)&&(enc.getNumSpots()>0)) {
 
+		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
 		 				
-		 				iInfo.setInput(new FileInputStream(uploadedFile));
-		 				if ((!extractImage.exists())&&(iInfo.check())) {
+		 				//iInfo.setInput(new FileInputStream(uploadedFile));
+		 				if (!extractImage.exists()) {
 		 					//System.out.println("Made it here.");
-		 					height+=iInfo.getHeight();
-		 					width+=iInfo.getWidth();
+		 					
+		 					height+=Double.toString(imageDimensions.getHeight());
+		 					width+=Double.toString(imageDimensions.getWidth());
+		 					//height+=iInfo.getHeight();
+		 					//width+=iInfo.getWidth();
+		 					
+		 					
+		 					
 		 					//System.out.println(height+"and"+width);
-		 					int intHeight=((new Integer(height)).intValue());
-		 					int intWidth=((new Integer(width)).intValue());
+		 					int intHeight=((new Double(height)).intValue());
+		 					int intWidth=((new Double(width)).intValue());
 		 					//System.out.println("Made it here: "+enc.hasSpotImage+" "+enc.hasRightSpotImage);
 		 					System.gc();
 		 %> <di:img width="<%=intWidth%>" height="<%=intHeight%>"
@@ -2266,17 +2305,24 @@ if(enc.getDynamicProperties()!=null){
 										}
 									//set the right file
 									
-									if((uploadedRightFile.exists())&&(uploadedRightFile.length()>0)&&(enc.getNumRightSpots()>0)) {
+						if((uploadedRightFile.exists())&&(uploadedRightFile.length()>0)&&(enc.getNumRightSpots()>0)) {
 									
-									iInfo=new ImageInfo();
-									iInfo.setInput(new FileInputStream(uploadedRightFile));
-									if ((!extractRightImage.exists())&&(iInfo.check())) {
+									//iInfo=new ImageInfo();
+									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
+		 				
+									//iInfo.setInput(new FileInputStream(uploadedRightFile));
+									if (!extractRightImage.exists()) {
 										//System.out.println("Made it here.");
-										heightR+=iInfo.getHeight();
-										widthR+=iInfo.getWidth();
+										//heightR+=iInfo.getHeight();
+										//widthR+=iInfo.getWidth();
 										//System.out.println(height+"and"+width);
-										int intHeightR=((new Integer(heightR)).intValue());
-										int intWidthR=((new Integer(widthR)).intValue());
+										
+										heightR+=Double.toString(imageDimensions.getHeight());
+		 								widthR+=Double.toString(imageDimensions.getWidth());
+										
+										
+										int intHeightR=((new Double(heightR)).intValue());
+										int intWidthR=((new Double(widthR)).intValue());
 										System.gc();
 						%> <di:img width="<%=intWidthR%>" height="<%=intHeightR%>"
 					imgParams="rendering=speed,quality=low" expAfter="0"

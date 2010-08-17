@@ -532,7 +532,7 @@ if (highCount<totalCount) {%> <a
 		<td width="102" height="60" class="lineitems"><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><img
 			src="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"
-			width="100" height="75" alt="whale shark photo" border="0" /></a></td>
+			 alt="encounter photo" border="0" /></a></td>
 		<%
 	int encNumLast=enc.getEncounterNumber().length();
 		String encNumShort=enc.getEncounterNumber();
