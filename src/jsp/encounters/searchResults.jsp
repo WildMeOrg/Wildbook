@@ -244,7 +244,8 @@ int numResults=0;
 
 	myShepherd.beginDBTransaction();
 	
-	rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "");
+	EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "");
+	rEncounters = queryResult.getResult();
     
 	
 //--let's estimate the number of results that might be unique
@@ -442,7 +443,6 @@ if(generateEmails){
 
   						for(int f=0;f<rEncounters.size();f++) {
   						
-  					//Encounter enc=(Encounter)allEncounters.next(); 
   					Encounter enc=(Encounter)rEncounters.get(f);
   					count++;
   					numResults++;
@@ -709,6 +709,14 @@ if((startNum-10)>1) {
 	  %>
 	</tr>
 </table>
+
+<table><tr><td align="left">
+	<p><strong><%=encprops.getProperty("jdoql")%></strong><br /> 
+	<%=queryResult.getJDOQLRepresentation()%></p>
+
+</td></tr></table>
+
+
 </p>
 <br>
 

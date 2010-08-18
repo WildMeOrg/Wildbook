@@ -39,7 +39,9 @@ Shepherd myShepherd=new Shepherd();
 
   			myShepherd.beginDBTransaction();
   			
-  			rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "");
+  			EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "");
+  			rEncounters = queryResult.getResult();
+  			//rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "");
 			
   			String[] keywords=request.getParameterValues("keyword");
   			if(keywords==null){keywords=new String[0];}

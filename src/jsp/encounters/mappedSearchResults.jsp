@@ -70,7 +70,10 @@ int numResults=0;
 
 	myShepherd.beginDBTransaction();
 	String order="";
-	rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, order);
+	
+	EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, order);
+	rEncounters = queryResult.getResult();
+	//rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     
 
 %>

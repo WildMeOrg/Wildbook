@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 public class EncounterQueryProcessor {
   
-  public static Vector<Encounter> processQuery(Shepherd myShepherd, HttpServletRequest request, String order){
+  public static EncounterQueryResult processQuery(Shepherd myShepherd, HttpServletRequest request, String order){
     
     Vector<Encounter> rEncounters=new Vector<Encounter>();  
     Iterator<Encounter> allEncounters;
@@ -18,6 +18,7 @@ public class EncounterQueryProcessor {
     Query query=myShepherd.getPM().newQuery(encClass);
     if(!order.equals("")){query.setOrdering(order);}
     String filter="";
+    String prettyPrint="";
 
 
     //filter for location------------------------------------------
@@ -350,7 +351,7 @@ public class EncounterQueryProcessor {
     }
 
   //date filter--------------------------------------------------------------------------------------
-    return rEncounters;
+    return (new EncounterQueryResult(rEncounters,filter,prettyPrint));
     
   }
   
