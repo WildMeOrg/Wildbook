@@ -201,7 +201,7 @@ if((startNum)>1) {%>
 
 
 
-<table id="results" border="0" width="100%">
+<table id="results" border="0" width="100%" >
 	<%		
 
 			
@@ -215,7 +215,7 @@ if((startNum)>1) {%>
 			
 					for(int rows=0;rows<15;rows++) {		%>
 
-						<tr>
+						<tr valign="top">
 
 							<%
 							for(int columns=0;columns<3;columns++){
@@ -238,7 +238,7 @@ if((startNum)>1) {%>
 									<td>
 										<table>
 										<tr>
-											<td>
+											<td valign="top">
 												<a href="<%=link%>" class="highslide" onclick="return hs.expand(this)"><img src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge" /></a>
 										
 										<div class="highslide-caption">
