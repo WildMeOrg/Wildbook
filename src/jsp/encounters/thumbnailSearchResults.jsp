@@ -267,7 +267,9 @@ if((startNum)>1) {%>
 										<%
 										if(thisEnc.getVerbatimEventDate()!=null){
 										%>
-											<tr><td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
+											<tr>
+											
+											<td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
 										<%
 										}
 										%>
@@ -275,20 +277,30 @@ if((startNum)>1) {%>
 										<td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-									          for(int kwIter=0;kwIter<kwLength;kwIter++) {
-									              String kwParam=keywords[kwIter];
-									              if(myShepherd.isKeyword(kwParam)) {
-									                Keyword word=myShepherd.getKeyword(kwParam);
-									                if(word.isMemberOf(encNum+"/"+fileName)) {
-									                	%>
-														<br /><%= word.getReadableName()%>
-														
-														<%
-														
-									                  
-									                }
-									              } //end if isKeyword
+											//int numKeywords=myShepherd.getNumKeywords();
+											Iterator allKeywords2=myShepherd.getAllKeywords();
+											
+											while(allKeywords2.hasNext()){
+												Keyword word=(Keyword)allKeywords2.next();
+									            if(word.isMemberOf(encNum+"/"+fileName)) {
+									            	
+									            	String renderMe=word.getReadableName();
+									                	
+										          	for(int kwIter=0;kwIter<kwLength;kwIter++) {
+											              String kwParam=keywords[kwIter];
+											              if(kwParam.equals(word.getIndexname())) {
+											            	  renderMe="<strong>"+renderMe+"</strong>";
+											              }
+											       }	
+									            	
+
+								                	%>
+													<br /><%= renderMe%>
+													<%
+									              
 									            }
+									         }
+											
 											%>
 										</span></td>
 										</tr>
@@ -349,20 +361,30 @@ if((startNum)>1) {%>
 										<td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-									          for(int kwIter=0;kwIter<kwLength;kwIter++) {
-									              String kwParam=keywords[kwIter];
-									              if(myShepherd.isKeyword(kwParam)) {
-									                Keyword word=myShepherd.getKeyword(kwParam);
-									                if(word.isMemberOf(encNum+"/"+fileName)) {
-									                	%>
-														<br /><%= word.getReadableName()%>
-														
-														<%
-														
-									                  
-									                }
-									              } //end if isKeyword
+											//int numKeywords=myShepherd.getNumKeywords();
+											Iterator allKeywords=myShepherd.getAllKeywords();
+											
+											while(allKeywords.hasNext()){
+												Keyword word=(Keyword)allKeywords.next();
+									            if(word.isMemberOf(encNum+"/"+fileName)) {
+									            	
+									            	String renderMe=word.getReadableName();
+									                	
+										          	for(int kwIter=0;kwIter<kwLength;kwIter++) {
+											              String kwParam=keywords[kwIter];
+											              if(kwParam.equals(word.getIndexname())) {
+											            	  renderMe="<strong>"+renderMe+"</strong>";
+											              }
+											       }	
+									            	
+
+								                	%>
+													<br /><%= renderMe%>
+													<%
+									              
 									            }
+									         }
+											
 											%>
 										</span></td>
 										</tr>

@@ -2072,7 +2072,7 @@ if(enc.getDynamicProperties()!=null){
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=enc.getLocationID() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=enc.getDate() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=enc.getIndividualID() %>"><%=enc.getIndividualID() %></a></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("title") %>: <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a></span></td></tr>
 										<tr>
 										<td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
