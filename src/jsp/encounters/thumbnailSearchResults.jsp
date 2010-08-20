@@ -169,7 +169,7 @@ hs.addSlideshow({
 	
 </ul>
 
-<table width="720" border="0" cellspacing="0" cellpadding="0">
+<table width="810" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
 		<p>
@@ -190,14 +190,24 @@ if(startNumIndex>-1) {
 }
 
 %>
-<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><%=encprops.getProperty("seeNextResults")%> (<%=(startNum+45)%> - <%=(endNum+45)%>)</a></p>
-<%
+<table width="810px">
+  <tr>
+  <%
 if((startNum)>1) {%>
-<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=encprops.getProperty("seePreviousResults")%> (<%=(startNum-45)%> - <%=(startNum-1)%>)</a></p>
-
+<td align="left">
+<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><img src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle" title="<%=encprops.getProperty("seePreviousResults")%>" /></a>  <a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=(startNum-45)%> - <%=(startNum-1)%></a></p>
+</td>
 <%
 }
 %>
+ <td align="right">
+	<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><%=(startNum+45)%> - <%=(endNum+45)%></a> <a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><img src="../images/Black_Arrow_right.png" border="0" align="absmiddle" title="<%=encprops.getProperty("seeNextResults")%>" /></a></p>
+	</td>
+</tr>
+</table>
+
+
+
 
 
 
@@ -426,13 +436,23 @@ if((startNum)>1) {%>
 	endNum=endNum+45;
 
 %>
-<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("seeNextResults")%> (<%=startNum%> - <%=endNum%>)</a></p>
-<%
-if((startNum-45)>1) {%>
-<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=encprops.getProperty("seePreviousResults")%> (<%=(startNum-90)%> - <%=(startNum-46)%>)</a></p>
 
+<table width="810px">
+  <tr>
+  <%
+if((startNum-45)>1) {%>
+<td align="left">
+<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><img src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle" title="<%=encprops.getProperty("seePreviousResults")%>" /></a>  <a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=(startNum-90)%> - <%=(startNum-46)%></a></p>
+</td>
 <%
 }
+%>
+ <td align="right">
+	<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=startNum%> - <%=endNum%></a> <a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img src="../images/Black_Arrow_right.png" border="0" align="absmiddle" title="<%=encprops.getProperty("seeNextResults")%>" /></a></p>
+	</td>
+</tr>
+</table>
+<%
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 %>
