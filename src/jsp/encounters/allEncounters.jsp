@@ -248,8 +248,8 @@ if (highCount<totalCount) {%> <a
 
 	<tr class="lineitem">
 		<td bgcolor="#99CCFF" class="lineitem">&nbsp;</td>
-		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=number %></strong><br />
-		(<%=last %> 4) <br />
+		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=number %></strong>
+		 <br />
 		<%if(request.getRemoteUser()!=null){%><a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/allEncounters.jsp?sort=numberup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
 			src="../images/arrow_up.gif" width="11" height="6" border="0" alt="up" />
@@ -533,16 +533,9 @@ if (highCount<totalCount) {%> <a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><img
 			src="http://<%=CommonConfiguration.getURLLocation()%>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"
 			 alt="encounter photo" border="0" /></a></td>
-		<%
-	int encNumLast=enc.getEncounterNumber().length();
-		String encNumShort=enc.getEncounterNumber();
-		if(encNumLast>4){
-			encNumShort=enc.getEncounterNumber().substring((encNumLast-4),encNumLast);
-		}
-	
-	%>
+
 		<td class="lineitems"><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=encNumShort%></a></td>
+			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=enc.getEncounterNumber()%></a></td>
 		<td class="lineitems">
 		<a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">

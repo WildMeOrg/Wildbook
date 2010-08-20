@@ -244,7 +244,7 @@ int numResults=0;
 
 	myShepherd.beginDBTransaction();
 	
-	EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "");
+	EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
 	rEncounters = queryResult.getResult();
     
 	
@@ -373,9 +373,9 @@ if(generateEmails){
 <ul id="tabmenu">
 
 	<li><a class="active"><%=encprops.getProperty("table")%></a></li>
-	<li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%></a></li>
-	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults")%></a></li>
-	<li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
+	<li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%></a></li>
+	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%></a></li>
+	<li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
 	
 </ul>
 

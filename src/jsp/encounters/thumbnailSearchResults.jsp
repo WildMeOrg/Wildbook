@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="java.io.File,com.drew.imaging.jpeg.*, com.drew.metadata.*,java.util.StringTokenizer,org.ecocean.*, java.lang.Integer, java.lang.NumberFormatException, java.util.Vector, java.util.Iterator, java.util.GregorianCalendar, java.util.Properties, javax.jdo.*"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.Collections,java.io.File,com.drew.imaging.jpeg.*, com.drew.metadata.*,java.util.StringTokenizer,org.ecocean.*, java.lang.Integer, java.lang.NumberFormatException, java.util.Vector, java.util.Iterator, java.util.GregorianCalendar, java.util.Properties, javax.jdo.*"%>
 
 <html>
 <head>
@@ -39,10 +39,9 @@ Shepherd myShepherd=new Shepherd();
 
   			myShepherd.beginDBTransaction();
   			
-  			EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "");
+  			EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
   			rEncounters = queryResult.getResult();
-  			//rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "");
-			
+  			
   			String[] keywords=request.getParameterValues("keyword");
   			if(keywords==null){keywords=new String[0];}
 
@@ -163,10 +162,10 @@ hs.addSlideshow({
 
 <ul id="tabmenu">
 
-	<li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%></a></li>
+	<li><a href="searchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%></a></li>
 	<li><a class="active"><%=encprops.getProperty("matchingImages")%></a></li>
-	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults")%></a></li>
-	<li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
+	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%></a></li>
+	<li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
 	
 </ul>
 
@@ -213,7 +212,12 @@ if((startNum)>1) {%>
 			try {
 				thumbLocs=myShepherd.getThumbnails(rEncounters.iterator(), startNum, endNum, keywords);
 
-			
+				//now let's order these alphabetical by the highest keyword
+				//Cascadia Research only! TBD--remove on release of Shepherd Project
+				Collections.sort(thumbLocs, (new ThumbnailKeywordComparator()));
+				
+				
+				
 			
 					for(int rows=0;rows<15;rows++) {		%>
 
@@ -429,11 +433,22 @@ if((startNum-45)>1) {%>
 
 <%
 }
-
-
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-%> 
+%>
+
+<table><tr><td align="left">
+
+<p><strong><%=encprops.getProperty("queryDetails")%></strong></p>
+
+	<p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %></strong><br /> 
+	<%=queryResult.getQueryPrettyPrint().replaceAll("locationField",encprops.getProperty("location")).replaceAll("locationCodeField",encprops.getProperty("locationID")).replaceAll("verbatimEventDateField",encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField",encprops.getProperty("alternateID")).replaceAll("behaviorField",encprops.getProperty("behavior")).replaceAll("Sex",encprops.getProperty("sex")).replaceAll("nameField",encprops.getProperty("nameField")).replaceAll("selectLength",encprops.getProperty("selectLength")).replaceAll("numResights",encprops.getProperty("numResights")).replaceAll("vesselField",encprops.getProperty("vesselField"))%></p>
+	
+	<p class="caption"><strong><%=encprops.getProperty("jdoql")%></strong><br /> 
+	<%=queryResult.getJDOQLRepresentation()%></p>
+
+</td></tr></table>
+ 
 <br> <jsp:include page="../footer.jsp" flush="true" />
 </div>
 </div>

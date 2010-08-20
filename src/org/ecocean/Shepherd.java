@@ -519,7 +519,7 @@ public class Shepherd {
 		try{
 			c=(Collection)(acceptedEncounters.execute());
 			ArrayList list=new ArrayList(c);
-			Collections.reverse(list);
+			//Collections.reverse(list);
 			Iterator it=list.iterator();
 			return it;
 		} catch(Exception npe) {
