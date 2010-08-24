@@ -1468,6 +1468,67 @@ public class Shepherd {
 		return thumbs;
 	}
 	
+	 public Vector getMarkedIndividualThumbnails(Iterator<MarkedIndividual> it, int startNum, int endNum, String[] keywords) {
+	    Vector thumbs=new Vector();
+	    boolean stopMe=false;
+	    int count=0;
+	    while(it.hasNext()) {
+	      MarkedIndividual markie=it.next();
+	      Iterator allEncs=markie.getEncounters().iterator();
+	      while(allEncs.hasNext()){
+	       Encounter indie = (Encounter)allEncs.next();
+	      if((count+indie.getAdditionalImageNames().size())>=startNum) {
+	        for(int i=0;i<indie.getAdditionalImageNames().size();i++) {
+	          count++;
+	          if((count<=endNum)&&(count>=startNum)) {
+	            String m_thumb="";
+	            
+	            //check for video or image
+	            String imageName=(String)indie.getAdditionalImageNames().get(i);
+	            
+	            //check if this image has one of the assigned keywords
+	            boolean hasKeyword=false;
+	            if((keywords==null)||(keywords.length==0)){hasKeyword=true;}
+	            else{
+	              int numKeywords=keywords.length;
+	              for(int n=0;n<numKeywords;n++){
+	                if(!keywords[n].equals("None")){
+	                  Keyword word=getKeyword(keywords[n]);
+	                  if(word.isMemberOf(indie.getCatalogNumber()+"/"+imageName)){
+	                    hasKeyword=true;
+	                    //System.out.println("member of: "+word.getReadableName());
+	                  }
+	                }
+	                else {
+	                  hasKeyword=true;
+	                }
+	                
+	              }
+	              
+	            }
+	            
+	            
+	            if(hasKeyword&&isAcceptableVideoFile(imageName)) {
+	              m_thumb="http://"+CommonConfiguration.getURLLocation()+"/images/video.jpg"+"BREAK"+indie.getEncounterNumber()+"BREAK"+imageName;
+	              thumbs.add(m_thumb);
+	            }
+	            else if(hasKeyword&&isAcceptableImageFile(imageName)) {
+	              m_thumb=indie.getEncounterNumber()+"/"+(i+1)+".jpg"+"BREAK"+indie.getEncounterNumber()+"BREAK"+imageName;
+	              thumbs.add(m_thumb);
+	            }
+	            else {count--;}
+	          }
+	          else if(count>endNum) {stopMe=true;}
+	        }
+	      } //end if
+	      else {count+=indie.getAdditionalImageNames().size();}
+	      
+	    }//end while
+	      
+	      }//end while
+	    return thumbs;
+	  }
+	
 	 public int getNumThumbnails(Iterator it, String[] keywords) {
 	    //Vector thumbs=new Vector();
 	    //boolean stopMe=false;
@@ -1518,6 +1579,62 @@ public class Shepherd {
 	      }//end while
 	    return count;
 	  }
+	 
+	 
+   public int getNumMarkedIndividualThumbnails(Iterator<MarkedIndividual> it, String[] keywords) {
+     int count=0;
+     while(it.hasNext()) {
+       MarkedIndividual indie=it.next();
+       Iterator allEncs=indie.getEncounters().iterator();
+       while(allEncs.hasNext()){
+       Encounter enc=(Encounter)allEncs.next();
+         for(int i=0;i<enc.getAdditionalImageNames().size();i++) {
+           count++;
+             //String m_thumb="";
+             
+             //check for video or image
+             String imageName=(String)enc.getAdditionalImageNames().get(i);
+             
+             //check if this image has one of the assigned keywords
+             boolean hasKeyword=false;
+             if((keywords==null)||(keywords.length==0)){hasKeyword=true;}
+             else{
+               int numKeywords=keywords.length;
+               for(int n=0;n<numKeywords;n++){
+                 if(!keywords[n].equals("None")){
+                   Keyword word=getKeyword(keywords[n]);
+                   if(word.isMemberOf(enc.getCatalogNumber()+"/"+imageName)){
+                     hasKeyword=true;
+                     //System.out.println("member of: "+word.getReadableName());
+                   }
+                 }
+                 else {
+                   hasKeyword=true;
+                 }
+                 
+               }
+               
+             }
+                   
+             if(hasKeyword&&isAcceptableVideoFile(imageName)) {
+               //m_thumb="http://"+CommonConfiguration.getURLLocation()+"/images/video.jpg"+"BREAK"+enc.getEncounterNumber()+"BREAK"+imageName;
+               //thumbs.add(m_thumb);
+             }
+             else if(hasKeyword&&isAcceptableImageFile(imageName)) {
+               //m_thumb=enc.getEncounterNumber()+"/"+(i+1)+".jpg"+"BREAK"+enc.getEncounterNumber()+"BREAK"+imageName;
+               //thumbs.add(m_thumb);
+             }
+             else {count--;}
+
+         }
+       } //end while
+       
+       }//end while
+     return count;
+   }
+	 
+	 
+	 
 	
 	/**
 	 * Returns the number of acceptable images/videos in the enter Iterator.
