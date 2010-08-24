@@ -179,11 +179,37 @@ if(request.getParameter("noQuery")==null){
 	<tr>
 		<td>
 		<p>
-		<h1 class="intro"><%=encprops.getProperty("title")%></h1>
+		<h1 class="intro">
+		<%
+		if(request.getParameter("noQuery")==null){
+		%>
+			<%=encprops.getProperty("searchTitle")%>
+		<%
+		}
+		else {
+		%>
+			<%=encprops.getProperty("title")%>
+		<%
+		}
+		%>
+		</h1>
+		
 		</p>
 			<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=numThumbnails%></p>
 	
-		<p><%=encprops.getProperty("belowMatches")%> <%=startNum%> - <%=endNum%> <%=encprops.getProperty("thatMatched")%></p>
+		<p><%=encprops.getProperty("belowMatches")%> <%=startNum%> - <%=endNum%>&nbsp;
+		<%
+		if(request.getParameter("noQuery")==null){
+		%>
+		<%=encprops.getProperty("thatMatchedSearch")%></p>
+		<%
+		}
+		else {
+		%>
+		<%=encprops.getProperty("thatMatched")%></p>
+		<%
+		}
+		%>
 		</td>
 	</tr>
 </table>
