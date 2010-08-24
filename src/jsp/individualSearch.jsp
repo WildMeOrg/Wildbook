@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.util.Iterator, java.util.GregorianCalendar, java.util.Properties"%>
+	import="java.util.ArrayList, org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.util.Iterator, java.util.GregorianCalendar, java.util.Properties"%>
 <%
 Shepherd myShepherd=new Shepherd();
 Extent allKeywords=myShepherd.getPM().getExtent(Keyword.class,true);		
@@ -220,15 +220,42 @@ myShepherd.rollbackDBTransaction();
 					<option value="20">20</option>
 				</select> <%=props.getProperty("meters")%></td>
 			</tr>
-			<tr>
+<tr>
 				<td>
-				<p><strong><%=props.getProperty("locationID")%>:</strong><em> <input
-					name="locationCodeField" type="text" id="locationCodeField"
-					size="10" maxlength="25"> <span class="para"><a
-					href="<%=CommonConfiguration.getWikiLocation()%>location_codes"
+				<p><strong><%=props.getProperty("locationID")%>:</strong> <span class="para"><a href="<%=CommonConfiguration.getWikiLocation()%>locationID"
 					target="_blank"><img src="images/information_icon_svg.gif"
-					alt="Help" width="15" height="15" border="0" align="absmiddle" /></a></span>
-				<br> <%=props.getProperty("locationIDExample")%>
+					alt="Help" border="0" align="absmiddle" /></a></span> <br> 
+					(<em><%=props.getProperty("locationIDExample")%></em>)</p>
+
+				<%
+				ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
+				int totalLocIDs=locIDs.size();
+
+				
+				if(totalLocIDs>0){
+				%>
+				
+				<select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
+					<option value="None"></option>
+				<% 
+			  	for(int n=0;n<totalLocIDs;n++) {
+					String word=locIDs.get(n);
+					if(!word.equals("")){
+				%>
+					<option value="<%=word%>"><%=word%></option>
+				<%}
+					}
+				%>
+				</select>
+				<%
+				}
+				else{
+					%>
+					<p><em><%=props.getProperty("noLocationIDs")%></em></p>
+					<%
+				}
+				%>
+				
 				</td>
 			</tr>
 			<tr>

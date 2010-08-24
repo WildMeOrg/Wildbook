@@ -224,15 +224,6 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 				</td>
 			</tr>
 			
-			
-			<tr>
-				<td>
-				<p><strong><%=encprops.getProperty("vessel")%>:</strong><em> 
-				<input name="vesselField" type="text" id="vesselField" size="7"> <span class="para">
-				<a href="<%=CommonConfiguration.getWikiLocation()%>vessel" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></span> 
-				</em></p>
-				</td>
-			</tr>
 
 
 			<tr>

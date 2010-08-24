@@ -41,7 +41,39 @@ public class IndividualQueryProcessor {
         rIndividuals.add(temp_shark);
       }
 
+      //locationID filters-------------------------------------------------
+      String[] locCodes=request.getParameterValues("locationCodeField");
+      if((locCodes!=null)&&(!locCodes[0].equals("None"))){
+        queryPrettyPrint.append("locationCodeField is one of the following: ");
+            int kwLength=locCodes.length;
+            for(int q=0;q<rIndividuals.size();q++) {
+              MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
+              boolean wasSightedInOneOfThese=false;
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+                
+                String kwParam=locCodes[kwIter].replaceAll("%20", " ").trim();
+                if(!kwParam.equals("")){
+                  if(tShark.wasSightedInLocationCode(kwParam)) {
+                    wasSightedInOneOfThese=true;
+                  }
+                  queryPrettyPrint.append(kwParam+" ");
+
+                }
+                
+              }
+              if(!wasSightedInOneOfThese) {
+                 rIndividuals.remove(q);
+                 q--;
+              }
+              
+            }     //end for  
             
+
+              queryPrettyPrint.append("<br />");
+      }
+      //end locationID filters-----------------------------------------------  
+      
+      /*   
       //individuals in a particular location ID
       if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").equals(""))) {
               for(int q=0;q<rIndividuals.size();q++) {
@@ -58,7 +90,8 @@ public class IndividualQueryProcessor {
                 }
               }     //end for
       }//end if in locationCode
-
+      */
+      
       //individuals with a particular alternateID
       if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
               for(int q=0;q<rIndividuals.size();q++) {
