@@ -158,10 +158,11 @@ if(rIndividuals.size()<listNum) {listNum=rIndividuals.size();}
 	<li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%></a></li>
 
 </ul>
-<table width="720" border="0" cellspacing="0" cellpadding="0">
+<table width="810" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
-		<h1 class="intro"><span class="para"><img src="images/tag_big.gif" width="50" align="absmiddle" />
+		<br />
+		<h1 class="intro"><span class="para"><img src="images/tag_big.gif" width="35" align="absmiddle" />
 		<%=props.getProperty("title")%></h1>
 		<p><%=props.getProperty("instructions")%></p>
 		</td>
@@ -295,21 +296,35 @@ numResults=count;
 
 
 
-
-
-if(startNum<numResults) {%>
-<p><a
-	href="individualSearchResults.jsp?startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><%=props.getProperty("seeNextResults")%> <%=startNum%> - <%=endNum%></a></p>
-<%}
+%>
+<table width="810px">
+<tr>
+<%
 if((startNum-10)>1) {%>
-<p><a
-	href="individualSearchResults.jsp?startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><%=props.getProperty("seePreviousResults")%> <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
-
-<%}%>
+ <td align="left">
 <p>
-<table width="720" border="0" cellspacing="0" cellpadding="0">
+<a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><img src="images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle" title="<%=props.getProperty("seePreviousResults")%>" /></a> <a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><%=(startNum-20)%> - <%=(startNum-11)%></a>
+</p>
+</td>
+<%
+}
+
+if(startNum<numResults) {
+%>
+<td align="right">
+<p>
+<a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><%=startNum%> - <%=endNum%></a> <a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><img src="images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle" title="<%=props.getProperty("seeNextResults")%>" /></a>
+</p>
+</td>
+<%
+}
+%>
+</tr></table>
+
+<p>
+<table width="810" border="0" cellspacing="0" cellpadding="0">
 	<tr>
-		<td align="right">
+		<td align="left">
 		<p><strong><%=props.getProperty("matchingMarkedIndividuals")%></strong>: <%=count%><br />
 		<%=props.getProperty("numFirstSighted")%>: <%=numNewlyMarked %>
 		</p>
@@ -323,6 +338,23 @@ if((startNum-10)>1) {%>
 	  %>
 	</tr>
 </table>
+<%
+if(request.getParameter("noQuery")==null){
+%>
+<table><tr><td align="left">
+
+<p><strong><%=props.getProperty("queryDetails")%></strong></p>
+
+	<p class="caption"><strong><%=props.getProperty("prettyPrintResults") %></strong><br /> 
+	<%=result.getQueryPrettyPrint().replaceAll("locationField",props.getProperty("location")).replaceAll("locationCodeField",props.getProperty("locationID")).replaceAll("verbatimEventDateField",props.getProperty("verbatimEventDate")).replaceAll("Sex",props.getProperty("sex")).replaceAll("Keywords",props.getProperty("keywords"))%></p>
+	
+	<p class="caption"><strong><%=props.getProperty("jdoql")%></strong><br /> 
+	<%=result.getJDOQLRepresentation()%></p>
+
+</td></tr></table>
+<%
+}
+%>
 </p>
 <br>
 <p></p>

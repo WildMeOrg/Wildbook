@@ -529,6 +529,14 @@ public class MarkedIndividual{
 		return false;
 		}
 	
+  public boolean wasSightedInVerbatimEventDate(String ved){
+    for(int c=0;c<encounters.size();c++) {
+      Encounter temp=(Encounter)encounters.get(c);
+      if((temp.getVerbatimEventDate()!=null)&&(temp.getVerbatimEventDate().equals(ved))) {return true;}
+    }
+    return false;
+  }
+	
 	public boolean wasSightedByUser(String user){
 		for(int c=0;c<encounters.size();c++) {
 			Encounter temp=(Encounter)encounters.get(c);

@@ -158,19 +158,7 @@ int totalKeywords=myShepherd.getNumKeywords();
 				%>
 				</td>
 			</tr>
-			<%
-myShepherd.rollbackDBTransaction();
-%>
-			<tr>
-				<td><p><%=props.getProperty("hasAtLeast")%> <select name="numspots" id="numspots">
-					<option value="0" selected>0</option>
-					<option value="10">10</option>
-					<option value="20">20</option>
-					<option value="30">30</option>
-					<option value="40">40</option>
-					<option value="50">50</option>
-				</select> <%=props.getProperty("leftSpots")%></p></td>
-			</tr>
+
 			<tr>
 				<td><strong><%=props.getProperty("lengthIs")%>: </strong> <select
 					name="selectLength" size="1">
@@ -269,6 +257,48 @@ myShepherd.rollbackDBTransaction();
 				<br></em></p>
 				</td>
 			</tr>
+			
+			<tr>
+				<td>
+				<p><strong><%=props.getProperty("verbatimEventDate")%>:</strong> <span class="para"><a href="<%=CommonConfiguration.getWikiLocation()%>verbatimEventDate"
+					target="_blank"><img src="images/information_icon_svg.gif"
+					alt="Help" border="0" align="absmiddle" /></a></span></p>
+
+				<%
+				ArrayList<String> vbds = myShepherd.getAllVerbatimEventDates();
+				int totalVBDs=vbds.size();
+
+				if(totalVBDs>0){
+				%>
+				
+				<select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField" id="verbatimEventDateField">
+					<option value="None"></option>
+					<%
+					for(int f=0;f<totalVBDs;f++) {
+						String word=vbds.get(f);
+						if(word!=null){
+							%>
+							<option value="<%=word%>"><%=word%></option>
+						<%		
+						}
+					}
+					%>
+					</select>
+					<%
+
+				}
+				else{
+					%>
+					<p><em><%=props.getProperty("noVBDs")%></em></p>
+					<%
+				}
+				%>
+				</td>
+			</tr>
+			
+<%
+myShepherd.rollbackDBTransaction();
+%>
 
 			<tr>
 				<td><strong><%=props.getProperty("sightingDates")%>:</strong></td>

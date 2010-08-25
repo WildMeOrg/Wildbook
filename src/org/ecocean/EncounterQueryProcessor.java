@@ -114,7 +114,7 @@ public class EncounterQueryProcessor {
             else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
     }
-    //end locationID filters-----------------------------------------------  
+    //end verbatimEventDate filters-----------------------------------------------  
     
     
     
@@ -244,6 +244,7 @@ public class EncounterQueryProcessor {
 
 
 
+    /**
   //filter for vessel------------------------------------------
   if((request.getParameter("vesselField")!=null)&&(!request.getParameter("vesselField").equals(""))) {
     String vesString=request.getParameter("vesselField");  
@@ -257,7 +258,7 @@ public class EncounterQueryProcessor {
       prettyPrint.append("vesselField is "+vesString+".<br />");
   }
   //end vessel filter--------------------------------------------------------------------------------------
-
+*/
 
 
 
@@ -265,7 +266,7 @@ public class EncounterQueryProcessor {
   String[] keywords=request.getParameterValues("keyword");
   if((keywords!=null)&&(!keywords[0].equals("None"))){
     
-      prettyPrint.append("Has one of the following assigned keyword(s): ");
+      prettyPrint.append("Keywords: ");
       int kwLength=keywords.length;
       for(int y=0;y<kwLength;y++){
         String kwParam=keywords[y];

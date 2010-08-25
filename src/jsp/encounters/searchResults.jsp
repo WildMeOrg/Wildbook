@@ -692,7 +692,7 @@ if((startNum-10)>1) {
 %>
 </tr></table>
 <p>
-<table width="720" border="0" cellspacing="0" cellpadding="0">
+<table width="810" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td align="left">
 		<p><strong><%=encprops.getProperty("matchingEncounters")%></strong>: <%=numResults%>
