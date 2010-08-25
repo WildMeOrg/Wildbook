@@ -52,7 +52,9 @@ public class CalendarXMLServer extends HttpServlet {
 
     myShepherd.beginDBTransaction();
     
-    rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "individualID descending");
+    EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "individualID descending");
+    rEncounters = queryResult.getResult();
+    //rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "individualID descending");
     
     
 

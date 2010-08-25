@@ -134,8 +134,7 @@ table.adoption {
 
 
 <p>
-<h1 class="intro"><img src="../images/adoption.gif"
-	align="absmiddle" /> Adoption Administration</h1>
+<h1 class="intro"> Adoption Administration</h1>
 </p>
 <p>There are currently <%=count%> adoptions stored in the database.</p>
 <p>&nbsp;</p>

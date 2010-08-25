@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="java.util.Vector, java.io.FileReader, java.io.BufferedReader, java.util.Properties, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*"%>
+	import="java.awt.Dimension, java.util.Vector, java.io.FileReader, java.io.BufferedReader, java.util.Properties, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*, org.apache.sanselan.*"%>
 <%@ taglib uri="di" prefix="di"%>
 <%
 String number=request.getParameter("number");
@@ -66,15 +66,70 @@ catch(Exception cce){}
 			myShepherd.closeDBTransaction();
 		}
 		
+		int intWidth = 100;
+		int intHeight = 75;
+		int thumbnailHeight=75;
+		int thumbnailWidth = 100;
+		
+		
+		File file2process=new File(getServletContext().getRealPath(("/"+addText)));
+		
+		try{
+			
+
+			
+			//ImageInfo iInfo=new ImageInfo();
+			if((file2process.exists())&&(file2process.length()>0)) {
+				//iInfo.setInput(new FileInputStream(file2process));
+				String height="";
+ 				String width="";
+ 				
+ 				
+ 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
+ 				
+ 				//height+=iInfo.getHeight();
+				//width+=iInfo.getWidth();
+				
+				width = Double.toString(imageDimensions.getWidth());
+				height = Double.toString(imageDimensions.getHeight());
+				
+				intHeight=((new Double(height)).intValue());
+				intWidth=((new Double(width)).intValue());
+			
+				if(intWidth>thumbnailWidth){
+					double scalingFactor = intWidth/thumbnailWidth;
+					intWidth=(int)(intWidth/scalingFactor);
+					intHeight=(int)(intHeight/scalingFactor);
+					if(intHeight<thumbnailHeight){thumbnailHeight = intHeight;}
+				}
+				else{
+					thumbnailWidth = intWidth;
+					thumbnailHeight = intHeight;
+				}
+				
+				
+			}
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			%>
+			
+			<p>Hit an error trying to use Sanselan to determine image size and scaling factors.</p>
+		
+			<%
+		}
+			
+
+		
 		
 		String thumbLocation="file-encounters/"+number+"/thumb.jpg";
 
 		//generate the thumbnail image
-			%> <di:img width="100" height="75" border="0" fillPaint="#ffffff"
-	output="<%=thumbLocation%>" expAfter="0" threading="limited"
-	align="left" valign="left">
-	<di:image width="100" height="*" srcurl="<%=addText%>" />
-</di:img>
+			%> 
+		<di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>" border="0" fillPaint="#ffffff" output="<%=thumbLocation%>" expAfter="0" threading="limited" align="left" valign="left">
+			<di:image width="<%=Integer.toString(intWidth) %>" height="<%=Integer.toString(intHeight) %>" srcurl="<%=addText%>" />
+		</di:img>
+		
 <h1 class="intro">Success</h1>
 <p>I have successfully reset the thumbnail image for encounter
 number <strong><%=number%></strong>!</p>

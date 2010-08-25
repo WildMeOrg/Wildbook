@@ -244,7 +244,8 @@ int numResults=0;
 
 	myShepherd.beginDBTransaction();
 	
-	rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "");
+	EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+	rEncounters = queryResult.getResult();
     
 	
 //--let's estimate the number of results that might be unique
@@ -372,9 +373,9 @@ if(generateEmails){
 <ul id="tabmenu">
 
 	<li><a class="active"><%=encprops.getProperty("table")%></a></li>
-	<li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%></a></li>
-	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults")%></a></li>
-	<li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
+	<li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%></a></li>
+	<li><a href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%></a></li>
+	<li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
 	
 </ul>
 
@@ -422,18 +423,18 @@ if(generateEmails){
 	}
 %>
 
-<table width="810px" border="1">
+<table width="810px">
 	<tr>
-		<td bgcolor="#99CCFF"></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("markedIndividual")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("number")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("alternateID")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("submitterName")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("date")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("vessel")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("eventID")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("location")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("locationID")%></strong></td>
+		<td class="lineitem" bgcolor="#99CCFF"></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("markedIndividual")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("number")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("alternateID")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("submitterName")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("date")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("vessel")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("eventID")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("location")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("locationID")%></strong></td>
 	</tr>
 
 	<%
@@ -442,7 +443,6 @@ if(generateEmails){
 
   						for(int f=0;f<rEncounters.size();f++) {
   						
-  					//Encounter enc=(Encounter)allEncounters.next(); 
   					Encounter enc=(Encounter)rEncounters.get(f);
   					count++;
   					numResults++;
@@ -454,7 +454,7 @@ if(generateEmails){
   				if((numResults>=startNum)&&(numResults<=endNum)) {
   				%>
 	<tr>
-	<td width="102" bgcolor="#000000"><img src="<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"></td>
+	<td width="100" class="lineitem" ><img src="<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"></td>
 		
 			<%
 	if (enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned")) {
@@ -463,14 +463,14 @@ if(generateEmails){
 		<%
 	} else {
 %>
-		<td><a
+		<td class="lineitem"><a
 			href="../individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>"><%=enc.isAssignedToMarkedIndividual()%></a></td>
 		<%
 	}
 %>
-<td><a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=enc.getEncounterNumber()%></a>
-
-	<td>
+<td class="lineitem"><a href="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=enc.getEncounterNumber()%></a>
+</td>
+	<td class="lineitem">
 		<%
 			if((enc.getAlternateID()!=null)&&(!enc.getAlternateID().equals("None"))){
 		%> 
@@ -482,13 +482,13 @@ if(generateEmails){
 		 }
 		 %>
 	</td>	
-		</td>
-		<td><%=enc.getSubmitterName()%></td>
-		<td><%=enc.getDate()%></td>
-		<td><%=enc.getDynamicPropertyValue("Vessel")%></td>
-		<td><%=enc.getEventID()%></td>
-		<td><%=enc.getLocation()%></td>
-		<td><%=enc.getLocationCode()%></td>
+
+		<td class="lineitem"><%=enc.getSubmitterName()%></td>
+		<td class="lineitem"><%=enc.getDate()%></td>
+		<td class="lineitem"><%=enc.getDynamicPropertyValue("Vessel")%></td>
+		<td class="lineitem"><%=enc.getEventID()%></td>
+		<td class="lineitem"><%=enc.getLocation()%></td>
+		<td class="lineitem"><%=enc.getLocationCode()%></td>
 	</tr>
 	<%
   	} //end if to control number displayed
@@ -669,24 +669,32 @@ if(generateEmails){
  	qString=qString.substring(0,startNumIndex);
  }
 
- if(startNum<numResults) {
- %>
-<p><a
-	href="searchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("seeNextResults")%> <%=startNum%> - <%=endNum%></a></p>
+%>
+<table width="810px"><tr>
 <%
-	}
 if((startNum-10)>1) {
 %>
-<p><a
-	href="searchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>"><%=encprops.getProperty("seePreviousResults")%> <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
-
+<td align="left">
+<p>
+<a href="searchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>"><img src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle" title="<%=encprops.getProperty("seePreviousResults")%>" /></a> <a href="searchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>"><%=(startNum-20)%> - <%=(startNum-11)%></a>
+</p></td>
 <%
-	}
+}
+ if(startNum<numResults) {
+ %>
+ <td align="right">
+<p><a href="searchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=startNum%>&endNum=<%=endNum%>"> <%=startNum%> - <%=endNum%></a> <a href="searchResults.jsp?<%=qString%><%=numberResights%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img src="../images/Black_Arrow_right.png" border="0" align="absmiddle" title="<%=encprops.getProperty("seeNextResults")%>" /></a>
+
+</p>
+</td>
+<%
+}
 %>
+</tr></table>
 <p>
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>
-		<td align="right">
+		<td align="left">
 		<p><strong><%=encprops.getProperty("matchingEncounters")%></strong>: <%=numResults%>
 		<%
 		if(request.isUserInRole("admin")){
@@ -709,6 +717,20 @@ if((startNum-10)>1) {
 	  %>
 	</tr>
 </table>
+
+<table><tr><td align="left">
+
+<p><strong><%=encprops.getProperty("queryDetails")%></strong></p>
+
+	<p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %></strong><br /> 
+	<%=queryResult.getQueryPrettyPrint().replaceAll("locationField",encprops.getProperty("location")).replaceAll("locationCodeField",encprops.getProperty("locationID")).replaceAll("verbatimEventDateField",encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField",encprops.getProperty("alternateID")).replaceAll("behaviorField",encprops.getProperty("behavior")).replaceAll("Sex",encprops.getProperty("sex")).replaceAll("nameField",encprops.getProperty("nameField")).replaceAll("selectLength",encprops.getProperty("selectLength")).replaceAll("numResights",encprops.getProperty("numResights")).replaceAll("vesselField",encprops.getProperty("vesselField"))%></p>
+	
+	<p class="caption"><strong><%=encprops.getProperty("jdoql")%></strong><br /> 
+	<%=queryResult.getJDOQLRepresentation()%></p>
+
+</td></tr></table>
+
+
 </p>
 <br>
 

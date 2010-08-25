@@ -185,10 +185,9 @@ z-index:99;
 			href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/allEncounters.jsp?start=1&end=10"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;"><%=props.getProperty("viewEncounters")%></a></li>
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/thumbs.jsp"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewImages")%></a></li>
+
+			<li><a href="http://<%=CommonConfiguration.getURLLocation() %>/individualThumbnailSearchResults.jsp?noQuery=true" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;"><%=props.getProperty("viewImages")%></a></li>
+		
 		<li><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/xcalendar/calendar.jsp"
 			class="enclose"
@@ -283,12 +282,15 @@ z-index:99;
 			href="<%=CommonConfiguration.getTapirLinkURL() %>"
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("tapirLink")%></a></li>
-		<li><a
-			href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/kwAdmin.jsp"
-			class="enclose"
-			style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("photoKeywords")%></a></li>
-	
 		<%
+		if(CommonConfiguration.useTapirLinkURL()){
+		%>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/kwAdmin.jsp"
+			class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("photoKeywords")%></a>
+		</li>
+		<%
+		}
+		
 		if(CommonConfiguration.allowAdoptions()){
 		%>
 		<li class="drop"><a

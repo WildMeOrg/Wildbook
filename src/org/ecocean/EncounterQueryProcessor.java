@@ -5,11 +5,11 @@ import java.util.Iterator;
 import javax.jdo.Extent;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
-import java.util.regex.Pattern;
+import java.lang.StringBuffer;
 
 public class EncounterQueryProcessor {
   
-  public static Vector<Encounter> processQuery(Shepherd myShepherd, HttpServletRequest request, String order){
+  public static EncounterQueryResult processQuery(Shepherd myShepherd, HttpServletRequest request, String order){
     
     Vector<Encounter> rEncounters=new Vector<Encounter>();  
     Iterator<Encounter> allEncounters;
@@ -18,13 +18,17 @@ public class EncounterQueryProcessor {
     Query query=myShepherd.getPM().newQuery(encClass);
     if(!order.equals("")){query.setOrdering(order);}
     String filter="";
+    StringBuffer prettyPrint=new StringBuffer("");
 
 
     //filter for location------------------------------------------
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
       String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
-      if(filter.equals("")){filter="(this.verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";}
+      if(filter.equals("")){
+        filter="(this.verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";
+      }
       else{filter+=" && (this.verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";}
+      prettyPrint.append("locationField contains \""+locString+"\".<br />");
     }
     //end location filter--------------------------------------------------------------------------------------
     
@@ -32,6 +36,7 @@ public class EncounterQueryProcessor {
     if(request.getParameter("unidentifiable")==null) {
       if(filter.equals("")){filter="!this.unidentifiable";}
       else{filter+=" && !this.unidentifiable";}
+      prettyPrint.append("Not identifiable.<br />");
     }
     //-----------------------------------------------------
     
@@ -39,6 +44,7 @@ public class EncounterQueryProcessor {
     if(request.getParameter("approved")==null) {
       if(filter.equals("")){filter="!this.approved";}
       else{filter+=" && !this.approved";}
+      prettyPrint.append("Not approved.<br />");
     }
     //----------------------------
     
@@ -46,6 +52,7 @@ public class EncounterQueryProcessor {
     if(request.getParameter("unapproved")==null) {
       if(filter.equals("")){filter="(!this.approved && !this.unidentifiable)";}
       else{filter+=" && (!this.approved && !this.unidentifiable)";}
+      prettyPrint.append("Not unapproved.<br />");
     }
     //----------------------------
     
@@ -55,6 +62,7 @@ public class EncounterQueryProcessor {
     //locationID filters-------------------------------------------------
     String[] locCodes=request.getParameterValues("locationCodeField");
     if((locCodes!=null)&&(!locCodes[0].equals("None"))){
+          prettyPrint.append("locationCodeField is one of the following: ");
           int kwLength=locCodes.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -69,21 +77,23 @@ public class EncounterQueryProcessor {
                   //locIDFilter+=" || this.locationID.startsWith('"+kwParam+"')";
                   locIDFilter+=" || this.locationID == \""+kwParam+"\"";
                 }
+                prettyPrint.append(kwParam+" ");
               }
+              
             }
             locIDFilter+=" )";
-            //System.out.println("locIDFilter: "+locIDFilter);
             if(filter.equals("")){filter=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
-            //System.out.println("filter: "+filter);
+            prettyPrint.append("<br />");
     }
     //end locationID filters-----------------------------------------------  
     
     
     //------------------------------------------------------------------
-    //locationID filters-------------------------------------------------
+    //verbatimEventDate filters-------------------------------------------------
     String[] verbatimEventDates=request.getParameterValues("verbatimEventDateField");
     if((verbatimEventDates!=null)&&(!verbatimEventDates[0].equals("None"))){
+          prettyPrint.append("verbatimEventDateField is one of the following: ");
           int kwLength=verbatimEventDates.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -96,12 +106,13 @@ public class EncounterQueryProcessor {
                 else{
                   locIDFilter+=" || this.verbatimEventDate == \""+kwParam+"\"";
                 }
+                prettyPrint.append(kwParam+" ");
               }
             }
             locIDFilter+=" )";
             if(filter.equals("")){filter=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
-           
+            prettyPrint.append("<br />");
     }
     //end locationID filters-----------------------------------------------  
     
@@ -114,6 +125,7 @@ public class EncounterQueryProcessor {
       String altID=request.getParameter("alternateIDField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals("")){filter="this.otherCatalogNumbers.startsWith('"+altID+"')";}
       else{filter+=" && this.otherCatalogNumbers.startsWith('"+altID+"')";}
+      prettyPrint.append("alternateIDField starts with \""+altID+"\".<br />");
       
     }
     //filter for behavior------------------------------------------
@@ -121,7 +133,7 @@ public class EncounterQueryProcessor {
       String behString=request.getParameter("behaviorField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals("")){filter="this.behavior.toLowerCase().indexOf('"+behString+"') != -1";}
       else{filter+=" && this.behavior.toLowerCase().indexOf('"+behString+"') != -1";}
-      
+      prettyPrint.append("behaviorField contains \""+behString+"\".<br />");
     }
     //end behavior filter--------------------------------------------------------------------------------------
 
@@ -129,14 +141,17 @@ public class EncounterQueryProcessor {
     if(request.getParameter("male")==null) {
       if(filter.equals("")){filter="!this.sex.startsWith('male')";}
       else{filter+=" && !this.sex.startsWith('male')";}
+      prettyPrint.append("Sex is not male.<br />");
     }
     if(request.getParameter("female")==null) {
       if(filter.equals("")){filter="!this.sex.startsWith('female')";}
       else{filter+=" && !this.sex.startsWith('female')";}
+      prettyPrint.append("Sex is not female.<br />");
     }
     if(request.getParameter("unknown")==null) {
       if(filter.equals("")){filter="!this.sex.startsWith('unknown')";}
       else{filter+=" && !this.sex.startsWith('unknown')";}
+      prettyPrint.append("Sex is unknown.<br />");
     }
     //filter by sex--------------------------------------------------------------------------------------
 
@@ -144,21 +159,22 @@ public class EncounterQueryProcessor {
     if(request.getParameter("alive")==null) {
       if(filter.equals("")){filter="!this.livingStatus.startsWith('alive')";}
       else{filter+=" && !this.livingStatus.startsWith('alive')";}
+      prettyPrint.append("Alive.<br />");
     }
     if(request.getParameter("dead")==null) {
       if(filter.equals("")){filter="!this.livingStatus.startsWith('dead')";}
       else{filter+=" && !this.livingStatus.startsWith('dead')";}
+      prettyPrint.append("Dead.<br />");
     }
     //filter by alive/dead status--------------------------------------------------------------------------------------
 
     //submitter or photographer name filter------------------------------------------
     if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
       String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
-      
       String filterString="((this.recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(this.submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(this.photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(this.photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1))";
       if(filter.equals("")){filter=filterString;}
       else{filter+=(" && "+filterString);}
-
+      prettyPrint.append("nameField contains: \""+nameString+"\"<br />");
     }
     //end name and email filter--------------------------------------------------------------------------------------
 
@@ -171,16 +187,19 @@ public class EncounterQueryProcessor {
         String filterString="this.size > "+size;
         if(filter.equals("")){filter=filterString;}
         else{filter+=(" && "+filterString);}
+        prettyPrint.append("selectLength is > "+size+".<br />");
       }
       else if(request.getParameter("selectLength").equals("lt")) {
         String filterString="this.size < "+size;
         if(filter.equals("")){filter=filterString;}
         else{filter+=(" && "+filterString);}
+        prettyPrint.append("selectLength is < "+size+".<br />");
       }
       else if(request.getParameter("selectLength").equals("eq")) {
         String filterString="this.size == "+size;
         if(filter.equals("")){filter=filterString;}
         else{filter+=(" && "+filterString);}
+        prettyPrint.append("selectLength is = "+size+".<br />");
       }
     }
     if(!filter.equals("")){filter="("+filter+")";}
@@ -202,6 +221,7 @@ public class EncounterQueryProcessor {
 
       try{
         numResights=(new Integer(request.getParameter("numResights"))).intValue();
+        prettyPrint.append("numResights is > "+numResights+".<br />");
         }
       catch(NumberFormatException nfe) {nfe.printStackTrace();}
 
@@ -226,14 +246,15 @@ public class EncounterQueryProcessor {
 
   //filter for vessel------------------------------------------
   if((request.getParameter("vesselField")!=null)&&(!request.getParameter("vesselField").equals(""))) {
-      for(int q=0;q<rEncounters.size();q++) {
+    String vesString=request.getParameter("vesselField");  
+    for(int q=0;q<rEncounters.size();q++) {
         Encounter rEnc=(Encounter)rEncounters.get(q);
-        String vesString=request.getParameter("vesselField").toLowerCase();
-        if((rEnc.getDynamicPropertyValue("Vessel")==null)||(rEnc.getDynamicPropertyValue("Vessel").toLowerCase().indexOf(vesString)==-1)){
+        if((rEnc.getDynamicPropertyValue("Vessel")==null)||(rEnc.getDynamicPropertyValue("Vessel").toLowerCase().indexOf(vesString.toLowerCase())==-1)){
           rEncounters.remove(q);
           q--;
           }
       }
+      prettyPrint.append("vesselField is "+vesString+".<br />");
   }
   //end vessel filter--------------------------------------------------------------------------------------
 
@@ -243,14 +264,16 @@ public class EncounterQueryProcessor {
   //keyword filters-------------------------------------------------
   String[] keywords=request.getParameterValues("keyword");
   if((keywords!=null)&&(!keywords[0].equals("None"))){
+    
+      prettyPrint.append("Has one of the following assigned keyword(s): ");
       int kwLength=keywords.length;
-        
-        
-        for(int q=0;q<rEncounters.size();q++) {
+      for(int y=0;y<kwLength;y++){
+        String kwParam=keywords[y];
+        prettyPrint.append(kwParam+" ");
+      }
+      
+      for(int q=0;q<rEncounters.size();q++) {
           Encounter tShark=(Encounter)rEncounters.get(q);
-          String memberOf="";
-          
-         
           boolean hasNeededKeyword=false;
           for(int kwIter=0;kwIter<kwLength;kwIter++) {
             String kwParam=keywords[kwIter];
@@ -258,7 +281,7 @@ public class EncounterQueryProcessor {
               Keyword word=myShepherd.getKeyword(kwParam);
               if(word.isMemberOf(tShark)) {
                 hasNeededKeyword=true;
-                memberOf+=word.getReadableName();
+               
               }
             } //end if isKeyword
           }
@@ -268,8 +291,8 @@ public class EncounterQueryProcessor {
           }
 
 
-        } //end for
-      
+      } //end for
+      prettyPrint.append("<br />");
 
   }
   //end keyword filters-----------------------------------------------  
@@ -287,6 +310,8 @@ public class EncounterQueryProcessor {
     int month2=(new Integer(request.getParameter("month2"))).intValue();
     int year1=(new Integer(request.getParameter("year1"))).intValue();
     int year2=(new Integer(request.getParameter("year2"))).intValue();
+    
+    prettyPrint.append("Dates between: "+year1+"-"+month1+"-"+day1+" and "+year2+"-"+month2+"-"+day2+"<br />");
     
     //order our values
     int minYear=year1;
@@ -350,7 +375,7 @@ public class EncounterQueryProcessor {
     }
 
   //date filter--------------------------------------------------------------------------------------
-    return rEncounters;
+    return (new EncounterQueryResult(rEncounters,filter,prettyPrint.toString()));
     
   }
   

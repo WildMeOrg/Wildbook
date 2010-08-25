@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="org.ecocean.servlet.*,java.util.concurrent.ThreadPoolExecutor,java.util.Vector, java.io.FileReader, java.io.BufferedReader, java.util.Properties, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*,java.util.StringTokenizer"%>
+	import="java.awt.Dimension, org.apache.sanselan.*, org.ecocean.servlet.*,java.util.concurrent.ThreadPoolExecutor,java.util.Vector, java.io.FileReader, java.io.BufferedReader, java.util.Properties, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,org.ecocean.*,java.util.StringTokenizer"%>
 <%@ taglib uri="di" prefix="di"%>
 <%
 String number=request.getParameter("number");
@@ -12,11 +12,7 @@ Shepherd myShepherd=new Shepherd();
 	Properties email_props=new Properties();
 	
 	//check what language is requested
-	if(request.getParameter("langCode")!=null){
-		if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
-		if(request.getParameter("langCode").equals("de")) {langCode="de";}
-		if(request.getParameter("langCode").equals("es")) {langCode="es";}
-	}
+	if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
 	
 	//set up the file input stream
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
@@ -26,34 +22,34 @@ Shepherd myShepherd=new Shepherd();
 
 	
 	//load our variables for the submit page
-	String title=props.getProperty("submit_title");
-	String submit_maintext=props.getProperty("submit_maintext");
-	String submit_reportit=props.getProperty("reportit");
-	String submit_language=props.getProperty("language");
-	String what_do=props.getProperty("what_do");
-	String read_overview=props.getProperty("read_overview");
-	String see_all_encounters=props.getProperty("see_all_encounters");
-	String see_all_sharks=props.getProperty("see_all_sharks");
-	String report_encounter=props.getProperty("report_encounter");
-	String log_in=props.getProperty("log_in");
-	String contact_us=props.getProperty("contact_us");
-	String search=props.getProperty("search");
-	String encounter=props.getProperty("encounter");
-	String shark=props.getProperty("shark");
-	String join_the_dots=props.getProperty("join_the_dots");
-	String menu=props.getProperty("menu");
-	String last_sightings=props.getProperty("last_sightings");
-	String more=props.getProperty("more");
-	String ws_info=props.getProperty("ws_info");
-	String about=props.getProperty("about");
-	String contributors=props.getProperty("contributors");
-	String forum=props.getProperty("forum");
-	String blog=props.getProperty("blog");
-	String area=props.getProperty("area");
-	String match=props.getProperty("match");
+	//String title=props.getProperty("submit_title");
+	//String submit_maintext=props.getProperty("submit_maintext");
+	//String submit_reportit=props.getProperty("reportit");
+	//String submit_language=props.getProperty("language");
+	//String what_do=props.getProperty("what_do");
+	//String read_overview=props.getProperty("read_overview");
+	//String see_all_encounters=props.getProperty("see_all_encounters");
+	//String see_all_sharks=props.getProperty("see_all_sharks");
+	//String report_encounter=props.getProperty("report_encounter");
+	//String log_in=props.getProperty("log_in");
+	//String contact_us=props.getProperty("contact_us");
+	//String search=props.getProperty("search");
+	//String encounter=props.getProperty("encounter");
+	//String shark=props.getProperty("shark");
+	//String join_the_dots=props.getProperty("join_the_dots");
+	//String menu=props.getProperty("menu");
+	//String last_sightings=props.getProperty("last_sightings");
+	//String more=props.getProperty("more");
+	//String ws_info=props.getProperty("ws_info");
+	//String about=props.getProperty("about");
+	//String contributors=props.getProperty("contributors");
+	//String forum=props.getProperty("forum");
+	//String blog=props.getProperty("blog");
+	//String area=props.getProperty("area");
+	//String match=props.getProperty("match");
 	
 	//link path to submit page with appropriate language
-	String submitPath="submit.jsp?langCode="+langCode;
+	String submitPath="submit.jsp";
 	
 
 %>
@@ -86,30 +82,13 @@ Shepherd myShepherd=new Shepherd();
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
-<div id="leftcol">
-<div id="menu">
 
-
-<div class="module"><img src="images/area.jpg" width="190"
-	height="115" border="0" title="Area to photograph"
-	alt="Area to photograph" />
-<p class="caption"><%=area%></p>
-</div>
-
-<div class="module"><img src="images/match.jpg" width="190"
-	height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-<p class="caption"><%=match%></p>
-</div>
-
-</div>
-<!-- end menu --></div>
-<!-- end leftcol -->
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 
 <div id="maintext">
 <%
 		StringBuffer new_message=new StringBuffer();
-		new_message.append("The ECOCEAN Library has received a new whale shark encounter submission. You can view it at:\nhttp://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+number);
+		new_message.append("The library has received a new whale shark encounter submission. You can view it at:\nhttp://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+number);
 		new_message.append("\n\nQuick stats:\n");
 		String photographer="None";
 		boolean emailPhoto=false;
@@ -156,16 +135,49 @@ Shepherd myShepherd=new Shepherd();
 			myShepherd.closeDBTransaction();
 		}
 		
-		//addText="encounters/"+request.getParameter("number")+"/"+addText;
 		String thumbLocation="file-encounters/"+number+"/thumb.jpg";
 		if(myShepherd.isAcceptableVideoFile(addText)){addText="images/video_thumb.jpg";}
 		else{addText="encounters/"+number+"/"+addText;}
+		
+		
+		
+		File file2process=new File(getServletContext().getRealPath(("/"+addText)));
+		
+		int intWidth = 100;
+		int intHeight = 75;
+		int thumbnailHeight=75;
+		int thumbnailWidth = 100;
+		
+		
+		String height="";
+		String width="";
+			
+		Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
+		
+		width = Double.toString(imageDimensions.getWidth());
+		height = Double.toString(imageDimensions.getHeight());
+		
+		intHeight=((new Double(height)).intValue());
+		intWidth=((new Double(width)).intValue());
+	
+		if(intWidth>thumbnailWidth){
+			double scalingFactor = intWidth/thumbnailWidth;
+			intWidth=(int)(intWidth/scalingFactor);
+			intHeight=(int)(intHeight/scalingFactor);
+			if(intHeight<thumbnailHeight){thumbnailHeight = intHeight;}
+		}
+		else{
+			thumbnailWidth = intWidth;
+			thumbnailHeight = intHeight;
+		}
+		
 
-			%> <di:img width="100" height="75" border="0" fillPaint="#000000"
-	output="<%=thumbLocation%>" expAfter="0" threading="limited"
-	align="left" valign="left">
-	<di:image width="100" height="*" srcurl="<%=addText%>" />
-</di:img>
+			%> 
+
+	
+	<di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>" border="0" fillPaint="#ffffff" output="<%=thumbLocation%>" expAfter="0" threading="limited" align="left" valign="left">
+			<di:image width="<%=Integer.toString(intWidth) %>" height="<%=Integer.toString(intHeight) %>" srcurl="<%=addText%>" />
+	</di:img>
 
 <h1 class="intro">Success</h1>
 <p><strong>Thank you for submitting your encounter! </strong></p>

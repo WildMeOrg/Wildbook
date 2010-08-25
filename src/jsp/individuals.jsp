@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.ArrayList,org.ecocean.servlet.*,org.ecocean.*, java.util.Vector, java.util.Enumeration, java.lang.Math,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.StringTokenizer,com.drew.imaging.jpeg.*, com.drew.metadata.*,java.util.Iterator,java.util.ArrayList,org.ecocean.servlet.*,org.ecocean.*, java.util.Vector, java.util.Enumeration, java.lang.Math,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException"%>
 
 <%
 
@@ -120,7 +120,43 @@ table.adopter td.image {
 -->
 </style>
 
+	
+<!--
+	1 ) Reference to the files containing the JavaScript and CSS.
+	These files must be located on your server.
+-->
 
+<script type="text/javascript" src="highslide/highslide/highslide-with-gallery.js"></script>
+<link rel="stylesheet" type="text/css" href="highslide/highslide/highslide.css" />
+
+<!--
+	2) Optionally override the settings defined at the top
+	of the highslide.js file. The parameter hs.graphicsDir is important!
+-->
+
+<script type="text/javascript">
+hs.graphicsDir = 'highslide/highslide/graphics/';
+hs.align = 'center';
+hs.transitions = ['expand', 'crossfade'];
+hs.outlineType = 'rounded-white';
+hs.fadeInOut = true;
+//hs.dimmingOpacity = 0.75;
+
+// Add the controlbar
+hs.addSlideshow({
+	//slideshowGroup: 'group1',
+	interval: 5000,
+	repeat: false,
+	useControls: true,
+	fixedControls: 'fit',
+	overlayOptions: {
+		opacity: 0.75,
+		position: 'bottom center',
+		hideOnMouseOut: true
+	}
+});
+
+</script>	
 
 </head>
 
@@ -350,6 +386,243 @@ if (isOwner) {
 
 
 		</table>
+		
+			
+				
+				<!-- Start thumbnail gallery -->
+				
+				
+				
+
+		<p>
+		<strong><%=props.getProperty("imageGallery") %></strong><br />
+		
+
+		<table id="results" border="0" width="100%" >
+	<%		
+
+			
+			int countMe=0;
+			Vector thumbLocs=new Vector();
+			String[] keywords=keywords=new String[0];
+			int numThumbnails = myShepherd.getNumThumbnails(sharky.getEncounters().iterator(), keywords);
+			
+			try {
+				thumbLocs=myShepherd.getThumbnails(sharky.getEncounters().iterator(), 1, 99999, keywords);
+
+			
+			
+					for(int rows=0;rows<15;rows++) {		%>
+
+						<tr valign="top">
+
+							<%
+							for(int columns=0;columns<3;columns++){
+								if(countMe<thumbLocs.size()) {
+									String combined=(String)thumbLocs.get(countMe);
+									StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
+									String thumbLink=stzr.nextToken();
+									String encNum=stzr.nextToken();
+									int fileNamePos=combined.lastIndexOf("BREAK")+5;
+									String fileName=combined.substring(fileNamePos);
+									boolean video=true;
+									if(!thumbLink.endsWith("video.jpg")){
+										thumbLink="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+thumbLink;
+										video=false;
+									}
+									String link="http://"+CommonConfiguration.getURLLocation()+"/encounters/"+encNum+"/"+fileName;
+						
+							%>
+
+									<td>
+										<table>
+										<tr>
+											<td valign="top">
+											
+												<%
+												if(isOwner){
+												%>
+													<a href="<%=link%>" class="highslide" onclick="return hs.expand(this)">
+												<%
+												}
+												%>
+												<img src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge" />
+												<%
+												if(isOwner){
+												%>
+													</a>
+												<%
+												}
+												%>
+										
+										<div class="highslide-caption">
+										
+										<table>
+											<tr>
+												<td align="left" valign="top">
+										
+												<table>
+										<%
+											
+										int kwLength=keywords.length;
+										Encounter thisEnc = myShepherd.getEncounter(encNum);
+										%>
+										<tr><td><span class="caption"><em><%=(countMe+1) %>/<%=numThumbnails %></em></span></td></tr>
+										<tr><td><span class="caption"><%=props.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption"><%=props.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
+										<tr><td><span class="caption"><%=props.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
+										<tr><td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a href="<%= CommonConfiguration.getImageDirectory()%>/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
+										<%
+										if(thisEnc.getVerbatimEventDate()!=null){
+										%>
+											<tr>
+											
+											<td><span class="caption"><%=props.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
+										<%
+										}
+										%>
+										<tr>
+										<td><span class="caption">
+											<%=props.getProperty("matchingKeywords") %>
+											<%
+											//int numKeywords=myShepherd.getNumKeywords();
+											Iterator allKeywords2=myShepherd.getAllKeywords();
+											
+											while(allKeywords2.hasNext()){
+												Keyword word=(Keyword)allKeywords2.next();
+									            if(word.isMemberOf(encNum+"/"+fileName)) {
+									            	
+									            	String renderMe=word.getReadableName();
+									                	
+										          	for(int kwIter=0;kwIter<kwLength;kwIter++) {
+											              String kwParam=keywords[kwIter];
+											              if(kwParam.equals(word.getIndexname())) {
+											            	  renderMe="<strong>"+renderMe+"</strong>";
+											              }
+											       }	
+									            	
+
+								                	%>
+													<br /><%= renderMe%>
+													<%
+									              
+									            }
+									         }
+											
+											%>
+										</span></td>
+										</tr>
+										</table>
+										</td>
+										
+										<%
+										if(CommonConfiguration.showEXIFData()){
+										%>
+										
+												<td align="left" valign="top">
+												<span class="caption">
+						<ul>
+					<%
+					if((fileName.toLowerCase().endsWith("jpg"))||(fileName.toLowerCase().endsWith("jpeg"))){
+						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+thisEnc.getCatalogNumber()+"/"+fileName)));
+						Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+						// iterate through metadata directories 
+						Iterator directories = metadata.getDirectoryIterator();
+						while (directories.hasNext()) { 
+							Directory directory = (Directory)directories.next(); 
+							// iterate through tags and print to System.out  
+							Iterator tags = directory.getTagIterator(); 
+							while (tags.hasNext()) { 
+								Tag tag = (Tag)tags.next(); 
+								
+								%>
+								<li><%=tag.toString() %></li>
+								<% 
+							} 
+						} 
+					
+					}					
+					%>
+   									
+   								</ul>
+   								</span>
+												
+												
+												</td>
+									<%
+										}
+									%>
+											</tr>
+										</table>
+</div>
+												</div>
+											</td>
+										</tr>
+							
+										
+										<tr><td><span class="caption"><%=props.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption"><%=props.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
+										<tr><td><span class="caption"><%=props.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
+										<tr><td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a href="<%=CommonConfiguration.getImageDirectory() %>/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
+										<tr>
+										<td><span class="caption">
+											<%=props.getProperty("matchingKeywords") %>
+											<%
+											//int numKeywords=myShepherd.getNumKeywords();
+											Iterator allKeywords=myShepherd.getAllKeywords();
+											
+											while(allKeywords.hasNext()){
+												Keyword word=(Keyword)allKeywords.next();
+									            if(word.isMemberOf(encNum+"/"+fileName)) {
+									            	
+									            	String renderMe=word.getReadableName();
+									                	
+										          	for(int kwIter=0;kwIter<kwLength;kwIter++) {
+											              String kwParam=keywords[kwIter];
+											              if(kwParam.equals(word.getIndexname())) {
+											            	  renderMe="<strong>"+renderMe+"</strong>";
+											              }
+											       }	
+									            	
+
+								                	%>
+													<br /><%= renderMe%>
+													<%
+									              
+									            }
+									         }
+											
+											%>
+										</span></td>
+										</tr>
+										
+										</table>
+									</td>
+							<%
+					
+								countMe++;
+								} //end if
+							} //endFor
+							%>
+					</tr>
+				<%} //endFor
+	
+				} catch(Exception e) {
+					e.printStackTrace();
+				%>
+	<tr>
+		<td>
+		<p><%=props.getProperty("error")%></p>.</p>
+		</td>
+	</tr>
+	<%}
+%>
+
+</table>
+		
+		
+		
+		<!-- end thumbnail gallery -->
 
 		<p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle" /><%=mapping %></strong></p>
 		<%
@@ -428,7 +701,7 @@ if (isOwner) {
 	
     if (isOwner) {
 %>
-		<hr>
+		
 		<p><strong><%=additionalDataFiles %></strong>: <%if (sharky.getDataFiles().size()>0) {%>
 		</p>
 		<table>
@@ -464,7 +737,7 @@ if (isOwner) {
 			<%
 		}
 			%>
-		<hr />
+		
 
 		
 		<p><strong><%=researcherComments %></strong>: </p>
@@ -472,19 +745,28 @@ if (isOwner) {
 		<%
 		if(CommonConfiguration.isCatalogEditable()){
 		%>
-		<p>
-		<form action="IndividualAddComment" method="post" name="addComments">
-		<input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user"> 
-		<input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual"> 
-		<input name="action" type="hidden" value="comments" id="action"> 
-		<p><textarea name="comments" cols="60" id="comments"></textarea> <br>
-		<input name="Submit" type="submit" value="<%=addComments %>">
-		</form>
-		</p>
+			<p>
+				<form action="IndividualAddComment" method="post" name="addComments">
+					<input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user"> 
+					<input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual"> 
+					<input name="action" type="hidden" value="comments" id="action"> 
+					<p><textarea name="comments" cols="60" id="comments"></textarea> <br>
+					<input name="Submit" type="submit" value="<%=addComments %>">
+				</form>
+			</p>
 		<%
-		}
+		} //if isEditable
+		
+		
 		}
 		%>
+				
+			
+		
+		
+		</p>
+		
+		
 		</td>
 	</tr>
 </table>

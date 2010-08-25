@@ -1,7 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java"
-	import="org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.lang.Integer, java.lang.NumberFormatException, java.io.*, java.util.Vector, java.util.Iterator, java.util.StringTokenizer, java.util.Properties"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.lang.Integer, java.lang.NumberFormatException, java.io.*, java.util.Vector, java.util.Iterator, java.util.StringTokenizer, java.util.Properties"%>
 <%@ taglib uri="di" prefix="di"%>
 
 <html>
@@ -34,7 +33,6 @@ try{
 }
 int listNum=endNum;
 
-Shepherd myShepherd=new Shepherd();
 int day1=1, day2=31, month1=1, month2=12, year1=0, year2=3000;
 try{month1=(new Integer(request.getParameter("month1"))).intValue();} catch(NumberFormatException nfe) {}
 try{month2=(new Integer(request.getParameter("month2"))).intValue();} catch(NumberFormatException nfe) {}
@@ -42,8 +40,9 @@ try{year1=(new Integer(request.getParameter("year1"))).intValue();} catch(Number
 try{year2=(new Integer(request.getParameter("year2"))).intValue();} catch(NumberFormatException nfe) {}
 
 
+Shepherd myShepherd=new Shepherd();
 
-//qStringParams for links
+/*
 String sexParam="";
 if(request.getParameter("sex")!=null) {sexParam="&sex="+request.getParameter("sex");}
 String keywordParam="";
@@ -62,205 +61,22 @@ if(request.getParameter("export")!=null) {exportParam="&export=true";}
 String numberSpots="";
 if(request.getParameter("numspots")!=null) {numberSpots="&numspots="+request.getParameter("numspots");}
 String qString=dateParams+sexParam+numResightsParam+locCodeParam+lengthParams+exportParam+keywordParam+numberSpots;
+*/
 
 int numResults=0;
 
-Iterator allSharks;
-Vector rSharks=new Vector();			
+
+Vector<MarkedIndividual> rIndividuals=new Vector<MarkedIndividual>();			
 myShepherd.beginDBTransaction();
-Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
-Query query=myShepherd.getPM().newQuery(sharkClass);
-if(request.getParameter("sort")!=null) {
-	if(request.getParameter("sort").equals("sex")){allSharks=myShepherd.getAllMarkedIndividuals(query, "sex ascending");}
-	else if(request.getParameter("sort").equals("name")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "name ascending");}
-	else if(request.getParameter("sort").equals("numberEncounters")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberEncounters descending");}
-	else{allSharks=myShepherd.getAllMarkedIndividuals(query);}
-}
-else{
-	allSharks=myShepherd.getAllMarkedIndividuals(query);
-}
-//process over to Vector
-while (allSharks.hasNext()) {
-	MarkedIndividual temp_shark=(MarkedIndividual)allSharks.next();
-	rSharks.add(temp_shark);
-}
+String order="";
 
-			
-//individuals in a particular location ID
-if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").equals(""))) {
-				for(int q=0;q<rSharks.size();q++) {
-					MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
-					
-					StringTokenizer st=new StringTokenizer(request.getParameter("locationCodeField"),",");
-					boolean exit=false;
-					while((st.hasMoreTokens())&&(!exit)){
-						if(!tShark.wasSightedInLocationCode(st.nextToken())) {
-							rSharks.remove(q);
-							q--;
-							exit=true;
-						}
-					}
-				} 		//end for
-}//end if in locationCode
-
-//individuals with a particular alternateID
-if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
-				for(int q=0;q<rSharks.size();q++) {
-					MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
-					if((tShark.getAlternateID()==null)||(!tShark.getAlternateID().startsWith(request.getParameter("alternateIDField")))) {
-						rSharks.remove(q);
-						q--;
-					}
-					
-				} 		//end for
-}//end if with alternateID
-
-
-//individuals with a photo keyword assigned to one of their encounters
-if(request.getParameterValues("keyword")!=null){
-String[] keywords=request.getParameterValues("keyword");
-int kwLength=keywords.length;
-for(int kwIter=0;kwIter<kwLength;kwIter++) {
-		String kwParam=keywords[kwIter];
-		if(myShepherd.isKeyword(kwParam)) {
-			Keyword word=myShepherd.getKeyword(kwParam);
-			for(int q=0;q<rSharks.size();q++) {
-				MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
-				if(!tShark.isDescribedByPhotoKeyword(word)) {
-					rSharks.remove(q);
-					q--;
-				}
-			} //end for
-		} //end if isKeyword
-}
-}
-
-
-
-//individuals of a particular sex
-if(request.getParameter("sex")!=null) {
-				for(int q=0;q<rSharks.size();q++) {
-					MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
-					if((request.getParameter("sex").equals("male"))&&(!tShark.getSex().equals("male"))) {
-						rSharks.remove(q);
-						q--;
-					}
-					else if((request.getParameter("sex").equals("female"))&&(!tShark.getSex().equals("female"))) {
-						rSharks.remove(q);
-						q--;
-					}
-					else if((request.getParameter("sex").equals("unknown"))&&(!tShark.getSex().equals("unknown"))) {
-						rSharks.remove(q);
-						q--;
-					}
-					else if((request.getParameter("sex").equals("mf"))&&(tShark.getSex().equals("unknown"))) {
-						rSharks.remove(q);
-						q--;
-					}
-				} //end for
-}//end if of sex
+MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+rIndividuals = result.getResult();
 
 
 
 
-//individuals of a particular size
-if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)) {
-				try {
-					double size;
-					size=(new Double(request.getParameter("lengthField"))).doubleValue();
-					for(int q=0;q<rSharks.size();q++) {
-					MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
-					if(request.getParameter("selectLength").equals("greater")){
-						if(tShark.avgLengthInPeriod(year1, month1, year2, month2)<size) {
-							rSharks.remove(q);
-							q--;
-						}
-					}
-					else if(request.getParameter("selectLength").equals("less")) {
-						if(tShark.avgLengthInPeriod(year1, month1, year2, month2)>size) {
-							rSharks.remove(q);
-							q--;
-						}
-					}
-
-				} //end for
-			} catch(NumberFormatException nfe) {}
-}//end if is of size
-			
-//min number of resights			
-if((request.getParameter("numResights")!=null)&&(request.getParameter("numResightsOperator")!=null)) {
-				int numResights=1;
-				String operator = "greater";
-				try{
-					numResights=(new Integer(request.getParameter("numResights"))).intValue();
-					operator = request.getParameter("numResightsOperator");
-				}
-				catch(NumberFormatException nfe) {}
-				for(int q=0;q<rSharks.size();q++) {
-					MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
-					
-					
-					if(operator.equals("greater")){
-						if(tShark.getMaxNumYearsBetweenSightings()<numResights) {
-							rSharks.remove(q);
-							q--;
-						}
-					}
-					else if(operator.equals("less")){
-						if(tShark.getMaxNumYearsBetweenSightings()>numResights) {
-							rSharks.remove(q);
-							q--;
-						}
-					}
-					else if(operator.equals("equals")){
-						if(tShark.getMaxNumYearsBetweenSightings() != numResights) {
-							rSharks.remove(q);
-							q--;
-						}
-					}
-					
-					
-				} //end for
-}//end if resightOnly
-
-//min number of spots		
-if(request.getParameter("numspots")!=null) {
-				int numspots=1;
-				try{
-					numspots=(new Integer(request.getParameter("numspots"))).intValue();
-					}
-				catch(NumberFormatException nfe) {}
-				for(int q=0;q<rSharks.size();q++) {
-					MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
-					int total=tShark.totalEncounters();
-					boolean removeShark=true;
-					for(int k=0;k<total;k++) {
-						Encounter enc=tShark.getEncounter(k);
-						if(enc.getNumSpots()>=numspots) {removeShark=false;}
-
-					} //end for encounters
-					if(removeShark) {
-							rSharks.remove(q);
-							q--;
-					} //end if
-
-				} //end for sharks
-}//end if numspots
-
-
-//now filter for date-----------------------------
-for(int q=0;q<rSharks.size();q++) {
-					MarkedIndividual tShark=(MarkedIndividual)rSharks.get(q);
-					if(!tShark.wasSightedInPeriod(year1, month1, year2, month2)) {
-						rSharks.remove(q);
-						q--;
-					}
-} //end for
-//--------------------------------------------------
-
-
-
-if(rSharks.size()<listNum) {listNum=rSharks.size();}
+if(rIndividuals.size()<listNum) {listNum=rIndividuals.size();}
 %>
 <title><%=CommonConfiguration.getHTMLTitle() %></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -275,7 +91,54 @@ if(rSharks.size()<listNum) {listNum=rSharks.size();}
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 
 </head>
+<style type="text/css">
+#tabmenu {
+	color: #000;
+	border-bottom: 2px solid black;
+	margin: 12px 0px 0px 0px;
+	padding: 0px;
+	z-index: 1;
+	padding-left: 10px
+}
 
+#tabmenu li {
+	display: inline;
+	overflow: hidden;
+	list-style-type: none;
+}
+
+#tabmenu a,a.active {
+	color: #DEDECF;
+	background: #000;
+	font: bold 1em "Trebuchet MS", Arial, sans-serif;
+	border: 2px solid black;
+	padding: 2px 5px 0px 5px;
+	margin: 0;
+	text-decoration: none;
+	border-bottom: 0px solid #FFFFFF;
+}
+
+#tabmenu a.active {
+	background: #FFFFFF;
+	color: #000000;
+	border-bottom: 2px solid #FFFFFF;
+}
+
+#tabmenu a:hover {
+	color: #ffffff;
+	background: #7484ad;
+}
+
+#tabmenu a:visited {
+	color: #E8E9BE;
+}
+
+#tabmenu a.active:hover {
+	background: #7484ad;
+	color: #DEDECF;
+	border-bottom: 2px solid #000000;
+}
+</style>
 <body>
 <div id="wrapper">
 <div id="page"><jsp:include page="header.jsp" flush="true">
@@ -288,6 +151,13 @@ if(rSharks.size()<listNum) {listNum=rSharks.size();}
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
 <div id="main">
+<ul id="tabmenu">
+
+
+	<li><a class="active" ><%=props.getProperty("table")%></a></li>
+	<li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%></a></li>
+
+</ul>
 <table width="720" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
@@ -300,7 +170,7 @@ if(rSharks.size()<listNum) {listNum=rSharks.size();}
 
 
 
-<table width="720" border="1">
+<table width="810" border="1">
 	<tr>
 		<td bgcolor="#99CCFF"></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("markedIndividual")%></strong></td>
@@ -316,12 +186,12 @@ int count=0;
 int numNewlyMarked = 0;
 
 Vector histories=new Vector();
-for(int f=0;f<rSharks.size();f++) {
-	MarkedIndividual shark=(MarkedIndividual)rSharks.get(f);
+for(int f=0;f<rIndividuals.size();f++) {
+	MarkedIndividual indie=(MarkedIndividual)rIndividuals.get(f);
 	count++;
 	
 	//check if this individual was newly marked in this period
-	Encounter[] dateSortedEncs=shark.getDateSortedEncounters(true);
+	Encounter[] dateSortedEncs=indie.getDateSortedEncounters(true);
 	int sortedLength=dateSortedEncs.length-1;
 	Encounter temp=dateSortedEncs[sortedLength];
 
@@ -338,24 +208,24 @@ for(int f=0;f<rSharks.size();f++) {
 	
 	
 	if((count>=startNum)&&(count<=endNum)) {			
-		Encounter tempEnc=shark.getEncounter(0);		
+		Encounter tempEnc=indie.getEncounter(0);		
 %>
 	<tr>
 		<td width="102" bgcolor="#000000"><img
 			src="<%=("encounters/"+tempEnc.getEncounterNumber()+"/thumb.jpg")%>"></td>
 		<td><a
-			href="http://<%=CommonConfiguration.getURLLocation()%>/individuals.jsp?number=<%=shark.getName()%>"><%=shark.getName()%></a>
+			href="http://<%=CommonConfiguration.getURLLocation()%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%></a>
 		<%
-		  if((shark.getAlternateID()!=null)&&(!shark.getAlternateID().equals("None"))){
-		  %> <br><font size="-1"><%=props.getProperty("alternateID")%>: <%=shark.getAlternateID()%></font> <%
+		  if((indie.getAlternateID()!=null)&&(!indie.getAlternateID().equals("None"))){
+		  %> <br><font size="-1"><%=props.getProperty("alternateID")%>: <%=indie.getAlternateID()%></font> <%
 		  }
 			%>
 		  <br><font size="-1"><%=props.getProperty("firstIdentified")%>: <%=temp.getMonth() %>/<%=temp.getYear() %></font>
 		
 		</td>
-		<td><%=shark.totalEncounters()%></td>
+		<td><%=indie.totalEncounters()%></td>
 		
-		<td><%=shark.getMaxNumYearsBetweenSightings()%></td>
+		<td><%=indie.getMaxNumYearsBetweenSightings()%></td>
 	</tr>
 	<%
 } //end if to control number displayed
@@ -376,13 +246,13 @@ if (((request.getParameter("export")!=null)||(request.getParameter("capture")!=n
 		if(request.getParameter("subsampleMonths")!=null){
 			int monthIter=startMonth;
 			while(monthIter<=endMonth) {
-				if(shark.wasSightedInMonth(startYear, monthIter)){history=history+"1";}
+				if(indie.wasSightedInMonth(startYear, monthIter)){history=history+"1";}
 				else{history=history+"0";}
 				monthIter++;
 			} //end while
 		}
 		else {
-			if(shark.wasSightedInYear(startYear)){history=history+"1";}
+			if(indie.wasSightedInYear(startYear)){history=history+"1";}
 			else{history=history+"0";}
 		}
 		startYear++;
@@ -429,11 +299,11 @@ numResults=count;
 
 if(startNum<numResults) {%>
 <p><a
-	href="individualSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><%=props.getProperty("seeNextResults")%> <%=startNum%> - <%=endNum%></a></p>
+	href="individualSearchResults.jsp?startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><%=props.getProperty("seeNextResults")%> <%=startNum%> - <%=endNum%></a></p>
 <%}
 if((startNum-10)>1) {%>
 <p><a
-	href="individualSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><%=props.getProperty("seePreviousResults")%> <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
+	href="individualSearchResults.jsp?startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><%=props.getProperty("seePreviousResults")%> <%=(startNum-20)%> - <%=(startNum-11)%></a></p>
 
 <%}%>
 <p>

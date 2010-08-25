@@ -29,35 +29,26 @@ String langCode="en";
 if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
 
 Properties encprops=new Properties();
-encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/thumbnailSearchResults.properties"));
+encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/individualThumbnailSearchResults.properties"));
 
 
 Shepherd myShepherd=new Shepherd();
 
-Vector rEncounters=new Vector();			
+  			//Iterator allIndividuals;
+  			Vector<MarkedIndividual> rIndividuals=new Vector<MarkedIndividual>();			
 
-myShepherd.beginDBTransaction();
-EncounterQueryResult queryResult=new EncounterQueryResult(new Vector<Encounter>(),"","");
-
-
-  			if(request.getParameter("noQuery")==null){
-  				queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
-  				rEncounters = queryResult.getResult();
-  			}
-  			else{
-  				Iterator allEncounters=myShepherd.getAllEncounters();
-  				while(allEncounters.hasNext()){
-  					Encounter enc=(Encounter)allEncounters.next();
-  					rEncounters.add(enc);
-  				}
-  			}
+  			myShepherd.beginDBTransaction();
+  			
+  			MarkedIndividualQueryResult queryResult=IndividualQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+  			rIndividuals = queryResult.getResult();
   			
   			String[] keywords=request.getParameterValues("keyword");
   			if(keywords==null){keywords=new String[0];}
 
-  			int numThumbnails = myShepherd.getNumThumbnails(rEncounters.iterator(), keywords);
+  			int numThumbnails = myShepherd.getNumMarkedIndividualThumbnails(rIndividuals.iterator(), keywords);
 
-
+String queryString="";
+if(request.getQueryString()!=null){queryString=request.getQueryString();}
 
 %>
 <title><%=CommonConfiguration.getHTMLTitle() %></title>
@@ -77,8 +68,8 @@ EncounterQueryResult queryResult=new EncounterQueryResult(new Vector<Encounter>(
 	These files must be located on your server.
 -->
 
-<script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
-<link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css" />
+<script type="text/javascript" src="highslide/highslide/highslide-with-gallery.js"></script>
+<link rel="stylesheet" type="text/css" href="highslide/highslide/highslide.css" />
 
 <!--
 	2) Optionally override the settings defined at the top
@@ -86,7 +77,7 @@ EncounterQueryResult queryResult=new EncounterQueryResult(new Vector<Encounter>(
 -->
 
 <script type="text/javascript">
-hs.graphicsDir = '../highslide/highslide/graphics/';
+hs.graphicsDir = 'highslide/highslide/graphics/';
 hs.align = 'center';
 hs.transitions = ['expand', 'crossfade'];
 hs.outlineType = 'rounded-white';
@@ -159,7 +150,8 @@ hs.addSlideshow({
 </style>
 <body>
 <div id="wrapper">
-<div id="page"><jsp:include page="../header.jsp" flush="true">
+
+<div id="page"><jsp:include page="header.jsp" flush="true">
 	<jsp:param name="isResearcher"
 		value="<%=request.isUserInRole("researcher")%>" />
 	<jsp:param name="isManager"
@@ -168,41 +160,62 @@ hs.addSlideshow({
 		value="<%=request.isUserInRole("reviewer")%>" />
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>" />
 </jsp:include>
-<div id="main">
 
+<div id="main">
 <%
-String rq="";
-if(request.getQueryString()!=null){rq=request.getQueryString();}
 if(request.getParameter("noQuery")==null){
 %>
-
 <ul id="tabmenu">
 
-	<li><a href="searchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%></a></li>
+
+	<li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%></a></li>
 	<li><a class="active"><%=encprops.getProperty("matchingImages")%></a></li>
-	<li><a href="mappedSearchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%></a></li>
-	<li><a href="../xcalendar/calendar2.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%></a></li>
-	
+
 </ul>
 <%
 }
 %>
-
 <table width="810" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
 		<p>
-		<h1 class="intro"><%=encprops.getProperty("title")%></h1>
+		<h1 class="intro">
+		<%
+		if(request.getParameter("noQuery")==null){
+		%>
+			<%=encprops.getProperty("searchTitle")%>
+		<%
+		}
+		else {
+		%>
+			<%=encprops.getProperty("title")%>
+		<%
+		}
+		%>
+		</h1>
+		
 		</p>
 			<p><strong><%=encprops.getProperty("totalMatches")%></strong>: <%=numThumbnails%></p>
 	
-		<p><%=encprops.getProperty("belowMatches")%> <%=startNum%> - <%=endNum%> <%=encprops.getProperty("thatMatched")%></p>
+		<p><%=encprops.getProperty("belowMatches")%> <%=startNum%> - <%=endNum%>&nbsp;
+		<%
+		if(request.getParameter("noQuery")==null){
+		%>
+		<%=encprops.getProperty("thatMatchedSearch")%></p>
+		<%
+		}
+		else {
+		%>
+		<%=encprops.getProperty("thatMatched")%></p>
+		<%
+		}
+		%>
 		</td>
 	</tr>
 </table>
 
 <%
-String qString=rq;
+String qString=queryString;
 int startNumIndex=qString.indexOf("&startNum");
 if(startNumIndex>-1) {
 	qString=qString.substring(0,startNumIndex);
@@ -214,13 +227,13 @@ if(startNumIndex>-1) {
   <%
 if((startNum)>1) {%>
 <td align="left">
-<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><img src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle" title="<%=encprops.getProperty("seePreviousResults")%>" /></a>  <a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=(startNum-45)%> - <%=(startNum-1)%></a></p>
+<p><a href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><img src="images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle" title="<%=encprops.getProperty("seePreviousResults")%>" /></a>  <a href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=(startNum-45)%> - <%=(startNum-1)%></a></p>
 </td>
 <%
 }
 %>
  <td align="right">
-	<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><%=(startNum+45)%> - <%=(endNum+45)%></a> <a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><img src="../images/Black_Arrow_right.png" border="0" align="absmiddle" title="<%=encprops.getProperty("seeNextResults")%>" /></a></p>
+	<p><a href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><%=(startNum+45)%> - <%=(endNum+45)%></a> <a href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><img src="images/Black_Arrow_right.png" border="0" align="absmiddle" title="<%=encprops.getProperty("seeNextResults")%>" /></a></p>
 	</td>
 </tr>
 </table>
@@ -239,7 +252,7 @@ if((startNum)>1) {%>
 			Vector thumbLocs=new Vector();
 			
 			try {
-				thumbLocs=myShepherd.getThumbnails(rEncounters.iterator(), startNum, endNum, keywords);
+				thumbLocs=myShepherd.getMarkedIndividualThumbnails(rIndividuals.iterator(), startNum, endNum, keywords);
 
 				//now let's order these alphabetical by the highest keyword
 				//Cascadia Research only! TBD--remove on release of Shepherd Project
@@ -295,8 +308,8 @@ if((startNum)>1) {%>
 										<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="individuals.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
 										<%
 										if(thisEnc.getVerbatimEventDate()!=null){
 										%>
@@ -388,8 +401,8 @@ if((startNum)>1) {%>
 										<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
 										<tr>
 										<td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
@@ -461,13 +474,13 @@ if((startNum)>1) {%>
   <%
 if((startNum-45)>1) {%>
 <td align="left">
-<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><img src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle" title="<%=encprops.getProperty("seePreviousResults")%>" /></a>  <a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=(startNum-90)%> - <%=(startNum-46)%></a></p>
+<p><a href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><img src="images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle" title="<%=encprops.getProperty("seePreviousResults")%>" /></a>  <a href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=(startNum-90)%> - <%=(startNum-46)%></a></p>
 </td>
 <%
 }
 %>
  <td align="right">
-	<p><a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=startNum%> - <%=endNum%></a> <a href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img src="../images/Black_Arrow_right.png" border="0" align="absmiddle" title="<%=encprops.getProperty("seeNextResults")%>" /></a></p>
+	<p><a href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=startNum%> - <%=endNum%></a> <a href="individualThumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img src="images/Black_Arrow_right.png" border="0" align="absmiddle" title="<%=encprops.getProperty("seeNextResults")%>" /></a></p>
 	</td>
 </tr>
 </table>
@@ -492,7 +505,8 @@ if(request.getParameter("noQuery")==null){
 }
 %>
  
-<br /> <jsp:include page="../footer.jsp" flush="true" />
+<br /> 
+<jsp:include page="footer.jsp" flush="true" />
 </div>
 </div>
 <!-- end page --></div>

@@ -1,12 +1,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-	import="java.util.ArrayList,org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.IOException, java.io.File, java.lang.Integer, java.util.Random, commonSense.math.linear.Distances, commonSense.math.linear.Matrix"%>
+	import="java.awt.Dimension, org.apache.sanselan.*,java.util.ArrayList,org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Enumeration, java.net.URL, java.net.URLConnection, java.io.InputStream, java.io.IOException, java.io.File, java.lang.Integer, java.util.Random, commonSense.math.linear.Distances, commonSense.math.linear.Matrix"%>
 <%@ taglib uri="di" prefix="di"%>
 
 <%!
-public static double angle(double x1, double y1, double x2, double y2)
-    {
+public static double angle(double x1, double y1, double x2, double y2) {
         double dx=x2-x1,dy=y2-y1, PI=(float)Math.PI;
         double angle=0.0f;
         
@@ -153,17 +152,24 @@ if((side.equals("Right"))&&(enc.getRightSpots()==null)) {
 	%><p>I could not connect to and find the spot image.</p>
 		<%
 		}
-		ImageInfo newEncII=new ImageInfo();
-		if(canDirectMap) {
-			newEncII.setInput(encStream);
-			if(!newEncII.check()){canDirectMap=false;System.out.println("I could not read the encounter image file while using the spotVisualizer.");
+		
+		
+		
+		//ImageInfo newEncII=new ImageInfo();
+		Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(encStream, ("extract"+num+".jpg"));
+ 				
+		
+		
+		if(!canDirectMap) {
+			//newEncII.setInput(encStream);
+			//if(!newEncII.check()){canDirectMap=false;System.out.println("I could not read the encounter image file while using the spotVisualizer.");
 	%>
 		<p>I could not connect to and find the spot image.</p>
 		<%
-											}
-												else {
-											int encImageWidth=newEncII.getWidth();
-													int encImageHeight=newEncII.getHeight();
+		}
+		else {
+											int encImageWidth=(int)imageDimensions.getWidth();
+											int encImageHeight=(int)imageDimensions.getHeight();
 													int numSpots=0;
 													if(side.equals("Right")) {
 														numSpots=enc.getRightSpots().size();
@@ -177,8 +183,8 @@ if((side.equals("Right"))&&(enc.getRightSpots()==null)) {
 													String thumbLocation="file-"+num+"/"+side+"SideSpotsMapped.jpg";
 													
 										%> 
-		<di:img width="<%=newEncII.getWidth()%>"
-			height="<%=newEncII.getHeight()%>"
+		<di:img width="<%=encImageWidth%>"
+			height="<%=encImageHeight%>"
 			imgParams="rendering=speed,quality=low" border="0" expAfter="0"
 			threading="limited" fillPaint="#000000" align="top" valign="left"
 			output="<%=thumbLocation %>">
@@ -362,7 +368,7 @@ if((side.equals("Right"))&&(enc.getRightSpots()==null)) {
 
 	
 }
-} else {%>
+ else {%>
 <p>There is no encounter <%=request.getParameter("number")%> in the
 database. Please double-check the encounter number and try again.</p>
 
