@@ -346,7 +346,7 @@ if(request.getParameter("noQuery")==null){
 <p><strong><%=props.getProperty("queryDetails")%></strong></p>
 
 	<p class="caption"><strong><%=props.getProperty("prettyPrintResults") %></strong><br /> 
-	<%=result.getQueryPrettyPrint().replaceAll("locationField",props.getProperty("location")).replaceAll("locationCodeField",props.getProperty("locationID")).replaceAll("verbatimEventDateField",props.getProperty("verbatimEventDate")).replaceAll("Sex",props.getProperty("sex")).replaceAll("Keywords",props.getProperty("keywords"))%></p>
+	<%=result.getQueryPrettyPrint().replaceAll("locationField",props.getProperty("location")).replaceAll("locationCodeField",props.getProperty("locationID")).replaceAll("verbatimEventDateField",props.getProperty("verbatimEventDate")).replaceAll("Sex",props.getProperty("sex")).replaceAll("Keywords",props.getProperty("keywords")).replaceAll("alternateIDField",(props.getProperty("alternateID"))).replaceAll("alternateIDField",(props.getProperty("size")))%></p>
 	
 	<p class="caption"><strong><%=props.getProperty("jdoql")%></strong><br /> 
 	<%=result.getJDOQLRepresentation()%></p>

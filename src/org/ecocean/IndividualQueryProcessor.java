@@ -118,7 +118,8 @@ public class IndividualQueryProcessor {
       
       //individuals with a particular alternateID
       if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
-              for(int q=0;q<rIndividuals.size();q++) {
+        queryPrettyPrint.append("alternateIDField is: "+request.getParameter("alternateIDField")+"<br />");      
+        for(int q=0;q<rIndividuals.size();q++) {
                 MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
                 if((tShark.getAlternateID()==null)||(!tShark.getAlternateID().startsWith(request.getParameter("alternateIDField")))) {
                   rIndividuals.remove(q);
@@ -140,7 +141,7 @@ public class IndividualQueryProcessor {
           String kwParam=keywords[kwIter].replaceAll("%20", " ").trim();
           queryPrettyPrint.append(kwParam+" ");
         }
-
+        queryPrettyPrint.append("<br />");
       for(int kwIter=0;kwIter<kwLength;kwIter++) {
           String kwParam=keywords[kwIter];
           if(myShepherd.isKeyword(kwParam)) {
@@ -160,6 +161,8 @@ public class IndividualQueryProcessor {
 
       //individuals of a particular sex
       if(request.getParameter("sex")!=null) {
+        queryPrettyPrint.append("Sex is: "+request.getParameter("sex").replaceAll("mf", "male or female")+"<br />");      
+        
               for(int q=0;q<rIndividuals.size();q++) {
                 MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
                 if((request.getParameter("sex").equals("male"))&&(!tShark.getSex().equals("male"))) {
@@ -186,7 +189,9 @@ public class IndividualQueryProcessor {
 
       //individuals of a particular size
       if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)) {
-              try {
+        queryPrettyPrint.append("Size is "+request.getParameter("selectLength")+" than "+request.getParameter("lengthField")+"<br />");      
+          
+            try {
                 double size;
                 size=(new Double(request.getParameter("lengthField"))).doubleValue();
                 for(int q=0;q<rIndividuals.size();q++) {
@@ -210,7 +215,9 @@ public class IndividualQueryProcessor {
             
       //min number of resights      
       if((request.getParameter("numResights")!=null)&&(request.getParameter("numResightsOperator")!=null)) {
-              int numResights=1;
+        queryPrettyPrint.append("Number of resights is "+request.getParameter("numResightsOperator")+" than "+request.getParameter("numResights")+"<br />");      
+              
+        int numResights=1;
               String operator = "greater";
               try{
                 numResights=(new Integer(request.getParameter("numResights"))).intValue();
@@ -244,32 +251,10 @@ public class IndividualQueryProcessor {
               } //end for
       }//end if resightOnly
 
-      //min number of spots   
-      if(request.getParameter("numspots")!=null) {
-              int numspots=1;
-              try{
-                numspots=(new Integer(request.getParameter("numspots"))).intValue();
-                }
-              catch(NumberFormatException nfe) {}
-              for(int q=0;q<rIndividuals.size();q++) {
-                MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
-                int total=tShark.totalEncounters();
-                boolean removeShark=true;
-                for(int k=0;k<total;k++) {
-                  Encounter enc=tShark.getEncounter(k);
-                  if(enc.getNumSpots()>=numspots) {removeShark=false;}
-
-                } //end for encounters
-                if(removeShark) {
-                    rIndividuals.remove(q);
-                    q--;
-                } //end if
-
-              } //end for sharks
-      }//end if numspots
-
 
       //now filter for date-----------------------------
+      queryPrettyPrint.append("Dates between: "+year1+"-"+month1+" and "+year2+"-"+month2+"<br />");
+      
       for(int q=0;q<rIndividuals.size();q++) {
                 MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
                 if(!tShark.wasSightedInPeriod(year1, month1, year2, month2)) {

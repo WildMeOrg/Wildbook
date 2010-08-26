@@ -64,7 +64,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 		<h1 class="intro"><%=encprops.getProperty("title")%> <a href="<%=CommonConfiguration.getWikiLocation()%>searching#encounter_search" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></h1>
 		</p>
 		<p><em><%=encprops.getProperty("instructions")%></em></p>
-		<form action="searchResults.jsp" method="get" name="search"
+		<form action="thumbnailSearchResults.jsp" method="get" name="search"
 			id="search">
 		<table>
 			<tr>

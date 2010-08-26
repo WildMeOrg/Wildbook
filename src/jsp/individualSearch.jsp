@@ -65,7 +65,7 @@ props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/individualSearc
 		<%=props.getProperty("title")%></h1>
 		</p>
 		<p><em><%=props.getProperty("instructions")%></em></p>
-		<form action="individualSearchResults.jsp" method="get" name="search"
+		<form action="individualThumbnailSearchResults.jsp" method="get" name="search"
 			id="search">
 		<table>
 
@@ -380,8 +380,7 @@ myShepherd.rollbackDBTransaction();
 			<tr>
 				<td>
 		
-				<p><em> <input name="submitSearch" type="submit"
-					id="submitSearch" value="<%=props.getProperty("goSearch")%>"></em>
+				<p><em> <input name="submitSearch" type="submit" id="submitSearch" value="<%=props.getProperty("goSearch")%>"></em>
 				</td>
 			</tr>
 		</table>
