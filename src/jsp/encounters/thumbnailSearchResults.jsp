@@ -72,6 +72,8 @@ EncounterQueryResult queryResult=new EncounterQueryResult(new Vector<Encounter>(
 <link rel="shortcut icon"
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 	
+
+	
 <!--
 	1 ) Reference to the files containing the JavaScript and CSS.
 	These files must be located on your server.

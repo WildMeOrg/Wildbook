@@ -1,9 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 <%@ page contentType="text/html; charset=utf-8" language="java"
 	import="org.ecocean.servlet.*,org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.StringTokenizer,org.dom4j.Document, org.dom4j.DocumentHelper, org.dom4j.io.OutputFormat, org.dom4j.io.XMLWriter, java.lang.Integer, org.dom4j.Element, java.lang.NumberFormatException, java.io.*, java.util.Vector, java.util.Iterator, jxl.*, jxl.write.*, java.util.Calendar,java.util.Properties,java.util.StringTokenizer,java.util.ArrayList,java.util.Properties"%>
 
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" >
 <head>
 
 
@@ -91,6 +92,8 @@ int numResults=0;
 	href="<%=CommonConfiguration.getHTMLShortcutIcon()%>" />
 </head>
 
+<style type="text/css">v\:* {behavior:url(#default#VML);}</style>
+
 <style type="text/css">
 #tabmenu {
 	color: #000;
@@ -139,7 +142,6 @@ int numResults=0;
 	border-bottom: 2px solid #000000;
 }
 </style>
-
 
 
 <body onload="initialize()" onunload="GUnload()">
@@ -364,8 +366,26 @@ int numResults=0;
 	type="text/javascript"></script> <script type="text/javascript">
     function initialize() {
       if (GBrowserIsCompatible()) {
-        var map = new GMap2(document.getElementById("map_canvas"));
+          
+
+          var map = new GMap2(document.getElementById("map_canvas"));
+
         
+        var otherOpts = { 
+                buttonStartingStyle: {background: '#FFF', paddingTop: '4px', paddingLeft: '4px', border:'1px solid black'},
+                buttonHTML: '<img title="Drag Zoom In" src="../javascript/zoomin.gif">',
+                buttonStyle: {width:'25px', height:'23px'},
+                buttonZoomingHTML: 'Drag a region on the map (click here to reset)',
+                buttonZoomingStyle: {background:'yellow',width:'75px', height:'100%'},
+                backButtonHTML: '<img title="Zoom Back Out" src="../javascript/zoomout.gif">',  
+                backButtonStyle: {display:'none',marginTop:'5px',width:'25px', height:'23px'},
+                backButtonEnabled: true, 
+                overlayRemoveTime: 1500} 
+        //var callbacks = {
+        //       dragend: function(nw,ne,se,sw,nwpx,nepx,sepx,swpx){GLog.write("Zoomed box corners: NE="+ne+";SW="+sw)}
+        //};
+              
+        map.addControl(new DragZoomControl({},otherOpts, {}));
 		
 		<%double centroidX=0;
 			int countPoints=0;
@@ -408,6 +428,9 @@ int numResults=0;
       }
     }
     </script>
+    
+    
+<script src="../javascript/dragzoom.js" type="text/javascript"></script>
 <div id="map_canvas" style="width: 510px; height: 340px"></div>
 
 <table><tr><td align="left">
