@@ -15,6 +15,32 @@
 	rel="stylesheet" type="text/css" />
 <link rel="shortcut icon"
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
+	
+<!-- Sliding div content: STEP1 Place inside the head section -->
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<script type="text/javascript" src="../javascript/animatedcollapse.js"></script>	 
+<!-- /STEP1 Place inside the head section -->
+<!-- STEP2 Place inside the head section -->
+ <script type="text/javascript">
+	animatedcollapse.addDiv('location', 'fade=1')
+	animatedcollapse.addDiv('map_canvas', 'fade=1')
+	animatedcollapse.addDiv('date', 'fade=1')
+	animatedcollapse.addDiv('observation', 'fade=1')
+	animatedcollapse.addDiv('identity', 'fade=1')
+	animatedcollapse.addDiv('metadata', 'fade=1')
+	animatedcollapse.addDiv('export', 'fade=1')
+
+	animatedcollapse.ontoggle=function($, divobj, state){ //fires each time a DIV is expanded/contracted
+	    //$: Access to jQuery
+	    //divobj: DOM reference to DIV being expanded/ collapsed. Use "divobj.id" to get its ID
+	    //state: "block" or "none", depending on state
+	}
+	animatedcollapse.init()
+</script>
+<!-- /STEP2 Place inside the head section -->	
+	
+	
+	
 </head>
 
 <style type="text/css">v\:* {behavior:url(#default#VML);}</style>
@@ -89,52 +115,9 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 		<form action="thumbnailSearchResults.jsp" method="get" name="search" id="search">
 		<table>
 			
-
-			<tr>
-			<td>
-			<h3 class="intro">Location Filters</h3>
-					<p><strong><%=encprops.getProperty("locationNameContains")%>:</strong> 
-					<input name="locationField" type="text" size="60"> <br> <em><%=encprops.getProperty("leaveBlank")%></em>
-				</p>
-				<p><strong><%=encprops.getProperty("locationID")%>:</strong> <span class="para"><a href="<%=CommonConfiguration.getWikiLocation()%>locationID"
-					target="_blank"><img src="../images/information_icon_svg.gif"
-					alt="Help" border="0" align="absmiddle" /></a></span> <br> 
-					(<em><%=encprops.getProperty("locationIDExample")%></em>)</p>
-
-				<%
-				ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
-				int totalLocIDs=locIDs.size();
-
-				
-				if(totalLocIDs>0){
-				%>
-				
-				<select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
-					<option value="None"></option>
-				<% 
-			  	for(int n=0;n<totalLocIDs;n++) {
-					String word=locIDs.get(n);
-					if(!word.equals("")){
-				%>
-					<option value="<%=word%>"><%=word%></option>
-				<%}
-					}
-				%>
-				</select>
-				<%
-				}
-				else{
-					%>
-					<p><em><%=encprops.getProperty("noLocationIDs")%></em></p>
-					<%
-				}
-				%>
-				
-				</td>
-
-			</tr>
-			<tr><td>
-			<p><strong>Map Area Selection</strong></p>
+<tr><td width="810px">
+			
+			<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('map_canvas')">Location filter (map)</a></h3>
 			<input type="hidden" id="ne_lat" name="ne_lat"/>
 			<input type="hidden" id="ne_long" name="ne_long"/>
 			<input type="hidden" id="sw_lat" name="sw_lat"/>
@@ -181,23 +164,68 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
     }
     </script>
     <script src="../javascript/dragzoom.js" type="text/javascript"></script>
-<div id="map_canvas" style="width: 510px; height: 340px"></div>
+<div id="map_canvas" style="width: 510px; height: 340px; "></div>
 			
 
 			</td>
 			</tr>
 			<tr>
+			<td>
+			<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('location')">Location filters (text)</a></h3>
+			<div id="location" style="display:none; ">
+					<p><strong><%=encprops.getProperty("locationNameContains")%>:</strong> 
+					<input name="locationField" type="text" size="60"> <br> <em><%=encprops.getProperty("leaveBlank")%></em>
+				</p>
+				<p><strong><%=encprops.getProperty("locationID")%>:</strong> <span class="para"><a href="<%=CommonConfiguration.getWikiLocation()%>locationID"
+					target="_blank"><img src="../images/information_icon_svg.gif"
+					alt="Help" border="0" align="absmiddle" /></a></span> <br> 
+					(<em><%=encprops.getProperty("locationIDExample")%></em>)</p>
+
+				<%
+				ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
+				int totalLocIDs=locIDs.size();
+
+				
+				if(totalLocIDs>0){
+				%>
+				
+				<select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
+					<option value="None"></option>
+				<% 
+			  	for(int n=0;n<totalLocIDs;n++) {
+					String word=locIDs.get(n);
+					if(!word.equals("")){
+				%>
+					<option value="<%=word%>"><%=word%></option>
+				<%}
+					}
+				%>
+				</select>
+				<%
+				}
+				else{
+					%>
+					<p><em><%=encprops.getProperty("noLocationIDs")%></em></p>
+					<%
+				}
+				%>
+				</div>
+				</td>
+
+			</tr>
+			
+			
+			<tr>
 				<td>
-					<h3 class="intro">Date filters</h3>
+					<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('date')">Date filters</a></h3>
 				</td>
 			</tr>
 			
 			
 			<tr>
-				<td><strong><%=encprops.getProperty("sightingDates")%>:</strong></td>
-			</tr>
-			<tr>
 				<td>
+				<div id="date" style="display:none;">
+				<strong><%=encprops.getProperty("sightingDates")%>:</strong>< br/>
 				<table width="720">
 					<tr>
 						<td width="670"><label><em>
@@ -325,11 +353,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 						</label></td>
 					</tr>
 				</table>
-				</td>
-			</tr>
-			
-			<tr>
-				<td>
+				
 				<p><strong><%=encprops.getProperty("verbatimEventDate")%>:</strong> <span class="para"><a href="<%=CommonConfiguration.getWikiLocation()%>verbatimEventDate"
 					target="_blank"><img src="../images/information_icon_svg.gif"
 					alt="Help" border="0" align="absmiddle" /></a></span></p>
@@ -366,18 +390,19 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 					<%
 				}
 				%>
-				
+				</div>
 				</td>
 			</tr>
 			
 			<tr>
 				<td>
-					<h3 class="intro">Observation attributes</h3>
+					<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('observation')">Observation attribute filters</a></h3>
 				</td>
 			</tr>
 			
 			<tr>
 				<td>
+				<div id="observation" style="display:none; ">
 				<table width="357" align="left">
 					<tr>
 						<td width="62"><strong><%=encprops.getProperty("sex")%>: </strong></td>
@@ -392,11 +417,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 						<%=encprops.getProperty("unknown")%></label></td>
 					</tr>
 				</table>
-				</td>
-			</tr>
-
-			<tr>
-				<td>
+				
 				<table width="310" align="left">
 					<tr>
 						<td width="77"><strong><%=encprops.getProperty("status")%>: </strong></td>
@@ -407,11 +428,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 							type="checkbox" id="dead" value="dead" checked> <%=encprops.getProperty("dead")%></label></td>
 					</tr>
 				</table>
-				</td>
-			</tr>
-			
-			<tr>
-				<td><strong><%=encprops.getProperty("lengthIs")%>: </strong> <select name="selectLength"
+				<p><strong><%=encprops.getProperty("lengthIs")%>: </strong> <select name="selectLength"
 					size="1">
 					<option value="gt">&gt;</option>
 					<option value="lt">&lt;</option>
@@ -438,24 +455,18 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 					<option value="18.0">18</option>
 					<option value="19.0">19</option>
 					<option value="20.0">20</option>
-				</select> <%=encprops.getProperty("meters")%></td>
-			</tr>
-
-
-			<tr>
-				<td>
+				</select> <%=encprops.getProperty("meters")%>
+				</p>
+				
 				<p><strong><%=encprops.getProperty("behavior")%>:</strong><em> 
 				<input name="behaviorField" type="text" id="behaviorField" size="7"> <span class="para">
 				<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></span> 
 				</em></p>
-				</td>
-			</tr>
-
+				
 <%
 int totalKeywords=myShepherd.getNumKeywords();
 %>
-			<tr>
-				<td><p><%=encprops.getProperty("hasKeywordPhotos")%></p>
+			<p><%=encprops.getProperty("hasKeywordPhotos")%></p>
 				<%
 				
 				if(totalKeywords>0){
@@ -487,22 +498,22 @@ int totalKeywords=myShepherd.getNumKeywords();
 					
 				}
 				%>
-				</td>
-			</tr>
-			<tr>
-				<td>
-				<p><strong><%=encprops.getProperty("submitterName")%>:</strong> <input
-					name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%></em></p>
+				
+				<p><strong><%=encprops.getProperty("submitterName")%>:</strong> 
+				<input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%></em></p>
+					</div>
 				</td>
 			</tr>
 			
 			<tr>
 				<td>
-					<h3 class="intro">Identity filters</h3>
+					<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('identity')">Identity filters</a></h3>
 				</td>
 			</tr>
-						<tr>
-				<td><input name="resightOnly" type="checkbox" id="resightOnly"
+			<tr>
+				<td>
+				<div id="identity" style="display:none; ">
+				<input name="resightOnly" type="checkbox" id="resightOnly"
 					value="true"> <%=encprops.getProperty("include")%> <select
 					name="numResights" id="numResights">
 					<option value="1" selected>1</option>
@@ -520,10 +531,8 @@ int totalKeywords=myShepherd.getNumKeywords();
 					<option value="13">13</option>
 					<option value="14">14</option>
 					<option value="15">15</option>
-				</select> <%=encprops.getProperty("times")%> </td>
-			</tr>
-						<tr>
-				<td>
+				</select> <%=encprops.getProperty("times")%> 
+				
 				<p><strong><%=encprops.getProperty("alternateID")%>:</strong> <em> <input
 					name="alternateIDField" type="text" id="alternateIDField" size="10"
 					maxlength="35"> <span class="para"><a
@@ -531,16 +540,19 @@ int totalKeywords=myShepherd.getNumKeywords();
 					target="_blank"><img src="../images/information_icon_svg.gif"
 					alt="Help" width="15" height="15" border="0" align="absmiddle" /></a></span>
 				<br></em></p>
+				</div>
 				</td>
 			</tr>
 			<tr>
 				<td>
-					<h3 class="intro">Metadata/export filters and options</h3>
+					
+					<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('metadata')">Metadata filters</a></h3>
 				</td>
 			</tr>
 			
 			<tr>
 				<td>
+				<div id="metadata" style="display:none; ">
 				<table width="720px" align="left">
 					<tr>
 						<td width="154"><strong><%=encprops.getProperty("types2search")%></strong>:</td>
@@ -560,6 +572,7 @@ int totalKeywords=myShepherd.getNumKeywords();
 
 					</tr>
 				</table>
+				</div>
 				</td>
 			</tr>
 
@@ -571,7 +584,8 @@ myShepherd.closeDBTransaction();
 
 			<tr>
 				<td>
-				
+				<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('export')">Export options</a></h3>
+				<div id="export" style="display:none; ">
 				<p><input name="export" type="checkbox" id="export" value="true">
 				<strong><%=encprops.getProperty("generateExportFile")%></strong><br>
 				&nbsp;&nbsp;&nbsp;&nbsp;<input name="locales" type="checkbox"
@@ -584,8 +598,10 @@ myShepherd.closeDBTransaction();
 				<p><input name="generateEmails" type="checkbox"
 					id="generateEmails" value="true"> <strong><%=encprops.getProperty("generateEmailList")%></strong></p>
 				</p>
+				</div>
 				<p><em> <input name="submitSearch" type="submit"
 					id="submitSearch" value="<%=encprops.getProperty("goSearch")%>"></em>
+					
 				</td>
 			</tr>
 		</table>
