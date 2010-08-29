@@ -238,6 +238,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 			<tr>
 				<td>
 				<div id="date" style="display:none;">
+				<p>Use the fields below to limit the timeframe of your search.</p>
 				<strong><%=encprops.getProperty("sightingDates")%>:</strong>< br/>
 				<table width="720">
 					<tr>
@@ -416,32 +417,30 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 			<tr>
 				<td>
 				<div id="observation" style="display:none; ">
-				<table width="357" align="left">
+				<p>Use the fields below to filter your search based on observed attributes.</p>
+				<p><table align="left">
 					<tr>
-						<td width="62"><strong><%=encprops.getProperty("sex")%>: </strong></td>
-						<td width="76"><label> <input name="male"
-							type="checkbox" id="male" value="male" checked> <%=encprops.getProperty("male")%></label></td>
+						<td><strong><%=encprops.getProperty("sex")%>: </strong>
+						<label> <input name="male"
+							type="checkbox" id="male" value="male" checked> <%=encprops.getProperty("male")%></label>
 
-						<td width="79"><label> <input name="female"
+						<label> <input name="female"
 							type="checkbox" id="female" value="female" checked>
-						<%=encprops.getProperty("female")%></label></td>
-						<td width="112"><label> <input name="unknown"
+						<%=encprops.getProperty("female")%></label>
+						<label> <input name="unknown"
 							type="checkbox" id="unknown" value="unknown" checked>
 						<%=encprops.getProperty("unknown")%></label></td>
 					</tr>
-				</table>
 				
-				<table width="310" align="left">
+			
 					<tr>
-						<td width="77"><strong><%=encprops.getProperty("status")%>: </strong></td>
-						<td width="90"><label> <input name="alive"
-							type="checkbox" id="alive" value="alive" checked> <%=encprops.getProperty("alive")%></label></td>
-
-						<td width="127"><label> <input name="dead"
-							type="checkbox" id="dead" value="dead" checked> <%=encprops.getProperty("dead")%></label></td>
+						<td><strong><%=encprops.getProperty("status")%>: </strong><label> 
+						<input name="alive" type="checkbox" id="alive" value="alive" checked> <%=encprops.getProperty("alive")%></label><label> 
+							<input name="dead" type="checkbox" id="dead" value="dead" checked> <%=encprops.getProperty("dead")%></label>
+							</td>
 					</tr>
-				</table>
-				<p><strong><%=encprops.getProperty("lengthIs")%>: </strong> <select name="selectLength"
+				<tr>
+				<td><strong><%=encprops.getProperty("lengthIs")%>: </strong> <select name="selectLength"
 					size="1">
 					<option value="gt">&gt;</option>
 					<option value="lt">&lt;</option>
@@ -469,17 +468,19 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 					<option value="19.0">19</option>
 					<option value="20.0">20</option>
 				</select> <%=encprops.getProperty("meters")%>
-				</p>
+				</td>
+				</tr>
 				
-				<p><strong><%=encprops.getProperty("behavior")%>:</strong><em> 
+				
+				<tr><td><strong><%=encprops.getProperty("behavior")%>:</strong><em> 
 				<input name="behaviorField" type="text" id="behaviorField" size="7"> <span class="para">
 				<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></span> 
 				</em></p>
-				
+				</td></tr>
 <%
 int totalKeywords=myShepherd.getNumKeywords();
 %>
-			<p><%=encprops.getProperty("hasKeywordPhotos")%></p>
+			<tr><td valign="top"><%=encprops.getProperty("hasKeywordPhotos")%><br />
 				<%
 				
 				if(totalKeywords>0){
@@ -505,15 +506,17 @@ int totalKeywords=myShepherd.getNumKeywords();
 				else{
 					%>
 					
-					<p><em><%=encprops.getProperty("noKeywords")%></em></p>
+					<p><em><%=encprops.getProperty("noKeywords")%></em>
 					
 					<%
 					
 				}
 				%>
-				
-				<p><strong><%=encprops.getProperty("submitterName")%>:</strong> 
-				<input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%></em></p>
+				</td></tr>
+				<tr><td><strong><%=encprops.getProperty("submitterName")%>:</strong> 
+				<input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%></em>
+				</td></tr>
+				</table></p>
 					</div>
 				</td>
 			</tr>
@@ -526,6 +529,7 @@ int totalKeywords=myShepherd.getNumKeywords();
 			<tr>
 				<td>
 				<div id="identity" style="display:none; ">
+				<p>Use the fields below to limit your search to marked individuals with the following properties.</p>
 				<input name="resightOnly" type="checkbox" id="resightOnly"
 					value="true"> <%=encprops.getProperty("include")%> <select
 					name="numResights" id="numResights">
@@ -566,6 +570,7 @@ int totalKeywords=myShepherd.getNumKeywords();
 			<tr>
 				<td>
 				<div id="metadata" style="display:none; ">
+				<p>Use the fields below to limit your search by catalog metadata fields.</p>
 				<table width="720px" align="left">
 					<tr>
 						<td width="154"><strong><%=encprops.getProperty("types2search")%></strong>:</td>
@@ -599,6 +604,7 @@ myShepherd.closeDBTransaction();
 				<td>
 				<h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('export')" style="text-decoration:none"><img src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle" /> <font color="#000000">Export options</font></a></h4>
 				<div id="export" style="display:none; ">
+				<p>Use the fields below to specify data export options.</p>
 				<p><input name="export" type="checkbox" id="export" value="true">
 				<strong><%=encprops.getProperty("generateExportFile")%></strong><br>
 				&nbsp;&nbsp;&nbsp;&nbsp;<input name="locales" type="checkbox"
