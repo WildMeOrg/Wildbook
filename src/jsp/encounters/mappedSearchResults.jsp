@@ -4,7 +4,7 @@
 	import="org.ecocean.servlet.*,org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.StringTokenizer,org.dom4j.Document, org.dom4j.DocumentHelper, org.dom4j.io.OutputFormat, org.dom4j.io.XMLWriter, java.lang.Integer, org.dom4j.Element, java.lang.NumberFormatException, java.io.*, java.util.Vector, java.util.Iterator, jxl.*, jxl.write.*, java.util.Calendar,java.util.Properties,java.util.StringTokenizer,java.util.ArrayList,java.util.Properties"%>
 
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" >
+<html >
 <head>
 
 
@@ -81,18 +81,29 @@ int numResults=0;
 
 <title><%=CommonConfiguration.getHTMLTitle()%></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description"
-	content="<%=CommonConfiguration.getHTMLDescription()%>" />
-<meta name="Keywords"
-	content="<%=CommonConfiguration.getHTMLKeywords()%>" />
+<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords()%>" />
 <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor()%>" />
-<link href="<%=CommonConfiguration.getCSSURLLocation()%>"
-	rel="stylesheet" type="text/css" />
-<link rel="shortcut icon"
-	href="<%=CommonConfiguration.getHTMLShortcutIcon()%>" />
+<link href="<%=CommonConfiguration.getCSSURLLocation()%>" rel="stylesheet" type="text/css" />
+<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon()%>" />
+	
+<script>
+function getQueryParameter( name ){
+	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+	var regexS = "[\\?&]"+name+"=([^&#]*)";
+	var regex = new RegExp( regexS );
+	var results = regex.exec( window.location.href );
+	if( results == null )
+		return "";
+	else
+		return results[1];
+}
+</script>
+	
+	
 </head>
 
-<style type="text/css">v\:* {behavior:url(#default#VML);}</style>
+
 
 <style type="text/css">
 #tabmenu {
@@ -168,6 +179,7 @@ int numResults=0;
 <table width="810px" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
+		<br />
 		<h1 class="intro"><%=encprops.getProperty("title")%></h1>
 		</td>
 	</tr>
@@ -213,34 +225,6 @@ int numResults=0;
   						//add the visibility element
   						Element viz = placeMark.addElement( "visibility" );
   						viz.setText("1");
-  						
-  						/**
-  						Element style = placeMark.addElement( "Style" );
-  						Element iconStyle = style.addElement( "IconStyle" );
-  						Element icon = iconStyle.addElement( "Icon" );
-  						
-  						
-  						Element href = icon.addElement( "href" );
-  						
-  						String iconURL = "http://"+CommonConfiguration.getURLLocation()+"/images/geShark";
-  						
-  						if(enc.getSex().equals("male")){
-  							iconURL +="_male";
-  						}
-  						else if(enc.getSex().equals("female")){
-  							iconURL +="_female";
-  						}
-  						
-  						//filter by size
-  						if(enc.getSize()>0){
-  							int intsize = (new Double(enc.getSize())).intValue();
-  							iconURL +=("_"+intsize);
-  						}
-  						
-  						iconURL +=".gif";
-
-  						href.setText(iconURL);
-  						*/
   						
   						//add the descriptive HTML
   						Element description = placeMark.addElement( "description" );
@@ -311,7 +295,7 @@ int numResults=0;
 
  
     
-  // end Excel export =========================================================
+  // end KML export =========================================================
 
 
  myShepherd.rollbackDBTransaction();
@@ -361,33 +345,25 @@ int numResults=0;
 	  %>
 
 <p><%=encprops.getProperty("mapNote")%></p>
-<script
-	src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
-	type="text/javascript"></script> <script type="text/javascript">
+<script src="http://maps.google.com/maps?file=api&amp;v=3.2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>" type="text/javascript"></script> <script type="text/javascript">
     function initialize() {
       if (GBrowserIsCompatible()) {
           
 
-          var map = new GMap2(document.getElementById("map_canvas"));
-
-        
-        var otherOpts = { 
-                buttonStartingStyle: {background: '#FFF', paddingTop: '4px', paddingLeft: '4px', border:'1px solid black'},
-                buttonHTML: '<img title="Drag Zoom In" src="../javascript/zoomin.gif">',
-                buttonStyle: {width:'25px', height:'23px'},
-                buttonZoomingHTML: 'Drag a region on the map (click here to reset)',
-                buttonZoomingStyle: {background:'yellow',width:'75px', height:'100%'},
-                backButtonHTML: '<img title="Zoom Back Out" src="../javascript/zoomout.gif">',  
-                backButtonStyle: {display:'none',marginTop:'5px',width:'25px', height:'23px'},
-                backButtonEnabled: true, 
-                overlayRemoveTime: 1500} 
-        //var callbacks = {
-        //       dragend: function(nw,ne,se,sw,nwpx,nepx,sepx,swpx){GLog.write("Zoomed box corners: NE="+ne+";SW="+sw)}
-        //};
-              
-        map.addControl(new DragZoomControl({},otherOpts, {}));
+        var map = new GMap2(document.getElementById("map_canvas"));
+        var bounds = new GLatLngBounds();
 		
-		<%double centroidX=0;
+        
+  		var ne_lat = parseFloat(getQueryParameter("ne_lat"));
+		var ne_long = parseFloat(getQueryParameter('ne_long'));
+		var sw_lat = parseFloat(getQueryParameter('sw_lat'));
+		var sw_long = parseFloat(getQueryParameter('sw_long'));
+		//if((ne_lat.length>0)&&(ne_long.length>0)&&(sw_lat.length>0)&&(sw_long.length>0)){
+		//}
+        
+		
+		<%
+			double centroidX=0;
 			int countPoints=0;
 			double centroidY=0;
 			for(int c=0;c<haveGPSData.size();c++) {
@@ -397,17 +373,22 @@ int numResults=0;
 				centroidY=centroidY+Double.parseDouble(mapEnc.getDWCDecimalLongitude());
 			}
 			centroidX=centroidX/countPoints;
-			centroidY=centroidY/countPoints;%>
-			map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
+			centroidY=centroidY/countPoints;
+		%>
+			
+			//map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
 			map.addControl(new GSmallMapControl());
         	map.addControl(new GMapTypeControl());
 			map.setMapType(G_HYBRID_MAP);
 			<%for(int t=0;t<haveGPSData.size();t++) {
-				if(t<1001){
+				if(t<101){
 				Encounter mapEnc=(Encounter)haveGPSData.get(t);
 				double myLat=(new Double(mapEnc.getDWCDecimalLatitude())).doubleValue();
-				double myLong=(new Double(mapEnc.getDWCDecimalLongitude())).doubleValue();%>
+				double myLong=(new Double(mapEnc.getDWCDecimalLongitude())).doubleValue();
+				%>
 				          var point<%=t%> = new GLatLng(<%=myLat%>,<%=myLong%>, false);
+				          bounds.extend(point<%=t%>);
+				          
 						  var marker<%=t%> = new GMarker(point<%=t%>);
 						  GEvent.addListener(marker<%=t%>, "click", function(){
 						  	window.location="http://<%=CommonConfiguration.getURLLocation()%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>";
@@ -422,15 +403,19 @@ int numResults=0;
 		<%	
 			}	
 		}
-		%>
-		
-		
+		%>		
+		if(!bounds.isEmpty()){	
+			//map.setZoom();
+			map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
+		}
+		else{
+			map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
+		}
       }
     }
     </script>
     
     
-<script src="../javascript/dragzoom.js" type="text/javascript"></script>
 <div id="map_canvas" style="width: 510px; height: 340px"></div>
 
 <table><tr><td align="left">

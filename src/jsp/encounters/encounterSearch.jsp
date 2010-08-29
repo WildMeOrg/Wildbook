@@ -39,7 +39,7 @@
 </script>
 <!-- /STEP2 Place inside the head section -->	
 	
-	
+
 	
 </head>
 
@@ -53,10 +53,10 @@ function resetMap()
 	var sw_lat_element = document.getElementById('sw_lat');
 	var sw_long_element = document.getElementById('sw_long');
 
-	ne_lat_element.value = null;
-	ne_long_element.value = null;
-	sw_lat_element.value = null;
-	sw_long_element.value = null;
+	ne_lat_element.value = "";
+	ne_long_element.value = "";
+	sw_lat_element.value = "";
+	sw_long_element.value = "";
 	
 	var mapCoordinates = document.getElementById('mapCoordinates');
 	mapCoordinates.innerHTML = "<strong>Bounding box corners (lat, long)</strong><br /> Northeast=N/A<br /> Southwest=N/A";
