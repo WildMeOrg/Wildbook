@@ -23,7 +23,7 @@
 <!-- STEP2 Place inside the head section -->
  <script type="text/javascript">
 	animatedcollapse.addDiv('location', 'fade=1')
-	animatedcollapse.addDiv('map_canvas', 'fade=1')
+	animatedcollapse.addDiv('map', 'fade=1')
 	animatedcollapse.addDiv('date', 'fade=1')
 	animatedcollapse.addDiv('observation', 'fade=1')
 	animatedcollapse.addDiv('identity', 'fade=1')
@@ -57,6 +57,10 @@ function resetMap()
 	ne_long_element.value = null;
 	sw_lat_element.value = null;
 	sw_long_element.value = null;
+	
+	var mapCoordinates = document.getElementById('mapCoordinates');
+	mapCoordinates.innerHTML = "<strong>Bounding box corners (lat, long)</strong><br /> Northeast=N/A<br /> Southwest=N/A";
+            		
 }
 </script>
 
@@ -117,7 +121,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 			
 <tr><td width="810px">
 			
-			<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('map_canvas')">Location filter (map)</a></h3>
+			<h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle" /></a> <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font color="#000000">Location filter (map)</font></a></h4>
 			<input type="hidden" id="ne_lat" name="ne_lat"/>
 			<input type="hidden" id="ne_long" name="ne_long"/>
 			<input type="hidden" id="sw_lat" name="sw_lat"/>
@@ -155,6 +159,10 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
             		ne_long_element.value = ne.x;
             		sw_lat_element.value = sw.y;
             		sw_long_element.value = sw.x;
+					
+					//GLog.write("Bounding box corners Northeast="+ne+", Southwest="+sw)
+					var mapCoordinates = document.getElementById('mapCoordinates');
+					mapCoordinates.innerHTML = "<strong>Bounding box corners (lat, long)</strong><br />Northeast="+ne+"<br />Southwest="+sw;
             		
             	}
         };
@@ -164,15 +172,20 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
     }
     </script>
     <script src="../javascript/dragzoom.js" type="text/javascript"></script>
+<div id="map">
+<p>Use the arrow and +/- keys to navigate to a portion of the globe of interest, then click and drag the <img src="../javascript/zoomin.gif" align="absmiddle"/> icon to select the specific search boundaries.</p>
+	
 <div id="map_canvas" style="width: 510px; height: 340px; "></div>
-			
+			<p id="mapCoordinates"><strong>Bounding box corners (lat, long)</strong><br /> Northeast=N/A<br /> Southwest=N/A</p>
+			</div>
 
 			</td>
 			</tr>
 			<tr>
 			<td>
-			<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('location')">Location filters (text)</a></h3>
+			<h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle" /> <font color="#000000">Location filters (text)</font></a></h4>
 			<div id="location" style="display:none; ">
+				<p>Use the fields below to filter the search by a location string (e.g. "Mexico") or to a specific, pre-defined location identifier.</p>
 					<p><strong><%=encprops.getProperty("locationNameContains")%>:</strong> 
 					<input name="locationField" type="text" size="60"> <br> <em><%=encprops.getProperty("leaveBlank")%></em>
 				</p>
@@ -217,7 +230,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 			
 			<tr>
 				<td>
-					<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('date')">Date filters</a></h3>
+					<h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle" /> <font color="#000000">Date filters</font></a></h4>
 				</td>
 			</tr>
 			
@@ -396,7 +409,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 			
 			<tr>
 				<td>
-					<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('observation')">Observation attribute filters</a></h3>
+					<h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle" /> <font color="#000000">Observation attribute filters</font></a></h4>
 				</td>
 			</tr>
 			
@@ -507,7 +520,7 @@ int totalKeywords=myShepherd.getNumKeywords();
 			
 			<tr>
 				<td>
-					<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('identity')">Identity filters</a></h3>
+					<h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle" /> <font color="#000000">Identity filters</font></a></h4>
 				</td>
 			</tr>
 			<tr>
@@ -546,7 +559,7 @@ int totalKeywords=myShepherd.getNumKeywords();
 			<tr>
 				<td>
 					
-					<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('metadata')">Metadata filters</a></h3>
+					<h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle" /> <font color="#000000">Metadata filters</font></a></h4>
 				</td>
 			</tr>
 			
@@ -584,7 +597,7 @@ myShepherd.closeDBTransaction();
 
 			<tr>
 				<td>
-				<h3 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('export')">Export options</a></h3>
+				<h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('export')" style="text-decoration:none"><img src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle" /> <font color="#000000">Export options</font></a></h4>
 				<div id="export" style="display:none; ">
 				<p><input name="export" type="checkbox" id="export" value="true">
 				<strong><%=encprops.getProperty("generateExportFile")%></strong><br>
