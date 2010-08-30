@@ -84,6 +84,32 @@ public class EncounterQueryProcessor {
     }
     //end locationID filters-----------------------------------------------  
     
+    //------------------------------------------------------------------
+    //behavior filters-------------------------------------------------
+    String[] behaviors=request.getParameterValues("behaviorField");
+    if((behaviors!=null)&&(!behaviors[0].equals("None"))){
+          prettyPrint.append("behaviorField is one of the following: ");
+          int kwLength=behaviors.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              String kwParam=behaviors[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" this.behavior == \""+kwParam+"\"";
+                }
+                else{
+                  locIDFilter+=" || this.behavior == \""+kwParam+"\"";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals("")){filter=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end locationID filters-----------------------------------------------  
+    
     
 
     
@@ -128,6 +154,8 @@ public class EncounterQueryProcessor {
       prettyPrint.append("alternateIDField starts with \""+altID+"\".<br />");
       
     }
+    
+    /**
     //filter for behavior------------------------------------------
     if((request.getParameter("behaviorField")!=null)&&(!request.getParameter("behaviorField").equals(""))) {
       String behString=request.getParameter("behaviorField").toLowerCase().replaceAll("%20", " ").trim();
@@ -136,7 +164,9 @@ public class EncounterQueryProcessor {
       prettyPrint.append("behaviorField contains \""+behString+"\".<br />");
     }
     //end behavior filter--------------------------------------------------------------------------------------
-
+     */
+    
+    
     //filter for sex------------------------------------------
     if(request.getParameter("male")==null) {
       if(filter.equals("")){filter="!this.sex.startsWith('male')";}

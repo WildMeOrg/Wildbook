@@ -1744,6 +1744,34 @@ public class Shepherd {
      return (new ArrayList(results));
    }
    
+   public ArrayList<String> getAllBehaviors(){
+     
+     Query q = pm.newQuery (Encounter.class);
+     q.setResult ("distinct behavior");
+     q.setOrdering("behavior ascending");
+     Collection results = (Collection)q.execute (); 
+     return (new ArrayList(results));
+     
+     
+     //temporary way
+     /**
+      * ArrayList<String> al=new ArrayList<String>();
+     
+     Iterator allenc=getAllEncounters();
+     while(allenc.hasNext()){
+       Encounter enc=(Encounter)allenc.next();
+       if((enc.getBehavior()!=null)&&(!enc.getBehavior().equals(""))){
+         if(!al.contains(enc.getBehavior())){
+           al.add(enc.getBehavior());
+         }
+       }
+     }
+     
+     
+     return al;
+      */
+   }
+   
    public ArrayList<String> getAllVerbatimEventDates(){
      Query q = pm.newQuery (Encounter.class);
      q.setResult ("distinct verbatimEventDate");

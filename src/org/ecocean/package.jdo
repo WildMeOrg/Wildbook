@@ -132,7 +132,7 @@
 			</field>
 			
 			<field name="livingStatus" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" />
+				<column length="256"/>
 			</field>
 			
 		
@@ -141,7 +141,7 @@
 			
 			
 			<field name="behavior" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" allows-null="true" />
+				<column length="1024" allows-null="true" />
 			</field>
 
 			<field name="eventID" persistence-modifier="persistent">

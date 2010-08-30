@@ -57,9 +57,6 @@ function resetMap()
 	ne_long_element.value = "";
 	sw_lat_element.value = "";
 	sw_long_element.value = "";
-	
-	var mapCoordinates = document.getElementById('mapCoordinates');
-	mapCoordinates.innerHTML = "<strong>Bounding box corners (lat, long)</strong><br /> Northeast=N/A<br /> Southwest=N/A";
             		
 }
 </script>
@@ -122,10 +119,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 <tr><td width="810px">
 			
 			<h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle" /></a> <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font color="#000000">Location filter (map)</font></a></h4>
-			<input type="hidden" id="ne_lat" name="ne_lat"/>
-			<input type="hidden" id="ne_long" name="ne_long"/>
-			<input type="hidden" id="sw_lat" name="sw_lat"/>
-			<input type="hidden" id="sw_long" name="sw_long"/>
+
 			<script
 	src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
 	type="text/javascript"></script> <script type="text/javascript">
@@ -160,9 +154,7 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
             		sw_lat_element.value = sw.y;
             		sw_long_element.value = sw.x;
 					
-					//GLog.write("Bounding box corners Northeast="+ne+", Southwest="+sw)
-					var mapCoordinates = document.getElementById('mapCoordinates');
-					mapCoordinates.innerHTML = "<strong>Bounding box corners (lat, long)</strong><br />Northeast="+ne+"<br />Southwest="+sw;
+
             		
             	}
         };
@@ -173,10 +165,11 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
     </script>
     <script src="../javascript/dragzoom.js" type="text/javascript"></script>
 <div id="map">
-<p>Use the arrow and +/- keys to navigate to a portion of the globe of interest, then click and drag the <img src="../javascript/zoomin.gif" align="absmiddle"/> icon to select the specific search boundaries.</p>
+<p>Use the arrow and +/- keys to navigate to a portion of the globe of interest, then click and drag the <img src="../javascript/zoomin.gif" align="absmiddle"/> icon to select the specific search boundaries. You can also use the text boxes below the map to specify exact boundaries.</p>
 	
 <div id="map_canvas" style="width: 510px; height: 340px; "></div>
-			<p id="mapCoordinates"><strong>Bounding box corners (lat, long)</strong><br /> Northeast=N/A<br /> Southwest=N/A</p>
+<p>Northeast corner latitude: <input type="text" id="ne_lat" name="ne_lat"></input> longitude: <input type="text" id="ne_long" name="ne_long"></input><br /><br />
+Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input> longitude: <input type="text" id="sw_long" name="sw_long"></input></p>
 			</div>
 
 			</td>
@@ -472,11 +465,50 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 				</tr>
 				
 				
-				<tr><td><strong><%=encprops.getProperty("behavior")%>:</strong><em> 
-				<input name="behaviorField" type="text" id="behaviorField" size="7"> <span class="para">
-				<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" /></a></span> 
-				</em></p>
-				</td></tr>
+				<tr>
+					<td valign="top"><strong><%=encprops.getProperty("behavior")%>:</strong>
+						<em> <span class="para">
+								<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank">
+									<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle" />
+								</a>
+							</span> 
+						</em><br />
+				<%
+				ArrayList<String> behavs = myShepherd.getAllBehaviors();
+				int totalBehavs=behavs.size();
+
+				
+				if(totalBehavs>0){
+				%>
+				
+				<select multiple name="behaviorField" id="behaviorField">
+					<option value="None"></option>
+					<%
+					for(int f=0;f<totalBehavs;f++) {
+						String word=behavs.get(f);
+						if(word!=null){
+							%>
+							<option value="<%=word%>"><%=word%></option>
+						<%	
+							
+						}
+
+					}
+					%>
+					</select>
+					<%
+
+				}
+				else{
+					%>
+					<p><em><%=encprops.getProperty("noBehaviors")%></em></p>
+					<%
+				}
+				%>
+							
+					</p>
+					</td>
+				</tr>
 <%
 int totalKeywords=myShepherd.getNumKeywords();
 %>
