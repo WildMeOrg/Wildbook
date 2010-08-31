@@ -121,7 +121,7 @@ public class IndividualQueryProcessor {
                 boolean wasSightedInThisLocation = false;
                 Vector encounters = tShark.getEncounters();
                 int numEncs=encounters.size();
-                for(int f=0;f<rIndividuals.size();f++) {
+                for(int f=0;f<numEncs;f++) {
                   Encounter enc=(Encounter)encounters.get(f);
                   if(enc.getVerbatimLocality().toLowerCase().indexOf(loc)!=-1){wasSightedInThisLocation = true;}
                 }
@@ -210,7 +210,7 @@ public class IndividualQueryProcessor {
       
       //individuals with a particular alternateID
       if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
-        prettyPrint.append("alternateIDField is: "+request.getParameter("alternateIDField")+"<br />");      
+        prettyPrint.append("alternateIDField: "+request.getParameter("alternateIDField")+"<br />");      
         for(int q=0;q<rIndividuals.size();q++) {
                 MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
                 if(tShark.getAlllternateIDs().toLowerCase().indexOf(request.getParameter("alternateIDField").toLowerCase().trim())!=-1) {
@@ -282,8 +282,8 @@ public class IndividualQueryProcessor {
 
 
       //individuals of a particular size
-      if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)) {
-        prettyPrint.append("Size is "+request.getParameter("selectLength")+" than "+request.getParameter("lengthField")+"<br />");      
+      if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)&&(!request.getParameter("lengthField").equals(""))) {
+        prettyPrint.append("Size is "+request.getParameter("selectLength")+" than "+request.getParameter("lengthField")+" meters<br />");      
           
             try {
                 double size;
@@ -308,7 +308,7 @@ public class IndividualQueryProcessor {
       }//end if is of size
             
       //min number of resights      
-      if((request.getParameter("numResights")!=null)&&(request.getParameter("numResightsOperator")!=null)) {
+      if((request.getParameter("numResights")!=null)&&(!request.getParameter("numResights").equals(""))&&(request.getParameter("numResightsOperator")!=null)) {
         prettyPrint.append("Number of resights is "+request.getParameter("numResightsOperator")+" than "+request.getParameter("numResights")+"<br />");      
               
         int numResights=1;

@@ -470,7 +470,8 @@ int totalKeywords=myShepherd.getNumKeywords();
 					<option value="greater">&gt;</option>
 					<option value="less">&lt;</option>
 				</select> <select name="lengthField" id="lengthField">
-					<option value="0" selected><%=props.getProperty("unknown")%></option>
+					<option value="" selected></option>
+					<option value="0.5">0</option>
 					<option value="0.5">0.5</option>
 					<option value="1">1</option>
 					<option value="1.5">1.5</option>
@@ -546,10 +547,10 @@ int totalKeywords=myShepherd.getNumKeywords();
 					
 					%>
 					
-					<option value="0" selected="selected">0</option>
+					<option value="" selected="selected"></option>
 					
 					<%
-					for(int u=1;u<=maxYearsBetweenResights;u++){
+					for(int u=0;u<=maxYearsBetweenResights;u++){
 					%>
 					<option value="<%=u%>"><%=u%></option>
 					<%
