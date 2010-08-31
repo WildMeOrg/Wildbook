@@ -225,7 +225,7 @@ Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input>
 				<td>
 				<div id="date" style="display:none;">
 				<p>Use the fields below to limit the timeframe of your search.</p>
-				<strong><%=props.getProperty("sightingDates")%>:</strong>< br/>
+				<strong><%=props.getProperty("sightingDates")%>:</strong><br />
 				<table width="720">
 					<tr>
 						<td width="670"><label><em>

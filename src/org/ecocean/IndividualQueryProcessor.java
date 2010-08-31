@@ -14,7 +14,7 @@ public class IndividualQueryProcessor {
   public static MarkedIndividualQueryResult processQuery(Shepherd myShepherd, HttpServletRequest request, String order){
     
       Vector<MarkedIndividual> rIndividuals=new Vector<MarkedIndividual>();  
-      StringBuffer queryPrettyPrint=new StringBuffer();
+      StringBuffer prettyPrint=new StringBuffer();
       String filter="";
       Iterator allSharks;
       
@@ -23,6 +23,10 @@ public class IndividualQueryProcessor {
       try{month2=(new Integer(request.getParameter("month2"))).intValue();} catch(NumberFormatException nfe) {}
       try{year1=(new Integer(request.getParameter("year1"))).intValue();} catch(NumberFormatException nfe) {}
       try{year2=(new Integer(request.getParameter("year2"))).intValue();} catch(NumberFormatException nfe) {}
+      try{day1=(new Integer(request.getParameter("day1"))).intValue();} catch(NumberFormatException nfe) {}
+      try{day2=(new Integer(request.getParameter("day2"))).intValue();} catch(NumberFormatException nfe) {}
+      
+      
       
       Extent indieClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
       Query query=myShepherd.getPM().newQuery(indieClass);
@@ -40,16 +44,104 @@ public class IndividualQueryProcessor {
         MarkedIndividual temp_shark=(MarkedIndividual)allSharks.next();
         rIndividuals.add(temp_shark);
       }
+      
+      //------------------------------------------------------------------
+      //GPS filters-------------------------------------------------
+      if((request.getParameter("ne_lat")!=null)&&(!request.getParameter("ne_lat").equals(""))) {
+        if((request.getParameter("ne_long")!=null)&&(!request.getParameter("ne_long").equals(""))) {
+          if((request.getParameter("sw_lat")!=null)&&(!request.getParameter("sw_lat").equals(""))) {
+            if((request.getParameter("sw_long")!=null)&&(!request.getParameter("sw_long").equals(""))) {
+              
+              for(int q=0;q<rIndividuals.size();q++) {
+                MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
+                boolean wasSightedInThisLocation = false;
+                Vector rEncounters=tShark.getEncounters();
+                int numEncs=rEncounters.size();
+                
+                for(int y=0;y<numEncs;y++) {
+                  Encounter rEnc=(Encounter)rEncounters.get(y);
+                  if(!((rEnc.getDecimalLatitude()==null)||(rEnc.getDecimalLongitude()==null))){
+                  
+                    try{
+                      
+                      double encLat=(new Double(rEnc.getDecimalLatitude())).doubleValue();
+                      double encLong=(new Double(rEnc.getDecimalLongitude())).doubleValue();
+                      
+                      double ne_lat=(new Double(request.getParameter("ne_lat"))).doubleValue();
+                      double ne_long = (new Double(request.getParameter("ne_long"))).doubleValue();
+                      double sw_lat = (new Double(request.getParameter("sw_lat"))).doubleValue();
+                      double sw_long=(new Double(request.getParameter("sw_long"))).doubleValue();
+                      if((sw_long>0)&&(ne_long<0)){
+                        if(((encLat<=ne_lat)&&(encLat>=sw_lat)&&((encLong<=ne_long)||(encLong>=sw_long)))){
+                          wasSightedInThisLocation = true;
+                        }
+                      }
+                      else if(((encLat<=ne_lat)&&(encLat>=sw_lat)&&(encLong<=ne_long)&&(encLong>=sw_long))){
+                        wasSightedInThisLocation = true;
+                       }
+
+                      
+                    }
+                    catch(NumberFormatException nfe){
+                      nfe.printStackTrace();
+                    }
+                    catch(Exception ee){
+                      ee.printStackTrace();
+                    }
+                    
+                  }
+                }
+                if(!wasSightedInThisLocation) {
+                  rIndividuals.remove(q);
+                  q--;
+                }
+                
+              }
+              
+              prettyPrint.append("GPS Boundary NE: \""+request.getParameter("ne_lat")+", "+request.getParameter("ne_long")+"\".<br />");
+              prettyPrint.append("GPS Boundary SW: \""+request.getParameter("sw_lat")+", "+request.getParameter("sw_long")+"\".<br />");
+              
+        
+            }
+          }
+        }
+      }
+      //end GPS filters----------------------------------------------- 
+      
+      
+      
+      
+      
+      //individuals with a particular location
+      if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
+        prettyPrint.append("locationField is: "+request.getParameter("locationField")+"<br />");      
+        String loc=request.getParameter("locationField").toLowerCase().trim();
+        for(int q=0;q<rIndividuals.size();q++) {
+                MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
+                boolean wasSightedInThisLocation = false;
+                Vector encounters = tShark.getEncounters();
+                int numEncs=encounters.size();
+                for(int f=0;f<rIndividuals.size();f++) {
+                  Encounter enc=(Encounter)encounters.get(f);
+                  if(enc.getVerbatimLocality().toLowerCase().indexOf(loc)!=-1){wasSightedInThisLocation = true;}
+                }
+                if(!wasSightedInThisLocation) {
+                  rIndividuals.remove(q);
+                  q--;
+                }
+                
+              }     //end for
+      }//end if with location
 
       //locationID filter-------------------------------------------------
       String[] locCodes=request.getParameterValues("locationCodeField");
       if((locCodes!=null)&&(!locCodes[0].equals("None"))){
-        queryPrettyPrint.append("locationCodeField is one of the following: ");
+        prettyPrint.append("locationCodeField is one of the following: ");
             int kwLength=locCodes.length;
             
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
               String kwParam=locCodes[kwIter].replaceAll("%20", " ").trim();
-              queryPrettyPrint.append(kwParam+" ");
+              prettyPrint.append(kwParam+" ");
             }
             
             for(int q=0;q<rIndividuals.size();q++) {
@@ -74,19 +166,19 @@ public class IndividualQueryProcessor {
             }     //end for  
             
 
-              queryPrettyPrint.append("<br />");
+              prettyPrint.append("<br />");
       }
       //end locationID filter-----------------------------------------------  
       
       //verbatimEventDateField filter-------------------------------------------------
       String[] verbatimEventDates=request.getParameterValues("verbatimEventDateField");
       if((verbatimEventDates!=null)&&(!verbatimEventDates[0].equals("None"))){
-            queryPrettyPrint.append("verbatimEventDateField is one of the following: ");
+            prettyPrint.append("verbatimEventDateField is one of the following: ");
             int kwLength=verbatimEventDates.length;
             
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
               String kwParam=verbatimEventDates[kwIter].replaceAll("%20", " ").trim();
-              queryPrettyPrint.append(kwParam+" ");
+              prettyPrint.append(kwParam+" ");
             }
             
             
@@ -111,37 +203,39 @@ public class IndividualQueryProcessor {
               }
               
             }     //end for  
-            queryPrettyPrint.append("<br />");
+            prettyPrint.append("<br />");
       }
       //end verbatimEventDateField filter-----------------------------------------------   
       
       
       //individuals with a particular alternateID
       if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
-        queryPrettyPrint.append("alternateIDField is: "+request.getParameter("alternateIDField")+"<br />");      
+        prettyPrint.append("alternateIDField is: "+request.getParameter("alternateIDField")+"<br />");      
         for(int q=0;q<rIndividuals.size();q++) {
                 MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
-                if((tShark.getAlternateID()==null)||(!tShark.getAlternateID().startsWith(request.getParameter("alternateIDField")))) {
+                if(tShark.getAlllternateIDs().toLowerCase().indexOf(request.getParameter("alternateIDField").toLowerCase().trim())!=-1) {
                   rIndividuals.remove(q);
                   q--;
                 }
                 
               }     //end for
       }//end if with alternateID
+      
+      
 
 
       //individuals with a photo keyword assigned to one of their encounters
       String[] keywords=request.getParameterValues("keyword");
       if((keywords!=null)&&(!keywords[0].equals("None"))){
         
-        queryPrettyPrint.append("Keywords: ");
+        prettyPrint.append("Keywords: ");
         int kwLength=keywords.length;
         
         for(int kwIter=0;kwIter<kwLength;kwIter++) {
           String kwParam=keywords[kwIter].replaceAll("%20", " ").trim();
-          queryPrettyPrint.append(kwParam+" ");
+          prettyPrint.append(kwParam+" ");
         }
-        queryPrettyPrint.append("<br />");
+        prettyPrint.append("<br />");
       for(int kwIter=0;kwIter<kwLength;kwIter++) {
           String kwParam=keywords[kwIter];
           if(myShepherd.isKeyword(kwParam)) {
@@ -161,7 +255,7 @@ public class IndividualQueryProcessor {
 
       //individuals of a particular sex
       if(request.getParameter("sex")!=null) {
-        queryPrettyPrint.append("Sex is: "+request.getParameter("sex").replaceAll("mf", "male or female")+"<br />");      
+        prettyPrint.append("Sex is: "+request.getParameter("sex").replaceAll("mf", "male or female")+"<br />");      
         
               for(int q=0;q<rIndividuals.size();q++) {
                 MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
@@ -189,7 +283,7 @@ public class IndividualQueryProcessor {
 
       //individuals of a particular size
       if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)) {
-        queryPrettyPrint.append("Size is "+request.getParameter("selectLength")+" than "+request.getParameter("lengthField")+"<br />");      
+        prettyPrint.append("Size is "+request.getParameter("selectLength")+" than "+request.getParameter("lengthField")+"<br />");      
           
             try {
                 double size;
@@ -215,7 +309,7 @@ public class IndividualQueryProcessor {
             
       //min number of resights      
       if((request.getParameter("numResights")!=null)&&(request.getParameter("numResightsOperator")!=null)) {
-        queryPrettyPrint.append("Number of resights is "+request.getParameter("numResightsOperator")+" than "+request.getParameter("numResights")+"<br />");      
+        prettyPrint.append("Number of resights is "+request.getParameter("numResightsOperator")+" than "+request.getParameter("numResights")+"<br />");      
               
         int numResights=1;
               String operator = "greater";
@@ -253,18 +347,18 @@ public class IndividualQueryProcessor {
 
 
       //now filter for date-----------------------------
-      queryPrettyPrint.append("Dates between: "+year1+"-"+month1+" and "+year2+"-"+month2+"<br />");
+      prettyPrint.append("Dates between: "+year1+"-"+month1+"-"+day1+" and "+year2+"-"+month2+"-"+day2+"<br />");
       
       for(int q=0;q<rIndividuals.size();q++) {
                 MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
-                if(!tShark.wasSightedInPeriod(year1, month1, year2, month2)) {
+                if(!tShark.wasSightedInPeriod(year1, month1, day1, year2, month2, day2)) {
                   rIndividuals.remove(q);
                   q--;
                 }
       } //end for
       //--------------------------------------------------
       
-      return (new MarkedIndividualQueryResult(rIndividuals,filter,queryPrettyPrint.toString()));
+      return (new MarkedIndividualQueryResult(rIndividuals,filter,prettyPrint.toString()));
     
   }
 

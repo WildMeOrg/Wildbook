@@ -1,5 +1,6 @@
 package org.ecocean;
 
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Arrays;
 
@@ -320,35 +321,7 @@ public class MarkedIndividual{
 		int startMonth=m_startMonth;
 		int startDay=m_startDay;
 
-		
-		/*//test that start and end dates are not reversed
-		if(endYear<startYear) {
-			endYear=m_startYear;
-			endMonth=m_startMonth;
-			endDay=m_startDay;
-			startYear=m_endYear;
-			startMonth=m_endMonth;
-			startDay=m_endDay;
-			endDay=m_startDay;
-		}
-		else if((endYear==startYear)&&(endMonth<startMonth)){
-			endYear=m_startYear;
-			endMonth=m_startMonth;
-			endDay=m_startDay;
-			startYear=m_endYear;
-			startMonth=m_endMonth;
-			startDay=m_endDay;
-			endDay=m_startDay;
-		}
-		else if((endYear==startYear)&&(endMonth==startMonth)&&(endDay>startDay)) {
-			endYear=m_startYear;
-			endMonth=m_startMonth;
-			endDay=m_startDay;
-			startYear=m_endYear;
-			startMonth=m_endMonth;
-			startDay=m_endDay;
-			endDay=m_startDay;
-		}*/
+	
 		
 		for(int c=0;c<encounters.size();c++) {
 			Encounter temp=(Encounter)encounters.get(c);
@@ -368,6 +341,32 @@ public class MarkedIndividual{
 		}
 		return false;
 	}
+	
+	 public boolean wasSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay) {
+	    int endYear=m_endYear;
+	    int endMonth=m_endMonth;
+	    int endDay=m_endDay;
+	    int startYear=m_startYear;
+	    int startMonth=m_startMonth;
+	    int startDay=m_startDay;
+
+	  
+	    
+	    for(int c=0;c<encounters.size();c++) {
+	      Encounter temp=(Encounter)encounters.get(c);
+
+	        if((temp.getYear()>=startYear)&&(temp.getYear()<=endYear)){
+	          if((temp.getMonth()>=startMonth)&&(temp.getMonth()<=endMonth)){
+	            if((temp.getDay()>=startDay)&(temp.getDay()<=endDay)){
+	              return true;
+	            }
+	          }
+	        }
+
+	    
+	    }
+	    return false;
+	  }
 	
 	public boolean wasSightedInPeriodLeftOnly(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth) {
 		int endYear=m_endYear;
@@ -528,6 +527,17 @@ public class MarkedIndividual{
 			}
 		return false;
 		}
+	
+	 public ArrayList<String> particpatesInTheseVerbatimEventDates(){
+	    ArrayList<String> vbed = new ArrayList<String>();
+	    for(int c=0;c<encounters.size();c++) {
+	      Encounter temp=(Encounter)encounters.get(c);
+	      if((temp.getVerbatimEventDate()!=null)&&(!vbed.contains(temp.getVerbatimEventDate()))) {
+	        vbed.add(temp.getVerbatimEventDate());
+	      }
+	    }
+	    return vbed;
+	 }
 	
   public boolean wasSightedInVerbatimEventDate(String ved){
     for(int c=0;c<encounters.size();c++) {
@@ -728,5 +738,18 @@ public class MarkedIndividual{
 		if(alternateid==null){return "None";}
 		return alternateid;
 	}
+	
+	/*
+	 * Returns a comma delimited string of all of the alternateIDs registered for this marked individual, including those only assigned at the Encounter level
+	 */
+	 public String getAlllternateIDs(){
+	   String allIDs="";
+	    if(alternateid!=null){allIDs+=alternateid;}
+	    for(int c=0;c<encounters.size();c++) {
+	      Encounter temp=(Encounter)encounters.get(c);
+	      if(!temp.getAlternateID().equals("None")) {allIDs+=","+temp.getAlternateID();}
+	    }
+	    return allIDs;
+	  }
 	
 }

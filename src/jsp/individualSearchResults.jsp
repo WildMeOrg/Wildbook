@@ -177,6 +177,8 @@ if(rIndividuals.size()<listNum) {listNum=rIndividuals.size();}
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("markedIndividual")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numEncounters")%></strong></td>
 		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("maxYearsBetweenResights")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex")%></strong></td>
+		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numLocationsSighted")%></strong></td>
 
 	</tr>
 
@@ -227,6 +229,10 @@ for(int f=0;f<rIndividuals.size();f++) {
 		<td><%=indie.totalEncounters()%></td>
 		
 		<td><%=indie.getMaxNumYearsBetweenSightings()%></td>
+		
+		<td><%=indie.getSex()%></td>
+		
+		<td><%=indie.particpatesInTheseVerbatimEventDates().size()%></td>
 	</tr>
 	<%
 } //end if to control number displayed
