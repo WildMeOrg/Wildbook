@@ -121,47 +121,44 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 			<h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle" /></a> <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font color="#000000">Location filter (map)</font></a></h4>
 
 			<script
-	src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
-	type="text/javascript"></script> <script type="text/javascript">
-    function initialize() {
-      if (GBrowserIsCompatible()) {
-        var map = new GMap2(document.getElementById("map_canvas"));
-        map.setMapType(G_HYBRID_MAP);
-		map.addControl(new GSmallMapControl());
-		map.setCenter(new GLatLng(0, 180), 1);
+				src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
+				type="text/javascript"></script> <script type="text/javascript">
+    			function initialize() {
+      				if (GBrowserIsCompatible()) {
+        				var map = new GMap2(document.getElementById("map_canvas"));
+       					 map.setMapType(G_HYBRID_MAP);
+						map.addControl(new GSmallMapControl());
+						map.setCenter(new GLatLng(0, 180), 1);
 		
-        map.addControl(new GMapTypeControl());
-		map.setMapType(G_HYBRID_MAP);
-        var otherOpts = { 
-                buttonStartingStyle: {background: '#FFF', paddingTop: '4px', paddingLeft: '4px', border:'1px solid black'},
-                buttonHTML: '<img title="Drag Zoom In" src="../javascript/zoomin.gif">',
-                buttonStyle: {width:'25px', height:'23px'},
-                buttonZoomingHTML: 'Drag a region on the map (click here to reset)',
-                buttonZoomingStyle: {background:'yellow',width:'75px', height:'100%'},
-                backButtonHTML: '<img title="Zoom Back Out" src="../javascript/zoomout.gif">',  
-                backButtonStyle: {display:'none',marginTop:'5px',width:'25px', height:'23px'},
-                backButtonEnabled: true, 
-                overlayRemoveTime: 1500} 
-        var callbacks = {
-               dragend: function(nw,ne,se,sw,nwpx,nepx,sepx,swpx){
-            		var ne_lat_element = document.getElementById('ne_lat');
-            		var ne_long_element = document.getElementById('ne_long');
-            		var sw_lat_element = document.getElementById('sw_lat');
-            		var sw_long_element = document.getElementById('sw_long');
+        				map.addControl(new GMapTypeControl());
+						map.setMapType(G_HYBRID_MAP);
+        				var otherOpts = { 
+                			buttonStartingStyle: {background: '#FFF', paddingTop: '4px', paddingLeft: '4px', border:'1px solid black'},
+                			buttonHTML: '<img title="Drag Zoom In" src="../javascript/zoomin.gif">',
+               				buttonStyle: {width:'25px', height:'23px'},
+                			buttonZoomingHTML: 'Drag a region on the map (click here to reset)',
+                			buttonZoomingStyle: {background:'yellow',width:'75px', height:'100%'},
+                			backButtonHTML: '<img title="Zoom Back Out" src="../javascript/zoomout.gif">',  
+                			backButtonStyle: {display:'none',marginTop:'5px',width:'25px', height:'23px'},
+                			backButtonEnabled: true, 
+                			overlayRemoveTime: 1500} 
+        				var callbacks = {
+               				dragend: function(nw,ne,se,sw,nwpx,nepx,sepx,swpx){
+            				var ne_lat_element = document.getElementById('ne_lat');
+            				var ne_long_element = document.getElementById('ne_long');
+            				var sw_lat_element = document.getElementById('sw_lat');
+            				var sw_long_element = document.getElementById('sw_long');
 
-            		ne_lat_element.value = ne.y;
-            		ne_long_element.value = ne.x;
-            		sw_lat_element.value = sw.y;
-            		sw_long_element.value = sw.x;
-					
-
-            		
-            	}
-        };
+            				ne_lat_element.value = ne.y;
+            				ne_long_element.value = ne.x;
+            				sw_lat_element.value = sw.y;
+            				sw_long_element.value = sw.x;
+            			}
+        			};
               
-        map.addControl(new DragZoomControl({},otherOpts, callbacks));
-      }
-    }
+       				 map.addControl(new DragZoomControl({},otherOpts, callbacks));
+     			 }
+    		}
     </script>
     <script src="../javascript/dragzoom.js" type="text/javascript"></script>
 <div id="map">
