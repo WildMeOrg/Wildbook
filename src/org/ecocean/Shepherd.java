@@ -670,11 +670,11 @@ public class Shepherd {
 			c=(Collection)(acceptedEncounters.execute());
 			ArrayList list=new ArrayList(c);
 			int wr=list.size();
-			ArrayList reverseOrder=new ArrayList();
-			for(int iter99=(wr-1);iter99>=0;iter99--) {
-				reverseOrder.add(list.get(iter99));
-			}
-			Iterator it=reverseOrder.iterator();
+			//ArrayList reverseOrder=new ArrayList();
+			//for(int iter99=(wr-1);iter99>=0;iter99--) {
+			//	reverseOrder.add(list.get(iter99));
+			//}
+			Iterator it=list.iterator();
 			return it;
 		} catch(Exception npe) {
 			System.out.println("Error encountered when trying to execute getAllEncounters. Returning a null collection because I didn't have a transaction to use.");
@@ -719,7 +719,7 @@ public class Shepherd {
 		acceptedEncounters.setOrdering(order);
 		Collection c=(Collection)(acceptedEncounters.execute());
 		ArrayList list=new ArrayList(c);
-		Collections.reverse(list);
+		//Collections.reverse(list);
 		Iterator it=list.iterator();
 		return it;
 		
@@ -770,7 +770,7 @@ public class Shepherd {
 		Collection c=(Collection)(rejectedEncounters.execute());
 		ArrayList list=new ArrayList(c);
 
-		Collections.reverse(list);
+		//Collections.reverse(list);
 		Iterator it=list.iterator();
 		return it;
 	}
@@ -820,7 +820,7 @@ public class Shepherd {
 		Collection c=(Collection)(unacceptedEncounters.execute());
 		ArrayList list=new ArrayList(c);
 	
-		Collections.reverse(list);
+		//Collections.reverse(list);
 		Iterator it=list.iterator();
 		return it;
 	}
@@ -901,7 +901,7 @@ public class Shepherd {
 	public Iterator getAllMarkedIndividuals(Query sharks) {
 		Collection c=(Collection)(sharks.execute());
 		ArrayList list=new ArrayList(c);
-		Collections.reverse(list);
+		//Collections.reverse(list);
 		Iterator it=list.iterator();
 		return it;
 	}
@@ -914,7 +914,7 @@ public class Shepherd {
 		sharkies.setOrdering(order);
 		Collection c=(Collection)(sharkies.execute());	
 		ArrayList list=new ArrayList(c);
-		Collections.reverse(list);
+		//Collections.reverse(list);
 		Iterator it=list.iterator();
 		return it;
 	}
