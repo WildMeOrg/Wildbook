@@ -3,6 +3,8 @@ package org.ecocean;
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Arrays;
+import java.util.TreeMap;
+import java.util.StringTokenizer;
 
 /**
  *A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -53,6 +55,8 @@ public class MarkedIndividual{
 	private Vector interestedResearchers=new Vector();
 	
 	private String dateTimeCreated;
+	
+	private String dynamicProperties;
 	
 	public MarkedIndividual(String name, Encounter enc) {
 		
@@ -751,5 +755,76 @@ public class MarkedIndividual{
 	    }
 	    return allIDs;
 	  }
+	 
+   public String getDynamicProperties(){
+     return dynamicProperties;
+   }
+   public void setDynamicProperty(String name, String value){
+     name=name.replaceAll(";", "_").trim().replaceAll("%20", " ");
+     value=value.replaceAll(";", "_").trim();
+     
+     if(dynamicProperties==null){dynamicProperties=name+"="+value+";";}
+     else{
+       
+       //let's create a TreeMap of the properties
+       TreeMap<String,String> tm=new TreeMap<String,String>();
+       StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+       while(st.hasMoreTokens()){
+         String token = st.nextToken();
+         int equalPlace=token.indexOf("=");
+         tm.put(token.substring(0,equalPlace), token.substring(equalPlace+1));
+       }
+       if(tm.containsKey(name)){
+         tm.remove(name);
+         tm.put(name, value);
+         
+         //now let's recreate the dynamicProperties String
+         String newProps=tm.toString();
+         int stringSize=newProps.length();
+         dynamicProperties=newProps.substring(1,(stringSize-1)).replaceAll(", ", ";")+";";
+       }
+       else{
+         dynamicProperties=dynamicProperties+name+"="+value+";";
+       }
+     }
+   }
+   public String getDynamicPropertyValue(String name){
+     if(dynamicProperties!=null){
+       name=name.replaceAll("%20", " ");
+       //let's create a TreeMap of the properties
+       TreeMap<String,String> tm=new TreeMap<String,String>();
+       StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+       while(st.hasMoreTokens()){
+         String token = st.nextToken();
+         int equalPlace=token.indexOf("=");
+         tm.put(token.substring(0,equalPlace), token.substring(equalPlace+1));
+       }
+       if(tm.containsKey(name)){return tm.get(name);}
+     }
+     return null;
+   }
+   
+   public void removeDynamicProperty(String name){
+     name=name.replaceAll(";", "_").trim().replaceAll("%20", " ");
+     if(dynamicProperties!=null){
+       
+       //let's create a TreeMap of the properties
+       TreeMap<String,String> tm=new TreeMap<String,String>();
+       StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+       while(st.hasMoreTokens()){
+         String token = st.nextToken();
+         int equalPlace=token.indexOf("=");
+         tm.put(token.substring(0,(equalPlace)), token.substring(equalPlace+1));
+       }
+       if(tm.containsKey(name)){
+         tm.remove(name);
+         
+         //now let's recreate the dynamicProperties String
+         String newProps=tm.toString();
+         int stringSize=newProps.length();
+         dynamicProperties=newProps.substring(1,(stringSize-1)).replaceAll(", ", ";")+";";
+       }
+     }
+   }
 	
 }
