@@ -747,7 +747,7 @@ public class MarkedIndividual{
 	/*
 	 * Returns a comma delimited string of all of the alternateIDs registered for this marked individual, including those only assigned at the Encounter level
 	 */
-	 public String getAlllternateIDs(){
+	 public String getAllAlternateIDs(){
 	   String allIDs="";
 	    if(alternateid!=null){allIDs+=alternateid;}
 	    for(int c=0;c<encounters.size();c++) {

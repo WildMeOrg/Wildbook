@@ -416,12 +416,12 @@ public class Shepherd {
 		try{
 			c=(Collection)(acceptedEncounters.execute());
 			ArrayList list=new ArrayList(c);
-			int wr=list.size();
-			ArrayList reverseOrder=new ArrayList();
-			for(int iter99=(wr-1);iter99>=0;iter99--) {
-				reverseOrder.add(list.get(iter99));
-			}
-			Iterator it=reverseOrder.iterator();
+			//int wr=list.size();
+			//ArrayList reverseOrder=new ArrayList();
+			//for(int iter99=(wr-1);iter99>=0;iter99--) {
+			//	reverseOrder.add(list.get(iter99));
+			//}
+			Iterator it=list.iterator();
 			return it;
 		} catch(Exception npe) {
 			System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a transaction to use.");
@@ -1776,6 +1776,14 @@ public class Shepherd {
      Query q = pm.newQuery (Encounter.class);
      q.setResult ("distinct verbatimEventDate");
      q.setOrdering("verbatimEventDate ascending");
+     Collection results = (Collection)q.execute (); 
+     return (new ArrayList(results));
+   }
+   
+   public ArrayList<String> getAllRecordedBy(){
+     Query q = pm.newQuery (Encounter.class);
+     q.setResult ("distinct recordedBy");
+     q.setOrdering("recordedBy ascending");
      Collection results = (Collection)q.execute (); 
      return (new ArrayList(results));
    }
