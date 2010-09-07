@@ -5,6 +5,7 @@ import java.util.Vector;
 import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.StringTokenizer;
+import java.util.Iterator;
 
 /**
  *A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -825,6 +826,35 @@ public class MarkedIndividual{
          dynamicProperties=newProps.substring(1,(stringSize-1)).replaceAll(", ", ";")+";";
        }
      }
+   }
+   
+   public ArrayList<Keyword> getAllAppliedKeywordNames(Shepherd myShepherd){
+     ArrayList<Keyword> al=new ArrayList<Keyword>();
+     int numEncounters = encounters.size();
+     for(int i=0;i<numEncounters;i++){
+       Encounter enc=(Encounter)encounters.get(i);
+       Iterator it=myShepherd.getAllKeywords();
+       while(it.hasNext()){
+         Keyword word=(Keyword)it.next();
+         if((word.isMemberOf(enc))&&(!al.contains(word))){al.add(word);}
+       }
+     }
+     return al;
+   }
+ 
+   public ArrayList<String> getAllValuesForDynamicProperty(String propertyName){
+       ArrayList<String> listPropertyValues = new ArrayList<String>();
+       
+       //first, check if the individual has the property applied
+       if(getDynamicPropertyValue(propertyName)!=null){listPropertyValues.add(getDynamicPropertyValue(propertyName));}
+       
+       //next check the encounters
+       int numEncounters = encounters.size();
+       for(int i=0;i<numEncounters;i++){
+         Encounter enc=(Encounter)encounters.get(i);
+         if(enc.getDynamicPropertyValue(propertyName)!=null){listPropertyValues.add(enc.getDynamicPropertyValue(propertyName));}
+       }
+       return listPropertyValues;
    }
 	
 }
