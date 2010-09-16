@@ -346,15 +346,15 @@ if((startNum)>1) {%>
 										%>
 										
 										</table>
-										</td>
+										<br />
 										
 										<%
 										if(CommonConfiguration.showEXIFData()){
 										%>
 										
-												<td align="left" valign="top">
+												
 												<span class="caption">
-						<ul>
+						
 					<%
 					if((fileName.toLowerCase().endsWith("jpg"))||(fileName.toLowerCase().endsWith("jpeg"))){
 						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+thisEnc.getCatalogNumber()+"/"+fileName)));
@@ -369,7 +369,7 @@ if((startNum)>1) {%>
 								Tag tag = (Tag)tags.next(); 
 								
 								%>
-								<li><%=tag.toString() %></li>
+								<%=tag.toString() %><br />
 								<% 
 							} 
 						} 
@@ -377,7 +377,7 @@ if((startNum)>1) {%>
 					}					
 					%>
    									
-   								</ul>
+   								
    								</span>
 												
 												
