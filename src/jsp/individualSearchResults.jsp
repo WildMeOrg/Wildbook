@@ -171,14 +171,14 @@ if(rIndividuals.size()<listNum) {listNum=rIndividuals.size();}
 
 
 
-<table width="810" border="1">
-	<tr>
-		<td bgcolor="#99CCFF"></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("markedIndividual")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numEncounters")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("maxYearsBetweenResights")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex")%></strong></td>
-		<td align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numLocationsSighted")%></strong></td>
+<table width="810" id="results">
+	<tr class="lineitem">
+		<td class="lineitem" bgcolor="#99CCFF"></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("markedIndividual")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numEncounters")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("maxYearsBetweenResights")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex")%></strong></td>
+		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numLocationsSighted")%></strong></td>
 
 	</tr>
 
@@ -213,10 +213,10 @@ for(int f=0;f<rIndividuals.size();f++) {
 	if((count>=startNum)&&(count<=endNum)) {			
 		Encounter tempEnc=indie.getEncounter(0);		
 %>
-	<tr>
-		<td width="102" bgcolor="#000000"><img
+	<tr class="lineitem">
+		<td class="lineitem" width="102" bgcolor="#000000"><img
 			src="<%=("encounters/"+tempEnc.getEncounterNumber()+"/thumb.jpg")%>"></td>
-		<td><a
+		<td class="lineitem"><a
 			href="http://<%=CommonConfiguration.getURLLocation()%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%></a>
 		<%
 		  if((indie.getAlternateID()!=null)&&(!indie.getAlternateID().equals("None"))){
@@ -226,13 +226,13 @@ for(int f=0;f<rIndividuals.size();f++) {
 		  <br><font size="-1"><%=props.getProperty("firstIdentified")%>: <%=temp.getMonth() %>/<%=temp.getYear() %></font>
 		
 		</td>
-		<td><%=indie.totalEncounters()%></td>
+		<td class="lineitem"><%=indie.totalEncounters()%></td>
 		
-		<td><%=indie.getMaxNumYearsBetweenSightings()%></td>
+		<td class="lineitem"><%=indie.getMaxNumYearsBetweenSightings()%></td>
 		
-		<td><%=indie.getSex()%></td>
+		<td class="lineitem"><%=indie.getSex()%></td>
 		
-		<td><%=indie.particpatesInTheseVerbatimEventDates().size()%></td>
+		<td class="lineitem"><%=indie.particpatesInTheseVerbatimEventDates().size()%></td>
 	</tr>
 	<%
 } //end if to control number displayed
