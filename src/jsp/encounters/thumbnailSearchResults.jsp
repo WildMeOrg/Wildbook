@@ -307,14 +307,16 @@ if((startNum)>1) {%>
 											<td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
 										<%
 										}
+										
+										if(request.getParameter("keyword")!=null){
 										%>
+										
+										
 										<tr>
 										<td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-											//int numKeywords=myShepherd.getNumKeywords();
 											Iterator allKeywords2=myShepherd.getAllKeywords();
-											
 											while(allKeywords2.hasNext()){
 												Keyword word=(Keyword)allKeywords2.next();
 									            if(word.isMemberOf(encNum+"/"+fileName)) {
@@ -339,6 +341,10 @@ if((startNum)>1) {%>
 											%>
 										</span></td>
 										</tr>
+										<%
+										}
+										%>
+										
 										</table>
 										</td>
 										

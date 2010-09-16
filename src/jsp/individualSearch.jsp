@@ -186,7 +186,7 @@ Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input>
 				int totalLocIDs=locIDs.size();
 
 				
-				if(totalLocIDs>0){
+				if(totalLocIDs>1){
 				%>
 				
 				<select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
@@ -363,7 +363,7 @@ Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input>
 				int totalVBDs=vbds.size();
 
 				
-				if(totalVBDs>0){
+				if(totalVBDs>1){
 				%>
 				
 				<select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField" id="verbatimEventDateField">

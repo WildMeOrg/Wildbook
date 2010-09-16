@@ -189,7 +189,7 @@ Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input>
 				int totalLocIDs=locIDs.size();
 
 				
-				if(totalLocIDs>0){
+				if(totalLocIDs>1){
 				%>
 				
 				<select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
@@ -229,7 +229,7 @@ Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input>
 				<td>
 				<div id="date" style="display:none;">
 				<p>Use the fields below to limit the timeframe of your search.</p>
-				<strong><%=encprops.getProperty("sightingDates")%>:</strong>< br/>
+				<strong><%=encprops.getProperty("sightingDates")%>:</strong><br/>
 				<table width="720">
 					<tr>
 						<td width="670"><label><em>
@@ -367,7 +367,7 @@ Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input>
 				int totalVBDs=vbds.size();
 
 				
-				if(totalVBDs>0){
+				if(totalVBDs>1){
 				%>
 				
 				<select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField" id="verbatimEventDateField">
@@ -475,7 +475,7 @@ Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input>
 				int totalBehavs=behavs.size();
 
 				
-				if(totalBehavs>0){
+				if(totalBehavs>1){
 				%>
 				
 				<select multiple name="behaviorField" id="behaviorField">
