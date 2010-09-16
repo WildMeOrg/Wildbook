@@ -213,7 +213,7 @@ public class IndividualQueryProcessor {
         prettyPrint.append("alternateIDField: "+request.getParameter("alternateIDField")+"<br />");      
         for(int q=0;q<rIndividuals.size();q++) {
                 MarkedIndividual tShark=(MarkedIndividual)rIndividuals.get(q);
-                if(tShark.getAlllternateIDs().toLowerCase().indexOf(request.getParameter("alternateIDField").toLowerCase().trim())!=-1) {
+                if(tShark.getAllAlternateIDs().toLowerCase().indexOf(request.getParameter("alternateIDField").toLowerCase().trim())!=-1) {
                   rIndividuals.remove(q);
                   q--;
                 }
