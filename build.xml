@@ -3,7 +3,7 @@
   <property name="target.dir" value="target"/>
   <property name="war.name" value="shepherd"/>
   <property name="lib.dir" value="temp_jars"/>
-  <property name="project.version" value="alpha1"/>
+  <property name="project.version" value="alpha2"/>
   
     
 
