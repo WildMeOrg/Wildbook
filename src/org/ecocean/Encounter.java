@@ -75,6 +75,7 @@ public class Encounter implements java.io.Serializable{
 	private String submitterID; 
 	//name, email, phone, address of the encounter reporter
 	private String submitterEmail, submitterPhone, submitterAddress;
+	private String hashedSubmitterEmail;
 	private String informothers;
 	//name, email, phone, address of the encounter photographer
 	private String photographerName, photographerEmail, photographerPhone, photographerAddress;
@@ -156,6 +157,10 @@ public class Encounter implements java.io.Serializable{
 		this.verbatimLocality=location;
 		this.recordedBy=submitterName;
 		this.submitterEmail=submitterEmail;
+		
+		//now we need to set the hashed form of the email addresses
+		
+		
 		this.additionalImageNames=additionalImageNames;
 		this.day=day;
 		this.month=month;
@@ -1012,6 +1017,8 @@ public class Encounter implements java.io.Serializable{
     
     
     public String getIdentificationRemarks(){return identificationRemarks;}
+    
+    public String getHashedSubmitterEmail(){return hashedSubmitterEmail;}
     
     
 }

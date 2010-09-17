@@ -128,6 +128,11 @@
 			<field name="recordedBy" persistence-modifier="persistent">
 				<column length="256"/>
 			</field>
+			
+			<field name="hashedSubmitterEmail" persistence-modifier="persistent">
+				<column length="512"/>
+			</field>
+			
 			<field name="submitterEmail" persistence-modifier="persistent">
 				<column length="256"/>
 			</field>
