@@ -31,13 +31,12 @@ import java.util.Random;
  *</code>
  *<p>
  *@author Jason Holmberg
- *@version	1.4
+ *@version	alpha-2
  *@see shark, encounter, superSpot,	spot
 */
 public class Shepherd {
 	
 	private PersistenceManager pm;
-	//private String dbLocation="localhost:5432/sharks";
 	public static Vector matches=new Vector();
 	private PersistenceManagerFactory pmf;
 	
@@ -64,44 +63,6 @@ public class Shepherd {
 	public PersistenceManagerFactory getPMF(){
 		return pmf;
 	}
-
-		
-	/**Loads into memory the shepherd configuration information from configuration.xml*/
-	/*public void loadConfig() {
-		SAXReader reader = new SAXReader();
-		try{
-			Document document = reader.read(configurationXMLFile);
-			//System.out.println(configurationXMLFile.getAbsolutePath());
-	 		Element root = document.getRootElement();
-			Element	CFGline=root.element("dblocation");
-			dbLocation=CFGline.getText();
-			Element	IMGline=root.element("imageLocation");
-			imageLocation=IMGline.getText();
-			Element	URLline=root.element("baseURL");
-			urlLocation=URLline.getText();
-			Element	sline=root.element("sharkLocation");
-			sharkLocation=sline.getText();
-			Element	mail=root.element("smtpMailHost");
-			mailHost=mail.getText();
-			Element	autoMail=root.element("autoEmailAddress");
-			autoEmailAddress=autoMail.getText();
-			Element	newSubmitEmail=root.element("newSubmissionEmail");
-			newSubmissionEmail=newSubmitEmail.getText();
-			
-			//Element HTMLline=root.element("htmlstorage");
-			//htmlLocation=HTMLline.getText();
-			
-		}
-		catch (DocumentException e){
-			e.printStackTrace();
-			//logger.error("Error occurred when attempting to parse training.xml. Is this an XML file?"+"\n"+e.getStackTrace());
-			}
-		catch (MalformedURLException urle){
-			urle.printStackTrace();
-			//logger.error("Error occurred when attempting to parse training.xml. I could not find the file!"+"\n"+urle.getStackTrace());
-			}
-		
-		}*/
 	
 	
 	/**Stores a new, unassigned encounter in the database for later retrieval and analysis.
@@ -313,7 +274,6 @@ public class Shepherd {
 		
 	public boolean isEncounter(String num) {
 		try {Encounter tempEnc=((org.ecocean.Encounter)(pm.getObjectById(pm.newObjectIdInstance(Encounter.class, num.trim()),true )));}
-		//catch (ObjectNameNotFoundException onfe) {return false;}
 		catch (Exception nsoe) {
 			nsoe.printStackTrace();
 			return false;}
@@ -323,25 +283,20 @@ public class Shepherd {
 	public boolean isAdoption(String num) {
 		try {Adoption tempEnc=((org.ecocean.Adoption)(pm.getObjectById(pm.newObjectIdInstance(Adoption.class, num.trim()),true )));}
 		catch (Exception nsoe) {
-			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
 		
 	public boolean isKeyword(String indexname) {
 		try {Keyword tempEnc=((org.ecocean.Keyword)(pm.getObjectById(pm.newObjectIdInstance(Keyword.class, indexname.trim()),true )));}
-		//catch (ObjectNameNotFoundException onfe) {return false;}
 		catch (Exception nsoe) {
-			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
 		
 	public boolean isScanTask(String uniqueID) {
 		try {ScanTask tempEnc=((org.ecocean.grid.ScanTask)(pm.getObjectById(pm.newObjectIdInstance(ScanTask.class, uniqueID.trim()),true )));}
-		//catch (ObjectNameNotFoundException onfe) {return false;}
 		catch (Exception nsoe) {
-			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
@@ -350,7 +305,6 @@ public class Shepherd {
 	public boolean isMarkedIndividual(String name) {
 		try {MarkedIndividual tempShark=((org.ecocean.MarkedIndividual)(pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, name.trim()),true )));}
 		catch (Exception nsoe) {
-			//nsoe.printStackTrace();
 			return false;}
 		return true;
 	}
@@ -416,11 +370,6 @@ public class Shepherd {
 		try{
 			c=(Collection)(acceptedEncounters.execute());
 			ArrayList list=new ArrayList(c);
-			//int wr=list.size();
-			//ArrayList reverseOrder=new ArrayList();
-			//for(int iter99=(wr-1);iter99>=0;iter99--) {
-			//	reverseOrder.add(list.get(iter99));
-			//}
 			Iterator it=list.iterator();
 			return it;
 		} catch(Exception npe) {
@@ -460,7 +409,6 @@ public class Shepherd {
 			Iterator it=c.iterator();
 			return it;
 		} catch(Exception npe) {
-			System.out.println("Error encountered when trying to execute getAllAdoptionsNoQuery. Returning a null iterator.");
 			npe.printStackTrace();
 			return null;
 		}	
@@ -542,7 +490,6 @@ public class Shepherd {
 		try{
 			c=(Collection)(query.execute());
 			ArrayList list=new ArrayList(c);
-			//Collections.reverse(list);
 			Iterator it=list.iterator();
 			return it;
 		} catch(Exception npe) {
@@ -670,10 +617,6 @@ public class Shepherd {
 			c=(Collection)(acceptedEncounters.execute());
 			ArrayList list=new ArrayList(c);
 			int wr=list.size();
-			//ArrayList reverseOrder=new ArrayList();
-			//for(int iter99=(wr-1);iter99>=0;iter99--) {
-			//	reverseOrder.add(list.get(iter99));
-			//}
 			Iterator it=list.iterator();
 			return it;
 		} catch(Exception npe) {
@@ -1756,7 +1699,6 @@ public class Shepherd {
      //temporary way
      /**
       * ArrayList<String> al=new ArrayList<String>();
-     
      Iterator allenc=getAllEncounters();
      while(allenc.hasNext()){
        Encounter enc=(Encounter)allenc.next();
@@ -1766,8 +1708,6 @@ public class Shepherd {
          }
        }
      }
-     
-     
      return al;
       */
    }
@@ -1788,6 +1728,14 @@ public class Shepherd {
      return (new ArrayList(results));
    }
    
+   public ArrayList<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {
+     String filter="((this.hashedSubmitterEmail.indexOf('"+hashedEmail+"') != -1)||(this.hashedPhotographerEmail.indexOf('"+hashedEmail+"') != -1)||(this.hashedInformOthers.indexOf('"+hashedEmail+"') != -1))";
+     Extent encClass=pm.getExtent(Encounter.class, true);
+     Query acceptedEncounters=pm.newQuery(encClass, filter);
+     Collection c=(Collection)(acceptedEncounters.execute());
+     ArrayList al = new ArrayList(c);
+     return al;
+   }
    
 } //end Shepherd class
 
