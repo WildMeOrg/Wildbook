@@ -1,0 +1,141 @@
+package org.ecocean.servlet;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+
+import org.ecocean.*;
+
+
+//Set alternateID for this encounter/sighting
+public class RemoveEmailAddress extends HttpServlet {
+  
+  public void init(ServletConfig config) throws ServletException {
+      super.init(config);
+    }
+
+  
+  public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
+    doPost(request, response);
+  }
+
+    
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+    Shepherd myShepherd=new Shepherd();
+    //set up for response
+    response.setContentType("text/html");
+    PrintWriter out = response.getWriter();
+    boolean locked=false;
+
+        if (request.getParameter("hashedEmail")!=null) {
+          
+          //String oldCode="";
+          myShepherd.beginDBTransaction();
+          ArrayList<Encounter> al=myShepherd.getEncountersWithHashedEmailAddress(request.getParameter("hashedEmail"));
+          int numMatchingEncounters=al.size();
+          String removeMe="";
+          int numInstances=0;
+          for(int i=0;i<numMatchingEncounters;i++){
+            boolean haveMadeChange=false;
+            Encounter changeMe=al.get(i);
+            try{
+              
+              //remove submitter
+              String thisEncEmailAddresses=changeMe.getSubmitterEmail();
+              StringTokenizer st=new StringTokenizer(thisEncEmailAddresses,",");
+              int numEmails=st.countTokens();
+              for(int j=0;j<numEmails;j++){
+                String address=st.nextToken().trim();
+                if(!address.equals("")){
+                if(request.getParameter("hashedEmail").equals(Encounter.getHashOfEmailString(address))){
+                  changeMe.setSubmitterEmail(changeMe.getSubmitterEmail().replaceAll(address, ""));
+                  removeMe=address;
+                  numInstances++;
+                  haveMadeChange=true;
+                }
+              }
+              }
+              
+              //remove photographer
+              thisEncEmailAddresses=changeMe.getPhotographerEmail();
+              st=new StringTokenizer(thisEncEmailAddresses,",");
+              numEmails=st.countTokens();
+              for(int j=0;j<numEmails;j++){
+                String address=st.nextToken().trim();
+                if(!address.equals("")){
+                if(request.getParameter("hashedEmail").equals(Encounter.getHashOfEmailString(address))){
+                  changeMe.setPhotographerEmail(changeMe.getPhotographerEmail().replaceAll(address, ""));
+                  removeMe=address;
+                  numInstances++;
+                  haveMadeChange=true;
+                }
+                }
+              }
+              
+              //remove informOthers
+              thisEncEmailAddresses=changeMe.getInformOthers();
+              st=new StringTokenizer(thisEncEmailAddresses,",");
+              numEmails=st.countTokens();
+              for(int j=0;j<numEmails;j++){
+                String address=st.nextToken().trim();
+                if(!address.equals("")){
+                if(request.getParameter("hashedEmail").equals(Encounter.getHashOfEmailString(address))){
+                  changeMe.setInformOthers(changeMe.getInformOthers().replaceAll(address, ""));
+                  removeMe=address;
+                  numInstances++;
+                  haveMadeChange=true;
+                }
+                }
+              }
+            
+              if(haveMadeChange){changeMe.addComments("<p>Removed email address "+removeMe+" upon user request.</p>");}
+          
+            }
+            catch(Exception le){
+              locked=true;
+              le.printStackTrace();
+              myShepherd.rollbackDBTransaction();
+            }
+          }
+          if((!locked)&&(!removeMe.equals(""))&&(numInstances>0)) {
+            
+            myShepherd.commitDBTransaction();
+            out.println(ServletUtilities.getHeader());
+            out.println("<strong>Success:</strong> I removed "+numInstances+" instances of your email in our database.");
+            //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
+            //out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
+              //  out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+                out.println(ServletUtilities.getFooter());
+            //String message="Encounter #"+request.getParameter("number")+" location code has been updated from "+oldCode+" to "+request.getParameter("code")+".";
+            //ServletUtilities.informInterestedParties(request.getParameter("number"), message);
+          }
+          else{
+            out.println(ServletUtilities.getHeader());
+            out.println("<strong>Failure:</strong> I could not find your email address in the database.");
+            //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
+            //out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
+              //  out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+                out.println(ServletUtilities.getFooter());
+            
+          }
+        }
+          
+          
+        else {
+          out.println(ServletUtilities.getHeader());
+          out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+          //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
+          //out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
+            //  out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+              out.println(ServletUtilities.getFooter());  
+            
+          }
+        
+        
+      out.close();
+      myShepherd.closeDBTransaction();
+      }
+}
+  
+  

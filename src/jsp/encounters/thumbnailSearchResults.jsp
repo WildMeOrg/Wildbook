@@ -72,6 +72,8 @@ EncounterQueryResult queryResult=new EncounterQueryResult(new Vector<Encounter>(
 <link rel="shortcut icon"
 	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 	
+
+	
 <!--
 	1 ) Reference to the files containing the JavaScript and CSS.
 	These files must be located on your server.
@@ -305,14 +307,16 @@ if((startNum)>1) {%>
 											<td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
 										<%
 										}
+										
+										if(request.getParameter("keyword")!=null){
 										%>
+										
+										
 										<tr>
 										<td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-											//int numKeywords=myShepherd.getNumKeywords();
 											Iterator allKeywords2=myShepherd.getAllKeywords();
-											
 											while(allKeywords2.hasNext()){
 												Keyword word=(Keyword)allKeywords2.next();
 									            if(word.isMemberOf(encNum+"/"+fileName)) {
@@ -337,16 +341,20 @@ if((startNum)>1) {%>
 											%>
 										</span></td>
 										</tr>
+										<%
+										}
+										%>
+										
 										</table>
-										</td>
+										<br />
 										
 										<%
 										if(CommonConfiguration.showEXIFData()){
 										%>
 										
-												<td align="left" valign="top">
+												
 												<span class="caption">
-						<ul>
+						
 					<%
 					if((fileName.toLowerCase().endsWith("jpg"))||(fileName.toLowerCase().endsWith("jpeg"))){
 						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+thisEnc.getCatalogNumber()+"/"+fileName)));
@@ -361,7 +369,7 @@ if((startNum)>1) {%>
 								Tag tag = (Tag)tags.next(); 
 								
 								%>
-								<li><%=tag.toString() %></li>
+								<%=tag.toString() %><br />
 								<% 
 							} 
 						} 
@@ -369,7 +377,7 @@ if((startNum)>1) {%>
 					}					
 					%>
    									
-   								</ul>
+   								
    								</span>
 												
 												

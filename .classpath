@@ -62,5 +62,6 @@
 	<classpathentry kind="lib" path="temp_jars/flexjson.jar"/>
 	<classpathentry kind="lib" path="temp_jars/metadata-extractor-2.3.1.jar"/>
 	<classpathentry kind="lib" path="temp_jars/sanselan-0.97-incubator.jar"/>
+	<classpathentry kind="lib" path="temp_jars/commons-codec-1.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

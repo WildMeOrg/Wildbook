@@ -5,6 +5,7 @@ import java.util.Vector;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+import org.apache.commons.codec.digest.DigestUtils;
 
 
 /**
@@ -75,6 +76,9 @@ public class Encounter implements java.io.Serializable{
 	private String submitterID; 
 	//name, email, phone, address of the encounter reporter
 	private String submitterEmail, submitterPhone, submitterAddress;
+	private String hashedSubmitterEmail;
+	private String hashedPhotographerEmail;
+	private String hashedInformOthers;
 	private String informothers;
 	//name, email, phone, address of the encounter photographer
 	private String photographerName, photographerEmail, photographerPhone, photographerAddress;
@@ -156,6 +160,10 @@ public class Encounter implements java.io.Serializable{
 		this.verbatimLocality=location;
 		this.recordedBy=submitterName;
 		this.submitterEmail=submitterEmail;
+		
+		//now we need to set the hashed form of the email addresses
+		this.hashedSubmitterEmail=Encounter.getHashOfEmailString(submitterEmail);
+		
 		this.additionalImageNames=additionalImageNames;
 		this.day=day;
 		this.month=month;
@@ -276,7 +284,10 @@ public class Encounter implements java.io.Serializable{
 	 *@return the e-mail address of the person who submitted this encounter data
 	 */
 	public String getSubmitterEmail(){return submitterEmail;}
-	public void setSubmitterEmail(String newemail){submitterEmail=newemail;}
+	public void setSubmitterEmail(String newemail){
+	  submitterEmail=newemail;
+	  this.hashedSubmitterEmail=Encounter.getHashOfEmailString(newemail);
+	}
 	
 	/**Returns the phone number of the person who submitted this encounter data.
 	 *@return the phone number of the person who submitted this encounter data
@@ -316,7 +327,10 @@ public class Encounter implements java.io.Serializable{
 	/**Sets the e-mail address of the person who took the primaryImage this encounter.
 	 *
 	 */
-	public void setPhotographerEmail(String email){photographerEmail=email;}
+	public void setPhotographerEmail(String email){
+	  photographerEmail=email;
+	  this.hashedPhotographerEmail=Encounter.getHashOfEmailString(email);
+	}
 	
 	/**Returns the phone number of the person who took the primaryImage this encounter.
 	 *@return the phone number of the photographer who took the primary image for this encounter
@@ -884,7 +898,10 @@ public class Encounter implements java.io.Serializable{
 		  return informothers;
 		 }
 		
-		public void setInformOthers(String others){this.informothers=others;}
+		public void setInformOthers(String others){
+		  this.informothers=others;
+		  this.hashedInformOthers=Encounter.getHashOfEmailString(others);
+		 }
 		
 		public String getLocationID(){return locationID;}
 		public void setLocationID(String newLocationID){this.locationID=newLocationID;}
@@ -1012,6 +1029,25 @@ public class Encounter implements java.io.Serializable{
     
     
     public String getIdentificationRemarks(){return identificationRemarks;}
+    
+    public String getHashedSubmitterEmail(){return hashedSubmitterEmail;}
+    public String getHashedPhotographerEmail(){return hashedPhotographerEmail;}
+    public String getHashedInformOthers(){return hashedInformOthers;}
+    
+    public static String getHashOfEmailString(String hashMe){
+      String returnString="";
+      StringTokenizer tokenizer = new StringTokenizer(hashMe,",");
+      while(tokenizer.hasMoreTokens()){
+        String emailAddress=tokenizer.nextToken().trim();
+        if(!emailAddress.equals("")){
+          String md5 = DigestUtils.md5Hex(emailAddress);
+          if(returnString.equals("")){returnString+=md5;}
+          else{returnString+=","+md5;} 
+        }
+      }
+      return returnString; 
+    }
+    
     
     
 }

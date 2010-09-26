@@ -290,6 +290,35 @@ if(CommonConfiguration.allowNicknames()){
 </a><br> <%}%>
 
 </p>
+
+<%
+
+if(sharky.getDynamicProperties()!=null){
+		 //let's create a TreeMap of the properties
+        StringTokenizer st=new StringTokenizer(sharky.getDynamicProperties(), ";");
+        while(st.hasMoreTokens()){
+          String token = st.nextToken();
+          int equalPlace=token.indexOf("=");
+		  String nm=token.substring(0,(equalPlace));
+		  String vl=token.substring(equalPlace+1);
+		  %>
+		  <p class="para"><img align="absmiddle" src="images/lightning_dynamic_props.gif"> <strong><%=nm%></strong><br />  <%=vl%>
+		  <%
+		  if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+ 		  %>
+ 		       <font size="-1">[<a href="individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty">edit</a>]</font>
+		  <%
+ 	      }
+ 		  %>
+		  </p>
+		  
+		  
+		  
+		  <%
+        }
+
+}
+%>
 <table id="encounter_report" width="100%">
 	<tr>
 
@@ -513,15 +542,15 @@ if (isOwner) {
 										</span></td>
 										</tr>
 										</table>
-										</td>
+										<br />
 										
 										<%
 										if(CommonConfiguration.showEXIFData()){
 										%>
 										
-												<td align="left" valign="top">
+												
 												<span class="caption">
-						<ul>
+						
 					<%
 					if((fileName.toLowerCase().endsWith("jpg"))||(fileName.toLowerCase().endsWith("jpeg"))){
 						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+thisEnc.getCatalogNumber()+"/"+fileName)));
@@ -536,7 +565,7 @@ if (isOwner) {
 								Tag tag = (Tag)tags.next(); 
 								
 								%>
-								<li><%=tag.toString() %></li>
+								<%=tag.toString() %><br />
 								<% 
 							} 
 						} 
@@ -544,7 +573,7 @@ if (isOwner) {
 					}					
 					%>
    									
-   								</ul>
+   								
    								</span>
 												
 												

@@ -318,6 +318,7 @@ if((startNum)>1) {%>
 											<td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
 										<%
 										}
+										if(request.getParameter("keyword")!=null){
 										%>
 										<tr>
 										<td><span class="caption">
@@ -350,16 +351,20 @@ if((startNum)>1) {%>
 											%>
 										</span></td>
 										</tr>
+										<%
+										}
+										%>
+										
 										</table>
-										</td>
+										<br />
 										
 										<%
 										if(CommonConfiguration.showEXIFData()){
 										%>
 										
-												<td align="left" valign="top">
+												
 												<span class="caption">
-						<ul>
+						
 					<%
 					if((fileName.toLowerCase().endsWith("jpg"))||(fileName.toLowerCase().endsWith("jpeg"))){
 						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+thisEnc.getCatalogNumber()+"/"+fileName)));
@@ -374,7 +379,7 @@ if((startNum)>1) {%>
 								Tag tag = (Tag)tags.next(); 
 								
 								%>
-								<li><%=tag.toString() %></li>
+								<%=tag.toString() %><br />
 								<% 
 							} 
 						} 
@@ -382,7 +387,7 @@ if((startNum)>1) {%>
 					}					
 					%>
    									
-   								</ul>
+   								
    								</span>
 												
 												
@@ -495,7 +500,7 @@ if(request.getParameter("noQuery")==null){
 <p><strong><%=encprops.getProperty("queryDetails")%></strong></p>
 
 	<p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %></strong><br /> 
-	<%=queryResult.getQueryPrettyPrint().replaceAll("locationField",encprops.getProperty("location")).replaceAll("locationCodeField",encprops.getProperty("locationID")).replaceAll("verbatimEventDateField",encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField",encprops.getProperty("alternateID")).replaceAll("behaviorField",encprops.getProperty("behavior")).replaceAll("Sex",encprops.getProperty("sex")).replaceAll("nameField",encprops.getProperty("nameField")).replaceAll("selectLength",encprops.getProperty("selectLength")).replaceAll("numResights",encprops.getProperty("numResights")).replaceAll("vesselField",encprops.getProperty("vesselField"))%></p>
+	<%=queryResult.getQueryPrettyPrint().replaceAll("locationField",encprops.getProperty("location")).replaceAll("locationCodeField",encprops.getProperty("locationID")).replaceAll("verbatimEventDateField",encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField",encprops.getProperty("alternateID")).replaceAll("behaviorField",encprops.getProperty("behavior")).replaceAll("Sex",encprops.getProperty("sex")).replaceAll("nameField",encprops.getProperty("nameField")).replaceAll("selectLength",encprops.getProperty("selectLength")).replaceAll("numResights",encprops.getProperty("numResights")).replaceAll("vesselField",encprops.getProperty("vesselField")).replaceAll("alternateIDField",(encprops.getProperty("alternateID"))).replaceAll("alternateIDField",(encprops.getProperty("size")))%></p>
 	
 	<p class="caption"><strong><%=encprops.getProperty("jdoql")%></strong><br /> 
 	<%=queryResult.getJDOQLRepresentation()%></p>

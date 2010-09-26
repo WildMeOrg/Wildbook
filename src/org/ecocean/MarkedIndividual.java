@@ -1,7 +1,11 @@
 package org.ecocean;
 
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Arrays;
+import java.util.TreeMap;
+import java.util.StringTokenizer;
+import java.util.Iterator;
 
 /**
  *A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -52,6 +56,8 @@ public class MarkedIndividual{
 	private Vector interestedResearchers=new Vector();
 	
 	private String dateTimeCreated;
+	
+	private String dynamicProperties;
 	
 	public MarkedIndividual(String name, Encounter enc) {
 		
@@ -320,35 +326,7 @@ public class MarkedIndividual{
 		int startMonth=m_startMonth;
 		int startDay=m_startDay;
 
-		
-		/*//test that start and end dates are not reversed
-		if(endYear<startYear) {
-			endYear=m_startYear;
-			endMonth=m_startMonth;
-			endDay=m_startDay;
-			startYear=m_endYear;
-			startMonth=m_endMonth;
-			startDay=m_endDay;
-			endDay=m_startDay;
-		}
-		else if((endYear==startYear)&&(endMonth<startMonth)){
-			endYear=m_startYear;
-			endMonth=m_startMonth;
-			endDay=m_startDay;
-			startYear=m_endYear;
-			startMonth=m_endMonth;
-			startDay=m_endDay;
-			endDay=m_startDay;
-		}
-		else if((endYear==startYear)&&(endMonth==startMonth)&&(endDay>startDay)) {
-			endYear=m_startYear;
-			endMonth=m_startMonth;
-			endDay=m_startDay;
-			startYear=m_endYear;
-			startMonth=m_endMonth;
-			startDay=m_endDay;
-			endDay=m_startDay;
-		}*/
+	
 		
 		for(int c=0;c<encounters.size();c++) {
 			Encounter temp=(Encounter)encounters.get(c);
@@ -368,6 +346,32 @@ public class MarkedIndividual{
 		}
 		return false;
 	}
+	
+	 public boolean wasSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay) {
+	    int endYear=m_endYear;
+	    int endMonth=m_endMonth;
+	    int endDay=m_endDay;
+	    int startYear=m_startYear;
+	    int startMonth=m_startMonth;
+	    int startDay=m_startDay;
+
+	  
+	    
+	    for(int c=0;c<encounters.size();c++) {
+	      Encounter temp=(Encounter)encounters.get(c);
+
+	        if((temp.getYear()>=startYear)&&(temp.getYear()<=endYear)){
+	          if((temp.getMonth()>=startMonth)&&(temp.getMonth()<=endMonth)){
+	            if((temp.getDay()>=startDay)&(temp.getDay()<=endDay)){
+	              return true;
+	            }
+	          }
+	        }
+
+	    
+	    }
+	    return false;
+	  }
 	
 	public boolean wasSightedInPeriodLeftOnly(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth) {
 		int endYear=m_endYear;
@@ -528,6 +532,25 @@ public class MarkedIndividual{
 			}
 		return false;
 		}
+	
+	 public ArrayList<String> particpatesInTheseVerbatimEventDates(){
+	    ArrayList<String> vbed = new ArrayList<String>();
+	    for(int c=0;c<encounters.size();c++) {
+	      Encounter temp=(Encounter)encounters.get(c);
+	      if((temp.getVerbatimEventDate()!=null)&&(!vbed.contains(temp.getVerbatimEventDate()))) {
+	        vbed.add(temp.getVerbatimEventDate());
+	      }
+	    }
+	    return vbed;
+	 }
+	
+  public boolean wasSightedInVerbatimEventDate(String ved){
+    for(int c=0;c<encounters.size();c++) {
+      Encounter temp=(Encounter)encounters.get(c);
+      if((temp.getVerbatimEventDate()!=null)&&(temp.getVerbatimEventDate().equals(ved))) {return true;}
+    }
+    return false;
+  }
 	
 	public boolean wasSightedByUser(String user){
 		for(int c=0;c<encounters.size();c++) {
@@ -720,5 +743,118 @@ public class MarkedIndividual{
 		if(alternateid==null){return "None";}
 		return alternateid;
 	}
+	
+	/*
+	 * Returns a comma delimited string of all of the alternateIDs registered for this marked individual, including those only assigned at the Encounter level
+	 */
+	 public String getAllAlternateIDs(){
+	   String allIDs="";
+	    if(alternateid!=null){allIDs+=alternateid;}
+	    for(int c=0;c<encounters.size();c++) {
+	      Encounter temp=(Encounter)encounters.get(c);
+	      if(!temp.getAlternateID().equals("None")) {allIDs+=","+temp.getAlternateID();}
+	    }
+	    return allIDs;
+	  }
+	 
+   public String getDynamicProperties(){
+     return dynamicProperties;
+   }
+   public void setDynamicProperty(String name, String value){
+     name=name.replaceAll(";", "_").trim().replaceAll("%20", " ");
+     value=value.replaceAll(";", "_").trim();
+     
+     if(dynamicProperties==null){dynamicProperties=name+"="+value+";";}
+     else{
+       
+       //let's create a TreeMap of the properties
+       TreeMap<String,String> tm=new TreeMap<String,String>();
+       StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+       while(st.hasMoreTokens()){
+         String token = st.nextToken();
+         int equalPlace=token.indexOf("=");
+         tm.put(token.substring(0,equalPlace), token.substring(equalPlace+1));
+       }
+       if(tm.containsKey(name)){
+         tm.remove(name);
+         tm.put(name, value);
+         
+         //now let's recreate the dynamicProperties String
+         String newProps=tm.toString();
+         int stringSize=newProps.length();
+         dynamicProperties=newProps.substring(1,(stringSize-1)).replaceAll(", ", ";")+";";
+       }
+       else{
+         dynamicProperties=dynamicProperties+name+"="+value+";";
+       }
+     }
+   }
+   public String getDynamicPropertyValue(String name){
+     if(dynamicProperties!=null){
+       name=name.replaceAll("%20", " ");
+       //let's create a TreeMap of the properties
+       TreeMap<String,String> tm=new TreeMap<String,String>();
+       StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+       while(st.hasMoreTokens()){
+         String token = st.nextToken();
+         int equalPlace=token.indexOf("=");
+         tm.put(token.substring(0,equalPlace), token.substring(equalPlace+1));
+       }
+       if(tm.containsKey(name)){return tm.get(name);}
+     }
+     return null;
+   }
+   
+   public void removeDynamicProperty(String name){
+     name=name.replaceAll(";", "_").trim().replaceAll("%20", " ");
+     if(dynamicProperties!=null){
+       
+       //let's create a TreeMap of the properties
+       TreeMap<String,String> tm=new TreeMap<String,String>();
+       StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+       while(st.hasMoreTokens()){
+         String token = st.nextToken();
+         int equalPlace=token.indexOf("=");
+         tm.put(token.substring(0,(equalPlace)), token.substring(equalPlace+1));
+       }
+       if(tm.containsKey(name)){
+         tm.remove(name);
+         
+         //now let's recreate the dynamicProperties String
+         String newProps=tm.toString();
+         int stringSize=newProps.length();
+         dynamicProperties=newProps.substring(1,(stringSize-1)).replaceAll(", ", ";")+";";
+       }
+     }
+   }
+   
+   public ArrayList<Keyword> getAllAppliedKeywordNames(Shepherd myShepherd){
+     ArrayList<Keyword> al=new ArrayList<Keyword>();
+     int numEncounters = encounters.size();
+     for(int i=0;i<numEncounters;i++){
+       Encounter enc=(Encounter)encounters.get(i);
+       Iterator it=myShepherd.getAllKeywords();
+       while(it.hasNext()){
+         Keyword word=(Keyword)it.next();
+         if((word.isMemberOf(enc))&&(!al.contains(word))){al.add(word);}
+       }
+     }
+     return al;
+   }
+ 
+   public ArrayList<String> getAllValuesForDynamicProperty(String propertyName){
+       ArrayList<String> listPropertyValues = new ArrayList<String>();
+       
+       //first, check if the individual has the property applied
+       if(getDynamicPropertyValue(propertyName)!=null){listPropertyValues.add(getDynamicPropertyValue(propertyName));}
+       
+       //next check the encounters
+       int numEncounters = encounters.size();
+       for(int i=0;i<numEncounters;i++){
+         Encounter enc=(Encounter)encounters.get(i);
+         if(enc.getDynamicPropertyValue(propertyName)!=null){listPropertyValues.add(enc.getDynamicPropertyValue(propertyName));}
+       }
+       return listPropertyValues;
+   }
 	
 }

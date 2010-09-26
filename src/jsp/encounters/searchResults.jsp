@@ -431,8 +431,7 @@ if(generateEmails){
 		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("alternateID")%></strong></td>
 		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("submitterName")%></strong></td>
 		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("date")%></strong></td>
-		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("vessel")%></strong></td>
-		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("eventID")%></strong></td>
+
 		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("location")%></strong></td>
 		<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encprops.getProperty("locationID")%></strong></td>
 	</tr>
@@ -453,13 +452,13 @@ if(generateEmails){
 
   				if((numResults>=startNum)&&(numResults<=endNum)) {
   				%>
-	<tr>
+	<tr class="lineitem">
 	<td width="100" class="lineitem" ><img src="<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"></td>
 		
 			<%
 	if (enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned")) {
 %>
-		<td><%=encprops.getProperty("unassigned")%></td>
+		<td class="lineitem"><%=encprops.getProperty("unassigned")%></td>
 		<%
 	} else {
 %>
@@ -485,8 +484,7 @@ if(generateEmails){
 
 		<td class="lineitem"><%=enc.getSubmitterName()%></td>
 		<td class="lineitem"><%=enc.getDate()%></td>
-		<td class="lineitem"><%=enc.getDynamicPropertyValue("Vessel")%></td>
-		<td class="lineitem"><%=enc.getEventID()%></td>
+
 		<td class="lineitem"><%=enc.getLocation()%></td>
 		<td class="lineitem"><%=enc.getLocationCode()%></td>
 	</tr>
@@ -692,7 +690,7 @@ if((startNum-10)>1) {
 %>
 </tr></table>
 <p>
-<table width="720" border="0" cellspacing="0" cellpadding="0">
+<table width="810" border="0" cellspacing="0" cellpadding="0">
 	<tr>
 		<td align="left">
 		<p><strong><%=encprops.getProperty("matchingEncounters")%></strong>: <%=numResults%>

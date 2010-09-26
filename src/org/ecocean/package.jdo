@@ -114,34 +114,42 @@
 			<field name="occurrenceRemarks" persistence-modifier="persistent">
 				<column jdbc-type="LONGVARCHAR" />
 			</field>
-			<field name="verbatimLocality" persistence-modifier="persistent">
-							<column jdbc-type="LONGVARCHAR" />
-			</field>
 			
+			<field name="verbatimLocality" persistence-modifier="persistent">
+				<column length="1024"/>
+			</field>
+						
 			<field name="photographerEmail" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" />
+				<column length="256"/>
 			</field>
 			<field name="photographerName" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" />
+				<column length="256"/>
 			</field>
 			<field name="recordedBy" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" />
+				<column length="256"/>
 			</field>
+			
+			<field name="hashedSubmitterEmail" persistence-modifier="persistent">
+				<column length="512"/>
+			</field>
+			
+			<field name="hashedPhotographerEmail" persistence-modifier="persistent">
+				<column length="512"/>
+			</field>
+			
 			<field name="submitterEmail" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" />
+				<column length="256"/>
 			</field>
-			
+						
 			<field name="livingStatus" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" />
+				<column length="256"/>
 			</field>
-			
-		
 				
 			
 			
 			
 			<field name="behavior" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" allows-null="true" />
+				<column length="1024" allows-null="true" />
 			</field>
 
 			<field name="eventID" persistence-modifier="persistent">

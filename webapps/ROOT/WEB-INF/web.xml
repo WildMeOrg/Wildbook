@@ -253,6 +253,11 @@
        <servlet-name>UpdateEmailAddress</servlet-name>
 	<servlet-class>org.ecocean.servlet.UpdateEmailAddress</servlet-class>
   </servlet>
+  
+    <servlet>
+         <servlet-name>RemoveEmailAddress</servlet-name>
+  	<servlet-class>org.ecocean.servlet.RemoveEmailAddress</servlet-class>
+  </servlet>
 
   <servlet>
        <servlet-name>TrackIt</servlet-name>
@@ -653,6 +658,11 @@
   <servlet-mapping>
        <servlet-name>MassExposeGBIF</servlet-name>
        <url-pattern>/MassExposeGBIF</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+         <servlet-name>RemoveEmailAddress</servlet-name>
+         <url-pattern>/RemoveEmailAddress</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>

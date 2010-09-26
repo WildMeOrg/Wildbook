@@ -66,20 +66,16 @@ public class EncounterQueryProcessor {
           int kwLength=locCodes.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
-              
               String kwParam=locCodes[kwIter].replaceAll("%20", " ").trim();
               if(!kwParam.equals("")){
                 if(locIDFilter.equals("(")){
-                  //locIDFilter+="this.locationID.startsWith('"+kwParam+"')";
                   locIDFilter+=" this.locationID == \""+kwParam+"\"";
                 }
                 else{
-                  //locIDFilter+=" || this.locationID.startsWith('"+kwParam+"')";
                   locIDFilter+=" || this.locationID == \""+kwParam+"\"";
                 }
                 prettyPrint.append(kwParam+" ");
               }
-              
             }
             locIDFilter+=" )";
             if(filter.equals("")){filter=locIDFilter;}
@@ -87,6 +83,36 @@ public class EncounterQueryProcessor {
             prettyPrint.append("<br />");
     }
     //end locationID filters-----------------------------------------------  
+    
+    //------------------------------------------------------------------
+    //behavior filters-------------------------------------------------
+    String[] behaviors=request.getParameterValues("behaviorField");
+    if((behaviors!=null)&&(!behaviors[0].equals("None"))){
+          prettyPrint.append("behaviorField is one of the following: ");
+          int kwLength=behaviors.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              String kwParam=behaviors[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" this.behavior == \""+kwParam+"\"";
+                }
+                else{
+                  locIDFilter+=" || this.behavior == \""+kwParam+"\"";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals("")){filter=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end locationID filters-----------------------------------------------  
+    
+    
+
+    
     
     
     //------------------------------------------------------------------
@@ -114,7 +140,7 @@ public class EncounterQueryProcessor {
             else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
     }
-    //end locationID filters-----------------------------------------------  
+    //end verbatimEventDate filters-----------------------------------------------  
     
     
     
@@ -128,6 +154,8 @@ public class EncounterQueryProcessor {
       prettyPrint.append("alternateIDField starts with \""+altID+"\".<br />");
       
     }
+    
+    /**
     //filter for behavior------------------------------------------
     if((request.getParameter("behaviorField")!=null)&&(!request.getParameter("behaviorField").equals(""))) {
       String behString=request.getParameter("behaviorField").toLowerCase().replaceAll("%20", " ").trim();
@@ -136,7 +164,9 @@ public class EncounterQueryProcessor {
       prettyPrint.append("behaviorField contains \""+behString+"\".<br />");
     }
     //end behavior filter--------------------------------------------------------------------------------------
-
+     */
+    
+    
     //filter for sex------------------------------------------
     if(request.getParameter("male")==null) {
       if(filter.equals("")){filter="!this.sex.startsWith('male')";}
@@ -244,6 +274,7 @@ public class EncounterQueryProcessor {
 
 
 
+    /**
   //filter for vessel------------------------------------------
   if((request.getParameter("vesselField")!=null)&&(!request.getParameter("vesselField").equals(""))) {
     String vesString=request.getParameter("vesselField");  
@@ -257,15 +288,90 @@ public class EncounterQueryProcessor {
       prettyPrint.append("vesselField is "+vesString+".<br />");
   }
   //end vessel filter--------------------------------------------------------------------------------------
+*/
 
+    //------------------------------------------------------------------
+    //GPS filters-------------------------------------------------
+    if((request.getParameter("ne_lat")!=null)&&(!request.getParameter("ne_lat").equals(""))) {
+      if((request.getParameter("ne_long")!=null)&&(!request.getParameter("ne_long").equals(""))) {
+        if((request.getParameter("sw_lat")!=null)&&(!request.getParameter("sw_lat").equals(""))) {
+          if((request.getParameter("sw_long")!=null)&&(!request.getParameter("sw_long").equals(""))) {
+            
+            for(int q=0;q<rEncounters.size();q++) {
+              Encounter rEnc=(Encounter)rEncounters.get(q);
+              if((rEnc.getDecimalLatitude()==null)||(rEnc.getDecimalLongitude()==null)){
+                rEncounters.remove(q);
+                q--;
+               }
+              else{
+                try{
+                  
+                  double encLat=(new Double(rEnc.getDecimalLatitude())).doubleValue();
+                  double encLong=(new Double(rEnc.getDecimalLongitude())).doubleValue();
+                  
+                  double ne_lat=(new Double(request.getParameter("ne_lat"))).doubleValue();
+                  double ne_long = (new Double(request.getParameter("ne_long"))).doubleValue();
+                  double sw_lat = (new Double(request.getParameter("sw_lat"))).doubleValue();
+                  double sw_long=(new Double(request.getParameter("sw_long"))).doubleValue();
+                  if((sw_long>0)&&(ne_long<0)){
+                    if(!((encLat<=ne_lat)&&(encLat>=sw_lat)&&((encLong<=ne_long)||(encLong>=sw_long)))){
+                      rEncounters.remove(q);
+                      q--;
+                    }
+                  }
+                  else{
+                    if(!((encLat<=ne_lat)&&(encLat>=sw_lat)&&(encLong<=ne_long)&&(encLong>=sw_long))){
+                      rEncounters.remove(q);
+                      q--;
+                    }
+                  }
+                }
+                catch(NumberFormatException nfe){
+                  rEncounters.remove(q);
+                  q--;
+                  //nfe.printStackTrace();
+                }
+                catch(Exception ee){
+                  rEncounters.remove(q);
+                  q--;
+                  //ee.printStackTrace();
+                }
+                
+              }
+            }
 
-
+            
+            
+           /** correct way to do this with JDOQL in the future
+            String thisLocalFilter="(";
+            
+            //process lats
+            thisLocalFilter+="(this.decimalLatitude <= "+request.getParameter("ne_lat")+") && (this.decimalLatitude >= "+request.getParameter("sw_lat")+")";
+            
+            //process longs
+            thisLocalFilter+=" && (this.decimalLongitude <= "+request.getParameter("ne_long")+") && (this.decimalLongitude >= "+request.getParameter("sw_long")+")";
+            
+            thisLocalFilter+=" )";
+            
+            if(filter.equals("")){filter=thisLocalFilter;}
+            else{filter+=" && "+thisLocalFilter;}
+            */
+            
+            prettyPrint.append("GPS Boundary NE: \""+request.getParameter("ne_lat")+", "+request.getParameter("ne_long")+"\".<br />");
+            prettyPrint.append("GPS Boundary SW: \""+request.getParameter("sw_lat")+", "+request.getParameter("sw_long")+"\".<br />");
+            
+      
+          }
+        }
+      }
+    }
+    //end GPS filters-----------------------------------------------  
 
   //keyword filters-------------------------------------------------
   String[] keywords=request.getParameterValues("keyword");
   if((keywords!=null)&&(!keywords[0].equals("None"))){
     
-      prettyPrint.append("Has one of the following assigned keyword(s): ");
+      prettyPrint.append("Keywords: ");
       int kwLength=keywords.length;
       for(int y=0;y<kwLength;y++){
         String kwParam=keywords[y];
