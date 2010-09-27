@@ -2068,12 +2068,12 @@ if(enc.getDynamicProperties()!=null){
 						<td align="left" valign="top">
    								
    						<table>
-   						<tr><td align="left" valign="top"><span class="caption"><%=encprops.getProperty("location") %>: <%=enc.getLocation() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=enc.getLocationID() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=enc.getDate() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=enc.getIndividualID() %>"><%=enc.getIndividualID() %></a></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("title") %>: <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a></span></td></tr>
-										<tr>
+   							<tr><td align="left" valign="top"><span class="caption"><%=encprops.getProperty("location") %>: <%=enc.getLocation() %></span></td></tr>
+							<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=enc.getLocationID() %></span></td></tr>
+							<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=enc.getDate() %></span></td></tr>
+							<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=enc.getIndividualID() %>"><%=enc.getIndividualID() %></a></span></td></tr>
+							<tr><td><span class="caption"><%=encprops.getProperty("title") %>: <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a></span></td></tr>
+							<tr>
 										<td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
@@ -2099,14 +2099,14 @@ if(enc.getDynamicProperties()!=null){
    						</table>
    						
    								
-   						</td>
+   						
 					
 					
 					
 										<%
 										if(CommonConfiguration.showEXIFData()){
 										%>
-					<td align="left" valign="top">
+					
 					
 					
 					<span class="caption">

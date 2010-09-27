@@ -109,7 +109,8 @@ public class IndividualAddEncounter extends HttpServlet {
 							
 							myShepherd.commitDBTransaction(action);
 							Vector e_images=new Vector();
-							
+							String thanksmessage=ServletUtilities.getText("markedIndividualUpdate.txt");
+              
 							
 							//let's get ready for emailing
 							ThreadPoolExecutor es=MailThreadExecutorService.getExecutorService();
@@ -121,6 +122,9 @@ public class IndividualAddEncounter extends HttpServlet {
 							String emailUpdate="\nPreviously identified record: "+request.getParameter("individual");
 							emailUpdate=emailUpdate+altID;
 							emailUpdate=emailUpdate+"\nhttp://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("individual")+"\n\nNew encounter: "+request.getParameter("number")+"\nhttp://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\n";
+							
+							thanksmessage+=emailUpdate;
+							
 							int numEncounters=addToMe.totalEncounters();
 			
 							//inform all encounter submitters for this Marked Individual about the modification to their animal
@@ -147,13 +151,17 @@ public class IndividualAddEncounter extends HttpServlet {
 		                  while(str.hasMoreTokens()){
 		                    String token=str.nextToken().trim();
 		                    if(!token.equals("")){
-		                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+		                      String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,token);
+	                        
+		                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), personalizedThanksMessage, e_images));
 		                      allSubs.append(token);
 		                    }
 		                  }       
 		                }
 		                else{
-		                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+		                  String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,submitter);
+                      
+		                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), personalizedThanksMessage, e_images));
 		                  allSubs.append(submitter);
 		                }
 
@@ -167,13 +175,16 @@ public class IndividualAddEncounter extends HttpServlet {
                       while(str.hasMoreTokens()){
                         String token=str.nextToken().trim();
                         if(!token.equals("")){
-                          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+                          String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,token);
+                          
+                          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), personalizedThanksMessage, e_images));
                           allSubs.append(token);
                         }
                       }       
                     }
                     else{
-                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+                      String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,submitter);
+                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), personalizedThanksMessage, e_images));
                       allSubs.append(submitter);
                     }
 										
@@ -188,13 +199,17 @@ public class IndividualAddEncounter extends HttpServlet {
                       while(str.hasMoreTokens()){
                         String token=str.nextToken().trim();
                         if(!token.equals("")){
-                          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+                          String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,token);
+                          
+                          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: "+request.getParameter("number")), personalizedThanksMessage, e_images));
                           allSubs.append(token);
                         }
                       }       
                     }
                     else{
-                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("markedIndividualUpdate.txt")+emailUpdate, e_images));
+                      String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,submitter);
+                      
+                      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: "+request.getParameter("number")), personalizedThanksMessage, e_images));
                       allSubs.append(submitter);
                     }
 									}

@@ -70,6 +70,7 @@ public class CommonConfiguration {
 	 * @return true if adoption functionality should be displayed. False if adoptions are not supported in this catalog.
 	 */
 	public static boolean allowAdoptions(){
+	  initialize();
 	  boolean canAdopt = true;
 	  if((props.getProperty("allowAdoptions")!=null)&&(props.getProperty("allowAdoptions").equals("false"))){
 	    canAdopt=false;
@@ -82,7 +83,8 @@ public class CommonConfiguration {
 	 * @return true if nicknames are displayed for MarkedIndividual entries. False otherwise.
 	 */
 	 public static boolean allowNicknames(){
-	    boolean canNickname = true;
+	   initialize(); 
+	   boolean canNickname = true;
 	    if((props.getProperty("allowNicknames")!=null)&&(props.getProperty("allowNicknames").equals("false"))){
 	      canNickname=false;
 	    }
@@ -94,7 +96,8 @@ public class CommonConfiguration {
 	  * @return true if this catalog is for a species for which the spot pattern recognition software component can be used. False otherwise.
 	  */
 	 public static boolean useSpotPatternRecognition(){
-	    boolean useSpotPatternRecognition = true;
+	   initialize(); 
+	   boolean useSpotPatternRecognition = true;
 	    if((props.getProperty("useSpotPatternRecognition")!=null)&&(props.getProperty("useSpotPatternRecognition").equals("false"))){
 	      useSpotPatternRecognition=false;
 	    }
@@ -106,6 +109,7 @@ public class CommonConfiguration {
 	  * @return true if edits are allows. False otherwise.
 	  */
    public static boolean isCatalogEditable(){
+     initialize();
      boolean isCatalogEditable = true;
      if((props.getProperty("isCatalogEditable")!=null)&&(props.getProperty("isCatalogEditable").equals("false"))){
        isCatalogEditable=false;
@@ -118,6 +122,7 @@ public class CommonConfiguration {
     * @return true if EXIF data should be shown. False otherwise.
     */
    public static boolean showEXIFData(){
+     initialize();
      boolean showEXIF = true;
      if((props.getProperty("showEXIF")!=null)&&(props.getProperty("showEXIF").equals("false"))){
        showEXIF=false;
@@ -130,6 +135,7 @@ public class CommonConfiguration {
     * @return true if a TapirLink provider is used with the framework. False otherwise.
     */
    public static boolean useTapirLinkURL(){
+     initialize();
      boolean useTapirLink = true;
      if((props.getProperty("tapirLinkURL")!=null)&&(props.getProperty("tapirLinkURL").equals("false"))){
        useTapirLink=false;
@@ -137,5 +143,12 @@ public class CommonConfiguration {
      return useTapirLink ;
    }
    
+   public static String appendEmailRemoveHashString(String originalString, String emailAddress){
+     initialize();
+     if(props.getProperty("removeEmailString")!=null){
+       originalString+="\n\n"+props.getProperty("removeEmailString")+"\nhttp://"+getURLLocation()+"/RemoveEmailAddress?hashedEmail="+Encounter.getHashOfEmailString(emailAddress);
+     }
+     return originalString;
+   }
 	
 }

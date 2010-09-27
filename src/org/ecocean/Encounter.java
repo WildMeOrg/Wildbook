@@ -1038,7 +1038,7 @@ public class Encounter implements java.io.Serializable{
       String returnString="";
       StringTokenizer tokenizer = new StringTokenizer(hashMe,",");
       while(tokenizer.hasMoreTokens()){
-        String emailAddress=tokenizer.nextToken().trim();
+        String emailAddress=tokenizer.nextToken().trim().toLowerCase();
         if(!emailAddress.equals("")){
           String md5 = DigestUtils.md5Hex(emailAddress);
           if(returnString.equals("")){returnString+=md5;}

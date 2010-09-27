@@ -4,6 +4,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 import org.ecocean.*;
+
 import java.util.Vector;
 
 //Set alternateID for this encounter/sighting
@@ -33,28 +34,7 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
 		boolean locked=false;
 		boolean isOwner=true;
 		
-		/**
-		if(request.getParameter("number")!=null){
-			myShepherd.beginDBTransaction();
-			if(myShepherd.isEncounter(request.getParameter("number"))) {
-				Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-				String locCode=verifyMyOwner.getLocationCode();
-				
-				//check if the encounter is assigned
-				if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-					isOwner=true;
-				}
-				
-				//if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-				else if((request.isUserInRole("admin"))){
-					isOwner=true;
-				}
-				//if they have general location code permissions for the encounter's location code
-				else if(request.isUserInRole(locCode)){isOwner=true;}
-			}
-			myShepherd.rollbackDBTransaction();	
-		}
-  */
+
 		
 
 			if (request.getParameter("number")!=null) {
@@ -91,9 +71,14 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
 						String message="Encounter #"+request.getParameter("number")+" was set as unidentifiable in the database.";
 						ServletUtilities.informInterestedParties(request.getParameter("number"), message);
 						
-						String emailUpdate="\nEncounter: "+request.getParameter("number")+"\nhttp://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\n";
+						String emailUpdate=ServletUtilities.getText("dataOnlyUpdate.txt")+"\nEncounter: "+request.getParameter("number")+"\nhttp://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\n";
+						
 						Vector e_images=new Vector();
-						NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitterEmail, ("Encounter update: "+request.getParameter("number")), ServletUtilities.getText("dataOnlyUpdate.txt")+emailUpdate, e_images);
+						
+						emailUpdate+=CommonConfiguration.appendEmailRemoveHashString(emailUpdate,submitterEmail);
+						
+						NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitterEmail, ("Encounter update: "+request.getParameter("number")),emailUpdate, e_images);
+						
 						
 					} else {
 						out.println(ServletUtilities.getHeader());
