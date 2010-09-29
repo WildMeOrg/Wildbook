@@ -158,6 +158,13 @@ hs.addSlideshow({
 	color: #DEDECF;
 	border-bottom: 2px solid #000000;
 }
+div.scroll {
+height: 200px;
+overflow: auto;
+border: 1px solid #666;
+background-color: #ccc;
+padding: 8px;
+}
 </style>
 <body>
 <div id="wrapper">
@@ -351,10 +358,11 @@ if((startNum)>1) {%>
 										<%
 										if(CommonConfiguration.showEXIFData()){
 										%>
-										
+										<p><strong>EXIF Data</strong></p>
 												
 												<span class="caption">
-						
+						<div class="scroll">
+						<span class="caption">
 					<%
 					if((fileName.toLowerCase().endsWith("jpg"))||(fileName.toLowerCase().endsWith("jpeg"))){
 						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+thisEnc.getCatalogNumber()+"/"+fileName)));
@@ -376,8 +384,8 @@ if((startNum)>1) {%>
 					
 					}					
 					%>
-   									
-   								
+   									</span>
+   								</div>
    								</span>
 												
 												
