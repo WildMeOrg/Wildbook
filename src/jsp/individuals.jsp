@@ -117,6 +117,13 @@ table.adopter td.image {
 	border-width: 0px 0px 0px 0px;
 	margin: 0px;
 }
+div.scroll {
+height: 200px;
+overflow: auto;
+border: 1px solid #666;
+background-color: #ccc;
+padding: 8px;
+}
 -->
 </style>
 
@@ -550,7 +557,8 @@ if (isOwner) {
 										
 												
 												<span class="caption">
-						
+						<div class="scroll">	
+						<span class="caption">
 					<%
 					if((fileName.toLowerCase().endsWith("jpg"))||(fileName.toLowerCase().endsWith("jpeg"))){
 						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+thisEnc.getCatalogNumber()+"/"+fileName)));
@@ -574,6 +582,8 @@ if (isOwner) {
 					%>
    									
    								
+   								</span>
+   								</div>
    								</span>
 												
 												
