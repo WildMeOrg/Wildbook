@@ -118,6 +118,14 @@
 			<field name="verbatimLocality" persistence-modifier="persistent">
 				<column length="1024"/>
 			</field>
+			
+			
+			<field name="genus" persistence-modifier="persistent">
+				<column length="128"/>
+			</field>
+			<field name="specificEpithet" persistence-modifier="persistent">
+				<column length="128"/>
+			</field>
 						
 			<field name="photographerEmail" persistence-modifier="persistent">
 				<column length="256"/>
@@ -135,6 +143,10 @@
 			
 			<field name="hashedPhotographerEmail" persistence-modifier="persistent">
 				<column length="512"/>
+			</field>
+			
+			<field name="hashedInformOthers" persistence-modifier="persistent">
+							<column length="512"/>
 			</field>
 			
 			<field name="submitterEmail" persistence-modifier="persistent">
