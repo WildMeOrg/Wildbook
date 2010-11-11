@@ -433,6 +433,10 @@ if (isOwner) {
 		<p>
 		<strong><%=props.getProperty("imageGallery") %></strong><br />
 		
+		<%
+		int numThumbnails = myShepherd.getNumThumbnails(sharky.getEncounters().iterator(), keywords);
+		if(numThumbnails>0){	
+		%>
 
 		<table id="results" border="0" width="100%" >
 	<%		
@@ -448,7 +452,9 @@ if (isOwner) {
 
 			
 			
-					for(int rows=0;rows<15;rows++) {		%>
+					//for(int rows=0;rows<15;rows++) {		
+					
+					%>
 
 						<tr valign="top">
 
@@ -644,7 +650,9 @@ if (isOwner) {
 							} //endFor
 							%>
 					</tr>
-				<%} //endFor
+				<%
+				
+					//} //endFor
 	
 				} catch(Exception e) {
 					e.printStackTrace();
@@ -658,7 +666,16 @@ if (isOwner) {
 %>
 
 </table>
-		
+<% 
+}
+else {
+%>
+
+<p><%=props.getProperty("noImages")%></p>			
+
+<%			
+}
+%>
 		
 		
 		<!-- end thumbnail gallery -->
