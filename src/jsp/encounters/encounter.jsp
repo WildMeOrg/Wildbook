@@ -153,6 +153,16 @@ table.adopter td.name {
 table.adopter td.image {
 	padding: 0px 0px 0px 0px;
 }
+
+div.scroll {
+height: 200px;
+overflow: auto;
+border: 1px solid #666;
+background-color: #ccc;
+padding: 8px;
+}
+
+
 -->
 </style>
 
@@ -2068,12 +2078,12 @@ if(enc.getDynamicProperties()!=null){
 						<td align="left" valign="top">
    								
    						<table>
-   						<tr><td align="left" valign="top"><span class="caption"><%=encprops.getProperty("location") %>: <%=enc.getLocation() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=enc.getLocationID() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=enc.getDate() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=enc.getIndividualID() %>"><%=enc.getIndividualID() %></a></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("title") %>: <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a></span></td></tr>
-										<tr>
+   							<tr><td align="left" valign="top"><span class="caption"><%=encprops.getProperty("location") %>: <%=enc.getLocation() %></span></td></tr>
+							<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=enc.getLocationID() %></span></td></tr>
+							<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=enc.getDate() %></span></td></tr>
+							<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=enc.getIndividualID() %>"><%=enc.getIndividualID() %></a></span></td></tr>
+							<tr><td><span class="caption"><%=encprops.getProperty("title") %>: <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a></span></td></tr>
+							<tr>
 										<td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
@@ -2099,18 +2109,18 @@ if(enc.getDynamicProperties()!=null){
    						</table>
    						
    								
-   						</td>
+   						
 					
 					
 					
 										<%
 										if(CommonConfiguration.showEXIFData()){
 										%>
-					<td align="left" valign="top">
 					
 					
+					<p><strong>EXIF Data</strong></p>
 					<span class="caption">
-						<ul>
+					<div class="scroll"><span class="caption">	
 					<%
 					if((addTextFile.toLowerCase().endsWith("jpg"))||(addTextFile.toLowerCase().endsWith("jpeg"))){
 						File exifImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/"+addTextFile)));
@@ -2125,15 +2135,16 @@ if(enc.getDynamicProperties()!=null){
 								Tag tag = (Tag)tags.next(); 
 								
 								%>
-								<li><%=tag.toString() %></li>
+								<%=tag.toString() %><br />
 								<% 
 							} 
 						} 
 					
 					}					
 					%>
-   									
-   								</ul>
+   									</span>
+   									</div>
+   								
    								</span>
    								</td>
    					<%

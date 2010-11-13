@@ -21,32 +21,6 @@ Shepherd myShepherd=new Shepherd();
 	email_props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/confirmSubmitEmails.properties"));
 
 	
-	//load our variables for the submit page
-	//String title=props.getProperty("submit_title");
-	//String submit_maintext=props.getProperty("submit_maintext");
-	//String submit_reportit=props.getProperty("reportit");
-	//String submit_language=props.getProperty("language");
-	//String what_do=props.getProperty("what_do");
-	//String read_overview=props.getProperty("read_overview");
-	//String see_all_encounters=props.getProperty("see_all_encounters");
-	//String see_all_sharks=props.getProperty("see_all_sharks");
-	//String report_encounter=props.getProperty("report_encounter");
-	//String log_in=props.getProperty("log_in");
-	//String contact_us=props.getProperty("contact_us");
-	//String search=props.getProperty("search");
-	//String encounter=props.getProperty("encounter");
-	//String shark=props.getProperty("shark");
-	//String join_the_dots=props.getProperty("join_the_dots");
-	//String menu=props.getProperty("menu");
-	//String last_sightings=props.getProperty("last_sightings");
-	//String more=props.getProperty("more");
-	//String ws_info=props.getProperty("ws_info");
-	//String about=props.getProperty("about");
-	//String contributors=props.getProperty("contributors");
-	//String forum=props.getProperty("forum");
-	//String blog=props.getProperty("blog");
-	//String area=props.getProperty("area");
-	//String match=props.getProperty("match");
 	
 	//link path to submit page with appropriate language
 	String submitPath="submit.jsp";
@@ -130,10 +104,13 @@ Shepherd myShepherd=new Shepherd();
 				}			
 				
 			}
-			catch(Exception e) {System.out.println("Error encountered in confirmSubmit.jsp:");e.printStackTrace();}
+			catch(Exception e) {
+				System.out.println("Error encountered in confirmSubmit.jsp:");
+				e.printStackTrace();
+			}
 			myShepherd.rollbackDBTransaction();	
 			myShepherd.closeDBTransaction();
-		}
+			}
 		
 		String thumbLocation="file-encounters/"+number+"/thumb.jpg";
 		if(myShepherd.isAcceptableVideoFile(addText)){addText="images/video_thumb.jpg";}
@@ -221,11 +198,12 @@ encounter #<%=number%></a>. <em>This may initially take a minute or more to full
 		}
 
 		//thank the submitter and photographer
-		String thanksmessage=ServletUtilities.getText("thankyou.txt")+"\nEncounter :"+number+"\nhttp://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+number;
+		String thanksmessage=ServletUtilities.getText("thankyou.txt");
 		
-		
-		//es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("New encounter submission: "+number), thanksmessage, e_images));
-	
+		//add the encounter link
+		thanksmessage+="\nEncounter :"+number+"\nhttp://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+number;
+
+		//add the removal message
 		
 			if(submitter.indexOf(",")!=-1){
 				
@@ -233,14 +211,21 @@ encounter #<%=number%></a>. <em>This may initially take a minute or more to full
 				while(str.hasMoreTokens()){
 					String token=str.nextToken().trim();
 					if(!token.equals("")){
-						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("New encounter submission: "+number), thanksmessage, e_images));
+						String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,token);
+						//System.out.println(personalizedThanksMessage);
+						
+						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("New encounter submission: "+number), personalizedThanksMessage, e_images));
 						
 					}
 				}
 				
 			}
 			else{
-				es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("New encounter submission: "+number), thanksmessage, e_images));
+				String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,submitter);
+				
+				//System.out.println(personalizedThanksMessage);
+				
+				es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("New encounter submission: "+number), personalizedThanksMessage, e_images));
 			}
 	
 		
@@ -252,12 +237,16 @@ encounter #<%=number%></a>. <em>This may initially take a minute or more to full
 				while(str.hasMoreTokens()){
 					String token=str.nextToken().trim();
 					if(!token.equals("")){
-						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("New encounter submission: "+number), thanksmessage, e_images));
+						String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,token);
+						
+						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("New encounter submission: "+number), personalizedThanksMessage, e_images));
 					}
 				}				
 			}
 			else{
-				es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), photographer, ("New encounter submission: "+number), thanksmessage, e_images));
+				String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,photographer);
+				
+				es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), photographer, ("New encounter submission: "+number), personalizedThanksMessage, e_images));
 			}
 		}
 		
@@ -267,12 +256,16 @@ encounter #<%=number%></a>. <em>This may initially take a minute or more to full
 				while(str.hasMoreTokens()){
 					String token=str.nextToken().trim();
 					if(!token.equals("")){
-						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("New encounter submission: "+number), thanksmessage, e_images));
+						String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,token);
+						
+						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("New encounter submission: "+number), personalizedThanksMessage, e_images));
 					}
 				}				
 			}
 			else{
-				es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), informOthers, ("New encounter submission: "+number), thanksmessage, e_images));
+				String personalizedThanksMessage=CommonConfiguration.appendEmailRemoveHashString(thanksmessage,informOthers);
+				
+				es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), informOthers, ("New encounter submission: "+number), personalizedThanksMessage, e_images));
 			}
 		}
 		

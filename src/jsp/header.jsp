@@ -186,7 +186,7 @@ z-index:99;
 			class="enclose"
 			style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;"><%=props.getProperty("viewEncounters")%></a></li>
 
-			<li><a href="http://<%=CommonConfiguration.getURLLocation() %>/individualThumbnailSearchResults.jsp?noQuery=true" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;"><%=props.getProperty("viewImages")%></a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation() %>/encounters/thumbnailSearchResults.jsp?noQuery=true" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewImages")%></a></li>
 		
 		<li><a
 			href="http://<%=CommonConfiguration.getURLLocation() %>/xcalendar/calendar.jsp"

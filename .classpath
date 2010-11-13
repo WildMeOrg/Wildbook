@@ -41,11 +41,6 @@
 	<classpathentry kind="lib" path="temp_jars/joda-time-1.5.2.jar"/>
 	<classpathentry kind="lib" path="temp_jars/rome-1.0RC1.jar"/>
 	<classpathentry kind="lib" path="temp_jars/jdom.jar"/>
-	<classpathentry exported="true" kind="con" path="GROOVY_SUPPORT">
-		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:/Groovy-1.6.7"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="lib" path="temp_jars/jcs-1.3.jar"/>
 	<classpathentry kind="lib" path="temp_jars/datanucleus-xmltypeoracle-2.0.0-release.jar"/>
 	<classpathentry kind="lib" path="temp_jars/datanucleus-cache-2.1.0-release.jar"/>

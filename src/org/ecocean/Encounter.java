@@ -49,6 +49,8 @@ public class Encounter implements java.io.Serializable{
 	private String verbatimEventDate;
 	private String dynamicProperties;
 	public String identificationRemarks="";
+	public String genus="";
+	public String specificEpithet;
 	
 	
 	/*
@@ -1038,7 +1040,7 @@ public class Encounter implements java.io.Serializable{
       String returnString="";
       StringTokenizer tokenizer = new StringTokenizer(hashMe,",");
       while(tokenizer.hasMoreTokens()){
-        String emailAddress=tokenizer.nextToken().trim();
+        String emailAddress=tokenizer.nextToken().trim().toLowerCase();
         if(!emailAddress.equals("")){
           String md5 = DigestUtils.md5Hex(emailAddress);
           if(returnString.equals("")){returnString+=md5;}
@@ -1048,7 +1050,10 @@ public class Encounter implements java.io.Serializable{
       return returnString; 
     }
     
-    
+    public String getGenus(){return genus;}
+    public void setGenus(String newGenus){this.genus=newGenus;}
+    public String getSpecificEpithet(){return specificEpithet;}
+    public void setSpecificEpithet(String newEpithet){this.specificEpithet=newEpithet;}
     
 }
 	
