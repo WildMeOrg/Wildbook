@@ -288,6 +288,22 @@ if((startNum)>1) {%>
 										<div class="highslide-caption">
 										
 										<h3><%=(countMe+startNum) %>/<%=numThumbnails %></h3>
+										<%
+										if(request.getParameter("referenceImageName")!=null){
+										%>
+											<h4>Reference Image</h4>
+											<table id="table<%=(countMe+startNum) %>">
+											<tr>
+											<td>
+
+											<img width="790px" class="highslide-image" id="refImage<%=(countMe+startNum) %>" src="<%=request.getParameter("referenceImageName") %>" />
+											
+											</td>
+											</tr>	
+											</table>									
+										<%
+										}
+										%>
 										<h4><%=encprops.getProperty("imageMetadata") %></h4>
 										
 										<table>
