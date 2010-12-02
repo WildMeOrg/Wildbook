@@ -11,10 +11,14 @@ public class EncounterDateComparator implements Comparator{
     public int compare(Object a, Object b) {
     	Encounter a_enc=(Encounter)a;
     	Encounter b_enc=(Encounter)b;
-        GregorianCalendar a1=new GregorianCalendar(a_enc.getYear(),a_enc.getMonth(),a_enc.getDay());
-        GregorianCalendar b1=new GregorianCalendar(b_enc.getYear(),b_enc.getMonth(),b_enc.getDay());
+       GregorianCalendar a1=new GregorianCalendar(a_enc.getYear(),a_enc.getMonth(),a_enc.getDay());
+       GregorianCalendar b1=new GregorianCalendar(b_enc.getYear(),b_enc.getMonth(),b_enc.getDay());
         
+        if(a1.getTimeInMillis()>b1.getTimeInMillis()){return -1;}
+        else if(a1.getTimeInMillis()<b1.getTimeInMillis()){return 1;}
+        return 0;
         
+        /**
         if (a1.get(Calendar.YEAR)>b1.get(Calendar.YEAR)) {return -1;}
         if (a1.get(Calendar.YEAR)==b1.get(Calendar.YEAR)) {
         	if (a1.get(Calendar.MONTH)>b1.get(Calendar.MONTH)) {return -1;}
@@ -26,6 +30,7 @@ public class EncounterDateComparator implements Comparator{
         	return 1;
         }
         return 1;
+        */
     }
     
     
