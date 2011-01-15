@@ -70,6 +70,10 @@
 		<li>A Java version of the <a href="http://www.reijns.com/i3s/">I3S 1.0 algorithm</a> is used under the GPL v2 license as one of two spot pattern recognition algorithms.</li>
 		<li>Metadata Extractor 2.3.1 for EXIF image data extraction. <a href="http://www.drewnoakes.com/code/exif/">http://www.drewnoakes.com/code/exif/</a></li>
 		<li>Sanselan 0.97 for image size detection. <a href="http://incubator.apache.org/sanselan/site/index.html">http://incubator.apache.org/sanselan/site/index.html</a></li>
+		
+		<li>KeyDragZoom 2.0.5 for Google Maps area selection. <a href="http://code.google.com/p/gmaps-utility-library-dev/">GMaps Utility Library</a></li>
+		
+		
 		</ul>
 
 	  </div>
