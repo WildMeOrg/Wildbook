@@ -62,7 +62,6 @@ props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/individualSearc
 </script>
 <!-- /STEP2 Place inside the head section -->	
 	
-<script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 
 </head>
 
@@ -120,6 +119,7 @@ function resetMap()
 				src="http://maps.google.com/maps?file=api&amp;v=3.2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
 				type="text/javascript">
 			</script> 
+				<script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 				
 				<script type="text/javascript">
     			function initialize() {
