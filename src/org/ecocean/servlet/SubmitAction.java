@@ -130,6 +130,11 @@ public class SubmitAction extends Action{
 			locCode="";
 			String locTemp=location.toLowerCase().trim();
 			Properties props=new Properties();
+			
+			
+			int numAllowedPhotos=4; 
+			
+			
 			try{
 				//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/en/submitActionClass.properties"));
 				

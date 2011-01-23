@@ -188,6 +188,20 @@ hs.outlineType = 'rounded-white';
 hs.fadeInOut = true;
 //hs.dimmingOpacity = 0.75;
 
+//define the restraining box
+hs.useBox = true;
+hs.width = 810;
+hs.height=500;
+
+//block right-click user copying if no permissions available
+<%
+if(!request.isUserInRole("imageProcessor")){
+%>
+hs.blockRightClick = true;
+<%
+}
+%>
+
 // Add the controlbar
 hs.addSlideshow({
 	//slideshowGroup: 'group1',
@@ -1840,8 +1854,7 @@ if(enc.getDynamicProperties()!=null){
 							<tr>
 								<td class="para"><img align="absmiddle"
 									src="../images/Crystal_Clear_action_find.gif"> <strong><%=encprops.getProperty("image_commands") %></strong>:<br /> <font size="-1">
-								 [<a
-									href="../kwSearch.jsp?primaryImageName=<%=(num+"/"+(addTextFile.replaceAll(" ","%20")))%>"><%=encprops.getProperty("look4photos") %></a>] </font></td>
+								 [<a href="encounterSearch.jsp?referenceImageName=<%=(num+"/"+(addTextFile.replaceAll(" ","%20")))%>"><%=encprops.getProperty("look4photos") %></a>] </font></td>
 							</tr>
 
 							<%
@@ -2078,6 +2091,13 @@ if(enc.getDynamicProperties()!=null){
 						<td align="left" valign="top">
    								
    						<table>
+   							
+   							<tr><td align="left" valign="top"><span class="caption"><%=encprops.getProperty("filename") %>: <%=addTextFile%></span></td></tr>
+							
+   							
+   							<tr><td align="left" valign="top"><span class="caption"><%=encprops.getProperty("location") %>: <%=enc.getLocation() %></span></td></tr>
+							
+   							
    							<tr><td align="left" valign="top"><span class="caption"><%=encprops.getProperty("location") %>: <%=enc.getLocation() %></span></td></tr>
 							<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=enc.getLocationID() %></span></td></tr>
 							<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=enc.getDate() %></span></td></tr>

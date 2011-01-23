@@ -95,6 +95,20 @@ hs.outlineType = 'rounded-white';
 hs.fadeInOut = true;
 //hs.dimmingOpacity = 0.75;
 
+//define the restraining box
+hs.useBox = true;
+hs.width = 810;
+hs.height=500;
+
+//block right-click user copying if no permissions available
+<%
+if(!request.isUserInRole("imageProcessor")){
+%>
+hs.blockRightClick = true;
+<%
+}
+%>
+
 // Add the controlbar
 hs.addSlideshow({
 	//slideshowGroup: 'group1',
@@ -288,6 +302,22 @@ if((startNum)>1) {%>
 										<div class="highslide-caption">
 										
 										<h3><%=(countMe+startNum) %>/<%=numThumbnails %></h3>
+										<%
+										if(request.getParameter("referenceImageName")!=null){
+										%>
+											<h4>Reference Image</h4>
+											<table id="table<%=(countMe+startNum) %>">
+											<tr>
+											<td>
+
+											<img width="790px" class="highslide-image" id="refImage<%=(countMe+startNum) %>" src="<%=request.getParameter("referenceImageName") %>" />
+											
+											</td>
+											</tr>	
+											</table>									
+										<%
+										}
+										%>
 										<h4><%=encprops.getProperty("imageMetadata") %></h4>
 										
 										<table>
@@ -304,7 +334,7 @@ if((startNum)>1) {%>
 										<tr><td><span class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td></tr>
-										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("individualID") %>: <a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %></a></span></td></tr>
 										<tr><td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
 										<%
 										if(thisEnc.getVerbatimEventDate()!=null){

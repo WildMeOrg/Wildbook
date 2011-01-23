@@ -149,6 +149,20 @@ hs.outlineType = 'rounded-white';
 hs.fadeInOut = true;
 //hs.dimmingOpacity = 0.75;
 
+//define the restraining box
+hs.useBox = true;
+hs.width = 810;
+hs.height=500;
+
+//block right-click user copying if no permissions available
+<%
+if(!request.isUserInRole("imageProcessor")){
+%>
+hs.blockRightClick = true;
+<%
+}
+%>
+
 // Add the controlbar
 hs.addSlideshow({
 	//slideshowGroup: 'group1',
@@ -433,6 +447,10 @@ if (isOwner) {
 		<p>
 		<strong><%=props.getProperty("imageGallery") %></strong><br />
 		
+		<%
+		int numThumbnails = myShepherd.getNumThumbnails(sharky.getEncounters().iterator(), keywords);
+		if(numThumbnails>0){	
+		%>
 
 		<table id="results" border="0" width="100%" >
 	<%		
@@ -448,7 +466,9 @@ if (isOwner) {
 
 			
 			
-					for(int rows=0;rows<15;rows++) {		%>
+					//for(int rows=0;rows<15;rows++) {		
+					
+					%>
 
 						<tr valign="top">
 
@@ -644,7 +664,9 @@ if (isOwner) {
 							} //endFor
 							%>
 					</tr>
-				<%} //endFor
+				<%
+				
+					//} //endFor
 	
 				} catch(Exception e) {
 					e.printStackTrace();
@@ -658,7 +680,16 @@ if (isOwner) {
 %>
 
 </table>
-		
+<% 
+}
+else {
+%>
+
+<p><%=props.getProperty("noImages")%></p>			
+
+<%			
+}
+%>
 		
 		
 		<!-- end thumbnail gallery -->
@@ -866,8 +897,8 @@ if (isOwner) {
 
 
 
-<p><%=matchingRecord %>: <strong><%=name%></strong>
-<%=tryAgain %>.</p>
+<p><%=matchingRecord %>: <strong><%=name%></strong><br />
+<%=tryAgain %></p>
 <p>
 <form action="individuals.jsp" method="get" name="sharks"><strong><%=record %>:</strong>
 <input name="number" type="text" id="number" value=<%=name%>> <input

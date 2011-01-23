@@ -114,6 +114,19 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 		</p>
 		<p><em><%=encprops.getProperty("instructions")%></em></p>
 		<form action="thumbnailSearchResults.jsp" method="get" name="search" id="search">
+		
+		<%
+		if(request.getParameter("referenceImageName")!=null){
+		%>
+			<p><strong>Reference Image</strong></p>
+			<p>You have selected this image as a reference for comparison with the results of this search</p>
+			<input name="referenceImageName" type="hidden" value="<%=request.getParameter("referenceImageName") %>" />
+			<p><img width="810px" src="<%=request.getParameter("referenceImageName") %>" /></p>
+		
+		<%
+		}
+		%>
+		
 		<table>
 			
 <tr><td width="810px">
@@ -122,45 +135,58 @@ encprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/encounterSea
 
 			<script
 				src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
-				type="text/javascript"></script> <script type="text/javascript">
+				type="text/javascript">
+			</script> 
+				
+			<script src="visual_files/keydragzoom.js" type="text/javascript"></script>
+			
+			<script type="text/javascript">
     			function initialize() {
       				if (GBrowserIsCompatible()) {
         				var map = new GMap2(document.getElementById("map_canvas"));
-       					 map.setMapType(G_HYBRID_MAP);
+       					map.setMapType(G_HYBRID_MAP);
 						map.addControl(new GSmallMapControl());
 						map.setCenter(new GLatLng(0, 180), 1);
-		
-        				map.addControl(new GMapTypeControl());
-						map.setMapType(G_HYBRID_MAP);
-        				var otherOpts = { 
-                			buttonStartingStyle: {background: '#FFF', paddingTop: '4px', paddingLeft: '4px', border:'1px solid black'},
-                			buttonHTML: '<img title="Drag Zoom In" src="../javascript/zoomin.gif">',
-               				buttonStyle: {width:'25px', height:'23px'},
-                			buttonZoomingHTML: 'Drag a region on the map (click here to reset)',
-                			buttonZoomingStyle: {background:'yellow',width:'75px', height:'100%'},
-                			backButtonHTML: '<img title="Zoom Back Out" src="../javascript/zoomout.gif">',  
-                			backButtonStyle: {display:'none',marginTop:'5px',width:'25px', height:'23px'},
-                			backButtonEnabled: true, 
-                			overlayRemoveTime: 1500} 
-        				var callbacks = {
-               				dragend: function(nw,ne,se,sw,nwpx,nepx,sepx,swpx){
-            				var ne_lat_element = document.getElementById('ne_lat');
+
+						
+
+
+						map.enableKeyDragZoom({
+					          visualEnabled: true,
+					          visualPosition: new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(16, 103)),
+					          visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
+					          visualSize: new google.maps.Size(20, 20),
+					          visualTips: {
+					            off: "Turn on",
+					            on: "Turn off"
+					          }
+					        });
+						 
+						var dz = map.getDragZoomObject();
+						GEvent.addListener(dz, 'dragend', function (bnds) {
+							var ne_lat_element = document.getElementById('ne_lat');
             				var ne_long_element = document.getElementById('ne_long');
             				var sw_lat_element = document.getElementById('sw_lat');
             				var sw_long_element = document.getElementById('sw_long');
 
-            				ne_lat_element.value = ne.y;
-            				ne_long_element.value = ne.x;
-            				sw_lat_element.value = sw.y;
-            				sw_long_element.value = sw.x;
-            			}
-        			};
+            				//GLog.write('KeyDragZoom Ended: ' + bnds.getNorthEast().lat());
+            				
+            				ne_lat_element.value = bnds.getNorthEast().lat();
+            				ne_long_element.value = bnds.getNorthEast().lng();
+            				sw_lat_element.value = bnds.getSouthWest().lat();
+            				sw_long_element.value = bnds.getSouthWest().lng();
+					    });
+						
+        				//map.addControl(new GMapTypeControl());
+						
+        				
+        			
               
-       				 map.addControl(new DragZoomControl({},otherOpts, callbacks));
+       				
      			 }
     		}
     </script>
-    <script src="../javascript/dragzoom.js" type="text/javascript"></script>
+    
 <div id="map">
 <p>Use the arrow and +/- keys to navigate to a portion of the globe of interest, then click and drag the <img src="../javascript/zoomin.gif" align="absmiddle"/> icon to select the specific search boundaries. You can also use the text boxes below the map to specify exact boundaries.</p>
 	
