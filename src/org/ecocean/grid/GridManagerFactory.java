@@ -3,23 +3,22 @@ package org.ecocean.grid;
 
 public class GridManagerFactory {
 
-	private static GridManager gm;
-	
-	public synchronized static GridManager getGridManager() {
+  private static GridManager gm;
 
-		try{
-			if (gm==null) {
-				
-				gm=new GridManager();
+  public synchronized static GridManager getGridManager() {
 
-			}
-			return gm;
-			}
-		catch (Exception jdo){
-			jdo.printStackTrace();
-			System.out.println("I couldn't instantiate a gridManager.");
-			return null;
-			}
-		}
-	
+    try {
+      if (gm == null) {
+
+        gm = new GridManager();
+
+      }
+      return gm;
+    } catch (Exception jdo) {
+      jdo.printStackTrace();
+      System.out.println("I couldn't instantiate a gridManager.");
+      return null;
+    }
+  }
+
 }

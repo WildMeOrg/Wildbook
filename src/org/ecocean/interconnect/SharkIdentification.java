@@ -1,167 +1,168 @@
 package org.ecocean.interconnect;
 
-import java.awt.*;
 import javax.swing.*;
-import java.awt.image.*;
-import java.awt.geom.*;
+import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
+import java.io.File;
 
 class SharkIdentification extends JPanel implements ActionListener {
-    static JFrame frame = null;
-    static CompareResults cr = null;
-    
-    JTextField tf;
-    String identity = null;
-    String origdir = null;
-    String orig = null;
-    String forig = null;
-    String found = null;
-    String ffound = null;
-    String ext = null;
+  static JFrame frame = null;
+  static CompareResults cr = null;
 
-    public SharkIdentification(CompareResults _cr, String _forig, String _ffound) {
-        forig = _forig;
-        ffound = _ffound;
-        
-        GetImageFile gif = new GetImageFile(forig);
-        orig = gif.getImageString();
-        ext = gif.getImageExtension();
+  JTextField tf;
+  String identity = null;
+  String origdir = null;
+  String orig = null;
+  String forig = null;
+  String found = null;
+  String ffound = null;
+  String ext = null;
 
-        gif = new GetImageFile(ffound);
-        found = gif.getImageString();
-        
-        cr = _cr;
-        if(frame != null)
-            frame.dispose();
+  public SharkIdentification(CompareResults _cr, String _forig, String _ffound) {
+    forig = _forig;
+    ffound = _ffound;
 
-        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-        add(Box.createRigidArea(new Dimension(10, 1)));
+    GetImageFile gif = new GetImageFile(forig);
+    orig = gif.getImageString();
+    ext = gif.getImageExtension();
 
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-        centerPanel.add(Box.createRigidArea(new Dimension(1, 10)));        
-        
-        int index1 = ffound.lastIndexOf('/');
-        if(index1 < ffound.lastIndexOf('\\'))
-            index1 = ffound.lastIndexOf('\\');
-        if(index1 == -1) {
-            JOptionPane.showMessageDialog(null, "Internal error: rename shark image and fingerprint file manually");
-            dispose();
-            return;
-        }
-        int index2 = ffound.lastIndexOf('/', index1-1);
-        if(index2 < ffound.lastIndexOf('\\', index1-1))
-            index2 = ffound.lastIndexOf('\\', index1-1);
-        if(index2 == -1) {
-            JOptionPane.showMessageDialog(null, "Internal error: rename shark image and fingerprint file manually");
-            dispose();
-            return;
-        }
-        identity = ffound.substring(index2+1, index1);
+    gif = new GetImageFile(ffound);
+    found = gif.getImageString();
 
-        index1 = forig.lastIndexOf('/');
-        if(index1 < forig.lastIndexOf('\\'))
-            index1 = forig.lastIndexOf('\\');
-        if(index1 == -1) {
-            JOptionPane.showMessageDialog(null, "Internal error: rename shark image and fingerprint file manually");
-            dispose();
-            return;
-        }
-        origdir = forig.substring(0, index1+1);
-        JPanel wrapper = new JPanel();
-        wrapper.setLayout(new BorderLayout(0, 0));
-        JLabel label = new JLabel("Current name:  " + orig.substring(index1+1, orig.length()));
-        label.setFont(new Font("Times New Roman", Font.BOLD, 12));
-        wrapper.add(label, BorderLayout.LINE_START);
-        centerPanel.add(wrapper);
+    cr = _cr;
+    if (frame != null)
+      frame.dispose();
 
-        wrapper = new JPanel();
-        wrapper.setLayout(new BorderLayout(0, 0));
-        label = new JLabel("Shark identity:  " + identity);
-        label.setFont(new Font("Times New Roman", Font.BOLD, 12));
-        wrapper.add(label, BorderLayout.LINE_START);
-        centerPanel.add(wrapper);
+    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+    add(Box.createRigidArea(new Dimension(10, 1)));
 
-        centerPanel.add(Box.createRigidArea(new Dimension(1,10)));
+    JPanel centerPanel = new JPanel();
+    centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+    centerPanel.add(Box.createRigidArea(new Dimension(1, 10)));
 
-        wrapper = new JPanel();
-        wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.X_AXIS));
-        label = new JLabel("New name:  ");
-        label.setFont(new Font("Times New Roman", Font.BOLD, 12));
-        wrapper.add(label, BorderLayout.LINE_START);
-        tf = new JTextField("", 20);
-        wrapper.add(tf);
-        wrapper.add(Box.createRigidArea(new Dimension(50,1)));
-        centerPanel.add(wrapper);
-
-        JButton ok = new JButton("Ok");
-        ok.setMnemonic(KeyEvent.VK_O);
-        ok.addActionListener(this);
-        JButton cancel = new JButton("Cancel");
-        cancel.setMnemonic(KeyEvent.VK_C);
-        cancel.addActionListener(this);
-        
-        wrapper = new JPanel();
-        wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.X_AXIS));
-        wrapper.add(ok);
-        wrapper.add(Box.createRigidArea(new Dimension(10,1)));
-        wrapper.add(cancel);
-        
-        centerPanel.add(Box.createRigidArea(new Dimension(1,10)));
-        centerPanel.add(wrapper);
-        centerPanel.add(Box.createRigidArea(new Dimension(1,10)));
-
-        add(centerPanel);
-
-        frame = new JFrame("I3S: Identify shark");
-        ImageIcon imageIcon = new ImageIcon(this.getClass().getResource("/images/i3sicon.gif"));
-        frame.setIconImage(imageIcon.getImage());
-        frame.setContentPane(this);
-        frame.addWindowListener(new WindowAdapter() { public void windowClosing(WindowEvent e) { dispose(); } });
-        // frame.setSize(new Dimension(420, 170));                                            
-        frame.pack();
-        frame.setLocation(200, 100);
-        frame.setResizable(false);
-        frame.setVisible(true);
+    int index1 = ffound.lastIndexOf('/');
+    if (index1 < ffound.lastIndexOf('\\'))
+      index1 = ffound.lastIndexOf('\\');
+    if (index1 == -1) {
+      JOptionPane.showMessageDialog(null, "Internal error: rename shark image and fingerprint file manually");
+      dispose();
+      return;
     }
-    
-    void dispose() {
-        frame.dispose();
-        frame = null;
+    int index2 = ffound.lastIndexOf('/', index1 - 1);
+    if (index2 < ffound.lastIndexOf('\\', index1 - 1))
+      index2 = ffound.lastIndexOf('\\', index1 - 1);
+    if (index2 == -1) {
+      JOptionPane.showMessageDialog(null, "Internal error: rename shark image and fingerprint file manually");
+      dispose();
+      return;
     }
-    
-    public void actionPerformed(ActionEvent e) {
-        JButton source = (JButton) e.getSource();
-        if(source.getText() == "Cancel")
-        {
-            dispose();
-            return;
-        }
-        StringBuffer mess = new StringBuffer();
-        if(cr.getSharkPanel().writeFingerprint(mess) == false) {
-            JOptionPane.showMessageDialog(null, "Could not write fingerprint file! Check disk space or write permission. \n");
-            return;
-        }
+    identity = ffound.substring(index2 + 1, index1);
 
-        String filename = tf.getText();
-        if(!filename.endsWith(ext)) {
-            JOptionPane.showMessageDialog(null, "Please, add proper file extension in text field (" + ext + ")");
-            return;
-        }
-
-	File jpg = new File(orig);
-        File newjpg = new File(origdir + filename);
-        jpg.renameTo(newjpg);
-
-	File fgp = new File(forig);
-        File newfgp = new File(origdir + filename.substring(0, filename.length()-ext.length()) + ".fgp");
-        fgp.renameTo(newfgp);
-
-        cr.getSharkPanel().killShowResultsWindow();
-        cr.getSharkPanel().close();
-        cr.dispose();
-
-        frame.dispose();
+    index1 = forig.lastIndexOf('/');
+    if (index1 < forig.lastIndexOf('\\'))
+      index1 = forig.lastIndexOf('\\');
+    if (index1 == -1) {
+      JOptionPane.showMessageDialog(null, "Internal error: rename shark image and fingerprint file manually");
+      dispose();
+      return;
     }
+    origdir = forig.substring(0, index1 + 1);
+    JPanel wrapper = new JPanel();
+    wrapper.setLayout(new BorderLayout(0, 0));
+    JLabel label = new JLabel("Current name:  " + orig.substring(index1 + 1, orig.length()));
+    label.setFont(new Font("Times New Roman", Font.BOLD, 12));
+    wrapper.add(label, BorderLayout.LINE_START);
+    centerPanel.add(wrapper);
+
+    wrapper = new JPanel();
+    wrapper.setLayout(new BorderLayout(0, 0));
+    label = new JLabel("Shark identity:  " + identity);
+    label.setFont(new Font("Times New Roman", Font.BOLD, 12));
+    wrapper.add(label, BorderLayout.LINE_START);
+    centerPanel.add(wrapper);
+
+    centerPanel.add(Box.createRigidArea(new Dimension(1, 10)));
+
+    wrapper = new JPanel();
+    wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.X_AXIS));
+    label = new JLabel("New name:  ");
+    label.setFont(new Font("Times New Roman", Font.BOLD, 12));
+    wrapper.add(label, BorderLayout.LINE_START);
+    tf = new JTextField("", 20);
+    wrapper.add(tf);
+    wrapper.add(Box.createRigidArea(new Dimension(50, 1)));
+    centerPanel.add(wrapper);
+
+    JButton ok = new JButton("Ok");
+    ok.setMnemonic(KeyEvent.VK_O);
+    ok.addActionListener(this);
+    JButton cancel = new JButton("Cancel");
+    cancel.setMnemonic(KeyEvent.VK_C);
+    cancel.addActionListener(this);
+
+    wrapper = new JPanel();
+    wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.X_AXIS));
+    wrapper.add(ok);
+    wrapper.add(Box.createRigidArea(new Dimension(10, 1)));
+    wrapper.add(cancel);
+
+    centerPanel.add(Box.createRigidArea(new Dimension(1, 10)));
+    centerPanel.add(wrapper);
+    centerPanel.add(Box.createRigidArea(new Dimension(1, 10)));
+
+    add(centerPanel);
+
+    frame = new JFrame("I3S: Identify shark");
+    ImageIcon imageIcon = new ImageIcon(this.getClass().getResource("/images/i3sicon.gif"));
+    frame.setIconImage(imageIcon.getImage());
+    frame.setContentPane(this);
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        dispose();
+      }
+    });
+    // frame.setSize(new Dimension(420, 170));
+    frame.pack();
+    frame.setLocation(200, 100);
+    frame.setResizable(false);
+    frame.setVisible(true);
+  }
+
+  void dispose() {
+    frame.dispose();
+    frame = null;
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    JButton source = (JButton) e.getSource();
+    if (source.getText() == "Cancel") {
+      dispose();
+      return;
+    }
+    StringBuffer mess = new StringBuffer();
+    if (cr.getSharkPanel().writeFingerprint(mess) == false) {
+      JOptionPane.showMessageDialog(null, "Could not write fingerprint file! Check disk space or write permission. \n");
+      return;
+    }
+
+    String filename = tf.getText();
+    if (!filename.endsWith(ext)) {
+      JOptionPane.showMessageDialog(null, "Please, add proper file extension in text field (" + ext + ")");
+      return;
+    }
+
+    File jpg = new File(orig);
+    File newjpg = new File(origdir + filename);
+    jpg.renameTo(newjpg);
+
+    File fgp = new File(forig);
+    File newfgp = new File(origdir + filename.substring(0, filename.length() - ext.length()) + ".fgp");
+    fgp.renameTo(newfgp);
+
+    cr.getSharkPanel().killShowResultsWindow();
+    cr.getSharkPanel().close();
+    cr.dispose();
+
+    frame.dispose();
+  }
 }

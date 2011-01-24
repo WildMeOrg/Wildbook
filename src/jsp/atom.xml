@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <title>Need a title...</title>
-  <link rel="alternate" href="http://.../" />
-  <link rel="self" href="http://.../atom.xml" />
+  <link rel="alternate" href="http://.../"/>
+  <link rel="self" href="http://.../atom.xml"/>
   <author>
     <name>Need a name...</name>
     <email>Need an email...</email>
@@ -12,9 +12,9 @@
   <dc:date>2010-06-02T20:17:15Z</dc:date>
   <entry>
     <title>Sample title...</title>
-    <link rel="alternate" href="http://..." />
-    <category term="" />
-    <category term="" />
+    <link rel="alternate" href="http://..."/>
+    <category term=""/>
+    <category term=""/>
     <author>
       <name>Need an author...</name>
     </author>
@@ -25,6 +25,6 @@
     <dc:creator>Need a creator...</dc:creator>
     <dc:date>2010-06-02T11:06:00Z</dc:date>
   </entry>
-  
+
 </feed>
 

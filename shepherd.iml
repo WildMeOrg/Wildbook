@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="web" name="Web">
+      <configuration>
+        <descriptors>
+          <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/web/WEB-INF/web.xml" />
+        </descriptors>
+        <webroots>
+          <root url="file://$MODULE_DIR$/webapps" relative="/" />
+        </webroots>
+      </configuration>
+      <facet type="struts" name="Struts">
+        <configuration>
+          <option name="myStrutsValidationEnabled" value="true" />
+          <option name="myTilesValidationEnabled" value="true" />
+          <option name="myValidatorValidationEnabled" value="true" />
+          <option name="myReportErrorsAsWarnings" value="true" />
+          <option name="mySuppressPropertiesValidation" value="false" />
+        </configuration>
+      </facet>
+    </facet>
+    <facet type="jpa" name="JPA">
+      <configuration>
+        <setting name="validation-enabled" value="true" />
+        <setting name="provider-name" value="" />
+        <datasource-mapping />
+        <deploymentDescriptor name="persistence.xml" url="file://$MODULE_DIR$/webapps/ROOT/META-INF/persistence.xml" />
+      </configuration>
+    </facet>
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+    </content>
+    <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="Tomcat 6" level="application_server_libraries" />
+    <orderEntry type="library" name="struts" level="project" />
+    <orderEntry type="library" name="local jars" level="project" />
+  </component>
+</module>
+

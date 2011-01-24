@@ -41,26 +41,26 @@
   var toPixels = function (widthValue) {
     var px;
     switch (widthValue) {
-    case "thin":
-      px = "2px";
-      break;
-    case "medium":
-      px = "4px";
-      break;
-    case "thick":
-      px = "6px";
-      break;
-    default:
-      px = widthValue;
+      case "thin":
+        px = "2px";
+        break;
+      case "medium":
+        px = "4px";
+        break;
+      case "thick":
+        px = "6px";
+        break;
+      default:
+        px = widthValue;
     }
     return px;
   };
- /**
-  * Get the widths of the borders of an HTML element.
-  *
-  * @param {Node} h  The HTML element.
-  * @return {Object} The width object {top, bottom left, right}.
-  */
+  /**
+   * Get the widths of the borders of an HTML element.
+   *
+   * @param {Node} h  The HTML element.
+   * @return {Object} The width object {top, bottom left, right}.
+   */
   var getBorderWidths = function (h) {
     var computedStyle;
     var bw = {};
@@ -156,7 +156,7 @@
       // This covers those cases where a transform is used:
       if (!moffx && !moffy && window.getComputedStyle) {
         var matrix = document.defaultView.getComputedStyle(m, null).MozTransform ||
-        document.defaultView.getComputedStyle(m, null).WebkitTransform;
+          document.defaultView.getComputedStyle(m, null).WebkitTransform;
         if (matrix) {
           if (typeof matrix === "string") {
             var parms = matrix.split(",");
@@ -297,8 +297,8 @@
     this.visualSprite_ = opt_zoomOpts.visualSprite || "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png";
     this.visualSize_ = opt_zoomOpts.visualSize || new GSize(20, 20);
     this.visualTips_ = opt_zoomOpts.visualTips || {};
-    this.visualTips_.off =  this.visualTips_.off || "Turn on drag zoom mode";
-    this.visualTips_.on =  this.visualTips_.on || "Turn off drag zoom mode";
+    this.visualTips_.off = this.visualTips_.off || "Turn on drag zoom mode";
+    this.visualTips_.on = this.visualTips_.on || "Turn off drag zoom mode";
 
     this.boxDiv_ = document.createElement("div");
     // Apply default style values for the zoom box:
@@ -352,6 +352,7 @@
       this.map_.addControl(this, this.visualPosition_);
     }
   }
+
   /**
    * DragZoom is a subclass of <code>GControl</code>.
    */
@@ -438,21 +439,21 @@
       // See http://cross-browser.com/x/examples/shift_mode.php
       // Also see http://unixpapa.com/js/key.html
       switch (e.keyCode) {
-      case 16:
-        if (this.key_ === "shift") {
-          isHot = true;
-        }
-        break;
-      case 17:
-        if (this.key_ === "ctrl") {
-          isHot = true;
-        }
-        break;
-      case 18:
-        if (this.key_ === "alt") {
-          isHot = true;
-        }
-        break;
+        case 16:
+          if (this.key_ === "shift") {
+            isHot = true;
+          }
+          break;
+        case 17:
+          if (this.key_ === "ctrl") {
+            isHot = true;
+          }
+          break;
+        case 18:
+          if (this.key_ === "alt") {
+            isHot = true;
+          }
+          break;
       }
     }
     return isHot;
@@ -468,7 +469,7 @@
       var mapPosn = this.mapPosn_;
       var mapSize = this.map_.getSize();
       return mousePosn.left > mapPosn.left && mousePosn.left < (mapPosn.left + mapSize.width) &&
-      mousePosn.top > mapPosn.top && mousePosn.top < (mapPosn.top + mapSize.height);
+        mousePosn.top > mapPosn.top && mousePosn.top < (mapPosn.top + mapSize.height);
     } else {
       // if user never moved mouse
       return false;
@@ -510,7 +511,7 @@
       this.mapPosn_ = getElementPosition(this.map_.getContainer());
       this.hotKeyDown_ = true;
       this.setVeilVisibility_();
-     /**
+      /**
        * This event is fired when the hot key is pressed.
        * @name DragZoom#activate
        * @event
@@ -555,7 +556,7 @@
        * This event is fired when the drag operation begins.
        * The parameter passed is the geographic position of the starting point.
        * @name DragZoom#dragstart
-       * @param {GLatLng} latlng The geographic position of the starting point. 
+       * @param {GLatLng} latlng The geographic position of the starting point.
        * @event
        */
       GEvent.trigger(this, "dragstart", latlng);
@@ -612,7 +613,7 @@
       /**
        * This event is fired repeatedly while the user drags a box across the area of interest.
        * The southwest and northeast point are passed as parameters of type <code>GPoint</code>
-       * (for performance reasons), relative to the map container. Note: the event listener is 
+       * (for performance reasons), relative to the map container. Note: the event listener is
        * responsible for converting pixel position to geographic coordinates, if necessary, using
        * <code>GMap2.fromContainerPixelToLatLng</code>.
        * @name DragZoom#drag
