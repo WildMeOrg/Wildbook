@@ -101,10 +101,10 @@
     <load-on-startup>1</load-on-startup>
   </servlet>
 
-
   <servlet>
     <servlet-name>action</servlet-name>
-    <servlet-class>
+    <servlet-class> org.apache.struts.action.ActionServlet </servlet-class>
+    <!--servlet-class>
       org.apache.webapp.admin.ApplicationServlet
     </servlet-class>
     <init-param>
@@ -112,7 +112,8 @@
       <param-value>
         org.apache.webapp.admin.ApplicationResources
       </param-value>
-    </init-param>
+    </init-param-->
+
     <init-param>
       <param-name>config</param-name>
       <param-value>/WEB-INF/struts-config.xml</param-value>
@@ -144,14 +145,14 @@
       <param-value>Tomcat Root</param-value>
     </init-param>
     -->
-    <init-param>
+    <!--init-param>
       <param-name>treebuilders</param-name>
       <param-value>
         org.apache.webapp.admin.TomcatTreeBuilder,
         org.apache.webapp.admin.resources.ResourcesTreeBuilder,
         org.apache.webapp.admin.users.UsersTreeBuilder
       </param-value>
-    </init-param>
+    </init-param-->
     <load-on-startup>2</load-on-startup>
   </servlet>
 
@@ -202,11 +203,6 @@
     <servlet-class>org.ecocean.servlet.EncounterSetSubmitterPhotographerContactInfo</servlet-class>
   </servlet>
 
-
-  <servlet>
-    <servlet-name>I3SScanResultsServlet</servlet-name>
-    <servlet-class>org.ecocean.servlet.I3sScanResultsServlet</servlet-class>
-  </servlet>
 
   <servlet>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
@@ -436,11 +432,6 @@
     <servlet-name>CalendarXMLServer</servlet-name>
     <servlet-class>org.ecocean.servlet.CalendarXMLServer</servlet-class>
   </servlet>
-  <servlet>
-    <servlet-name>MatchAnalysis</servlet-name>
-    <servlet-class>org.ecocean.servlet.MatchAnalysis</servlet-class>
-  </servlet>
-
 
   <servlet>
     <servlet-name>ResurrectDeletedEncounter</servlet-name>
@@ -702,12 +693,6 @@
 
 
   <servlet-mapping>
-    <servlet-name>MatchAnalysis</servlet-name>
-    <url-pattern>/MatchAnalysis</url-pattern>
-  </servlet-mapping>
-
-
-  <servlet-mapping>
     <servlet-name>KeywordHandler</servlet-name>
     <url-pattern>/KeywordHandler</url-pattern>
   </servlet-mapping>
@@ -785,11 +770,6 @@
   <servlet-mapping>
     <servlet-name>ScanResultsServlet</servlet-name>
     <url-pattern>/ScanResultsServlet</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>I3SScanResultsServlet</servlet-name>
-    <url-pattern>/I3sScanResultsServlet</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -929,7 +909,7 @@
   <!-- Login configuration uses form-based authentication -->
   <login-config>
     <auth-method>FORM</auth-method>
-    <realm-name>Tomcat Server Configuration Form-Based Authentication Area</realm-name>
+    <realm-name>Shepherd Realm</realm-name>
     <form-login-config>
       <form-login-page>/login.jsp</form-login-page>
       <form-error-page>/error.jsp</form-error-page>
