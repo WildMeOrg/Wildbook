@@ -63,8 +63,8 @@
 
 
   <filter>
-    <filter-name>ImgFilter</filter-name>
     <description>Dynamic Image Filter</description>
+    <filter-name>ImgFilter</filter-name>
     <filter-class>com.sunwesttek.image.servlet.ImgFilter</filter-class>
     <init-param>
       <param-name>maxSyncServlets</param-name>
@@ -80,21 +80,21 @@
 
 
   <servlet>
-    <servlet-name>ImgServlet</servlet-name>
     <description>Dynamic Image Servlet Unsynched</description>
+    <servlet-name>ImgServlet</servlet-name>
     <servlet-class>com.sunwesttek.image.servlet.ImgServlet</servlet-class>
   </servlet>
 
 
   <servlet>
-    <servlet-name>ImgSyncServlet0</servlet-name>
     <description>Dynamic Image Servlet (synchronized)</description>
+    <servlet-name>ImgSyncServlet0</servlet-name>
     <servlet-class>com.sunwesttek.image.servlet.ImgSyncServlet</servlet-class>
   </servlet>
 
   <servlet>
-    <servlet-name>ImgSyncServlet1</servlet-name>
     <description>Dynamic Image Servlet (synchronized)</description>
+    <servlet-name>ImgSyncServlet1</servlet-name>
     <servlet-class>com.sunwesttek.image.servlet.ImgSyncServlet</servlet-class>
   </servlet>
 

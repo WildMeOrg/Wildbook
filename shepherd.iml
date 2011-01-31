@@ -16,6 +16,7 @@
         </descriptors>
         <webroots>
           <root url="file://$MODULE_DIR$/webapp" relative="/" />
+          <root url="file://$MODULE_DIR$/temp_jars" relative="/WEB-INF/lib" />
         </webroots>
       </configuration>
     </facet>
