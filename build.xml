@@ -95,19 +95,10 @@
         </copy>
   </target>
   
-  <target name="copy-persistence.xml">
-       <mkdir dir="${target.dir}/classes/META-INF"/>
-          <copy todir="${target.dir}/classes/META-INF">
-            <fileset file="webapps/ROOT/META-INF/persistence.xml"/>
-          </copy>
-  </target>
-
-
-
-  <target name="war" depends="clean, compile,copy-org.ecocean-JDO,copy-org.ecocean.grid-JDO, enhance, copy-bundles, copy-servletResponseTemplate, copy-di-license, copy-persistence.xml, copy-email-files">
+  <target name="war" depends="clean, compile,copy-org.ecocean-JDO,copy-org.ecocean.grid-JDO, enhance, copy-bundles, copy-servletResponseTemplate, copy-di-license, copy-email-files">
     <mkdir dir="target"/>
-    <war destfile="target/${war.name}-${project.version}.war" webxml="webapps/ROOT/WEB-INF/web.xml">
-      <fileset dir="webapps/ROOT"/>
+    <war destfile="target/${war.name}-${project.version}.war" webxml="webapp/WEB-INF/web.xml">
+      <fileset dir="webapp"/>
       <fileset dir="src/jsp"/>
       <lib dir="temp_jars"/>
       <classes dir="target/classes"/>
