@@ -429,23 +429,6 @@
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userWiki")%>
         </a></li>
         <% } %>
-        <%
-          if (CommonConfiguration.useSpotPatternRecognition()) {
-        %>
-        <li><a
-          href="http://<%=CommonConfiguration.getURLLocation() %>/software/software.jsp"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("software")%>
-        </a></li>
-        <li><a href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/scanTaskAdmin.jsp"
-               class="enclose"
-               style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("grid")%>
-        </a>
-        </li>
-        <%
-          }
-        %>
-
 
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation() %>/appadmin/admin.jsp"
