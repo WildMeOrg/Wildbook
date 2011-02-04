@@ -415,6 +415,9 @@
         <tr>
           <td><![endif]-->
       <ul>
+        <%
+          if (CommonConfiguration.getWikiLocation().length() > 0) {
+        %>
         <li><a
           href="http://<%=CommonConfiguration.getWikiLocation() %>library_access_policy"
           target="_blank" class="enclose"
@@ -425,7 +428,7 @@
           target="_blank" class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userWiki")%>
         </a></li>
-
+        <% } %>
         <%
           if (CommonConfiguration.useSpotPatternRecognition()) {
         %>
@@ -449,11 +452,15 @@
           class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("general")%>
         </a></li>
+        <%
+          if (CommonConfiguration.getTapirLinkURL() != null) {
+        %>
         <li><a
           href="<%=CommonConfiguration.getTapirLinkURL() %>"
           class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("tapirLink")%>
         </a></li>
+        <% } %>
         <%
           if (CommonConfiguration.useTapirLinkURL()) {
         %>
