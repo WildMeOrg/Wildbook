@@ -310,13 +310,6 @@
 			try {
 				thumbLocs=myShepherd.getThumbnails(rEncounters.iterator(), startNum, endNum, keywords);
 
-				//now let's order these alphabetical by the highest keyword
-				//Cascadia Research only! TBD--remove on release of Shepherd Project
-				Collections.sort(thumbLocs, (new ThumbnailKeywordComparator()));
-				
-				
-				
-			
 					for(int rows=0;rows<15;rows++) {		%>
 
   <tr valign="top">
