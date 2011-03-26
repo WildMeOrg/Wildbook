@@ -203,17 +203,12 @@
   -->
 
   <script type="text/javascript">
-    hs.graphicsDir = '../highslide/highslide/graphics/';
-    hs.align = 'center';
-    hs.transitions = ['expand', 'crossfade'];
-    hs.outlineType = 'rounded-white';
-    hs.fadeInOut = true;
-    //hs.dimmingOpacity = 0.75;
+      hs.graphicsDir = '../highslide/highslide/graphics/';
+      hs.align = 'center';
+      hs.transitions = ['expand', 'crossfade'];
+      hs.outlineType = 'rounded-white';
+      hs.fadeInOut = true;
 
-    //define the restraining box
-    hs.useBox = true;
-    hs.width = 810;
-    hs.height = 500;
 
     //block right-click user copying if no permissions available
     <%
@@ -412,7 +407,8 @@
  	//start deciding menu bar contents
 
  //if not logged in
- if(session.getAttribute("logged")==null) {
+if(loggedIn.equals("false")){
+	 
  %>
 <p class="para"><a
   href="../welcome.jsp?reflect=<%=request.getRequestURI()%>?number=<%=num%>"><%=encprops.getProperty("login")%>

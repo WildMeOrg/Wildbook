@@ -110,17 +110,24 @@
   -->
 
   <script type="text/javascript">
-    hs.graphicsDir = '../highslide/highslide/graphics/';
-    hs.align = 'center';
-    hs.transitions = ['expand', 'crossfade'];
-    hs.outlineType = 'rounded-white';
-    hs.fadeInOut = true;
-    //hs.dimmingOpacity = 0.75;
+  hs.graphicsDir = '../highslide/highslide/graphics/';
+  hs.align = 'center';
+  hs.showCredits = false;
 
-    //define the restraining box
-    hs.useBox = true;
-    hs.width = 810;
-    hs.height = 500;
+  //transition behavior
+  hs.transitions = ['expand', 'crossfade'];
+  hs.outlineType = 'rounded-white';
+  hs.fadeInOut = true;
+  hs.transitionDuration = 0;
+  hs.expandDuration = 0;
+  hs.restoreDuration = 0;
+  hs.numberOfImagesToPreload = 15;
+  hs.dimmingDuration = 0;
+
+  // define the restraining box
+  hs.useBox = true;
+  hs.width = 810;
+  hs.height=500;
 
     //block right-click user copying if no permissions available
     <%
