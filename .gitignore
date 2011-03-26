@@ -1,4 +1,10 @@
 target
 bin
 out
-.idea
+.idea*
+*.log
+shepherd_derby_database
+/mvnCleanInstallOutput
+/output.txt
+/outputPackage.txt
+src/main/webapp/encounters/*20*
