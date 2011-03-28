@@ -55,8 +55,8 @@ public class Encounter implements java.io.Serializable {
   private int day = 0;
   private int month = 0;
   private int year = 0;
-  private String decimalLatitude;
-  private String decimalLongitude;
+  private Double decimalLatitude;
+  private Double decimalLongitude;
   private String verbatimLocality;
   private String occurrenceRemarks = "";
   private String modified;
@@ -1093,24 +1093,33 @@ public class Encounter implements java.io.Serializable {
     if (lat == -9999.0) {
       decimalLatitude = null;
     } else {
-      decimalLatitude = (new Double(lat)).toString();
+      decimalLatitude = (new Double(lat));
     }
   }
 
-  public String getDWCDecimalLatitude() {
-    return decimalLatitude;
-  }
 
-  public void setDWCDecimalLongitude(double longit) {
-    if (longit == -9999.0) {
-      decimalLongitude = null;
-    } else {
-      decimalLongitude = (new Double(longit)).toString();
+
+  public void setDWCDecimalLatitude(Double lat){
+    if((lat!=null)&&(lat<=90)&&(lat>=-90)){
+      this.decimalLatitude=lat;
+    }
+    else{this.decimalLatitude=null;}
+  }
+  public String getDWCDecimalLatitude(){
+   if(decimalLatitude!=null){return Double.toString(decimalLatitude);}
+     return null;
+   }
+  public void setDWCDecimalLongitude(double longit){
+    if((longit>=-180)&&(longit<=180)){
+      this.decimalLongitude=longit;
     }
   }
 
-  public String getDWCDecimalLongitude() {
-    return decimalLongitude;
+  public String getDWCDecimalLongitude(){
+    if(decimalLongitude!=null){
+      return Double.toString(decimalLongitude);
+    }
+    return null;
   }
 
   public boolean getOKExposeViaTapirLink() {
@@ -1193,21 +1202,12 @@ public class Encounter implements java.io.Serializable {
     this.individualID = indy;
   }
 
-  public String getDecimalLatitude() {
-    return decimalLatitude;
-  }
+  public double getDecimalLatitudeAsDouble(){return decimalLatitude.doubleValue();}
+  public void setDecimalLatitude(Double lat){this.decimalLatitude=lat;}
 
-  public void setDecimalLatitude(String lat) {
-    this.decimalLatitude = lat;
-  }
+  public double getDecimalLongitudeAsDouble(){return decimalLongitude.doubleValue();}
+  public void setDecimalLongitude(Double longy){this.decimalLongitude=longy;}
 
-  public String getDecimalLongitude() {
-    return decimalLongitude;
-  }
-
-  public void setDecimalLongitude(String longy) {
-    this.decimalLongitude = longy;
-  }
 
   public String getOccurrenceRemarks() {
     return occurrenceRemarks;
@@ -1270,32 +1270,37 @@ public class Encounter implements java.io.Serializable {
     return dynamicProperties;
   }
 
-  public void setDynamicProperty(String name, String value) {
-    name = name.replaceAll(";", "_").trim().replaceAll("%20", " ");
-    value = value.replaceAll(";", "_").trim();
+  public void setDynamicProperty(String name, String value){
+    name=name.replaceAll(";", "_").trim().replaceAll("%20", " ");
+    value=value.replaceAll(";", "_").trim();
 
-    if (dynamicProperties == null) {
-      dynamicProperties = name + "=" + value + ";";
-    } else {
+    if(dynamicProperties==null){dynamicProperties=name+"="+value+";";}
+    else{
 
       //let's create a TreeMap of the properties
-      TreeMap<String, String> tm = new TreeMap<String, String>();
-      StringTokenizer st = new StringTokenizer(dynamicProperties, ";");
-      while (st.hasMoreTokens()) {
+      TreeMap<String,String> tm=new TreeMap<String,String>();
+      StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+      while(st.hasMoreTokens()){
         String token = st.nextToken();
-        int equalPlace = token.indexOf("=");
-        tm.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));
+        int equalPlace=token.indexOf("=");
+        try{
+          tm.put(token.substring(0,equalPlace), token.substring(equalPlace+1));
+       }
+       catch(java.lang.StringIndexOutOfBoundsException soe){
+       //this is a badly formatted pair that should be ignored
+     }
       }
-      if (tm.containsKey(name)) {
+      if(tm.containsKey(name)){
         tm.remove(name);
         tm.put(name, value);
 
         //now let's recreate the dynamicProperties String
-        String newProps = tm.toString();
-        int stringSize = newProps.length();
-        dynamicProperties = newProps.substring(1, (stringSize - 1)).replaceAll(", ", ";") + ";";
-      } else {
-        dynamicProperties = dynamicProperties + name + "=" + value + ";";
+        String newProps=tm.toString();
+        int stringSize=newProps.length();
+        dynamicProperties=newProps.substring(1,(stringSize-1)).replaceAll(", ", ";")+";";
+      }
+      else{
+        dynamicProperties=dynamicProperties+name+"="+value+";";
       }
     }
   }
@@ -1409,6 +1414,16 @@ public class Encounter implements java.io.Serializable {
   
   public long getDateInMilliseconds(){return dateInMilliseconds;}
   
+  public String getDecimalLatitude(){
+    if(decimalLatitude!=null){return Double.toString(decimalLatitude);}
+    return null;
+  }
+  //public void setDecimalLatitude(String lat){this.decimalLatitude=Double.parseDouble(lat);}
+
+  public String getDecimalLongitude(){
+    if(decimalLatitude!=null){return Double.toString(decimalLongitude);}
+    return null;
+  }
 }
 	
 	

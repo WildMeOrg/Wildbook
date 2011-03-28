@@ -813,8 +813,8 @@ if (isOwner) {
         for(int c=0;c<haveGPSData.size();c++) {
           Encounter mapEnc=(Encounter)haveGPSData.get(c);
           countPoints++;
-          centroidX+=Double.parseDouble(mapEnc.getDWCDecimalLatitude());
-          centroidY+=Double.parseDouble(mapEnc.getDWCDecimalLongitude());
+          centroidX+=mapEnc.getDecimalLatitudeAsDouble();
+          centroidY+=mapEnc.getDecimalLongitudeAsDouble();
         }
         centroidX=centroidX/countPoints;
         centroidY=centroidY/countPoints;
@@ -829,8 +829,8 @@ if (isOwner) {
 
           Encounter mapEnc=(Encounter)haveGPSData.get(t);
 
-          double myLat=(new Double(mapEnc.getDWCDecimalLatitude())).doubleValue();
-          double myLong=(new Double(mapEnc.getDWCDecimalLongitude())).doubleValue();
+          double myLat=mapEnc.getDecimalLatitudeAsDouble();
+          double myLong=mapEnc.getDecimalLongitudeAsDouble();
 
 
       %>

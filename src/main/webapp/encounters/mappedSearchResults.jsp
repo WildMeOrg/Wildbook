@@ -402,8 +402,8 @@
         for(int c=0;c<haveGPSData.size();c++) {
           Encounter mapEnc=(Encounter)haveGPSData.get(c);
           countPoints++;
-          centroidX=centroidX+Double.parseDouble(mapEnc.getDWCDecimalLatitude());
-          centroidY=centroidY+Double.parseDouble(mapEnc.getDWCDecimalLongitude());
+          centroidX+=mapEnc.getDecimalLatitudeAsDouble();
+          centroidY+=mapEnc.getDecimalLongitudeAsDouble();
         }
         centroidX=centroidX/countPoints;
         centroidY=centroidY/countPoints;
@@ -418,8 +418,8 @@
     <%for(int t=0;t<haveGPSData.size();t++) {
           if(t<101){
           Encounter mapEnc=(Encounter)haveGPSData.get(t);
-          double myLat=(new Double(mapEnc.getDWCDecimalLatitude())).doubleValue();
-          double myLong=(new Double(mapEnc.getDWCDecimalLongitude())).doubleValue();
+          double myLat=mapEnc.getDecimalLatitudeAsDouble();
+          double myLong=mapEnc.getDecimalLongitudeAsDouble();
           %>
       var point<%=t%> = new GLatLng(<%=myLat%>, <%=myLong%>, false);
       bounds.extend(point<%=t%>);

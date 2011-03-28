@@ -435,8 +435,30 @@ public class SubmitAction extends Action {
       if ((longitude.equals("")) || (lat.equals(""))) {
         enc.setGPSLongitude("");
         enc.setGPSLongitude("");
-        enc.setDecimalLatitude("");
-        enc.setDecimalLongitude("");
+      //let's handle the GPS
+        if (!(lat.equals(""))) {
+          
+          
+            try {
+                enc.setDWCDecimalLatitude(new Double(lat));
+            }
+            catch(Exception e) {
+              System.out.println("EncounterSetGPS: problem setting decimal latitude!");
+              e.printStackTrace();
+            }
+          
+          
+        }
+        if (!(longitude.equals(""))) {
+          
+          try {
+            enc.setDWCDecimalLongitude(new Double(longitude));          
+          }
+          catch(Exception e) {
+            System.out.println("EncounterSetGPS: problem setting decimal longitude!");
+            e.printStackTrace();
+          }
+        }
         enc.setDWCDecimalLatitude(-9999.0);
         enc.setDWCDecimalLongitude(-9999.0);
       }

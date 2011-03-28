@@ -2700,16 +2700,18 @@ catch (Exception e) {
     <%
       double centroidX=0;
       double centroidY=0;
-      centroidX=Double.parseDouble(enc.getDWCDecimalLatitude());
-      centroidY=Double.parseDouble(enc.getDWCDecimalLongitude());
+      centroidX=enc.getDecimalLatitudeAsDouble();
+      centroidY=enc.getDecimalLongitudeAsDouble();
       %>
       map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
       map.addControl(new GSmallMapControl());
       map.addControl(new GMapTypeControl());
       map.setMapType(G_HYBRID_MAP);
-    <%//encounter latitude
-          double myLat=(new Double(enc.getDWCDecimalLatitude())).doubleValue();
-          double myLong=(new Double(enc.getDWCDecimalLongitude())).doubleValue();%>
+    <%
+
+          double myLat=enc.getDecimalLatitudeAsDouble();;
+          double myLong=enc.getDecimalLongitudeAsDouble();;
+      %>
       var point1 = new GLatLng(<%=myLat%>, <%=myLong%>, false);
       var marker1 = new GMarker(point1);
       GEvent.addListener(marker1, "click", function() {
