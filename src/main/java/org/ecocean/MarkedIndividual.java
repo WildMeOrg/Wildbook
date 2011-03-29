@@ -74,6 +74,10 @@ public class MarkedIndividual {
 
   private String dynamicProperties;
 
+  private String patterningCode;
+  
+  private int maxYearsBetweenResightings;
+  
   public MarkedIndividual(String name, Encounter enc) {
 
     this.name = name;
@@ -91,63 +95,61 @@ public class MarkedIndividual {
   }
 
 
-  /**
-   * Adds a new encounter to this MarkedIndividual.
-   *
-   * @param  newEncounter  the new <code>encounter</code> to add
-   * @return true for successful addition, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
-   * @see  Shepherd#commitDBTransaction()
+  /**Adds a new encounter to this MarkedIndividual.
+   *@param  newEncounter  the new <code>encounter</code> to add
+   *@return true for successful addition, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
+   *@see  Shepherd#commitDBTransaction()
    */
-
+  
   public boolean addEncounter(Encounter newEncounter) {
-
-    newEncounter.assignToMarkedIndividual(name);
-    if (unidentifiableEncounters == null) {
-      unidentifiableEncounters = new Vector();
-    }
-    if (newEncounter.wasRejected()) {
-      numUnidentifiableEncounters++;
+    
+    newEncounter.assignToMarkedIndividual(name); 
+    if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
+    if(newEncounter.wasRejected()) {
+      numUnidentifiableEncounters++; 
+      resetMaxNumYearsBetweenSightings();
       return unidentifiableEncounters.add(newEncounter);
-
-    } else {
-      numberEncounters++;
-      return encounters.add(newEncounter);
+      
+      }
+    else {
+      numberEncounters++; 
+      resetMaxNumYearsBetweenSightings();
+      return encounters.add(newEncounter); }
     }
-  }
-
-  /**
-   * Removes an encounter from this MarkedIndividual.
-   *
-   * @param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
-   * @return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
-   * @see  Shepherd#commitDBTransaction()
+  
+   /**Removes an encounter from this MarkedIndividual.
+   *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
+   *@return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
+   *@see  Shepherd#commitDBTransaction()
    */
-  public boolean removeEncounter(Encounter getRidOfMe) {
-    if (getRidOfMe.wasRejected()) {
-      numUnidentifiableEncounters--;
-      boolean changed = false;
-      for (int i = 0; i < unidentifiableEncounters.size(); i++) {
-        Encounter tempEnc = (Encounter) unidentifiableEncounters.get(i);
-        if (tempEnc.getEncounterNumber().equals(getRidOfMe.getEncounterNumber())) {
+  public boolean removeEncounter(Encounter getRidOfMe){
+    if(getRidOfMe.wasRejected()) {
+      numUnidentifiableEncounters--; 
+      boolean changed=false;
+      for(int i=0;i<unidentifiableEncounters.size();i++) {
+        Encounter tempEnc=(Encounter)unidentifiableEncounters.get(i);
+        if(tempEnc.getEncounterNumber().equals(getRidOfMe.getEncounterNumber())) {
           unidentifiableEncounters.remove(i);
           i--;
-          changed = true;
+          changed=true;
+          }
         }
-      }
-
+      resetMaxNumYearsBetweenSightings();
       return changed;
-
-    } else {
-      numberEncounters--;
-      boolean changed = false;
-      for (int i = 0; i < encounters.size(); i++) {
-        Encounter tempEnc = (Encounter) encounters.get(i);
-        if (tempEnc.getEncounterNumber().equals(getRidOfMe.getEncounterNumber())) {
+      
+      }
+    else {
+      numberEncounters--; 
+      boolean changed=false;
+      for(int i=0;i<encounters.size();i++) {
+        Encounter tempEnc=(Encounter)encounters.get(i);
+        if(tempEnc.getEncounterNumber().equals(getRidOfMe.getEncounterNumber())) {
           encounters.remove(i);
           i--;
-          changed = true;
+          changed=true;
+          }
         }
-      }
+      resetMaxNumYearsBetweenSightings();
       return changed;
     }
   }
@@ -169,27 +171,25 @@ public class MarkedIndividual {
   }
 
   public Vector returnEncountersWithGPSData() {
-    if (unidentifiableEncounters == null) {
-      unidentifiableEncounters = new Vector();
-    }
-    Vector haveData = new Vector();
-    for (int c = 0; c < encounters.size(); c++) {
-      Encounter temp = (Encounter) encounters.get(c);
-      if ((temp.getDWCDecimalLatitude() != null) && (temp.getDWCDecimalLongitude() != null)) {
+    if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
+    Vector haveData=new Vector();
+    for(int c=0;c<encounters.size();c++) {
+      Encounter temp=(Encounter)encounters.get(c);
+      if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
         haveData.add(temp);
-      }
-
-    }
-    for (int d = 0; d < numUnidentifiableEncounters; d++) {
-      Encounter temp = (Encounter) unidentifiableEncounters.get(d);
-      if ((temp.getDWCDecimalLatitude() != null) && (temp.getDWCDecimalLongitude() != null)) {
-
+        }
+      
+      } 
+    for(int d=0;d<numUnidentifiableEncounters;d++) {
+      Encounter temp=(Encounter)unidentifiableEncounters.get(d);
+      if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
+        
         haveData.add(temp);
-      }
-
-    }
+        }
+      
+      } 
     return haveData;
-
+    
   }
 
   public boolean isDeceased() {
@@ -666,17 +666,8 @@ public class MarkedIndividual {
     return false;
   }
 
-  public int getMaxNumYearsBetweenSightings() {
-    int maxYears = 0;
-    int lowestYear = 3000;
-    int highestYear = 0;
-    for (int c = 0; c < encounters.size(); c++) {
-      Encounter temp = (Encounter) encounters.get(c);
-      if (temp.getYear() < lowestYear) lowestYear = temp.getYear();
-      if (temp.getYear() > highestYear) highestYear = temp.getYear();
-      maxYears = highestYear - lowestYear;
-    }
-    return maxYears;
+  public int getMaxNumYearsBetweenSightings(){
+    return maxYearsBetweenResightings;
   }
 
   public int getEarliestSightingYear() {
@@ -1003,4 +994,29 @@ public class MarkedIndividual {
     return listPropertyValues;
   }
 
+  public String getPatterningCode(){
+    
+    int numEncs=encounters.size();
+    for(int i=0;i<numEncs;i++){
+      Encounter enc=(Encounter)encounters.get(i);
+      if(enc.getPatterningCode()!=null){return enc.getPatterningCode();}
+    }
+    return null;
+  }
+  
+  public void setPatterningCode(String newCode){this.patterningCode=newCode;}
+  
+  public void resetMaxNumYearsBetweenSightings(){
+    int maxYears=0;
+    int lowestYear=3000;
+    int highestYear=0;
+    for(int c=0;c<encounters.size();c++) {
+      Encounter temp=(Encounter)encounters.get(c);
+      if(temp.getYear()<lowestYear) lowestYear=temp.getYear();
+      if(temp.getYear()>highestYear) highestYear=temp.getYear();
+      maxYears=highestYear-lowestYear;
+      }
+    maxYearsBetweenResightings=maxYears;
+    }
+  
 }
