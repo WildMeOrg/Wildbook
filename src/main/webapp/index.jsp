@@ -108,7 +108,7 @@
 <div id="wrapper">
   <div id="page">
     <jsp:include page="header.jsp" flush="true">
-      <jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>"/>
+      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
     <div id="main">
       <div id="leftcol">

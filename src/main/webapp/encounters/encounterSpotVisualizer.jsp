@@ -67,8 +67,7 @@
 <html>
 <head>
 
-  <title>Encounter <%=num%>
-  </title>
+  <title>Encounter <%=num%></title>
   <title><%=CommonConfiguration.getHTMLTitle() %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -87,13 +86,7 @@
 <div id="wrapper">
 <div id="page">
 <jsp:include page="../header.jsp" flush="true">
-  <jsp:param name="isResearcher"
-             value="<%=request.isUserInRole("researcher")%>"/>
-  <jsp:param name="isManager"
-             value="<%=request.isUserInRole("manager")%>"/>
-  <jsp:param name="isReviewer"
-             value="<%=request.isUserInRole("reviewer")%>"/>
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>"/>
+  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
 <div id="main">
 <%

@@ -243,14 +243,9 @@
 <div id="wrapper">
 <div id="page">
 <jsp:include page="../header.jsp" flush="true">
-  <jsp:param name="isResearcher"
-             value="<%=request.isUserInRole("researcher")%>"/>
-  <jsp:param name="isManager"
-             value="<%=request.isUserInRole("manager")%>"/>
-  <jsp:param name="isReviewer"
-             value="<%=request.isUserInRole("reviewer")%>"/>
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>"/>
-  <jsp:param name="langCode" value="<%=langCode%>"/>
+
+  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+  
 </jsp:include>
 <div id="main">
 <%
@@ -744,214 +739,33 @@ if(loggedIn.equals("false")){
 </table>
 <br> <%
 			}
-				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
-		%> <a name="gps">
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><span class="style3"><font
-        color="#990000"><%=encprops.getProperty("resetGPS")%>:</font></span><br> <font
-        size="-1"><%=encprops.getProperty("noteGPS")%>
-      </font>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <form name="resetGPSform" method="post" action="../EncounterSetGPS">
-          <input name="action" type="hidden" value="resetGPS">
-
-          <p><strong><%=encprops.getProperty("latitude")%>:</strong><br> <select name="lat"
-                                                                                 id="lat">
-            <option value="" selected="selected"></option>
-            <%
-              for (int gps1 = 0; gps1 < 91; gps1++) {
-            %>
-            <option value="<%=gps1%>"><%=gps1%>
-            </option>
-            <%
-              }
-            %>
-          </select> <font size="+1">&deg;</font> <select name="gpsLatitudeMinutes"
-                                                         id="gpsLatitudeMinutes">
-            <option value="" selected="selected"></option>
-            <%
-              for (int gps1 = 0; gps1 < 60; gps1++) {
-            %>
-            <option value="<%=gps1%>"><%=gps1%>
-            </option>
-            <%
-              }
-            %>
-          </select> <font size="+1">'</font> <br> <select
-            name="gpsLatitudeSeconds" id="gpsLatitudeSeconds">
-            <option value="" selected="selected"></option>
-            <option value="0">0</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="24">24</option>
-            <option value="25">25</option>
-            <option value="26">26</option>
-            <option value="27">27</option>
-            <option value="28">28</option>
-            <option value="29">29</option>
-            <option value="30">30</option>
-            <option value="31">31</option>
-            <option value="32">32</option>
-            <option value="33">33</option>
-            <option value="34">34</option>
-            <option value="35">35</option>
-            <option value="36">36</option>
-            <option value="37">37</option>
-            <option value="38">38</option>
-            <option value="39">39</option>
-            <option value="40">40</option>
-            <option value="41">41</option>
-            <option value="42">42</option>
-            <option value="43">43</option>
-            <option value="44">44</option>
-            <option value="45">45</option>
-            <option value="46">46</option>
-            <option value="47">47</option>
-            <option value="48">48</option>
-            <option value="49">49</option>
-            <option value="50">50</option>
-            <option value="51">51</option>
-            <option value="52">52</option>
-            <option value="53">53</option>
-            <option value="54">54</option>
-            <option value="55">55</option>
-            <option value="56">56</option>
-            <option value="57">57</option>
-            <option value="58">58</option>
-            <option value="59">59</option>
-          </select> <font size="+1">&quot;</font> <select name="latDirection"
-                                                          id="latDirection">
-            <option value="South" selected><%=encprops.getProperty("south")%>
-            </option>
-            <option value="North"><%=encprops.getProperty("north")%>
-            </option>
-          </select><br> <strong><%=encprops.getProperty("latitude")%>:</strong><br> <select
-            name="longitude" id="longitude">
-            <option value="" selected="selected"></option>
-            <%
-              for (int gps1 = 0; gps1 < 181; gps1++) {
-            %>
-            <option value="<%=gps1%>"><%=gps1%>
-            </option>
-            <%
-              }
-            %>
-          </select> <font size="+1">&deg;</font> <select name="gpsLongitudeMinutes"
-                                                         id="gpsLongitudeMinutes">
-            <option value="" selected="selected"></option>
-            <%
-              for (int gps1 = 0; gps1 < 60; gps1++) {
-            %>
-            <option value="<%=gps1%>"><%=gps1%>
-            </option>
-            <%
-              }
-            %>
-          </select> <font size="+1">'</font> <br> <select
-            name="gpsLongitudeSeconds" id="gpsLongitudeSeconds">
-            <option value="" selected="selected"></option>
-            <option value="0">0</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="24">24</option>
-            <option value="25">25</option>
-            <option value="26">26</option>
-            <option value="27">27</option>
-            <option value="28">28</option>
-            <option value="29">29</option>
-            <option value="30">30</option>
-            <option value="31">31</option>
-            <option value="32">32</option>
-            <option value="33">33</option>
-            <option value="34">34</option>
-            <option value="35">35</option>
-            <option value="36">36</option>
-            <option value="37">37</option>
-            <option value="38">38</option>
-            <option value="39">39</option>
-            <option value="40">40</option>
-            <option value="41">41</option>
-            <option value="42">42</option>
-            <option value="43">43</option>
-            <option value="44">44</option>
-            <option value="45">45</option>
-            <option value="46">46</option>
-            <option value="47">47</option>
-            <option value="48">48</option>
-            <option value="49">49</option>
-            <option value="50">50</option>
-            <option value="51">51</option>
-            <option value="52">52</option>
-            <option value="53">53</option>
-            <option value="54">54</option>
-            <option value="55">55</option>
-            <option value="56">56</option>
-            <option value="57">57</option>
-            <option value="58">58</option>
-            <option value="59">59</option>
-          </select> <font size="+1">&quot;</font> <select name="longDirection"
-                                                          id="longDirection">
-            <option value="West" selected><%=encprops.getProperty("west")%>
-            </option>
-            <option value="East"><%=encprops.getProperty("east")%>
-            </option>
-          </select> <input name="number" type="hidden" value=<%=num%>> <input
-            name="setGPSbutton" type="submit" id="setGPSbutton"
-            value="<%=encprops.getProperty("setGPS")%>">
-          </p>
-        </form>
-      </td>
-    </tr>
-  </table>
-</a><br> <%
-			}
+      	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
+    		%> <a name="gps">
+    		<table width="150" border="1" cellpadding="1" cellspacing="0"
+    			bordercolor="#000000" bgcolor="#CCCCCC">
+    			<tr>
+    				<td align="left" valign="top" class="para"><span class="style3"><font
+    					color="#990000"><%=encprops.getProperty("resetGPS")%>:</font></span><br> <font size="-1"><%=encprops.getProperty("noteGPS")%></font>
+    				</td>
+    			</tr>
+    			<tr>
+    				<td>
+    				<form name="resetGPSform" method="post" action="../EncounterSetGPS">
+    				<input name="action" type="hidden" value="resetGPS" />
+    				<p><strong><%=encprops.getProperty("latitude")%>:</strong><br /> 
+    				<input type="text" size="7" maxlength="10" name="lat" id="lat" />
+    				 
+    				<br /> <strong><%=encprops.getProperty("longitude")%>:</strong><br> 
+    				<input type="text" size="7" maxlength="10" name="longitude" id="longitude" /> 
+    				<input name="number" type="hidden" value=<%=num%> /> 
+    				<input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" />
+    				</p>
+    				</form>
+    				</td>
+    			</tr>
+    		</table>
+    		</a><br> <%
+    			}
 				//set location for sighting
 			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("location"))){
 		%> <a name="location">

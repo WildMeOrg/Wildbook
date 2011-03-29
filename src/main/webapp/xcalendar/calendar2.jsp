@@ -206,15 +206,8 @@
       style='padding: 0; text-align: center; margin: 0 auto; overflow: auto;'>
 <div id="wrapper" style=''>
   <div id="page" style=''>
-    <jsp:include page="../header.jsp"
-                 flush="true">
-      <jsp:param name="isResearcher"
-                 value="<%=request.isUserInRole("researcher")%>"/>
-      <jsp:param name="isManager"
-                 value="<%=request.isUserInRole("manager")%>"/>
-      <jsp:param name="isReviewer"
-                 value="<%=request.isUserInRole("reviewer")%>"/>
-      <jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>"/>
+    <jsp:include page="../header.jsp" flush="true">
+      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
 
     <div id="main" style='overflow: auto;'>
