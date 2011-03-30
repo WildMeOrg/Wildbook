@@ -372,6 +372,11 @@
     <servlet-name>EncounterAddComment</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddComment</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>EncounterSetPatterningCode</servlet-name>
+      <servlet-class>org.ecocean.servlet.EncounterSetPatterningCode</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetDynamicProperty</servlet-name>
@@ -510,6 +515,11 @@
   <servlet-mapping>
     <servlet-name>EncounterSetDynamicProperty</servlet-name>
     <url-pattern>/EncounterSetDynamicProperty</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>EncounterSetPatterningCode</servlet-name>
+      <url-pattern>/EncounterSetPatterningCode</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

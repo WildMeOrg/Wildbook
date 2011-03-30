@@ -1719,6 +1719,14 @@ public class Shepherd {
     ArrayList al = new ArrayList(c);
     return al;
   }
+  
+  public ArrayList<String> getAllPatterningCodes(){
+    Query q = pm.newQuery (Encounter.class);
+    q.setResult ("distinct patterningCode");
+    q.setOrdering("patterningCode ascending");
+    Collection results = (Collection)q.execute (); 
+    return (new ArrayList(results));
+  }
 
 } //end Shepherd class
 

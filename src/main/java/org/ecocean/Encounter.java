@@ -201,6 +201,8 @@ public class Encounter implements java.io.Serializable {
     this.minutes = minutes;
     this.size_guess = size_guess;
     this.individualID = "Unassigned";
+    
+    resetDateInMilliseconds();
   }
 
 
@@ -796,23 +798,6 @@ public class Encounter implements java.io.Serializable {
     gpsLatitude = newLat;
   }
 
-  /*public void setLatInteger(int newLat) {
-     lat=newLat;
-   }
-
-   public void setLongInteger(int newLong) {
-     longitude=newLong;
-   }
-
-
-   public int getLatInteger() {
-       return lat;
-   }
-
-   public int getLongInteger() {
-     return longitude;
-   }
-   */
 
   public Encounter getClone() {
     Encounter tempEnc = new Encounter();

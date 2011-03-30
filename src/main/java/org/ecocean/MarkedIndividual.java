@@ -918,20 +918,21 @@ public class MarkedIndividual {
     }
   }
 
-  public String getDynamicPropertyValue(String name) {
-    if (dynamicProperties != null) {
-      name = name.replaceAll("%20", " ");
+  public String getDynamicPropertyValue(String name){
+    if(dynamicProperties!=null){
+      name=name.replaceAll("%20", " ");
       //let's create a TreeMap of the properties
-      TreeMap<String, String> tm = new TreeMap<String, String>();
-      StringTokenizer st = new StringTokenizer(dynamicProperties, ";");
-      while (st.hasMoreTokens()) {
+      TreeMap<String,String> tm=new TreeMap<String,String>();
+      StringTokenizer st=new StringTokenizer(dynamicProperties, ";");
+      while(st.hasMoreTokens()){
         String token = st.nextToken();
-        int equalPlace = token.indexOf("=");
-        tm.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));
+        int equalPlace=token.indexOf("=");
+        try{
+          tm.put(token.substring(0,equalPlace), token.substring(equalPlace+1));
+        }
+        catch(IndexOutOfBoundsException ioob){}
       }
-      if (tm.containsKey(name)) {
-        return tm.get(name);
-      }
+      if(tm.containsKey(name)){return tm.get(name);}
     }
     return null;
   }
