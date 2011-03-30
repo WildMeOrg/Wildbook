@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,org.ecocean.Keyword,org.ecocean.Shepherd,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList" %>
+         import="org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Properties" %>
@@ -149,7 +149,60 @@
        value="<%=request.getParameter("referenceImageName") %>"/>
 
 <p><img width="810px" src="<%=request.getParameter("referenceImageName") %>"/></p>
+<table>
+											<tr>
+												<td align="left" valign="top">
+										
+												<table>
+										<%
+										int slashPosition=request.getParameter("referenceImageName").indexOf("/");
+										String encNum=request.getParameter("referenceImageName").substring(0,slashPosition);
+										Encounter thisEnc = myShepherd.getEncounter(encNum);
+										%>
+								
+										<tr><td><span class="caption">Location: <%=thisEnc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption">Location ID: <%=thisEnc.getLocationID() %></span></td></tr>
+										<tr><td><span class="caption">Date: <%=thisEnc.getDate() %></span></td></tr>
+										<%
+										if(thisEnc.getIndividualID()!=null){
+										%>
+											<tr><td><span class="caption">Identified as: 
+											<%
+											if(!thisEnc.getIndividualID().equals("Unassigned")){
+											%>
+												<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank">
+											<%
+											}
+											%>
+											<%=thisEnc.getIndividualID() %>
+											<%
+											if(!thisEnc.getIndividualID().equals("Unassigned")){
+											%>
+												</a>
+											<%
+											}
+											%>
+											</span></td></tr>
+										<%
+										}
+										%>
+										<tr><td><span class="caption">Encounter: <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
+										
 
+										
+										
+<%
+										if(thisEnc.getVerbatimEventDate()!=null){
+										%>
+											<tr>
+											
+											<td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
+										<%
+										}
+										%>
+
+
+										</table>
   <%
 		}
 		%>
