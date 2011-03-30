@@ -476,33 +476,28 @@
   <td>
     <div id="observation" style="display:none; ">
       <p>Use the fields below to filter your search based on observed attributes.</p>
+      <input name="alive" type="hidden" id="alive" value="alive" /> 
+							<input name="dead" type="hidden" id="dead" value="dead" /> 
+							<input type="hidden" name="approved" value="acceptedEncounters"></input>
+							<input name="unapproved" type="hidden" value="allEncounters"></input>
+							<input name="unidentifiable" type="hidden" value="allEncounters"></input>
       <table align="left">
         <tr>
           <td>
-            <table>
-              <tr>
-                <td width="62"><strong><%=props.getProperty("sex")%>: </strong></td>
-                <td width="62"><label> <input name="sex" type="radio"
-                                              value="all" checked> <%=props.getProperty("all")%>
-                </label></td>
-                <td width="138"><label> <input name="sex"
-                                               type="radio"
-                                               value="mf"> <%=props.getProperty("maleOrFemale")%>
-                </label></td>
+          <table width="357" align="left">
+					<tr>
+						<td width="62"><strong>Sex is: </strong></td>
+						<td width="76"><label> <input name="male"
+							type="checkbox" id="male" value="male" checked> Male</label></td>
 
-                <td width="76"><label> <input type="radio" name="sex"
-                                              value="male"> <%=props.getProperty("male")%>
-                </label></td>
-
-                <td width="79"><label> <input type="radio" name="sex"
-                                              value="female"><%=props.getProperty("female")%>
-                </label></td>
-                <td width="112"><label> <input type="radio"
-                                               name="sex"
-                                               value="unknown"> <%=props.getProperty("unknown")%>
-                </label></td>
-              </tr>
-            </table>
+						<td width="79"><label> <input name="female"
+							type="checkbox" id="female" value="female" checked>
+						Female</label></td>
+						<td width="112"><label> <input name="unknown"
+							type="checkbox" id="unknown" value="unknown" checked>
+						Unknown</label></td>
+					</tr>
+				</table>
           </td>
         </tr>
         <%

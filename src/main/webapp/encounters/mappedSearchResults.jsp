@@ -367,82 +367,74 @@
     try {
 %>
 
-<p><%=encprops.getProperty("mapNote")%>
-</p>
-<script
-  src="http://maps.google.com/maps?file=api&amp;v=3.2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
-  type="text/javascript"></script>
-<script type="text/javascript">
-  function initialize() {
-    if (GBrowserIsCompatible()) {
+<p><%=encprops.getProperty("mapNote")%></p>
+<script src="http://maps.google.com/maps?file=api&amp;v=3.2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>" type="text/javascript"></script> <script type="text/javascript">
+    function initialize() {
+      if (GBrowserIsCompatible()) {
+          
 
+        var map = new GMap2(document.getElementById("map_canvas"));
+        var bounds = new GLatLngBounds();
+		
+        
+  		var ne_lat = parseFloat(getQueryParameter("ne_lat"));
+		var ne_long = parseFloat(getQueryParameter('ne_long'));
+		var sw_lat = parseFloat(getQueryParameter('sw_lat'));
+		var sw_long = parseFloat(getQueryParameter('sw_long'));
+        
+		
+		<%
+			double centroidX=0;
+			int countPoints=0;
+			double centroidY=0;
+			for(int c=0;c<haveGPSData.size();c++) {
+				Encounter mapEnc=(Encounter)haveGPSData.get(c);
+				countPoints++;
+				centroidX=centroidX+Double.parseDouble(mapEnc.getDWCDecimalLatitude());
+				centroidY=centroidY+Double.parseDouble(mapEnc.getDWCDecimalLongitude());
+			}
+			centroidX=centroidX/countPoints;
+			centroidY=centroidY/countPoints;
+		%>
+			
+			//map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
+			map.addControl(new GSmallMapControl());
+        	map.addControl(new GMapTypeControl());
+			map.setMapType(G_HYBRID_MAP);
+			<%for(int t=0;t<haveGPSData.size();t++) {
+				if(t<101){
+				Encounter mapEnc=(Encounter)haveGPSData.get(t);
+				double myLat=(new Double(mapEnc.getDWCDecimalLatitude())).doubleValue();
+				double myLong=(new Double(mapEnc.getDWCDecimalLongitude())).doubleValue();
+				%>
+				          var point<%=t%> = new GLatLng(<%=myLat%>,<%=myLong%>, false);
+				          bounds.extend(point<%=t%>);
+				          
+						  var marker<%=t%> = new GMarker(point<%=t%>);
+						  GEvent.addListener(marker<%=t%>, "click", function(){
+						  	window.location="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>";
+						  });
+						  GEvent.addListener(marker<%=t%>, "mouseover", function(){
+						  	marker<%=t%>.openInfoWindowHtml("<%=encprops.getProperty("markedIndividual")%>: <strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=mapEnc.isAssignedToMarkedIndividual()%>\"><%=mapEnc.isAssignedToMarkedIndividual()%></a></strong><br><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=mapEnc.getEncounterNumber()%>/thumb.jpg\"></td><td><%=encprops.getProperty("date")%>: <%=mapEnc.getDate()%><br><%=encprops.getProperty("sex")%>: <%=mapEnc.getSex()%><br><br><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>\" ><%=encprops.getProperty("go2encounter")%></a></td></tr></table>");
+						  });
 
-      var map = new GMap2(document.getElementById("map_canvas"));
-      var bounds = new GLatLngBounds();
-
-
-      var ne_lat = parseFloat(getQueryParameter("ne_lat"));
-      var ne_long = parseFloat(getQueryParameter('ne_long'));
-      var sw_lat = parseFloat(getQueryParameter('sw_lat'));
-      var sw_long = parseFloat(getQueryParameter('sw_long'));
-      //if((ne_lat.length>0)&&(ne_long.length>0)&&(sw_lat.length>0)&&(sw_long.length>0)){
-      //}
-
-
-    <%
-        double centroidX=0;
-        int countPoints=0;
-        double centroidY=0;
-        for(int c=0;c<haveGPSData.size();c++) {
-          Encounter mapEnc=(Encounter)haveGPSData.get(c);
-          countPoints++;
-          centroidX+=mapEnc.getDecimalLatitudeAsDouble();
-          centroidY+=mapEnc.getDecimalLongitudeAsDouble();
-        }
-        centroidX=centroidX/countPoints;
-        centroidY=centroidY/countPoints;
-      %>
-
-      //map.setCenter(new GLatLng(
-    <%=centroidX%>,
-    <%=centroidY%>), 1);
-      map.addControl(new GSmallMapControl());
-      map.addControl(new GMapTypeControl());
-      map.setMapType(G_HYBRID_MAP);
-    <%for(int t=0;t<haveGPSData.size();t++) {
-          if(t<101){
-          Encounter mapEnc=(Encounter)haveGPSData.get(t);
-          double myLat=mapEnc.getDecimalLatitudeAsDouble();
-          double myLong=mapEnc.getDecimalLongitudeAsDouble();
-          %>
-      var point<%=t%> = new GLatLng(<%=myLat%>, <%=myLong%>, false);
-      bounds.extend(point<%=t%>);
-
-      var marker<%=t%> = new GMarker(point<%=t%>);
-      GEvent.addListener(marker<%=t%>, "click", function() {
-        window.location = "http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>";
-      });
-      GEvent.addListener(marker<%=t%>, "mouseover", function() {
-        marker<%=t%>.openInfoWindowHtml("<%=encprops.getProperty("markedIndividual")%>: <strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=mapEnc.isAssignedToMarkedIndividual()%>\"><%=mapEnc.isAssignedToMarkedIndividual()%></a></strong><br><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=mapEnc.getEncounterNumber()%>/thumb.jpg\"></td><td><%=encprops.getProperty("date")%>: <%=mapEnc.getDate()%><br><%=encprops.getProperty("sex")%>: <%=mapEnc.getSex()%><br><br><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>\" ><%=encprops.getProperty("go2encounter")%></a></td></tr></table>");
-      });
-
-
-      map.addOverlay(marker<%=t%>);
-
-    <%
-        }
-      }
-      %>
-      if (!bounds.isEmpty()) {
-        //map.setZoom();
-        map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
-      }
-      else {
-        map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
+						  
+						  map.addOverlay(marker<%=t%>);
+			
+		<%	
+			}	
+		}
+		%>		
+		if(!bounds.isEmpty()){	
+			//map.setZoom();
+			map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
+		}
+		else{
+			map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
+		}
       }
     }
-  }
-</script>
+    </script>
 
 
 <div id="map_canvas" style="width: 510px; height: 340px"></div>
