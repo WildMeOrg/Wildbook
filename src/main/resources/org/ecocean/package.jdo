@@ -79,6 +79,10 @@
 		        <field name="alternateid" persistence-modifier="persistent">
 				<column jdbc-type="LONGVARCHAR" />
 			</field>
+			
+			<field name="maxYearsBetweenResightings" persistence-modifier="persistent">
+				<column jdbc-type="INTEGER" allows-null="true" />
+			</field>
 		            	
 		            	        		<fetch-group name="allSharks_min">
 				            		<field name="encounters"/>
@@ -99,6 +103,9 @@
 			</field>
 			
 			
+						<field name="dateInMilliseconds" persistence-modifier="persistent">
+							<column jdbc-type="BIGINT" allows-null="true" />
+						</field>
 			
 			
 			
