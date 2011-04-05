@@ -757,7 +757,7 @@ if (isOwner) {
 <tr>
   <td>
     <p><%=props.getProperty("error")%>
-    </p>.</p>
+    </p>.
   </td>
 </tr>
 <%
@@ -765,18 +765,18 @@ if (isOwner) {
 %>
 
 </table>
+</div>
 <%
 } else {
 %>
 
-<p><%=props.getProperty("noImages")%>
-</p>
+<p><%=props.getProperty("noImages")%></p>
 
 <%
   }
 %>
 
-
+</table>
 <!-- end thumbnail gallery -->
 
 <p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %>
