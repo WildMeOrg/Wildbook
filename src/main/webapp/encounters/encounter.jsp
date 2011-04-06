@@ -1591,7 +1591,7 @@ if(loggedIn.equals("false")){
 </strong><br/>
   <%
     if (enc.getDepth() >= 0) {
-  %> <%=enc.getDepth()%> <%=enc.getMeasureUnits()%> <%
+  %> <%=enc.getDepth()%> <%=encprops.getProperty("meters")%> <%
   } else {
   %> <%=encprops.getProperty("unknown") %><%
     }
@@ -1613,7 +1613,7 @@ if(loggedIn.equals("false")){
 <p class="para"><strong><%=encprops.getProperty("elevation") %>
 </strong><br/>
 
-  <%=enc.getMaximumElevationInMeters()%> meters
+  <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%>
   <%
 
 
@@ -2113,8 +2113,9 @@ if(loggedIn.equals("false")){
   %> <img width="250" height="200" alt="photo <%=enc.getLocation()%>"
           src="../images/processed.gif" border="0" align="left" valign="left">
       <%
-					if (session.getAttribute("logged")!=null) {
-				%></a>
+		if (session.getAttribute("logged")!=null) {
+		%>
+		</a>
     <%
       }
     %> <%
@@ -2484,7 +2485,8 @@ catch (Exception e) {
 </div>
 <%
   }
-%></td>
+%>
+</td>
 </tr>
 </table>
 <p>

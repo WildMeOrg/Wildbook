@@ -217,8 +217,18 @@
 </jsp:include>
 <div id="main">
 
+<%
+  if (CommonConfiguration.allowAdoptions()) {
+%>
+<div id="maincol-wide">
+<%
+}
+  else {
+%>
 <div id="maincol-wide-solo">
-
+<%
+}
+%>
 <div id="maintext">
 <%
   myShepherd.beginDBTransaction();
@@ -1017,10 +1027,11 @@ if (isOwner) {
 
 
 %>
-
-</div>
-<!-- end maintext --></div>
-<!-- end main-wide -->
+</td>
+</tr>
+</table>
+</div><!-- end maintext -->
+</div><!-- end main-wide -->
 
 <%
   if (CommonConfiguration.allowAdoptions()) {
@@ -1037,9 +1048,8 @@ if (isOwner) {
     </div>
 
 
-  </div>
-  <!-- end menu --></div>
-<!-- end rightcol -->
+  </div><!-- end menu -->
+ </div><!-- end rightcol -->
 <%
   }
 %>
