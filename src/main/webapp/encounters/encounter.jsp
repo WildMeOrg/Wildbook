@@ -1591,7 +1591,8 @@ if(loggedIn.equals("false")){
 </strong><br/>
   <%
     if (enc.getDepth() >= 0) {
-  %> <%=enc.getDepth()%> <%=encprops.getProperty("meters")%> <%
+  %> 
+  <%=enc.getDepth()%> <%=encprops.getProperty("meters")%> <%
   } else {
   %> <%=encprops.getProperty("unknown") %><%
     }

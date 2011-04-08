@@ -219,10 +219,14 @@
 
 <%
   if (CommonConfiguration.allowAdoptions()) {
+	  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name);
+	  int numAdoptions = adoptions.size();
+	  if(numAdoptions>0){
 %>
 <div id="maincol-wide">
 <%
 }
+  }
   else {
 %>
 <div id="maincol-wide-solo">
@@ -503,7 +507,7 @@ if (isOwner) {
 
 <p>
   <strong><%=props.getProperty("imageGallery") %>
-  </strong><br/>
+  </strong></p>
 
     <%
     String[] keywords=keywords=new String[0];
@@ -517,23 +521,30 @@ if (isOwner) {
 			
 			int countMe=0;
 			Vector thumbLocs=new Vector();
-			
-			//int numThumbnails = myShepherd.getNumThumbnails(sharky.getEncounters().iterator(), keywords);
-			
+			int  numColumns=3;
+			int numThumbs=0;
+			  if (CommonConfiguration.allowAdoptions()) {
+				  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name);
+				  int numAdoptions = adoptions.size();
+				  if(numAdoptions>0){
+					  numColumns=2;
+				  }
+			  }
+
 			try {
 				thumbLocs=myShepherd.getThumbnails(request, sharky.getEncounters().iterator(), 1, 99999, keywords);
-
-			
-			
-					//for(int rows=0;rows<15;rows++) {		
-					
-					%>
+				numThumbs=thumbLocs.size();
+			%>
 
   <tr valign="top">
+ <td>
+ <!-- HTML Codes by Quackit.com -->
+<div style="border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
 
       <%
-							for(int columns=0;columns<3;columns++){
-								if(countMe<thumbLocs.size()) {
+      						while(countMe<numThumbs){
+							//for(int columns=0;columns<numColumns;columns++){
+								if(countMe<numThumbs) {
 									String combined=(String)thumbLocs.get(countMe);
 									StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
 									String thumbLink=stzr.nextToken();
@@ -549,8 +560,9 @@ if (isOwner) {
 						
 							%>
 
-    <td>
-      <table>
+   
+    
+      <table align="left">
         <tr>
           <td valign="top">
 
@@ -622,8 +634,7 @@ if (isOwner) {
                         <td><span class="caption">
 											<%=props.getProperty("matchingKeywords") %>
 											<%
-                        //int numKeywords=myShepherd.getNumKeywords();
-                        Iterator allKeywords2 = myShepherd.getAllKeywords();
+                       Iterator allKeywords2 = myShepherd.getAllKeywords();
 
                         while (allKeywords2.hasNext()) {
                           Keyword word = (Keyword) allKeywords2.next();
@@ -695,7 +706,7 @@ if (isOwner) {
                 </tr>
               </table>
             </div>
-</div>
+
 </td>
 </tr>
 
@@ -749,17 +760,19 @@ if (isOwner) {
 </tr>
 
 </table>
-</td>
+
 <%
 
       countMe++;
     } //end if
   } //endFor
 %>
+</div>
+</td>
 </tr>
 <%
 
-  //} //endFor
+
 
 } catch (Exception e) {
   e.printStackTrace();
