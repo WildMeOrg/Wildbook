@@ -163,6 +163,9 @@
      if(request.getParameter("scDate")!=null){
        dateString=request.getParameter("scDate");
      }
+     else if((request.getParameter("year1")!=null)&&(request.getParameter("month1")!=null)){
+    	 dateString=request.getParameter("month1")+"/1/"+request.getParameter("year1");
+       }
      else{
 
        Calendar cal=Calendar.getInstance();
@@ -173,7 +176,7 @@
        try{
 
          nowYear = myShepherd.getLastSightingYear();
-         nowMonth = myShepherd.getLastMonthOfSightingYear(nowYear)+1;
+         nowMonth = myShepherd.getLastMonthOfSightingYear(nowYear);
 
        }
        catch(Exception e){

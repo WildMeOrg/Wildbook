@@ -20,231 +20,218 @@
 package org.ecocean.servlet;
 
 
-import org.ecocean.Encounter;
-import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
-
-import javax.jdo.Extent;
-import javax.jdo.Query;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
+import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServlet;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.Iterator;
+import org.ecocean.*;
+import javax.jdo.Query;
+import javax.jdo.Extent;
+import java.lang.NumberFormatException;
+import java.util.StringTokenizer;
 
 
 //returns the results of an image search request in XML
 //test
 public class CalendarXMLServer2 extends HttpServlet {
+	
+	
+	public void init(ServletConfig config) throws ServletException {
+    	super.init(config);
+  	}
 
+	
+	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
+    	doPost(request, response);
+	}
+		
 
-  public void init(ServletConfig config) throws ServletException {
-    super.init(config);
-  }
+	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+		
+		System.out.println("CalendarXMLServer2 received: "+request.getQueryString());	
+		//set up the output
+		response.setContentType("text/xml");
+		PrintWriter out = response.getWriter();	
+      	out.println("<data>");
+		
+      	
+      	
+		//establish a shepherd to manage DB interactions
+		Shepherd myShepherd=new Shepherd();
+		
+		//change
+		Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
+		Query queryEnc=myShepherd.getPM().newQuery(encClass);
+		
+		//required filters for output XML
+		String from="";
+		String fromYear="";
+		String fromMonth="";
+		//String fromDay="";
+		String to="";
+		String toYear="";
+		String toMonth="";
+		//String toDay="";
+		String locCode="NONE";
+		int startYear=1800;
+		int endYear=9999;
+		int startMonth=1;
+		int endMonth=12;
+		
+		
 
+		
+		//get filters from request string
+		if(request.getParameter("from")!=null) {
+			try{
+				
+				from=request.getParameter("from");
+				StringTokenizer str=new StringTokenizer(from,"-");
+				int count=str.countTokens();
+				for(int i=0;i<count;i++){
+					if(i==0){fromYear=(String)str.nextElement();}
+					if(i==1){fromMonth=(String)str.nextElement();}
+					//if(i==2){fromDay=(String)str.nextElement();}
+				}
+				
+			}
+			catch(NumberFormatException nfe) {}
+		}
+		if(request.getParameter("to")!=null) {
+			try{
+				
+				to=request.getParameter("to");
+				StringTokenizer str=new StringTokenizer(to,"-");
+				int count=str.countTokens();
+				for(int i=0;i<count;i++){
+					if(i==0){toYear=(String)str.nextElement();}
+					if(i==1){toMonth=(String)str.nextElement();}
+					//if(i==2){toDay=(String)str.nextElement();}
+				}
+				
+			}
+			catch(NumberFormatException nfe) {}
+		}
+		if(!fromYear.equals("")){startYear=Integer.parseInt(fromYear);}
+		if(!toYear.equals("")){endYear=Integer.parseInt(toYear);}
+		if(!fromMonth.equals("")){startMonth=Integer.parseInt(fromMonth);}
+		if(!toMonth.equals("")){endMonth=Integer.parseInt(toMonth);}
+		
+		String filter="this.year >= "+startYear+" && this.year <= "+endYear+ " && (this.month >= "+startMonth+" || this.month <= "+ endMonth+")";		
+		
+		if((request.getParameter("locCode")!=null)&&(!request.getParameter("locCode").equals("NONE"))) {
+			try{
+				locCode=request.getParameter("locCode");
+				filter+=" && this.locationID.startsWith(\""+locCode+"\")";
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		queryEnc.setFilter(filter);
+		queryEnc.setOrdering("individualID descending");
 
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    doPost(request, response);
-  }
+		//create a vector to hold matches
+		Vector matches=new Vector();
+		
 
+		myShepherd.beginDBTransaction();
+		
+		try{
 
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+			Iterator allEncounters=myShepherd.getAllEncounters(queryEnc);
 
-    System.out.println("CalendarXMLServer2 received: " + request.getQueryString());
-    //set up the output
-    response.setContentType("text/xml");
-    PrintWriter out = response.getWriter();
-    out.println("<data>");
+			while(allEncounters.hasNext()) {
+				Encounter tempE=(Encounter)allEncounters.next();
+      			matches.add(tempE.getEncounterNumber());
+			}
 
+		//output the XML for matching encounters
+      	if(matches.size()>0) {
+      		
+      		//open DB again to pull data
+      		//myShepherd.beginDBTransaction();
+      		
+      		try{
+      			
+      			//now spit out that XML for each match!
+      			//remember to set primary attribute!
+      			for(int i=0;i<matches.size();i++) {
+      				String thisEncounter=(String)matches.get(i);
+      				Encounter tempEnc=myShepherd.getEncounter(thisEncounter);
+      				if(tempEnc!=null){
+      					if(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
+      					
+							String sex="-";
+							MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.isAssignedToMarkedIndividual());
+							if((!sharky.getSex().equals("Unknown"))&&(!sharky.getSex().equals("unknown"))) {
+								if(sharky.getSex().equals("male")){
+									sex="M";
+								}
+								else{
+									sex="F";
+								}
+							}
+							String size="-";
+							if(tempEnc.getSize()>0.0) {
+								size=(new Double(tempEnc.getSize())).toString();
+							}
+   							String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
+   							outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
+   							outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</end_date>";
+   							outputXML+="<text><![CDATA["+tempEnc.getIndividualID()+"("+sex+"/"+size+")]]></text>";
+   							outputXML+="<details></details></event>";
+   							out.println(outputXML);
+      				 } else{
+      				 	String sex="-";
+      				 	if((!tempEnc.getSex().equals("Unknown"))&&(!tempEnc.getSex().equals("unknown"))) {
+							if(tempEnc.getSex().equals("male")){
+									sex="M";
+								}
+								else{
+									sex="F";
+								}
+						}
+						String size="-";
+						if(tempEnc.getSize()>0.0) {
+								size=(new Double(tempEnc.getSize())).toString();
+						}
+						String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
+							outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
+							outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:01"+"</end_date>";
+							outputXML+="<text><![CDATA[No ID ("+sex+"/"+size+")]]></text>";
+							outputXML+="<details></details></event>";
+							out.println(outputXML);
+      				}
+      			}
+      					
+      					
+      		}
 
-    //establish a shepherd to manage DB interactions
-    Shepherd myShepherd = new Shepherd();
+      		}
+      		catch(Exception e){
+      				e.printStackTrace();
+      		}
 
-    //change
-    Extent encClass = myShepherd.getPM().getExtent(Encounter.class, true);
-    Query queryEnc = myShepherd.getPM().newQuery(encClass);
+      			
+      	} //end if-matches>0
+      	
+		} //end try
+		catch(Exception cal_e) {cal_e.printStackTrace();}
+		queryEnc.closeAll();
+		queryEnc=null;
+		myShepherd.rollbackDBTransaction();
+  		myShepherd.closeDBTransaction();
+  		
 
-    //required filters for output XML
-    String from = "";
-    String fromYear = "";
-    String fromMonth = "";
-    //String fromDay="";
-    String to = "";
-    String toYear = "";
-    String toMonth = "";
-    //String toDay="";
-    String locCode = "NONE";
-    int startYear = 1800;
-    int endYear = 9999;
-    int startMonth = 1;
-    int endMonth = 12;
-
-
-    //get filters from request string
-    if (request.getParameter("from") != null) {
-      try {
-
-        from = request.getParameter("from");
-        StringTokenizer str = new StringTokenizer(from, "-");
-        int count = str.countTokens();
-        for (int i = 0; i < count; i++) {
-          if (i == 0) {
-            fromYear = (String) str.nextElement();
-          }
-          if (i == 1) {
-            fromMonth = (String) str.nextElement();
-          }
-          //if(i==2){fromDay=(String)str.nextElement();}
-        }
-
-      } catch (NumberFormatException nfe) {
-      }
-    }
-    if (request.getParameter("to") != null) {
-      try {
-
-        to = request.getParameter("to");
-        StringTokenizer str = new StringTokenizer(to, "-");
-        int count = str.countTokens();
-        for (int i = 0; i < count; i++) {
-          if (i == 0) {
-            toYear = (String) str.nextElement();
-          }
-          if (i == 1) {
-            toMonth = (String) str.nextElement();
-          }
-          //if(i==2){toDay=(String)str.nextElement();}
-        }
-
-      } catch (NumberFormatException nfe) {
-      }
-    }
-    if (!fromYear.equals("")) {
-      startYear = Integer.parseInt(fromYear);
-    }
-    if (!toYear.equals("")) {
-      endYear = Integer.parseInt(toYear);
-    }
-    if (!fromMonth.equals("")) {
-      startMonth = Integer.parseInt(fromMonth);
-    }
-    if (!toMonth.equals("")) {
-      endMonth = Integer.parseInt(toMonth);
-    }
-
-    String filter = "this.year >= " + startYear + " && this.year <= " + endYear + " && (this.month >= " + startMonth + " || this.month <= " + endMonth + ")";
-
-    if ((request.getParameter("locCode") != null) && (!request.getParameter("locCode").equals("NONE"))) {
-      try {
-        locCode = request.getParameter("locCode");
-        filter += " && this.locationID.startsWith(\"" + locCode + "\")";
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-    queryEnc.setFilter(filter);
-    queryEnc.setOrdering("individualID descending");
-
-    //create a vector to hold matches
-    Vector matches = new Vector();
-
-
-    myShepherd.beginDBTransaction();
-
-    try {
-
-      Iterator allEncounters = myShepherd.getAllEncounters(queryEnc);
-
-      while (allEncounters.hasNext()) {
-        Encounter tempE = (Encounter) allEncounters.next();
-        matches.add(tempE.getEncounterNumber());
-      }
-
-      //output the XML for matching encounters
-      if (matches.size() > 0) {
-
-        //open DB again to pull data
-        //myShepherd.beginDBTransaction();
-
-        try {
-
-          //now spit out that XML for each match!
-          //remember to set primary attribute!
-          for (int i = 0; i < matches.size(); i++) {
-            String thisEncounter = (String) matches.get(i);
-            Encounter tempEnc = myShepherd.getEncounter(thisEncounter);
-            if (tempEnc != null) {
-              if (!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned")) {
-
-                String sex = "-";
-                MarkedIndividual sharky = myShepherd.getMarkedIndividual(tempEnc.isAssignedToMarkedIndividual());
-                if ((!sharky.getSex().equals("Unknown")) && (!sharky.getSex().equals("unknown"))) {
-                  if (sharky.getSex().equals("male")) {
-                    sex = "M";
-                  } else {
-                    sex = "F";
-                  }
-                }
-                String size = "-";
-                if (tempEnc.getSize() > 0.0) {
-                  size = (new Double(tempEnc.getSize())).toString();
-                }
-                String outputXML = "<event id=\"" + tempEnc.getCatalogNumber() + "\">";
-                outputXML += "<start_date>" + tempEnc.getYear() + "-" + tempEnc.getMonth() + "-" + tempEnc.getDay() + " " + "01:00" + "</start_date>";
-                outputXML += "<end_date>" + tempEnc.getYear() + "-" + tempEnc.getMonth() + "-" + tempEnc.getDay() + " " + "01:00" + "</end_date>";
-                outputXML += "<text><![CDATA[" + tempEnc.getIndividualID() + "(" + sex + "/" + size + ")]]></text>";
-                outputXML += "<details></details></event>";
-                out.println(outputXML);
-              } else {
-                String sex = "-";
-                if ((!tempEnc.getSex().equals("Unknown")) && (!tempEnc.getSex().equals("unknown"))) {
-                  if (tempEnc.getSex().equals("male")) {
-                    sex = "M";
-                  } else {
-                    sex = "F";
-                  }
-                }
-                String size = "-";
-                if (tempEnc.getSize() > 0.0) {
-                  size = (new Double(tempEnc.getSize())).toString();
-                }
-                String outputXML = "<event id=\"" + tempEnc.getCatalogNumber() + "\">";
-                outputXML += "<start_date>" + tempEnc.getYear() + "-" + tempEnc.getMonth() + "-" + tempEnc.getDay() + " " + "01:00" + "</start_date>";
-                outputXML += "<end_date>" + tempEnc.getYear() + "-" + tempEnc.getMonth() + "-" + tempEnc.getDay() + " " + "01:01" + "</end_date>";
-                outputXML += "<text><![CDATA[No ID (" + sex + "/" + size + ")]]></text>";
-                outputXML += "<details></details></event>";
-                out.println(outputXML);
-              }
-            }
-
-
-          }
-
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-
-
-      } //end if-matches>0
-
-    } //end try
-    catch (Exception cal_e) {
-      cal_e.printStackTrace();
-    }
-    queryEnc.closeAll();
-    queryEnc = null;
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
-
-
-    out.println("</data>");
-    out.close();
-  }//end doPost
+      	out.println("</data>");
+      	out.close();
+	}//end doPost
 
 } //end class
 	

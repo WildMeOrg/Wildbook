@@ -1648,7 +1648,7 @@ public class Shepherd {
   }
 
   public int getEarliestSightingYear() {
-    Query q = pm.newQuery("SELECT min(year) FROM org.ecocean.Encounter");
+    Query q = pm.newQuery("SELECT min(year) FROM org.ecocean.Encounter where year > -1");
     return ((Integer) q.execute()).intValue();
   }
 

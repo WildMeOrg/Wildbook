@@ -211,12 +211,12 @@
           if (CommonConfiguration.getWikiLocation().length() > 0) {
         %>
         <li><a
-          href="http://<%=CommonConfiguration.getWikiLocation() %>library_access_policy"
+          href="<%=CommonConfiguration.getWikiLocation() %>library_access_policy"
           target="_blank" class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("accessPolicy")%>
         </a></li>
         <li><a
-          href="http://<%=CommonConfiguration.getWikiLocation() %>"
+          href="<%=CommonConfiguration.getWikiLocation() %>"
           target="_blank" class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userWiki")%>
         </a></li>

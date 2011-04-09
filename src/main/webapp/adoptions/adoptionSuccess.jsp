@@ -84,55 +84,50 @@
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
 
+			if(!addText.equals("")){
+            	File file2process = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getAdoptionDirectory() + "/" + number + "/" + addText)));
 
-            File file2process = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getAdoptionDirectory() + "/" + number + "/" + addText)));
+            	int intWidth = 190;
+            	int intHeight = 190;
+            	int thumbnailHeight = 190;
+            	int thumbnailWidth = 190;
+            	String height = "";
+            	String width = "";
+            	Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
 
-            int intWidth = 190;
-            int intHeight = 190;
-            int thumbnailHeight = 190;
-            int thumbnailWidth = 190;
+            	width = Double.toString(imageDimensions.getWidth());
+            	height = Double.toString(imageDimensions.getHeight());
 
+            	intHeight = ((new Double(height)).intValue());
+            	intWidth = ((new Double(width)).intValue());
 
-            String height = "";
-            String width = "";
-
-
-            Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
-
-            //height+=iInfo.getHeight();
-            //width+=iInfo.getWidth();
-
-            width = Double.toString(imageDimensions.getWidth());
-            height = Double.toString(imageDimensions.getHeight());
-
-            intHeight = ((new Double(height)).intValue());
-            intWidth = ((new Double(width)).intValue());
-
-            if (intWidth > thumbnailWidth) {
-              double scalingFactor = intWidth / thumbnailWidth;
-              intWidth = (int) (intWidth / scalingFactor);
-              intHeight = (int) (intHeight / scalingFactor);
-              if (intHeight < thumbnailHeight) {
-                thumbnailHeight = intHeight;
-              }
-            } else {
-              thumbnailWidth = intWidth;
-              thumbnailHeight = intHeight;
-            }
+            	if (intWidth > thumbnailWidth) {
+              		double scalingFactor = intWidth / thumbnailWidth;
+              		intWidth = (int) (intWidth / scalingFactor);
+              		intHeight = (int) (intHeight / scalingFactor);
+              		if (intHeight < thumbnailHeight) {
+                		thumbnailHeight = intHeight;
+              		}
+            	} 
+            	else {
+              		thumbnailWidth = intWidth;
+              		thumbnailHeight = intHeight;
+           		 }
 
 
-            String thumbLocation = "file-" + number + "/thumb.jpg";
-            addText = "http://" + CommonConfiguration.getURLLocation(request) + "/" + CommonConfiguration.getAdoptionDirectory() + "/" + number + "/" + addText;
+            	String thumbLocation = "file-" + number + "/thumb.jpg";
+            	addText = "http://" + CommonConfiguration.getURLLocation(request) + "/" + CommonConfiguration.getAdoptionDirectory() + "/" + number + "/" + addText;
 
-          %>
+          		%>
           <di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>" border="0"
                   fillPaint="#D7E0ED" output="<%=thumbLocation%>" expAfter="0" threading="limited"
                   align="left" valign="left">
             <di:image width="<%=Integer.toString(intWidth) %>"
                       height="<%=Integer.toString(intHeight) %>" srcurl="<%=addText%>"/>
           </di:img>
-
-
+		<%
+		}
+		%>
           <h1 class="intro">Success</h1>
 
           <p><strong>The adoption was successfully added/edited. </strong></p>
@@ -152,7 +147,7 @@
         </div>
         <!-- end maintext --></div>
       <!-- end maincol -->
-      <jsp:include page="../footer.jsp" flush="true"/>
+        <jsp:include page="../footer.jsp" flush="true"/>
     </div>
     <!-- end page --></div>
   <!--end wrapper -->
