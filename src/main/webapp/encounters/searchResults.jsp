@@ -122,10 +122,10 @@
 
 //let's set up our Excel spreasheeting operations
   String filenameOBIS = "searchResults_OBIS_" + request.getRemoteUser() + ".xls";
-  String filenameExport = "searchResults_" + request.getRemoteUser() + ".xls";
+  //String filenameExport = "searchResults_" + request.getRemoteUser() + ".xls";
   String kmlFilename = "KMLExport_" + request.getRemoteUser() + ".kml";
   File fileOBIS = new File(getServletContext().getRealPath(("/encounters/" + filenameOBIS)));
-  File fileExport = new File(getServletContext().getRealPath(("/encounters/" + filenameExport)));
+  //File fileExport = new File(getServletContext().getRealPath(("/encounters/" + filenameExport)));
 
 //let's set up some cell formats
   WritableCellFormat floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
@@ -196,7 +196,8 @@
   sheet.addCell(label29);
 
 //let's write out headers for the normal export file
-  WritableWorkbook workbookExport = Workbook.createWorkbook(fileExport);
+/* 
+WritableWorkbook workbookExport = Workbook.createWorkbook(fileExport);
   WritableSheet sheetExport = workbookExport.createSheet("Search Results", 0);
   Label label0E = new Label(0, 0, encprops.getProperty("markedIndividual"));
   sheetExport.addCell(label0E);
@@ -216,7 +217,7 @@
   sheetExport.addCell(label6E);
   Label label7E = new Label(8, 0, encprops.getProperty("locationID"));
   sheetExport.addCell(label7E);
-
+*/
 
 //setup the KML output
   Document document = DocumentHelper.createDocument();
@@ -417,13 +418,7 @@
 <%
   if (request.getParameter("export") != null) {
 %>
-<p><%=encprops.getProperty("exportedExcel")%>:
-  <a
-    href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=filenameExport%>"><%=filenameExport%>
-  </a><br>
-  <em><%=encprops.getProperty("rightClickLink")%>
-  </em>
-</p>
+
 
 <p><%=encprops.getProperty("exportedOBIS")%>:
   <a
@@ -654,6 +649,7 @@
 
 
         //whew - now let's generate the simple export format
+        /*
         if ((enc.isAssignedToMarkedIndividual() != null) && (!enc.isAssignedToMarkedIndividual().equals("Unassigned"))) {
           Label lNumberx28e = new Label(0, count, enc.isAssignedToMarkedIndividual());
           sheetExport.addCell(lNumberx28e);
@@ -686,6 +682,9 @@
           Label lNumberx36e = new Label(8, count, enc.getLocationID());
           sheetExport.addCell(lNumberx36e);
         }
+        */
+        
+        
       } catch (Exception we) {
         System.out.println("jExcel error processing search results...");
         we.printStackTrace();
@@ -703,10 +702,10 @@
 <%
   if ((request.getParameter("export") != null) && (request.getParameter("startNum") == null)) {
     finalize(workbookOBIS);
-    finalize(workbookExport);
+    //finalize(workbookExport);
   }
   workbookOBIS.close();
-  workbookExport.close();
+  //workbookExport.close();
 
   myShepherd.rollbackDBTransaction();
 
@@ -743,7 +742,7 @@
       </a>
       </p></td>
     <%
-      }
+     }
       if (startNum < numResults) {
     %>
     <td align="right">
