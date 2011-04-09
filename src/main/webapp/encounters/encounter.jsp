@@ -365,8 +365,8 @@
     </p>
 
 
-    <p class="para"><img align="absmiddle"
-                         src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>
+    <p class="para">
+    	<img align="absmiddle" src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>
       : <%=enc.getAlternateID()%>
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -1566,15 +1566,15 @@ if(loggedIn.equals("false")){
 <p class="para"><strong><%=encprops.getProperty("size") %>
 </strong><br/> <%
       				if(enc.getSize()>0) {%>
-    <%=enc.getSize()%> <%=enc.getMeasureUnits()%>
+    <%=enc.getSize()%> <%=encprops.getProperty("meters")%>
     <%
  					} else {
  					%>
     <%=encprops.getProperty("unknown") %>
     <%
  					}
-					 %> <br/> (<em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%>
-  </em>) <%
+					 %> <br/> <em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%>
+  </em> <%
  					if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
   <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
     <%
@@ -2263,8 +2263,8 @@ if(loggedIn.equals("false")){
     <p><img src="../alert.gif"> <strong><%=encprops.getProperty("badfile") %>
       :</strong> <%=addTextFile%> <%
       if (isOwner && CommonConfiguration.isCatalogEditable()) {
-    %> <br/><a
-      href="/encounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>"><%=encprops.getProperty("clickremove") %>
+    %> <br/>
+    <a href="/encounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>"><%=encprops.getProperty("clickremove") %>
     </a></p>
     <%
       }
@@ -2553,9 +2553,9 @@ catch (Exception e) {
   }
 
 
-  if (session.getAttribute("logged") != null) {
-%>
 
+if(!loggedIn.equals("false")){
+%>
 
 <br/>
 <hr>
