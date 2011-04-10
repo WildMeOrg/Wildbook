@@ -1567,14 +1567,14 @@ if(loggedIn.equals("false")){
 </strong><br/> <%
       				if(enc.getSize()>0) {%>
     <%=enc.getSize()%> <%=encprops.getProperty("meters")%>
+    <br/> <em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%></em>
     <%
  					} else {
  					%>
     <%=encprops.getProperty("unknown") %>
     <%
  					}
-					 %> <br/> <em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%>
-  </em> <%
+				
  					if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
   <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
     <%
