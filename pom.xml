@@ -262,6 +262,37 @@
           </execution>
         </executions>
       </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <configuration>
+                <source>1.5</source>
+                <target>1.5</target>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <version>1.1</version>       
+              <configuration>
+                <executable>java</executable>
+                <arguments>
+                  <argument>-classpath</argument>
+                  <classpath/>
+                  <argument>org.datanucleus.enhancer.DataNucleusEnhancer</argument>
+                  <argument>-v</argument>
+                  <argument>target/classes/org/ecocean/grid/package.jdo</argument>
+                </arguments>
+              </configuration>
+              <executions>
+                <execution>
+                  <phase>process-classes</phase>
+                  <goals>
+                    <goal>exec</goal>
+                  </goals>
+                </execution>
+              </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>2.6</version>

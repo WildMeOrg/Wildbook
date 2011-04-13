@@ -8,3 +8,4 @@ shepherd_derby_database
 /output.txt
 /outputPackage.txt
 src/main/webapp/encounters/*20*
+/log
