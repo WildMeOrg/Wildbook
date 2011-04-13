@@ -188,7 +188,7 @@
       maxTriangleRotation = root.attributeValue("maxTriangleRotation");
       Sizelim = root.attributeValue("Sizelim");
       epsilon = root.attributeValue("epsilon");
-    } catch (java.io.IOException ioe) {
+    } catch (Exception ioe) {
       System.out.println("Error accessing the stored scan XML data for encounter: " + num);
       ioe.printStackTrace();
       initresults = myShepherd.matches;

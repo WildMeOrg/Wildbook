@@ -165,7 +165,7 @@
       root = doc.getRootElement();
       scanDate = root.attributeValue("scanDate");
       xmlOK = true;
-    } catch (java.io.IOException ioe) {
+    } catch (Exception ioe) {
       System.out.println("Error accessing the stored scan XML data for encounter: " + num);
       ioe.printStackTrace();
       //initresults=myShepherd.matches;
