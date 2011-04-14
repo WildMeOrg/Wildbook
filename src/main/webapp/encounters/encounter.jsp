@@ -1814,22 +1814,29 @@ if(loggedIn.equals("false")){
     right spots</a>]</font> <%
 	  	}
 
-	  	if(((new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml")).exists())&&(enc.getNumSpots()>0)) {
+    	File leftScanResults = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/lastFullScan.xml")));
+    	File rightScanResults = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/lastFullRightScan.xml")));
+    	File I3SScanResults = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/lastFullI3SScan.xml")));
+
+    	File rightI3SScanResults = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/lastFullRightI3SScan.xml")));
+
+    	
+	  	if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> <br/><br/><a
     href="scanEndApplet.jsp?writeThis=true&number=<%=num%>">Groth:
     Left-side scan results</a> <%
 	  			}
-	  			if(((new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml")).exists())&&(enc.getNumRightSpots()>0)) {
-	  		%> <br/><br/><a
-    href="scanEndApplet.jsp?writeThis=true&number=<%=num%>&rightSide=true">Groth:
+	  	if((rightScanResults.exists())&&(enc.getNumRightSpots()>0)) {
+	  		%> <br/><br/>
+	  		<a href="scanEndApplet.jsp?writeThis=true&number=<%=num%>&rightSide=true">Groth:
     Right-side scan results</a> <%
 	  			}
-	  			if(((new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml")).exists())&&(enc.getNumSpots()>0)) {
+	  	if((I3SScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> <br/><br/><a
     href="i3sScanEndApplet.jsp?writeThis=true&number=<%=num%>&I3S=true">I3S:
     Left-side scan results</a> <%
 	  			}
-	  			if(((new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml")).exists())&&(enc.getNumRightSpots()>0)) {
+	  	if((rightI3SScanResults.exists())&&(enc.getNumRightSpots()>0)) {
 	  		%> <br/><br/><a
     href="i3sScanEndApplet.jsp?writeThis=true&number=<%=num%>&rightSide=true&I3S=true">I3S:
     Right-side scan results</a> <%
