@@ -310,6 +310,11 @@
     <servlet-name>EncounterRemoveImage</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterRemoveImage</servlet-class>
   </servlet>
+  
+    <servlet>
+         <servlet-name>mitFeed</servlet-name>
+  	<servlet-class>org.ecocean.servlet.MitFeed</servlet-class>
+  </servlet>
 
 
   <servlet>
@@ -349,6 +354,16 @@
   </servlet>
 
   <servlet>
+       <servlet-name>ningalooRobustByMonths</servlet-name>
+	<servlet-class>org.ecocean.servlet.NingalooRobustByMonths</servlet-class>
+  </servlet>
+  
+   <servlet>
+         <servlet-name>ningalooPradel</servlet-name>
+  	<servlet-class>org.ecocean.servlet.NingalooPradel</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>EncounterSetScarring</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetScarring</servlet-class>
   </servlet>
@@ -357,6 +372,11 @@
     <servlet-name>EncounterRemoveSpots</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterRemoveSpots</servlet-class>
   </servlet>
+  
+      <servlet>
+           <servlet-name>MozPradel</servlet-name>
+    	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
+  </servlet> 
 
   <servlet>
     <servlet-name>EncounterSetGPS</servlet-name>
@@ -399,9 +419,9 @@
   </servlet>
 
   <servlet>
-    <servlet-name>ScanTaskHandler</servlet-name>
-    <servlet-class>org.ecocean.servlet.ScanTaskHandler</servlet-class>
-  </servlet>
+       <servlet-name>scanTaskHandler</servlet-name>
+	<servlet-class>org.ecocean.servlet.ScanTaskHandlerIVEC</servlet-class>
+  </servlet> 
 
   <servlet>
     <servlet-name>IndividualRemoveDataFile</servlet-name>
@@ -443,6 +463,11 @@
   <servlet>
     <servlet-name>ResurrectDeletedAdoption</servlet-name>
     <servlet-class>org.ecocean.servlet.ResurrectDeletedAdoption</servlet-class>
+  </servlet>
+  
+      <servlet>
+           <servlet-name>MozRobustByMonths</servlet-name>
+    	<servlet-class>org.ecocean.servlet.MozRobustByMonths</servlet-class>
   </servlet>
 
   <servlet>
@@ -507,6 +532,16 @@
     <url-pattern>/ScanTaskHandler</url-pattern>
   </servlet-mapping>
 
+ <servlet-mapping>
+       <servlet-name>ningalooRobustByMonths</servlet-name>
+       <url-pattern>/ningalooRobustByMonths</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+         <servlet-name>ningalooPradel</servlet-name>
+         <url-pattern>/CJS</url-pattern>
+  </servlet-mapping>
+
   <servlet-mapping>
     <servlet-name>EncounterSetIdentifiable</servlet-name>
     <url-pattern>/EncounterSetIdentifiable</url-pattern>
@@ -520,6 +555,11 @@
     <servlet-mapping>
       <servlet-name>EncounterSetPatterningCode</servlet-name>
       <url-pattern>/EncounterSetPatterningCode</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+         <servlet-name>mitFeed</servlet-name>
+         <url-pattern>/mitFeed</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -599,6 +639,11 @@
     <servlet-name>EncounterSetMaximumElevation</servlet-name>
     <url-pattern>/EncounterSetMaximumElevation</url-pattern>
   </servlet-mapping>
+  
+      <servlet-mapping>
+           <servlet-name>MozPradel</servlet-name>
+           <url-pattern>/MozPradel</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterSetLocation</servlet-name>
@@ -626,6 +671,10 @@
     <url-pattern>/EncounterSetOccurrenceRemarks</url-pattern>
   </servlet-mapping>
 
+   <servlet-mapping>
+         <servlet-name>MozRobustByMonths</servlet-name>
+         <url-pattern>/MozRobustByMonths</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
