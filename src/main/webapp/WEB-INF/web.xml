@@ -419,7 +419,7 @@
   </servlet>
 
   <servlet>
-       <servlet-name>scanTaskHandler</servlet-name>
+       <servlet-name>ScanTaskHandler</servlet-name>
 	<servlet-class>org.ecocean.servlet.ScanTaskHandlerIVEC</servlet-class>
   </servlet> 
 
