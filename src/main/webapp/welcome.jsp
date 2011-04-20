@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,java.util.Properties" %>
+         import="org.ecocean.*,java.util.Properties,java.util.Vector" %>
 <html>
 <head>
   <title><%=CommonConfiguration.getHTMLTitle() %>
@@ -92,9 +92,16 @@
 
             <%
               String role = "";
-              if (request.isUserInRole("admin")) {
-                role = "Administrator";
-              }
+            if (request.isUserInRole("admin")) {role="Administrator";}
+            else if (request.isUserInRole("manager")) {role="Manager";}
+            else if (request.isUserInRole("researcher")) {role="Researcher";}
+            else if (request.isUserInRole("reviewer")) {role="Content Reviewer";}
+            else {role="Local Specialist";}
+
+            //email support
+          	Shepherd myShepherd=new Shepherd();
+          	Vector e_images=new Vector();
+          	NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), "holmbergius@gmail.com", (request.getRemoteUser()+" has logged in."), (request.getRemoteUser()+" has logged in from "+request.getRemoteAddr()+".\n\nYou can check the geographic location of this IP address at:\nhttp://www.geobytes.com/IpLocator.htm"), e_images);
 
 
             %> <strong><%=role%>
