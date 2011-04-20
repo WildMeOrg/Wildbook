@@ -57,7 +57,7 @@
 <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription() %>" />
 <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords() %>" />
 <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
-<link href="<%=CommonConfiguration.getCSSURLLocation() %>" rel="stylesheet" type="text/css" />
+<link href="<%=CommonConfiguration.getCSSURLLocation(request) %>" rel="stylesheet" type="text/css" />
 <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 
 
@@ -67,10 +67,10 @@
 <div id="wrapper">
 <div id="page">
 <jsp:include page="header.jsp" flush="true">
-	<jsp:param name="isResearcher" value="<%=request.isUserInRole("researcher")%>"/>
-	<jsp:param name="isManager" value="<%=request.isUserInRole("manager")%>"/>
-	<jsp:param name="isReviewer" value="<%=request.isUserInRole("reviewer")%>"/>
-	<jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>"/>
+	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
+	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
+	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
+	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
 </jsp:include>	
 <div id="main">
 	<div id="leftcol">
