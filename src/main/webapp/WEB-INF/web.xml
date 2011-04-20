@@ -877,7 +877,9 @@
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
       <role-name>admin</role-name>
-
+	<role-name>researcher</role-name>
+	<role-name>manager</role-name>
+	<role-name>local</role-name>
     </auth-constraint>
   </security-constraint>
 
