@@ -7,6 +7,11 @@
 
 	Shepherd myShepherd=new Shepherd();
 
+// pg_dump -Ft sharks > sharks.out
+
+//pg_restore -d sharks2 /home/webadmin/sharks.out
+
+
 %>
 
 <html>
@@ -53,6 +58,7 @@ while(allEncs.hasNext()){
 	//populate dateInMilliseconds
 	sharky.resetDateInMilliseconds();
 	
+	//
 	if((sharky.getGPSLatitude()!=null)&&(!sharky.getGPSLatitude().equals(""))){
 		sharky.setDecimalLatitude(new Double(sharky.getGPSLatitude()));
 	}

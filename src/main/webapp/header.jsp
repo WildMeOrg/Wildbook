@@ -216,8 +216,7 @@ z-index:99;
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Encounters</a></li>
-	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/thumbs.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Images</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/xcalendar/calendar.jsp?scDate=<%=dato%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">Encounter Calendar</a></li>
+	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/xcalendar/calendar.jsp?scDate=<%=dato%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">Encounter Calendar</a></li>
 
 
 	<% if(request.isUserInRole("researcher")) {%>
