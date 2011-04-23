@@ -515,6 +515,7 @@
   <servlet-mapping>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
     <url-pattern>/InterconnectSubmitSpots</url-pattern>
+    <url-pattern>/interconnectSubmitSpots</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -803,12 +804,14 @@
   <servlet-mapping>
     <servlet-name>ScanWorkItemResultsHandler</servlet-name>
     <url-pattern>/ScanWorkItemResultsHandler2</url-pattern>
+    <url-pattern>/scanWorkItemResultsHandler2</url-pattern>
   </servlet-mapping>
 
 
   <servlet-mapping>
     <servlet-name>GridHeartbeatReceiver</servlet-name>
     <url-pattern>/GridHeartbeatReceiver</url-pattern>
+    <url-pattern>/gridHeartbeatReceiver</url-pattern>
   </servlet-mapping>
 
 
@@ -821,6 +824,7 @@
   <servlet-mapping>
     <servlet-name>ScanAppletSupport</servlet-name>
     <url-pattern>/ScanAppletSupport</url-pattern>
+    <url-pattern>/scanAppletSupport</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
