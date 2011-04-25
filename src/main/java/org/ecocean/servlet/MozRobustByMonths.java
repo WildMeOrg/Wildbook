@@ -48,31 +48,36 @@ public class MozRobustByMonths extends HttpServlet{
       
       String filter="SELECT FROM org.ecocean.Encounter WHERE ";
 		
-		int startYear=(new Integer(request.getParameter("startYear"))).intValue();
-		int startMonth=(new Integer(request.getParameter("startMonth"))).intValue();
-		int endMonth=(new Integer(request.getParameter("endMonth"))).intValue();
-		int endYear=(new Integer(request.getParameter("endYear"))).intValue();
+		//int startYear=(new Integer(request.getParameter("startYear"))).intValue();
+		//int startMonth=(new Integer(request.getParameter("startMonth"))).intValue();
+		//int endMonth=(new Integer(request.getParameter("endMonth"))).intValue();
+		//int endYear=(new Integer(request.getParameter("endYear"))).intValue();
 		
+      
+      int day1=1;
+      int day2=31;
+      int month1=10;
+      int month2=2;
+      int year1=2005;
+      int year2=2011;
+ 
 		 try{
 	      
 		    //get our date values
-		    int day1=(new Integer(request.getParameter("day1"))).intValue();
-		    int day2=(new Integer(request.getParameter("day2"))).intValue();
-		    int month1=(new Integer(request.getParameter("month1"))).intValue();
-		    int month2=(new Integer(request.getParameter("month2"))).intValue();
-		    int year1=(new Integer(request.getParameter("year1"))).intValue();
-		    int year2=(new Integer(request.getParameter("year2"))).intValue();
+		    day1=(new Integer(request.getParameter("day1"))).intValue();
+		    day2=(new Integer(request.getParameter("day2"))).intValue();
+		    month1=(new Integer(request.getParameter("month1"))).intValue();
+		    month2=(new Integer(request.getParameter("month2"))).intValue();
+		    year1=(new Integer(request.getParameter("year1"))).intValue();
+		    year2=(new Integer(request.getParameter("year2"))).intValue();
 		    
 		    
-		    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, 1);
-		    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, 31);
+		    GregorianCalendar gcMin=new GregorianCalendar(year1, month1, 1);
+		    GregorianCalendar gcMax=new GregorianCalendar(year2, month2, 31);
 		    
-		    if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){
-		      filter+="((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
-		    }
-		    else{filter+="&& ((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
-		    }
-		    
+		    filter+="((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
+	
+		    //filter+="&& (name != 'Unassigned')";
 		    
 		   
 		    
@@ -86,10 +91,10 @@ public class MozRobustByMonths extends HttpServlet{
 		String locCode="4a";
 		if(request.getParameter("locCode")!=null) {
 			locCode=request.getParameter("locCode");
-			String locIDFilter=" locationID == \""+locCode+"\"";
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=locIDFilter;}
-      else{filter+=(" && "+locIDFilter);}
+			
 		}
+		String locIDFilter=" locationID == \""+locCode+"\"";
+    filter+=(" && "+locIDFilter);
 		
 		
 		boolean segregate=false;
@@ -111,7 +116,7 @@ public class MozRobustByMonths extends HttpServlet{
     
     
 		//now, let's print out our capture histories
-		out.println("<br><br>Capture histories for Program Mark robust model:<br><br><pre>");
+		out.println("/*<br><br>Capture histories for Program Mark robust model:<br><br><pre>*/");
 		filter=filter.replaceAll("SELECT FROM", "SELECT DISTINCT individualID FROM");
 		Query query=myShepherd.getPM().newQuery(filter);
 		Iterator it2=myShepherd.getAllMarkedIndividuals(query, "individualID ascending");
@@ -121,22 +126,24 @@ public class MozRobustByMonths extends HttpServlet{
 		
 		//check for seasons wrapping over years
 		int wrapsYear=0;
-		if(startMonth>endMonth) {wrapsYear=1;}
+		if(month1>month2) {wrapsYear=1;}
 		
 
 		
 		while(it2.hasNext()) {
-			MarkedIndividual s=myShepherd.getMarkedIndividual((String)it2.next());
-			double length=0;
+		  String thisName=(String)it2.next();
+		  if(!thisName.equals("Unassigned")){
+		    MarkedIndividual s=myShepherd.getMarkedIndividual(thisName);
+		    double length=0;
 			
 			
 			
-			//if((s.wasSightedInLocationCode(locCode))&&(s.wasSightedInPeriod(startYear,startMonth,endYear,endMonth))) {
+		    //if((s.wasSightedInLocationCode(locCode))&&(s.wasSightedInPeriod(startYear,startMonth,endYear,endMonth))) {
 				
 				//calculate avgLength
 				if(avgLength) {
 					int yearCount=0;
-					for(int r=startYear;r<=endYear;r++) {
+					for(int r=year1;r<=year2;r++) {
 						if(s.averageLengthInYear(r)>0.1){
 							yearCount++;
 							length+=s.averageLengthInYear(r);
@@ -155,9 +162,9 @@ public class MozRobustByMonths extends HttpServlet{
 
 
 					
-				for(int f=startYear;f<=(endYear-wrapsYear);f++) {
+				for(int f=year1;f<=(year2-wrapsYear);f++) {
 						//boolean hasArrived=false;
-						for (int m_month=startMonth;m_month<(endMonth+1+(wrapsYear*12));m_month++) {
+						for (int m_month=month1;m_month<(month2+1+(wrapsYear*12));m_month++) {
 							boolean sharkWasSeen1=false;
 							boolean sharkWasSeen2=false;
 							//boolean multistrata1=false;
@@ -223,38 +230,24 @@ public class MozRobustByMonths extends HttpServlet{
 					
 					}
 	
-
-						out.println(sb.toString()+" 1; /*"+s.getName()+"*/<br>");
-						numSharks++;
-
+				    if(sb.indexOf("1")!=-1){
+				      out.println(sb.toString()+" 1; /*"+s.getName()+"*/<br>");
+				      numSharks++;
+				    }
 					
 				
 				
-			//} //end if
+			} //end if
 		} //end while
+		out.println("/*");
 		out.println("</pre><br><br>Number of sharks identified during the study period: "+numSharks);
 		if(segregate){
 			out.println("<br><br>Number of males identified during the study period: "+numMales);
 			out.println("<br><br>Number of females identified during the study period: "+numFemales);
 		}
 		
-		out.println("<br><br>Length breakdown by month:<br>");
-		//avgSecondaryLengths
-		//numSecondaryLengths
-		/*String lengthString="";
-		for(int t=0;t<(endYear-startYear+1);t++){
-			lengthString=(startYear+t)+":";
-			for(int q=0;q<(endMonth-startMonth+1);q++){
-				if(numSecondaryLengths[t][q]>0){
-					lengthString+="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+(avgSecondaryLengths[t][q]/numSecondaryLengths[t][q])+" ("+numSecondaryLengths[t][q]+")";
-				}
-				else{lengthString+="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;N/A";}
-				
-			}
-			
-			out.println((lengthString+"<br>"));
-		}
-		*/
+		out.println("*/");
+
 		
 		query.closeAll();
 		myShepherd.rollbackDBTransaction();
