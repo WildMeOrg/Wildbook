@@ -20,6 +20,7 @@
 package org.ecocean;
 
 import java.util.*;
+import java.util.GregorianCalendar;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -377,23 +378,21 @@ public class MarkedIndividual {
     int startYear = m_startYear;
     int startMonth = m_startMonth;
     int startDay = m_startDay;
+    
+    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, startDay);
+    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, endDay);
+    
 
 
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
 
       if (temp.getLocationCode().startsWith(locCode)) {
-        if ((temp.getYear() >= startYear) && (temp.getYear() <= endYear)) {
-          if ((temp.getMonth() >= startMonth) && (temp.getMonth() <= endMonth)) {
-            if ((temp.getDay() >= startDay) & (temp.getDay() <= endDay)) {
-              return true;
-            }
-          }
+
+        if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
+          return true;
         }
-
-
       }
-
     }
     return false;
   }
