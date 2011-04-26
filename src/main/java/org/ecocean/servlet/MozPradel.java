@@ -35,12 +35,9 @@ public class MozPradel extends HttpServlet{
 		Shepherd myShepherd = new Shepherd();
 		
 		//before any DB transactions, check permissions
-		String locCode="1a1";
-		if(request.getParameter("locCode")!=null) {
-			locCode=request.getParameter("locCode");
-		}
-		if((request.isUserInRole("manager"))||(request.isUserInRole("admin"))||(request.isUserInRole(locCode))) {
-		
+		String locCode="4a1";
+
+
 		
 		myShepherd.beginDBTransaction();
 		Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
@@ -61,25 +58,12 @@ public class MozPradel extends HttpServlet{
 			//low period checks
 			int numAlsoSightedInLowPeriod=0;
 			
-			boolean segregate=false;
+			//boolean segregate=false;
 			boolean avgLength=false;
-			boolean bonnerSchwarzOutput=false;
-			boolean leftTagsOnly=false;
+			//boolean bonnerSchwarzOutput=false;
+			//boolean leftTagsOnly=false;
 			
-			if(request.getParameter("option")!=null) {
-				if(request.getParameter("option").equals("avgLength")) {
-					avgLength=true;
-				}
-				else if(request.getParameter("option").equals("segregate")) {
-					segregate=true;
-				}
-			}
-			if(request.getParameter("bonnerSchwarzOutput")!=null) {
-				bonnerSchwarzOutput=true;
-			}
-			if(request.getParameter("leftTagsOnly")!=null) {
-				leftTagsOnly=true;
-			}
+
 	    	
 
 			//now, let's print out our capture histories
@@ -107,35 +91,31 @@ public class MozPradel extends HttpServlet{
 						length=length/yearCount;
 					}
 				}
-				else if(bonnerSchwarzOutput) {
-					for(int r=startYear;r<=endYear;r++) {
-						if(s.averageMeasuredLengthInYear(r,true)>0.01){
-							lengthSB.append(" "+s.averageLengthInYear(r));
-						}
-						else{lengthSB.append(" -1");}
-					}
-				}
+
+				
+				
 				if((s.wasSightedInLocationCode(locCode))&&(s.wasSightedInPeriod(startYear,startMonth,endYear,endMonth))) {
 					boolean wasReleased=false;
 					StringBuffer sb=new StringBuffer();
 					
-					
+					//out.println(s.getName());
 					
 					//lets print out each shark's capture history
 					for(int f=startYear;f<=(endYear-wrapsYear);f++) {
 						boolean sharkWasSeen=false;
 						
-						if(leftTagsOnly){
-							sharkWasSeen=((s.wasSightedInPeriodLeftOnly(f,startMonth,(f+wrapsYear),endMonth))&&(s.wasSightedInYearLeftTagsOnly(f, locCode)));
-						}
-						else {
+
 							//out.println("Entering the right place on year "+f+" with: "+startYear+","+startMonth+","+endYear+","+endMonth);
-							sharkWasSeen=((s.wasSightedInPeriod(f,startMonth,1,(f+wrapsYear),endMonth, 31, locCode)));
-						}
+							sharkWasSeen=s.wasSightedInPeriod(f,startMonth,1,(f+wrapsYear),endMonth, 31, locCode);
+					
 						if(sharkWasSeen){
 							
+						  //out.println(s.getName());
+							
+						
 							//let's see if it was also sighted in a low period
-							boolean wasSightedOutsidePeriod=false;
+							/*
+						  boolean wasSightedOutsidePeriod=false;
 							if(startMonth>endMonth) {
 								for(int g=(startYear+1);g<=(endYear-wrapsYear);g++) {
 									if(!wasSightedOutsidePeriod){
@@ -144,60 +124,42 @@ public class MozPradel extends HttpServlet{
 								}
 							}
 							if(wasSightedOutsidePeriod){numAlsoSightedInLowPeriod++;}
-			
+							*/
 							
 							
 							//out.println("And I found a sighting!");
 							sb.append("1");
-							if(bonnerSchwarzOutput) {sb.append(" ");}
+						//	if(bonnerSchwarzOutput) {sb.append(" ");}
 							wasReleased=true;
 						}
 						else{
 							sb.append("0");
-							if(bonnerSchwarzOutput) {sb.append(" ");}
+							//if(bonnerSchwarzOutput) {sb.append(" ");}
 						}
 					}
 					if(wasReleased) {
-				
-						//sexually segregated groups
-						if(segregate) {
-							if(s.getSex().equals("male")){
-								out.println(sb.toString()+" 100; /*"+s.getName()+"*/<br>");
-								numMales++;
-							}
-							else if(s.getSex().equals("female")){
-								out.println(sb.toString()+" 010; /*"+s.getName()+"*/<br>");
-								numFemales++;
-							}
-							else {
-								out.println(sb.toString()+" 001; /*"+s.getName()+"*/<br>");
-							}
-						}
+
 						
 						
 						//average length as a covariate format
-						else if(avgLength) {
+						// if(avgLength) {
 							
-							out.println(sb.toString()+" 1 "+length+"; /*"+s.getName()+"*/<br>");
-						}
+						//	out.println(sb.toString()+" 1 "+length+"; /*"+s.getName()+"*/<br>");
+						//}
 						
-						//Bonner & Schwarz 2006 formatting output
-						else if(bonnerSchwarzOutput) {
-							
-							out.println(sb.toString()+lengthSB.toString()+"<br>");
-						}
+
 						
 						//plain old recaptures case
-						else{
+						//else{
 							out.println(sb.toString()+" 1; /*"+s.getName()+"*/<br>");
-						}
+						//}
 						numSharks++;
 					}
 				
 				} //end if
 			} //end while
-			out.println("</pre><br><br>Number of sharks identified during the study period: "+numSharks);
-			out.println("</pre><br><br>Number also sighted outside the study period: "+numAlsoSightedInLowPeriod);
+			out.println("</pre><br><br>/*Number of sharks identified during the study period: "+numSharks);
+			out.println("</pre><br><br>Number also sighted outside the study period: "+numAlsoSightedInLowPeriod+"*/");
 			
 			query.closeAll();
 			myShepherd.rollbackDBTransaction();
@@ -217,13 +179,7 @@ public class MozPradel extends HttpServlet{
 
 		}
 		
-		} //end if has right role
-		else {
-			out.println(ServletUtilities.getHeader(request));
-			out.println("<p><strong>Permission denied</strong></p>");
-			out.println("<p>You do not have permissions to access this capture history.</p>");
-			out.println(ServletUtilities.getFooter());
-		}
+
 		out.close();
 	}
 
