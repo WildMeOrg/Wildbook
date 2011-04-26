@@ -54,26 +54,26 @@ public class SideFeed extends HttpServlet{
     //int endYear=(new Integer(request.getParameter("endYear"))).intValue();
     
       
-      int day1=1;
-      int day2=31;
-      int month1=10;
-      int month2=2;
+      //int day1=1;
+      //int day2=31;
+      //int month1=10;
+      //int month2=2;
       int year1=2005;
-      int year2=2011;
+      //int year2=2011;
  
      try{
         
         //get our date values
-        day1=(new Integer(request.getParameter("day1"))).intValue();
-        day2=(new Integer(request.getParameter("day2"))).intValue();
-        month1=(new Integer(request.getParameter("month1"))).intValue();
-        month2=(new Integer(request.getParameter("month2"))).intValue();
+        //day1=(new Integer(request.getParameter("day1"))).intValue();
+        //day2=(new Integer(request.getParameter("day2"))).intValue();
+        //month1=(new Integer(request.getParameter("month1"))).intValue();
+        //month2=(new Integer(request.getParameter("month2"))).intValue();
         year1=(new Integer(request.getParameter("year1"))).intValue();
-        year2=(new Integer(request.getParameter("year2"))).intValue();
+        //year2=(new Integer(request.getParameter("year2"))).intValue();
         
         
-        GregorianCalendar gcMin=new GregorianCalendar(year1, month1, 1);
-        GregorianCalendar gcMax=new GregorianCalendar(year2, month2, 31);
+        GregorianCalendar gcMin=new GregorianCalendar(year1, 4, 1);
+        GregorianCalendar gcMax=new GregorianCalendar(year1, 7, 31);
         
         filter+="((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
   
@@ -88,7 +88,7 @@ public class SideFeed extends HttpServlet{
     
     
     
-    String locCode="4a";
+    String locCode="1a1";
     if(request.getParameter("locCode")!=null) {
       locCode=request.getParameter("locCode");
       
@@ -97,26 +97,13 @@ public class SideFeed extends HttpServlet{
     filter+=(" && "+locIDFilter);
     
     
-    boolean segregate=false;
-    if(request.getParameter("segregate")!=null) {
-      segregate=true;
-    }
-    
-    boolean avgLength=false;
-    if(request.getParameter("avgLength")!=null) {
-      avgLength=true;
-    }
-    
-    boolean multistrata=false;
-    if(request.getParameter("multistrata")!=null) {
-      multistrata=true;
-    }
+
     
 
     
     
     //now, let's print out our capture histories
-    out.println("/*<br><br>Capture histories for Program Mark robust model:<br><br><pre>*/");
+    out.println("/*<br><br>Capture histories for side tagging analysis:<br><br><pre>*/");
     filter=filter.replaceAll("SELECT FROM", "SELECT DISTINCT individualID FROM");
     Query query=myShepherd.getPM().newQuery(filter);
     Iterator it2=myShepherd.getAllMarkedIndividuals(query, "individualID ascending");
@@ -126,7 +113,7 @@ public class SideFeed extends HttpServlet{
     
     //check for seasons wrapping over years
     int wrapsYear=0;
-    if(month1>month2) {wrapsYear=1;}
+    //if(month1>month2) {wrapsYear=1;}
     
 
     
@@ -136,101 +123,39 @@ public class SideFeed extends HttpServlet{
         MarkedIndividual s=myShepherd.getMarkedIndividual(thisName);
         double length=0;
       
+
+        
+        
+       StringBuffer sb=new StringBuffer();
+
+       //APRIL
+       sb.append(s.sidesSightedInPeriod(year1, 4, 1, year1, 4, 7, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 4, 8, year1, 4, 14, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 4, 15, year1, 4, 21, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 4, 22, year1, 4, 28, locCode));
+       
+       //May
+       sb.append(s.sidesSightedInPeriod(year1, 5, 1, year1, 5, 7, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 5, 8, year1, 5, 14, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 5, 15, year1, 5, 21, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 5, 22, year1, 5, 28, locCode));
+       
+       //JUNE
+       sb.append(s.sidesSightedInPeriod(year1, 6, 1, year1, 6, 7, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 6, 8, year1, 6, 14, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 6, 15, year1, 6, 21, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 6, 22, year1, 6, 28, locCode));
+       
+       //JULY
+       sb.append(s.sidesSightedInPeriod(year1, 7, 1, year1, 7, 7, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 7, 8, year1, 7, 14, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 7, 15, year1, 7, 21, locCode));
+       sb.append(s.sidesSightedInPeriod(year1, 7, 22, year1, 7, 28, locCode));
+       
       
-      
-        //if((s.wasSightedInLocationCode(locCode))&&(s.wasSightedInPeriod(startYear,startMonth,endYear,endMonth))) {
         
-        //calculate avgLength
-        if(avgLength) {
-          int yearCount=0;
-          for(int r=year1;r<=year2;r++) {
-            if(s.averageLengthInYear(r)>0.1){
-              yearCount++;
-              length+=s.averageLengthInYear(r);
-            }
-          }
-          if(yearCount>0) {
-            length=length/yearCount;
-          }
-        }
-        
-        
-        //boolean wasReleased=false;
-        StringBuffer sb=new StringBuffer();
-        //lets print out each shark's capture history
-        boolean sharkWasSeen=false;
 
-
-          
-        for(int f=year1;f<=(year2-wrapsYear);f++) {
-            //boolean hasArrived=false;
-            for (int m_month=month1;m_month<(month2+1+(wrapsYear*12));m_month++) {
-              boolean sharkWasSeen1=false;
-              boolean sharkWasSeen2=false;
-              //boolean multistrata1=false;
-              //boolean multistrata2=false;
-              int innerMonth=m_month;
-              int innerYear=f;
-              if(innerMonth>12){
-                innerMonth=innerMonth-12;
-                innerYear=innerYear+1;
-              }
-              int numberEncounters=s.totalEncounters();
-              Vector encounters=s.getEncounters();
-              for(int c=0;c<numberEncounters;c++) {
-                Encounter temp=(Encounter)encounters.get(c);
-                int year=temp.getYear();              
-                int month=temp.getMonth();
-                int day=temp.getDay();
-                if((year==innerYear)&&(month==innerMonth)&&(temp.getLocationCode().startsWith(locCode))){
-                  
-                  if(!monthly){
-                    if((day>=1)&&(day<=15)) {
-                      sharkWasSeen1=true;
-                    }
-                    if(day>15){
-                      sharkWasSeen2=true;
-                    }
-                  }
-                  else{
-                    sharkWasSeen1=true;
-                  }
-                  
-                }
-
-              }
-              
-              
-              if(!monthly){
-                if(sharkWasSeen1) {
-                  sb.append("1");
-                  sharkWasSeen=true;
-                }
-                else{sb.append("0");}
-                if(sharkWasSeen2) {
-          
-                  sb.append("1");
-            
-                  sharkWasSeen=true;
-                }
-                else{sb.append("0");}
-              }
-              else{
-                if(sharkWasSeen1) {
-                  sb.append("1");
-                  sharkWasSeen=true;
-                }
-                else{sb.append("0");}
-                
-                
-              }
-              
-              
-            }
-          
-          }
-  
-            if(sb.indexOf("1")!=-1){
+            if((sb.indexOf("1")!=-1)||(sb.indexOf("2")!=-1)||(sb.indexOf("3")!=-1)){
               out.println(sb.toString()+" 1; /*"+s.getName()+"*/<br>");
               numSharks++;
             }
@@ -241,10 +166,7 @@ public class SideFeed extends HttpServlet{
     } //end while
     out.println("/*");
     out.println("</pre><br><br>Number of sharks identified during the study period: "+numSharks);
-    if(segregate){
-      out.println("<br><br>Number of males identified during the study period: "+numMales);
-      out.println("<br><br>Number of females identified during the study period: "+numFemales);
-    }
+
     
     out.println("*/");
 
@@ -265,4 +187,5 @@ public class SideFeed extends HttpServlet{
   }
   out.close();
 }
+
 }
