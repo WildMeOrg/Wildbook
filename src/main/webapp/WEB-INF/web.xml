@@ -251,6 +251,11 @@
     <servlet-name>TrackIt</servlet-name>
     <servlet-class>org.ecocean.servlet.TrackIt</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>SideFeed</servlet-name>
+      <servlet-class>org.ecocean.servlet.SideFeed</servlet-class>
+  </servlet>
 
 
   <servlet>
@@ -509,6 +514,11 @@
   <servlet-mapping>
     <servlet-name>ImgSyncServlet1</servlet-name>
     <url-pattern>/ImgSyncServlet1</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>SideFeed</servlet-name>
+      <url-pattern>/SideFeed</url-pattern>
   </servlet-mapping>
 
 
