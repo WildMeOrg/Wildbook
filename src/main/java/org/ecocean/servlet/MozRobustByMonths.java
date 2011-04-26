@@ -35,7 +35,7 @@ public class MozRobustByMonths extends HttpServlet{
 		response.setContentType("text/html");
 		
 		//vector of dates for the study
-		Vector dates=new Vector();
+		//Vector dates=new Vector();
 		boolean monthly=false;
 		if(request.getParameter("monthly")!=null){monthly=true;}
 
@@ -43,7 +43,7 @@ public class MozRobustByMonths extends HttpServlet{
 		try {
 		
       myShepherd.beginDBTransaction();
-      Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
+      //Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
       //Query query=myShepherd.getPM().newQuery(sharkClass);
       
       String filter="SELECT FROM org.ecocean.Encounter WHERE ";
