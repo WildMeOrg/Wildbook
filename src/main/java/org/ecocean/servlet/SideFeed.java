@@ -103,7 +103,9 @@ public class SideFeed extends HttpServlet{
     
     
     //now, let's print out our capture histories
-    out.println("/*<br><br>Capture histories for side tagging analysis:<br><br><pre>*/");
+    if(request.getParameter("comments")!=null){
+      out.println("/*<br><br>Capture histories for side tagging analysis:<br><br><pre>*/");
+    }
     filter=filter.replaceAll("SELECT FROM", "SELECT DISTINCT individualID FROM");
     Query query=myShepherd.getPM().newQuery(filter);
     Iterator it2=myShepherd.getAllMarkedIndividuals(query, "individualID ascending");
@@ -156,7 +158,11 @@ public class SideFeed extends HttpServlet{
         
 
             if((sb.indexOf("1")!=-1)||(sb.indexOf("2")!=-1)||(sb.indexOf("3")!=-1)){
-              out.println(sb.toString()+" 1; /*"+s.getName()+"*/<br>");
+              String link="";
+              if(request.getParameter("comments")!=null){
+                link="/* http://www.whaleshark.org/individuals.jsp?number="+s.getName()+" */";
+              }
+                out.println(sb.toString()+" 1;  "+link+"<br />");
               numSharks++;
             }
           
@@ -164,11 +170,14 @@ public class SideFeed extends HttpServlet{
         
       } //end if
     } //end while
-    out.println("/*");
-    out.println("</pre><br><br>Number of sharks identified during the study period: "+numSharks);
-
     
-    out.println("*/");
+    if(request.getParameter("comments")!=null){
+      out.println("/*");
+      out.println("</pre><br><br>Number of sharks identified during the study period: "+numSharks);
+      out.println("*/");
+    }
+    
+    
 
     
     query.closeAll();
