@@ -18,9 +18,19 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 	//check what language is requested
 	//if(request.getParameter("langCode")!=null){
 	if(session.getAttribute("langCode")!=null){
+		//if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
+		//if(request.getParameter("langCode").equals("de")) {langCode="de";}
+		//if(request.getParameter("langCode").equals("es")) {langCode="es";}
 		langCode=(String)session.getAttribute("langCode");
 	}
-
+	if(request.getParameter("langCode")!=null){
+	//if(session.getAttribute("langCode")!=null){
+		if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
+		if(request.getParameter("langCode").equals("de")) {langCode="de";}
+		if(request.getParameter("langCode").equals("es")) {langCode="es";}
+		if(request.getParameter("langCode").equals("en")) {langCode="en";}
+		//langCode=(String)session.getAttribute("langCode");
+	}
 	
 	//set up the file input stream
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/overview.properties"));
@@ -92,7 +102,7 @@ way to fit your requirements.
 /* Set up the sublevel lists with a position absolute for flyouts and overrun padding. The transparent gif is for IE to work */
 #pmenu li ul {display:none;z-index:99;}
 /* For Non-IE and IE7 make the sublevels visible on list hover. This is all it needs */
-#pmenu li:hover > ul {display:block; position:absolute; top:-11px; left:80px; padding:10px 30px 30px 30px; /**background:transparent url(transparent.gif);*/ width:120px;z-index:99;}
+#pmenu li:hover > ul {display:block; position:absolute; top:-11px; left:80px; padding:10px 30px 30px 30px; /**background:transparent url(transparent.gif);*/ width:180px;z-index:99;}
 /* Position the first sub level beneath the top level liinks */
 #pmenu > li:hover > ul {left:-30px; top:16px;z-index:99;}
 
@@ -179,8 +189,8 @@ z-index:99;
 </div>
 <div>
 <ul id="pmenu">
-<li style="background:#000066;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>" style="margin:0px 0 0px 0px; position:relative; width:95px; height:25px; z-index:100;"><strong>Home</strong></a></li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:75px; height:25px;z-index:100;"><strong>Learn</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li style="background:#000066;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>" style="margin:0px 0 0px 0px; position:relative; width:50px; height:25px; z-index:100;"><strong>Home</strong></a></li>
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:45px; height:25px;z-index:100;"><strong>Learn</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Introduction</a></li>
@@ -191,7 +201,7 @@ z-index:99;
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
 </li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/submit.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px;z-index:100;"><strong>Participate</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/submit.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px;z-index:100;"><strong>Participate</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 
@@ -204,7 +214,7 @@ z-index:99;
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
 </li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/allIndividuals.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:100px; height:25px; z-index:100;"><strong>View Sharks</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/allIndividuals.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;"><strong>View Sharks</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/allIndividuals.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px;z-index:99;">View All Sharks</a></li>
@@ -212,15 +222,15 @@ z-index:99;
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 </li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:100px; height:25px; z-index:100;"><strong>Encounters</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:82px; height:25px; z-index:100;"><strong>Encounters</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Encounters</a></li>
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/xcalendar/calendar.jsp?scDate=<%=dato%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">Encounter Calendar</a></li>
 
 
-	<% if(request.isUserInRole("researcher")) {%>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncountersUnapproved.jsp?start=1&end=10&sort=nosort" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Unapproved Encounters</a></li>
+	<% if((request.getParameter("isResearcher")!=null)&&(request.getParameter("isResearcher").equals("true"))) {%>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncountersUnapproved.jsp?start=1&end=10&sort=nosort&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Unapproved Encounters</a></li>
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&user=<%=request.getRemoteUser()%>&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View My Submissions</a></li>
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&rejects=true&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Unidentifiable Encounters</a></li>
 		
@@ -230,7 +240,7 @@ z-index:99;
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 </li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp" style="margin:0px 0 0px 0px; position:relative; width:85px; height:25px; z-index:100;"><strong>Search</strong>
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong>Search</strong>
 
 <!--[if IE 7]><!--></a><!--<![endif]-->
 
@@ -242,7 +252,6 @@ z-index:99;
 
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px;z-index:99;">Encounter Search</a></li>
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearch.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px;z-index:99;">Shark Search</a></li>
-		
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/googleSearch.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px;">Google Search</a></li>
 	
 	</ul>
@@ -252,7 +261,7 @@ z-index:99;
 
 
 		  
-                 <li <%if(request.isUserInRole("researcher")) {%>class="drop"<%}%>><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;"><strong>Administer</strong>
+                    <li <%if((request.getParameter("isResearcher")!=null)&&(request.getParameter("isResearcher").equals("true"))) {%>class="drop"<%}%>><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px; z-index:100;"><strong>Administer</strong>
 				 							<!--[if IE 7]><!--></a><!--<![endif]-->
 						<!--[if lte IE 6]><table><tr><td><![endif]-->
 						<ul>
@@ -265,17 +274,16 @@ z-index:99;
 
 						
 					<%
-					if(request.isUserInRole("researcher")) {%>
+					if((request.getParameter("isResearcher")!=null)&&(request.getParameter("isResearcher").equals("true"))) {%>
 						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/software.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;" >Client Software</a></li>
 						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/scanTaskAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">sharkGrid</a></li>
 					<%
 					}
-					if(request.isUserInRole("admin")) {%>
+					if((request.getParameter("isAdmin")!=null)&&(request.getParameter("isAdmin").equals("true"))) {%>
 					
 	        			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;" >General</a></li>
             			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/tapirlink/admin/configurator.php?resource=RhincodonTypus" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">TapirLink</a></li>
 	        			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/kwAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Photo Keywords</a></li>
-						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/reviews/index.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Prototype Materials</a></li>
 						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/stats.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Statistics</a></li>
 						
 						<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px; z-index:100;"><strong>Adoptions</strong> <img src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/white_triangle.gif" border="0" align="absmiddle"><!--[if IE 7]><!--></a><!--<![endif]-->
@@ -294,12 +302,44 @@ z-index:99;
 										</ul>
 						<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 				 </li>
+                 
+                 
+                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/provateSector.jsp?langCode=<%=langCode%> style="margin:0px 0 0px 0px; position:relative; width:180px; height:25px; z-index:100;"><strong>People and Partners </strong>
+            <!--[if IE 7]><!--></a><!--<![endif]-->
+
+
+
+	<!--[if lte IE 6]><table><tr><td><![endif]-->
+	<ul>
+	
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/whoAreWe.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px z-index:99;">Who We Are</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/privateSector.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px; z-index:99;">Private Sector Partners</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/partners.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px; z-index:99;">Partner Organisations & Individuals</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/support.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px; z-index:99;">Support ECOCEAN</a></li>
+		
+	</ul>
+    
+  <!--[if IE 7]><!--></a><!--<![endif]-->
+	<!--[if lte IE 6]><table><tr><td><![endif]-->
+				 
+                
+                
+        
+<li class="drop"><a href="http://ecocean.wordpress.com/" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:45px; height:25px; z-index:100;"><strong>News</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+	<!--[if lte IE 6]><table><tr><td><![endif]-->
+	<ul>
+<li><a href="http://ecocean.wordpress.com/" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px; z-index:100;">View Shark News</a></li>
+</ul>
+
+  
+	<!--[if lte IE 6]><table><tr><td><![endif]-->
+    
            
-<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/contactus.jsp" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;"><strong>Contact Us</strong></a></li>
+<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/contactus.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px; z-index:100;"><strong>Contact Us</strong></a></li>
 <%if(request.getRemoteUser()==null) {%>
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:76px; height:25px; z-index:100;"><strong>Login</strong></a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong>Login</strong></a></li>
 <%} else {%>
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:76px; height:25px; z-index:100;"><strong>Logout</strong></a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong>Logout</strong></a></li>
 <%}%>
 
 </ul>
