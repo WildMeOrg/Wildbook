@@ -332,7 +332,7 @@
 									String thumbLink=stzr.nextToken();
 									String encNum=stzr.nextToken();
 									int fileNamePos=combined.lastIndexOf("BREAK")+5;
-									String fileName=combined.substring(fileNamePos);
+									String fileName=combined.substring(fileNamePos).replaceAll("%20"," ");
 									boolean video=true;
 									if(!thumbLink.endsWith("video.jpg")){
 										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLink;
@@ -346,15 +346,37 @@
       <table>
         <tr>
           <td valign="top">
-            <a href="<%=link%>" class="highslide" onclick="return hs.expand(this)"><img
+            <a href="<%=link%>" 
+            	<%
+            	if(!thumbLink.endsWith("video.jpg")){
+            	%>
+            class="highslide" onclick="return hs.expand(this)"
+            <%
+            }
+            %>
+            ><img
               src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge"/></a>
 
-            <div class="highslide-caption">
+            <div 
+            	<%
+            	if(!thumbLink.endsWith("video.jpg")){
+            	%>
+            class="highslide-caption"
+            <%
+            	}
+            %>
+            >
 
+	<%
+            	if(!thumbLink.endsWith("video.jpg")){
+            	%>
               <h3><%=(countMe + startNum) %>/<%=numThumbnails %>
               </h3>
               <h4><%=encprops.getProperty("imageMetadata") %>
               </h4>
+              <%
+            	}
+              %>
 
               <table>
                 <tr>
@@ -367,6 +389,10 @@
                         Encounter thisEnc = myShepherd.getEncounter(encNum);
                       %>
                       <tr>
+                      <% 
+                      if(!thumbLink.endsWith("video.jpg")){
+                    	  
+                      %>
                         <td><span class="caption"><em><%=(countMe + startNum) %>/<%=numThumbnails %>
                         </em></span></td>
                       </tr>
@@ -441,13 +467,20 @@
                       </tr>
                       <%
                         }
+                        }
                       %>
 
                     </table>
+                    
+                    <%
+                    if(!thumbLink.endsWith("video.jpg")){
+                    %>
                     <br/>
 
+
                     <%
-                      if (CommonConfiguration.showEXIFData()) {
+								}
+                      if (CommonConfiguration.showEXIFData()&&!thumbLink.endsWith("video.jpg")) {
                     %>
 
                     <p><strong>EXIF Data</strong></p>
@@ -486,6 +519,9 @@
                   %>
                 </tr>
               </table>
+              <%
+              
+              %>
             </div>
 </div>
 </td>

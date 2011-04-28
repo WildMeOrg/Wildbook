@@ -550,7 +550,7 @@ if (isOwner) {
 									String thumbLink=stzr.nextToken();
 									String encNum=stzr.nextToken();
 									int fileNamePos=combined.lastIndexOf("BREAK")+5;
-									String fileName=combined.substring(fileNamePos);
+									String fileName=combined.substring(fileNamePos).replaceAll("%20"," ");
 									boolean video=true;
 									if(!thumbLink.endsWith("video.jpg")){
 										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLink;
@@ -567,22 +567,39 @@ if (isOwner) {
           <td valign="top">
 
               <%
-												if(isOwner){
+			if(isOwner){
 												%>
-            <a href="<%=link%>" class="highslide" onclick="return hs.expand(this)">
-              <%
-                }
-              %>
+            <a href="<%=link%>" 
+            <%
+            if(!thumbLink.endsWith("video.jpg")){
+            %>
+            	class="highslide" onclick="return hs.expand(this)"
+            <%
+            }
+            %>
+            >
+            <%
+            }
+             %>
               <img src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge"/>
               <%
                 if (isOwner) {
               %>
             </a>
               <%
-												}
-												%>
+			}
+            
+			%>
 
-            <div class="highslide-caption">
+            <div 
+            <%
+            if(!thumbLink.endsWith("video.jpg")){
+            %>
+            class="highslide-caption"
+            <%
+            }
+            %>
+            >
 
               <table>
                 <tr>
@@ -594,10 +611,9 @@ if (isOwner) {
                         int kwLength = keywords.length;
                         Encounter thisEnc = myShepherd.getEncounter(encNum);
                       %>
-                      <tr>
-                        <td><span class="caption"><em><%=(countMe + 1) %>/<%=numThumbnails %>
-                        </em></span></td>
-                      </tr>
+                      
+                      
+
                       <tr>
                         <td><span
                           class="caption"><%=props.getProperty("location") %>: <%=thisEnc.getLocation() %></span>
@@ -665,10 +681,10 @@ if (isOwner) {
 
                     <%
                       if (CommonConfiguration.showEXIFData()) {
-                    %>
-										
-												
-												<span class="caption">
+                   
+            	if(!thumbLink.endsWith("video.jpg")){
+           		 %>							
+					<span class="caption">
 						<div class="scroll">	
 						<span class="caption">
 					<%
@@ -697,6 +713,9 @@ if (isOwner) {
    								</span>
             </div>
    								</span>
+   			<%
+            	}
+   			%>
 
 
                   </td>
@@ -706,11 +725,14 @@ if (isOwner) {
                 </tr>
               </table>
             </div>
+            
 
 </td>
 </tr>
 
-
+ <%
+            if(!thumbLink.endsWith("video.jpg")){
+ %>
 <tr>
   <td><span class="caption"><%=props.getProperty("location") %>: <%=thisEnc.getLocation() %></span>
   </td>
@@ -758,7 +780,10 @@ if (isOwner) {
                           %>
 										</span></td>
 </tr>
+<%
 
+            }
+%>
 </table>
 
 <%
@@ -768,6 +793,7 @@ if (isOwner) {
   } //endFor
 %>
 </div>
+
 </td>
 </tr>
 <%
