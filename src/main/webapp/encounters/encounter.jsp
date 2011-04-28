@@ -1867,7 +1867,7 @@ if(loggedIn.equals("false")){
   int imageCount = 0;
   while (images.hasMoreElements()) {
     imageCount++;
-    String addTextFile = (String) images.nextElement();
+    String addTextFile = ((String) images.nextElement()).replaceAll("%20"," ");
     try {
       if ((myShepherd.isAcceptableImageFile(addTextFile)) || (myShepherd.isAcceptableVideoFile(addTextFile))) {
         String addText = num + "/" + addTextFile;
@@ -2042,8 +2042,19 @@ if(loggedIn.equals("false")){
       <%
       } else if (isOwner) {
       %>
-      <a href="<%=addText%>" class="highslide" onclick="return hs.expand(this)"
-         title="Click to enlarge"><%
+      <a href="<%=addText%>" 
+        <%
+        if(!isVideo){
+        %>
+      class="highslide" onclick="return hs.expand(this)"
+		<%
+            }
+		%>
+          
+         title="Click to enlarge">
+         
+         
+         <%
         }
 
         String thumbLocation = "file-" + num + "/" + imageCount + ".jpg";
@@ -2055,15 +2066,16 @@ if(loggedIn.equals("false")){
         int thumbnailHeight = 200;
         int thumbnailWidth = 250;
 
-        File file2process = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + addText)));
-        Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
 
-        String width = Double.toString(imageDimensions.getWidth());
-        String height = Double.toString(imageDimensions.getHeight());
-
-        intHeight = ((new Double(height)).intValue());
-        intWidth = ((new Double(width)).intValue());
-
+        if(!isVideo){
+        	File file2process = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + addText)));
+        	Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
+        	String width = Double.toString(imageDimensions.getWidth());
+        	String height = Double.toString(imageDimensions.getHeight());
+        	intHeight = ((new Double(height)).intValue());
+        	intWidth = ((new Double(width)).intValue());
+        }
+        
         if (intWidth > thumbnailWidth) {
           double scalingFactor = intWidth / thumbnailWidth;
           intWidth = (int) (intWidth / scalingFactor);
@@ -2131,9 +2143,17 @@ if(loggedIn.equals("false")){
   %> <img id="img<%=imageCount%> " width="<%=thumbnailWidth %>" alt="photo <%=enc.getLocation()%>"
           src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
           valign="left"> <%
-					if (session.getAttribute("logged")!=null) {
+	if (session.getAttribute("logged")!=null) {
 				%></a>
-    <div class="highslide-caption">
+                <div 
+            <%
+            if(!isVideo){
+            %>
+            class="highslide-caption"
+            <%
+            }
+            %>
+            >
       <h3><%=encprops.getProperty("imageMetadata") %>
       </h3>
       <table>
@@ -2208,7 +2228,7 @@ if(loggedIn.equals("false")){
 
 
             <%
-              if (CommonConfiguration.showEXIFData()) {
+              if (CommonConfiguration.showEXIFData()&&!isVideo) {
             %>
 
 
@@ -2664,7 +2684,6 @@ catch(Exception e){
 
 <p></p>
 <%}%>
-<jsp:include page="../footer.jsp" flush="true"/>
 
 
 </div>
@@ -2672,12 +2691,11 @@ catch(Exception e){
 <!-- end page -->
 </div>
 <!--end wrapper -->
+<jsp:include page="../footer.jsp" flush="true"/>
 
 <%
-  if (request.getParameter("noscript") == null) {
+if (request.getParameter("noscript") == null) {
 %>
-
-
 <script type="text/javascript">
 
   function submitForm(oForm) {
@@ -2692,7 +2710,7 @@ catch(Exception e){
 
 </script>
 <%
-  }
+}
 %>
 
 
