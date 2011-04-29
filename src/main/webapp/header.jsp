@@ -228,13 +228,18 @@ z-index:99;
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Encounters</a></li>
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/xcalendar/calendar.jsp?scDate=<%=dato%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">Encounter Calendar</a></li>
 
-
-	<% if((request.getParameter("isResearcher")!=null)&&(request.getParameter("isResearcher").equals("true"))) {%>
+	
+	<%
+	if(session.getAttribute("logged") != null) {
+	%>	
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncountersUnapproved.jsp?start=1&end=10&sort=nosort&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Unapproved Encounters</a></li>
+	
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&user=<%=request.getRemoteUser()%>&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View My Submissions</a></li>
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&rejects=true&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Unidentifiable Encounters</a></li>
-		
-	<%}%>
+	<%
+	}
+	%>	
+
 
 
 	</ul>
@@ -261,7 +266,7 @@ z-index:99;
 
 
 		  
-                    <li <%if((request.getParameter("isResearcher")!=null)&&(request.getParameter("isResearcher").equals("true"))) {%>class="drop"<%}%>><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px; z-index:100;"><strong>Administer</strong>
+                    <li <%if(session.getAttribute("logged") != null) {%>class="drop"<%}%>><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px; z-index:100;"><strong>Administer</strong>
 				 							<!--[if IE 7]><!--></a><!--<![endif]-->
 						<!--[if lte IE 6]><table><tr><td><![endif]-->
 						<ul>

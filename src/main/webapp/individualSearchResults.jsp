@@ -77,26 +77,7 @@
 
     Shepherd myShepherd = new Shepherd();
 
-/*
-String sexParam="";
-if(request.getParameter("sex")!=null) {sexParam="&sex="+request.getParameter("sex");}
-String keywordParam="";
-if(request.getParameter("keyword")!=null) {keywordParam="&keyword="+request.getParameter("keyword");}
-String numResightsParam="";
-if(request.getParameter("numResights")!=null) {numResightsParam="&numResights="+request.getParameter("numResights");}
-String lengthParams="";
-if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)) {
-	lengthParams="&selectLength="+request.getParameter("selectLength")+"&lengthField="+request.getParameter("lengthField");
-}
-String locCodeParam="";
-if(request.getParameter("locationCodeField")!=null) {locCodeParam="&locationCodeField="+request.getParameter("locationCodeField");}
-String dateParams="day1="+day1+"&day2="+day2+"&month1="+month1+"&month2="+month2+"&year1="+year1+"&year2="+year2;
-String exportParam="";
-if(request.getParameter("export")!=null) {exportParam="&export=true";}
-String numberSpots="";
-if(request.getParameter("numspots")!=null) {numberSpots="&numspots="+request.getParameter("numspots");}
-String qString=dateParams+sexParam+numResightsParam+locCodeParam+lengthParams+exportParam+keywordParam+numberSpots;
-*/
+
 
     int numResults = 0;
 
@@ -180,7 +161,11 @@ String qString=dateParams+sexParam+numResightsParam+locCodeParam+lengthParams+ex
 <div id="page">
 <jsp:include page="header.jsp" flush="true">
 
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
+	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
+	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
+	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
+
 </jsp:include>
 <div id="main">
 <ul id="tabmenu">
