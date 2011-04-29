@@ -49,8 +49,11 @@
 <div id="wrapper">
   <div id="page">
     <jsp:include page="../header.jsp" flush="true">
-      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-    </jsp:include>
+    	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
+	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
+	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
+	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
+</jsp:include>
     <div id="main">
       <p><font size="+1"><strong>Do you want to leave the
         <%=request.getParameter("name")%> mailing list?</strong></font></p>
