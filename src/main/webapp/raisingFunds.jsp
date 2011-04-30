@@ -79,52 +79,68 @@
 
 						
 			<div class="module">
-				<img src="images/logo.gif" width="190" height="115" border="0" title="Ecocean" alt="www.whaleshark.org" />
+				<img src="images/logo.gif" width="150" height="90" border="0" title="Ecocean" alt="www.whaleshark.org" />
 				
 			</div>
 						
 			
-			<!-- awards script here -->			
-
+						
+<jsp:include page="awards.jsp" flush="true" />	
 		</div><!-- end menu -->
 	</div><!-- end leftcol -->
 	<div id="maincol-wide">
 
 		<div id="maintext">
-		  <h2>Support ECOCEAN</h2>
-		</div>
+		  <h2>Why are we raising funds?</h2>
+	</div>
 			
-<p><strong><br />
-</strong>Private Donors are increasingly vital to ECOCEAN’s work.<br />
-ECOCEAN welcomes new and innovative partnerships with the private sector. <br />
-These partnerships align ECOCEAN’s research and education activities with likeminded corporate citizens. In turn, by helping ECOCEAN, corporations can engage their employees, customers and stakeholders in ECOCEAN’s research and conservation mission.</p>
-<p>&nbsp;</p>
-<p><strong><strong><a href="http://www.whaleshark.org/raisingFunds.jsp" title="Why are we raising funds?">Why are we raising funds?</a></strong><br />
-</strong></p>
-<p>&nbsp;</p>
-<h2>YOUR COMPANY</h2>
-<p>By signing up to help ECOCEAN, your company can support international shark research and conservation efforts.</p>
-<p>&nbsp;</p>
-<p><strong><strong>Maximize impact</strong></strong></p>
-<p>ECOCEAN can maximize early private sector support quickly and effectively.</p>
-<p>With whale sharks protected in only ten percent of the nearly 100 countries they visit worldwide, time is of the essence to work together to better understand this species. Your company can provide strategic support while receiving recognition for early participation on the ground. Can your company provide any of the following?</p>
+			<p><strong>ECOCEAN works to generate new knowledge about whale sharks for use in justifying conservation action.</strong></p>
+		<p><strong>What are whale sharks doing at Ningaloo Marine Park (NMP)?</strong></p>
+			<ul>
+			  <li>What’s going on when they are away from the surface (i.e. at depth)?</li>
+			  <li>Are the feeding?</li>
+			  <li>Are they mating?</li>
+        </ul>
+<p>Are whale sharks distributed elsewhere along the WA coast i.e. not just at NMP?</p>
+			<ul>
+			  <li>We know a couple of whale sharks have moved north, towards Indonesia. Is this a rarity – or the norm?</li>
+			  <li>Recent sightings recorded at Kalbarri - even off Perth!</li>
+			  <li>Many sighting reports received from near the oil and gas facilities in the NW Shelf.</li>
+			  <li>What effect is this industry having on the whale shark movements?</li>
+			  <li>Can we as ecotourists do more to minimise any impacts we have on these sharks?</li>
+        </ul>
+<p>It’s time to answer these questions – solve some of the mystery surrounding this threatened species – needed to ensure the long-term conservation of the whale shark.</p>
+			<ul>
+			  <li>We have the ability to do it at NMP….a location easily accessible.</li>
+			  <li>We have the technology: Crittercam / Daily Diaries / Satellite and Acoustic tags etc.</li>
+			  <li>We just need the resources – and we can achieve results.</li>
+        </ul>
+<div align="center"><p><img src="/images/raisingFunds1.png" width="480" height="359" /></p></div>
+<h2>&nbsp;</h2>
+<p><strong>ECOCEAN provides cutting edge software tools to similarly support mark-recapture efforts for other species.</strong></p>
 <ul>
-  <ul>
-    <ul>
-      <li>Direct funding</li>
-      <li>Logistics equipment (boat / car / satellite and data-logging tags)</li>
-      <li>Information technology equipment (network server / storage system)</li>
-      <li>Field expenses (including food / accommodation / computers / cameras / flights etc.)</li>
-      <li>Expertise (Web design / software engineering)  </li>
-    </ul>
-  </ul>
+  <li>ECOCEAN works to apply its ‘best practices’, techniques, and tools to assist research for other species.</li>
+  <li>ECOCEAN provides a suite of software tools to researchers around the world to assist with localized whale shark research efforts.</li>
+  <li>The ECOCEAN research framework brings information technology, scientists, and citizen scientists together.</li>
 </ul>
-<p>To find out how your company can create a long-term partnership with ECOCEAN or help to protect the largest fish in the ocean, please e-mail us at:<br />
-ecocean@whaleshark.org<br />
-or phone +61 414953627 (Australia) / +1 503-233-2062 (U.S.)</p>
-<p>See our list of current <a href="http://www.whaleshark.org/privateSector.jsp?langCode=en">private sector partners</a>.</p>
 <p>&nbsp;</p>
-<div align="center"><p><img src="images/logo.gif" alt="ECOCEAN" width="289" height="204"/></p></div>
+<div align="center"><p><img src="/images/raisingFunds2.png" width="480" height="359" /></p></div>
+<p>&nbsp;</p>
+<p><strong>ECOCEAN is committed to marine conservation awareness through education and outreach campaigns throughout the world.</strong></p>
+  <ul>
+    <li>ECOCEAN works with school groups to promote conservation education.</li>
+    <li>The ECOCEAN Whale Shark Photo-Identification Library currently houses whale shark images from 45 different countries!</li>
+    <li>ECOCEAN produces educational materials in the form of brochures, pamphlets and through online campaigns to encourage a worldwide effort to protect the sharks of our seas.</li>
+  </ul>
+<p>&nbsp;</p>
+<h2>WE NEED YOUR HELP!</h2>
+<ul>
+  <li>Public awareness is a key.</li>
+  <li>Citizen scientists are helping to collect important sighting data throughout the Australian coast.</li>
+  <li>Shark education continues via the ECOCEAN website.</li>
+  <li>Community participation can ensure the conservation of the world’s biggest fish.</li>
+</ul>
+<div align="center"><p><img src="/images/raisingFunds3.png" width="480" height="333" /></p></div>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
