@@ -148,7 +148,7 @@
 <h2>Partner Individuals</h2>
 <p>Researcher: <strong>Alan Duncan<br />
 </strong>Koh Phangan, Thailand</p>
-<p><a href="http://www.the-diveinn.com/categoryspecies/whale-sharks-identified-ecocean-project" target="_blank">www.the-diveinn.com/categoryspecies/whale-sharks-identified-ecocean-project<br />
+<p><a href="http://bit.ly/hYcmwV?r=bb" target="_blank">www.the-diveinn.com/categoryspecies/whale-sharks-identified-ecocean-project<br />
 </a>Alan Duncan works to identify all whale shark reported from the Gulf of Thailand and the Andaman Sea.</p>
 <p>&nbsp;</p>
 <p>Researcher: <strong>: <strong>Dr. Eric Hoffmayer</strong><br />
