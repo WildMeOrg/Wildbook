@@ -539,7 +539,7 @@ if (isOwner) {
   <tr valign="top">
  <td>
  <!-- HTML Codes by Quackit.com -->
-<div style="border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
 
       <%
       						while(countMe<numThumbs){
@@ -562,7 +562,7 @@ if (isOwner) {
 
    
     
-      <table align="left">
+      <table align="left" width="<%=100/numColumns %>%">
         <tr>
           <td valign="top">
 
