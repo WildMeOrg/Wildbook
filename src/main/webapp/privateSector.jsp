@@ -142,7 +142,7 @@ Three Islands Whale Shark Dive (</strong><a href="http://www.whalesharkdive.com"
 <p>Assisted with the development of SPOT! – the perspective correction software used in the ECOCEAN Library. <a href="http://www.britishecologicalsociety.org" target="_blank">www.britishecologicalsociety.org</a></p>
 <p><strong>National Geographic Society</strong></p>
 <p>Supporter of ECOCEAN via provision of the ‘Crittercam’ for use in the 2010 research project and technical expertise. <a href="http://www.nationalgeographic.com" target="_blank">www.nationalgeographic.com</a></p>
-<p><strong>New England Aquarium</strong></p>
+<p><strong>Georgia Aquarium</strong></p>
 <p>Provided assistance through its Marine Conservation Action Fund to initiate a whale shark population study in collaboration with Proyecto Domino in the Mexican Caribbean and Gulf.</p>
 <p><strong>Royal Caribbean Cruise Lines (Ocean Fund)</strong></p>
 <p>Sponsored significant components of whale shark behavioural field studies at Ningaloo Marine Park, Western Australia in 2008-2010.</p>

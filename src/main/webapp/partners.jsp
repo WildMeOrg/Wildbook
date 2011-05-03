@@ -106,7 +106,7 @@
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <div>
-  <p><a href="http://www.domino.conanp.gob.mx" target="_blank"><img width="90" height="83" src="/images/megaFauna.jpg" alt="Proyecto Domino" /></a></p>
+  <p><a href="http://www.domino.conanp.gob.mx" target="_blank"><img width="132" height="85" src="/images/proyectoDomino.jpg" alt="Proyecto Domino" /></a></p>
 </div>
 <p><strong><u>Proyecto Domino</u></strong></p>
 <p>Researcher: <strong>Rafael de la Parra<br />
@@ -116,7 +116,7 @@
 <p>&nbsp;</p>
 <p>&nbsp; </p>
 <div>
-  <p><a href="http://www.marinemegafauna.org" target="_blank"><img width="90" height="83" src="/images/proyectoDomino.jpg" alt="The Foundation for the Protection of Marine Megafauna" /></a></p>
+  <p><a href="http://www.marinemegafauna.org" target="_blank"><img width="90" height="83" src="/images/megaFauna.jpg" alt="The Foundation for the Protection of Marine Megafauna" /></a></p>
 </div>
 <p><strong><u>The Foundation for the Protection of Marine Megafauna</u></strong></p>
 <p>Researcher: <strong>Dr. Simon Pierce<br />
