@@ -440,9 +440,24 @@
                         </td>
                       </tr>
                       <tr>
-                        <td><span class="caption"><%=encprops.getProperty("individualID") %>: <a
-                          href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %>
-                        </a></span></td>
+                        <td><span class="caption"><%=encprops.getProperty("individualID") %>: 
+                        	<%
+                        	if(!thisEnc.getIndividualID().equals("Unassigned")){
+                        	%>
+                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>">
+                        	<%
+            				}
+                        	%>
+                        	<%=thisEnc.getIndividualID() %>
+                        	<%
+                        	if(!thisEnc.getIndividualID().equals("Unassigned")){
+                        	%>
+                        	</a>
+                        	<%
+            				}
+                        	%>
+                        	
+                        </span></td>
                       </tr>
                       <tr>
                         <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a
@@ -570,9 +585,23 @@
   <td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td>
 </tr>
 <tr>
-  <td><span class="caption"><%=encprops.getProperty("individualID") %>: <a
-    href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %>
-  </a></span></td>
+  <td><span class="caption"><%=encprops.getProperty("individualID") %>: 
+      						<%
+                        	if(!thisEnc.getIndividualID().equals("Unassigned")){
+                        	%>
+                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>">
+                        	<%
+            				}
+                        	%>
+                        	<%=thisEnc.getIndividualID() %>
+                        	<%
+                        	if(!thisEnc.getIndividualID().equals("Unassigned")){
+                        	%>
+                        	</a>
+                        	<%
+            				}
+                        	%>
+  </span></td>
 </tr>
 <tr>
   <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a
