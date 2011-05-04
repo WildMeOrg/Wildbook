@@ -149,9 +149,7 @@
 
           <h1 class="intro">Success</h1>
 
-          <p>I have successfully reset the thumbnail image for encounter
-            number <strong><%=number%>
-            </strong>!</p>
+          <p>I have successfully reset the thumbnail image for encounter number <strong><%=number%></strong>.</p>
 
           <p><a
             href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>">View
