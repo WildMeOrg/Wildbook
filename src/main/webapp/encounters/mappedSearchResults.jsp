@@ -189,7 +189,7 @@
   <li><a
     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
-  <li><a class="active"><%=encprops.getProperty("mappedResults")%>
+  <li><a class="active"><%=encprops.getProperty("mappedResults") %>
   </a></li>
   <li><a
     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
@@ -358,9 +358,23 @@
 %>
 
 
-<p><strong><img src="../images/2globe_128.gif" width="64" height="64"
-                align="absmiddle"/> <%=encprops.getProperty("mappedResults")%>
-</strong></p>
+<p><strong>
+	<img src="../images/2globe_128.gif" width="64" height="64" align="absmiddle"/> <%=encprops.getProperty("mappedResults")%>
+</strong>
+<%
+
+//read from the encprops property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
+int numberResultsToMap = -1;
+try{numberResultsToMap=Integer.parseInt(encprops.getProperty("numberResultsToMap"));}
+catch(Exception e){}
+
+if(numberResultsToMap>-1){
+%>
+<%=encprops.getProperty("mappedMatchResults").replaceAll("%numberResultsToMap%",encprops.getProperty("numberResultsToMap"))%>
+<%
+}
+%>
+</p>
 <%
   if (haveGPSData.size() > 0) {
     myShepherd.beginDBTransaction();
@@ -401,12 +415,16 @@
 			map.addControl(new GSmallMapControl());
         	map.addControl(new GMapTypeControl());
 			map.setMapType(G_HYBRID_MAP);
-			<%for(int t=0;t<haveGPSData.size();t++) {
-				if(t<101){
-				Encounter mapEnc=(Encounter)haveGPSData.get(t);
-				double myLat=(new Double(mapEnc.getDWCDecimalLatitude())).doubleValue();
-				double myLong=(new Double(mapEnc.getDWCDecimalLongitude())).doubleValue();
-				%>
+			<%
+			
+			
+			
+			for(int t=0;t<haveGPSData.size();t++) {
+				if((numberResultsToMap==-1) || (t<numberResultsToMap)){
+					Encounter mapEnc=(Encounter)haveGPSData.get(t);
+					double myLat=(new Double(mapEnc.getDWCDecimalLatitude())).doubleValue();
+					double myLong=(new Double(mapEnc.getDWCDecimalLongitude())).doubleValue();
+					%>
 				          var point<%=t%> = new GLatLng(<%=myLat%>,<%=myLong%>, false);
 				          bounds.extend(point<%=t%>);
 				          
