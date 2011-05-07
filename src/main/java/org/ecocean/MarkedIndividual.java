@@ -321,52 +321,22 @@ public class MarkedIndividual {
   public boolean wasSightedInPeriod(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth) {
     int endYear = m_endYear;
     int endMonth = m_endMonth;
-    //int endDay=m_endDay;
+
     int startYear = m_startYear;
     int startMonth = m_startMonth;
-    //int startDay=m_startDay;
 
-    //test that start and end dates are not reversed
-    if (endYear < startYear) {
-      endYear = m_startYear;
-      endMonth = m_startMonth;
-      //endDay=m_startDay;
-      startYear = m_endYear;
-      startMonth = m_endMonth;
-      //startDay=m_endDay;
-    } else if ((endYear == startYear) && (endMonth < startMonth)) {
-      endYear = m_startYear;
-      endMonth = m_startMonth;
-      //endDay=m_startDay;
-      startYear = m_endYear;
-      startMonth = m_endMonth;
-      //startDay=m_endDay;
-    }
-    /*else if((endYear==startYear)&&(endMonth==startMonth)&&(endDay>startDay)) {
-        endYear=m_startYear;
-        endMonth=m_startMonth;
-        endDay=m_startDay;
-        startYear=m_endYear;
-        startMonth=m_endMonth;
-        startDay=m_endDay;
-      }*/
+    
+    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, 1);
+    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, 31);
+    
+
 
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if ((temp.getYear() > startYear) && (temp.getYear() < endYear)) {
-        return true;
-      } else if ((temp.getYear() == startYear) && (temp.getYear() < endYear) && (temp.getMonth() >= startMonth)) {
-        return true;
-      }
-      //else if((temp.getYear()==startYear)&&(temp.getYear()<endYear)&&(temp.getMonth()==startMonth)){return true;}
 
-      else if ((temp.getYear() > startYear) && (temp.getYear() == endYear) && (temp.getMonth() <= endMonth)) {
-        return true;
-      } else if ((temp.getYear() >= startYear) && (temp.getYear() <= endYear) && (temp.getMonth() >= startMonth) && (temp.getMonth() <= endMonth)) {
-        return true;
-      }
-
-
+        if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
+          return true;
+        }
     }
     return false;
   }
@@ -438,20 +408,13 @@ public class MarkedIndividual {
     int startYear = m_startYear;
     int startMonth = m_startMonth;
     int startDay = m_startDay;
-
-
+    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, startDay);
+    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, endDay);
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-
-      if ((temp.getYear() >= startYear) && (temp.getYear() <= endYear)) {
-        if ((temp.getMonth() >= startMonth) && (temp.getMonth() <= endMonth)) {
-          if ((temp.getDay() >= startDay) & (temp.getDay() <= endDay)) {
-            return true;
-          }
-        }
+      if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
+          return true;
       }
-
-
     }
     return false;
   }
@@ -459,32 +422,21 @@ public class MarkedIndividual {
   public boolean wasSightedInPeriodLeftOnly(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth) {
     int endYear = m_endYear;
     int endMonth = m_endMonth;
+
     int startYear = m_startYear;
     int startMonth = m_startMonth;
+    
+    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, 1);
+    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, 31);
+    
 
-    //test that start and end dates are not reversed
-    if (endYear < startYear) {
-      endYear = m_startYear;
-      endMonth = m_startMonth;
-      startYear = m_endYear;
-      startMonth = m_endMonth;
-    } else if ((endYear == startYear) && (endMonth < startMonth)) {
-      endYear = m_startYear;
-      endMonth = m_startMonth;
-      startYear = m_endYear;
-      startMonth = m_endMonth;
-    }
+
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if ((temp.getYear() > startYear) && (temp.getYear() < endYear) && (temp.getNumSpots() > 0)) {
-        return true;
-      } else if ((temp.getYear() == startYear) && (temp.getYear() < endYear) && (temp.getMonth() >= startMonth) && (temp.getNumSpots() > 0)) {
-        return true;
-      } else if ((temp.getYear() > startYear) && (temp.getYear() == endYear) && (temp.getMonth() <= endMonth) && (temp.getNumSpots() > 0)) {
-        return true;
-      } else if ((temp.getYear() >= startYear) && (temp.getYear() <= endYear) && (temp.getMonth() >= startMonth) && (temp.getMonth() <= endMonth) && (temp.getNumSpots() > 0)) {
-        return true;
-      }
+
+        if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())&&(temp.getNumSpots()>0)){
+          return true;
+        }
     }
     return false;
   }
