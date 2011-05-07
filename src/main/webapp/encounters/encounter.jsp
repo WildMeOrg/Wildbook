@@ -2687,11 +2687,14 @@ catch(Exception e){
 
 
 </div>
+<jsp:include page="../footer.jsp" flush="true"/>
 </div>
 <!-- end page -->
+
 </div>
+
 <!--end wrapper -->
-<jsp:include page="../footer.jsp" flush="true"/>
+
 
 <%
 if (request.getParameter("noscript") == null) {
