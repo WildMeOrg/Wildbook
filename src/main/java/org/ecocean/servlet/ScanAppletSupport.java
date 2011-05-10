@@ -343,9 +343,8 @@ public class ScanAppletSupport extends HttpServlet {
     //get a list of unfinished scanWorkItems
     //ArrayList list=myShepherd.getID4AvailableScanWorkItems(query, groupSize, checkoutTimeout, false);
     ArrayList<ScanWorkItem> list = new ArrayList<ScanWorkItem>();
-    if (!nd.isZombie) {
       list = gm.getWorkItems(groupSize);
-    }
+
 
 
     //get the size of the list
@@ -389,7 +388,7 @@ public class ScanAppletSupport extends HttpServlet {
       swi2.setWorkItemsCompleteInTask(1);
       holdResults.add(swi2);
     }
-    if (foundTask && (!nd.isZombie)) {
+    if (foundTask) {
       //query.closeAll();
 
       myShepherd.commitDBTransaction();

@@ -342,9 +342,7 @@ single scan are allowed to exceed the total.</span>
     <td width="71" bgcolor="#CCCCCC">
       <div align="left"><span class="style1">Chunk size</span></div>
     </td>
-    <td width="71" bgcolor="#CCCCCC">
-      <div align="left"><span class="style1">Zombie?</span></div>
-    </td>
+
   </tr>
   <%
     ArrayList nodes = gm.getNodes();
@@ -362,9 +360,7 @@ single scan are allowed to exceed the total.</span>
     <td><span class="style2"><%=nd.isTargeted()%></span></td>
     <td><span class="style2"><%=nd.getNumComparisons()%></span></td>
     <td><span class="style2"><%=nd.groupSize%></span></td>
-    <td><span class="style2"><a
-      href="scanTaskAdmin.jsp?zombie=<%=nd.getNodeIdentifier()%>"><%=nd.isZombie%>
-    </a></span></td>
+
 
 
   </tr>
