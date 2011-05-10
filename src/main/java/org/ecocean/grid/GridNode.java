@@ -37,7 +37,7 @@ public class GridNode {
   public int numProcessors = 1;
   public boolean hasMadeFirstCheckin = false;
   public int groupSize;
-  public boolean isZombie = false;
+  //public boolean isZombie = false;
 
   //whether this node is dedicated to a single scanTask (true) or running as a generic node (false)
   public boolean targeted = false;
@@ -97,7 +97,6 @@ public class GridNode {
       if (Math.abs(timeDiff) < 60000) {
         groupSize = groupSize + (numProcessors);
       }
-      //else if(Math.abs(timeDiff)>600000){groupSize=1; isZombie = true;}
       else {
         groupSize--;
       }
@@ -149,6 +148,7 @@ public class GridNode {
     return targeted;
   }
 
+  /*
   public void setAsZombie() {
     isZombie = true;
   }
@@ -156,5 +156,5 @@ public class GridNode {
   public void setNotZombie() {
     isZombie = false;
   }
-
+*/
 }
