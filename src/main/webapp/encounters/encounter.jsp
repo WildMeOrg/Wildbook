@@ -1527,7 +1527,7 @@ if(loggedIn.equals("false")){
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
   <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=loccode#loccode">edit</a>]</font>
-  <a href="<%=CommonConfiguration.getWikiLocation()%>location_codes" target="_blank"><img
+  <a href="<%=CommonConfiguration.getWikiLocation()%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
   %><br/>
