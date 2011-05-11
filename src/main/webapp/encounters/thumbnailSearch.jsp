@@ -198,7 +198,7 @@
       <input
         name="locationCodeField" type="text" id="locationCodeField"
         size="7"> <span class="para"><a
-      href="<%=CommonConfiguration.getWikiLocation()%>location_codes"
+      href="<%=CommonConfiguration.getWikiLocation()%>locationID"
       target="_blank"><img src="../images/information_icon_svg.gif"
                            alt="Help" border="0" align="absmiddle"/></a></span>
       <br> <%=encprops.getProperty("locationIDExample")%>
