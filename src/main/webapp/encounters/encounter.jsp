@@ -322,7 +322,7 @@
       <%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %><font size="-1">[<a
-        href="encounter.jsp?number=<%=num%>&edit=manageShark">edit</a>]</font>
+        href="encounter.jsp?number=<%=num%>&edit=manageIdentity">edit</a>]</font>
       <%
         }
       %>
@@ -336,7 +336,7 @@
       </a></font>
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %>[<a href="encounter.jsp?number=<%=num%>&edit=manageShark">edit</a>]<%
+      %>[<a href="encounter.jsp?number=<%=num%>&edit=manageIdentity">edit</a>]<%
         }
         if (isOwner) {
       %><br> <img align="absmiddle"
@@ -639,8 +639,8 @@ if(loggedIn.equals("false")){
 				
 				
 			  //add this encounter to a MarkedIndividual object
-			  if ((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageShark"))) {
-		%> <a name="manageShark">
+			  if ((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))) {
+		%> <a name="manageIdentity">
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -674,10 +674,10 @@ if(loggedIn.equals("false")){
       </td>
     </tr>
   </table>
-</a><br> <%
+<br> <%
 		  	}
 		  	  //Remove from MarkedIndividual if not unassigned
-		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned"))&&CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageShark"))) {
+		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned"))&&CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))) {
 		  %>
 <table width="150" border="1" cellpadding="1" cellspacing="0"
        bordercolor="#000000" bgcolor="#CCCCCC">
@@ -709,7 +709,7 @@ if(loggedIn.equals("false")){
 <br> <%
       	}
       	  //create new MarkedIndividual with name
-      	  if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageShark"))){
+      	  if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))){
       %>
 <table width="150" border="1" cellpadding="1" cellspacing="0"
        bordercolor="#000000" bgcolor="#CCCCCC">
@@ -736,7 +736,7 @@ if(loggedIn.equals("false")){
       </form>
     </td>
   </tr>
-</table>
+</table></a>
 <br> <%
 			}
       	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
@@ -2304,11 +2304,16 @@ if(loggedIn.equals("false")){
 catch (Exception e) {
   e.printStackTrace();
 %>
-<p>I hit an error trying to display a file: <%=addTextFile%>
-</p>
-
-<p><%=e.getMessage()%>
-</p>
+<table width="250px">
+<tr>
+<td>
+<img width="250px" height="200px" src="../images/Crystal_Clear_filesystem_file_broken.png" />
+</td></tr>
+<tr>
+<td class="para">
+<p>Error message:<br /> <%=e.getMessage()%></p>
+</td></tr>
+</table>
 <%
     }
   } //close while
