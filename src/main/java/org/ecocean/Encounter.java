@@ -1386,12 +1386,12 @@ public class Encounter implements java.io.Serializable {
 
   public void resetDateInMilliseconds(){
     if(year>0){
-      int localMonth=1;
-      if(month>0){localMonth=month;}
+      int localMonth=0;
+      if(month>0){localMonth=month-1;}
       int localDay=1;
       if(day>0){localDay=day;}
-      int localMinutes = Integer.parseInt(minutes);
-      GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay, hour, localMinutes);
+      //int localMinutes = Integer.parseInt(minutes);
+      GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay);
       dateInMilliseconds = gc.getTimeInMillis();
     }
     else{dateInMilliseconds=0;}
