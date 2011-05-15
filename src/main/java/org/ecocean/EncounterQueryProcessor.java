@@ -348,8 +348,8 @@ public class EncounterQueryProcessor {
       }
     }
     
-    GregorianCalendar gcMin=new GregorianCalendar(minYear, minMonth, minDay, 0, 0);
-    GregorianCalendar gcMax=new GregorianCalendar(maxYear, maxMonth, maxDay, 23, 59);
+    GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
+    GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
     
     if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){
       filter+="((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
