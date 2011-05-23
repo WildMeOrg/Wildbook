@@ -2415,7 +2415,7 @@ catch (Exception e) {
 		 			
 					
 		 			
-		 			if((uploadedFile.exists())&&(uploadedFile.length()>0)&&(enc.getNumSpots()>0)) {
+		 			if((uploadedFile.exists())&&(uploadedFile.isFile())&&(uploadedFile.length()>0)&&(enc.getNumSpots()>0)) {
 
 		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
 		 				
@@ -2445,7 +2445,7 @@ catch (Exception e) {
 										}
 									//set the right file
 									
-						if((uploadedRightFile.exists())&&(uploadedRightFile.length()>0)&&(enc.getNumRightSpots()>0)) {
+						if((uploadedRightFile.exists())&&uploadedRightFile.isFile()&&(uploadedRightFile.length()>0)&&(enc.getNumRightSpots()>0)) {
 									
 									//iInfo=new ImageInfo();
 									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
@@ -2482,7 +2482,7 @@ catch (Exception e) {
   matching</strong><br/> <font size="-1">[<a
   href="encounter.jsp?number=<%=num%>&edit=spotImage#spotImage">reset
   left or right spot data image</a>]</font><br/> <br/> <%
-  if ((enc.getNumSpots() > 0)) {
+  if ((enc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
 %> Left-side<em>.</em><em> Click the image to view the full size
   original. <a href="encounterSpotVisualizer.jsp?number=<%=num%>">Click
     here to see the left-side spots mapped to the left-side image.</a> </em><br/>
@@ -2491,13 +2491,16 @@ catch (Exception e) {
     }
   %> <br/><br/> <%
     //--
-    if ((enc.getNumRightSpots() > 0)) {
+    if ((enc.getNumRightSpots() > 0)&&(uploadedRightFile.exists())&&(uploadedRightFile.isFile())) {
   %> Right-side<em>.</em><em> Click the image to view the full
     size original. <a
       href="encounterSpotVisualizer.jsp?number=<%=num%>&rightSide=true">Click
       here to see the right-side spots mapped to the right-side image.</a> </em><br/>
-  <a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image"
-                               width="250"></a> <%
+  
+  		<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image"
+                               width="250"></a> 
+                               
+      <%
       }
       //--
 
@@ -2664,7 +2667,7 @@ myShepherd=null;
 catch(Exception e){
 	e.printStackTrace();
 %>
-<p>Hit an error. <%=e.toString()%>
+<p>Hit an error.<br /> <%=e.toString()%>
 </p>
 </body>
 </html>
