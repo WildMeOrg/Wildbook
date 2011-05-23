@@ -11,7 +11,7 @@ import java.lang.StringBuffer;
 import java.util.GregorianCalendar;
 
 
-//robust design
+
 public class SideFeed extends HttpServlet{
   
   Shepherd myShepherd;
