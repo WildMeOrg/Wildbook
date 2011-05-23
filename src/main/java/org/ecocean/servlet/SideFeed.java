@@ -153,23 +153,213 @@ public class SideFeed extends HttpServlet{
        sb.append(s.sidesSightedInPeriod(year1, 7, 8, year1, 7, 14, locCode));
        sb.append(s.sidesSightedInPeriod(year1, 7, 15, year1, 7, 21, locCode));
        sb.append(s.sidesSightedInPeriod(year1, 7, 22, year1, 7, 28, locCode));
-       
-      
-        
 
-            if((sb.indexOf("1")!=-1)||(sb.indexOf("2")!=-1)||(sb.indexOf("3")!=-1)){
-              String link="";
-              if(request.getParameter("comments")!=null){
-                link="/* http://www.whaleshark.org/individuals.jsp?number="+s.getName()+" */";
+       if((sb.indexOf("1")!=-1)||(sb.indexOf("2")!=-1)||(sb.indexOf("3")!=-1)){
+              
+              if((sb.indexOf("1")!=-1)&&(sb.indexOf("2")!=-1)&&(sb.indexOf("3")==-1)){
+                
+                //we need to break this into two encounters then
+                //one is for all left-sides
+                //the other for all right sides
+                
+                //lefts
+                String leftLink="";
+                if(request.getParameter("comments")!=null){
+                  leftLink="/* Spawned left-side only from http://www.whaleshark.org/individuals.jsp?number="+s.getName()+" */";
+                }
+                StringBuffer sbLeft=new StringBuffer(sb.toString());
+                out.println(sbLeft.toString().replaceAll("2", "0")+" 1;  "+leftLink+"<br />");
+                numSharks++;
+                
+                //rights
+                String rightLink="";
+                if(request.getParameter("comments")!=null){
+                  rightLink="/* Spawned right-side only from http://www.whaleshark.org/individuals.jsp?number="+s.getName()+" */";
+                }
+                StringBuffer sbRight=new StringBuffer(sb.toString());
+                out.println(sbRight.toString().replaceAll("1", "0")+" 1;  "+rightLink+"<br />");
+                numSharks++;
+                
               }
+              else{
+                String link="";
+                if(request.getParameter("comments")!=null){
+                  link="/* http://www.whaleshark.org/individuals.jsp?number="+s.getName()+" */";
+                }
                 out.println(sb.toString()+" 1;  "+link+"<br />");
-              numSharks++;
+                numSharks++;
+              }
+              
+              
             }
           
         
         
       } //end if
     } //end while
+    
+    
+    //now process encounters with right-side encounters
+    filter=filter.replaceAll("SELECT DISTINCT individualID FROM", "SELECT FROM");
+    //out.println(filter+"<br />");
+    
+    Query query2=myShepherd.getPM().newQuery(filter);
+    Iterator it3=myShepherd.getAllEncounters(query2, "individualID ascending");
+    while(it3.hasNext()) {
+      Encounter thisEnc = (Encounter)it3.next();
+      String thisName=thisEnc.getIndividualID();
+      StringBuffer sb=new StringBuffer();
+      if((thisName.equals("Unassigned"))&&(thisEnc.getNumRightSpots()>0)){
+        
+        //APRIL
+        GregorianCalendar gcApril1a=new GregorianCalendar(year1, 4, 1);
+        GregorianCalendar gcApril1b=new GregorianCalendar(year1, 4, 7);
+        if((thisEnc.getDateInMilliseconds()>=gcApril1a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril1b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        GregorianCalendar gcApril2a=new GregorianCalendar(year1, 4, 8);
+        GregorianCalendar gcApril2b=new GregorianCalendar(year1, 4, 14);
+        if((thisEnc.getDateInMilliseconds()>=gcApril2a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril2b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        GregorianCalendar gcApril3a=new GregorianCalendar(year1, 4, 15);
+        GregorianCalendar gcApril3b=new GregorianCalendar(year1, 4, 21);
+        if((thisEnc.getDateInMilliseconds()>=gcApril3a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril3b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        GregorianCalendar gcApril4a=new GregorianCalendar(year1, 4, 22);
+        GregorianCalendar gcApril4b=new GregorianCalendar(year1, 4, 28);
+        if((thisEnc.getDateInMilliseconds()>=gcApril4a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril4b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        
+        //May
+        gcApril1a=new GregorianCalendar(year1, 5, 1);
+        gcApril1b=new GregorianCalendar(year1, 5, 7);
+        if((thisEnc.getDateInMilliseconds()>=gcApril1a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril1b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        gcApril2a=new GregorianCalendar(year1, 5, 8);
+        gcApril2b=new GregorianCalendar(year1, 5, 14);
+        if((thisEnc.getDateInMilliseconds()>=gcApril2a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril2b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        gcApril3a=new GregorianCalendar(year1, 5, 15);
+        gcApril3b=new GregorianCalendar(year1, 5, 21);
+        if((thisEnc.getDateInMilliseconds()>=gcApril3a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril3b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        gcApril4a=new GregorianCalendar(year1, 5, 22);
+        gcApril4b=new GregorianCalendar(year1, 5, 28);
+        if((thisEnc.getDateInMilliseconds()>=gcApril4a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril4b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        
+        //June
+        gcApril1a=new GregorianCalendar(year1, 6, 1);
+        gcApril1b=new GregorianCalendar(year1, 6, 7);
+        if((thisEnc.getDateInMilliseconds()>=gcApril1a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril1b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        gcApril2a=new GregorianCalendar(year1, 6, 8);
+        gcApril2b=new GregorianCalendar(year1, 6, 14);
+        if((thisEnc.getDateInMilliseconds()>=gcApril2a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril2b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        gcApril3a=new GregorianCalendar(year1, 6, 15);
+        gcApril3b=new GregorianCalendar(year1, 6, 21);
+        if((thisEnc.getDateInMilliseconds()>=gcApril3a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril3b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        gcApril4a=new GregorianCalendar(year1, 6, 22);
+        gcApril4b=new GregorianCalendar(year1, 6, 28);
+        if((thisEnc.getDateInMilliseconds()>=gcApril4a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril4b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        
+        //July
+        gcApril1a=new GregorianCalendar(year1, 7, 1);
+        gcApril1b=new GregorianCalendar(year1, 7, 7);
+        if((thisEnc.getDateInMilliseconds()>=gcApril1a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril1b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        gcApril2a=new GregorianCalendar(year1, 7, 8);
+        gcApril2b=new GregorianCalendar(year1, 7, 14);
+        if((thisEnc.getDateInMilliseconds()>=gcApril2a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril2b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        gcApril3a=new GregorianCalendar(year1, 7, 15);
+        gcApril3b=new GregorianCalendar(year1, 7, 21);
+        if((thisEnc.getDateInMilliseconds()>=gcApril3a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril3b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        gcApril4a=new GregorianCalendar(year1, 7, 22);
+        gcApril4b=new GregorianCalendar(year1, 7, 28);
+        if((thisEnc.getDateInMilliseconds()>=gcApril4a.getTimeInMillis())&&(thisEnc.getDateInMilliseconds()<=gcApril4b.getTimeInMillis())){
+          sb.append("1");
+        }
+        else{
+          sb.append("0");
+        }
+        
+        String link="";
+        if(request.getParameter("comments")!=null){
+          link="/* Right-side encounter http://www.whaleshark.org/encounters/encounter.jsp?number="+thisEnc.getEncounterNumber()+" */";
+        }
+        out.println(sb.toString()+" 1;  "+link+"<br />");
+        numSharks++;
+        
+        
+        
+        
+      }
+    }
+    
     
     if(request.getParameter("comments")!=null){
       out.println("/*");
@@ -189,6 +379,7 @@ public class SideFeed extends HttpServlet{
   catch(Exception e) {
     e.printStackTrace();
     out.println("You really screwed this one up!");
+    
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
     e.printStackTrace();
