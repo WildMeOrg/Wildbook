@@ -55,7 +55,9 @@ public class SubmitAction extends Action {
   Calendar date = Calendar.getInstance();
   Random ran = new Random();
   String uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString() + (new Integer(ran.nextInt(99))).toString();
-  double size = 0, depth = -1000;
+  Double size;
+  Double elevation;
+  Double depth;
   String measureUnits = "", location = "", sex = "unknown", comments = "", primaryImageName = "", guess = "no estimate provided";
   String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "";
   String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
@@ -91,7 +93,15 @@ public class SubmitAction extends Action {
       date = theForm.getDate();
       uniqueID = theForm.getUniqueID();
       size = theForm.getSize();
-      depth = theForm.getDepth();
+
+      if(theForm.getDepth()!=null){
+      	depth = theForm.getDepth();
+  	  }
+
+      if(theForm.getElevation()!=null){
+      	elevation = theForm.getElevation();
+  	  }
+
       measureUnits = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getMeasureUnits());
       location = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getLocation());
       System.out.println("SubmitAction location: " + location);
@@ -357,24 +367,49 @@ public class SubmitAction extends Action {
       enc.setSex(sex);
       enc.setLivingStatus(livingStatus);
       enc.setDistinguishingScar(scars);
-      if (measureUnits.equals("Feet")) {
-        String truncSize = (new Double(size / 3.3)).toString();
-        int sizePeriod = truncSize.indexOf(".");
-        truncSize = truncSize.substring(0, sizePeriod + 2);
-        size = (new Double(truncSize)).doubleValue();
-        String truncDepth = (new Double(depth / 3.3)).toString();
-        sizePeriod = truncDepth.indexOf(".");
-        truncDepth = truncDepth.substring(0, sizePeriod + 2);
-        depth = (new Double(truncDepth)).doubleValue();
+      int sizePeriod=0;
+      if ((measureUnits.equals("Feet"))) {
+		if(size != null){
+        	String truncSize = (new Double(size.doubleValue() / 3.3)).toString();
+        	sizePeriod = truncSize.indexOf(".");
+        	truncSize = truncSize.substring(0, sizePeriod + 2);
+        	size = (new Double(truncSize)).doubleValue();
+		}
+
+        if(depth != null){
+        	String truncDepth = (new Double(depth.doubleValue() / 3.3)).toString();
+        	sizePeriod = truncDepth.indexOf(".");
+        	truncDepth = truncDepth.substring(0, sizePeriod + 2);
+        	depth = (new Double(truncDepth)).doubleValue();
+		}
+
+		if(elevation !=null){
+			String truncElev = (new Double(elevation.doubleValue() / 3.3)).toString();
+		    sizePeriod = truncElev.indexOf(".");
+			truncElev = truncElev.substring(0, sizePeriod + 2);
+        	elevation = (new Double(truncElev)).doubleValue();
+		}
       }
+
       if (size != 0) {
         enc.setSize(size);
       }
-      ;
-      if (depth != -1000) {
-        enc.setDepth(depth);
+
+
+      if (depth != null) {
+		try{
+        	enc.setDepth(depth);
+		}
+		catch(NullPointerException npe){}
       }
-      ;
+
+      if (elevation != null) {
+		try{
+	    	enc.setMaximumElevationInMeters(elevation);
+	    }
+	    catch(NullPointerException npe){}
+      }
+
 
       //let's handle the GPS
       if (!(lat.equals(""))) {
@@ -437,8 +472,8 @@ public class SubmitAction extends Action {
         enc.setGPSLongitude("");
       //let's handle the GPS
         if (!(lat.equals(""))) {
-          
-          
+
+
             try {
                 enc.setDWCDecimalLatitude(new Double(lat));
             }
@@ -446,13 +481,13 @@ public class SubmitAction extends Action {
               System.out.println("EncounterSetGPS: problem setting decimal latitude!");
               e.printStackTrace();
             }
-          
-          
+
+
         }
         if (!(longitude.equals(""))) {
-          
+
           try {
-            enc.setDWCDecimalLongitude(new Double(longitude));          
+            enc.setDWCDecimalLongitude(new Double(longitude));
           }
           catch(Exception e) {
             System.out.println("EncounterSetGPS: problem setting decimal longitude!");

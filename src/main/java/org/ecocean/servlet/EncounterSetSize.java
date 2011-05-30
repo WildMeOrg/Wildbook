@@ -57,29 +57,6 @@ public class EncounterSetSize extends HttpServlet {
     boolean locked = false, isOwner = true;
     boolean isAssigned = false;
 
-    /**
-     if(request.getParameter("number")!=null){
-     myShepherd.beginDBTransaction();
-     if(myShepherd.isEncounter(request.getParameter("number"))) {
-     Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-     String locCode=verifyMyOwner.getLocationCode();
-
-     //check if the encounter is assigned
-     if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-     isAssigned=true;
-     }
-
-     //if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-     if((request.isUserInRole("admin"))||(isAssigned)){
-     isOwner=true;
-     }
-     //if they have general location code permissions for the encounter's location code
-     else if(request.isUserInRole(locCode)){isOwner=true;}
-     }
-     myShepherd.rollbackDBTransaction();
-     }
-     */
-
     String action = request.getParameter("action");
     System.out.println("Action is: " + action);
     if (action != null) {
@@ -91,13 +68,14 @@ public class EncounterSetSize extends HttpServlet {
           Encounter changeMe = myShepherd.getEncounter(request.getParameter("number"));
           setDateLastModified(changeMe);
 
-          double oldSize = 0;
+          String oldSize = "";
           String oldUnits = "";
           String oldGuess = "";
           boolean okNumberFormat = true;
           try {
-
-            oldSize = changeMe.getSize();
+			if(changeMe.getSizeAsDouble()!=null){
+            	oldSize = changeMe.getSizeAsDouble().toString();
+			}
             oldUnits = changeMe.getMeasureUnits();
             oldGuess = changeMe.getSizeGuess();
             changeMe.setMeasureUnits(request.getParameter("lengthUnits"));
@@ -106,10 +84,11 @@ public class EncounterSetSize extends HttpServlet {
             //check for appropriate number format for reported size
 
             Double inputSize = new Double(request.getParameter("lengthField"));
-            changeMe.setSize(inputSize.doubleValue());
+            changeMe.setSize(inputSize);
 
             changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed encounter size from " + oldSize + " " + oldUnits + "(" + oldGuess + ")" + " to " + request.getParameter("lengthField") + " " + request.getParameter("lengthUnits") + "(" + request.getParameter("guessList") + ").</p>");
-          } catch (NumberFormatException nfe) {
+          }
+          catch (NumberFormatException nfe) {
             System.out.println("User tried to enter improper number format when editing encounter length.");
             okNumberFormat = false;
             nfe.printStackTrace();
