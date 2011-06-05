@@ -1565,7 +1565,7 @@ if(loggedIn.equals("false")){
 %>
 <p class="para"><strong><%=encprops.getProperty("size") %>
 </strong><br/> <%
-      				if(enc.getSize()>0) {%>
+      				if(enc.getSizeAsDouble()!=null) {%>
     <%=enc.getSize()%> <%=encprops.getProperty("meters")%>
     <br/> <em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%></em>
     <%
@@ -1590,7 +1590,7 @@ if(loggedIn.equals("false")){
 <p class="para"><strong><%=encprops.getProperty("depth") %>
 </strong><br/>
   <%
-    if (enc.getDepth() >= 0) {
+    if (enc.getMaximumDepthInMeters()!=null) {
   %> 
   <%=enc.getDepth()%> <%=encprops.getProperty("meters")%> <%
   } else {
@@ -1614,9 +1614,16 @@ if(loggedIn.equals("false")){
 <p class="para"><strong><%=encprops.getProperty("elevation") %>
 </strong><br/>
 
-  <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%>
-  <%
+<%
+if(enc.getMaximumElevationInMeters()!=null){
+%>
 
+  <%=enc.getMaximumElevationInMeters().doubleValue()%> <%=encprops.getProperty("meters")%>
+  <%
+}
+else {
+	  %> <%=encprops.getProperty("unknown") %><%
+	    }
 
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %><font size="-1">[<a
@@ -2570,7 +2577,7 @@ catch (Exception e) {
         window.location = "http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>";
       });
       GEvent.addListener(marker1, "mouseover", function() {
-        marker1.openInfoWindowHtml("<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>\"><%=enc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=enc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=enc.getDate()%><br />Sex: <%=enc.getSex()%><br />Size: <%=enc.getSize()%> m<br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
+        marker1.openInfoWindowHtml("<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>\"><%=enc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=enc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=enc.getDate()%><br />Sex: <%=enc.getSex()%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
       });
       map.addOverlay(marker1);
 

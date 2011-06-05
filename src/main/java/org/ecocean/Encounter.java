@@ -1150,16 +1150,16 @@ public class Encounter implements java.io.Serializable {
     this.locationID = newLocationID;
   }
 
-  public double getMaximumDepthInMeters() {
-    return maximumDepthInMeters.doubleValue();
+  public Double getMaximumDepthInMeters() {
+    return maximumDepthInMeters;
   }
 
   public void setMaximumDepthInMeters(Double newDepth) {
     this.maximumDepthInMeters = newDepth;
   }
 
-  public double getMaximumElevationInMeters() {
-    return maximumElevationInMeters.doubleValue();
+  public Double getMaximumElevationInMeters() {
+    return maximumElevationInMeters;
   }
 
   public void setMaximumElevationInMeters(Double newElev) {

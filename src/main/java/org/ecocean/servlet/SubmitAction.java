@@ -55,9 +55,9 @@ public class SubmitAction extends Action {
   Calendar date = Calendar.getInstance();
   Random ran = new Random();
   String uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString() + (new Integer(ran.nextInt(99))).toString();
-  Double size;
-  Double elevation;
-  Double depth;
+  String size = "";
+  String elevation = "";
+  String depth = "";
   String measureUnits = "", location = "", sex = "unknown", comments = "", primaryImageName = "", guess = "no estimate provided";
   String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "";
   String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
@@ -92,13 +92,16 @@ public class SubmitAction extends Action {
       mailList = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getMailList());
       date = theForm.getDate();
       uniqueID = theForm.getUniqueID();
-      size = theForm.getSize();
 
-      if(theForm.getDepth()!=null){
+      if((theForm.getSize()!=null)&&(!theForm.getSize().equals(""))){size = theForm.getSize();}
+
+
+      if((theForm.getDepth()!=null)&&(!theForm.getDepth().equals(""))){
       	depth = theForm.getDepth();
   	  }
 
-      if(theForm.getElevation()!=null){
+      if((theForm.getElevation()!=null)&&(!theForm.getElevation().equals(""))){
+
       	elevation = theForm.getElevation();
   	  }
 
@@ -369,43 +372,57 @@ public class SubmitAction extends Action {
       enc.setDistinguishingScar(scars);
       int sizePeriod=0;
       if ((measureUnits.equals("Feet"))) {
-		if(size != null){
-        	String truncSize = (new Double(size.doubleValue() / 3.3)).toString();
-        	sizePeriod = truncSize.indexOf(".");
-        	truncSize = truncSize.substring(0, sizePeriod + 2);
-        	size = (new Double(truncSize)).doubleValue();
+
+        if(!depth.equals("")){
+			try{
+				double tempDouble=(new Double(depth)).doubleValue()/3.3;
+        		String truncDepth = (new Double(tempDouble)).toString();
+        		sizePeriod = truncDepth.indexOf(".");
+        		truncDepth = truncDepth.substring(0, sizePeriod + 2);
+        		depth = (new Double(truncDepth)).toString();
+			}
+			catch(NullPointerException npe){}
 		}
 
-        if(depth != null){
-        	String truncDepth = (new Double(depth.doubleValue() / 3.3)).toString();
-        	sizePeriod = truncDepth.indexOf(".");
-        	truncDepth = truncDepth.substring(0, sizePeriod + 2);
-        	depth = (new Double(truncDepth)).doubleValue();
+		if(!elevation.equals("")){
+			try{
+				double tempDouble=(new Double(elevation)).doubleValue()/3.3;
+        		String truncElev = (new Double(tempDouble)).toString();
+				//String truncElev = ((new Double(elevation)) / 3.3).toString();
+		    	sizePeriod = truncElev.indexOf(".");
+				truncElev = truncElev.substring(0, sizePeriod + 2);
+        		elevation = (new Double(truncElev)).toString();
+			}
+			catch(NullPointerException npe){}
 		}
-
-		if(elevation !=null){
-			String truncElev = (new Double(elevation.doubleValue() / 3.3)).toString();
-		    sizePeriod = truncElev.indexOf(".");
-			truncElev = truncElev.substring(0, sizePeriod + 2);
-        	elevation = (new Double(truncElev)).doubleValue();
+		if(!size.equals("")){
+			try{
+						double tempDouble=(new Double(size)).doubleValue()/3.3;
+        		String truncSize = (new Double(tempDouble)).toString();
+					//String truncSize = ((new Double(size)) / 3.3).toString();
+				    sizePeriod = truncSize.indexOf(".");
+					truncSize = truncSize.substring(0, sizePeriod + 2);
+		        	size = (new Double(truncSize)).toString();
+			}
+			catch(NullPointerException npe){}
 		}
       }
 
-      if (size != 0) {
-        enc.setSize(size);
+      if (!size.equals("")) {
+        enc.setSize(new Double(size));
       }
 
-
-      if (depth != null) {
+		//System.out.println("Depth in SubmitForm is:"+depth);
+      if (!depth.equals("")) {
 		try{
-        	enc.setDepth(depth);
+        	enc.setDepth(new Double(depth));
 		}
 		catch(NullPointerException npe){}
       }
 
-      if (elevation != null) {
+      if (!elevation.equals("")) {
 		try{
-	    	enc.setMaximumElevationInMeters(elevation);
+	    	enc.setMaximumElevationInMeters(new Double(elevation));
 	    }
 	    catch(NullPointerException npe){}
       }
