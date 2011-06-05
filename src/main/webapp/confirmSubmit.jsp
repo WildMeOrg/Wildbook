@@ -23,7 +23,7 @@
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 <%
-  String number = request.getParameter("number");
+  String number = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd();
 
 //setup our Properties object to hold all properties
@@ -109,7 +109,6 @@
       }
       new_message.append("Location: " + enc.getLocation() + "\n");
       new_message.append("Date: " + enc.getDate() + "\n");
-      new_message.append("Size: " + enc.getSize() + " " + enc.getMeasureUnits() + "\n");
       new_message.append("Sex: " + enc.getSex() + "\n");
       new_message.append("Submitter: " + enc.getSubmitterName() + "\n");
       new_message.append("Email: " + enc.getSubmitterEmail() + "\n");
@@ -144,16 +143,17 @@
 
   File file2process = new File(getServletContext().getRealPath(("/" + addText)));
 
-  int intWidth = 100;
-  int intHeight = 75;
-  int thumbnailHeight = 75;
-  int thumbnailWidth = 100;
+  if(myShepherd.isAcceptableImageFile(file2process.getName())){
+  	int intWidth = 100;
+  	int intHeight = 75;
+  	int thumbnailHeight = 75;
+  	int thumbnailWidth = 100;
 
 
-  String height = "";
-  String width = "";
+  	String height = "";
+  	String width = "";
 
-  Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
+  	Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
 
   width = Double.toString(imageDimensions.getWidth());
   height = Double.toString(imageDimensions.getHeight());
@@ -183,13 +183,16 @@
             srcurl="<%=addText%>"/>
 </di:img>
 
+<%
+}
+%>
+
 <h1 class="intro">Success</h1>
 
 <p><strong>Thank you for submitting your encounter! </strong></p>
 
 <p>For future reference, this encounter has been assigned the number
-  <strong><%=number%>
-  </strong>.</p>
+  <strong><%=number%></strong>.</p>
 
 <p>If you have any questions, please reference this number when <a
   href="mailto:<%=CommonConfiguration.getAutoEmailAddress() %>">contacting
@@ -197,8 +200,7 @@
 
 <p><a
   href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>&langCode=<%=langCode%>">View
-  encounter #<%=number%>
-</a>. <em>This may initially take a minute or more to fully load as we dynamically copy-protect your
+  encounter #<%=number%></a>. <em>This may initially take a minute or more to fully load as we dynamically copy-protect your
   new image(s).</em></p>
 <%
 

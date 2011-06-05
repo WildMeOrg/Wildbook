@@ -118,8 +118,8 @@ public class CalendarXMLServer extends HttpServlet {
                 }
               }
               String size="-";
-              if(tempEnc.getSize()>0.0) {
-                size=(new Double(tempEnc.getSize())).toString();
+              if(tempEnc.getSizeAsDouble()!=null) {
+                size=tempEnc.getSizeAsDouble().toString();
               }
                 String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
                 outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
@@ -138,8 +138,8 @@ public class CalendarXMLServer extends HttpServlet {
                 }
             }
             String size="-";
-            if(tempEnc.getSize()>0.0) {
-                size=(new Double(tempEnc.getSize())).toString();
+            if(tempEnc.getSizeAsDouble()!=null) {
+                size=tempEnc.getSizeAsDouble().toString();
             }
             String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
               outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
