@@ -1492,25 +1492,7 @@ if(loggedIn.equals("false")){
     href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
         		}
         		%>
-  <br/>
 
-    <%=encprops.getProperty("verbatimEventDate")%>:
-    <%
-				if(enc.getVerbatimEventDate()!=null){
-				%>
-    <%=enc.getVerbatimEventDate()%>
-    <%
-				}
-				else {
-				%>
-    <%=encprops.getProperty("none") %>
-    <%
-				}
-				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- 					%> <font size="-1">[<a
-    href="encounter.jsp?number=<%=num%>&edit=verbatimdate#verbatimdate">edit</a>]</font> <%
-        		}
-        		%>
 
 <p class="para"><strong><%=encprops.getProperty("location") %>
 </strong><br/> <%=enc.getLocation()%>
