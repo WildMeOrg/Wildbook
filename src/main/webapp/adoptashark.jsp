@@ -103,10 +103,10 @@
 			<p>Funds raised by shark adoptions are used to offset the costs of maintaining this global library and to support new and existing research projects for the world's most mysterious fish.</p>
 			<p>You can adopt a shark at the following levels:</p>
 			<ul>
-			<li> Children's adoption = USD $15/year</li>
-			  <li> Individual adoption = USD $30/year</li>
-	    <li>Group adoption = USD $150/year </li>
-	          <li>Corporate adoption = USD $750/year</li>
+			<li> Children's adoption = USD $25/year</li>
+			  <li> Individual adoption = USD $50/year</li>
+	    <li>Group adoption = USD $200/year </li>
+	          <li>Corporate adoption = USD $1000/year</li>
 		</ul>
 			<p>The cost of your adoption is tax deductible in the United States through ECOCEAN USA, a 501(c)(3) non-profit organization.</p>
 			
