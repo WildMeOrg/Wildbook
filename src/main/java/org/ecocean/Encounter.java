@@ -48,8 +48,8 @@ public class Encounter implements java.io.Serializable {
    */
   private String sex = "unknown";
   private String locationID = "None";
-  private double maximumDepthInMeters;
-  private double maximumElevationInMeters;
+  private Double maximumDepthInMeters;
+  private Double maximumElevationInMeters;
   private String catalogNumber = "";
   private String individualID;
   private int day = 0;
@@ -89,7 +89,7 @@ public class Encounter implements java.io.Serializable {
   private String dwcDateAdded;
 
   //Size of the individual in meters
-  private double size;
+  private Double size;
 
   //Additional comments added by library users
   private String researcherComments = "None";
@@ -111,7 +111,7 @@ public class Encounter implements java.io.Serializable {
   //time metrics of the report
   private int hour = 0;
   private String minutes = "00";
-  
+
   private long dateInMilliseconds=0;
   //describes how the shark was measured
   private String size_guess = "none provided";
@@ -201,7 +201,7 @@ public class Encounter implements java.io.Serializable {
     this.minutes = minutes;
     this.size_guess = size_guess;
     this.individualID = "Unassigned";
-    
+
     resetDateInMilliseconds();
   }
 
@@ -275,7 +275,7 @@ public class Encounter implements java.io.Serializable {
   /**
    * Sets the recorded length of the shark for this encounter.
    */
-  public void setSize(double mysize) {
+  public void setSize(Double mysize) {
     size = mysize;
   }
 
@@ -285,6 +285,10 @@ public class Encounter implements java.io.Serializable {
    * @return the length of the shark
    */
   public double getSize() {
+    return size.doubleValue();
+  }
+  
+  public Double getSizeAsDouble() {
     return size;
   }
 
@@ -506,7 +510,7 @@ public class Encounter implements java.io.Serializable {
   /**
    * Sets the recorded depth of this encounter.
    */
-  public void setDepth(double mydepth) {
+  public void setDepth(Double mydepth) {
     maximumDepthInMeters = mydepth;
   }
 
@@ -516,7 +520,7 @@ public class Encounter implements java.io.Serializable {
    * @return the recorded depth for this encounter
    */
   public double getDepth() {
-    return maximumDepthInMeters;
+    return maximumDepthInMeters.doubleValue();
   }
 
 
@@ -644,12 +648,12 @@ public class Encounter implements java.io.Serializable {
     this.day=day;
     resetDateInMilliseconds();
   }
-    
+
   public void setHour(int hour) {
     this.hour=hour;
     resetDateInMilliseconds();
   }
-    
+
   public void setMinutes(String minutes) {
     this.minutes=minutes;
     resetDateInMilliseconds();
@@ -1147,18 +1151,18 @@ public class Encounter implements java.io.Serializable {
   }
 
   public double getMaximumDepthInMeters() {
-    return maximumDepthInMeters;
+    return maximumDepthInMeters.doubleValue();
   }
 
-  public void setMaximumDepthInMeters(double newDepth) {
+  public void setMaximumDepthInMeters(Double newDepth) {
     this.maximumDepthInMeters = newDepth;
   }
 
   public double getMaximumElevationInMeters() {
-    return maximumElevationInMeters;
+    return maximumElevationInMeters.doubleValue();
   }
 
-  public void setMaximumElevationInMeters(double newElev) {
+  public void setMaximumElevationInMeters(Double newElev) {
     this.maximumElevationInMeters = newElev;
   }
 
@@ -1380,7 +1384,7 @@ public class Encounter implements java.io.Serializable {
   public void setSpecificEpithet(String newEpithet) {
     this.specificEpithet = newEpithet;
   }
-  
+
   public String getPatterningCode(){ return patterningCode;}
   public void setPatterningCode(String newCode){this.patterningCode=newCode;}
 
@@ -1396,9 +1400,9 @@ public class Encounter implements java.io.Serializable {
     }
     else{dateInMilliseconds=0;}
   }
-  
+
   public long getDateInMilliseconds(){return dateInMilliseconds;}
-  
+
   public String getDecimalLatitude(){
     if(decimalLatitude!=null){return Double.toString(decimalLatitude);}
     return null;
@@ -1410,5 +1414,4 @@ public class Encounter implements java.io.Serializable {
     return null;
   }
 }
-	
-	
+

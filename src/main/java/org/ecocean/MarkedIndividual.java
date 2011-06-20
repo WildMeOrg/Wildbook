@@ -76,9 +76,9 @@ public class MarkedIndividual {
   private String dynamicProperties;
 
   private String patterningCode;
-  
+
   private int maxYearsBetweenResightings;
-  
+
   public MarkedIndividual(String name, Encounter enc) {
 
     this.name = name;
@@ -101,23 +101,23 @@ public class MarkedIndividual {
    *@return true for successful addition, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
    *@see  Shepherd#commitDBTransaction()
    */
-  
+
   public boolean addEncounter(Encounter newEncounter) {
-    
-    newEncounter.assignToMarkedIndividual(name); 
+
+    newEncounter.assignToMarkedIndividual(name);
     if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
     if(newEncounter.wasRejected()) {
-      numUnidentifiableEncounters++; 
+      numUnidentifiableEncounters++;
       resetMaxNumYearsBetweenSightings();
       return unidentifiableEncounters.add(newEncounter);
-      
+
       }
     else {
-      numberEncounters++; 
+      numberEncounters++;
       resetMaxNumYearsBetweenSightings();
       return encounters.add(newEncounter); }
     }
-  
+
    /**Removes an encounter from this MarkedIndividual.
    *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
    *@return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
@@ -125,7 +125,7 @@ public class MarkedIndividual {
    */
   public boolean removeEncounter(Encounter getRidOfMe){
     if(getRidOfMe.wasRejected()) {
-      numUnidentifiableEncounters--; 
+      numUnidentifiableEncounters--;
       boolean changed=false;
       for(int i=0;i<unidentifiableEncounters.size();i++) {
         Encounter tempEnc=(Encounter)unidentifiableEncounters.get(i);
@@ -137,10 +137,10 @@ public class MarkedIndividual {
         }
       resetMaxNumYearsBetweenSightings();
       return changed;
-      
+
       }
     else {
-      numberEncounters--; 
+      numberEncounters--;
       boolean changed=false;
       for(int i=0;i<encounters.size();i++) {
         Encounter tempEnc=(Encounter)encounters.get(i);
@@ -179,18 +179,18 @@ public class MarkedIndividual {
       if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
         haveData.add(temp);
         }
-      
-      } 
+
+      }
     for(int d=0;d<numUnidentifiableEncounters;d++) {
       Encounter temp=(Encounter)unidentifiableEncounters.get(d);
       if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
-        
+
         haveData.add(temp);
         }
-      
-      } 
+
+      }
     return haveData;
-    
+
   }
 
   public boolean isDeceased() {
@@ -348,10 +348,10 @@ public class MarkedIndividual {
     int startYear = m_startYear;
     int startMonth = m_startMonth;
     int startDay = m_startDay;
-    
+
     GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, startDay);
     GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, endDay);
-    
+
 
 
     for (int c = 0; c < encounters.size(); c++) {
@@ -365,40 +365,6 @@ public class MarkedIndividual {
       }
     }
     return false;
-  }
-  
-  public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay, String locCode) {
-    int endYear = m_endYear;
-    int endMonth = m_endMonth;
-    int endDay = m_endDay;
-    int startYear = m_startYear;
-    int startMonth = m_startMonth;
-    int startDay = m_startDay;
-    
-    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, startDay);
-    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, endDay);
-    
-    boolean left=false;
-    boolean right=false;
-
-
-    for (int c = 0; c < encounters.size(); c++) {
-      Encounter temp = (Encounter) encounters.get(c);
-
-      if (temp.getLocationCode().startsWith(locCode)) {
-
-        if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
-          if(temp.getNumRightSpots()>0){right=true;}
-          if(temp.getNumSpots()>0){left=true;}
-        }
-      }
-    }
-    if(left&&right){return "3";}
-    else if(left){return "1";}
-    else if(right){return "2";}
-    else{
-      return "0";
-    }
   }
 
   public boolean wasSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay) {
@@ -855,17 +821,17 @@ public class MarkedIndividual {
    */
    public String getAllAlternateIDs(){
      ArrayList<String> allIDs = new ArrayList<String>();
-     
-      //add any alt IDs for the individual itself 
+
+      //add any alt IDs for the individual itself
       if(alternateid!=null){allIDs.add(alternateid);}
-      
+
       //add an alt IDs for the individual's encounters
       int numEncs=encounters.size();
       for(int c=0;c<numEncs;c++) {
         Encounter temp=(Encounter)encounters.get(c);
         if((temp.getAlternateID()!=null)&&(!temp.getAlternateID().equals("None"))&&(!allIDs.contains(temp.getAlternateID()))) {allIDs.add(temp.getAlternateID());}
       }
-      
+
       return allIDs.toString();
     }
 
@@ -981,7 +947,7 @@ public class MarkedIndividual {
   }
 
   public String getPatterningCode(){
-    
+
     int numEncs=encounters.size();
     for(int i=0;i<numEncs;i++){
       Encounter enc=(Encounter)encounters.get(i);
@@ -989,9 +955,9 @@ public class MarkedIndividual {
     }
     return null;
   }
-  
+
   public void setPatterningCode(String newCode){this.patterningCode=newCode;}
-  
+
   public void resetMaxNumYearsBetweenSightings(){
     int maxYears=0;
     int lowestYear=3000;
@@ -1004,5 +970,5 @@ public class MarkedIndividual {
       }
     maxYearsBetweenResightings=maxYears;
     }
-  
+
 }
