@@ -42,7 +42,8 @@ public class SubmitForm extends ActionForm {
   private String mailList = "no";
   private Calendar date = Calendar.getInstance();
   private String uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
-  private double size = 0, depth = -1000;
+  private Double size, depth;
+  private Double elevation;
   private String measureUnits = "", location = "", sex = "unknown", comments = "", primaryImageName = "", guess = "no estimate provided";
   private String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "";
   private String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
@@ -90,8 +91,9 @@ public class SubmitForm extends ActionForm {
     mailList = "no";
     date = Calendar.getInstance();
     uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
-    size = 0;
-    depth = -1000;
+    size = null;
+    depth = null;
+    elevation = null;
     measureUnits = "";
     location = "";
     sex = "unknown";
@@ -160,20 +162,28 @@ public class SubmitForm extends ActionForm {
     this.submitterID = submitterID;
   }
 
-  public double getSize() {
+  public Double getSize() {
     return this.size;
   }
 
-  public void setSize(double size) {
+  public void setSize(Double size) {
     this.size = size;
   }
 
-  public double getDepth() {
+  public Double getDepth() {
     return this.depth;
   }
 
-  public void setDepth(double depth) {
+  public void setDepth(Double depth) {
     this.depth = depth;
+  }
+
+  public Double getElevation() {
+    return this.elevation;
+  }
+
+  public void setElevation(Double elevation) {
+    this.elevation = elevation;
   }
 
   public String getMeasureUnits() {

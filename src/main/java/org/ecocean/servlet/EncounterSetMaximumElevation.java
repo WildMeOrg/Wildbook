@@ -60,28 +60,7 @@ public class EncounterSetMaximumElevation extends HttpServlet {
     //boolean isOwner = true;
     String newElev = "unknown";
 
-    /**
-     if(request.getParameter("number")!=null){
-     myShepherd.beginDBTransaction();
-     if(myShepherd.isEncounter(request.getParameter("number"))) {
-     Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-     String locCode=verifyMyOwner.getLocationCode();
 
-     //check if the encounter is assigned
-     if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-     isOwner=true;
-     }
-
-     //if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-     else if((request.isUserInRole("admin"))){
-     isOwner=true;
-     }
-     //if they have general location code permissions for the encounter's location code
-     else if(request.isUserInRole(locCode)){isOwner=true;}
-     }
-     myShepherd.rollbackDBTransaction();
-     }
-     */
 
     //reset encounter elevation in meters
 
@@ -95,7 +74,7 @@ public class EncounterSetMaximumElevation extends HttpServlet {
       try {
         oldElev = changeMe.getMaximumElevationInMeters();
 
-        double elevation = new Double(request.getParameter("elevation"));
+        Double elevation = new Double(request.getParameter("elevation"));
 
         changeMe.setMaximumElevationInMeters(elevation);
 
@@ -105,7 +84,8 @@ public class EncounterSetMaximumElevation extends HttpServlet {
         }
 
         changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed reported elevation from " + oldElev + " meters to " + newElev + " meters.</p>");
-      } catch (NumberFormatException nfe) {
+      }
+      catch (NumberFormatException nfe) {
         System.out.println("Bad numeric input on attempt to change elevation for the encounter.");
         locked = true;
         nfe.printStackTrace();
@@ -152,5 +132,5 @@ public class EncounterSetMaximumElevation extends HttpServlet {
     myShepherd.closeDBTransaction();
   }
 }
-  
-  
+
+

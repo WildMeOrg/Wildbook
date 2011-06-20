@@ -59,32 +59,12 @@ public class EncounterSetMaximumDepth extends HttpServlet {
     boolean locked = false;
     boolean isOwner = true;
 
-    /**
-     if(request.getParameter("number")!=null){
-     myShepherd.beginDBTransaction();
-     if(myShepherd.isEncounter(request.getParameter("number"))) {
-     Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-     String locCode=verifyMyOwner.getLocationCode();
+    String newDep="null";
 
-     //check if the encounter is assigned
-     if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-     isOwner=true;
-     }
-
-     //if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-     else if((request.isUserInRole("admin"))){
-     isOwner=true;
-     }
-     //if they have general location code permissions for the encounter's location code
-     else if(request.isUserInRole(locCode)){isOwner=true;}
-     }
-     myShepherd.rollbackDBTransaction();
-     }
-     */
 
     //reset encounter depth in meters
 
-    if ((request.getParameter("number") != null) && (request.getParameter("depth") != null) && (!request.getParameter("depth").equals(""))) {
+    if ((request.getParameter("number") != null)  && (!request.getParameter("depth").equals(""))) {
       myShepherd.beginDBTransaction();
       Encounter changeMe = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(changeMe);
@@ -93,12 +73,16 @@ public class EncounterSetMaximumDepth extends HttpServlet {
 
       try {
         oldDepth = changeMe.getDepth();
-        double theDepth = (new Double(request.getParameter("depth"))).doubleValue();
-        changeMe.setDepth(theDepth);
-        String newDep = request.getParameter("depth");
-        if (theDepth < 0) {
-          newDep = "Unknown";
-        }
+        if(request.getParameter("depth") != null){
+			Double theDepth = new Double(request.getParameter("depth"));
+        	changeMe.setDepth(theDepth);
+        	newDep = request.getParameter("depth");
+		}
+		else{
+			changeMe.setDepth(null);
+		}
+
+
         changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed encounter depth from " + oldDepth + " meters to " + newDep + " meters.</p>");
       } catch (NumberFormatException nfe) {
         System.out.println("Bad numeric input on attempt to change depth for the encounter.");
@@ -147,5 +131,5 @@ public class EncounterSetMaximumDepth extends HttpServlet {
     myShepherd.closeDBTransaction();
   }
 }
-	
-	
+
+
