@@ -47,17 +47,46 @@ while(allSharks.hasNext()){
 			<encounter number="<%=enc.getCatalogNumber()%>" href="http://www.whaleshark.org/encounters/encounter.jsp?number=<%=enc.getCatalogNumber()%>">
 
 			<%			
-			int numPhotos=enc.getAdditionalImageNames().size();
-			for(int i=0;i<numPhotos; i++){
+			
+			//process the submitted photos
+			if(request.getParameter("extractOnly")==null){
+				int numPhotos=enc.getAdditionalImageNames().size();
+				for(int i=0;i<numPhotos; i++){
 	
-				String imagePath=(String)enc.getAdditionalImageNames().get(i);
-				%>
+					String imagePath=(String)enc.getAdditionalImageNames().get(i);
+					%>
 		
-				<img href="http://www.whaleshark.org/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
+					<img href="http://www.whaleshark.org/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
 		
-				<%
+					<%
 	
+				}
 			}
+			
+			//process the extracted photos
+			
+			//process left
+			if((request.getParameter("left")!=null)&&(enc.getSpotImageFileName()!=null)&&(!enc.getSpotImageFileName().trim().equals(""))){
+				String imagePath=enc.getSpotImageFileName();
+				%>
+					
+					<img href="http://www.whaleshark.org/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
+					
+				<%
+			}
+			
+				//process right
+				if((request.getParameter("right")!=null)&&(enc.getRightSpotImageFileName()!=null)&&(!enc.getRightSpotImageFileName().trim().equals(""))){
+						String imagePath=enc.getRightSpotImageFileName();
+						%>
+							
+							<img href="http://www.whaleshark.org/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
+							
+						<%
+			}
+			
+			
+			
 			%>
 			</encounter>
 			<%
