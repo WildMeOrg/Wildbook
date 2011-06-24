@@ -73,10 +73,10 @@ public class EncounterSetMaximumDepth extends HttpServlet {
 
       try {
         if(changeMe.getMaximumDepthInMeters()!=null){
-          
+
           oldDepth = changeMe.getMaximumDepthInMeters().toString();
         }
-        
+
         if((request.getParameter("depth") != null)&&(!request.getParameter("depth").equals(""))){
           Double theDepth = new Double(request.getParameter("depth"));
         	changeMe.setDepth(theDepth);
@@ -105,7 +105,7 @@ public class EncounterSetMaximumDepth extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success:</strong> Encounter size has been updated from " + oldDepth + " meters to " + newDep+".");
+        out.println("<strong>Success:</strong> Encounter depth has been updated from " + oldDepth + " meters to " + newDep+".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
         out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
