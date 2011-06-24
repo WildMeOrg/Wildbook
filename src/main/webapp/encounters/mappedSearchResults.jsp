@@ -303,7 +303,7 @@
       Element point = placeMark.addElement("Point");
       Element coords = point.addElement("coordinates");
       String coordsString = enc.getDWCDecimalLongitude() + "," + enc.getDWCDecimalLatitude();
-      if (enc.getMaximumElevationInMeters() != 0.0) {
+      if (enc.getMaximumElevationInMeters() != null) {
         coordsString += "," + enc.getMaximumElevationInMeters();
       } else {
         coordsString += ",0";
