@@ -94,7 +94,7 @@ public class WriteOutScanTask extends HttpServlet {
         Encounter newEnc = myShepherd.getEncounter(encNumber);
         newEncDate = newEnc.getDate();
         newEncShark = newEnc.isAssignedToMarkedIndividual();
-        newEncSize = (new Double(newEnc.getSize())).toString() + " meters";
+        if(newEnc.getSizeAsDouble()!=null){newEncSize = newEnc.getSize() + " meters";}
 
         MatchObject[] res = new MatchObject[0];
 
@@ -266,7 +266,7 @@ public class WriteOutScanTask extends HttpServlet {
         } else {
           wis = gm.getRemainingWorkItemsForTask("FalseMatchTask");
 
-          System.out.println("wis size in writeOutScanTask is: " + wis.size());
+          //System.out.println("wis size in writeOutScanTask is: " + wis.size());
 
         }
 
@@ -355,7 +355,7 @@ public class WriteOutScanTask extends HttpServlet {
           predictInput[8] = Integer.toString(keywordsSize);
 
           String sizeDiffString = "unknown";
-          if ((encA.getSize() > 0) && (encB.getSize() > 0)) {
+          if ((encA.getSizeAsDouble()!=null)&&(encB.getSizeAsDouble()!=null)&&(encA.getSize() > 0) && (encB.getSize() > 0)) {
             double sizeDiff = Math.abs((encA.getSize() - encB.getSize()));
             if (sizeDiff <= 2.0) {
               sizeDiffString = "small";
@@ -614,7 +614,7 @@ public class WriteOutScanTask extends HttpServlet {
           enc.addAttribute("date", firstEnc.getDate());
           enc.addAttribute("sex", firstEnc.getSex());
           enc.addAttribute("assignedToShark", firstEnc.getIndividualID());
-          enc.addAttribute("size", ((new Double(firstEnc.getSize())).toString() + " meters"));
+          if(firstEnc.getSizeAsDouble()!=null){enc.addAttribute("size", (firstEnc.getSize() + " meters"));}
           enc.addAttribute("location", firstEnc.getLocation());
           enc.addAttribute("locationID", firstEnc.getLocationID());
           VertexPointMatch[] firstScores = mo.getScores();
@@ -632,7 +632,8 @@ public class WriteOutScanTask extends HttpServlet {
           enc2.addAttribute("date", secondEnc.getDate());
           enc2.addAttribute("sex", secondEnc.getSex());
           enc2.addAttribute("assignedToShark", secondEnc.getIndividualID());
-          enc2.addAttribute("size", (secondEnc.getSize() + " meters"));
+          if(secondEnc.getSizeAsDouble()!=null){enc2.addAttribute("size", (secondEnc.getSize() + " meters"));}
+          else{enc2.addAttribute("size", "unknown");}
           enc2.addAttribute("location", secondEnc.getLocation());
           enc2.addAttribute("locationID", secondEnc.getLocationID());
           try {

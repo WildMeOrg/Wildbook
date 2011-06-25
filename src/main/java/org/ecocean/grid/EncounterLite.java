@@ -68,7 +68,7 @@ public class EncounterLite implements java.io.Serializable {
     this.encounterNumber = enc.getEncounterNumber();
     this.belongsToMarkedIndividual = enc.isAssignedToMarkedIndividual();
     this.sex = enc.getSex();
-    this.size = enc.getSize();
+    //this.size = enc.getSize();
     /*if(enc.getSpots()!=null) {
         this.spots=new superSpot[enc.getSpots().length];
     }
