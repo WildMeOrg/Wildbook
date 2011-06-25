@@ -64,32 +64,38 @@ public class EncounterSetMaximumDepth extends HttpServlet {
 
     //reset encounter depth in meters
 
-    if ((request.getParameter("number") != null)  && (!request.getParameter("depth").equals(""))) {
+    if (request.getParameter("number") != null) {
       myShepherd.beginDBTransaction();
       Encounter changeMe = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(changeMe);
-      double oldDepth = -1;
+      String oldDepth = "null";
 
 
       try {
-        oldDepth = changeMe.getDepth();
-        if(request.getParameter("depth") != null){
-			Double theDepth = new Double(request.getParameter("depth"));
+        if(changeMe.getMaximumDepthInMeters()!=null){
+
+          oldDepth = changeMe.getMaximumDepthInMeters().toString();
+        }
+
+        if((request.getParameter("depth") != null)&&(!request.getParameter("depth").equals(""))){
+          Double theDepth = new Double(request.getParameter("depth"));
         	changeMe.setDepth(theDepth);
-        	newDep = request.getParameter("depth");
-		}
-		else{
-			changeMe.setDepth(null);
-		}
+        	newDep = request.getParameter("depth")+ " meters";
+        }
+        else{
+          changeMe.setDepth(null);
+        }
 
 
-        changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed encounter depth from " + oldDepth + " meters to " + newDep + " meters.</p>");
-      } catch (NumberFormatException nfe) {
+        changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed encounter depth from " + oldDepth + " meters to " + newDep +".</p>");
+      }
+      catch (NumberFormatException nfe) {
         System.out.println("Bad numeric input on attempt to change depth for the encounter.");
         locked = true;
         nfe.printStackTrace();
         myShepherd.rollbackDBTransaction();
-      } catch (Exception le) {
+      }
+      catch (Exception le) {
         locked = true;
         le.printStackTrace();
         myShepherd.rollbackDBTransaction();
@@ -99,14 +105,15 @@ public class EncounterSetMaximumDepth extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success:</strong> Encounter size has been updated from " + oldDepth + " meters to " + request.getParameter("depth") + " meters.");
+        out.println("<strong>Success:</strong> Encounter depth has been updated from " + oldDepth + " meters to " + newDep+".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
         out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter());
         String message = "The size of encounter#" + request.getParameter("number") + " has been updated from " + oldDepth + " meters to " + request.getParameter("depth") + " meters.";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
-      } else {
+      }
+      else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Encounter depth was NOT updated because another user is currently modifying the record for this encounter or the value input does not translate to a valid depth number.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
@@ -116,7 +123,8 @@ public class EncounterSetMaximumDepth extends HttpServlet {
 
 
       }
-    } else {
+    }
+    else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");

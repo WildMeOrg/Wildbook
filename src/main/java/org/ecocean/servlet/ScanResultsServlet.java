@@ -178,7 +178,7 @@ public class ScanResultsServlet extends HttpServlet {
       Encounter newEnc = myShepherd.getEncounter(num);
       newEncDate = newEnc.getDate();
       newEncShark = newEnc.isAssignedToMarkedIndividual();
-      newEncSize = (new Double(newEnc.getSize())).toString() + " meters";
+      newEncSize = newEnc.getSize() + " meters";
 
     } catch (Exception jdoe) {
       jdoe.printStackTrace();
