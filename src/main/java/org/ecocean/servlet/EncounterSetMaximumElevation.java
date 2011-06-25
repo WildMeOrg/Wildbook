@@ -58,32 +58,34 @@ public class EncounterSetMaximumElevation extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
     //boolean isOwner = true;
-    String newElev = "unknown";
+    String newElev = "null";
 
 
 
     //reset encounter elevation in meters
 
-    if ((request.getParameter("number") != null) && (request.getParameter("elevation") != null) && (!request.getParameter("elevation").equals(""))) {
+    if (request.getParameter("number") != null ) {
       myShepherd.beginDBTransaction();
       Encounter changeMe = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(changeMe);
-      double oldElev = -1;
+      String oldElev = "null";
 
 
       try {
-        oldElev = changeMe.getMaximumElevationInMeters();
-
-        Double elevation = new Double(request.getParameter("elevation"));
-
-        changeMe.setMaximumElevationInMeters(elevation);
-
-
-        if (elevation > -99999) {
-          newElev = Double.toString(elevation);
+        if(changeMe.getMaximumElevationInMeters()!=null){
+          oldElev = changeMe.getMaximumElevationInMeters().toString()+" meters";
         }
 
-        changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed reported elevation from " + oldElev + " meters to " + newElev + " meters.</p>");
+        if((request.getParameter("elevation")!=null)&&(!request.getParameter("elevation").equals(""))){
+          Double elevation = new Double(request.getParameter("elevation"));
+          changeMe.setMaximumElevationInMeters(elevation);
+          newElev = elevation.toString()+" meters";
+        }
+        else{
+          changeMe.setMaximumElevationInMeters(null);
+        }
+
+        changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed reported elevation from " + oldElev + " to " + newElev + ".</p>");
       }
       catch (NumberFormatException nfe) {
         System.out.println("Bad numeric input on attempt to change elevation for the encounter.");
@@ -100,7 +102,7 @@ public class EncounterSetMaximumElevation extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success:</strong> Encounter elevation has been updated from " + oldElev + " meters to " + newElev + " meters.");
+        out.println("<strong>Success:</strong> Encounter elevation has been updated from " + oldElev + " to " + newElev + ".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
         out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
         out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");

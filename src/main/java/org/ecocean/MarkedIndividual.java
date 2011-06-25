@@ -970,39 +970,5 @@ public class MarkedIndividual {
       }
     maxYearsBetweenResightings=maxYears;
     }
-  
-  public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay, String locCode) {
-    int endYear = m_endYear;
-    int endMonth = m_endMonth;
-    int endDay = m_endDay;
-    int startYear = m_startYear;
-    int startMonth = m_startMonth;
-    int startDay = m_startDay;
-    
-    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, startDay);
-    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, endDay);
-    
-    boolean left=false;
-    boolean right=false;
-
-
-    for (int c = 0; c < encounters.size(); c++) {
-      Encounter temp = (Encounter) encounters.get(c);
-
-      if (temp.getLocationCode().startsWith(locCode)) {
-
-        if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
-          if(temp.getNumRightSpots()>0){right=true;}
-          if(temp.getNumSpots()>0){left=true;}
-        }
-      }
-    }
-    if(left&&right){return "3";}
-    else if(left){return "1";}
-    else if(right){return "2";}
-    else{
-      return "0";
-    }
-  }
 
 }
