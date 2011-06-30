@@ -2280,7 +2280,7 @@ else {
       :</strong> <%=addTextFile%> <%
       if (isOwner && CommonConfiguration.isCatalogEditable()) {
     %> <br/>
-    <a href="/encounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>"><%=encprops.getProperty("clickremove") %>
+    <a href="/EncounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>"><%=encprops.getProperty("clickremove") %>
     </a></p>
     <%
       }
