@@ -226,7 +226,7 @@ while(it.hasNext()) {
 
 	
 	//examine ningaloo length data
-	if((tempEnc.getLocationCode().startsWith("1a"))&&(tempEnc.getYear()>=1995)&&(tempEnc.getYear()<=nowYear)&&(tempEnc.getSize()>0)) {
+	if((tempEnc.getLocationCode().startsWith("1a"))&&(tempEnc.getYear()>=1995)&&(tempEnc.getYear()<=nowYear)&&((tempEnc.getSizeAsDouble()!=null)&&(tempEnc.getSize()>0))) {
 		int thisYearDiff=tempEnc.getYear()-1995;
 		avgLength[thisYearDiff]=avgLength[thisYearDiff]+tempEnc.getSize();
 		numLengthEncounters[thisYearDiff]++;
@@ -283,7 +283,7 @@ while(it.hasNext()) {
 		}	
 		
 		
-		if((enc.getLocationCode().equals("1a1"))&&(enc.getSize()>0)&&(enc.getYear()>=1995)&&(enc.getYear()<=nowYear)){
+		if((enc.getLocationCode().equals("1a1"))&&((enc.getSizeAsDouble()!=null)&&(enc.getSize()>0))&&(enc.getYear()>=1995)&&(enc.getYear()<=nowYear)){
 			if(tempShark.getMaxNumYearsBetweenSightings()>0) {
 				sb_allLengthsAllYears.append(tempShark.getName()+"\t"+enc.getSize()+"\t"+enc.getYear()+"\t"+"p"+"<br>");
 			}
@@ -569,7 +569,7 @@ try{
 				int encsLength=encs.length-1;
 				for(int j=encsLength;j>=0;j--) {
 					Encounter enc=encs[j];
-					if(enc.getSize()>0) {hasLength=true;}
+					if((enc.getSizeAsDouble()!=null)&&(enc.getSize()>0)) {hasLength=true;}
 					int year=enc.getYear();
 					boolean foundThisYear=false;
 					boolean onlyOnce=false;
@@ -618,7 +618,9 @@ try{
 	} //end while
 	
 }
-catch(Exception e) {}
+catch(Exception e) {
+	e.printStackTrace();
+}
 %>
 </table>
 <p>&nbsp; </p>
