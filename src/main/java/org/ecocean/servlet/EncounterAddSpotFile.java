@@ -36,8 +36,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-//import com.poet.jdo.*;
 
+/**
+ * 
+ * This servlet allows the user to upload an extracted, processed patterning file that corresponds to 
+ * a previously uploaded set of spots. This file is then used for visualization of the extracted pattern
+ * and visualizations of potentially matched spots.
+ * @author jholmber
+ *
+ */
 public class EncounterAddSpotFile extends HttpServlet {
 
 
@@ -91,7 +98,7 @@ public class EncounterAddSpotFile extends HttpServlet {
         if (part.isFile()) {
           FilePart filePart = (FilePart) part;
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());
-          if (fileName != null) {
+          if ((fileName != null)&&(myShepherd.isAcceptableImageFile(fileName))) {
             File thisSharkDir = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + encounterNumber)));
 
 
@@ -123,14 +130,18 @@ public class EncounterAddSpotFile extends HttpServlet {
 
 
           }
+          else{
+            locked = true;
+            myShepherd.rollbackDBTransaction();
+          }
         }
       }
 
 
-      System.out.println(encounterNumber);
-      System.out.println(fileName);
+      //System.out.println(encounterNumber);
+      //System.out.println(fileName);
       myShepherd.beginDBTransaction();
-      if (myShepherd.isEncounter(encounterNumber)) {
+      if ((myShepherd.isEncounter(encounterNumber))&&!locked) {
         Encounter add2shark = myShepherd.getEncounter(encounterNumber);
         try {
           if (side.equals("right")) {
@@ -176,7 +187,7 @@ public class EncounterAddSpotFile extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> I was unable to upload your file. I cannot find the encounter that you intended it for in the database.");
+        out.println("<strong>Error:</strong> I was unable to upload your file. I cannot find the encounter that you intended it for in the database, or the file type uploaded is not supported.");
         out.println(ServletUtilities.getFooter());
       }
     } catch (IOException lEx) {
