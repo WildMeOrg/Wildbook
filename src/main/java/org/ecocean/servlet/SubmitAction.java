@@ -386,7 +386,13 @@ public class SubmitAction extends Action {
         		truncDepth = truncDepth.substring(0, sizePeriod + 2);
         		depth = (new Double(truncDepth)).toString();
 			}
-			catch(NullPointerException npe){}
+			catch(java.lang.NumberFormatException nfe){
+				enc.addComments("<p>Reported depth was problematic: " + depth + "</p>");
+				depth="";
+			}
+			catch(NullPointerException npe){
+				depth="";
+			}
 		}
 
 		if(!elevation.equals("")){
@@ -398,23 +404,49 @@ public class SubmitAction extends Action {
 				truncElev = truncElev.substring(0, sizePeriod + 2);
         		elevation = (new Double(truncElev)).toString();
 			}
-			catch(NullPointerException npe){}
+			catch(java.lang.NumberFormatException nfe){
+				enc.addComments("<p>Reported elevation was problematic: " + elevation + "</p>");
+				elevation="";
+			}
+			catch(NullPointerException npe){
+				elevation="";
+			}
 		}
 		if(!size.equals("")){
+
+
+
 			try{
-						double tempDouble=(new Double(size)).doubleValue()/3.3;
-        		String truncSize = (new Double(tempDouble)).toString();
+					double tempDouble=(new Double(size)).doubleValue()/3.3;
+        			String truncSize = (new Double(tempDouble)).toString();
 					//String truncSize = ((new Double(size)) / 3.3).toString();
 				    sizePeriod = truncSize.indexOf(".");
 					truncSize = truncSize.substring(0, sizePeriod + 2);
 		        	size = (new Double(truncSize)).toString();
 			}
-			catch(NullPointerException npe){}
+			catch(java.lang.NumberFormatException nfe){
+
+				enc.addComments("<p>Reported size was problematic: " + size + "</p>");
+				size="";
+			}
+			catch(NullPointerException npe){
+				size="";
+			}
 		}
       }
 
       if (!size.equals("")) {
-        enc.setSize(new Double(size));
+        try{
+        	enc.setSize(new Double(size));
+        }
+					catch(java.lang.NumberFormatException nfe){
+
+						enc.addComments("<p>Reported size was problematic: " + size + "</p>");
+						size="";
+					}
+					catch(NullPointerException npe){
+						size="";
+			}
       }
 
 		//System.out.println("Depth in SubmitForm is:"+depth);
@@ -422,14 +454,26 @@ public class SubmitAction extends Action {
 		try{
         	enc.setDepth(new Double(depth));
 		}
-		catch(NullPointerException npe){}
+					catch(java.lang.NumberFormatException nfe){
+						enc.addComments("<p>Reported depth was problematic: " + depth + "</p>");
+						depth="";
+					}
+					catch(NullPointerException npe){
+						depth="";
+			}
       }
 
       if (!elevation.equals("")) {
 		try{
 	    	enc.setMaximumElevationInMeters(new Double(elevation));
 	    }
-	    catch(NullPointerException npe){}
+					catch(java.lang.NumberFormatException nfe){
+						enc.addComments("<p>Reported elevation was problematic: " + elevation + "</p>");
+						elevation="";
+					}
+					catch(NullPointerException npe){
+						elevation="";
+			}
       }
 
 
