@@ -191,7 +191,17 @@ public class CommonConfiguration {
     return props.getProperty(name);
   }
 
+  /*
+   * This method is used to determined the show/hide condition of an element of the UI.
+   * It simply looks to see if a property is defined AND if the property is false.
+   * For any other value or if the value is absent, the method returns true. Thsi means that conditional elements
+   * are shown by default. 
+   * 
+   * @param thisString The name of the property to show/hide.
+   * @return true if the property is not defined or has any other value than "false". Otherwise, returns false.
+   */
   public static boolean showProperty(String thisString) {
+    if((getProperty(thisString)!=null)&&(getProperty(thisString).equals("false"))){return false;}
     return true;
   }
 
