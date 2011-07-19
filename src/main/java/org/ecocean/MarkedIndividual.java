@@ -248,7 +248,7 @@ public class MarkedIndividual {
     double avg = 0;
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if ((temp.getYear() == year) && (temp.getSize() > 0.01)) {
+      if ((temp.getYear() == year) && ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0))) {
         total += temp.getSize();
         numLengths++;
       }
@@ -266,7 +266,7 @@ public class MarkedIndividual {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
       if (temp.getYear() == year) {
-        if (temp.getSize() > 0.01) {
+        if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
           if ((temp.getSizeGuess().equals("directly measured")) || ((allowGuideGuess) && (temp.getSizeGuess().equals("guide/researcher's guess")))) {
 
             total += temp.getSize();
@@ -325,10 +325,10 @@ public class MarkedIndividual {
     int startYear = m_startYear;
     int startMonth = m_startMonth;
 
-    
+
     GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, 1);
     GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, 31);
-    
+
 
 
     for (int c = 0; c < encounters.size(); c++) {
@@ -391,10 +391,10 @@ public class MarkedIndividual {
 
     int startYear = m_startYear;
     int startMonth = m_startMonth;
-    
+
     GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, 1);
     GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, 31);
-    
+
 
 
     for (int c = 0; c < encounters.size(); c++) {
@@ -569,7 +569,7 @@ public class MarkedIndividual {
     double lastSize = 0;
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if (temp.getSize() > lastSize) {
+      if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > lastSize)) {
         lastSize = temp.getSize();
       }
     }
@@ -764,22 +764,22 @@ public class MarkedIndividual {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
       if ((temp.getYear() > startYear) && (temp.getYear() < endYear)) {
-        if (temp.getSize() > 0.0) {
+        if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
           avgLength += temp.getSize();
           numMeasurements++;
         }
       } else if ((temp.getYear() == startYear) && (temp.getYear() < endYear) && (temp.getMonth() >= startMonth)) {
-        if (temp.getSize() > 0.0) {
+        if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
           avgLength += temp.getSize();
           numMeasurements++;
         }
       } else if ((temp.getYear() > startYear) && (temp.getYear() == endYear) && (temp.getMonth() <= endMonth)) {
-        if (temp.getSize() > 0.0) {
+        if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
           avgLength += temp.getSize();
           numMeasurements++;
         }
       } else if ((temp.getYear() >= startYear) && (temp.getYear() <= endYear) && (temp.getMonth() >= startMonth) && (temp.getMonth() <= endMonth)) {
-        if (temp.getSize() > 0.0) {
+        if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
           avgLength += temp.getSize();
           numMeasurements++;
         }
@@ -970,7 +970,7 @@ public class MarkedIndividual {
       }
     maxYearsBetweenResightings=maxYears;
     }
-  
+
   public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay, String locCode) {
     int endYear = m_endYear;
     int endMonth = m_endMonth;
@@ -978,10 +978,10 @@ public class MarkedIndividual {
     int startYear = m_startYear;
     int startMonth = m_startMonth;
     int startDay = m_startDay;
-    
+
     GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, startDay);
     GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, endDay);
-    
+
     boolean left=false;
     boolean right=false;
 
