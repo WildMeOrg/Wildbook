@@ -1,0 +1,15 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=12
+#PBS -l walltime=06:30:00
+#PBS -W group_list=partner83
+
+. /etc/profile.d/modules.sh
+module load java
+
+cd /home/jholmberg/sharkGridHeadless_1.22
+
+java -classpath .:jdo2-api-2.3-eb.jar:jpox-java5-1.1.9.jar -Xms1024m -Xmx6144m -Djava.awt.headlesslib=true org.ecocean.grid.WorkAppletHeadlessEpic
+
+cd /home/jholmberg
+
+rm -f goGrid.*
