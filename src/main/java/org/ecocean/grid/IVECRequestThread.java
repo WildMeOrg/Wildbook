@@ -19,7 +19,7 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 	public boolean finished=false;
 	String hostname = "";
 	String username = "jholmberg";
-	String password = "wa?digra";
+	String password = "";
 
 	/**Constructor to create a new thread object*/
 	public IVECRequestThread(String hostname, String username, String password) {
@@ -86,7 +86,8 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 				int myChar=br.read();
 				System.out.print((char)myChar);
 				sb.append((char)myChar);
-				if ((hostname.equals("xe.ivec.org"))&&(sb.toString().indexOf("jholmberg@xeuser")!=-1)) {break;}
+				if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser1")!=-1)) {break;}
+				else if ((hostname.equals("xe.ivec.org"))&&(sb.toString().indexOf("jholmberg@xeuser")!=-1)) {break;}
 				else if ((hostname.equals("cognac.ivec.org"))&&(sb.toString().indexOf("-bash-")!=-1)) {break;}
 
 			}
@@ -109,7 +110,8 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 				int myChar=br.read();
 				System.out.print((char)myChar);
 				sb.append((char)myChar);
-				if ((hostname.equals("xe.ivec.org"))&&(sb.toString().indexOf("jholmberg@xeuser")!=-1)) {break;}
+				if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser1")!=-1)) {break;}
+				else if ((hostname.equals("xe.ivec.org"))&&(sb.toString().indexOf("jholmberg@xeuser")!=-1)) {break;}
 				else if ((hostname.equals("cognac.ivec.org"))&&(sb.toString().indexOf("-bash-")!=-1)) {break;}
 
 
@@ -123,7 +125,7 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 			int numUnfullfilledRequests=0;
 
 			if (hostname.equals("xe.ivec.org")) {numUnfullfilledRequests=countOccurrences(sb.toString(),".xe");}
-			else if (hostname.equals("xe.ivec.org")) {numUnfullfilledRequests=countOccurrences(sb.toString(),".epic");}
+			else if (hostname.equals("epic.ivec.org")) {numUnfullfilledRequests=countOccurrences(sb.toString(),".epic");}
 			else if (hostname.equals("cognac.ivec.org")) {numUnfullfilledRequests=countOccurrences(sb.toString(),".beer");}
 
 
@@ -151,7 +153,7 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 					//System.out.print((char)myChar);
 					sb.append((char)myChar);
 					if ((hostname.equals("xe.ivec.org"))&&(sb.toString().indexOf("jholmberg@xeuser")!=-1)) {break;}
-					else if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser")!=-1)) {break;}
+					else if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser1")!=-1)) {break;}
 					else if ((hostname.equals("cognac.ivec.org"))&&(sb.toString().indexOf("-bash-")!=-1)) {break;}
 
 
