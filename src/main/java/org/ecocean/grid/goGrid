@@ -8,8 +8,7 @@ module load java
 
 cd /home/jholmberg/sharkGridHeadless_1.22
 
-java -classpath .:jdo2-api-2.3-eb.jar:jpox-java5-1.1.9.jar -Xms1024m -Xmx6144m -Djava.awt.headlesslib=true org.ecocean.grid.WorkAppletHeadlessEpic
-
+l
 cd /home/jholmberg
 
 rm -f goGrid.*
