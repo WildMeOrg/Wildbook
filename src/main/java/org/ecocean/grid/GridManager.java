@@ -36,7 +36,7 @@ public class GridManager {
   public long checkoutTimeout = 120000;
   public int groupSize = 20;
   public int creationDeletionThreadQueueSize = 1;
-  public int scanTaskLimit = 50;
+  public int scanTaskLimit = 150;
   private long lastGridStatsQuery = 1;
   private long gridStatsRefreshPeriod = 300000;
   private int numScanTasks = 0;
@@ -567,5 +567,5 @@ public class GridManager {
 
   }
 
-}	
+}
 
