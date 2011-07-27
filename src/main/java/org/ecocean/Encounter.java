@@ -276,7 +276,9 @@ public class Encounter implements java.io.Serializable {
    * Sets the recorded length of the shark for this encounter.
    */
   public void setSize(Double mysize) {
-    size = mysize;
+	  if(mysize!=null){size = mysize;}
+	  else{size=null;}
+
   }
 
   /**
@@ -287,7 +289,7 @@ public class Encounter implements java.io.Serializable {
   public double getSize() {
     return size.doubleValue();
   }
-  
+
   public Double getSizeAsDouble() {
     return size;
   }
@@ -510,8 +512,9 @@ public class Encounter implements java.io.Serializable {
   /**
    * Sets the recorded depth of this encounter.
    */
-  public void setDepth(Double mydepth) {
-    maximumDepthInMeters = mydepth;
+  public void setDepth(Double myDepth) {
+	  if(myDepth!=null){maximumDepthInMeters = myDepth;}
+	  else{maximumDepthInMeters = null;}
   }
 
   /**
@@ -521,6 +524,10 @@ public class Encounter implements java.io.Serializable {
    */
   public double getDepth() {
     return maximumDepthInMeters.doubleValue();
+  }
+
+  public Double getDepthAsDouble(){
+	  return maximumDepthInMeters;
   }
 
 
