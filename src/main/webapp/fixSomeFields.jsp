@@ -58,9 +58,9 @@ while(allEncs.hasNext()){
 	//populate dateInMilliseconds
 	//sharky.resetDateInMilliseconds();
 	
-	if((sharky.getSizeAsDouble()!=null)&&(sharky.getSizeAsDouble()<0.001)){
-		sharky.setSize(null);
-	
+	//fix depth
+	if((sharky.getDepthAsDouble()!=null)&&(sharky.getDepthAsDouble()<=0)){
+		sharky.setDepth(null);
 	}
 	
 	
@@ -72,15 +72,16 @@ while(allEncs.hasNext()){
 	//		sharky.setDecimalLongitude(new Double(sharky.getGPSLongitude()));
 	//}
 }
+/*
+while(allSharks.hasNext()){
 
-//while(allSharks.hasNext()){
-
-	//MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
 	
 	//populate max years between resightings
-	//sharky.resetMaxNumYearsBetweenSightings();
+	sharky.resetMaxNumYearsBetweenSightings();
 	
-//}
+}
+*/
 
 myShepherd.commitDBTransaction();
 	myShepherd.closeDBTransaction();
