@@ -905,7 +905,7 @@
             <url-pattern>/CJS</url-pattern>
             <url-pattern>/InterconnectSubmitSpots</url-pattern>
             <url-pattern>/IndividualAddComment</url-pattern>
-	    <url-pattern>/IndividualCreate</url-pattern>
+	  
 	    <url-pattern>/EncounterSetIdentifiable</url-pattern>
 	    <url-pattern>/EncounterSetDynamicProperty</url-pattern>
 	    <url-pattern>/EncounterSetPatterningCode</url-pattern>
@@ -918,8 +918,7 @@
 	    <url-pattern>/WriteOutScanTask</url-pattern>
 	    <url-pattern>/ResurrectDeletedEncounter</url-pattern>
 	    <url-pattern>/ResurrectDeletedAdoption</url-pattern>
-	     <url-pattern>/IndividualRemoveEncounter</url-pattern>
-	     <url-pattern>/IndividualAddEncounter</url-pattern>
+	     
 	     <url-pattern>/EncounterSetSex</url-pattern>
 	     <url-pattern>/EncounterSetGPS</url-pattern>
 	     <url-pattern>/EncounterSetMaximumDepth</url-pattern>
@@ -932,7 +931,7 @@
 
 	       <url-pattern>/RemoveEmailAddress</url-pattern>
 	       <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
-	       <url-pattern>/EncounterApprove</url-pattern>
+	     
 	       <url-pattern>/IndividualSetSex</url-pattern>
 	       <url-pattern>/CalendarXMLServer2</url-pattern>
 	       <url-pattern>/CalendarXMLServer</url-pattern>
@@ -968,6 +967,38 @@
 	<role-name>manager</role-name>
 	<role-name>local</role-name>
     </auth-constraint>
+  </security-constraint>
+  
+  <security-constraint>
+      <display-name>Limit approvals</display-name>
+      <web-resource-collection>
+        <web-resource-name>Protected Area</web-resource-name>
+        <!-- Define the context-relative URL(s) to be protected -->        
+  	<url-pattern>/EncounterApprove</url-pattern>
+      </web-resource-collection>
+      <auth-constraint>
+        <!-- Anyone with one of the listed roles may access this area -->
+        <role-name>admin</role-name>
+  	<role-name>manager</role-name>
+  	<role-name>approver</role-name>
+      </auth-constraint>
+  </security-constraint>
+  
+    <security-constraint>
+        <display-name>Limit identifications</display-name>
+        <web-resource-collection>
+          <web-resource-name>Protected Area</web-resource-name>
+          <!-- Define the context-relative URL(s) to be protected -->        
+    	<url-pattern>/IndividualRemoveEncounter</url-pattern>
+    	  <url-pattern>/IndividualCreate</url-pattern>
+    	  <url-pattern>/IndividualAddEncounter</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+          <!-- Anyone with one of the listed roles may access this area -->
+          <role-name>admin</role-name>
+    	<role-name>manager</role-name>
+    	<role-name>identifier</role-name>
+        </auth-constraint>
   </security-constraint>
 
 
