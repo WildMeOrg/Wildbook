@@ -40,7 +40,7 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 	private void getIVECNodes() {
 
 		GridManager gm=GridManagerFactory.getGridManager();
-		int maxIVECNodes=8;
+		int maxIVECNodes=10;
 		int currentIVECNodeRequests=0;
 
 
@@ -180,6 +180,10 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 		{
 			e.printStackTrace();
 
+		}
+		catch(Exception excep){
+
+			excep.printStackTrace();
 		}
 
 
