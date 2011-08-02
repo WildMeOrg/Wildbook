@@ -265,12 +265,19 @@
 
 //let's see if this user has ownership and can make edits
       boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
-      String loggedIn = "false";
-      if (session.getAttribute("logged") != null) {
-        Object OBJloggedIn = session.getAttribute("logged");
-        loggedIn = (String) OBJloggedIn;
+      boolean loggedIn = false;
+      try{
+      	if(request.getUserPrincipal()!=null){loggedIn=true;}
       }
+      catch(NullPointerException nullLogged){}
+      
+      //if (session.getAttribute("logged") != null) {
+      //  Object OBJloggedIn = session.getAttribute("logged");
+      //  loggedIn = (String) OBJloggedIn;
+      //}
 //end user identity and authorization check
+
+
 %>
 <table width="720" border="0" cellpadding="3" cellspacing="5">
 <tr>
@@ -377,7 +384,7 @@
     <%
 
 
-      if ((loggedIn.equals("true")) && (enc.getSubmitterID() != null)) {
+      if ((loggedIn) && (enc.getSubmitterID() != null)) {
     %>
     <p class="para"><img align="absmiddle"
                          src="../images/Crystal_Clear_app_Login_Manager.gif"> <%=encprops.getProperty("assigned_user")%>
@@ -402,7 +409,7 @@
  	//start deciding menu bar contents
 
  //if not logged in
-if(loggedIn.equals("false")){
+if(!loggedIn){
 	 
  %>
 <p class="para"><a
@@ -1492,7 +1499,25 @@ if(loggedIn.equals("false")){
     href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
         		}
         		%>
+  <br/>
 
+    <%=encprops.getProperty("verbatimEventDate")%>:
+    <%
+				if(enc.getVerbatimEventDate()!=null){
+				%>
+    <%=enc.getVerbatimEventDate()%>
+    <%
+				}
+				else {
+				%>
+    <%=encprops.getProperty("none") %>
+    <%
+				}
+				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+ 					%> <font size="-1">[<a
+    href="encounter.jsp?number=<%=num%>&edit=verbatimdate#verbatimdate">edit</a>]</font> <%
+        		}
+        		%>
 
 <p class="para"><strong><%=encprops.getProperty("location") %>
 </strong><br/> <%=enc.getLocation()%>
@@ -1572,7 +1597,7 @@ if(loggedIn.equals("false")){
 <p class="para"><strong><%=encprops.getProperty("depth") %>
 </strong><br/>
   <%
-    if (enc.getMaximumDepthInMeters()!=null) {
+    if (enc.getDepthAsDouble() !=null) {
   %> 
   <%=enc.getDepth()%> <%=encprops.getProperty("meters")%> <%
   } else {
@@ -1596,16 +1621,9 @@ if(loggedIn.equals("false")){
 <p class="para"><strong><%=encprops.getProperty("elevation") %>
 </strong><br/>
 
-<%
-if(enc.getMaximumElevationInMeters()!=null){
-%>
-
-  <%=enc.getMaximumElevationInMeters().doubleValue()%> <%=encprops.getProperty("meters")%>
+  <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%>
   <%
-}
-else {
-	  %> <%=encprops.getProperty("unknown") %><%
-	    }
+
 
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %><font size="-1">[<a
@@ -2029,7 +2047,7 @@ else {
     <a href="<%=num%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)"
        title="Click to enlarge">
       <%
-      } else if (isOwner) {
+      } else if (isOwner||(loggedIn)) {
       %>
       <a href="<%=addText%>" 
         <%
@@ -2559,7 +2577,7 @@ catch (Exception e) {
         window.location = "http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>";
       });
       GEvent.addListener(marker1, "mouseover", function() {
-        marker1.openInfoWindowHtml("<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>\"><%=enc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=enc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=enc.getDate()%><br />Sex: <%=enc.getSex()%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
+        marker1.openInfoWindowHtml("<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>\"><%=enc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=enc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=enc.getDate()%><br />Sex: <%=enc.getSex()%><br />Size: <%=enc.getSize()%> m<br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
       });
       map.addOverlay(marker1);
 
@@ -2578,7 +2596,7 @@ catch (Exception e) {
 
 
 
-if(!loggedIn.equals("false")){
+if(!loggedIn){
 %>
 
 <br/>
