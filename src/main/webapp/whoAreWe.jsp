@@ -116,9 +116,13 @@
 			  USA<br />
 			  <a href="mailto:jason@whaleshark.org">jason@whaleshark.org</a></p>
 <p><img src="images/holmberg.jpg" width="450" height="293" border="1" /> </p>
+	<p>&nbsp;</p>
+			<p><strong>ANDREA MARSHALL, Science Coordinator</strong></p>
+			<p>Andrea Marshall is a conservation biologist, working in Mozambique on the  ecology of both species of manta rays. Educated in the United States and Australia, Andrea was the first person in the world to complete a PhD on manta rays. After completing her thesis Andrea stayed on to spearhead the conservation efforts of these species in Mozambique. After almost a decade of work in the region, she founded the Marine Megafauna Association.  Her world-leading manta ray research program examines aspects of their biology, reproductive ecology, habitat use, migrations and social behaviour. Aside from dramatically increasing the level of knowledge on manta rays themselves, Andrea’s discovery of a new giant species of manta ray in 2008 was one of the largest new species to have been described by any scientist in the last 50 years. In addition to her busy international research schedule Andrea spends many months of the year working on conservation initiatives at home and abroad.</p>
+<p><img src="images/AndreaGiantManta2.jpg" width="450" height="300" border="1" /> </p>
 			<p>&nbsp;</p>
 			<p><strong>MARK MCBRIDE, Director</strong></p>
-			<p>Mark McBride is a software developer at Twitter Inc., building APIs that allow developers to access Twitter capabilities. He is also on the board of ECOCEAN USA. He is interested in all aspects of software development, as well as sustainability and conservation<strong>.</strong></p>
+			<p>Mark McBride is a software developer at Twitter Inc., building APIs that allow developers to access Twitter capabilities. He is also on the board of ECOCEAN USA. He is interested in all aspects of software development, as well as sustainability and conservation.</p>
 <p><img src="images/mcbride.jpg" width="450" height="300" border="1" /> </p>
 			<p>&nbsp;</p>
 			<p><strong>BRAD NORMAN, Director</strong></p>
@@ -131,6 +135,11 @@
 			  <a href="mailto:brad@whaleshark.org">brad@whaleshark.org</a></p>
 		
     <p><img src="images/norman.jpg" width="450" height="293" border="1" /></p>
+    
+    <p>&nbsp;</p>
+    			<p><strong>SIMON PIERCE, Science Coordinator</strong></p>
+    			<p>Simon Pierce is a conservation ecologist focusing on threatened marine species, particularly sharks and rays. Simon, a New Zealand native, has been based in Mozambique since 2005 where he leads research efforts on a large year-round aggregation of whale sharks. Simon's whale shark research examines the population ecology, movements and conservation status of these enormous fishes. His research is designed to bridge the gap between science in management in order to develop and implement effective conservation solutions. Simon is a Lead Scientist at the Marine Megafauna Association in Mozambique and Executive Director of Eyes on the Horizon, a national Mozambican marine conservation organisation. He holds a BSc degree from Victoria University of Wellington (NZ) and a BSc (Hons) and PhD from The University of Queensland (Australia).</p>
+<p><img src="images/SimonPierce.jpg" width="450" height="300" border="1" /> </p>
 				
 			<p>&nbsp;</p>
 			<p><strong>ZAID ZAID, Director</strong><br />
