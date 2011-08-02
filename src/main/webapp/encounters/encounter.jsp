@@ -1572,17 +1572,17 @@ if(!loggedIn){
 %>
 <p class="para"><strong><%=encprops.getProperty("size") %>
 </strong><br/> <%
-      				if(enc.getSizeAsDouble()!=null) {%>
+     if(enc.getSizeAsDouble()!=null) {%>
     <%=enc.getSize()%> <%=encprops.getProperty("meters")%>
     <br/> <em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%></em>
     <%
- 					} else {
- 					%>
+   } else {
+   %>
     <%=encprops.getProperty("unknown") %>
     <%
- 					}
+   }
 				
- 					if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
+ if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
   <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
     <%
  					}
@@ -1621,8 +1621,15 @@ if(!loggedIn){
 <p class="para"><strong><%=encprops.getProperty("elevation") %>
 </strong><br/>
 
-  <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%>
+<%
+    if (enc.getMaximumElevationInMeters()!=null) {
+  %> 
+    <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%> <%
+  } else {
+  %> 
+  <%=encprops.getProperty("unknown") %>
   <%
+    }
 
 
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
