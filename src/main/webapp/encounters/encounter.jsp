@@ -265,12 +265,19 @@
 
 //let's see if this user has ownership and can make edits
       boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
-      String loggedIn = "false";
-      if (session.getAttribute("logged") != null) {
-        Object OBJloggedIn = session.getAttribute("logged");
-        loggedIn = (String) OBJloggedIn;
+      boolean loggedIn = false;
+      try{
+      	if(request.getUserPrincipal()!=null){loggedIn=true;}
       }
+      catch(NullPointerException nullLogged){}
+      
+      //if (session.getAttribute("logged") != null) {
+      //  Object OBJloggedIn = session.getAttribute("logged");
+      //  loggedIn = (String) OBJloggedIn;
+      //}
 //end user identity and authorization check
+
+
 %>
 <table width="720" border="0" cellpadding="3" cellspacing="5">
 <tr>
@@ -377,7 +384,7 @@
     <%
 
 
-      if ((loggedIn.equals("true")) && (enc.getSubmitterID() != null)) {
+      if ((loggedIn) && (enc.getSubmitterID() != null)) {
     %>
     <p class="para"><img align="absmiddle"
                          src="../images/Crystal_Clear_app_Login_Manager.gif"> <%=encprops.getProperty("assigned_user")%>
@@ -402,7 +409,7 @@
  	//start deciding menu bar contents
 
  //if not logged in
-if(loggedIn.equals("false")){
+if(!loggedIn){
 	 
  %>
 <p class="para"><a
@@ -1565,7 +1572,7 @@ if(loggedIn.equals("false")){
 %>
 <p class="para"><strong><%=encprops.getProperty("size") %>
 </strong><br/> <%
-      				if(enc.getSize()>0) {%>
+      				if(enc.getSizeAsDouble()!=null) {%>
     <%=enc.getSize()%> <%=encprops.getProperty("meters")%>
     <br/> <em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%></em>
     <%
@@ -1590,7 +1597,7 @@ if(loggedIn.equals("false")){
 <p class="para"><strong><%=encprops.getProperty("depth") %>
 </strong><br/>
   <%
-    if (enc.getDepth() >= 0) {
+    if (enc.getDepthAsDouble() !=null) {
   %> 
   <%=enc.getDepth()%> <%=encprops.getProperty("meters")%> <%
   } else {
@@ -2040,7 +2047,7 @@ if(loggedIn.equals("false")){
     <a href="<%=num%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)"
        title="Click to enlarge">
       <%
-      } else if (isOwner) {
+      } else if (isOwner||(loggedIn)) {
       %>
       <a href="<%=addText%>" 
         <%
@@ -2589,7 +2596,7 @@ catch (Exception e) {
 
 
 
-if(!loggedIn.equals("false")){
+if(!loggedIn){
 %>
 
 <br/>
