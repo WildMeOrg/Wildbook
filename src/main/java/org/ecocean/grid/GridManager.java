@@ -489,12 +489,15 @@ public class GridManager {
 
   public int getNumWorkItemsIncompleteForTask(String taskID) {
     int num = 0;
-    int iter = toDo.size();
-    for (int i = 0; i < iter; i++) {
-      if (toDo.get(i).getTaskIdentifier().equals(taskID)) {
-        num++;
-      }
-    }
+    try{
+    	int iter = toDo.size();
+    	for (int i = 0; i < iter; i++) {
+      		if (toDo.get(i).getTaskIdentifier().equals(taskID)) {
+      		  	num++;
+      		}
+    	}
+	}
+	catch(Exception e){e.printStackTrace();}
     return num;
   }
 
