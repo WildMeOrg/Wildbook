@@ -113,7 +113,7 @@ public class Encounter implements java.io.Serializable {
   private String minutes = "00";
 
   private long dateInMilliseconds=0;
-  //describes how the shark was measured
+  //describes how the animal was measured
   private String size_guess = "none provided";
   //String reported GPS values for lat and long of the encounter
   private String gpsLongitude = "", gpsLatitude = "";
