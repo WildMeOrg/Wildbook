@@ -194,6 +194,35 @@ public class IndividualQueryProcessor {
     }//end if resightOnly
 
 
+    //check whether locationIDs are AND'd rather than OR'd
+    if(request.getParameter("andLocationIDs") != null){
+		 String[] locCodes=request.getParameterValues("locationCodeField");
+		    if((locCodes!=null)&&(!locCodes[0].equals("None"))){
+		       for (int q = 0; q < rIndividuals.size(); q++) {
+        			MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
+
+		          	int kwLength=locCodes.length;
+					int kwIter=0;
+					boolean matchesSelectedLocationIDs=true;
+		            while((kwIter<kwLength)&&matchesSelectedLocationIDs) {
+		              String kwParam=locCodes[kwIter].replaceAll("%20", " ").trim();
+		              if(!kwParam.equals("")){
+						if(!tShark.wasSightedInLocationCode(kwParam)){
+							rIndividuals.remove(q);
+							q--;
+							matchesSelectedLocationIDs=false;
+
+						}
+
+		              }
+		              kwIter++;
+
+		            }
+			  }
+    	}
+
+	}
+
       return (new MarkedIndividualQueryResult(rIndividuals,filter,prettyPrint.toString()));
 
   }
