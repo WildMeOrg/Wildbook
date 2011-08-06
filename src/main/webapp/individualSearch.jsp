@@ -232,7 +232,11 @@
       <p><strong><%=props.getProperty("locationID")%>:</strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation()%>locationID"
         target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br>
+                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+                             
+       <input name="andLocationIDs" type="checkbox" id="andLocationIDs" value="andLocationIDs" /> <%=props.getProperty("andLocationID")%>
+                             
+                             <br />
         (<em><%=props.getProperty("locationIDExample")%>
         </em>)</p>
 
