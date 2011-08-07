@@ -39,12 +39,11 @@
     href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank">GPL v2 license</a> and is
     intended to support mark-recapture field studies. Open source and commercially licensed products
     used in this framework are listed <a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/thirdparty.jsp">here</a>.</p>
+      href="http://<%=CommonConfiguration.getURLLocation(request)%>/thirdparty.jsp">here</a>. This is version <%=CommonConfiguration.getVersion()%>.</p>
 
   <p><a href="http://www.ecoceanusa.org/shepherd" target="_blank">
-    <img border="0"
-                                                                       src="http://<%=CommonConfiguration.getURLLocation(request)%>/images/lib_bottom.gif"
-                                                                       alt="Powered by ECOCEAN"
+    <img border="0" src="http://<%=CommonConfiguration.getURLLocation(request)%>/images/lib_bottom.gif"
+                                                                       alt="Powered by ECOCEAN USA"
     /></a>
   </p>
 
