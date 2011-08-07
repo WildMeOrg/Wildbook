@@ -136,6 +136,11 @@ public class CommonConfiguration {
     return props.getProperty("htmlTitle").trim();
   }
 
+  public static String getVersion() {
+      initialize();
+      return props.getProperty("application.version").trim();
+  }
+
   public static String getCSSURLLocation(HttpServletRequest request) {
     initialize();
 
@@ -195,8 +200,8 @@ public class CommonConfiguration {
    * This method is used to determined the show/hide condition of an element of the UI.
    * It simply looks to see if a property is defined AND if the property is false.
    * For any other value or if the value is absent, the method returns true. Thsi means that conditional elements
-   * are shown by default. 
-   * 
+   * are shown by default.
+   *
    * @param thisString The name of the property to show/hide.
    * @return true if the property is not defined or has any other value than "false". Otherwise, returns false.
    */
