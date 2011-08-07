@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>shepherd</artifactId>
-  <version>1.0-RELEASE</version>
+  <version>1.0.3-RELEASE</version>
   <packaging>war</packaging>
 
   <properties>
@@ -175,6 +175,14 @@
   </dependencies>
 
   <build>
+  
+      <resources>
+        <resource>
+          <directory>src/main/resources</directory>
+          <filtering>true</filtering>
+        </resource>
+    </resources>
+  
     <plugins>
       <plugin>
         <groupId>org.mortbay.jetty</groupId>
