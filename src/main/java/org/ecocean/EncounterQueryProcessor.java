@@ -7,6 +7,7 @@ import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.StringBuffer;
 import java.util.GregorianCalendar;
+import org.ecocean.servlet.ServletUtilities;
 
 public class EncounterQueryProcessor {
 
@@ -221,34 +222,6 @@ public class EncounterQueryProcessor {
     }
     //end name and email filter--------------------------------------------------------------------------------------
 
-    //------------------------------------------------------------------
-    //name and email filters-------------------------------------------------
-    /*
-    String[] researchGroups=request.getParameterValues("nameField");
-    if((researchGroups!=null)&&(!researchGroups[0].equals("None"))){
-          prettyPrint.append("nameField is one of the following: ");
-          int kwLength=researchGroups.length;
-            String locIDFilter="(";
-            for(int kwIter=0;kwIter<kwLength;kwIter++) {
-
-              String kwParam=researchGroups[kwIter].replaceAll("%20", " ").trim();
-              if(!kwParam.equals("")){
-                if(locIDFilter.equals("(")){
-                  locIDFilter+=" recordedBy == \""+kwParam+"\"";
-                }
-                else{
-                  locIDFilter+=" || recordedBy == \""+kwParam+"\"";
-                }
-                prettyPrint.append(kwParam+" ");
-              }
-            }
-            locIDFilter+=" )";
-            if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=locIDFilter;}
-            else{filter+=(" && "+locIDFilter);}
-            prettyPrint.append("<br />");
-    }
-    */
-    //end name and email filters-----------------------------------------------
 
 
 
@@ -578,6 +551,31 @@ public class EncounterQueryProcessor {
 
   }
   //end keyword filters-----------------------------------------------
+
+
+  	//start photo filename filtering
+  	    if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))) {
+
+  	      //clean the input string to create its equivalent as if it had been submitted through the web form
+  	      String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
+
+  	           for(int q=0;q<rEncounters.size();q++) {
+		         Encounter rEnc=(Encounter)rEncounters.get(q);
+		         int numPhotos=rEnc.getAdditionalImageNames().size();
+		         boolean hasPhoto=false;
+		         for(int i=0;i<numPhotos;i++){
+					 String thisPhoto=(String)rEnc.getAdditionalImageNames().get(i);
+					 if(thisPhoto.equals(nameString)){hasPhoto=true;}
+				}
+		         if(!hasPhoto){
+		           rEncounters.remove(q);
+		           q--;
+		         }
+               }
+  	      prettyPrint.append("filenameField contains: \""+nameString+"\"<br />");
+      }
+
+	//end photo filename filtering
 
 
     return (new EncounterQueryResult(rEncounters,filter,prettyPrint.toString()));

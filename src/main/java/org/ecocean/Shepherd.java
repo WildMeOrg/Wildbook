@@ -21,6 +21,7 @@ package org.ecocean;
 
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
+import org.ecocean.servlet.ServletUtilities;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -1366,6 +1367,13 @@ public class Shepherd {
 
             }
 
+			//check for specific filename conditions here
+			if(request.getParameter("filenameField")!=null){
+					String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
+					if(!nameString.equals(imageName)){hasKeyword=false;}
+			}
+
+
 
             if (hasKeyword && isAcceptableVideoFile(imageName)) {
               m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
@@ -1719,12 +1727,12 @@ public class Shepherd {
     ArrayList al = new ArrayList(c);
     return al;
   }
-  
+
   public ArrayList<String> getAllPatterningCodes(){
     Query q = pm.newQuery (Encounter.class);
     q.setResult ("distinct patterningCode");
     q.setOrdering("patterningCode ascending");
-    Collection results = (Collection)q.execute (); 
+    Collection results = (Collection)q.execute ();
     return (new ArrayList(results));
   }
 

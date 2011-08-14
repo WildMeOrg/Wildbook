@@ -707,6 +707,14 @@
     </em>
   </td>
 </tr>
+
+<tr>
+  <td><strong><%=encprops.getProperty("filenameField")%>:</strong>
+    <input name="filenameField" type="text" size="60"> <br> <em><%=encprops.getProperty("filenamesBlank")%>
+    </em>
+  </td>
+</tr>
+
 </table>
 </p>
 </div>
