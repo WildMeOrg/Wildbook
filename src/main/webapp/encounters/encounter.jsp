@@ -2577,13 +2577,7 @@ catch (Exception e) {
         window.location = "http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>";
       });
       GEvent.addListener(marker1, "mouseover", function() {
-        marker1.openInfoWindowHtml("<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>\"><%=enc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=enc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=enc.getDate()%><br />Sex: <%=enc.getSex()%>
-        <%if(enc.getSizeAsDouble()!=null){%>
-        <br />Size: <%=enc.getSize()%> m
-        <%
-        }
-        %>
-        <br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
+        marker1.openInfoWindowHtml("<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>\"><%=enc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=enc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=enc.getDate()%><br />Sex: <%=enc.getSex()%><%if(enc.getSizeAsDouble()!=null){%><br />Size: <%=enc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
       });
       map.addOverlay(marker1);
 
