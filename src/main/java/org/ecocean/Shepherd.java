@@ -1368,7 +1368,7 @@ public class Shepherd {
             }
 
 			//check for specific filename conditions here
-			if(request.getParameter("filenameField")!=null){
+			if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))){
 					String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
 					if(!nameString.equals(imageName)){hasKeyword=false;}
 			}
