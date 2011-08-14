@@ -17,8 +17,8 @@ public class EncounterQueryProcessor {
   //filter for location------------------------------------------
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
       String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
-      if(filter.equals("")){
-        filter="(verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";
+      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){
+        filter+="(verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";
       }
       else{filter+=" && (verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";}
       prettyPrint.append("locationField contains \""+locString+"\".<br />");
