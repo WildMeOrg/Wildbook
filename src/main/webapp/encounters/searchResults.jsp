@@ -192,8 +192,11 @@
   sheet.addCell(label27);
   Label label28 = new Label(28, 0, "Marked Individual");
   sheet.addCell(label28);
-  Label label29 = new Label(29, 0, "Location code");
+  Label label29 = new Label(29, 0, "Location ID");
   sheet.addCell(label29);
+  Label label30 = new Label(30, 0, "Submitter Email Address");
+  sheet.addCell(label30);
+
 
 //let's write out headers for the normal export file
 /* 
@@ -645,6 +648,10 @@ WritableWorkbook workbookExport = Workbook.createWorkbook(fileExport);
         if (enc.getLocationCode() != null) {
           Label lNumberx29 = new Label(29, count, enc.getLocationCode());
           sheet.addCell(lNumberx29);
+        }
+        if (enc.getSubmitterEmail() != null) {
+	          Label lNumberx30 = new Label(30, count, enc.getSubmitterEmail());
+	          sheet.addCell(lNumberx30);
         }
 
 
