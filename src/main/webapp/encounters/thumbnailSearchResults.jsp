@@ -536,24 +536,28 @@
 						<span class="caption">
 					<%
             if ((fileName.toLowerCase().endsWith("jpg")) || (fileName.toLowerCase().endsWith("jpeg"))) {
-              File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + thisEnc.getCatalogNumber() + "/" + fileName)));
-              Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              // iterate through metadata directories
-              Iterator directories = metadata.getDirectoryIterator();
-              while (directories.hasNext()) {
-                Directory directory = (Directory) directories.next();
-                // iterate through tags and print to System.out
-                Iterator tags = directory.getTagIterator();
-                while (tags.hasNext()) {
-                  Tag tag = (Tag) tags.next();
+              try{
+              	File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + thisEnc.getCatalogNumber() + "/" + fileName)));
+              	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+              	// iterate through metadata directories
+              	Iterator directories = metadata.getDirectoryIterator();
+              	while (directories.hasNext()) {
+              	  Directory directory = (Directory) directories.next();
+              	  // iterate through tags and print to System.out
+              	  Iterator tags = directory.getTagIterator();
+              	  while (tags.hasNext()) {
+              	    Tag tag = (Tag) tags.next();
 
-          %>
-								<%=tag.toString() %><br/>
-								<%
-                      }
-                    }
-
+          		%>
+			<%=tag.toString() %><br/>
+		<%
                   }
+                }
+              }
+              catch(Exception e){
+              	e.printStackTrace();
+              }
+             }
                 %>
    									</span>
             </div>
