@@ -39,49 +39,49 @@ import org.ecocean.*;
  *
  */
 public class CalendarXMLServer extends HttpServlet {
-  
-  
+
+
   public void init(ServletConfig config) throws ServletException {
       super.init(config);
     }
 
-  
+
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
       doPost(request, response);
   }
-    
+
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-    
-    //System.out.println("CalendarXMLServer2 received: "+request.getQueryString()); 
+
+    //System.out.println("CalendarXMLServer2 received: "+request.getQueryString());
     //set up the output
     response.setContentType("text/xml");
-    PrintWriter out = response.getWriter(); 
+    PrintWriter out = response.getWriter();
     out.println("<data>");
-    
-        
-        
+
+
+
     //establish a shepherd to manage DB interactions
     Shepherd myShepherd=new Shepherd();
-    
-    
+
+
     int numResults=0;
 
-    
-    Vector rEncounters=new Vector();      
+
+    Vector rEncounters=new Vector();
 
     myShepherd.beginDBTransaction();
-    
+
     EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "individualID descending");
     rEncounters = queryResult.getResult();
     //rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "individualID descending");
-    
-    
+
+
 
     //create a vector to hold matches
     Vector matches=new Vector();
 
-    
+
     try{
 
       Iterator allEncounters=rEncounters.iterator();
@@ -93,12 +93,12 @@ public class CalendarXMLServer extends HttpServlet {
 
     //output the XML for matching encounters
         if(matches.size()>0) {
-          
+
           //open DB again to pull data
           //myShepherd.beginDBTransaction();
-          
+
           try{
-            
+
             //now spit out that XML for each match!
             //remember to set primary attribute!
             for(int i=0;i<matches.size();i++) {
@@ -106,7 +106,7 @@ public class CalendarXMLServer extends HttpServlet {
               Encounter tempEnc=myShepherd.getEncounter(thisEncounter);
               if(tempEnc!=null){
                 if(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
-                
+
               String sex="-";
               MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.isAssignedToMarkedIndividual());
               if((!sharky.getSex().equals("Unknown"))&&(!sharky.getSex().equals("unknown"))) {
@@ -118,7 +118,7 @@ public class CalendarXMLServer extends HttpServlet {
                 }
               }
               String size="-";
-              if(tempEnc.getSize()>0.0) {
+              if((tempEnc.getSizeAsDouble()!=null)&&(tempEnc.getSize()>0.0)) {
                 size=(new Double(tempEnc.getSize())).toString();
               }
                 String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
@@ -138,7 +138,7 @@ public class CalendarXMLServer extends HttpServlet {
                 }
             }
             String size="-";
-            if(tempEnc.getSize()>0.0) {
+            if((tempEnc.getSizeAsDouble()!=null)&&(tempEnc.getSize()>0.0)) {
                 size=(new Double(tempEnc.getSize())).toString();
             }
             String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
@@ -149,8 +149,8 @@ public class CalendarXMLServer extends HttpServlet {
               out.println(outputXML);
               }
             }
-                
-                
+
+
           }
 
           }
@@ -158,19 +158,19 @@ public class CalendarXMLServer extends HttpServlet {
               e.printStackTrace();
           }
 
-            
+
         } //end if-matches>0
-        
+
     } //end try
     catch(Exception cal_e) {cal_e.printStackTrace();}
     myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
-      
+
 
         out.println("</data>");
         out.close();
   }//end doPost
 
 } //end class
-  
-  
+
+
