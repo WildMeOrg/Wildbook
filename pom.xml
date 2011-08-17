@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>shepherd</artifactId>
-  <version>1.0.3-RELEASE</version>
+  <version>1.0.4-RELEASE</version>
   <packaging>war</packaging>
 
   <properties>
@@ -192,6 +192,7 @@
 <configuration>
 	        <reportOutputDirectory>${project.basedir}/target/${pom.artifactId}-${pom.version}</reportOutputDirectory>
 	        <destDir>javadoc</destDir>
+	        <show>private</show>
 	    </configuration>
    
    <executions>
