@@ -245,7 +245,7 @@
         int totalLocIDs = locIDs.size();
 
 
-        if (totalLocIDs > 1) {
+        if (totalLocIDs >= 1) {
       %>
 
       <select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
