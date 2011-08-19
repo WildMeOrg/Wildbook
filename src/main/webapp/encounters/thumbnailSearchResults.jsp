@@ -555,6 +555,9 @@
                 }
               }
               catch(Exception e){
+              %>
+              <p>Cannot read metadata for this file.</p>
+              <%
               	e.printStackTrace();
               }
              }

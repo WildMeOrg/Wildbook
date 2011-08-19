@@ -489,6 +489,7 @@
 						<span class="caption">
 					<%
             if ((fileName.toLowerCase().endsWith("jpg")) || (fileName.toLowerCase().endsWith("jpeg"))) {
+              try{
               File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + thisEnc.getCatalogNumber() + "/" + fileName)));
               Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               // iterate through metadata directories
@@ -505,6 +506,14 @@
 								<%
                       }
                     }
+                    } //end try
+		    catch(Exception e){
+		                	 %>
+		    		            <p>Cannot read metadata for this file.</p>
+		                	<%
+		                	System.out.println("Cannout read metadata for: "+fileName);
+		                	e.printStackTrace();
+            	}
 
                   }
                 %>
