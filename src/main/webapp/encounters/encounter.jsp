@@ -2244,24 +2244,33 @@ if(!loggedIn){
 					<div class="scroll"><span class="caption">	
 					<%
             if ((addTextFile.toLowerCase().endsWith("jpg")) || (addTextFile.toLowerCase().endsWith("jpeg"))) {
-              File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/" + addTextFile)));
-              Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              // iterate through metadata directories
-              Iterator directories = metadata.getDirectoryIterator();
-              while (directories.hasNext()) {
-                Directory directory = (Directory) directories.next();
-                // iterate through tags and print to System.out
-                Iterator tags = directory.getTagIterator();
-                while (tags.hasNext()) {
-                  Tag tag = (Tag) tags.next();
+              try{
+              	File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/" + addTextFile)));
+              	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+              	// iterate through metadata directories
+              	Iterator directories = metadata.getDirectoryIterator();
+              	while (directories.hasNext()) {
+              	  Directory directory = (Directory) directories.next();
+              	  // iterate through tags and print to System.out
+              	  Iterator tags = directory.getTagIterator();
+              	  while (tags.hasNext()) {
+              	    Tag tag = (Tag) tags.next();
 
           %>
 								<%=tag.toString() %><br/>
 								<%
-                      }
-                    }
-
-                  }
+              	  } //end while
+             	} //end while
+           } //end try
+            catch(Exception e){
+            %>
+            <p>Cannot read metadata for this file.</p>
+            <%
+            System.out.println("Cannot read metadata for: "+addTextFile);
+            e.printStackTrace();
+            }
+              } //end if
+ 
                 %>
    									</span>
           </div>
