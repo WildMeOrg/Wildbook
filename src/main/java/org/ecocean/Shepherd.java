@@ -1678,6 +1678,22 @@ public class Shepherd {
     return (new ArrayList(results));
   }
 
+  public ArrayList<String> getAllGenuses() {
+      Query q = pm.newQuery(Encounter.class);
+      q.setResult("distinct genus");
+      q.setOrdering("genus ascending");
+      Collection results = (Collection) q.execute();
+      return (new ArrayList(results));
+  }
+
+  public ArrayList<String> getAllSpecificEpithets() {
+      Query q = pm.newQuery(Encounter.class);
+      q.setResult("distinct specificEpithet");
+      q.setOrdering("specificEpithet ascending");
+      Collection results = (Collection) q.execute();
+      return (new ArrayList(results));
+  }
+
   public ArrayList<String> getAllBehaviors() {
 
     Query q = pm.newQuery(Encounter.class);

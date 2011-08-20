@@ -367,6 +367,11 @@
     <servlet-name>EncounterDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>EncounterSetGenusSpecies</servlet-name>
+      <servlet-class>org.ecocean.servlet.EncounterSetGenusSpecies</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterAddComment</servlet-name>
@@ -515,6 +520,11 @@
   <servlet-mapping>
     <servlet-name>EncounterSetDynamicProperty</servlet-name>
     <url-pattern>/EncounterSetDynamicProperty</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+      <servlet-name>EncounterSetGenusSpecies</servlet-name>
+      <url-pattern>/EncounterSetGenusSpecies</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>

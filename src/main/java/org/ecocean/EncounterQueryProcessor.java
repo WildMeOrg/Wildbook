@@ -179,6 +179,24 @@ public class EncounterQueryProcessor {
 
     }
 
+    //filter for genus------------------------------------------
+	    if((request.getParameter("genusField")!=null)&&(!request.getParameter("genusField").equals(""))) {
+	      String genus=request.getParameter("genusField").replaceAll("%20", " ").trim();
+	      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="genus == '"+genus+"'";}
+	      else{filter+=" && genus == '"+genus+"'";}
+	      prettyPrint.append("genus is \""+genus+"\".<br />");
+
+    }
+
+   //filter for species------------------------------------------
+		    if((request.getParameter("specificEpithetField")!=null)&&(!request.getParameter("specificEpithetField").equals(""))) {
+		      String specificEpithet=request.getParameter("specificEpithetField").replaceAll("%20", " ").trim();
+		      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="specificEpithet == '"+specificEpithet+"'";}
+		      else{filter+=" && specificEpithet == '"+specificEpithet+"'";}
+		      prettyPrint.append("specificEpithet (species) is \""+specificEpithet+"\".<br />");
+
+    }
+
     //filter for identificationRemarks------------------------------------------
     if((request.getParameter("identificationRemarksField")!=null)&&(!request.getParameter("identificationRemarksField").equals(""))) {
       String idRemarks=request.getParameter("identificationRemarksField").trim();
@@ -251,23 +269,6 @@ public class EncounterQueryProcessor {
         prettyPrint.append("selectLength is = "+size+".<br />");
       }
     }
-
-    //filter for tissue sample------------------------------------------
-
-    /*
-    if(request.getParameter("hasTissueSample")!=null) {
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){
-        filter+="(dynamicProperties.indexOf('Tissue Sample') != -1)";
-      }
-      else{filter+=" && (dynamicProperties.indexOf('Tissue Sample') != -1)";}
-      prettyPrint.append("A tissue sample was taken.<br />");
-    }
-    */
-    //end tissue sample filter--------------------------------------------------------------------------------------
-
-
-
-
 
 
 
