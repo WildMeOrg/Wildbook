@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.StringTokenizer;
 
 
 //Set alternateID for this encounter/sighting
@@ -57,18 +58,29 @@ public class EncounterSetGenusSpecies extends HttpServlet {
 
 
     sharky = request.getParameter("encounter");
-    String genus = "";
-    String specificEpithet = "";
-    
+    String genusSpecies = "";
+
+
     myShepherd.beginDBTransaction();
-    if ((request.getParameter("encounter")!=null)&&(myShepherd.isEncounter(sharky)) && (request.getParameter("genus") != null) && (request.getParameter("specificEpithet") != null)) {
+    if ((request.getParameter("encounter")!=null)&&(myShepherd.isEncounter(sharky)) && (request.getParameter("genusSpecies") != null)) {
       Encounter myShark = myShepherd.getEncounter(sharky);
-      genus = request.getParameter("genus");
-      specificEpithet = request.getParameter("specificEpithet");
+      genusSpecies = request.getParameter("genusSpecies");
+      //specificEpithet = request.getParameter("specificEpithet");
       try {
-        myShark.setGenus(genus);
-        myShark.setSpecificEpithet(specificEpithet);
-        myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set genus and species to: " + genus + " "+specificEpithet + ".");
+
+		String genus="";
+		String specificEpithet = "";
+
+		//now we have to break apart genus species
+		StringTokenizer tokenizer=new StringTokenizer(genusSpecies," ");
+		if(tokenizer.countTokens()==2){
+
+        	myShark.setGenus(tokenizer.nextToken());
+        	myShark.setSpecificEpithet(tokenizer.nextToken());
+        	myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set genus and species to: " + genus + " "+specificEpithet + ".");
+	    }
+	    //handle malformed Genus Species formats
+	    else{throw new Exception("The format of the genusSpecies parameter in servlet EncounterSetGenusSpecies did not have two tokens delimited by a space (e.g., \"Rhincodon typus\").");}
 
       } catch (Exception le) {
         locked = true;
@@ -80,7 +92,7 @@ public class EncounterSetGenusSpecies extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully changed the genus and species for encounter " + sharky + " to " + genus+" "+specificEpithet + ".</p>");
+        out.println("<strong>Success!</strong> I have successfully changed the genus and species for encounter " + sharky + " to " + genusSpecies + ".</p>");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
         out.println(ServletUtilities.getFooter());
@@ -107,5 +119,5 @@ public class EncounterSetGenusSpecies extends HttpServlet {
 
 
 }
-	
-	
+
+

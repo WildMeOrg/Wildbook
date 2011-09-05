@@ -361,7 +361,23 @@
     <%
       } //end else
 
+
+    if(CommonConfiguration.showProperty("showTaxonomy")){
     %>
+    
+        <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
+          <%=encprops.getProperty("taxonomy")%>: <%=enc.getGenus()%> <%=enc.getSpecificEpithet()%><%
+            if (isOwner && CommonConfiguration.isCatalogEditable()) {
+          %>[<a
+            href="encounter.jsp?number=<%=num%>&edit=genusSpecies#genusSpecies">edit</a>]<%
+            }
+          %>
+       </p>
+
+<%
+}
+%>
+    
     <p class="para"><img align="absmiddle" src="../images/life_icon.gif">
       <%=encprops.getProperty("status")%>: <%=enc.getLivingStatus()%> <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -913,8 +929,53 @@ if(!loggedIn){
     </td>
   </tr>
 </table>
-<br> <%
+<br /> <%
 			}
+			
+if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("taxonomy"))){
+									%> <a name="genusSpecies" />
+			<table width="150" border="1" cellpadding="1" cellspacing="0"
+			       bordercolor="#000000" bgcolor="#CCCCCC">
+			  <tr>
+			    <td align="left" valign="top" class="para"><strong><font
+			      color="#990000"><img align="absmiddle"
+			                           src="../images/taxontree.gif"> <%=encprops.getProperty("resetTaxonomy")%>:</font></strong>
+			    </td>
+			  </tr>
+			  <tr>
+			    <td align="left" valign="top">
+			      <form name="taxonomyForm" action="../EncounterSetGenusSpecies" method="post">
+			            <select name="genusSpecies" id="genusSpecies">
+			            	<option value="unknown">unknown</option>
+			       
+			       <%
+			       boolean hasMoreTax=true;
+			       int taxNum=0;
+			       while(hasMoreTax){
+			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
+			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
+			       	  	%>
+			       	  	 
+			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+			       	  	<%
+			       		taxNum++;
+			          }
+			          else{
+			             hasMoreTax=false;
+			          }
+			          
+			       }
+			       %>
+			       
+			       
+			      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
+			        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
+			      </form>
+			    </td>
+			  </tr>
+			</table>
+			<br /> <%
+	}
 			
 			
 			
