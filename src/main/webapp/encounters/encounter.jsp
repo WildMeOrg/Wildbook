@@ -945,7 +945,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 			    <td align="left" valign="top">
 			      <form name="taxonomyForm" action="../EncounterSetGenusSpecies" method="post">
 			            <select name="genusSpecies" id="genusSpecies">
-			            	<option value="unknown">unknown</option>
+			            	<option value="unknown"><%=encprops.getProperty("notAvailable")%></option>
 			       
 			       <%
 			       boolean hasMoreTax=true;

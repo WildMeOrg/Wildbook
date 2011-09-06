@@ -1381,7 +1381,8 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setGenus(String newGenus) {
-    this.genus = newGenus;
+    if(newGenus!=null){genus = newGenus;}
+	else{genus=null;}
   }
 
   public String getSpecificEpithet() {
@@ -1389,7 +1390,8 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setSpecificEpithet(String newEpithet) {
-    this.specificEpithet = newEpithet;
+    if(newEpithet!=null){specificEpithet = newEpithet;}
+	else{specificEpithet=null;}
   }
 
   public String getPatterningCode(){ return patterningCode;}
