@@ -366,10 +366,9 @@
     %>
     
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>: <%=enc.getGenus()%> <%=enc.getSpecificEpithet()%><%
+          <%=encprops.getProperty("taxonomy")%>: <%=enc.getGenus()%> <%=enc.getSpecificEpithet()%>&nbsp;<%
             if (isOwner && CommonConfiguration.isCatalogEditable()) {
-          %>[<a
-            href="encounter.jsp?number=<%=num%>&edit=genusSpecies#genusSpecies">edit</a>]<%
+          %>[<a href="encounter.jsp?number=<%=num%>&edit=genusSpecies#genusSpecies">edit</a>]<%
             }
           %>
        </p>
@@ -932,7 +931,7 @@ if(!loggedIn){
 <br /> <%
 			}
 			
-if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("taxonomy"))){
+if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("genusSpecies"))){
 									%> <a name="genusSpecies" />
 			<table width="150" border="1" cellpadding="1" cellspacing="0"
 			       bordercolor="#000000" bgcolor="#CCCCCC">
