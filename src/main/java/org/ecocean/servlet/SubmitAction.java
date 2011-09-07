@@ -76,6 +76,7 @@ public class SubmitAction extends Action {
 		  String minutes = "00", gpsLongitudeMinutes = "", gpsLongitudeSeconds = "", gpsLatitudeMinutes = "", gpsLatitudeSeconds = "", submitterID = "N/A";
 		  String locCode = "", informothers = "";
 		  String livingStatus = "";
+		  String genusSpecies="";
   		  Shepherd myShepherd;
 
 
@@ -127,7 +128,8 @@ public class SubmitAction extends Action {
       photographerAddress = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPhotographerAddress());
       additionalImageNames = theForm.getAdditionalImageNames();
       encounterNumber = theForm.getEncounterNumber();
-      livingStatus = theForm.getLivingStatus();
+      livingStatus = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getLivingStatus());
+      genusSpecies = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getGenusSpecies());
       informothers = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getInformothers().replaceAll(";", ",").replaceAll(" ", ""));
       //check for spamBots
       boolean spamBot = false;
@@ -374,6 +376,30 @@ public class SubmitAction extends Action {
       enc.setComments(comments.replaceAll("\n", "<br>"));
       enc.setSex(sex);
       enc.setLivingStatus(livingStatus);
+
+      //let's handle genus and species for taxonomy
+      try {
+
+	  		String genus="";
+	  		String specificEpithet = "";
+
+	  		//now we have to break apart genus species
+	  		StringTokenizer tokenizer=new StringTokenizer(genusSpecies," ");
+	  		if(tokenizer.countTokens()==2){
+
+	          	enc.setGenus(tokenizer.nextToken());
+	          	enc.setSpecificEpithet(tokenizer.nextToken());
+
+	  	    }
+	  	    //handle malformed Genus Species formats
+	  	    else{throw new Exception("The format of the submitted genusSpecies parameter did not have two tokens delimited by a space (e.g., \"Rhincodon typus\"). The submitted value was: "+genusSpecies);}
+
+	   }
+	   catch (Exception le) {
+
+       }
+
+
       enc.setDistinguishingScar(scars);
       int sizePeriod=0;
       if ((measureUnits.equals("Feet"))) {

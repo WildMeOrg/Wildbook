@@ -80,7 +80,8 @@ public class EncounterSetGenusSpecies extends HttpServlet {
         	myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set genus and species to: " + genus + " "+specificEpithet + ".");
 	    }
 	    else if(genusSpecies.equals("unknown")){
-
+			myShark.setGenus(null);
+        	myShark.setSpecificEpithet(null);
 		}
 	    //handle malformed Genus Species formats
 	    else{throw new Exception("The format of the genusSpecies parameter in servlet EncounterSetGenusSpecies did not have two tokens delimited by a space (e.g., \"Rhincodon typus\").");}
