@@ -363,10 +363,13 @@
 
 
     if(CommonConfiguration.showProperty("showTaxonomy")){
+    
+    String genusSpeciesFound=encprops.getProperty("notAvailable");
+    if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
     %>
     
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>: <%=enc.getGenus()%> <%=enc.getSpecificEpithet()%>&nbsp;<%
+          <%=encprops.getProperty("taxonomy")%>: <%=genusSpeciesFound%>&nbsp;<%
             if (isOwner && CommonConfiguration.isCatalogEditable()) {
           %>[<a href="encounter.jsp?number=<%=num%>&edit=genusSpecies#genusSpecies">edit</a>]<%
             }
