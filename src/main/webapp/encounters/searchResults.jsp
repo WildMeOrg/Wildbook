@@ -580,10 +580,24 @@ WritableWorkbook workbookExport = Workbook.createWorkbook(fileExport);
         sheet.addCell(lNumberx11);
         Label lNumberx13 = new Label(12, count, CommonConfiguration.getProperty("family"));
         sheet.addCell(lNumberx13);
-        Label lNumberx14 = new Label(13, count, CommonConfiguration.getProperty("genus"));
-        sheet.addCell(lNumberx14);
-        Label lNumberx15 = new Label(14, count, CommonConfiguration.getProperty("species"));
-        sheet.addCell(lNumberx15);
+        
+        if(CommonConfiguration.getProperty("genusSpecies0") == null){        
+        	Label lNumberx14 = new Label(13, count, CommonConfiguration.getProperty("genus"));
+        	sheet.addCell(lNumberx14);
+        	Label lNumberx15 = new Label(14, count, CommonConfiguration.getProperty("species"));
+        	sheet.addCell(lNumberx15);
+        }
+        else{
+                Label lNumberx14 = new Label(13, count, enc.getGenus());
+	        sheet.addCell(lNumberx14);
+	        Label lNumberx15 = new Label(14, count, enc.getSpecificEpithet());
+        	sheet.addCell(lNumberx15);
+        }
+
+        
+        
+        
+        
         if (enc.getYear() > 0) {
           Label lNumberx16 = new Label(15, count, Integer.toString(enc.getYear()));
           sheet.addCell(lNumberx16);
@@ -637,8 +651,9 @@ WritableWorkbook workbookExport = Workbook.createWorkbook(fileExport);
         Label lNumberx26 = new Label(26, count, enc.getComments().replaceAll("<br>", ". ").replaceAll("\n", "").replaceAll("\r", ""));
         sheet.addCell(lNumberx26);
 
-        if (enc.getSize() > 0) {
-          Label lNumberx27 = new Label(27, count, Double.toString(enc.getSize()));
+        //if (enc.getSize() > 0) {
+        if(enc.getSizeAsDouble()!=null){
+          Label lNumberx27 = new Label(27, count, enc.getSizeAsDouble().toString());
           sheet.addCell(lNumberx27);
         }
         if (!enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
