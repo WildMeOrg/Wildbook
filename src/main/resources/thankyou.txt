@@ -2,7 +2,7 @@ Hello!
 
 Thank you for submitting data about your whale shark encounter. ECOCEAN and the Shepherd Project will use this information to assist scientific research and global conservation initiatives. 
 
-The information that you have submitted has been encapsulated in an "encounter" that we track.  Each encounter is assigned a unique number, and you can view that encounter at any time using the link below or by going to the ECOCEAN Whale Shark Photo-identification Library (http://www.shepherdproject.org/overview.jsp).
+The information that you have submitted has been encapsulated in an "encounter" that we track.  Each encounter is assigned a unique number, and you can view that encounter at any time using the link below or by going to the ECOCEAN Whale Shark Photo-identification Library (http://www.whaleshark.org).
 
 We will keep you informed of any changes to your submitted encounter, and email you if the shark is matched to another shark within the ECOCEAN Whale Shark Photo-identification Library.  We will also let you know if/when and where your shark is resighted by other community members. 
 
