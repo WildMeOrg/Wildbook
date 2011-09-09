@@ -286,7 +286,7 @@ String qString=dateParams+sexParam+numResightsParam+locCodeParam+lengthParams+ex
     <td class="lineitem"><%=indie.getSex()%>
     </td>
 
-    <td class="lineitem"><%=indie.particpatesInTheseVerbatimEventDates().size()%>
+    <td class="lineitem"><%=indie.participatesInTheseLocationIDs().size()%>
     </td>
   </tr>
   <%
