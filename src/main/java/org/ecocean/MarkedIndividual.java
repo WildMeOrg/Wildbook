@@ -602,7 +602,7 @@ public class MarkedIndividual {
       for (int c = 0; c < encounters.size(); c++) {
         Encounter temp = (Encounter) encounters.get(c);
         if ((temp.getLocationID() != null) && (!vbed.contains(temp.getLocationID()))) {
-          vbed.add(temp.getLocationID);
+          vbed.add(temp.getLocationID());
         }
       }
       return vbed;
