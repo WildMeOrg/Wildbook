@@ -586,7 +586,7 @@ public class MarkedIndividual {
     return false;
   }
 
-  public ArrayList<String> particpatesInTheseVerbatimEventDates() {
+  public ArrayList<String> participatesInTheseVerbatimEventDates() {
     ArrayList<String> vbed = new ArrayList<String>();
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
@@ -595,6 +595,17 @@ public class MarkedIndividual {
       }
     }
     return vbed;
+  }
+
+    public ArrayList<String> participatesInTheseLocationIDs() {
+      ArrayList<String> vbed = new ArrayList<String>();
+      for (int c = 0; c < encounters.size(); c++) {
+        Encounter temp = (Encounter) encounters.get(c);
+        if ((temp.getLocationID() != null) && (!vbed.contains(temp.getLocationID()))) {
+          vbed.add(temp.getLocationID);
+        }
+      }
+      return vbed;
   }
 
   public boolean wasSightedInVerbatimEventDate(String ved) {
