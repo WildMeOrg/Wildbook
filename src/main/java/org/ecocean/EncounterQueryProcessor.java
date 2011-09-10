@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.lang.StringBuffer;
 import java.util.GregorianCalendar;
 import org.ecocean.servlet.ServletUtilities;
+import java.util.StringTokenizer;
 
 public class EncounterQueryProcessor {
 
@@ -181,21 +182,29 @@ public class EncounterQueryProcessor {
 
     //filter for genus------------------------------------------
 	    if((request.getParameter("genusField")!=null)&&(!request.getParameter("genusField").equals(""))) {
-	      String genus=request.getParameter("genusField").replaceAll("%20", " ").trim();
-	      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="genus == '"+genus+"'";}
-	      else{filter+=" && genus == '"+genus+"'";}
-	      prettyPrint.append("genus is \""+genus+"\".<br />");
+	      String genusSpecies=request.getParameter("genusField").replaceAll("%20", " ").trim();
+	      String genus="";
+		  String specificEpithet = "";
+
+		  //now we have to break apart genus species
+		  StringTokenizer tokenizer=new StringTokenizer(genusSpecies," ");
+		  		if(tokenizer.countTokens()==2){
+
+					genus=tokenizer.nextToken();
+					specificEpithet=tokenizer.nextToken();
+
+					if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="genus == '"+genus+"' ";}
+					else{filter+=" && genus == '"+genus+"' ";}
+
+					filter+=" && specificEpithet == '"+specificEpithet+"' ";
+
+	      			prettyPrint.append("genus and species are \""+genusSpecies+"\".<br />");
+
+		        }
 
     }
 
-   //filter for species------------------------------------------
-		    if((request.getParameter("specificEpithetField")!=null)&&(!request.getParameter("specificEpithetField").equals(""))) {
-		      String specificEpithet=request.getParameter("specificEpithetField").replaceAll("%20", " ").trim();
-		      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="specificEpithet == '"+specificEpithet+"'";}
-		      else{filter+=" && specificEpithet == '"+specificEpithet+"'";}
-		      prettyPrint.append("specificEpithet (species) is \""+specificEpithet+"\".<br />");
 
-    }
 
     //filter for identificationRemarks------------------------------------------
     if((request.getParameter("identificationRemarksField")!=null)&&(!request.getParameter("identificationRemarksField").equals(""))) {
