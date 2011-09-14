@@ -149,27 +149,43 @@
         <div id="maintext">
           <h1 class="intro">Overview</h1>
 
-          <p class="caption">This is a great place to present an overview description of this
-            mark-recapture project and library...</p>
-          <br/>
+          <p class="caption">Manta Matcher represents the first global manta ray database. This site was
+specifically designed to manage manta ray sightings and identifications across their
+distribution. After the success of the Ecocean whale shark database, Manta Matcher
+was a logical follow-up. Manta rays are widely distributed, migratory, and have
+unique spot patterning on their ventral surface that can be used to permanently
+identify individuals. At the present time, this database will enable researchers to
+upload and organize individually identified manta rays in their populations. This
+system is also intended to promote collaborations by way of cross-referencing
+databases to check for both regional and long distance movement.</p>
+
+<p class="caption">An automated component to this site is currently in development. This component
+will greatly enhance the functionality of the site by allowing faster and more
+accurate cross- referencing.</p>
+
+<p class="caption">It is our expectation that researchers will ultimately be able use sightings data to
+determine the abundance, trends, movements, and population structure of manta
+ray populations at individual aggregation sites across the globe. Using encounter
+photos and encounter information with mantas, you too can help update and
+maintain this global database.</p>
+        
         </div>
 
         <div>
           <h1 class="intro">Data Contributors</h1>
 
-          <p class="caption">A great optional area to discuss who is contributing data to this
-            library...</p>
+          <p class="caption">This project was the brainchild of Dr. Andrea Marshall and her team at the Marine
+Megafauna Association in Mozambique who have been collecting manta ray
+identification images across the world for the last decade. Her team's contributions
+are joined by multiple manta ray research programs from across the world
+including, Laje Viva Institute in Brazil, the Pacific Elasmobranch Foundation in
+Ecuador, Project Manta in eastern Australia, HAMER in Hawaii, and the Maldivian
+Manta Ray Project. Manta Matcher is supported by a number of agencies and
+organizations with additional support from a number of governments for effort in
+specific regions.</p>
         </div>
 
-        <div id="context">
-          <h1 class="intro">Contact us</h1>
 
-          <p class="caption">A great place to talk about who is running this mark-recapture
-            library...</p>
-
-          <p class="caption"><a href="contactus.jsp">Please contact us
-            with you questions.</a></p>
-        </div>
 
 
       </div>

@@ -302,11 +302,7 @@
                    checked="checked"/> <%=props.getProperty("submit_unknown")%>
     </label></td>
 </tr>
-<%
 
-if(CommonConfiguration.showProperty("showTaxonomy")){
-
-%>
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("species")%>:</strong></td>
   <td colspan="2">
@@ -333,9 +329,6 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
  %>
   </select></td>
 </tr>
-<%
-}
-%>
 
 <tr class="form_row">
   <td class="form_label" rowspan="3"><strong><font
