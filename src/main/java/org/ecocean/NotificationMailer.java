@@ -54,7 +54,7 @@ public class NotificationMailer implements Runnable {
     props.put("mail.smtp.host", host);
     session = Session.getDefaultInstance(props, null);
     message = new MimeMessage(session);
-    mailerObject.start();
+    //mailerObject.start();
   }
 
 
