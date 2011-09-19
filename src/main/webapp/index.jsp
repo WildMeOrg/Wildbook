@@ -152,6 +152,53 @@ table.adopter td.image {
 			 
 			 		 	    <div class="module">
 		 <h3>Latest News </h3>
+<style>
+/* begin styles for RSS Feed 
+     This is the most basic style to use for a list with no bullets */
+
+
+
+.rss-item  {
+
+  margin-bottom: 1em;;
+}
+
+
+	} 
+/* buttons modeled from http://www.wellstyled.com/css-inline-buttons.html */
+
+.pod-play {
+   
+   margin: 0 0em; padding: 0em 0; _padding:0;
+   
+   white-space:nowrap;
+   text-decoration: none;
+   
+   background: #fb6;
+   color: black;
+   }
+.pod-play em {
+   _width:0em; _cursor:hand;
+   font-style: normal;
+   margin:0; padding: 0em 0em;
+   background: white;
+   color: #222;
+   }
+.pod-play span {
+   _width:0em; _cursor:hand;
+   margin:0; padding: 0em 0em 0em 0em;
+   }
+.pod-play:hover {
+   background: #666;
+   color: white;
+   }
+.pod-play:hover em {
+   background: black;
+   color: white
+   }
+
+
+</style>
 
 <script language="JavaScript" src="http://feed2js.org//feed2js.php?src=http%3A%2F%2Fecocean.wordpress.com%2Ffeed%2F&num=2&utf=y&html=a"  charset="UTF-8" type="text/javascript"></script>
 
@@ -181,7 +228,7 @@ table.adopter td.image {
 		</center></a></p>
 		<p><a href="http://www.iobis.org/"><center><img src="images/OBIS_logo.gif" alt="Data sharing with the Ocean Biogeographic Information System" border="0" />
 		</center></a></p>
-		<p><a href="http://www.coml.org/"><center><img src="images/coml.gif" alt="Data sharing with the census of marine life" border="0" />
+		<p><a href="ttp://www.coml.org/"><center><img src="images/coml.gif" alt="Data sharing with the census of marine life" border="0" />
 		</center></a></p>
 	</div>
 			
