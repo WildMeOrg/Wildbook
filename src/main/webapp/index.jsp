@@ -152,28 +152,13 @@ table.adopter td.image {
 			 
 			 		 	    <div class="module">
 		 <h3>Latest News </h3>
-		 
-		 		 <span class="caption"><strong>Research scholarships available!<br />
-		 </strong><br>
-	      <a href="Poster_Thyne_Reid_Ecocean_Poster_13-10-10.pdf"><img src="images/scholarship.jpg" alt="Thyne Redid scolarship" width="76" height="*" hspace="3" vspace="3" border="0" align="left"/></a> Thyne Reid ECOCEAN Honours Scholarships are now available.  <a href="Poster_Thyne_Reid_Ecocean_Poster_13-10-10.pdf">Click here to learn more.</a><br />
-	      </span>
-		  <br /> 
-		  <br />
-		  <br />
-		 
-		 <span class="caption"><strong>New pattern matching power added!<br />
-		 </strong><br>
-	      <a href="http://www.ivec.org"><img src="images/ivec_logo_SHORT_72dpi_67mmH.gif" alt="Endangered Species Research publication" width="76" height="152" hspace="3" vspace="3" border="0" align="left" title="Latest scientific publication" /></a> The ECOCEAN Library is now fully integrated with the <a href="http://www.ivec.org">IVEC cluster</a>, giving the whale shark research community a new, on-demand source of computing power for matching spot patterns across the global data set. IVEC processing nodes are automatically requested when a new scan is submitted.<br />
-	      </span>
-		  <br /> 
-		 
-		 <span class="caption"><strong>A new look at Ningaloo whale sharks<br />
-		 </strong><br>
-	      <a href="http://www.int-res.com/articles/esr2009/7/n007p039.pdf"><img src="images/cov-esr.jpg" alt="Endangered Species Research publication" width="76" hspace="3" vspace="3" border="0" align="left" title="Latest scientific publication" /></a> ECOCEAN looks at <a href="http://www.int-res.com/articles/esr2009/7/n007p039.pdf">abundance, length, and residency time</a> for whale sharks at Ningaloo Marine Park in Western Australia. The results are published in <a href="http://www.int-res.com/articles/esr2009/7/n007p039.pdf"><em>Endangered Species Research</em></a>. <br />
-	      </span>
-		
-		  
-		  <br />
+
+<script language="JavaScript" src="http://feed2js.org//feed2js.php?src=http%3A%2F%2Fecocean.wordpress.com%2Ffeed%2F&num=2&utf=y&html=a"  charset="UTF-8" type="text/javascript"></script>
+
+<noscript>
+<a href="http://feed2js.org//feed2js.php?src=http%3A%2F%2Fecocean.wordpress.com%2Ffeed%2F&num=2&utf=y&html=y">View RSS feed</a>
+</noscript>
+
         </div>
 
 								 
