@@ -929,7 +929,7 @@
 	     <url-pattern>/EncounterSetScarring</url-pattern>
 	     <url-pattern>/EncounterSetOccurrenceRemarks</url-pattern>
 
-	       <url-pattern>/RemoveEmailAddress</url-pattern>
+	   
 	       <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
 	     
 	       <url-pattern>/IndividualSetSex</url-pattern>
