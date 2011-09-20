@@ -83,9 +83,10 @@
             }
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
+	File file2process = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getAdoptionDirectory() + "/" + number + "/" + addText)));
 
-			if(!addText.equals("")){
-            	File file2process = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getAdoptionDirectory() + "/" + number + "/" + addText)));
+	if((!addText.equals(""))&&(file2process.exists())){
+            	//File file2process = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getAdoptionDirectory() + "/" + number + "/" + addText)));
 
             	int intWidth = 190;
             	int intHeight = 190;

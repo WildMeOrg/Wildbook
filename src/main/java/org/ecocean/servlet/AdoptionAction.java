@@ -240,7 +240,9 @@ public class AdoptionAction extends Action {
         ad.setAdoptionStartDate(adoptionStartDate);
       }
 
-      ad.setAdopterImage(adopterImage);
+		if(theForm.getTheFile1()!=null){ad.setAdopterImage(adopterImage);}
+		else{ad.setAdopterImage(null);}
+
       ad.setAdopterQuote(adopterQuote);
       ad.setAdoptionManager(adoptionManager);
       ad.setIndividual(shark);
