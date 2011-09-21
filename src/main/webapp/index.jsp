@@ -135,11 +135,15 @@
 </span> <br/>
           </div>
 
-          <div class="module">
-            <h3>Data Sharing</h3>
-            <span class="caption">If you are sharing data, this is a great place to let others know about it... </span>
-            <br/>
-          </div>
+		<div class="module">
+    	<h3>Data Sharing</h3>
+    	<p><a href="http://data.gbif.org/datasets/provider/261"><center><img src="images/gbif.gif" border="0" alt="Data sharing with the Global Biodiversity Information Facility"/></center></a></p>
+		
+		<p><a href="http://www.iobis.org/"><center><img src="images/OBIS_logo.gif" alt="Data sharing with the Ocean Biogeographic Information System" border="0" />
+		</center></a></p>
+		<p><a href="ttp://www.coml.org/"><center><img src="images/coml.gif" alt="Data sharing with the census of marine life" border="0" />
+		</center></a></p>
+	</div>
 
         </div>
         <!-- end menu --></div>
