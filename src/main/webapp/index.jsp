@@ -113,27 +113,6 @@
     <div id="main">
       <div id="leftcol">
         <div id="menu">
-          <%
-            //check what language is requested
-            if (request.getParameter("langCode") != null) {
-              if (request.getParameter("langCode").equals("fr")) {
-                langCode = "fr";
-              }
-              if (request.getParameter("langCode").equals("de")) {
-                langCode = "de";
-              }
-              if (request.getParameter("langCode").equals("es")) {
-                langCode = "es";
-              }
-            }
-          %>
-
-
-          <div class="module">
-            <h3>Latest News</h3>
-            <span class="caption">Add your news items here... </span><span class="caption"><br/>
-</span> <br/>
-          </div>
 
 		<div class="module">
     	<h3>Data Sharing</h3>
@@ -209,6 +188,8 @@ specific regions.</p>
           </form>
 
         </div>
+        
+      
 
 
         <div class="module">
