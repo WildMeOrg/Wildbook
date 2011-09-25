@@ -136,7 +136,7 @@ public class ServletUtilities {
     }
   }
 
-  //inform researchers that have logged an interest with the encounter or shark
+  //inform researchers that have logged an interest with the encounter or marked individual
   public static void informInterestedIndividualParties(HttpServletRequest request, String shark, String message) {
     Shepherd myShepherd = new Shepherd();
     myShepherd.beginDBTransaction();
@@ -155,14 +155,13 @@ public class ServletUtilities {
 
       Vector e_images = new Vector();
       String mailMe = interested[0];
-      String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Shark " + shark + ": " + message + "\n\nLink to shark: http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark));
-      email += ("\n\nWant to stop tracking this set of shark data? Use this link.\n\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?shark=" + shark + "&email=");
+      String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Tag " + shark + ": " + message + "\n\nLink to individual: http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark));
+      email += ("\n\nWant to stop tracking this set of this individual's data? Use this link.\n\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?shark=" + shark + "&email=");
 
-      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Shark data update: " + shark), (email + mailMe), e_images));
-      //NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Shark data update: "+shark), (email+mailMe), e_images);
+      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Marked individual data update: " + shark), (email + mailMe), e_images));
       for (int j = 1; j < size; j++) {
         mailMe = interested[j];
-        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Shark data update: " + shark), (email + mailMe), e_images));
+        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Individual data update: " + shark), (email + mailMe), e_images));
       }
     }
   }
@@ -231,14 +230,15 @@ public class ServletUtilities {
         newItem.setPublishedDate(new java.util.Date());
 
         List<SyndCategory> categories = new ArrayList<SyndCategory>();
-        SyndCategory category = new SyndCategoryImpl();
-        category.setName("whale shark");
-        categories.add(category);
-        SyndCategory category2 = new SyndCategoryImpl();
-        category2.setName("Rhincodon typus");
-        categories.add(category2);
+        if(CommonConfiguration.getProperty("htmlTitle")!=null){
+        	SyndCategory category2 = new SyndCategoryImpl();
+        	category2.setName(CommonConfiguration.getProperty("htmlTitle"));
+        	categories.add(category2);
+		}
         newItem.setCategories(categories);
-        newItem.setAuthor("ECOCEAN Library");
+        if(CommonConfiguration.getProperty("htmlAuthor")!=null){
+        	newItem.setAuthor(CommonConfiguration.getProperty("htmlAuthor"));
+		}
         items.add(newItem);
         feed.setEntries(items);
 
