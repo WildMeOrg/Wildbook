@@ -369,7 +369,7 @@
     %>
     
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>: <%=genusSpeciesFound%>&nbsp;<%
+          <%=encprops.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>&nbsp;<%
             if (isOwner && CommonConfiguration.isCatalogEditable()) {
           %>[<a href="encounter.jsp?number=<%=num%>&edit=genusSpecies#genusSpecies">edit</a>]<%
             }

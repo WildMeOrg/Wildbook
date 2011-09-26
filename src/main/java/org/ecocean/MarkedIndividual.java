@@ -957,6 +957,10 @@ public class MarkedIndividual {
     return listPropertyValues;
   }
 
+  /**
+  Returns the patterning type evident on this MarkedIndividual instance.
+
+  */
   public String getPatterningCode(){
 
     int numEncs=encounters.size();
@@ -967,6 +971,10 @@ public class MarkedIndividual {
     return null;
   }
 
+  /**
+  Sets the patterning type evident on this MarkedIndividual instance.
+
+  */
   public void setPatterningCode(String newCode){this.patterningCode=newCode;}
 
   public void resetMaxNumYearsBetweenSightings(){
@@ -1015,5 +1023,18 @@ public class MarkedIndividual {
       return "0";
     }
   }
+/**
+Returns the first genus-species pair found in the Encounter objects for this MarkedIndividual.
+@return a String if found or null if no genus-species pair is found
+*/
+public String getGenusSpecies(){
+	    for (int c = 0; c < encounters.size(); c++) {
+	      	Encounter temp = (Encounter) encounters.get(c);
+			if((temp.getGenus()!=null)&&(temp.getSpecificEpithet()!=null)){return (temp.getGenus()+" "+temp.getSpecificEpithet());}
+
+    	}
+		return null;
+
+}
 
 }

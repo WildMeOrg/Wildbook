@@ -465,9 +465,18 @@ WritableWorkbook workbookExport = Workbook.createWorkbook(fileExport);
   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
     <strong><%=encprops.getProperty("number")%>
     </strong></td>
+  
+  <%
+  if (CommonConfiguration.showProperty("showTaxonomy")) {
+  %>
   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-    <strong><%=encprops.getProperty("alternateID")%>
-    </strong></td>
+    <strong><%=encprops.getProperty("taxonomy")%>
+    </strong>
+  </td>
+  <%
+  }
+  %>
+  
   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
     <strong><%=encprops.getProperty("submitterName")%>
     </strong></td>
@@ -520,18 +529,23 @@ WritableWorkbook workbookExport = Workbook.createWorkbook(fileExport);
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=enc.getEncounterNumber()%>
   </a>
   </td>
-  <td class="lineitem">
-    <%
-      if ((enc.getAlternateID() != null) && (!enc.getAlternateID().equals("None"))) {
-    %>
-    <%=enc.getAlternateID()%><%
-  } else {
+  
+  <%
+  if (CommonConfiguration.showProperty("showTaxonomy")) {
+  
+    String genusSpeciesFound=encprops.getProperty("notAvailable");
+    if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
   %>
-    None
-    <%
-      }
-    %>
+  
+  <td class="lineitem">
+
+    <em><%=genusSpeciesFound%></em>
+
   </td>
+<%
+}
+%>
+
 
   <td class="lineitem"><%=enc.getSubmitterName()%>
   </td>
