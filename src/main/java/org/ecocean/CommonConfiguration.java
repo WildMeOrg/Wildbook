@@ -33,7 +33,7 @@ public class CommonConfiguration {
     //set up the file input stream
     if (props.size() == 0) {
       try {
-        props.load(CommonConfiguration.class.getResourceAsStream("/bundles/en/commonConfiguration.properties"));
+        props.load(CommonConfiguration.class.getResourceAsStream("/bundles/commonConfiguration.properties"));
       } catch (IOException ioe) {
         ioe.printStackTrace();
       }
@@ -43,7 +43,7 @@ public class CommonConfiguration {
   public static boolean refresh() {
     try {
       props = null;
-      props.load(CommonConfiguration.class.getResourceAsStream("/bundles/en/commonConfiguration.properties"));
+      props.load(CommonConfiguration.class.getResourceAsStream("/bundles/commonConfiguration.properties"));
     } catch (IOException ioe) {
       ioe.printStackTrace();
       return false;
