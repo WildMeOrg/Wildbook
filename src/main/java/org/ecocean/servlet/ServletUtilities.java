@@ -251,11 +251,11 @@ public class ServletUtilities {
 
       }
     } catch (IOException ioe) {
-      System.out.println("ERROR: Could not find the RSS file.");
-      ioe.printStackTrace();
+      	System.out.println("ERROR: Could not find the ATOM file.");
+      	ioe.printStackTrace();
     } catch (Exception e) {
-      System.out.println("Unknown exception trying to add an entry to the RSS file.");
-      e.printStackTrace();
+      	System.out.println("Unknown exception trying to add an entry to the ATOM file.");
+      	e.printStackTrace();
     }
 
   }
@@ -263,11 +263,9 @@ public class ServletUtilities {
   //Logs a new entry in the library RSS file
   public static synchronized void addRSSEntry(String title, String link, String description, File rssFile) {
     //File rssFile=new File("nofile.xml");
+
     try {
-      //rssFile=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/webapps/ROOT/rss.xml");
-      //rssFile=new File(ServletUtilities.class.getResource("/rss.xml").getFile());
-
-
+		System.out.println("Looking for RSS file: "+rssFile.getCanonicalPath());
       if (rssFile.exists()) {
 
         SAXReader reader = new SAXReader();
@@ -302,15 +300,17 @@ public class ServletUtilities {
         writer.close();
 
       }
-    } catch (IOException ioe) {
-      System.out.println("ERROR: Could not find the RSS file.");
-      ioe.printStackTrace();
-    } catch (DocumentException de) {
-      System.out.println("ERROR: Could not read the RSS file.");
-      de.printStackTrace();
+    }
+    catch (IOException ioe) {
+      	System.out.println("ERROR: Could not find the RSS file.");
+      	ioe.printStackTrace();
+    }
+    catch (DocumentException de) {
+      	System.out.println("ERROR: Could not read the RSS file.");
+      	de.printStackTrace();
     } catch (Exception e) {
-      System.out.println("Unknown exception trying to add an entry to the RSS file.");
-      e.printStackTrace();
+      	System.out.println("Unknown exception trying to add an entry to the RSS file.");
+      	e.printStackTrace();
     }
   }
 
