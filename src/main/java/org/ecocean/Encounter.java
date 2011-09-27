@@ -1258,8 +1258,10 @@ public class Encounter implements java.io.Serializable {
     return verbatimEventDate;
   }
 
-  public void setVerbatimEventDate(String dt) {
-    this.verbatimEventDate = dt;
+
+  public void setVerbatimEventDate(String vet) {
+      if(vet!=null){this.verbatimEventDate = vet;}
+  	  else{this.verbatimEventDate=null;}
   }
 
   public String getDynamicProperties() {
