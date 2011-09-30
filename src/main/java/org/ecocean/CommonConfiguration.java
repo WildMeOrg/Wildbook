@@ -175,6 +175,10 @@ public class CommonConfiguration {
     return props.getProperty("tapirLinkURL");
   }
 
+  public static String getIPTURL() {
+    initialize();
+    return props.getProperty("iptURL");
+  }
 
   public static String getURLToFooterGraphic() {
     initialize();

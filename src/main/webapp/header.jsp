@@ -245,6 +245,19 @@
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("tapirLink")%>
         </a></li>
         <% } %>
+        
+        
+                <%
+	          if (CommonConfiguration.getIPTURL() != null) {
+	        %>
+	        <li><a
+	          href="<%=CommonConfiguration.getIPTURL() %>"
+	          class="enclose"
+	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("iptLink")%>
+	        </a></li>
+        <% } %>
+        
+        
         <%
           if (CommonConfiguration.useTapirLinkURL()) {
         %>
