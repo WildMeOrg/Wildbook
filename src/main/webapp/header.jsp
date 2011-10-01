@@ -208,7 +208,7 @@
           <td><![endif]-->
       <ul>
         <%
-          if (CommonConfiguration.getWikiLocation().length() > 0) {
+          if (CommonConfiguration.getWikiLocation()!=null) {
         %>
         <li><a
           href="<%=CommonConfiguration.getWikiLocation() %>library_access_policy"
