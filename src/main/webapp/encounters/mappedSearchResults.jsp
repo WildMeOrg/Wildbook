@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.zip.ZipEntry,java.io.IOException,java.io.FileInputStream,java.io.FileOutputStream,java.util.zip.ZipOutputStream,org.dom4j.Document,org.dom4j.DocumentHelper, org.dom4j.Element, org.ecocean.*, java.io.File,java.io.FileWriter, java.util.Properties, java.util.Map, java.util.HashMap, java.io.Serializable, java.util.Vector,org.geotools.data.*,org.geotools.data.shapefile.*,org.geotools.data.simple.*,org.geotools.feature.FeatureCollections,org.geotools.feature.simple.*,org.geotools.geometry.jts.JTSFactoryFinder,org.geotools.referencing.crs.DefaultGeographicCRS,org.opengis.feature.simple.*,com.vividsolutions.jts.geom.*" %>
+         import="java.net.URI,java.sql.Date,java.util.zip.ZipEntry,java.io.IOException,java.io.FileInputStream,java.io.FileOutputStream,java.util.zip.ZipOutputStream,org.dom4j.Document,org.dom4j.DocumentHelper, org.dom4j.Element, org.ecocean.*, java.io.File,java.io.FileWriter, java.util.Properties, java.util.Map, java.util.HashMap, java.io.Serializable, java.util.Vector,org.geotools.data.*,org.geotools.data.shapefile.*,org.geotools.data.simple.*,org.geotools.feature.FeatureCollections,org.geotools.feature.simple.*,org.geotools.geometry.jts.JTSFactoryFinder,org.geotools.referencing.crs.DefaultGeographicCRS,org.opengis.feature.simple.*,com.vividsolutions.jts.geom.*" %>
 
 <%!
     /**
@@ -39,9 +39,11 @@
 
         // add attributes in order
         builder.add("Location", Point.class);
-        builder.add("Encounter No.", String.class); 
+        builder.add("Date", java.sql.Date.class);
+        builder.add("Encounter", String.class); 
         builder.add("Individual", String.class); 
-        builder.add("Sex", String.class); 
+        builder.add("Sex", String.class);
+        builder.add("URL", String.class); 
 
         // build the type
         final SimpleFeatureType LOCATION = builder.buildFeatureType();
@@ -275,9 +277,11 @@
       Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble(), enc.getDecimalLatitudeAsDouble()));
       SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(createFeatureType());
       featureBuilder.add(point);
+      featureBuilder.add((new java.sql.Date(enc.getDateInMilliseconds())));
       featureBuilder.add(enc.getCatalogNumber());
       featureBuilder.add(enc.isAssignedToMarkedIndividual());
       featureBuilder.add(enc.getSex());
+      featureBuilder.add(("http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+enc.getCatalogNumber()));
       SimpleFeature feature = featureBuilder.buildFeature(null);
       collection.add(feature);
       
