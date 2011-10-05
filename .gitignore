@@ -9,3 +9,5 @@ shepherd_derby_database
 /outputPackage.txt
 src/main/webapp/encounters/*20*
 /log
+/changed
+/changedfiles.txt
