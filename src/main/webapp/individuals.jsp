@@ -283,7 +283,20 @@
 </table>
 </a><br> <%}%>
 </p>
+<%
+    if(CommonConfiguration.showProperty("showTaxonomy")){
+    
+    String genusSpeciesFound=props.getProperty("notAvailable");
+    if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
+    %>
+    
+        <p class="para"><img align="absmiddle" src="images/taxontree.gif">
+          <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
+       </p>
 
+<%
+}
+%>
 
 <p>
   <%

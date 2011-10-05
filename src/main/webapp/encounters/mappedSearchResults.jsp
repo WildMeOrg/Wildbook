@@ -20,11 +20,41 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.dom4j.Document,org.dom4j.DocumentHelper, org.dom4j.Element, org.ecocean.*, java.io.File,java.io.FileWriter, java.util.Properties, java.util.Vector" %>
+         import="java.net.URI,java.sql.Date,java.util.zip.ZipEntry,java.io.IOException,java.io.FileInputStream,java.io.FileOutputStream,java.util.zip.ZipOutputStream,org.dom4j.Document,org.dom4j.DocumentHelper, org.dom4j.Element, org.ecocean.*, java.io.File,java.io.FileWriter, java.util.Properties, java.util.Map, java.util.HashMap, java.io.Serializable, java.util.Vector,org.geotools.data.*,org.geotools.data.shapefile.*,org.geotools.data.simple.*,org.geotools.feature.FeatureCollections,org.geotools.feature.simple.*,org.geotools.geometry.jts.JTSFactoryFinder,org.geotools.referencing.crs.DefaultGeographicCRS,org.opengis.feature.simple.*,com.vividsolutions.jts.geom.*" %>
 
+<%!
+    /**
+     * Here is how you can use a SimpleFeatureType builder to create the schema for your shapefile
+     * dynamically.
+     * <p>
+     * This method is an improvement on the code used in the main method above (where we used
+     * DataUtilities.createFeatureType) because we can set a Coordinate Reference System for the
+     * FeatureType and a a maximum field length for the 'name' field dddd
+     */
+    private static SimpleFeatureType createFeatureType() {
+
+        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+        builder.setName(CommonConfiguration.getHTMLTitle());
+        builder.setCRS(DefaultGeographicCRS.WGS84); // <- Coordinate reference system
+
+        // add attributes in order
+        builder.add("Location", Point.class);
+        builder.add("Date", java.sql.Date.class);
+        builder.add("Encounter", String.class); 
+        builder.add("Individual", String.class); 
+        builder.add("Sex", String.class);
+        builder.add("URL", String.class); 
+
+        // build the type
+        final SimpleFeatureType LOCATION = builder.buildFeatureType();
+
+        return LOCATION;
+    }
+%>
 
 <html>
 <head>
+
 
 
   <%
@@ -35,21 +65,29 @@
     if (session.getAttribute("langCode") != null) {
       langCode = (String) session.getAttribute("langCode");
     }
-
     Properties encprops = new Properties();
     encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
 
-
+    //get our Shepherd
     Shepherd myShepherd = new Shepherd();
 
 
-    int startNum = 1;
-    int endNum = 10;
 
+     /*
+     * We create a FeatureCollection into which we will put each Feature created from a record
+     * in the input csv data file
+     */
+     SimpleFeatureCollection collection = FeatureCollections.newCollection();
+     /*
+     * GeometryFactory will be used to create the geometry attribute of each feature (a Point
+     * object for the location)
+     */
+     GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(null);
+     //shapefile
+     String shapeFilename = "ShapefileExport_" + request.getRemoteUser() + ".shp";
+
+    //setup the KML output file
     String kmlFilename = "KMLExport_" + request.getRemoteUser() + ".kml";
-
-
-//setup the KML output
     Document document = DocumentHelper.createDocument();
     Element root = document.addElement("kml");
     root.addAttribute("xmlns", "http://www.opengis.net/kml/2.2");
@@ -65,16 +103,18 @@
       addTimeStamp = true;
     }
 
-//add styles first if necessary
-//Element styleElement1 = docElement.addElement( "Style" );
 
 
+    //set up paging of results
+    int startNum = 1;
+    int endNum = 10;
     try {
 
       if (request.getParameter("startNum") != null) {
         startNum = (new Integer(request.getParameter("startNum"))).intValue();
       }
       if (request.getParameter("endNum") != null) {
+      
         endNum = (new Integer(request.getParameter("endNum"))).intValue();
       }
 
@@ -82,20 +122,19 @@
       startNum = 1;
       endNum = 10;
     }
-
     int numResults = 0;
 
-
+    //set up the vector for matching encounters
     Vector rEncounters = new Vector();
 
+    //kick off the transaction
     myShepherd.beginDBTransaction();
-    String order = "";
 
+    //start the query and get the results
+    String order = "";
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
-    //rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, order);
-
-
+ 
   %>
 
   <title><%=CommonConfiguration.getHTMLTitle()%>
@@ -206,8 +245,16 @@
     </td>
   </tr>
 </table>
+
 <p><%=encprops.getProperty("exportedKML")%>: <a
   href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=kmlFilename%>"><%=kmlFilename%>
+</a><br>
+  <em><%=encprops.getProperty("rightClickLink")%>
+  </em>
+</p>
+
+<p><%=encprops.getProperty("exportedShapefile")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=shapeFilename.replaceAll(".shp",".zip")%>"><%=shapeFilename.replaceAll(".shp",".zip")%>
 </a><br>
   <em><%=encprops.getProperty("rightClickLink")%>
   </em>
@@ -220,12 +267,24 @@
 
   for (int f = 0; f < rEncounters.size(); f++) {
 
-    //Encounter enc=(Encounter)allEncounters.next();
     Encounter enc = (Encounter) rEncounters.get(f);
     count++;
     numResults++;
     if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
       haveGPSData.add(enc);
+      
+      //let's also populate the Shapefile
+      Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble(), enc.getDecimalLatitudeAsDouble()));
+      SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(createFeatureType());
+      featureBuilder.add(point);
+      featureBuilder.add((new java.sql.Date(enc.getDateInMilliseconds())));
+      featureBuilder.add(enc.getCatalogNumber());
+      featureBuilder.add(enc.isAssignedToMarkedIndividual());
+      featureBuilder.add(enc.getSex());
+      featureBuilder.add(("http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+enc.getCatalogNumber()));
+      SimpleFeature feature = featureBuilder.buildFeature(null);
+      collection.add(feature);
+      
     }
 
     //populate KML file ====================================================
@@ -345,15 +404,106 @@
 
 <%
 
-
+  //write out KML	
   File kmlFile = new File(getServletContext().getRealPath(("/encounters/" + kmlFilename)));
-
   FileWriter kmlWriter = new FileWriter(kmlFile);
   org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
   format.setLineSeparator(System.getProperty("line.separator"));
   org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(kmlWriter, format);
   writer.write(document);
   writer.close();
+  
+  
+  //write out the shapefile
+  File shapeFile = new File(getServletContext().getRealPath(("/encounters/" + shapeFilename)));
+  ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
+  Map<String, Serializable> params = new HashMap<String, Serializable>();
+  params.put("url", shapeFile.toURI().toURL());
+  params.put("create spatial index", Boolean.TRUE);
+  ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
+  newDataStore.createSchema(createFeatureType());
+  /*
+   * You can comment out this line if you are using the createFeatureType
+   * method (at end of class file) rather than DataUtilities.createType
+   */
+   newDataStore.forceSchemaCRS(DefaultGeographicCRS.WGS84);
+   Transaction transaction = new DefaultTransaction("create");
+   String typeName = newDataStore.getTypeNames()[0];
+   SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
+   
+   
+   if (featureSource instanceof SimpleFeatureStore) {
+  
+           	SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
+   
+               featureStore.setTransaction(transaction);
+               
+                
+               try {
+                   featureStore.addFeatures(collection);
+                   transaction.commit();
+   
+               } catch (Exception problem) {
+                   problem.printStackTrace();
+                   transaction.rollback();
+   
+               } 
+               finally {
+                   transaction.close();
+               }
+               
+               //zip the results
+               // These are the files to include in the ZIP file
+	       String[] filenames = new String[]{
+	       	shapeFile.getAbsolutePath(),
+	        shapeFile.getAbsolutePath().replaceAll(".shp",".shx"),
+	        shapeFile.getAbsolutePath().replaceAll(".shp",".dbf"),
+	        shapeFile.getAbsolutePath().replaceAll(".shp",".fix"),
+	        shapeFile.getAbsolutePath().replaceAll(".shp",".prj"),
+	        shapeFile.getAbsolutePath().replaceAll(".shp",".qix")
+	       };
+	       
+	       // Create a buffer for reading the files
+	       byte[] buf = new byte[1024];
+	       
+	       try {
+	           // Create the ZIP file
+	           String outFilename = shapeFile.getParentFile().getAbsolutePath()+File.separator+shapeFile.getName().replaceAll(".shp",".zip");
+	           //System.out.println(outFilename);
+	           ZipOutputStream zipout = new ZipOutputStream(new FileOutputStream(outFilename));
+	       
+	           // Compress the files
+	           for (int i=0; i<filenames.length; i++) {
+	               FileInputStream in = new FileInputStream(filenames[i]);
+	       
+	               // Add ZIP entry to output stream.
+	               zipout.putNextEntry(new ZipEntry(filenames[i]));
+	       
+	               // Transfer bytes from the file to the ZIP file
+	               int len;
+	               while ((len = in.read(buf)) > 0) {
+	                   zipout.write(buf, 0, len);
+	               }
+	       
+	               // Complete the entry
+	               zipout.closeEntry();
+	               in.close();
+	           }
+	       
+	           // Complete the ZIP file
+	           zipout.close();
+	       } 
+	       catch (IOException e) {
+	       	e.printStackTrace();
+	       }
+               
+          
+           
+    } //end if
+    else {
+                   System.out.println(typeName + " does not support read/write access");
+                   
+           }
 
 %>
 

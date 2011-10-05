@@ -866,6 +866,11 @@
     <servlet-name>IndividualRemoveDataFile</servlet-name>
     <url-pattern>/IndividualRemoveDataFile</url-pattern>
   </servlet-mapping>
+  
+      <servlet-mapping>
+        <servlet-name>EncounterSetVerbatimEventDate</servlet-name>
+        <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
+  </servlet-mapping>
 
   <!-- Action Servlet Mapping -->
   <servlet-mapping>
