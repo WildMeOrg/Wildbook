@@ -361,7 +361,25 @@
     <%
       } //end else
 
+
+    if(CommonConfiguration.showProperty("showTaxonomy")){
+    
+    String genusSpeciesFound=encprops.getProperty("notAvailable");
+    if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
     %>
+    
+        <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
+          <%=encprops.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>&nbsp;<%
+            if (isOwner && CommonConfiguration.isCatalogEditable()) {
+          %>[<a href="encounter.jsp?number=<%=num%>&edit=genusSpecies#genusSpecies">edit</a>]<%
+            }
+          %>
+       </p>
+
+<%
+}
+%>
+    
     <p class="para"><img align="absmiddle" src="../images/life_icon.gif">
       <%=encprops.getProperty("status")%>: <%=enc.getLivingStatus()%> <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -510,8 +528,35 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
+</a><br /> <%
 		}
+		
+		//set verbatimEventDate
+		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("verbatimEventDate"))){
+		%> 
+		<a name="verbatimEventDate"><br>
+		  <table width="150" border="1" cellpadding="1" cellspacing="0"
+		         bordercolor="#000000" bgcolor="#CCCCCC">
+		    <tr>
+		      <td align="left" valign="top" class="para"><strong><font
+		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
+		        <br />
+			<font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
+          		</em></font>
+		        </td>
+		    </tr>
+		    <tr>
+		      <td align="left" valign="top">
+		        <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate"
+		              method="post"><input name="verbatimEventDate" type="text" size="10" maxlength="50"> 
+		              <input name="encounter" type="hidden" value=<%=num%>>
+		          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
+		      </td>
+		    </tr>
+		  </table>
+		</a><br /> <%
+				}
+		
 		
 		//encounter set dynamic property
 		if(CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
@@ -913,8 +958,53 @@ if(!loggedIn){
     </td>
   </tr>
 </table>
-<br> <%
+<br /> <%
 			}
+			
+if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("genusSpecies"))){
+									%> <a name="genusSpecies" />
+			<table width="150" border="1" cellpadding="1" cellspacing="0"
+			       bordercolor="#000000" bgcolor="#CCCCCC">
+			  <tr>
+			    <td align="left" valign="top" class="para"><strong><font
+			      color="#990000"><img align="absmiddle"
+			                           src="../images/taxontree.gif"> <%=encprops.getProperty("resetTaxonomy")%>:</font></strong>
+			    </td>
+			  </tr>
+			  <tr>
+			    <td align="left" valign="top">
+			      <form name="taxonomyForm" action="../EncounterSetGenusSpecies" method="post">
+			            <select name="genusSpecies" id="genusSpecies">
+			            	<option value="unknown"><%=encprops.getProperty("notAvailable")%></option>
+			       
+			       <%
+			       boolean hasMoreTax=true;
+			       int taxNum=0;
+			       while(hasMoreTax){
+			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
+			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
+			       	  	%>
+			       	  	 
+			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+			       	  	<%
+			       		taxNum++;
+			          }
+			          else{
+			             hasMoreTax=false;
+			          }
+			          
+			       }
+			       %>
+			       
+			       
+			      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
+			        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
+			      </form>
+			    </td>
+			  </tr>
+			</table>
+			<br /> <%
+	}
 			
 			
 			
@@ -1014,9 +1104,9 @@ if(!loggedIn){
       <td align="left" valign="top">
         <form name="setencsize" action="../EncounterSetSize" method="post">
           <input name="lengthField" type="text" id="lengthField" size="8"
-                 maxlength="8"> <%=encprops.getProperty("meters")%><br>
-          <em><%=encprops.getProperty("useZeroIfUnknown")%>
-          </em><br>
+                 maxlength="8"> <%=encprops.getProperty("meters")%><br />
+          <font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
+          </em></font><br />
           <input name="lengthUnits" type="hidden" id="lengthUnits"
                  value="Meters"> <select name="guessList" id="guessList">
           <option value="directly measured"><%=encprops.getProperty("directlyMeasured")%>
@@ -1515,7 +1605,7 @@ if(!loggedIn){
 				}
 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  					%> <font size="-1">[<a
-    href="encounter.jsp?number=<%=num%>&edit=verbatimdate#verbatimdate">edit</a>]</font> <%
+    href="encounter.jsp?number=<%=num%>&edit=verbatimEventDate#verbatimEventDate">edit</a>]</font> <%
         		}
         		%>
 
@@ -1572,18 +1662,18 @@ if(!loggedIn){
 %>
 <p class="para"><strong><%=encprops.getProperty("size") %>
 </strong><br/> <%
-      				if(enc.getSizeAsDouble()!=null) {%>
+     if(enc.getSizeAsDouble()!=null) {%>
     <%=enc.getSize()%> <%=encprops.getProperty("meters")%>
     <br/> <em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%></em>
     <%
- 					} else {
- 					%>
+   } else {
+   %>
     <%=encprops.getProperty("unknown") %>
     <%
- 					}
+   }
 				
- 					if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
+ if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size#size">edit</a>]</font>
     <%
  					}
 				}
@@ -1621,8 +1711,15 @@ if(!loggedIn){
 <p class="para"><strong><%=encprops.getProperty("elevation") %>
 </strong><br/>
 
-  <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%>
+<%
+    if (enc.getMaximumElevationInMeters()!=null) {
+  %> 
+    <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%> <%
+  } else {
+  %> 
+  <%=encprops.getProperty("unknown") %>
   <%
+    }
 
 
     if (isOwner && CommonConfiguration.isCatalogEditable()) {

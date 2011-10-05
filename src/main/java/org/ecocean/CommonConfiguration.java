@@ -78,7 +78,8 @@ public class CommonConfiguration {
 
   public static String getWikiLocation() {
     initialize();
-    return props.getProperty("wikiLocation").trim();
+    if(props.getProperty("wikiLocation")!=null){return props.getProperty("wikiLocation").trim();}
+    return null;
   }
 
   public static String getDBLocation() {
@@ -175,6 +176,10 @@ public class CommonConfiguration {
     return props.getProperty("tapirLinkURL");
   }
 
+  public static String getIPTURL() {
+    initialize();
+    return props.getProperty("iptURL");
+  }
 
   public static String getURLToFooterGraphic() {
     initialize();

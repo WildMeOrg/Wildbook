@@ -60,28 +60,6 @@ public class IndividualAddEncounter extends HttpServlet {
     boolean locked = false, isOwner = true;
     boolean isAssigned = false;
 
-    /**
-     if(request.getParameter("number")!=null){
-     myShepherd.beginDBTransaction();
-     if(myShepherd.isEncounter(request.getParameter("number"))) {
-     Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-     String locCode=verifyMyOwner.getLocationCode();
-
-     //check if the encounter is assigned
-     if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-     isAssigned=true;
-     }
-
-     //if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-     if((request.isUserInRole("admin"))||(isAssigned)){
-     isOwner=true;
-     }
-     //if they have general location code permissions for the encounter's location code
-     else if(request.isUserInRole(locCode)){isOwner=true;}
-     }
-     myShepherd.rollbackDBTransaction();
-     }
-     */
     String action = request.getParameter("action");
 
     //add encounter to a MarkedIndividual
@@ -131,8 +109,9 @@ public class IndividualAddEncounter extends HttpServlet {
 
             myShepherd.commitDBTransaction(action);
             Vector e_images = new Vector();
-            String thanksmessage = ServletUtilities.getText("markedIndividualUpdate.txt");
 
+            String updateMessage = ServletUtilities.getText("markedIndividualUpdate.txt");
+			String thanksmessage = ServletUtilities.getText("add2MarkedIndividual.txt");
 
             //let's get ready for emailing
             ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
@@ -145,6 +124,9 @@ public class IndividualAddEncounter extends HttpServlet {
             emailUpdate = emailUpdate + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\n\nNew encounter: " + request.getParameter("number") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\n";
 
             thanksmessage += emailUpdate;
+            updateMessage += emailUpdate;
+
+			ArrayList allAssociatedEmails=addToMe.getAllEmailsToUpdate();
 
             int numEncounters = addToMe.totalEncounters();
 
@@ -155,16 +137,35 @@ public class IndividualAddEncounter extends HttpServlet {
 
               //notify the administrators
               NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), CommonConfiguration.getAutoEmailAddress(), ("Encounter update sent to submitters: " + request.getParameter("number")), ServletUtilities.getText("add2MarkedIndividual.txt") + emailUpdate, e_images);
+			  es.execute(mailer);
+
+			  //notify submitters, photographers, and informOthers values
+	          int emailSize=allAssociatedEmails.size();
+	          for(int z=0;z<emailSize;z++){
+				  String submitter=(String)allAssociatedEmails.get(z);
+
+				if((enc2add.getSubmitterEmail().indexOf(submitter)!=-1)||(enc2add.getPhotographerEmail().indexOf(submitter)!=-1)||(enc2add.getInformOthers().indexOf(submitter)!=-1)){
+
+				  	String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter);
+					es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
+				}
+				else{
+					  	String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, updateMessage, submitter);
+						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
+
+				}
 
 
-              StringBuffer allSubs = new StringBuffer();
+			  }
 
+              //StringBuffer allSubs = new StringBuffer();
+			  /**
               //notify other submitters
               for (int l = 0; l < numEncounters; l++) {
                 Encounter tempEnc = addToMe.getEncounter(l);
 
 
-                if (!(tempEnc.getSubmitterEmail().equals(enc2add.getSubmitterEmail())) && (allSubs.indexOf(tempEnc.getSubmitterEmail()) == -1)) {
+                if (allSubs.indexOf(tempEnc.getSubmitterEmail()) == -1) {
 
                   String submitter = tempEnc.getSubmitterEmail();
                   if (submitter.indexOf(",") != -1) {
@@ -234,14 +235,16 @@ public class IndividualAddEncounter extends HttpServlet {
 
 
               }
+              */
+
 
               //notify adopters
               ArrayList adopters = myShepherd.getAdopterEmailsForMarkedIndividual(request.getParameter("individual"));
               for (int t = 0; t < adopters.size(); t++) {
                 String adEmail = (String) adopters.get(t);
-                if ((allSubs.indexOf(adEmail) == -1)) {
+                if ((allAssociatedEmails.indexOf(adEmail) == -1)) {
                   es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), adEmail, ("Sighting update: " + request.getParameter("individual")), ServletUtilities.getText("adopterUpdate.txt") + emailUpdate, e_images));
-                  allSubs.append(adEmail);
+                  allAssociatedEmails.add(adEmail);
                 }
               }
 

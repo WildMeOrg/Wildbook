@@ -415,11 +415,28 @@
                           class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span>
                         </td>
                       </tr>
+
                       <tr>
                         <td><span class="caption"><%=encprops.getProperty("individualID") %>: <a
                           href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %>
                         </a></span></td>
                       </tr>
+                      
+                      <%
+      			if(CommonConfiguration.showProperty("showTaxonomy")){
+      				if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
+      		      %>
+                      <tr>
+                      <td>
+                        <span class="caption">
+                      		<em><%=encprops.getProperty("taxonomy") %>: <%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
+                      	</span>
+                      </td>
+                      </tr>
+                     <%
+                     }
+		     }
+                      %>
                       <tr>
                         <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a
                           href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
@@ -558,6 +575,21 @@
     href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %>
   </a></span></td>
 </tr>
+                      <%
+      			if(CommonConfiguration.showProperty("showTaxonomy")){
+      				if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
+      		      %>
+                      <tr>
+                      <td>
+                        <span class="caption">
+                      		<%=encprops.getProperty("taxonomy") %>: <em><%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
+                      	</span>
+                      </td>
+                      </tr>
+                     <%
+                     }
+		     }
+                      %>
 <tr>
   <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a
     href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>

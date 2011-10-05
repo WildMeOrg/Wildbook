@@ -253,13 +253,22 @@
     </a>
       <%
         if ((indie.getAlternateID() != null) && (!indie.getAlternateID().equals("None"))) {
-      %> <br><font size="-1"><%=props.getProperty("alternateID")%>: <%=indie.getAlternateID()%>
+      %> <br /><font size="-1"><%=props.getProperty("alternateID")%>: <%=indie.getAlternateID()%>
       </font> <%
         }
       %>
-      <br><font size="-1"><%=props.getProperty("firstIdentified")%>: <%=temp.getMonth() %>
+      <br /><font size="-1"><%=props.getProperty("firstIdentified")%>: <%=temp.getMonth() %>
         /<%=temp.getYear() %>
       </font>
+      <%
+      if(CommonConfiguration.showProperty("showTaxonomy")){
+      	if(indie.getGenusSpecies()!=null){
+      %>
+      	<br /><em><font size="-1"><%=indie.getGenusSpecies()%></font></em>
+      <%
+      	}
+      }
+      %>
 
     </td>
     <td class="lineitem"><%=indie.totalEncounters()%>
