@@ -459,6 +459,21 @@
                         	
                         </span></td>
                       </tr>
+                        <%
+		            			if(CommonConfiguration.showProperty("showTaxonomy")){
+		            				if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
+		            		      %>
+		                            <tr>
+		                            <td>
+		                              <span class="caption">
+		                            		<em><%=encprops.getProperty("taxonomy") %>: <%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
+		                            	</span>
+		                            </td>
+		                            </tr>
+		                           <%
+		                           }
+		      		     }
+                      %>
                       <tr>
                         <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a
                           href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
@@ -610,6 +625,21 @@
                         	%>
   </span></td>
 </tr>
+ <%
+		            			if(CommonConfiguration.showProperty("showTaxonomy")){
+		            				if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
+		            		      %>
+		                            <tr>
+		                            <td>
+		                              <span class="caption">
+		                            		<em><%=encprops.getProperty("taxonomy") %>: <%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
+		                            	</span>
+		                            </td>
+		                            </tr>
+		                           <%
+		                           }
+		      		     }
+                      %>
 <tr>
   <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a
     href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>

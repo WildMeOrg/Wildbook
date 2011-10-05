@@ -110,15 +110,13 @@ public class IndividualCreate extends HttpServlet {
                 while (str.hasMoreTokens()) {
                   String token = str.nextToken().trim();
                   if (!token.equals("")) {
-                    String personalizedThanksMessage = CommonConfiguration
-                      .appendEmailRemoveHashString(request, thanksmessage, token);
+                    String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, token);
 
                     es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
                   }
                 }
               } else {
-                String personalizedThanksMessage = CommonConfiguration
-                  .appendEmailRemoveHashString(request, thanksmessage, submitter);
+                String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter);
 
                 es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
               }
@@ -237,5 +235,5 @@ public class IndividualCreate extends HttpServlet {
     myShepherd.closeDBTransaction();
   }
 }
-	
-	
+
+

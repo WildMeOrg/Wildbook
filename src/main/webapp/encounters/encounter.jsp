@@ -369,7 +369,7 @@
     %>
     
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>: <%=genusSpeciesFound%>&nbsp;<%
+          <%=encprops.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>&nbsp;<%
             if (isOwner && CommonConfiguration.isCatalogEditable()) {
           %>[<a href="encounter.jsp?number=<%=num%>&edit=genusSpecies#genusSpecies">edit</a>]<%
             }
@@ -528,8 +528,35 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
+</a><br /> <%
 		}
+		
+		//set verbatimEventDate
+		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("verbatimEventDate"))){
+		%> 
+		<a name="verbatimEventDate"><br>
+		  <table width="150" border="1" cellpadding="1" cellspacing="0"
+		         bordercolor="#000000" bgcolor="#CCCCCC">
+		    <tr>
+		      <td align="left" valign="top" class="para"><strong><font
+		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
+		        <br />
+			<font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
+          		</em></font>
+		        </td>
+		    </tr>
+		    <tr>
+		      <td align="left" valign="top">
+		        <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate"
+		              method="post"><input name="verbatimEventDate" type="text" size="10" maxlength="50"> 
+		              <input name="encounter" type="hidden" value=<%=num%>>
+		          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
+		      </td>
+		    </tr>
+		  </table>
+		</a><br /> <%
+				}
+		
 		
 		//encounter set dynamic property
 		if(CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
@@ -1077,9 +1104,9 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       <td align="left" valign="top">
         <form name="setencsize" action="../EncounterSetSize" method="post">
           <input name="lengthField" type="text" id="lengthField" size="8"
-                 maxlength="8"> <%=encprops.getProperty("meters")%><br>
-          <em><%=encprops.getProperty("useZeroIfUnknown")%>
-          </em><br>
+                 maxlength="8"> <%=encprops.getProperty("meters")%><br />
+          <font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
+          </em></font><br />
           <input name="lengthUnits" type="hidden" id="lengthUnits"
                  value="Meters"> <select name="guessList" id="guessList">
           <option value="directly measured"><%=encprops.getProperty("directlyMeasured")%>
@@ -1578,7 +1605,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 				}
 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  					%> <font size="-1">[<a
-    href="encounter.jsp?number=<%=num%>&edit=verbatimdate#verbatimdate">edit</a>]</font> <%
+    href="encounter.jsp?number=<%=num%>&edit=verbatimEventDate#verbatimEventDate">edit</a>]</font> <%
         		}
         		%>
 
@@ -1646,7 +1673,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
    }
 				
  if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size#size">edit</a>]</font>
     <%
  					}
 				}
