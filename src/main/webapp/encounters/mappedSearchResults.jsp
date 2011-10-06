@@ -312,9 +312,16 @@
       String descHTML = "<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\">Direct Link</a></p>";
       descHTML += "<p> <strong>Date:</strong> " + enc.getDate() + "</p>";
       descHTML += "<p> <strong>Location:</strong><br>" + enc.getLocation() + "</p>";
-      if (enc.getSize() > 0) {
-        descHTML += "<p> <strong>Size:</strong> " + enc.getSize() + " meters</p>";
+      
+      //trying to find problematic sizes...
+      try{
+      	if (enc.getSizeAsDouble() != null) {
+      	  descHTML += "<p> <strong>Size:</strong> " + enc.getSize() + " meters</p>";
+      	}
       }
+      catch(Exception npe){npe.printStackTrace();System.out.println("NPE on size for encounter: "+enc.getCatalogNumber());}
+      
+      
       descHTML += "<p> <strong>Sex:</strong> " + enc.getSex() + "</p>";
       if (!enc.getComments().equals("")) {
         descHTML += "<p> <strong>Comments:</strong> " + enc.getComments() + "</p>";
@@ -362,9 +369,13 @@
       Element point = placeMark.addElement("Point");
       Element coords = point.addElement("coordinates");
       String coordsString = enc.getDWCDecimalLongitude() + "," + enc.getDWCDecimalLatitude();
-      if (enc.getMaximumElevationInMeters() != 0.0) {
+      if (enc.getMaximumElevationInMeters() != null) {
         coordsString += "," + enc.getMaximumElevationInMeters();
-      } else {
+      }
+      else if (enc.getMaximumDepthInMeters() != null) {
+        coordsString += ",-" + enc.getMaximumDepthInMeters();
+      }
+      else {
         coordsString += ",0";
       }
       coords.setText(coordsString);
@@ -475,9 +486,10 @@
 	           // Compress the files
 	           for (int i=0; i<filenames.length; i++) {
 	               FileInputStream in = new FileInputStream(filenames[i]);
-	       
+	       		System.out.println(filenames[i]);
 	               // Add ZIP entry to output stream.
-	               zipout.putNextEntry(new ZipEntry(filenames[i]));
+	               File file2add=new File(filenames[i]);
+	               zipout.putNextEntry(new ZipEntry(file2add.getName()));
 	       
 	               // Transfer bytes from the file to the ZIP file
 	               int len;
