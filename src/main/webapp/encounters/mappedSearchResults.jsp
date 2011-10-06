@@ -246,19 +246,7 @@
   </tr>
 </table>
 
-<p><%=encprops.getProperty("exportedKML")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=kmlFilename%>"><%=kmlFilename%>
-</a><br>
-  <em><%=encprops.getProperty("rightClickLink")%>
-  </em>
-</p>
 
-<p><%=encprops.getProperty("exportedShapefile")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=shapeFilename.replaceAll(".shp",".zip")%>"><%=shapeFilename.replaceAll(".shp",".zip")%>
-</a><br>
-  <em><%=encprops.getProperty("rightClickLink")%>
-  </em>
-</p>
 
 
 <%
@@ -617,7 +605,36 @@ if(numberResultsToMap>-1){
     </script>
 
 
+
 <div id="map_canvas" style="width: 510px; height: 340px"></div>
+
+<p><%=encprops.getProperty("exportedKML")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=kmlFilename%>"><%=kmlFilename%>
+</a><br>
+  <em><%=encprops.getProperty("rightClickLink")%>
+  </em>
+</p>
+
+<p><%=encprops.getProperty("exportedShapefile")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=shapeFilename.replaceAll(".shp",".zip")%>"><%=shapeFilename.replaceAll(".shp",".zip")%>
+</a><br>
+  <em><%=encprops.getProperty("rightClickLink")%>
+  </em>
+</p>
+
+<%
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+  }
+else {
+%>
+<p><%=encprops.getProperty("noGPS")%></p>
+<%
+}  
+%>
 
 <table>
   <tr>
@@ -642,11 +659,7 @@ if(numberResultsToMap>-1){
 
 <%
 
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
 
-  }
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
   rEncounters = null;
