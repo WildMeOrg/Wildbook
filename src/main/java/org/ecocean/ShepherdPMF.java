@@ -44,7 +44,7 @@ public class ShepherdPMF {
         //class setup
         Properties props = new Properties();
         try {
-          props.load(ShepherdPMF.class.getResourceAsStream("/bundles/en/commonConfiguration.properties"));
+          props.load(ShepherdPMF.class.getResourceAsStream("/bundles/commonConfiguration.properties"));
         } catch (IOException ioe) {
           ioe.printStackTrace();
         }

@@ -568,7 +568,40 @@
               <%=encprops.getProperty("unknown")%>
             </label></td>
         </tr>
-
+        <%
+        if(CommonConfiguration.showProperty("showTaxonomy")){
+        %>
+        <tr>
+        <td>
+         <strong><%=encprops.getProperty("genusSpecies")%></strong>: <select name="genusField" id="genusField">
+		<option value=""></option>
+				       
+				       <%
+				       boolean hasMoreTax=true;
+				       int taxNum=0;
+				       while(hasMoreTax){
+				       	  String currentGenuSpecies = "genusSpecies"+taxNum;
+				       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
+				       	  	%>
+				       	  	 
+				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+				       	  	<%
+				       		taxNum++;
+				          }
+				          else{
+				             hasMoreTax=false;
+				          }
+				          
+				       }
+				       %>
+				       
+				       
+			      </select>
+        </td>
+	</tr>
+	<%
+	}
+	%>
 
         <tr>
           <td><strong><%=encprops.getProperty("status")%>: </strong><label>
