@@ -5,13 +5,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>shepherd</artifactId>
-  <version>1.0.4-RELEASE</version>
+  <version>1.0.6-RELEASE</version>
   <packaging>war</packaging>
 
   <properties>
     <datanucleus.version>2.1.0-release</datanucleus.version>
     <datanucleus.rest.version>2.0.0-release</datanucleus.rest.version>
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
+    <geotools.version>2.7.0</geotools.version>
   </properties>
 
   <repositories>
@@ -172,6 +173,22 @@
       <artifactId>dilib</artifactId>
       <version>1.0</version>
     </dependency>
+        <dependency>
+              <groupId>org.geotools</groupId>
+              <artifactId>gt-main</artifactId>
+              <version>${geotools.version}</version>
+        </dependency>
+        
+          <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-shapefile</artifactId>
+            <version>${geotools.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-epsg-hsql</artifactId>
+            <version>${geotools.version}</version>
+  </dependency>
   </dependencies>
 
   <build>
