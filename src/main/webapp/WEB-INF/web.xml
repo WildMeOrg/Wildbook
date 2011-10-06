@@ -173,6 +173,12 @@
     <servlet-name>EncounterSetAlternateID</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetAlternateID</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>EncounterSetVerbatimEventDate</servlet-name>
+      <servlet-class>org.ecocean.servlet.EncounterSetVerbatimEventDate</servlet-class>
+    </servlet>
+
 
   <servlet>
     <servlet-name>EncounterSetInformOthers</servlet-name>
@@ -783,6 +789,11 @@
     <servlet-name>EncounterSetAlternateID</servlet-name>
     <url-pattern>/EncounterSetAlternateID</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>EncounterSetVerbatimEventDate</servlet-name>
+      <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterSetInformOthers</servlet-name>
@@ -866,11 +877,6 @@
     <servlet-name>IndividualRemoveDataFile</servlet-name>
     <url-pattern>/IndividualRemoveDataFile</url-pattern>
   </servlet-mapping>
-  
-      <servlet-mapping>
-        <servlet-name>EncounterSetVerbatimEventDate</servlet-name>
-        <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
-  </servlet-mapping>
 
   <!-- Action Servlet Mapping -->
   <servlet-mapping>
@@ -950,6 +956,7 @@
 	       <url-pattern>/IndividualSetAlternateID</url-pattern>
 	       
 	        <url-pattern>/EncounterSetAlternateID</url-pattern>
+	        <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
 	        <url-pattern>/EncounterSetInformOthers</url-pattern>
 	        <url-pattern>/IndividualAddFile</url-pattern>
 	        <url-pattern>/TrackerFeed</url-pattern>
