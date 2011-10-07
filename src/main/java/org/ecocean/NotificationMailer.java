@@ -67,20 +67,24 @@ public class NotificationMailer implements Runnable {
 
 
   public void sendIt(String host3, String from3, String to3, String subject3, String text3, Vector images3) {
-    if (!(host3.equals("None"))) {
-      try {
-        //set up to, from, and the text of the message
-        message.setFrom(new InternetAddress(from3));
-        message.addRecipients(Message.RecipientType.TO, to3);
-        message.setSubject(subject3);
-        message.setText(text3);
-        Transport.send(message);
+	if(CommonConfiguration.sendEmailNotifications()){
+		if (!(host3.equals("None"))) {
+	      try {
+	        //set up to, from, and the text of the message
+	        message.setFrom(new InternetAddress(from3));
+	        message.addRecipients(Message.RecipientType.TO, to3);
+	        message.setSubject(subject3);
+	        message.setText(text3);
+	        Transport.send(message);
 
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+	      } catch (Exception e) {
+	        e.printStackTrace();
+	        System.out.println("     from: "+from3);
+	        System.out.println("     to: "+to3);
+	      }
 
-    }
+	    }
+	}
   }
 
 
