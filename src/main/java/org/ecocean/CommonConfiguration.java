@@ -229,6 +229,15 @@ public class CommonConfiguration {
     return canAdopt;
   }
 
+  public static boolean sendEmailNotifications() {
+    initialize();
+    boolean sendNotifications = true;
+    if ((props.getProperty("sendEmailNotifications") != null) && (props.getProperty("sendEmailNotifications").equals("false"))) {
+      sendNotifications = false;
+    }
+    return sendNotifications;
+  }
+
   /**
    * This configuration option defines whether nicknames are allowed for MarkedIndividual entries.
    *
