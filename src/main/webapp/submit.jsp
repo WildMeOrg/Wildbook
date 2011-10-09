@@ -302,6 +302,41 @@
                    checked="checked"/> <%=props.getProperty("submit_unknown")%>
     </label></td>
 </tr>
+<%
+
+if(CommonConfiguration.showProperty("showTaxonomy")){
+
+%>
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("species")%>:</strong></td>
+  <td colspan="2">
+  <select name="genusSpecies" id="genusSpecies">
+  	<option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
+  <%
+  			       boolean hasMoreTax=true;
+  			       int taxNum=0;
+  			       if(CommonConfiguration.showProperty("showTaxonomy")){
+  			       while(hasMoreTax){
+  			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
+  			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+  			       	  	<%
+  			       		taxNum++;
+  			          }
+  			          else{
+  			             hasMoreTax=false;
+  			          }
+  			          
+			       }
+			       }
+ %>
+  </select></td>
+</tr>
+<%
+}
+%>
 
 <tr class="form_row">
   <td class="form_label" rowspan="3"><strong><font
