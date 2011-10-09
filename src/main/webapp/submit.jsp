@@ -311,6 +311,7 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
   <td class="form_label"><strong><%=props.getProperty("species")%>:</strong></td>
   <td colspan="2">
   <select name="genusSpecies" id="genusSpecies">
+  	<option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
   <%
   			       boolean hasMoreTax=true;
   			       int taxNum=0;
