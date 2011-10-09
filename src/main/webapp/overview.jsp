@@ -99,7 +99,7 @@
 		Below we explain a little more about the different species of Manta and outline the best ways to photograph these animals in the world and upload your photos to our website. 
 		</p>
 		
-		<h3>Different species of manta</h3>
+		<a name="species"><h3>Different species of manta</h3></a>
 		<p>
 		Currently two different species of Mantas are recognized, and it will be important to note which species you have observed. Luckily the two species can be visually differentiated and the following guide will help you distinguish between <em>Manta alfredi</em> and <em>Manta birostris</em>. 
 		<p>

@@ -275,7 +275,7 @@
 
     <label> <input type="radio" name="measureUnits" value="Feet"/>
       <%=props.getProperty("submit_feet")%>
-    </label></td>
+    </label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em>Measured wing tip to wing tip.</em></td>
 </tr>
 <tr id="measure_method">
   <td colspan="2"><label><%=props.getProperty("submit_howmeasure")%>
@@ -300,13 +300,16 @@
 
     <label> <input name="sex" type="radio" value="unknown"
                    checked="checked"/> <%=props.getProperty("submit_unknown")%>
-    </label></td>
+    </label> <a href="photographing.jsp#sex" target="_blank">
+<img border="0" align="absmiddle" alt="Help" src="images/information_icon_svg.gif">
+</a></td>
 </tr>
 
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("species")%>:</strong></td>
   <td colspan="2">
   <select name="genusSpecies" id="genusSpecies">
+  	<option value="" selected="selected">unknown</option>
   <%
   			       boolean hasMoreTax=true;
   			       int taxNum=0;
@@ -327,7 +330,9 @@
 			       }
 			       }
  %>
-  </select></td>
+  </select> <em><a href="overview.jsp#species" target="_blank">
+<img border="0" align="absmiddle" alt="Help" src="images/information_icon_svg.gif">
+</a></em></td>
 </tr>
 
 <tr class="form_row">

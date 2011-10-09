@@ -145,7 +145,7 @@
 				</tr>
 		</table>
 		
-		<h3>Determining sex in your photo</h3>
+		<a name="sex"><h3>Determining sex in your photo</h3></a>
 		
 		<p>Determining the sex of a manta is usually quick and easy. If you have taken a good ID shot of the standardized area, you will be able to ID the animal's sex from this photo. If not, check your other photos to see if you can see the pelvic fins. Pelvic fins are the two small fins located at the rear of the animal by the tail. 
 		</p>
