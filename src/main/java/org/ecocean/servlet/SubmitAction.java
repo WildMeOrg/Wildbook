@@ -67,7 +67,7 @@ public class SubmitAction extends Action {
 		  String elevation = "";
 		  String depth = "";
 		  String measureUnits = "", location = "", sex = "unknown", comments = "", primaryImageName = "", guess = "no estimate provided";
-		  String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "";
+		  String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "", submitterOrganization="", submitterProject="";
 		  String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
 		  Vector additionalImageNames = new Vector();
 		  int encounterNumber = 0;
@@ -122,6 +122,9 @@ public class SubmitAction extends Action {
       submitterEmail = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterEmail().replaceAll(";", ",").replaceAll(" ", ""));
       submitterPhone = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterPhone());
       submitterAddress = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterAddress());
+      submitterOrganization = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterOrganization());
+      submitterProject = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterProject());
+
       photographerName = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPhotographerName());
       photographerEmail = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPhotographerEmail().replaceAll(";", ",").replaceAll(" ", ""));
       photographerPhone = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPhotographerPhone());
@@ -591,6 +594,9 @@ public class SubmitAction extends Action {
       enc.setMeasureUnits("Meters");
       enc.setSubmitterPhone(submitterPhone);
       enc.setSubmitterAddress(submitterAddress);
+      enc.setSubmitterOrganization(submitterOrganization);
+      enc.setSubmitterProject(submitterProject);
+
       enc.setPhotographerPhone(photographerPhone);
       enc.setPhotographerAddress(photographerAddress);
       enc.setPhotographerName(photographerName);
