@@ -163,11 +163,7 @@ public class SubmitAction extends Action {
 
 
       try {
-        //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/en/submitActionClass.properties"));
-
-
-        //props.load(propsInputStream);
-        props.load(getClass().getResourceAsStream("/bundles/en/submitActionClass.properties"));
+        props.load(getClass().getResourceAsStream("/bundles/submitActionClass.properties"));
 
         Enumeration m_enum = props.propertyNames();
         while (m_enum.hasMoreElements()) {

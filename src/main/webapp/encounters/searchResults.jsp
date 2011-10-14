@@ -105,7 +105,7 @@
 //setup our locale properties for use with Excel export
   Properties props = new Properties();
   try {
-    props.load(getClass().getResourceAsStream("/bundles/en/locales.properties"));
+    props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
   } catch (Exception e) {
     System.out.println("     Could not load locales.properties in the encounter search results.");
     e.printStackTrace();
