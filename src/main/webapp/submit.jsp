@@ -408,6 +408,11 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
   </select></td>
 </tr>
 
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("submit_behavior")%>:</strong></td>
+  <td colspan="2">
+    <input name="behavior" type="text" id="scars" size="75"/></td>
+</tr>
 
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>
