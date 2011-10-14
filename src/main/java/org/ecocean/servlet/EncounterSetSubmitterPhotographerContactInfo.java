@@ -110,7 +110,7 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
           }
 
           if (request.getParameter("submitterOrganization") != null) {
-		    newContact += request.getParameter("submitterOrganization");
+		    newContact += request.getParameter("submitterOrganization")+ ", ";
           }
           if (request.getParameter("submitterProject") != null) {
 		  	newContact += request.getParameter("submitterProject");
