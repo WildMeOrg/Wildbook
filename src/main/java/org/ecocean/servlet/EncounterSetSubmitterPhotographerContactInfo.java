@@ -58,28 +58,6 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
     boolean locked = false;
     boolean isOwner = true;
 
-    /**
-     if(request.getParameter("number")!=null){
-     myShepherd.beginDBTransaction();
-     if(myShepherd.isEncounter(request.getParameter("number"))) {
-     Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-     String locCode=verifyMyOwner.getLocationCode();
-
-     //check if the encounter is assigned
-     if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-     isOwner=true;
-     }
-
-     //if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-     else if((request.isUserInRole("admin"))){
-     isOwner=true;
-     }
-     //if they have general location code permissions for the encounter's location code
-     else if(request.isUserInRole(locCode)){isOwner=true;}
-     }
-     myShepherd.rollbackDBTransaction();
-     }
-     */
 
     //reset photographer/submitter contact info
     if ((request.getParameter("number") != null) && (request.getParameter("contact") != null)) {
@@ -90,6 +68,8 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
       String oldEmail = "";
       String oldAddress = "";
       String oldPhone = "";
+      String oldSubmitterOrg="";
+      String oldSubmitterProj="";
       String oldContact = "";
       String newContact = "";
 
@@ -97,15 +77,25 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
       try {
 
         if (request.getParameter("contact").equals("submitter")) {
-          oldName = changeMe.getSubmitterName();
-          oldEmail = changeMe.getSubmitterEmail();
-          oldAddress = changeMe.getSubmitterAddress();
-          oldPhone = changeMe.getSubmitterPhone();
-          oldContact = oldName + ", " + oldEmail + ", " + oldAddress + ", " + oldPhone;
-          changeMe.setSubmitterName(request.getParameter("name"));
-          changeMe.setSubmitterEmail(request.getParameter("email"));
-          changeMe.setSubmitterPhone(request.getParameter("phone"));
-          changeMe.setSubmitterAddress(request.getParameter("address"));
+          if(changeMe.getSubmitterName()!=null){oldName = changeMe.getSubmitterName();}
+          if(changeMe.getSubmitterEmail()!=null){oldEmail = changeMe.getSubmitterEmail();}
+          if(changeMe.getSubmitterAddress()!=null){oldAddress = changeMe.getSubmitterAddress();}
+          if(changeMe.getSubmitterPhone()!=null){oldPhone = changeMe.getSubmitterPhone();}
+          if(changeMe.getSubmitterOrganization()!=null){oldSubmitterOrg = changeMe.getSubmitterOrganization();}
+		  if(changeMe.getSubmitterProject()!=null){oldSubmitterProj = changeMe.getSubmitterProject();}
+
+
+
+          oldContact = oldName + ", " + oldEmail + ", " + oldAddress + ", " + oldPhone + ", "+oldSubmitterOrg+", "+oldSubmitterProj;
+
+          if(request.getParameter("name")!=null){changeMe.setSubmitterName(request.getParameter("name"));}
+          if(request.getParameter("email")!=null){changeMe.setSubmitterEmail(request.getParameter("email"));}
+          if(request.getParameter("phone")!=null){changeMe.setSubmitterPhone(request.getParameter("phone"));}
+          if(request.getParameter("address")!=null){changeMe.setSubmitterAddress(request.getParameter("address"));}
+          if(request.getParameter("submitterOrganization")!=null){changeMe.setSubmitterOrganization(request.getParameter("submitterOrganization"));}
+          if(request.getParameter("submitterProject")!=null){changeMe.setSubmitterProject(request.getParameter("submitterProject"));}
+
+
           if (request.getParameter("name") != null) {
             newContact += request.getParameter("name") + ", ";
           }
@@ -118,6 +108,14 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
           if (request.getParameter("phone") != null) {
             newContact += request.getParameter("phone");
           }
+
+          if (request.getParameter("submitterOrganization") != null) {
+		    newContact += request.getParameter("submitterOrganization");
+          }
+          if (request.getParameter("submitterProject") != null) {
+		  	newContact += request.getParameter("submitterProject");
+          }
+
 
           changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed submitter contact info from<br>" + oldContact + "<br>to<br>" + newContact + ".</p>");
         } else {
@@ -187,5 +185,5 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
     myShepherd.closeDBTransaction();
   }
 }
-	
-	
+
+
