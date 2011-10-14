@@ -52,7 +52,7 @@
 
 
 		<class name="MarkedIndividual" identity-type="application" table="MARKEDINDIVIDUAL">
-			<field name="name" primary-key="true">
+			<field name="individualID" primary-key="true">
 				<column length="100"/>
 			</field>
 			<field name="comments" persistence-modifier="persistent">
