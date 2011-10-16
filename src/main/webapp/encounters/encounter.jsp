@@ -34,7 +34,7 @@
         //let's see if we can find a string in the mapping properties file
         Properties props = new Properties();
         //set up the file input stream
-        props.load(getClass().getResourceAsStream("/bundles/en/newSharkNumbers.properties"));
+        props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
 
 
         //let's see if the property is defined
@@ -369,7 +369,7 @@
     %>
     
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>: <%=genusSpeciesFound%>&nbsp;<%
+          <%=encprops.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>&nbsp;<%
             if (isOwner && CommonConfiguration.isCatalogEditable()) {
           %>[<a href="encounter.jsp?number=<%=num%>&edit=genusSpecies#genusSpecies">edit</a>]<%
             }
@@ -528,8 +528,35 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
+</a><br /> <%
 		}
+		
+		//set verbatimEventDate
+		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("verbatimEventDate"))){
+		%> 
+		<a name="verbatimEventDate"><br>
+		  <table width="150" border="1" cellpadding="1" cellspacing="0"
+		         bordercolor="#000000" bgcolor="#CCCCCC">
+		    <tr>
+		      <td align="left" valign="top" class="para"><strong><font
+		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
+		        <br />
+			<font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
+          		</em></font>
+		        </td>
+		    </tr>
+		    <tr>
+		      <td align="left" valign="top">
+		        <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate"
+		              method="post"><input name="verbatimEventDate" type="text" size="10" maxlength="50"> 
+		              <input name="encounter" type="hidden" value=<%=num%>>
+		          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
+		      </td>
+		    </tr>
+		  </table>
+		</a><br /> <%
+				}
+		
 		
 		//encounter set dynamic property
 		if(CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
@@ -770,7 +797,7 @@ if(!loggedIn){
     			bordercolor="#000000" bgcolor="#CCCCCC">
     			<tr>
     				<td align="left" valign="top" class="para"><span class="style3"><font
-    					color="#990000"><%=encprops.getProperty("resetGPS")%>:</font></span><br> <font size="-1"><%=encprops.getProperty("noteGPS")%></font>
+    					color="#990000"><%=encprops.getProperty("resetGPS")%>:</font></span><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
     				</td>
     			</tr>
     			<tr>
@@ -815,9 +842,10 @@ if(!loggedIn){
 </a><br> <%
 			}
 				
-				//update submitted comments for sighting
-			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("comments"))){
-		%> <a name="comments">
+//update submitted comments for sighting
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("comments"))){
+%> 
+<a name="comments">
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -836,8 +864,44 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
-			}
+</a><br /> 
+<%
+}
+
+//update submitted comments for sighting
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("behavior"))){
+%> 
+<a name="behavior">
+  <table width="150" border="1" cellpadding="1" cellspacing="0"
+         bordercolor="#000000" bgcolor="#CCCCCC">
+    <tr>
+      <td align="left" valign="top" class="para">
+      	<strong><font color="#990000"><%=encprops.getProperty("editBehaviorComments")%>:</font></strong>
+      	<br /><font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
+      </td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="setBehaviorComments" action="../EncounterSetBehavior"
+              method="post"><textarea name="behaviorComment" size="15">
+         <%
+         if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
+         %>
+              <%=enc.getBehavior()%>
+        <%
+        }
+        %>
+        </textarea>
+          <input name="number" type="hidden" value=<%=num%>> <input
+            name="action" type="hidden" value="editBehavior"> <input
+            name="EditBeh" type="submit" id="EditBeh"
+            value="<%=encprops.getProperty("submitEdit")%>"></form>
+      </td>
+    </tr>
+  </table>
+</a><br /> 
+<%
+}
 				//reset contact info
 			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
 		%> <a name="contact">
@@ -857,20 +921,37 @@ if(!loggedIn){
               method="post"><label> <input type="radio"
                                            name="contact"
                                            value="submitter"><%=encprops.getProperty("submitter")%>
-        </label> <br><label>
+        </label> <br /><label>
           <input type="radio" name="contact"
                  value="photographer"><%=encprops.getProperty("photographer")%>
         </label>
-          <br> <%=encprops.getProperty("name")%><br><input name="name" type="text" size="20"
-                                                           maxlength="100"> <%=encprops.getProperty("email")%>
-          <br><input name="email"
-                     type="text" size="20"> <%=encprops.getProperty("phone")%><br><input
-            name="phone"
-            type="text" size="20" maxlength="100"> <%=encprops.getProperty("phone")%><br><input
-            name="address" type="text" size="20" maxlength="100"> <input
-            name="number" type="hidden" value=<%=num%>> <input
-            name="action" type="hidden" value="editcontact"> <input
-            name="EditContact" type="submit" id="EditContact" value="Update">
+          <br /> 
+          
+          <%=encprops.getProperty("name")%><br />
+          <input name="name" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("email")%><br />
+          <input name="email" type="text" size="20" /> 
+          
+          <%=encprops.getProperty("phone")%><br />
+          <input name="phone" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("address")%><br />
+          <input name="address" type="text" size="20" maxlength="100" /> 
+          
+           <%=encprops.getProperty("submitterOrganization")%><br />
+          <input name="submitterOrganization" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("submitterProject")%><br />
+	  <input name="submitterProject" type="text" size="20" maxlength="100" /> 
+	            
+          
+            
+            
+            
+            <input name="number" type="hidden" value="<%=num%>" /> 
+            <input name="action" type="hidden" value="editcontact" /> 
+            <input name="EditContact" type="submit" id="EditContact" value="Update" />
         </form>
       </td>
     </tr>
@@ -1077,9 +1158,9 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       <td align="left" valign="top">
         <form name="setencsize" action="../EncounterSetSize" method="post">
           <input name="lengthField" type="text" id="lengthField" size="8"
-                 maxlength="8"> <%=encprops.getProperty("meters")%><br>
-          <em><%=encprops.getProperty("useZeroIfUnknown")%>
-          </em><br>
+                 maxlength="8"> <%=encprops.getProperty("meters")%><br />
+          <font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
+          </em></font><br />
           <input name="lengthUnits" type="hidden" id="lengthUnits"
                  value="Meters"> <select name="guessList" id="guessList">
           <option value="directly measured"><%=encprops.getProperty("directlyMeasured")%>
@@ -1578,7 +1659,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 				}
 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  					%> <font size="-1">[<a
-    href="encounter.jsp?number=<%=num%>&edit=verbatimdate#verbatimdate">edit</a>]</font> <%
+    href="encounter.jsp?number=<%=num%>&edit=verbatimEventDate#verbatimEventDate">edit</a>]</font> <%
         		}
         		%>
 
@@ -1646,7 +1727,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
    }
 				
  if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size">edit</a>]</font>
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size#size">edit</a>]</font>
     <%
  					}
 				}
@@ -1797,22 +1878,48 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
     <%
  	}
- %><br/> <%=enc.getSubmitterName()%><br/> <%
-		if (isOwner) {
+ %> 
+ <%
+ if(enc.getSubmitterName()!=null){
+ %>
+ <br/><%=enc.getSubmitterName()%>
+ <%
+ }
+     	if (isOwner) {
 			
-			if(enc.getSubmitterEmail().indexOf(",")!=-1) {
-		//break up the string
-		StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");
+		if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))&&(enc.getSubmitterEmail().indexOf(",")!=-1)) {
+			//break up the string
+			StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");
 		
 		while(stzr.hasMoreTokens()) {
-	%> <%=stzr.nextToken()%><br/> <%
+	%> <br/><%=stzr.nextToken()%> <%
 				}
 				
-					}
-					else {
-			%> <%=enc.getSubmitterEmail()%><br/> <%
-			}
-		%> <%=enc.getSubmitterPhone()%><br/> <%=enc.getSubmitterAddress()%>
+		}
+		else if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))) {
+			%> <br/><%=enc.getSubmitterEmail()%> <%
+		}
+		if((enc.getSubmitterPhone()!=null)&&(!enc.getSubmitterPhone().equals(""))){
+		%> 
+			<br/> <%=enc.getSubmitterPhone()%>
+		<%
+		}
+		if((enc.getSubmitterAddress()!=null)&&(!enc.getSubmitterAddress().equals(""))){
+		%>
+			<br /><%=enc.getSubmitterAddress()%>
+		<%
+		}
+		%>
+		<%
+		if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){%>
+			<br/><%=enc.getSubmitterOrganization()%>
+		<%
+		}
+		if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
+			<br/><%=enc.getSubmitterProject()%>
+		<%}%>
+		
+		
     <%
 	}
 %>
@@ -1820,14 +1927,33 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 <p class="para"><strong><%=encprops.getProperty("photographer") %>
 </strong> <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %><font size="-1">[<a
-  href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
-    <%
+		 %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
+    	<%
  	}
- %><br/> <%=enc.getPhotographerName()%><br/> <%
-	if (isOwner) {
-%> <%=enc.getPhotographerEmail()%><br/> <%=enc.getPhotographerPhone()%><br/>
-    <%=enc.getPhotographerAddress()%>
+ if(enc.getPhotographerName()!=null){	
+ %>
+ 	<br/> <%=enc.getPhotographerName()%> <%
+ }
+ 
+if (isOwner) {
+
+if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
+%>
+	<br/><%=enc.getPhotographerEmail()%> 
+<%
+}
+if((enc.getPhotographerPhone()!=null)&&(!enc.getPhotographerPhone().equals(""))){
+%>
+	<br/><%=enc.getPhotographerPhone()%>
+<%
+}
+if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals(""))){
+%>
+	<br/><%=enc.getPhotographerAddress()%>
+<%
+}
+%>
+
 
 
 <p class="para"><strong><%=encprops.getProperty("inform_others") %>

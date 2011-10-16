@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 public class EncounterDelete extends HttpServlet {
@@ -57,28 +58,6 @@ public class EncounterDelete extends HttpServlet {
     boolean locked = false;
 
     boolean isOwner = true;
-
-    /**
-     if(request.getParameter("number")!=null){
-     myShepherd.beginDBTransaction();
-     if(myShepherd.isEncounter(request.getParameter("number"))) {
-     Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-     String locCode=verifyMyOwner.getLocationCode();
-
-     //check if the encounter is assigned
-     if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-     isOwner=true;
-     }
-
-     //if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-     else if((request.isUserInRole("admin"))){
-     isOwner=true;
-     }
-     //if they have general location code permissions for the encounter's location code
-     else if(request.isUserInRole(locCode)){isOwner=true;}
-     }
-     myShepherd.rollbackDBTransaction();
-     }*/
 
 
     if (!(request.getParameter("number") == null)) {
@@ -150,6 +129,11 @@ public class EncounterDelete extends HttpServlet {
           Vector e_images = new Vector();
           NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), CommonConfiguration.getNewSubmissionEmail(), ("Removed encounter " + request.getParameter("number")), "Encounter " + request.getParameter("number") + " has been removed from the database by user " + request.getRemoteUser() + ".", e_images);
 
+		  //let's get ready for emailing
+          ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+		  es.execute(mailer);
+
+
         } else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I have NOT removed encounter " + request.getParameter("number") + " from the database. This encounter is currently being modified by another user.");
@@ -178,5 +162,5 @@ public class EncounterDelete extends HttpServlet {
     myShepherd.closeDBTransaction();
   }
 }
-	
-	
+
+

@@ -66,8 +66,9 @@ public class SubmitAction extends Action {
 		  String size = "";
 		  String elevation = "";
 		  String depth = "";
+		  String behavior="";
 		  String measureUnits = "", location = "", sex = "unknown", comments = "", primaryImageName = "", guess = "no estimate provided";
-		  String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "";
+		  String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "", submitterOrganization="", submitterProject="";
 		  String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
 		  Vector additionalImageNames = new Vector();
 		  int encounterNumber = 0;
@@ -116,12 +117,18 @@ public class SubmitAction extends Action {
       System.out.println("SubmitAction location: " + location);
       sex = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSex());
       comments = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getComments());
+      if(theForm.getBehavior()!=null){
+      	behavior = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getBehavior());
+  	  }
       primaryImageName = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPrimaryImageName());
       guess = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getGuess());
       submitterName = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterName());
       submitterEmail = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterEmail().replaceAll(";", ",").replaceAll(" ", ""));
       submitterPhone = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterPhone());
       submitterAddress = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterAddress());
+      submitterOrganization = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterOrganization());
+      submitterProject = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterProject());
+
       photographerName = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPhotographerName());
       photographerEmail = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPhotographerEmail().replaceAll(";", ",").replaceAll(" ", ""));
       photographerPhone = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPhotographerPhone());
@@ -139,11 +146,14 @@ public class SubmitAction extends Action {
       spamFields.append(theForm.getPhotographerPhone());
       spamFields.append(theForm.getPhotographerName());
       spamFields.append(theForm.getLocation());
-      //if(spamFields.toString().toLowerCase().indexOf("buy")!=-1){spamBot=true;}
+      spamFields.append(theForm.getComments());
+      if(theForm.getBehavior()!=null){spamFields.append(theForm.getBehavior());}
+
+
       if (spamFields.toString().toLowerCase().indexOf("porn") != -1) {
         spamBot = true;
       }
-      spamFields.append(theForm.getComments());
+
       if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
         spamBot = true;
       }
@@ -163,11 +173,7 @@ public class SubmitAction extends Action {
 
 
       try {
-        //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/en/submitActionClass.properties"));
-
-
-        //props.load(propsInputStream);
-        props.load(getClass().getResourceAsStream("/bundles/en/submitActionClass.properties"));
+        props.load(getClass().getResourceAsStream("/bundles/submitActionClass.properties"));
 
         Enumeration m_enum = props.propertyNames();
         while (m_enum.hasMoreElements()) {
@@ -374,6 +380,9 @@ public class SubmitAction extends Action {
       //now let's add our encounter to the database
       Encounter enc = new Encounter(day, month, year, hour, minutes, guess, location, submitterName, submitterEmail, additionalImageNames);
       enc.setComments(comments.replaceAll("\n", "<br>"));
+      if(theForm.getBehavior()!=null){
+  			enc.setBehavior(behavior);
+  		}
       enc.setSex(sex);
       enc.setLivingStatus(livingStatus);
 
@@ -595,6 +604,9 @@ public class SubmitAction extends Action {
       enc.setMeasureUnits("Meters");
       enc.setSubmitterPhone(submitterPhone);
       enc.setSubmitterAddress(submitterAddress);
+      enc.setSubmitterOrganization(submitterOrganization);
+      enc.setSubmitterProject(submitterProject);
+
       enc.setPhotographerPhone(photographerPhone);
       enc.setPhotographerAddress(photographerAddress);
       enc.setPhotographerName(photographerName);

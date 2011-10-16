@@ -256,9 +256,17 @@
   </select>
     <select name="minutes" id="minutes">
       <option value="00" selected="selected">:00</option>
+      <option value="15">:05</option>
+      <option value="15">:10</option>
       <option value="15">:15</option>
+      <option value="20">:15</option>
+      <option value="15">:25</option>
       <option value="30">:30</option>
+      <option value="30">:35</option>
+      <option value="30">:40</option>
       <option value="45">:45</option>
+      <option value="45">:50</option>
+      <option value="45">:55</option>
     </select></td>
 </tr>
 
@@ -277,7 +285,7 @@
       <%=props.getProperty("submit_feet")%>
     </label></td>
 </tr>
-<tr id="measure_method">
+<tr>
   <td colspan="2"><label><%=props.getProperty("submit_howmeasure")%>
     <select name="guess" id="guess">
       <option value="submitter's guess"><%=props.getProperty("submit_personalguess")%>
@@ -292,7 +300,7 @@
 
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_sex")%>:</strong></td>
-  <td colspan="2"><label> <input type="radio" name="sex"
+  <td colspan="2" class="form_label"><label> <input type="radio" name="sex"
                                  value="male"/> <%=props.getProperty("submit_male")%>
   </label> <label>
     <input type="radio" name="sex" value="female"/> <%=props.getProperty("submit_female")%>
@@ -311,6 +319,7 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
   <td class="form_label"><strong><%=props.getProperty("species")%>:</strong></td>
   <td colspan="2">
   <select name="genusSpecies" id="genusSpecies">
+  	<option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
   <%
   			       boolean hasMoreTax=true;
   			       int taxNum=0;
@@ -402,6 +411,11 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
   </select></td>
 </tr>
 
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("submit_behavior")%>:</strong></td>
+  <td colspan="2">
+    <input name="behavior" type="text" id="scars" size="75"/></td>
+</tr>
 
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>
@@ -429,47 +443,50 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
 
   <tr>
     <td><font color="#CC0000"><%=props.getProperty("submit_name")%>:</font></td>
-    <td><input name="submitterName" type="text" id="submitterName"
-               size="24"/></td>
+    <td><input name="submitterName" type="text" id="submitterName" size="24"/></td>
     <td><%=props.getProperty("submit_name")%>:</td>
-    <td><input name="photographerName" type="text"
-               id="photographerName" size="24"/></td>
+    <td><input name="photographerName" type="text" id="photographerName" size="24"/></td>
   </tr>
   <tr>
     <td><font color="#CC0000"><%=props.getProperty("submit_email")%>:</font></td>
-    <td><input name="submitterEmail" type="text" id="submitterEmail"
-               size="24"/></td>
+    <td><input name="submitterEmail" type="text" id="submitterEmail" size="24"/></td>
     <td><%=props.getProperty("submit_email")%>:</td>
-    <td><input name="photographerEmail" type="text"
-               id="photographerEmail" size="24"/></td>
+    <td><input name="photographerEmail" type="text" id="photographerEmail" size="24"/></td>
   </tr>
 
   <tr>
     <td><%=props.getProperty("submit_address")%>:</td>
-    <td><input name="submitterAddress" type="text"
-               id="submitterAddress" size="24"/></td>
+    <td><input name="submitterAddress" type="text" id="submitterAddress" size="24"/></td>
     <td><%=props.getProperty("submit_address")%>:</td>
-    <td><input name="photographerAddress" type="text"
-               id="photographerAddress" size="24"/></td>
+    <td><input name="photographerAddress" type="text" id="photographerAddress" size="24"/></td>
   </tr>
   <tr>
     <td><%=props.getProperty("submit_telephone")%>:</td>
-    <td><input name="submitterPhone" type="text" id="submitterPhone"
-               size="24"/></td>
+    <td><input name="submitterPhone" type="text" id="submitterPhone" size="24"/></td>
     <td><%=props.getProperty("submit_telephone")%>:</td>
-    <td><input name="photographerPhone" type="text"
-               id="photographerPhone" size="24"/></td>
+    <td><input name="photographerPhone" type="text" id="photographerPhone" size="24"/></td>
   </tr>
 
   <tr>
-    <td colspan="4"><br><strong>Other email addresses
-      to inform of resightings and status*</strong><br><input
-      name="informothers" type="text" id="informothers" size="75"/>
+    <td colspan="4"><br /><strong><%=props.getProperty("submitterOrganization")%></strong><br />
+    <input name="submitterOrganization" type="text" id="submitterOrganization" size="75"/>
     </td>
   </tr>
+  
+    <tr>
+      <td colspan="4"><br /><strong><%=props.getProperty("submitterProject")%></strong><br />
+      <input name="submitterProject" type="text" id="submitterProject" size="75"/>
+      </td>
+  </tr>
+
+  <tr>
+    <td colspan="4"><br /><strong><%=props.getProperty("otherEmails")%></strong><br />
+    <input name="informothers" type="text" id="informothers" size="75"/>
+    </td>
+  </tr>
+  
 </table>
-<p><em>Note: Multiple email addresses can be entered in email
-  fields, using commas as separators</em>.</p>
+<p><em><%=props.getProperty("multipleEmailNote")%></em>.</p>
 <hr>
 
 <p><%=props.getProperty("submit_pleaseadd")%>

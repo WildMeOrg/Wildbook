@@ -45,7 +45,7 @@ public class SubmitForm extends ActionForm {
   private String size="", depth="";
   private String elevation="";
   private String measureUnits = "", location = "", sex = "unknown", comments = "", primaryImageName = "", guess = "no estimate provided";
-  private String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "";
+  private String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "", submitterOrganization="", submitterProject="";
   private String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
   private Vector additionalImageNames = new Vector();
   private String livingStatus = "";
@@ -54,6 +54,7 @@ public class SubmitForm extends ActionForm {
   private String lat = "", longitude = "", latDirection = "", longDirection = "", scars = "None";
   private String minutes = "00", gpsLongitudeMinutes = "", gpsLongitudeSeconds = "", gpsLatitudeMinutes = "", gpsLatitudeSeconds = "", submitterID = "N/A", informothers = "";
   private String genusSpecies="";
+  private String behavior="";
   /**
    * The value of the text the user has sent as form data
    */
@@ -105,6 +106,8 @@ public class SubmitForm extends ActionForm {
     submitterEmail = "";
     submitterPhone = "";
     submitterAddress = "";
+    submitterOrganization = "";
+    submitterProject = "";
     photographerName = "";
     photographerEmail = "";
     photographerPhone = "";
@@ -280,6 +283,20 @@ public class SubmitForm extends ActionForm {
     this.submitterAddress = submitterAddress;
   }
 
+  public String getSubmitterOrganization() {
+      return this.submitterOrganization;
+  }
+  public void setSubmitterOrganization(String submitterOrganization) {
+      this.submitterOrganization = submitterOrganization;
+  }
+
+  public String getSubmitterProject() {
+        return this.submitterProject;
+  }
+  public void setSubmitterProject(String submitterProject) {
+        this.submitterProject = submitterProject;
+  }
+
   public String getPhotographerName() {
     return this.photographerName;
   }
@@ -438,6 +455,14 @@ public class SubmitForm extends ActionForm {
 
   public void setGpsLatitudeSeconds(String gpsLatitudeSeconds) {
     this.gpsLatitudeSeconds = gpsLatitudeSeconds;
+  }
+
+    public String getBehavior() {
+      return this.behavior;
+    }
+
+    public void setBehavior(String behavior) {
+      this.behavior = behavior;
   }
 
   public String getInformothers() {

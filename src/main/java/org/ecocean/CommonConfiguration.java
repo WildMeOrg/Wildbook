@@ -33,7 +33,7 @@ public class CommonConfiguration {
     //set up the file input stream
     if (props.size() == 0) {
       try {
-        props.load(CommonConfiguration.class.getResourceAsStream("/bundles/en/commonConfiguration.properties"));
+        props.load(CommonConfiguration.class.getResourceAsStream("/bundles/commonConfiguration.properties"));
       } catch (IOException ioe) {
         ioe.printStackTrace();
       }
@@ -43,7 +43,7 @@ public class CommonConfiguration {
   public static boolean refresh() {
     try {
       props = null;
-      props.load(CommonConfiguration.class.getResourceAsStream("/bundles/en/commonConfiguration.properties"));
+      props.load(CommonConfiguration.class.getResourceAsStream("/bundles/commonConfiguration.properties"));
     } catch (IOException ioe) {
       ioe.printStackTrace();
       return false;
@@ -78,7 +78,8 @@ public class CommonConfiguration {
 
   public static String getWikiLocation() {
     initialize();
-    return props.getProperty("wikiLocation").trim();
+    if(props.getProperty("wikiLocation")!=null){return props.getProperty("wikiLocation").trim();}
+    return null;
   }
 
   public static String getDBLocation() {
@@ -175,6 +176,10 @@ public class CommonConfiguration {
     return props.getProperty("tapirLinkURL");
   }
 
+  public static String getIPTURL() {
+    initialize();
+    return props.getProperty("iptURL");
+  }
 
   public static String getURLToFooterGraphic() {
     initialize();
@@ -222,6 +227,15 @@ public class CommonConfiguration {
       canAdopt = false;
     }
     return canAdopt;
+  }
+
+  public static boolean sendEmailNotifications() {
+    initialize();
+    boolean sendNotifications = true;
+    if ((props.getProperty("sendEmailNotifications") != null) && (props.getProperty("sendEmailNotifications").equals("false"))) {
+      sendNotifications = false;
+    }
+    return sendNotifications;
   }
 
   /**
