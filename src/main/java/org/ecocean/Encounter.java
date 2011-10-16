@@ -187,7 +187,6 @@ public class Encounter implements java.io.Serializable {
    * Use this constructor to add the minimum level of information for a new encounter
    * The Vector <code>additionalImages</code> must be a Vector of Blob objects
    *
-   * @see com.poet.jdo.Blob, shepherd#makeBlobFromImageFile(File imageFile)
    */
   public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, Vector additionalImageNames) {
     this.verbatimLocality = location;
@@ -551,7 +550,6 @@ public class Encounter implements java.io.Serializable {
    * These images should be the additional or non-side shots.
    *
    * @param  imageFile  an additional image, converted to type Blob, to add to this encounter
-   * @see com.poet.jdo.Blob, shepherd#makeBlobFromImageFile(File imageFile)
    */
   public void addAdditionalImageName(String fileName) {
     additionalImageNames.add(fileName);
@@ -590,7 +588,6 @@ public class Encounter implements java.io.Serializable {
    * Returns the unique encounter identifier number for this encounter.
    *
    * @return a unique integer String used to identify this encounter in the database
-   * @see com.poet.jdo.Blob, shepherd#makeBlobFromImageFile(File imageFile)
    */
   public String getEncounterNumber() {
     return catalogNumber;

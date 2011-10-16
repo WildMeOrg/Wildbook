@@ -39,7 +39,7 @@ public class ShepherdPMF {
         Properties dnProperties = new Properties();
 
 
-        dnProperties.setProperty("datanucleus.PersistenceManagerFactoryClass", "org.datanucleus.PersistenceManagerFactoryImpl");
+        dnProperties.setProperty("datanucleus.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.PersistenceManagerFactoryImpl");
 
         //class setup
         Properties props = new Properties();
