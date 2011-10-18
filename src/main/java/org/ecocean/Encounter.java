@@ -71,6 +71,7 @@ public class Encounter implements java.io.Serializable {
   public String identificationRemarks = "";
   public String genus = "";
   public String specificEpithet;
+  public String lifeStage;
 
 
   /*
@@ -1454,5 +1455,10 @@ public class Encounter implements java.io.Serializable {
     }
     public void removeCollectedDataPoint(int num){collectedData.remove(num);}
     
+    public String getLifeStage(){return lifeStage;}
+    public void setLifeStage(String newStage) {
+      if(newStage!=null){lifeStage = newStage;}
+      else{lifeStage=null;}
+    }
 }
 

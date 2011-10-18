@@ -392,6 +392,11 @@
       <servlet-name>EncounterSetPatterningCode</servlet-name>
       <servlet-class>org.ecocean.servlet.EncounterSetPatterningCode</servlet-class>
   </servlet>
+  
+      <servlet>
+        <servlet-name>EncounterSetLifeStage</servlet-name>
+        <servlet-class>org.ecocean.servlet.EncounterSetLifeStage</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetDynamicProperty</servlet-name>
@@ -540,6 +545,11 @@
     <servlet-mapping>
       <servlet-name>EncounterSetPatterningCode</servlet-name>
       <url-pattern>/EncounterSetPatterningCode</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+        <servlet-name>EncounterSetLifeStage</servlet-name>
+        <url-pattern>/EncounterSetLifeStage</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -897,6 +907,7 @@
       <url-pattern>/IndividualSetAlternateID</url-pattern>
       <url-pattern>/EncounterSetAlternateID</url-pattern>
        <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
+       <url-pattern>/EncounterSetLifeStage</url-pattern>
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>
       <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>

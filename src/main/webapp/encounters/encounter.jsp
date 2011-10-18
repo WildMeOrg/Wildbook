@@ -1059,7 +1059,51 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 			</table>
 			<br /> <%
 	}
-			
+	
+	//
+	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("lifeStage"))){
+		%> 
+		<a name="lifeStage" />
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+			<tr>
+				<td align="left" valign="top" class="para"><strong><font color="#990000">
+					<%=encprops.getProperty("resetLifeStage")%>:</font></strong><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
+						    </td>
+						  </tr>
+						  <tr>
+						    <td align="left" valign="top">
+						      <form name="lifeStageForm" action="../EncounterSetLifeStage" method="post">
+						            <select name="lifeStage" id="lifeStage">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreStages=true;
+						       int taxNum=0;
+						       while(hasMoreStages){
+						       	  String currentLifeStage = "lifeStage"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreStages=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
+						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
+						      </form>
+						    </td>
+						  </tr>
+						</table>
+						<br /> <%
+	}
 			
 			
 				//reset encounter date
@@ -1826,6 +1870,23 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
     }
   %>
 </p>
+
+<p class="para"><strong><%=encprops.getProperty("lifeStage") %>
+</strong> <br/>
+  <%
+    if (enc.getLifeStage() != null) {
+  %>
+  <%=enc.getLifeStage()%>
+  <%
+  } 
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=lifeStage#lifeStage">edit</a>]</font>
+  <%
+    }
+  %>
+</p>
+
 <%
 
   if (enc.getDynamicProperties() != null) {
