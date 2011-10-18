@@ -169,6 +169,9 @@ public class Encounter implements java.io.Serializable {
   private String submitterOrganization;
   private String submitterProject;
 
+  //hold submittedData
+  private ArrayList<DataCollectionEvent> collectedData;
+  
   //start constructors
 
   /**
@@ -1444,6 +1447,12 @@ public class Encounter implements java.io.Serializable {
     	else{submitterOrganization=null;}
     }
 
-
+    public ArrayList<DataCollectionEvent> getCollectedData(){return collectedData;}
+    public void addCollectedDataPoint(DataCollectionEvent dce){
+      if(collectedData==null){collectedData=new ArrayList<DataCollectionEvent>();}
+      collectedData.add(dce);
+    }
+    public void removeCollectedDataPoint(int num){collectedData.remove(num);}
+    
 }
 
