@@ -22,6 +22,7 @@ package org.ecocean;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -171,7 +172,7 @@ public class Encounter implements java.io.Serializable {
   private String submitterProject;
 
   //hold submittedData
-  private ArrayList<DataCollectionEvent> collectedData;
+  private List<DataCollectionEvent> collectedData;
   
   //start constructors
 
@@ -1448,7 +1449,7 @@ public class Encounter implements java.io.Serializable {
     	else{submitterOrganization=null;}
     }
 
-    public ArrayList<DataCollectionEvent> getCollectedData(){return collectedData;}
+    public List<DataCollectionEvent> getCollectedData(){return collectedData;}
     public void addCollectedDataPoint(DataCollectionEvent dce){
       if(collectedData==null){collectedData=new ArrayList<DataCollectionEvent>();}
       collectedData.add(dce);
