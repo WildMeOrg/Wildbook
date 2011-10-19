@@ -11,3 +11,4 @@ src/main/webapp/encounters/*20*
 /log
 /changed
 /changedfiles.txt
+/.classpath

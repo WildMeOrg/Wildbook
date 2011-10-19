@@ -504,6 +504,41 @@
 				</table>
           </td>
         </tr>
+        <%
+
+if(CommonConfiguration.showProperty("showLifestage")){
+
+%>
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("lifeStage")%>:</strong></td>
+  <td colspan="2">
+  <select name="lifeStageField" id="lifeStageField">
+  	<option value="" selected="selected"></option>
+  <%
+  			       boolean hasMoreStages=true;
+  			       int stageNum=0;
+  			       
+  			       while(hasMoreStages){
+  			       	  String currentLifeStage = "lifeStage"+stageNum;
+  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+  			       	  	<%
+  			       		stageNum++;
+  			          }
+  			          else{
+  			        	hasMoreStages=false;
+  			          }
+  			          
+			       }
+			       
+ %>
+  </select></td>
+</tr>
+<%
+}
+%>
         
                 <%
 	        if(CommonConfiguration.showProperty("showTaxonomy")){

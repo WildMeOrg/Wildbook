@@ -67,6 +67,7 @@ public class SubmitAction extends Action {
 		  String elevation = "";
 		  String depth = "";
 		  String behavior="";
+		  String lifeStage="";
 		  String measureUnits = "", location = "", sex = "unknown", comments = "", primaryImageName = "", guess = "no estimate provided";
 		  String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "", submitterOrganization="", submitterProject="";
 		  String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
@@ -120,6 +121,9 @@ public class SubmitAction extends Action {
       if(theForm.getBehavior()!=null){
       	behavior = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getBehavior());
   	  }
+      if(theForm.getLifeStage()!=null){
+        lifeStage = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getLifeStage());
+      }
       primaryImageName = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPrimaryImageName());
       guess = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getGuess());
       submitterName = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSubmitterName());
@@ -383,6 +387,9 @@ public class SubmitAction extends Action {
       if(theForm.getBehavior()!=null){
   			enc.setBehavior(behavior);
   		}
+      if(theForm.getLifeStage()!=null){
+        enc.setLifeStage(lifeStage);
+      }
       enc.setSex(sex);
       enc.setLivingStatus(livingStatus);
 

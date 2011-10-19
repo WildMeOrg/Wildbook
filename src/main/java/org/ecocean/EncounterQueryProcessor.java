@@ -133,7 +133,33 @@ public class EncounterQueryProcessor {
             else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
     }
-    //end locationID filters-----------------------------------------------
+    //end behavior filters-----------------------------------------------
+    //------------------------------------------------------------------
+   
+    //lifeStage filters-------------------------------------------------
+    String[] stages=request.getParameterValues("lifeStageField");
+    if((stages!=null)&&(!stages[0].equals("None"))){
+          prettyPrint.append("lifeStage is one of the following: ");
+          int kwLength=stages.length;
+            String stageFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              String kwParam=stages[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(stageFilter.equals("(")){
+                  stageFilter+=" lifeStage == \""+kwParam+"\"";
+                }
+                else{
+                  stageFilter+=" || lifeStage == \""+kwParam+"\"";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            stageFilter+=" )";
+            if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=stageFilter;}
+            else{filter+=(" && "+stageFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end behavior filters-----------------------------------------------
 
 
 

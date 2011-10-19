@@ -55,6 +55,7 @@ public class SubmitForm extends ActionForm {
   private String minutes = "00", gpsLongitudeMinutes = "", gpsLongitudeSeconds = "", gpsLatitudeMinutes = "", gpsLatitudeSeconds = "", submitterID = "N/A", informothers = "";
   private String genusSpecies="";
   private String behavior="";
+  private String lifeStage="";
   /**
    * The value of the text the user has sent as form data
    */
@@ -132,6 +133,7 @@ public class SubmitForm extends ActionForm {
     informothers = "";
     livingStatus = "";
     genusSpecies="";
+    lifeStage="";
   }
 
 
@@ -463,6 +465,14 @@ public class SubmitForm extends ActionForm {
 
     public void setBehavior(String behavior) {
       this.behavior = behavior;
+  }
+    
+    public String getLifeStage() {
+      return this.lifeStage;
+    }
+
+    public void setLifeStage(String lifeStage) {
+      this.lifeStage = lifeStage;
   }
 
   public String getInformothers() {

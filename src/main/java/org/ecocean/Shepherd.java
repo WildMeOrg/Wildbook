@@ -1751,6 +1751,14 @@ public class Shepherd {
     Collection results = (Collection)q.execute ();
     return (new ArrayList(results));
   }
+  
+  public ArrayList<String> getAllLifeStages(){
+    Query q = pm.newQuery (Encounter.class);
+    q.setResult ("distinct lifeStage");
+    q.setOrdering("lifeStage ascending");
+    Collection results = (Collection)q.execute ();
+    return (new ArrayList(results));
+  }
 
 } //end Shepherd class
 

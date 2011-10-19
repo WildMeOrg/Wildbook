@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
-         import="org.ecocean.CommonConfiguration, java.util.GregorianCalendar, java.util.Properties" %>
+         import="java.util.ArrayList,org.ecocean.CommonConfiguration, java.util.GregorianCalendar, java.util.Properties" %>
 <%
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -416,7 +416,41 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
   <td colspan="2">
     <input name="behavior" type="text" id="scars" size="75"/></td>
 </tr>
+<%
 
+if(CommonConfiguration.showProperty("showLifestage")){
+
+%>
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("lifeStage")%>:</strong></td>
+  <td colspan="2">
+  <select name="lifeStage" id="lifeStage">
+  	<option value="" selected="selected"></option>
+  <%
+  			       boolean hasMoreStages=true;
+  			       int stageNum=0;
+  			       
+  			       while(hasMoreStages){
+  			       	  String currentLifeStage = "lifeStage"+stageNum;
+  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+  			       	  	<%
+  			       		stageNum++;
+  			          }
+  			          else{
+  			        	hasMoreStages=false;
+  			          }
+  			          
+			       }
+			       
+ %>
+  </select></td>
+</tr>
+<%
+}
+%>
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>
   <td colspan="2">
