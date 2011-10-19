@@ -699,11 +699,11 @@
 if(CommonConfiguration.showProperty("showLifestage")){
 
 %>
-<tr class="form_row">
-  <td class="form_label"><strong><%=encprops.getProperty("lifeStage")%>:</strong></td>
-  <td colspan="2">
+<tr valign="top">
+  <td><strong><%=encprops.getProperty("lifeStage")%>:</strong>
+  
   <select name="lifeStageField" id="lifeStageField">
-  	<option value="" selected="selected"></option>
+  	<option value="None" selected="selected"></option>
   <%
   			       boolean hasMoreStages=true;
   			       int stageNum=0;
@@ -722,6 +722,9 @@ if(CommonConfiguration.showProperty("showLifestage")){
   			          }
   			          
 			       }
+			       if(stageNum==0){%>
+			    	   <p><em><%=encprops.getProperty("noStages")%></em></p>
+			       <% }
 			       
  %>
   </select></td>

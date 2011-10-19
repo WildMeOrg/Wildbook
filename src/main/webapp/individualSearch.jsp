@@ -509,9 +509,8 @@
 if(CommonConfiguration.showProperty("showLifestage")){
 
 %>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("lifeStage")%>:</strong></td>
-  <td colspan="2">
+<tr>
+  <td><strong><%=props.getProperty("lifeStage")%>:</strong>
   <select name="lifeStageField" id="lifeStageField">
   	<option value="" selected="selected"></option>
   <%
@@ -532,7 +531,9 @@ if(CommonConfiguration.showProperty("showLifestage")){
   			          }
   			          
 			       }
-			       
+  			     if(stageNum==0){%>
+		    	   <p><em><%=props.getProperty("noStages")%></em></p>
+		       <% }
  %>
   </select></td>
 </tr>

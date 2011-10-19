@@ -138,7 +138,7 @@ public class EncounterQueryProcessor {
    
     //lifeStage filters-------------------------------------------------
     String[] stages=request.getParameterValues("lifeStageField");
-    if((stages!=null)&&(!stages[0].equals("None"))){
+    if((stages!=null)&&(!stages[0].equals("None"))&&(!stages[0].equals(""))){
           prettyPrint.append("lifeStage is one of the following: ");
           int kwLength=stages.length;
             String stageFilter="(";
@@ -154,7 +154,7 @@ public class EncounterQueryProcessor {
                 prettyPrint.append(kwParam+" ");
               }
             }
-            stageFilter+=" )";
+            stageFilter+=" ) ";
             if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=stageFilter;}
             else{filter+=(" && "+stageFilter);}
             prettyPrint.append("<br />");
