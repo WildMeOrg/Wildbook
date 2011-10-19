@@ -80,6 +80,10 @@ public class MassSetLocationCodeFromLocationString extends HttpServlet {
           Encounter tempEnc = (Encounter) it.next();
           if (tempEnc.getLocation().toLowerCase().indexOf(matchString) != -1) {
             tempEnc.setLocationCode(locCode);
+            
+            tempEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set location ID: " + locCode + ".");
+
+            
             madeChanges = true;
             count++;
           }
