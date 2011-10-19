@@ -182,18 +182,12 @@ public class Encounter implements java.io.Serializable {
   public Encounter() {
   }
 
-  /**temporary constructor for testing purposes only - REMOVE ME
-   */
-  //public encounter(superSpot[] spots) {
-  //	this.spots=spots;
-  //    }
-
   /**
    * Use this constructor to add the minimum level of information for a new encounter
    * The Vector <code>additionalImages</code> must be a Vector of Blob objects
    *
    */
-  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, Vector additionalImageNames) {
+  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<DataCollectionEvent> collectedData) {
     this.verbatimLocality = location;
     this.recordedBy = submitterName;
     this.submitterEmail = submitterEmail;
@@ -201,7 +195,7 @@ public class Encounter implements java.io.Serializable {
     //now we need to set the hashed form of the email addresses
     this.hashedSubmitterEmail = Encounter.getHashOfEmailString(submitterEmail);
 
-    this.additionalImageNames = additionalImageNames;
+    this.collectedData = collectedData;
     this.day = day;
     this.month = month;
     this.year = year;
@@ -547,18 +541,25 @@ public class Encounter implements java.io.Serializable {
    * @return a vector of image name Strings
    */
   public Vector getAdditionalImageNames() {
-    return additionalImageNames;
+    Vector imageNamesOnly=new Vector();
+    
+    ArrayList<DataCollectionEvent> images=getCollectedDataOfType("SinglePhotoVideo");
+    int imagesSize=images.size();
+    for(int i=0;i<imagesSize;i++){
+      SinglePhotoVideo dce=(SinglePhotoVideo)images.get(i);
+      imageNamesOnly.add(dce.getFilename());
+    }
+    return imageNamesOnly;
   }
 
   /**
    * Adds another image to the collection of images for this encounter.
    * These images should be the additional or non-side shots.
    *
-   * @param  imageFile  an additional image, converted to type Blob, to add to this encounter
    */
-  public void addAdditionalImageName(String fileName) {
-    additionalImageNames.add(fileName);
-    //additionalImageNames.add(fileName);
+  public void addAdditionalImageName(SinglePhotoVideo file) {
+    collectedData.add(file);
+
   }
 
   public void approve() {
@@ -566,28 +567,38 @@ public class Encounter implements java.io.Serializable {
     okExposeViaTapirLink = true;
   }
 
+  /**
   public void resetAdditionalImageName(int position, String fileName) {
     additionalImageNames.set(position, fileName);
     //additionalImageNames.add(fileName);
   }
-
+*/
+  
+  
   /**
    * Removes the specified additional image from this encounter.
    *
    * @param  imageFile  the image to be removed from the additional images stored for this encounter
    */
   public void removeAdditionalImageName(String imageFile) {
-    for (int i = 0; i < additionalImageNames.size(); i++) {
-      String thisName = (String) additionalImageNames.get(i);
+
+    for (int i = 0; i < collectedData.size(); i++) {
+      if(collectedData.get(i).getType().equals("SinglePhotoVideo")){
+        
+      String thisName = ((SinglePhotoVideo)collectedData.get(i)).getFilename();
       if ((thisName.equals(imageFile)) || (thisName.indexOf("#") != -1)) {
-        additionalImageNames.remove(i);
+        collectedData.remove(i);
         i--;
+      }
       }
     }
 
 
   }
-
+  
+  public void removeDataCollectionEvent(DataCollectionEvent dce) {
+   collectedData.remove(dce);
+  }
 
   /**
    * Returns the unique encounter identifier number for this encounter.
@@ -1450,16 +1461,31 @@ public class Encounter implements java.io.Serializable {
     }
 
     public List<DataCollectionEvent> getCollectedData(){return collectedData;}
+    
+    public ArrayList<DataCollectionEvent> getCollectedDataOfType(String type){
+      ArrayList<DataCollectionEvent> filteredList=new ArrayList<DataCollectionEvent>();
+      int size=collectedData.size();
+      for(int i=0;i<size;i++){
+        DataCollectionEvent tempDCE=collectedData.get(i);
+        if(tempDCE.getType().equals(type)){filteredList.add(tempDCE);}
+      }
+      return filteredList;
+    }
+    
     public void addCollectedDataPoint(DataCollectionEvent dce){
       if(collectedData==null){collectedData=new ArrayList<DataCollectionEvent>();}
-      collectedData.add(dce);
+      if(!collectedData.contains(dce)){collectedData.add(dce);}
     }
     public void removeCollectedDataPoint(int num){collectedData.remove(num);}
+    
+    
     
     public String getLifeStage(){return lifeStage;}
     public void setLifeStage(String newStage) {
       if(newStage!=null){lifeStage = newStage;}
       else{lifeStage=null;}
     }
+    
+    
 }
 

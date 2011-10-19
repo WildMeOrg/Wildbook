@@ -25,8 +25,7 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.upload.FormFile;
 import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.*;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -71,7 +70,9 @@ public class SubmitAction extends Action {
 		  String measureUnits = "", location = "", sex = "unknown", comments = "", primaryImageName = "", guess = "no estimate provided";
 		  String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "", submitterOrganization="", submitterProject="";
 		  String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
-		  Vector additionalImageNames = new Vector();
+		  //Vector additionalImageNames = new Vector();
+		  ArrayList<DataCollectionEvent> images=new ArrayList<DataCollectionEvent>();
+		  
 		  int encounterNumber = 0;
 		  int day = 1, month = 1, year = 2003, hour = 12;
 		  String lat = "", longitude = "", latDirection = "", longDirection = "", scars = "None";
@@ -137,7 +138,7 @@ public class SubmitAction extends Action {
       photographerEmail = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPhotographerEmail().replaceAll(";", ",").replaceAll(" ", ""));
       photographerPhone = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPhotographerPhone());
       photographerAddress = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getPhotographerAddress());
-      additionalImageNames = theForm.getAdditionalImageNames();
+      //additionalImageNames = theForm.getAdditionalImageNames();
       encounterNumber = theForm.getEncounterNumber();
       livingStatus = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getLivingStatus());
       genusSpecies = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getGenusSpecies());
@@ -354,8 +355,10 @@ public class SubmitAction extends Action {
                 writeName = writeName.replaceFirst("\\.", "_");
               }
               //System.out.println(writeName);
-              additionalImageNames.add(writeName);
-              OutputStream bos = new FileOutputStream(new File(thisEncounterDir, writeName));
+              //additionalImageNames.add(writeName);
+              File writeMe=new File(thisEncounterDir, writeName);
+              images.add(new SinglePhotoVideo(uniqueID,writeMe));
+              OutputStream bos = new FileOutputStream(writeMe);
               int bytesRead = 0;
               byte[] buffer = new byte[8192];
               while ((bytesRead = stream.read(buffer, 0, 8192)) != -1) {
@@ -382,7 +385,7 @@ public class SubmitAction extends Action {
 
 
       //now let's add our encounter to the database
-      Encounter enc = new Encounter(day, month, year, hour, minutes, guess, location, submitterName, submitterEmail, additionalImageNames);
+      Encounter enc = new Encounter(day, month, year, hour, minutes, guess, location, submitterName, submitterEmail, images);
       enc.setComments(comments.replaceAll("\n", "<br>"));
       if(theForm.getBehavior()!=null){
   			enc.setBehavior(behavior);

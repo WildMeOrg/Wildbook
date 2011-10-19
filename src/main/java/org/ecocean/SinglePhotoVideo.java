@@ -27,6 +27,12 @@ public class SinglePhotoVideo extends DataCollectionEvent {
     this.fullFileSystemPath=fullFileSystemPath;
   }
   
+  public SinglePhotoVideo(String correspondingEncounterNumber, File file) {
+    super(correspondingEncounterNumber, type);
+    this.filename=file.getName();
+    this.fullFileSystemPath=file.getAbsolutePath();
+  }
+  
   /**
    * Returns the photo or video represented by this object as a java.io.File
    * This is a convenience method.
