@@ -887,6 +887,26 @@ public class Shepherd {
     Iterator it = list.iterator();
     return it;
   }
+  
+  public ArrayList<MarkedIndividual> getAllMarkedIndividualsFromLocationID(String locCode) {
+    Extent allSharks = null;
+    try {
+      allSharks = pm.getExtent(MarkedIndividual.class, true);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+    }
+    Extent encClass = pm.getExtent(MarkedIndividual.class, true);
+    Query sharks = pm.newQuery(encClass);
+    Collection c = (Collection) (sharks.execute());
+    ArrayList list = new ArrayList(c);
+    ArrayList<MarkedIndividual> newList=new ArrayList<MarkedIndividual>();
+    int listSize=list.size();
+    for(int i=0;i<listSize;i++){
+      MarkedIndividual indie=(MarkedIndividual)list.get(i);
+      if(indie.wasSightedInLocationCode(locCode)){newList.add(indie);}
+    }
+    return newList;
+  }
 
   public Iterator getAllMarkedIndividuals(Query sharks) {
     Collection c = (Collection) (sharks.execute());
