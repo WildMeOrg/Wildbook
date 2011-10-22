@@ -41,7 +41,7 @@ Iterator allSharks = myShepherd.getAllMarkedIndividuals();
 while(allSharks.hasNext()){
 
 	MarkedIndividual shark=(MarkedIndividual)allSharks.next();
-	if((shark.wasSightedInLocationCode("2f")||shark.wasSightedInLocationCode("2")||shark.wasSightedInLocationCode("2a")||shark.wasSightedInLocationCode("2b")||shark.wasSightedInLocationCode("2c")||shark.wasSightedInLocationCode("2d")||shark.wasSightedInLocationCode("2e"))&&(shark.participatesInTheseLocationIDs().size()>1)){
+	if((shark.wasSightedInLocationCode("2c"))&&(shark.getEncounters().size()>1)){
 		numSharks++;
 		
 		Encounter[] encounters=shark.getDateSortedEncounters(true);
