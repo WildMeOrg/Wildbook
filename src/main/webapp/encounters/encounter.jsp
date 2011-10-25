@@ -19,8 +19,9 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.CommonConfiguration,org.ecocean.Encounter,org.ecocean.Keyword,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities,javax.jdo.Extent, javax.jdo.Query, java.awt.*, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.CommonConfiguration,org.ecocean.Encounter,org.ecocean.Keyword,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration.CategoryItem,org.ecocean.MeasurementCollectionEvent, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
 <%!
 
@@ -107,6 +108,7 @@
 
 
   String num = request.getParameter("number").replaceAll("\\+", "").trim();
+  pageContext.setAttribute("num", num);
 
 
   Shepherd myShepherd = new Shepherd();
@@ -117,6 +119,7 @@
 
 
 %>
+
 
 <html>
 <head>
@@ -265,6 +268,7 @@
 
 //let's see if this user has ownership and can make edits
       boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+      pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable());
       boolean loggedIn = false;
       try{
       	if(request.getUserPrincipal()!=null){loggedIn=true;}
@@ -1104,9 +1108,41 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 						</table>
 						<br /> <%
 	}
-			
-			
-				//reset encounter date
+%>			
+
+<c:if test="${param.edit eq 'measurements'}">
+ <% 
+   pageContext.setAttribute("items", CommonConfiguration.getCategoryItems("measurement", langCode)); 
+ %>
+        <a name="measurements" />
+        <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+        <form name="setMeasurements" method="post"
+                action="../EncounterSetMeasurements">
+        <c:forEach items="${items}" var="item">
+        <%
+          CategoryItem categoryItem = (CategoryItem) pageContext.getAttribute("item");
+          List<MeasurementCollectionEvent> list = (List<MeasurementCollectionEvent>) enc.getCollectedDataOfClassAndType(MeasurementCollectionEvent.class, categoryItem.getType());
+          Double value = list.size() == 0 ? null : list.get(0).getValue();
+          pageContext.setAttribute("measurementValue", value == null ? "" : value.toString());
+        %>
+            <tr>
+              <td class="form_label"><c:out value="${item.label}"/></td>
+              <td><input name="measurement(${item.type})" id ="${item.type}" value="${measurementValue}"/></td>
+            </tr>
+        </c:forEach>
+        <%
+        pageContext.setAttribute("set", encprops.getProperty("set"));
+        %>
+        <tr>
+        <td><input name="${set}" type="submit" value="${set}"/></td>
+        </tr>
+        </form>
+        </table>
+        <br/>
+ </c:if>
+
+		
+<%				//reset encounter date
 				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("date"))){
 		%> <a name="date">
   <table width="150" border="1" cellpadding="1" cellspacing="0"
@@ -1669,7 +1705,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
   <%
 		}
 		%>
-
+  
 <td align="left" valign="top">
 <table border="0" cellspacing="0" cellpadding="5">
 
@@ -1885,6 +1921,29 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
   <%
     }
   %>
+</p>
+<%
+  pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
+  pageContext.setAttribute("measurements", CommonConfiguration.getCategoryItems("measurement", langCode));
+%>
+<p class="para"><strong><c:out value="${measurementTitle}"></c:out></strong>
+<c:if test="${editable and !empty measurements}">
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=measurements#measurements">edit</a>]</font>
+</c:if>
+<table>
+<c:forEach var="item" items="${measurements}">
+ <% 
+    CategoryItem categoryItem = (CategoryItem) pageContext.getAttribute("item");
+    List<MeasurementCollectionEvent> list =  enc.getCollectedDataOfClassAndType(MeasurementCollectionEvent.class, categoryItem.getType());
+    if (list.size() > 0) {
+        pageContext.setAttribute("measurementValue", list.get(0).getValue());
+    }
+ %>
+<tr>
+    <td><c:out value="${item.label}:"/></td><td><c:out value="${measurementValue}"/></td>
+</tr>
+</c:forEach>
+</table>
 </p>
 
 <%

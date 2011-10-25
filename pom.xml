@@ -206,6 +206,11 @@
         <artifactId>gt-epsg-hsql</artifactId>
         <version>${geotools.version}</version>
   </dependency>
+      <dependency>
+      	<groupId>jstl</groupId>
+      	<artifactId>jstl</artifactId>
+      	<version>1.2</version>
+      </dependency>
     
     
   </dependencies>

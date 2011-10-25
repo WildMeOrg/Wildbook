@@ -19,16 +19,19 @@
 
 package org.ecocean.servlet;
 
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.struts.action.ActionError;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.upload.FormFile;
 import org.apache.struts.upload.MultipartRequestHandler;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Calendar;
-import java.util.Vector;
 
 
 public class SubmitForm extends ActionForm {
@@ -56,6 +59,9 @@ public class SubmitForm extends ActionForm {
   private String genusSpecies="";
   private String behavior="";
   private String lifeStage="";
+  
+  private Map<String, Object> measurements = new HashMap<String, Object>();
+  
   /**
    * The value of the text the user has sent as form data
    */
@@ -134,6 +140,7 @@ public class SubmitForm extends ActionForm {
     livingStatus = "";
     genusSpecies="";
     lifeStage="";
+    measurements.clear();
   }
 
 
@@ -473,6 +480,18 @@ public class SubmitForm extends ActionForm {
 
     public void setLifeStage(String lifeStage) {
       this.lifeStage = lifeStage;
+  }
+    
+  public Object getMeasurement(String key) {
+    return measurements.get(key);
+  }
+  
+  public void setMeasurement(String key, Object measurement) {
+    measurements.put(key, measurement);
+  }
+  
+  public Map<String, Object> getMeasurements() {
+    return measurements;
   }
 
   public String getInformothers() {

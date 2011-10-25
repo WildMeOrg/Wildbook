@@ -1472,6 +1472,28 @@ public class Encounter implements java.io.Serializable {
       return filteredList;
     }
     
+    public <T extends DataCollectionEvent> List<T> getCollectedDataOfClass(Class<T> clazz) {
+      List<DataCollectionEvent> collectedData = getCollectedData();
+      List<T> result = new ArrayList<T>();
+      for (DataCollectionEvent dataCollectionEvent : collectedData) {
+        if (dataCollectionEvent.getClass().isAssignableFrom(clazz)) {
+          result.add((T) dataCollectionEvent);
+        }
+      }
+      return result;
+    }
+    
+    public <T extends DataCollectionEvent> List<T> getCollectedDataOfClassAndType(Class<T> clazz, String type) {
+      List<T> collectedDataOfClass = getCollectedDataOfClass(clazz);
+      List<T> result = new ArrayList<T>();
+      for (T t : collectedDataOfClass) {
+        if (t.getType().equals(type)) {
+          result.add(t);
+        }
+      }
+      return result;
+    }
+    
     public void addCollectedDataPoint(DataCollectionEvent dce){
       if(collectedData==null){collectedData=new ArrayList<DataCollectionEvent>();}
       if(!collectedData.contains(dce)){collectedData.add(dce);}

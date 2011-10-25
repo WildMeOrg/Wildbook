@@ -397,6 +397,11 @@
         <servlet-name>EncounterSetLifeStage</servlet-name>
         <servlet-class>org.ecocean.servlet.EncounterSetLifeStage</servlet-class>
   </servlet>
+  
+  <servlet>
+    <servlet-name>EncounterSetMeasurements</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetMeasurements</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetDynamicProperty</servlet-name>
@@ -550,6 +555,11 @@
       <servlet-mapping>
         <servlet-name>EncounterSetLifeStage</servlet-name>
         <url-pattern>/EncounterSetLifeStage</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>EncounterSetMeasurements</servlet-name>
+    <url-pattern>/EncounterSetMeasurements</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

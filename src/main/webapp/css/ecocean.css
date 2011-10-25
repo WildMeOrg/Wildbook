@@ -990,6 +990,7 @@ tr.paging {
   text-align: left;
   vertical-align: top;
   width: 230px;
+  font-weight: bolder;
 }
 
 .form_label1 {

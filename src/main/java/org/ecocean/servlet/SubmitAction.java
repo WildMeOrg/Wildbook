@@ -24,7 +24,6 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.upload.FormFile;
-import org.ecocean.CommonConfiguration;
 import org.ecocean.*;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -392,6 +391,20 @@ public class SubmitAction extends Action {
   		}
       if(theForm.getLifeStage()!=null){
         enc.setLifeStage(lifeStage);
+      }
+      Map<String, Object> measurements = theForm.getMeasurements();
+      for (String key : measurements.keySet()) {
+        String value = ((String) measurements.get(key)).trim();
+        if (value.length() > 0) {
+          try {
+            Double doubleVal = Double.valueOf(value);
+            MeasurementCollectionEvent measurementCollectionEvent = new MeasurementCollectionEvent(enc.getEncounterNumber(), key, doubleVal);
+            enc.addCollectedDataPoint(measurementCollectionEvent);
+          }
+          catch(Exception ex) {
+            enc.addComments("<p>Reported measurement " + key + " was problematic: " + value + "</p>");
+          }
+        }
       }
       enc.setSex(sex);
       enc.setLivingStatus(livingStatus);

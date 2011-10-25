@@ -303,7 +303,12 @@
   
   		</class>
   
-			
+		<class name="MeasurementCollectionEvent" identity-type="datastore">
+           <inheritance strategy="new-table"/>
+           <field name="value">
+               <column name="VALUE"/>
+           </field>
+        </class>	
 	
 	</package>
 </jdo>

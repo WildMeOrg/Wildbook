@@ -20,6 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
          import="java.util.ArrayList,org.ecocean.CommonConfiguration, java.util.GregorianCalendar, java.util.Properties" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -451,6 +452,28 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <%
 }
 %>
+<%
+    pageContext.setAttribute("showMeasurements", CommonConfiguration.showProperty("showMeasurements"));
+%>
+<c:if test="${showMeasurements}">
+<%
+    pageContext.setAttribute("items", CommonConfiguration.getCategoryItems("measurement", langCode));
+%>
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("measurements")%>:</strong></td>
+  <td colspan="2">
+  <table>
+  <c:forEach items="${items}" var="item">
+    <tr>
+    <td class="form_label">${item.label}:</td>
+    <td><input name="measurement(${item.type})" id="${item.type}"/><c:if test="${!empty item.desc}"><c:out value="(${item.desc})"/></c:if></td>
+    </tr>
+  </c:forEach>
+  </table>
+  </td>
+</tr>
+</c:if>
+
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>
   <td colspan="2">
