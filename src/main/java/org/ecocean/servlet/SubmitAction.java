@@ -394,15 +394,18 @@ public class SubmitAction extends Action {
       }
       Map<String, Object> measurements = theForm.getMeasurements();
       for (String key : measurements.keySet()) {
-        String value = ((String) measurements.get(key)).trim();
-        if (value.length() > 0) {
-          try {
-            Double doubleVal = Double.valueOf(value);
-            MeasurementCollectionEvent measurementCollectionEvent = new MeasurementCollectionEvent(enc.getEncounterNumber(), key, doubleVal);
-            enc.addCollectedDataPoint(measurementCollectionEvent);
-          }
-          catch(Exception ex) {
-            enc.addComments("<p>Reported measurement " + key + " was problematic: " + value + "</p>");
+        if (!key.endsWith("units")) {
+          String value = ((String) measurements.get(key)).trim();
+          if (value.length() > 0) {
+            try {
+              Double doubleVal = Double.valueOf(value);
+              String units = (String) measurements.get(key + "units");
+              MeasurementCollectionEvent measurementCollectionEvent = new MeasurementCollectionEvent(enc.getEncounterNumber(), key, doubleVal, units);
+              enc.addCollectedDataPoint(measurementCollectionEvent);
+            }
+            catch(Exception ex) {
+              enc.addComments("<p>Reported measurement " + key + " was problematic: " + value + "</p>");
+            }
           }
         }
       }

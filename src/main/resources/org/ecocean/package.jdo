@@ -308,6 +308,9 @@
            <field name="value">
                <column name="VALUE"/>
            </field>
+           <field name="units">
+               <column name="UNITS"/>
+           </field>
         </class>	
 	
 	</package>

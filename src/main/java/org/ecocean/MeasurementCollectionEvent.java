@@ -6,12 +6,15 @@ public class MeasurementCollectionEvent extends DataCollectionEvent {
   
   private Double value;
   
+  private String units;
+  
   public MeasurementCollectionEvent() {
   }
   
-  public MeasurementCollectionEvent(String correspondingEncounterNumber, String type, Double value) {
+  public MeasurementCollectionEvent(String correspondingEncounterNumber, String type, Double value, String units) {
     super(correspondingEncounterNumber, type);
     this.value = value;
+    this.units = units;
   }
 
   public Double getValue() {
@@ -20,6 +23,10 @@ public class MeasurementCollectionEvent extends DataCollectionEvent {
 
   public void setValue(Double value) {
     this.value = value;
+  }
+  
+  public String getUnits() {
+    return units;
   }
 
 }
