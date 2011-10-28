@@ -22,6 +22,8 @@ package org.ecocean;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.genetics.TissueSample;
+import org.ecocean.genetics.GeneticAnalysis;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -161,6 +163,21 @@ public class Shepherd {
     String number = enc.getEncounterNumber();
     pm.deletePersistent(enc);
   }
+  
+  public void throwAwayTissueSample(TissueSample sample) {
+    int numAnalyses=sample.getNumAnalyses();
+    List<GeneticAnalysis> list=sample.getGeneticAnalyses();
+    for(int i=0;i<list.size();i++){
+      GeneticAnalysis gen=list.get(i);
+      sample.removeGeneticAnalysis(gen);
+      pm.deletePersistent(gen);
+      i--;
+    }
+    pm.deletePersistent(sample);
+  }
+  public void throwAwayGeneticAnalysis(GeneticAnalysis analysis) {
+    pm.deletePersistent(analysis);
+  }
 
   public void throwAwayAdoption(Adoption ad) {
     String number = ad.getID();
@@ -213,6 +230,37 @@ public class Shepherd {
     }
     return tempEnc;
   }
+  
+  public TissueSample getTissueSample(String sampleID, String encounterNumber) {
+    TissueSample tempEnc = null;
+    try {
+      String filter = "this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      Extent encClass = pm.getExtent(TissueSample.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+        return ((TissueSample)it.next());
+      }
+    } 
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return null;
+  }
+  
+  /**
+  public Iterator getAllEncounters(String order) {
+    String filter = "!this.unidentifiable && this.approved == true";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    acceptedEncounters.setOrdering(order);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    Iterator it = c.iterator();
+    return it;
+  }
+   */
 
   public Adoption getAdoption(String num) {
     Adoption tempEnc = null;
@@ -313,6 +361,25 @@ public class Shepherd {
       return false;
     }
     return true;
+  }
+  
+  public boolean isTissueSample(String sampleID, String encounterNumber) {
+    TissueSample tempEnc = null;
+    try {
+      String filter = "this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      Extent encClass = pm.getExtent(TissueSample.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+        return true;
+      }
+    } 
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return false;
+    }
+    return false;
   }
 
   public boolean isAdoption(String num) {

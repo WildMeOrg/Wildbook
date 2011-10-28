@@ -1464,8 +1464,8 @@ public class Encounter implements java.io.Serializable {
     
     public ArrayList<DataCollectionEvent> getCollectedDataOfType(String type){
       ArrayList<DataCollectionEvent> filteredList=new ArrayList<DataCollectionEvent>();
-      int size=collectedData.size();
-      for(int i=0;i<size;i++){
+      int cdSize=collectedData.size();
+      for(int i=0;i<cdSize;i++){
         DataCollectionEvent tempDCE=collectedData.get(i);
         if(tempDCE.getType().equals(type)){filteredList.add(tempDCE);}
       }

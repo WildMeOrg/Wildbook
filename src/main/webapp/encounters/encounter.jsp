@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.CommonConfiguration,org.ecocean.Encounter,org.ecocean.Keyword,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration.CategoryItem,org.ecocean.MeasurementCollectionEvent, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, org.ecocean.genetics.*,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration.CategoryItem,org.ecocean.MeasurementCollectionEvent, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
@@ -2857,11 +2857,42 @@ catch (Exception e) {
 </td>
 </tr>
 </table>
+
+<hr />
+<a name="tissueSamples" />
+<p class="para"><%=encprops.getProperty("tissueSamples") %></p>
+<p>
+<%
+List<TissueSample> tissueSamples=enc.getCollectedDataOfClass(TissueSample.class);
+int numTissueSamples=tissueSamples.size();
+if(numTissueSamples>0){
+%>
+<table>
+<tr><td><%=encprops.getProperty("sampleID") %></td><td><%=encprops.getProperty("removeTissueSample") %></td></tr>
+<%
+for(int j=0;j<numTissueSamples;j++){
+	TissueSample thisSample=tissueSamples.get(j);
+	%>
+	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img src="../images/cancel.gif" /></a></td></tr>
+	<%
+}
+%>
+</table>
+<%
+}
+else {
+%>
+<%=encprops.getProperty("noTissueSamples") %>
+<%
+}
+%>
+</p>
+
 <p>
     <%
 	  	  	  	if (request.getParameter("noscript")==null) {
 	  	  	  %>
-<hr>
+<hr />
 <p><a name="map"><strong><img
   src="../images/2globe_128.gif" width="56" height="56"
   align="absmiddle"/></a><%=encprops.getProperty("mapping") %></strong></p>

@@ -17,7 +17,7 @@
 				    </field>
   		</class>
   		
-  		<class name="GeneticSample" identity-type="datastore" table="GENETICSAMPLE">
+  		<class name="TissueSample" identity-type="datastore" table="TISSUESAMPLE">
 				
 				<field name="sampleID" persistence-modifier="persistent">
 					<column length="256"/>

@@ -1,17 +1,19 @@
 package org.ecocean.genetics;
 
-import java.io.File;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ecocean.DataCollectionEvent;
 
-public class GeneticSample extends DataCollectionEvent {
+import org.ecocean.DataCollectionEvent;
+import javax.servlet.http.HttpServletRequest;
+
+
+public class TissueSample extends DataCollectionEvent {
 
 
   private static final long serialVersionUID = -4918907304313880745L;
-  private static String type="GeneticSample";
+  private static String type="TissueSample";
 
   private String tissueType;
   private String preservationMethod;
@@ -26,13 +28,19 @@ public class GeneticSample extends DataCollectionEvent {
    * Empty constructor required for JDO persistence.
    * DO NOT USE
    */
-  public GeneticSample(){}
+  public TissueSample(){}
   
   /*
    * Required constructor for instance creation
    */
-  public GeneticSample(String correspondingEncounterNumber, String sampleID) {
+  public TissueSample(String correspondingEncounterNumber, String sampleID) {
     super(correspondingEncounterNumber, type);
+    this.sampleID=sampleID;
+    analyses=new ArrayList<GeneticAnalysis>();
+  }
+  
+  public TissueSample(String correspondingEncounterNumber, String sampleID, HttpServletRequest request) {
+    super(correspondingEncounterNumber, type, request);
     this.sampleID=sampleID;
     analyses=new ArrayList<GeneticAnalysis>();
   }
@@ -48,6 +56,8 @@ public class GeneticSample extends DataCollectionEvent {
   public void removeGeneticAnalysis(int ga){
     if(analyses.size()>ga){analyses.remove(ga);}
   }
+  
+  public List<GeneticAnalysis> getGeneticAnalyses(){return analyses;}
 
   public String getTissueType(){return tissueType;}
   public void setTissueType(String newType){this.tissueType=newType;}
@@ -61,6 +71,8 @@ public class GeneticSample extends DataCollectionEvent {
   public String getSampleID(){return sampleID;}
 
   public String getAlternateSampleID(){return alternateSampleID;}
-  private void setAlternateSampleID(String newID){this.alternateSampleID=newID;}
+  public void setAlternateSampleID(String newID){this.alternateSampleID=newID;}
 
+  public int getNumAnalyses(){return analyses.size();}
+  
 }

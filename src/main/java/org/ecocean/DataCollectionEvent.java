@@ -19,6 +19,8 @@
 
 package org.ecocean;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  *
  *
@@ -42,7 +44,9 @@ public abstract class DataCollectionEvent implements java.io.Serializable {
  * correspondingEncounterNumber species which Encounter instance this data collection even corresponds with
  */
 private String correspondingEncounterNumber;
+private String type;
 private String dataCollectionEventID;
+
 private String samplingProtocol;
 private String samplingEffort;
 private String eventStartDate;
@@ -56,7 +60,7 @@ private String datasetID;
 private String institutionCode;
 private String collectionCode;
 private String datasetName;
-private String type;
+
 
 /*
  * Empty constructor required for JDO persistence
@@ -67,6 +71,25 @@ public DataCollectionEvent(){}
 public DataCollectionEvent(String correspondingEncounterNumber, String type){
 	this.correspondingEncounterNumber=correspondingEncounterNumber;
 	this.type=type;
+}
+
+public DataCollectionEvent(String correspondingEncounterNumber, String type, HttpServletRequest request){
+  this.correspondingEncounterNumber=correspondingEncounterNumber;
+  this.type=type;
+  
+  if(((request.getParameter("samplingProtocol"))!=null)&&(!request.getParameter("samplingProtocol").equals(""))){this.samplingProtocol=request.getParameter("samplingProtocol");}
+  if(((request.getParameter("samplingEffort"))!=null)&&(!request.getParameter("samplingEffort").equals(""))){this.samplingEffort=request.getParameter("samplingEffort");}
+  if(((request.getParameter("eventStartDate"))!=null)&&(!request.getParameter("eventStartDate").equals(""))){this.eventStartDate=request.getParameter("eventStartDate");}
+  if(((request.getParameter("eventEndDate"))!=null)&&(!request.getParameter("eventEndDate").equals(""))){this.eventEndDate=request.getParameter("eventEndDate");}
+  if(((request.getParameter("fieldNumber"))!=null)&&(!request.getParameter("fieldNumber").equals(""))){this.fieldNumber=request.getParameter("fieldNumber");}
+  if(((request.getParameter("fieldNotes"))!=null)&&(!request.getParameter("fieldNotes").equals(""))){this.fieldNotes=request.getParameter("fieldNotes");}
+  if(((request.getParameter("eventRemarks"))!=null)&&(!request.getParameter("eventRemarks").equals(""))){this.eventRemarks=request.getParameter("eventRemarks");}
+  if(((request.getParameter("institutionID"))!=null)&&(!request.getParameter("institutionID").equals(""))){this.institutionID=request.getParameter("institutionID");}
+  if(((request.getParameter("collectionID"))!=null)&&(!request.getParameter("collectionID").equals(""))){this.collectionID=request.getParameter("collectionID");}
+  if(((request.getParameter("datasetID"))!=null)&&(!request.getParameter("datasetID").equals(""))){this.datasetID=request.getParameter("datasetID");}
+  if(((request.getParameter("institutionCode"))!=null)&&(!request.getParameter("institutionCode").equals(""))){this.institutionCode=request.getParameter("institutionCode");}
+  if(((request.getParameter("collectionCode"))!=null)&&(!request.getParameter("collectionCode").equals(""))){this.collectionCode=request.getParameter("collectionCode");}
+  if(((request.getParameter("datasetName"))!=null)&&(!request.getParameter("datasetName").equals(""))){this.datasetName=request.getParameter("datasetName");}
 }
 
 public String getCorrespondingEncounterNumber(){return correspondingEncounterNumber;}
@@ -115,4 +138,24 @@ public String getDatasetName(){return datasetName;}
 public void setDatasetName(String id){this.datasetName=id;}
 
 public String getType(){return type;}
+
+public void resetAbstractClassParameters(HttpServletRequest request){
+  if(((request.getParameter("samplingProtocol"))!=null)&&(!request.getParameter("samplingProtocol").equals(""))){this.samplingProtocol=request.getParameter("samplingProtocol");}
+  if(((request.getParameter("samplingEffort"))!=null)&&(!request.getParameter("samplingEffort").equals(""))){this.samplingEffort=request.getParameter("samplingEffort");}
+  if(((request.getParameter("eventStartDate"))!=null)&&(!request.getParameter("eventStartDate").equals(""))){this.eventStartDate=request.getParameter("eventStartDate");}
+  if(((request.getParameter("eventEndDate"))!=null)&&(!request.getParameter("eventEndDate").equals(""))){this.eventEndDate=request.getParameter("eventEndDate");}
+  if(((request.getParameter("fieldNumber"))!=null)&&(!request.getParameter("fieldNumber").equals(""))){this.fieldNumber=request.getParameter("fieldNumber");}
+  if(((request.getParameter("fieldNotes"))!=null)&&(!request.getParameter("fieldNotes").equals(""))){this.fieldNotes=request.getParameter("fieldNotes");}
+  if(((request.getParameter("eventRemarks"))!=null)&&(!request.getParameter("eventRemarks").equals(""))){this.eventRemarks=request.getParameter("eventRemarks");}
+  if(((request.getParameter("institutionID"))!=null)&&(!request.getParameter("institutionID").equals(""))){this.institutionID=request.getParameter("institutionID");}
+  if(((request.getParameter("collectionID"))!=null)&&(!request.getParameter("collectionID").equals(""))){this.collectionID=request.getParameter("collectionID");}
+  if(((request.getParameter("datasetID"))!=null)&&(!request.getParameter("datasetID").equals(""))){this.datasetID=request.getParameter("datasetID");}
+  if(((request.getParameter("institutionCode"))!=null)&&(!request.getParameter("institutionCode").equals(""))){this.institutionCode=request.getParameter("institutionCode");}
+  if(((request.getParameter("collectionCode"))!=null)&&(!request.getParameter("collectionCode").equals(""))){this.collectionCode=request.getParameter("collectionCode");}
+  if(((request.getParameter("datasetName"))!=null)&&(!request.getParameter("datasetName").equals(""))){this.datasetName=request.getParameter("datasetName");}
+
+  
+}
+
+
 }
