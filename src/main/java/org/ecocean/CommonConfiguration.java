@@ -19,14 +19,12 @@
 
 package org.ecocean;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.MissingResourceException;
 import java.util.Properties;
-import java.util.ResourceBundle;
+
+import javax.servlet.http.HttpServletRequest;
 
 public class CommonConfiguration {
 
@@ -322,86 +320,26 @@ public class CommonConfiguration {
     return originalString;
   }
   
-  public static List<CategoryItem> getCategoryItems(String category, String langCode) {
-    Locale locale = Locale.US;
-    if (langCode != null) {
-      locale = new Locale(langCode);
-    }
-    ResourceBundle bundle = null;
-    try {
-      bundle = ResourceBundle.getBundle("bundles.commonConfigurationLabels", locale);
-    }
-    catch (MissingResourceException ex) {
-      System.out.println("Could not find bundle");
-    }
-    List<CategoryItem> list = new ArrayList<CategoryItem>();
-    boolean hasMoreItems = true;
-    int itemIndex = 0;
-    while (hasMoreItems) {
-        String currentMeasurement = category + itemIndex;
-        String type = CommonConfiguration.getProperty(currentMeasurement);
-        if (type != null) {
-          String itemLabel = getCategoryItemLabel(category, type, itemIndex, bundle);
-          String desc = getCategoryItemDesc(category, itemIndex, bundle);
-          list.add(new CategoryItem(type, itemLabel, desc));
+  public static List<String> getIndexedValues(String baseKey) {
+    List<String> list = new ArrayList<String>();
+    boolean hasMore = true;
+    int index = 0;
+    while (hasMore) {
+      String key = baseKey + index++;
+      String value = CommonConfiguration.getProperty(key);
+      if (value != null) {
+        value = value.trim();
+        if (value.length() > 0) {
+          list.add(value.trim());
         }
-        else {
-            hasMoreItems = false;
-        }
-        itemIndex++;
+      }
+      else {
+        hasMore = false;
+      }
     }
+    System.out.println("Returning for key " + baseKey + list);
     return list;
   }
   
-  private static String getCategoryItemLabel(String category, String type, int index, ResourceBundle resourceBundle) {
-    String key = category + index + "Label";
-    String label = getStringFromBundle(resourceBundle, key);
-    return label == null ? type : label;
-  }
-
-  private static String getStringFromBundle(ResourceBundle resourceBundle,  String key) {
-    if (resourceBundle != null) {
-      try {
-        String label = resourceBundle.getString(key);
-        if (label != null) {
-          return label;
-        }
-      }
-      catch (MissingResourceException ex) {
-        System.out.println("Cannot find resource for key: " + key);
-      }
-    }
-    return null;
-  }
-  
-  private static String getCategoryItemDesc(String category, int index, ResourceBundle resourceBundle) {
-    String key = category + index + "Desc";
-    return getStringFromBundle(resourceBundle, key);
-  }
-  
-  public static class CategoryItem {
-    private final String type;
-    private final String label;
-    private final String desc;
-    
-    private CategoryItem(String type, String label, String desc) {
-      this.type = type;
-      this.label = label;
-      this.desc = desc;
-    }
-
-    public String getType() {
-      return type;
-    }
-
-    public String getLabel() {
-      return label;
-    }
-    
-    public String getDesc() {
-      return desc;
-    }
-
-  }
 
 }

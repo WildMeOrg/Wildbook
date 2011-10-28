@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, org.ecocean.genetics.*,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration.CategoryItem,org.ecocean.MeasurementCollectionEvent, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.CommonConfiguration,org.ecocean.Encounter,org.ecocean.Keyword,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.MeasurementCollectionEvent, org.ecocean.Util.MeasurementCollectionEventDesc, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
@@ -121,7 +121,8 @@
 %>
 
 
-<html>
+
+<%@page import="org.ecocean.Util.MeasurementCollectionEventDesc"%><html>
 <head>
   <title><%=encprops.getProperty("encounter") %> <%=num%>
   </title>
@@ -1112,7 +1113,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 
 <c:if test="${param.edit eq 'measurements'}">
  <% 
-   pageContext.setAttribute("items", CommonConfiguration.getCategoryItems("measurement", langCode)); 
+   pageContext.setAttribute("items", Util.findMeasurementCollectionEventDescs(langCode)); 
  %>
         <a name="measurements" />
         <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
@@ -1120,14 +1121,14 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
                 action="../EncounterSetMeasurements">
         <c:forEach items="${items}" var="item">
         <%
-          CategoryItem categoryItem = (CategoryItem) pageContext.getAttribute("item");
-          List<MeasurementCollectionEvent> list = (List<MeasurementCollectionEvent>) enc.getCollectedDataOfClassAndType(MeasurementCollectionEvent.class, categoryItem.getType());
+          MeasurementCollectionEventDesc measurementCollectionEventDesc = (MeasurementCollectionEventDesc) pageContext.getAttribute("item");
+          List<MeasurementCollectionEvent> list = (List<MeasurementCollectionEvent>) enc.getCollectedDataOfClassAndType(MeasurementCollectionEvent.class, measurementCollectionEventDesc.getType());
           Double value = list.size() == 0 ? null : list.get(0).getValue();
           pageContext.setAttribute("measurementValue", value == null ? "" : value.toString());
         %>
             <tr>
               <td class="form_label"><c:out value="${item.label}"/></td>
-              <td><input name="measurement(${item.type})" id ="${item.type}" value="${measurementValue}"/></td>
+              <td><input name="measurement(${item.type})" id ="${item.type}" value="${measurementValue}"/><c:out value="(${item.unitsLabel})"/></td>
             </tr>
         </c:forEach>
         <%
@@ -1924,7 +1925,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 </p>
 <%
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
-  pageContext.setAttribute("measurements", CommonConfiguration.getCategoryItems("measurement", langCode));
+  pageContext.setAttribute("measurements", Util.findMeasurementCollectionEventDescs(langCode));
 %>
 <p class="para"><strong><c:out value="${measurementTitle}"></c:out></strong>
 <c:if test="${editable and !empty measurements}">
@@ -1933,14 +1934,14 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 <table>
 <c:forEach var="item" items="${measurements}">
  <% 
-    CategoryItem categoryItem = (CategoryItem) pageContext.getAttribute("item");
-    List<MeasurementCollectionEvent> list =  enc.getCollectedDataOfClassAndType(MeasurementCollectionEvent.class, categoryItem.getType());
+    MeasurementCollectionEventDesc measurementCollectionEventDesc = (MeasurementCollectionEventDesc) pageContext.getAttribute("item");
+    List<MeasurementCollectionEvent> list =  enc.getCollectedDataOfClassAndType(MeasurementCollectionEvent.class, measurementCollectionEventDesc.getType());
     if (list.size() > 0) {
         pageContext.setAttribute("measurementValue", list.get(0).getValue());
     }
  %>
 <tr>
-    <td><c:out value="${item.label}:"/></td><td><c:out value="${measurementValue}"/></td>
+    <td><c:out value="${item.label}:"/></td><td><c:out value="${measurementValue}"/><c:out value="(${item.unitsLabel})"/></td>
 </tr>
 </c:forEach>
 </table>
@@ -2857,42 +2858,11 @@ catch (Exception e) {
 </td>
 </tr>
 </table>
-
-<hr />
-<a name="tissueSamples" />
-<p class="para"><%=encprops.getProperty("tissueSamples") %></p>
-<p>
-<%
-List<TissueSample> tissueSamples=enc.getCollectedDataOfClass(TissueSample.class);
-int numTissueSamples=tissueSamples.size();
-if(numTissueSamples>0){
-%>
-<table>
-<tr><td><%=encprops.getProperty("sampleID") %></td><td><%=encprops.getProperty("removeTissueSample") %></td></tr>
-<%
-for(int j=0;j<numTissueSamples;j++){
-	TissueSample thisSample=tissueSamples.get(j);
-	%>
-	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img src="../images/cancel.gif" /></a></td></tr>
-	<%
-}
-%>
-</table>
-<%
-}
-else {
-%>
-<%=encprops.getProperty("noTissueSamples") %>
-<%
-}
-%>
-</p>
-
 <p>
     <%
 	  	  	  	if (request.getParameter("noscript")==null) {
 	  	  	  %>
-<hr />
+<hr>
 <p><a name="map"><strong><img
   src="../images/2globe_128.gif" width="56" height="56"
   align="absmiddle"/></a><%=encprops.getProperty("mapping") %></strong></p>
