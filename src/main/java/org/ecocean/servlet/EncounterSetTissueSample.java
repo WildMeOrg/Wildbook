@@ -75,7 +75,7 @@ public class EncounterSetTissueSample extends HttpServlet {
         if(request.getParameter("tissueType")!=null){genSample.setTissueType(request.getParameter("tissueType"));}
         if(request.getParameter("preservationMethod")!=null){genSample.setPreservationMethod(request.getParameter("preservationMethod"));}
         if(request.getParameter("storageLabID")!=null){genSample.setStorageLabID(request.getParameter("storageLabID"));}
-        if(request.getParameter("AlternateSampleID")!=null){genSample.setAlternateSampleID(request.getParameter("alternateSampleID"));}
+        if(request.getParameter("alternateSampleID")!=null){genSample.setAlternateSampleID(request.getParameter("alternateSampleID"));}
         
         
         

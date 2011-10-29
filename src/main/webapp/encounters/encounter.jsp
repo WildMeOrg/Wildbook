@@ -987,10 +987,23 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
         <form name="setTissueSample" action="../EncounterSetTissueSample" method="post">
 
           <%=encprops.getProperty("sampleID")%> (<%=encprops.getProperty("required")%>)<br />
-          <input name="sampleID" type="text" size="20" maxlength="100" /> 
+          <%
+          TissueSample thisSample=new TissueSample();
+          String sampleIDString="";
+          if((request.getParameter("sampleID")!=null)&&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+        	  sampleIDString=request.getParameter("sampleID");
+        	  thisSample=myShepherd.getTissueSample(sampleIDString, enc.getCatalogNumber());
+              
+          }
+          %>
+          <input name="sampleID" type="text" size="20" maxlength="100" value="<%=sampleIDString %>" /><br />
           
+          <%
+          String alternateSampleID="";
+          if(thisSample.getAlternateSampleID()!=null){alternateSampleID=thisSample.getAlternateSampleID();}
+          %>
           <%=encprops.getProperty("alternateSampleID")%><br />
-          <input name="alternateSampleID" type="text" size="20" maxlength="100" /> 
+          <input name="alternateSampleID" type="text" size="20" maxlength="100" value="<%=alternateSampleID %>" /> 
           
           <%=encprops.getProperty("tissueType")%><br />
           <input name="tissueType" type="text" size="20" /> 
