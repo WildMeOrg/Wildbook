@@ -64,8 +64,12 @@ public class EncounterRemoveTissueSample extends HttpServlet {
         if(myShepherd.isTissueSample(request.getParameter("sampleID"), sharky)){
           genSample=myShepherd.getTissueSample(request.getParameter("sampleID"), sharky);
           enc.removeDataCollectionEvent(genSample);
-          myShepherd.throwAwayTissueSample(genSample);
-          enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed tissue sample ID "+request.getParameter("sampleID")+".");
+
+          String removedParameters=myShepherd.throwAwayTissueSample(genSample);          
+          
+          enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed tissue sample ID "+request.getParameter("sampleID")+"."+removedParameters);
+          
+          
         }
 
         
@@ -97,7 +101,7 @@ public class EncounterRemoveTissueSample extends HttpServlet {
     } else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to set the tissue sample. I cannot find the encounter that you intended it for in the database.");
+      out.println("<strong>Error:</strong> I was unable to remove the tissue sample. I cannot find the encounter that you intended it for in the database.");
       out.println(ServletUtilities.getFooter());
 
     }

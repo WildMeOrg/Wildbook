@@ -164,16 +164,17 @@ public class Shepherd {
     pm.deletePersistent(enc);
   }
   
-  public void throwAwayTissueSample(TissueSample sample) {
-    int numAnalyses=sample.getNumAnalyses();
-    List<GeneticAnalysis> list=sample.getGeneticAnalyses();
+  public String throwAwayTissueSample(TissueSample genSample) {
+    String removedParameters = genSample.getHTMLString();
+    List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
     for(int i=0;i<list.size();i++){
       GeneticAnalysis gen=list.get(i);
-      sample.removeGeneticAnalysis(gen);
+      genSample.removeGeneticAnalysis(gen);
       pm.deletePersistent(gen);
       i--;
     }
-    pm.deletePersistent(sample);
+    pm.deletePersistent(genSample);
+    return removedParameters;
   }
   public void throwAwayGeneticAnalysis(GeneticAnalysis analysis) {
     pm.deletePersistent(analysis);
