@@ -907,9 +907,11 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
 </a><br /> 
 <%
 }
-				//reset contact info
-			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
-		%> <a name="contact">
+//reset contact info
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
+		%> 
+
+<a name="contact">
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -961,11 +963,92 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
       </td>
     </tr>
   </table>
-</a><br> <%
-							}
-						//--------------------------
-						//edit sex reported for sighting	
-		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))){
+</a>
+<br /> 
+<%
+}
+
+
+//reset or create a tissue sample
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))){
+		%> 
+
+<a name="tissueSample">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+    <tr>
+      <td align="left" valign="top" class="para"><strong>
+      <font color="#990000"><%=encprops.getProperty("setTissueSample")%>:</font></strong></td>
+    </tr>
+    <tr>
+      <td></td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="setTissueSample" action="../EncounterSetTissueSample" method="post">
+
+          <%=encprops.getProperty("sampleID")%> (<%=encprops.getProperty("required")%>)<br />
+          <input name="sampleID" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("alternateSampleID")%><br />
+          <input name="alternateSampleID" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("tissueType")%><br />
+          <input name="tissueType" type="text" size="20" /> 
+          
+          <%=encprops.getProperty("preservationMethod")%><br />
+          <input name="preservationMethod" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("storageLabID")%><br />
+          <input name="storageLabID" type="text" size="20" maxlength="100" /> 
+          
+
+          <%=encprops.getProperty("samplingProtocol")%><br />
+          <input name="samplingProtocol" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("samplingEffort")%><br />
+          <input name="samplingEffort" type="text" size="20" maxlength="100" /> 
+     
+		  <%=encprops.getProperty("fieldNumber")%><br />
+          <input name="fieldNumber" type="text" size="20" maxlength="100" /> 
+          
+           <%=encprops.getProperty("fieldNotes")%><br />
+          <input name="fieldNotes" type="text" size="20" /> 
+          
+          <%=encprops.getProperty("eventRemarks")%><br />
+          <input name="eventRemarks" type="text" size="20" /> 
+          
+          <%=encprops.getProperty("institutionID")%><br />
+          <input name="institutionID" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("collectionID")%><br />
+          <input name="collectionID" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("collectionCode")%><br />
+          <input name="collectionCode" type="text" size="20" maxlength="100" /> 
+          
+			<%=encprops.getProperty("datasetID")%><br />
+          <input name="datasetID" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("datasetName")%><br />
+          <input name="datasetName" type="text" size="20" maxlength="100" /> 
+
+            
+            <input name="encounter" type="hidden" value="<%=num%>" /> 
+            <input name="action" type="hidden" value="setTissueSample" /> 
+            <input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</a>
+<br /> 
+<%
+}
+
+
+//--------------------------
+//edit sex reported for sighting	
+if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))){
 						%> <a name="sex"></a>
 <table width="150" border="1" cellpadding="1" cellspacing="0"
        bordercolor="#000000" bgcolor="#CCCCCC">
@@ -1340,7 +1423,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 		}
 
 	//reset scarring
-			if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("scar"))){
+	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("scar"))){
 	%> <a name="scar">
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
@@ -2819,8 +2902,7 @@ catch (Exception e) {
 %> Left-side<em>.</em><em> Click the image to view the full size
   original. <a href="encounterSpotVisualizer.jsp?number=<%=num%>">Click
     here to see the left-side spots mapped to the left-side image.</a> </em><br/>
-  <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image"
-                              width="250"></a> <%
+  <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image" width="250"></a> <%
     }
   %> <br/><br/> <%
     //--
@@ -2830,8 +2912,7 @@ catch (Exception e) {
       href="encounterSpotVisualizer.jsp?number=<%=num%>&rightSide=true">Click
       here to see the right-side spots mapped to the right-side image.</a> </em><br/>
   
-  		<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image"
-                               width="250"></a> 
+  		<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image" width="250"></a> 
                                
       <%
       }
@@ -2860,34 +2941,36 @@ catch (Exception e) {
 </table>
 
 <hr />
-<a name="tissueSamples" />
-<p class="para"><%=encprops.getProperty("tissueSamples") %></p>
+<a name="tissueSamples"></a>
+<p class="para"><img align="absmiddle" src="../images/microscope.gif">
+    <%=encprops.getProperty("tissueSamples") %></p>
+    <p><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><img align="absmiddle" width="24px" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><%=encprops.getProperty("addTissueSample") %></a></p>
 <p>
 <%
 List<TissueSample> tissueSamples=enc.getCollectedDataOfClass(TissueSample.class);
 int numTissueSamples=tissueSamples.size();
 if(numTissueSamples>0){
 %>
-<table>
-<tr><td><%=encprops.getProperty("sampleID") %></td><td><%=encprops.getProperty("removeTissueSample") %></td></tr>
+<table border="1">
+<tr><td><strong><%=encprops.getProperty("sampleID") %></strong></td><td><strong><%=encprops.getProperty("editTissueSample") %></strong></td><td><strong><%=encprops.getProperty("removeTissueSample") %></strong></td></tr>
 <%
 for(int j=0;j<numTissueSamples;j++){
 	TissueSample thisSample=tissueSamples.get(j);
 	%>
-	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img src="../images/cancel.gif" /></a></td></tr>
+	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample#tissueSample"><img width="24px" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img src="../images/cancel.gif" /></a></td></tr>
 	<%
 }
 %>
 </table>
+</p>
 <%
 }
 else {
 %>
-<%=encprops.getProperty("noTissueSamples") %>
+<p class="para"><%=encprops.getProperty("noTissueSamples") %></p>
 <%
 }
 %>
-</p>
 <p>
     <%
 	  	  	  	if (request.getParameter("noscript")==null) {
