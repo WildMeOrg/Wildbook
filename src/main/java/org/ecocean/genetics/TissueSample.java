@@ -76,25 +76,12 @@ public class TissueSample extends DataCollectionEvent {
   public int getNumAnalyses(){return analyses.size();}
   
   public String getHTMLString(){
-    String removedParameters="<br />";
-    if(this.getAlternateSampleID()!=null){removedParameters+="     Alternate Sample ID: "+this.getAlternateSampleID()+"<br />";}
-    if(this.getCollectionCode()!=null){removedParameters+="     Collection code: "+this.getCollectionCode()+"<br />";}
-    if(this.getCollectionID()!=null){removedParameters+="     Collection ID: "+this.getCollectionID()+"<br />";}
-    if(this.getDatasetID()!=null){removedParameters+="     Dataset ID: "+this.getDatasetID()+"<br />";}
-    if(this.getDatasetName()!=null){removedParameters+="     Dataset name: "+this.getDatasetName()+"<br />";}
-    if(this.getEventStartDate()!=null){removedParameters+="     Event start date: "+this.getEventStartDate()+"<br />";}
-    if(this.getEventEndDate()!=null){removedParameters+="     Event end date: "+this.getEventEndDate()+"<br />";}
-    if(this.getEventRemarks()!=null){removedParameters+="     Event remarks: "+this.getEventRemarks()+"<br />";}
-    if(this.getFieldNotes()!=null){removedParameters+="     Field notes: "+this.getFieldNotes()+"<br />";}
-    if(this.getFieldNumber()!=null){removedParameters+="     Field number: "+this.getFieldNumber()+"<br />";}
-    if(this.getInstitutionCode()!=null){removedParameters+="     Institution code: "+this.getInstitutionCode()+"<br />";}
-    if(this.getInstitutionID()!=null){removedParameters+="     Instituion ID: "+this.getInstitutionID()+"<br />";}
-    if(this.getPreservationMethod()!=null){removedParameters+="     Preservation method: "+this.getPreservationMethod()+"<br />";}
-    if(this.getSamplingEffort()!=null){removedParameters+="     Samplng effort: "+this.getSamplingEffort()+"<br />";}
-    if(this.getSamplingProtocol()!=null){removedParameters+="     Sampling protocol: "+this.getSamplingProtocol()+"<br />";}
-    if(this.getStorageLabID()!=null){removedParameters+="     Storage lab ID: "+this.getStorageLabID()+"<br />";}
-    if(this.getTissueType()!=null){removedParameters+="     Tissue type: "+this.getTissueType()+"<br />";}
-    return removedParameters; 
+    String paramValues=super.getHTMLString();
+    if(this.getAlternateSampleID()!=null){paramValues+="     Alternate Sample ID: "+this.getAlternateSampleID()+"<br />";}
+    if(this.getPreservationMethod()!=null){paramValues+="     Preservation method: "+this.getPreservationMethod()+"<br />";}
+    if(this.getStorageLabID()!=null){paramValues+="     Storage lab ID: "+this.getStorageLabID()+"<br />";}
+    if(this.getTissueType()!=null){paramValues+="     Tissue type: "+this.getTissueType()+"<br />";}
+    return paramValues; 
   }
   
 }

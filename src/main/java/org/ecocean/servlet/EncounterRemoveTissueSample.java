@@ -67,7 +67,7 @@ public class EncounterRemoveTissueSample extends HttpServlet {
 
           String removedParameters=myShepherd.throwAwayTissueSample(genSample);          
           
-          enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed tissue sample ID "+request.getParameter("sampleID")+"."+removedParameters);
+          enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed tissue sample ID "+request.getParameter("sampleID")+".<br />"+removedParameters);
           
           
         }

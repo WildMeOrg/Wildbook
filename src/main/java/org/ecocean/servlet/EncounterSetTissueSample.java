@@ -76,7 +76,7 @@ public class EncounterSetTissueSample extends HttpServlet {
         if(request.getParameter("storageLabID")!=null){genSample.setStorageLabID(request.getParameter("storageLabID"));}
         if(request.getParameter("alternateSampleID")!=null){genSample.setAlternateSampleID(request.getParameter("alternateSampleID"));}
         
-        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added or updated tissue sample ID "+request.getParameter("sampleID")+"."+genSample.getHTMLString());
+        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Added or updated tissue sample ID "+request.getParameter("sampleID")+".<br />"+genSample.getHTMLString());
         
 
       } 
