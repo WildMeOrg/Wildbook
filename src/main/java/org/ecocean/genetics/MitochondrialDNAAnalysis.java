@@ -17,8 +17,8 @@ public class MitochondrialDNAAnalysis extends GeneticAnalysis{
   //DO NOT USE
   public MitochondrialDNAAnalysis() {}
   
-  public MitochondrialDNAAnalysis(String analysisID, String haplotype) {
-    super(analysisID, type);
+  public MitochondrialDNAAnalysis(String analysisID, String haplotype, String correspondingEncounterNumber, String sampleID) {
+    super(analysisID, type, correspondingEncounterNumber, sampleID);
     this.haplotype=haplotype;
   }
   

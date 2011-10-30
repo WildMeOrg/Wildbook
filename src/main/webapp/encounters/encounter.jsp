@@ -1131,6 +1131,56 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
 }
 
 
+
+//reset or create a haplotype
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("haplotype"))){
+		%> 
+
+<a name="haplotype">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+  <tr>
+    <td align="left" valign="top" class="para"><strong>
+    <font color="#990000"><%=encprops.getProperty("setHaplotype")%>:</font></strong></td>
+  </tr>
+  <tr>
+    <td></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form name="setHaplotype" action="../EncounterSetMitochondrialDNA" method="post">
+
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+        <%
+        MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis();
+        String analysisIDString="";
+        if((request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID")))){
+      	    analysisIDString=request.getParameter("analysisID");
+      		mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
+        }
+        %>
+        <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+        
+        <%
+        String haplotypeString="";
+        if(mtDNA.getHaplotype()!=null){haplotypeString=mtDNA.getHaplotype();}
+        %>
+        <%=encprops.getProperty("haplotype")%><br />
+        <input name="haplotype" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" /> 
+ 
+ 		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
+          <input name="encounter" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="setHaplotype" /> 
+          <input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
+      </form>
+    </td>
+  </tr>
+</table>
+</a>
+<br /> 
+<%
+}
+
+
 //--------------------------
 //edit sex reported for sighting	
 if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))){
@@ -3044,7 +3094,26 @@ if(numTissueSamples>0){
 for(int j=0;j<numTissueSamples;j++){
 	TissueSample thisSample=tissueSamples.get(j);
 	%>
-	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td><td>N/A</td><td><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample#tissueSample"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
+	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td>
+	
+	<td>
+		<%
+		int numAnalyses=thisSample.getNumAnalyses();
+		List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+		for(int g=0;g<numAnalyses;g++){
+			GeneticAnalysis ga = gAnalyses.get(g);
+		%>
+		<%=ga.getAnalysisID() %> (<%=ga.getAnalysisType() %>)<br />
+		<%	
+		}
+		%>
+		
+		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+	
+	</td>
+	
+	
+	<td><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample#tissueSample"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
 	<%
 }
 %>

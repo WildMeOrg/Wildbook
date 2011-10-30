@@ -8,6 +8,7 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
   //primary key and unique identifier
   private String analysisID;
   private String analysisType;
+  private String correspondingEncounterNumber;
   
   //details about the processing lab making this analysis
   private String processingLabTaskID;
@@ -18,6 +19,7 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
   private String processingDateStart;
 //ISO formatted date (e.g., 2009-10-23)
   private String processingDateEnd;
+  private String sampleID;
   
   /**
    * Empty constructor required for JDO processing.
@@ -25,9 +27,11 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
    */
   public GeneticAnalysis() {}
   
-  public GeneticAnalysis(String analysisID, String analysisType) {
+  public GeneticAnalysis(String analysisID, String analysisType, String correspondingEncounterNumber, String sampleID) {
     this.analysisID=analysisID;
     this.analysisType=analysisType;
+    this.correspondingEncounterNumber=correspondingEncounterNumber;
+    this.sampleID=sampleID;
   }
   
   public String getAnalysisID(){return analysisID;}
@@ -54,4 +58,7 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
   public String getProcessingDateEnd(){return processingDateEnd;}
   public void setProcessingDateEnd(String newString){this.processingDateEnd=newString;}
   
+  public String getCorrespondingEncounterNumber(){return correspondingEncounterNumber;}
+  public String getSampleID(){return sampleID;}
+
 }
