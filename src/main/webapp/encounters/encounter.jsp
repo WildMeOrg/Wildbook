@@ -1147,7 +1147,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
   </tr>
   <tr>
     <td align="left" valign="top">
-      <form name="setHaplotype" action="../EncounterSetMitochondrialDNA" method="post">
+      <form name="setHaplotype" action="../TissueSampleSetHaplotype" method="post">
 
         <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
         <%
@@ -1166,6 +1166,34 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
         %>
         <%=encprops.getProperty("haplotype")%><br />
         <input name="haplotype" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" /> 
+ 		
+ 		 <%
+        String processingLabTaskID="";
+        if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+        %>
+        <%=encprops.getProperty("processingLabTaskID")%><br />
+        <input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+ 
+  		 <%
+        String processingLabName="";
+        if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+        %>
+        <%=encprops.getProperty("processingLabName")%><br />
+        <input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+ 
+   		 <%
+        String processingLabContactName="";
+        if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+        %>
+        <%=encprops.getProperty("processingLabContactName")%><br />
+        <input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+ 
+   		 <%
+        String processingLabContactDetails="";
+        if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+        %>
+        <%=encprops.getProperty("processingLabContactDetails")%><br />
+        <input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
  
  		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
           <input name="encounter" type="hidden" value="<%=num%>" /> 
@@ -3108,7 +3136,7 @@ for(int j=0;j<numTissueSamples;j++){
 		}
 		%>
 		
-		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><%=encprops.getProperty("addHaplotype") %></a></span></p>
 	
 	</td>
 	

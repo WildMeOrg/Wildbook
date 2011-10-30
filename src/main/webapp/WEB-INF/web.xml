@@ -351,6 +351,11 @@
     <servlet-name>EncounterSetSex</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSex</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>TissueSampleSetHaplotype</servlet-name>
+      <servlet-class>org.ecocean.servlet.TissueSampleSetHaplotype</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetMaximumDepth</servlet-name>
@@ -525,6 +530,11 @@
   <servlet-mapping>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
     <url-pattern>/InterconnectSubmitSpots</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>TissueSampleSetHaplotype</servlet-name>
+      <url-pattern>/TissueSampleSetHaplotype</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
@@ -939,6 +949,7 @@
        <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
        <url-pattern>/EncounterSetLifeStage</url-pattern>
         <url-pattern>/EncounterSetTissueSample</url-pattern>
+        <url-pattern>/TissueSampleSetHaplotype</url-pattern>
          <url-pattern>/EncounterRemoveTissueSample</url-pattern>
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>

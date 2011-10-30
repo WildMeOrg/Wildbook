@@ -73,13 +73,7 @@
 						 	<column length="1024"/>
 						</field>
 						
-						  		<field name="processingDateStart" persistence-modifier="persistent">
-													<column length="256"/>
-						</field>
-						
-						  		<field name="processingDateEnd" persistence-modifier="persistent">
-													<column length="256"/>
-						</field>
+				
 		
 		</class>
 		

@@ -43,4 +43,10 @@ public class MitochondrialDNAAnalysis extends GeneticAnalysis{
     }
   }
   
+  public String getHTMLString(){
+    String paramValues=super.getHTMLString();
+    if(this.getHaplotype()!=null){paramValues+="     Haplotype: "+this.getHaplotype()+"<br />";}
+  return paramValues; 
+  }
+  
 }

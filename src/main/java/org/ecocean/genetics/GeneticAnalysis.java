@@ -39,7 +39,7 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
   public String getAnalysisType(){return analysisType;}
   public void setAnalysisType(String newType){this.analysisType=newType;}
   
-  public String getProcessingLabname(){return processingLabName;}
+  public String getProcessingLabName(){return processingLabName;}
   public void setProcessingLabName(String newString){this.processingLabName=newString;}
   
   public String getProcessingLabTaskID(){return processingLabTaskID;}
@@ -52,13 +52,18 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
   public String getProcessingLabContactDetails(){return processingLabContactDetails;}
   public void setProcessingLabContactDetails(String newString){this.processingLabContactDetails=newString;}
   
-  public String getProcessingDateStart(){return processingDateStart;}
-  public void setProcessingDateStart(String newString){this.processingDateStart=newString;}
-  
-  public String getProcessingDateEnd(){return processingDateEnd;}
-  public void setProcessingDateEnd(String newString){this.processingDateEnd=newString;}
-  
+
   public String getCorrespondingEncounterNumber(){return correspondingEncounterNumber;}
   public String getSampleID(){return sampleID;}
+  
+  public String getHTMLString(){
+    String paramValues="";
+    if(this.getProcessingLabName()!=null){paramValues+="     Processing lab name: "+this.getProcessingLabName()+"<br />";}
+    if(this.getProcessingLabTaskID()!=null){paramValues+="     Processing lab task ID: "+this.getProcessingLabTaskID()+"<br />";}
+    if(this.getProcessingLabContactName()!=null){paramValues+="     Processing lab contact name: "+this.getProcessingLabContactName()+"<br />";}
+    if(this.getProcessingLabContactDetails()!=null){paramValues+="     Processing lab contact details: "+this.getProcessingLabContactDetails()+"<br />";}
+
+    return paramValues; 
+  }
 
 }
