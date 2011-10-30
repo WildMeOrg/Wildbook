@@ -49,4 +49,5 @@ public class MitochondrialDNAAnalysis extends GeneticAnalysis{
   return paramValues; 
   }
   
+  
 }

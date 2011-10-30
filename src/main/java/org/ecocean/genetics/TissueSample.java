@@ -77,10 +77,10 @@ public class TissueSample extends DataCollectionEvent {
   
   public String getHTMLString(){
     String paramValues=super.getHTMLString();
-    if(this.getAlternateSampleID()!=null){paramValues+="     Alternate Sample ID: "+this.getAlternateSampleID()+"<br />";}
-    if(this.getPreservationMethod()!=null){paramValues+="     Preservation method: "+this.getPreservationMethod()+"<br />";}
-    if(this.getStorageLabID()!=null){paramValues+="     Storage lab ID: "+this.getStorageLabID()+"<br />";}
-    if(this.getTissueType()!=null){paramValues+="     Tissue type: "+this.getTissueType()+"<br />";}
+    if((this.getAlternateSampleID()!=null)&&(!this.getAlternateSampleID().equals(""))){paramValues+="     Alternate Sample ID: "+this.getAlternateSampleID()+"<br />";}
+    if((this.getPreservationMethod()!=null)&&(!this.getPreservationMethod().equals(""))){paramValues+="     Preservation method: "+this.getPreservationMethod()+"<br />";}
+    if((this.getStorageLabID()!=null)&&(!this.getStorageLabID().equals(""))){paramValues+="     Storage lab ID: "+this.getStorageLabID()+"<br />";}
+    if((this.getTissueType()!=null)&&(!this.getTissueType().equals(""))){paramValues+="     Tissue type: "+this.getTissueType()+"<br />";}
     return paramValues; 
   }
   

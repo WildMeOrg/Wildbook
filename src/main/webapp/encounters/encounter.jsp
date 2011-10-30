@@ -1164,7 +1164,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
         String haplotypeString="";
         if(mtDNA.getHaplotype()!=null){haplotypeString=mtDNA.getHaplotype();}
         %>
-        <%=encprops.getProperty("haplotype")%><br />
+        <%=encprops.getProperty("haplotype")%> (<%=encprops.getProperty("required")%>)<br />
         <input name="haplotype" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" /> 
  		
  		 <%
@@ -1196,7 +1196,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
         <input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
  
  		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
-          <input name="encounter" type="hidden" value="<%=num%>" /> 
+          <input name="number" type="hidden" value="<%=num%>" /> 
           <input name="action" type="hidden" value="setHaplotype" /> 
           <input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
       </form>

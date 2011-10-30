@@ -65,5 +65,6 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
 
     return paramValues; 
   }
+  
 
 }

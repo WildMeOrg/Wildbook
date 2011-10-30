@@ -83,7 +83,7 @@ public class TissueSampleSetHaplotype extends HttpServlet {
         if(request.getParameter("processingLabContactName")!=null){mtDNA.setProcessingLabContactName(request.getParameter("processingLabContactName"));}
         if(request.getParameter("processingLabContactDetails")!=null){mtDNA.setProcessingLabContactDetails(request.getParameter("processingLabContactDetails"));}
 
-        
+        sample.addGeneticAnalysis(mtDNA);
 
         enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Added or updated mitochondrial DNA analysis (haplotype) "+request.getParameter("analysisID")+" for tissue sample "+request.getParameter("sampleID")+".<br />"+mtDNA.getHTMLString());
         
