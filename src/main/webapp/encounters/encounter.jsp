@@ -3108,8 +3108,8 @@ if(loggedIn){
 <hr />
 <a name="tissueSamples"></a>
 <p class="para"><img align="absmiddle" src="../images/microscope.gif">
-    <%=encprops.getProperty("tissueSamples") %></p>
-    <p><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><%=encprops.getProperty("addTissueSample") %></a></p>
+    <strong><%=encprops.getProperty("tissueSamples") %></strong></p>
+    <p class="para"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><%=encprops.getProperty("addTissueSample") %></a></p>
 <p>
 <%
 List<TissueSample> tissueSamples=enc.getCollectedDataOfClass(TissueSample.class);
