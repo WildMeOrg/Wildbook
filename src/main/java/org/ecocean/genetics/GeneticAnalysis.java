@@ -15,10 +15,6 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
   private String processingLabName;
   private String processingLabContactName;
   private String processingLabContactDetails;
-  //ISO formatted date (e.g., 2009-10-23)
-  private String processingDateStart;
-//ISO formatted date (e.g., 2009-10-23)
-  private String processingDateEnd;
   private String sampleID;
   
   /**
@@ -58,11 +54,10 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
   
   public String getHTMLString(){
     String paramValues="";
-    if(this.getProcessingLabName()!=null){paramValues+="     Processing lab name: "+this.getProcessingLabName()+"<br />";}
-    if(this.getProcessingLabTaskID()!=null){paramValues+="     Processing lab task ID: "+this.getProcessingLabTaskID()+"<br />";}
-    if(this.getProcessingLabContactName()!=null){paramValues+="     Processing lab contact name: "+this.getProcessingLabContactName()+"<br />";}
-    if(this.getProcessingLabContactDetails()!=null){paramValues+="     Processing lab contact details: "+this.getProcessingLabContactDetails()+"<br />";}
-
+    if((this.getProcessingLabName()!=null)&&(!this.getProcessingLabName().equals(""))){paramValues+="     Processing lab name: "+this.getProcessingLabName()+"<br />";}
+    if((this.getProcessingLabTaskID()!=null)&&(!this.getProcessingLabTaskID().equals(""))){paramValues+="     Processing lab task ID: "+this.getProcessingLabTaskID()+"<br />";}
+    if((this.getProcessingLabContactName()!=null)&&(!this.getProcessingLabContactName().equals(""))){paramValues+="     Processing lab contact name: "+this.getProcessingLabContactName()+"<br />";}
+    if((this.getProcessingLabContactDetails()!=null)&&(!this.getProcessingLabContactDetails().equals(""))){paramValues+="     Processing lab contact details: "+this.getProcessingLabContactDetails()+"<br />";}
     return paramValues; 
   }
   

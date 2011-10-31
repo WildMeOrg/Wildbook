@@ -399,7 +399,7 @@ public class Shepherd {
   public boolean isGeneticAnalysis(String sampleID, String encounterNumber, String analysisID) {
     TissueSample tempEnc = null;
     try {
-      String filter = "this.analysisID == \""+analysisID+"\" this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      String filter = "this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
       Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
       Query acceptedEncounters = pm.newQuery(encClass, filter);
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -416,9 +416,8 @@ public class Shepherd {
   }
   
   public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID) {
-    TissueSample tempEnc = null;
     try {
-      String filter = "this.analysisID == \""+analysisID+"\" this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      String filter = "this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
       Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
       Query acceptedEncounters = pm.newQuery(encClass, filter);
       Collection c = (Collection) (acceptedEncounters.execute());

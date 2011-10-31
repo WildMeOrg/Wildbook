@@ -159,19 +159,19 @@ public void resetAbstractClassParameters(HttpServletRequest request){
 
 public String getHTMLString(){
   String paramValues="";
-  if(this.getCollectionCode()!=null){paramValues+="     Collection code: "+this.getCollectionCode()+"<br />";}
-  if(this.getCollectionID()!=null){paramValues+="     Collection ID: "+this.getCollectionID()+"<br />";}
-  if(this.getDatasetID()!=null){paramValues+="     Dataset ID: "+this.getDatasetID()+"<br />";}
-  if(this.getDatasetName()!=null){paramValues+="     Dataset name: "+this.getDatasetName()+"<br />";}
-  if(this.getEventStartDate()!=null){paramValues+="     Event start date: "+this.getEventStartDate()+"<br />";}
-  if(this.getEventEndDate()!=null){paramValues+="     Event end date: "+this.getEventEndDate()+"<br />";}
-  if(this.getEventRemarks()!=null){paramValues+="     Event remarks: "+this.getEventRemarks()+"<br />";}
-  if(this.getFieldNotes()!=null){paramValues+="     Field notes: "+this.getFieldNotes()+"<br />";}
-  if(this.getFieldNumber()!=null){paramValues+="     Field number: "+this.getFieldNumber()+"<br />";}
-  if(this.getInstitutionCode()!=null){paramValues+="     Institution code: "+this.getInstitutionCode()+"<br />";}
-  if(this.getInstitutionID()!=null){paramValues+="     Instituion ID: "+this.getInstitutionID()+"<br />";}
-  if(this.getSamplingEffort()!=null){paramValues+="     Sampling effort: "+this.getSamplingEffort()+"<br />";}
-  if(this.getSamplingProtocol()!=null){paramValues+="     Sampling protocol: "+this.getSamplingProtocol()+"<br />";}
+  if((this.getCollectionCode()!=null)&&(!this.getCollectionCode().equals(""))){paramValues+="     Collection code: "+this.getCollectionCode()+"<br />";}
+  if((this.getCollectionID()!=null)&&(!this.getCollectionID().equals(""))){paramValues+="     Collection ID: "+this.getCollectionID()+"<br />";}
+  if((this.getDatasetID()!=null)&&(!this.getDatasetID().equals(""))){paramValues+="     Dataset ID: "+this.getDatasetID()+"<br />";}
+  if((this.getDatasetName()!=null)&&(!this.getDatasetName().equals(""))){paramValues+="     Dataset name: "+this.getDatasetName()+"<br />";}
+  if((this.getEventStartDate()!=null)&&(!this.getEventStartDate().equals(""))){paramValues+="     Event start date: "+this.getEventStartDate()+"<br />";}
+  if((this.getEventEndDate()!=null)&&(!this.getEventEndDate().equals(""))){paramValues+="     Event end date: "+this.getEventEndDate()+"<br />";}
+  if((this.getEventRemarks()!=null)&&(!this.getEventRemarks().equals(""))){paramValues+="     Event remarks: "+this.getEventRemarks()+"<br />";}
+  if((this.getFieldNotes()!=null)&&(!this.getFieldNotes().equals(""))){paramValues+="     Field notes: "+this.getFieldNotes()+"<br />";}
+  if((this.getFieldNumber()!=null)&&(!this.getFieldNumber().equals(""))){paramValues+="     Field number: "+this.getFieldNumber()+"<br />";}
+  if((this.getInstitutionCode()!=null)&&(!this.getInstitutionCode().equals(""))){paramValues+="     Institution code: "+this.getInstitutionCode()+"<br />";}
+  if((this.getInstitutionID()!=null)&&(!this.getInstitutionID().equals(""))){paramValues+="     Instituion ID: "+this.getInstitutionID()+"<br />";}
+  if((this.getSamplingEffort()!=null)&&(!this.getSamplingEffort().equals(""))){paramValues+="     Sampli]/ng effort: "+this.getSamplingEffort()+"<br />";}
+  if((this.getSamplingProtocol()!=null)&&(!this.getSamplingProtocol().equals(""))){paramValues+="     Sampling protocol: "+this.getSamplingProtocol()+"<br />";}
   return paramValues; 
 }
 

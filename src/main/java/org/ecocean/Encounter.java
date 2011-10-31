@@ -544,10 +544,12 @@ public class Encounter implements java.io.Serializable {
     Vector imageNamesOnly=new Vector();
     
     ArrayList<DataCollectionEvent> images=getCollectedDataOfType("SinglePhotoVideo");
-    int imagesSize=images.size();
-    for(int i=0;i<imagesSize;i++){
-      SinglePhotoVideo dce=(SinglePhotoVideo)images.get(i);
-      imageNamesOnly.add(dce.getFilename());
+    if((images!=null)&&(images.size()>0)){
+      int imagesSize=images.size();
+      for(int i=0;i<imagesSize;i++){
+        SinglePhotoVideo dce=(SinglePhotoVideo)images.get(i);
+        imageNamesOnly.add(dce.getFilename());
+      }
     }
     return imageNamesOnly;
   }

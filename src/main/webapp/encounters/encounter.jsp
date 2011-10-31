@@ -3124,18 +3124,21 @@ for(int j=0;j<numTissueSamples;j++){
 	%>
 	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td>
 	
-	<td>
+	<td><table>
 		<%
 		int numAnalyses=thisSample.getNumAnalyses();
 		List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
 		for(int g=0;g<numAnalyses;g++){
 			GeneticAnalysis ga = gAnalyses.get(g);
-		%>
-		<%=ga.getAnalysisID() %> (<%=ga.getAnalysisType() %>)<br />
-		<%	
+			if(ga.getAnalysisType().equals("MitochondrialDNA")){
+				MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
+				%>
+				<tr><td><span class="caption"><%=encprops.getProperty("haplotype") %>: <%=mito.getHaplotype() %></span></td><td><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype#haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></td></tr></li>
+			<%
+			}		
 		}
 		%>
-		
+		</table>
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><%=encprops.getProperty("addHaplotype") %></a></span></p>
 	
 	</td>
@@ -3154,7 +3157,7 @@ else {
 	<p class="para"><%=encprops.getProperty("noTissueSamples") %></p>
 <%
 }
-} //end if isOwner
+} //end if loggedIn
 %>
 <p>
     <%
