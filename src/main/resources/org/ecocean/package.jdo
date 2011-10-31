@@ -209,6 +209,10 @@
             	    <collection element-type="SuperSpot"/>
             	    <join/>
             	    </field>	    
+            <field name="collectedData" persistence-modifier="persistent">
+		    	                		<collection element-type="org.ecocean.DataCollectionEvent"/>
+		    					<join/>
+	            		</field>
             	    			<fetch-group name="allSharks_min">
 		                		<field name="approved"/>
 		            		</fetch-group>
