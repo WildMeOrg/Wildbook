@@ -205,13 +205,17 @@
             	    <collection element-type="SuperSpot"/>
             	    <join/>
             	    </field>
-            <field name="rightReferenceSpots" persistence-modifier="persistent">
+                <field name="rightReferenceSpots" persistence-modifier="persistent">
             	    <collection element-type="SuperSpot"/>
             	    <join/>
-            	    </field>	    
-            	    			<fetch-group name="allSharks_min">
-		                		<field name="approved"/>
-		            		</fetch-group>
+            	</field>
+                <field name="collectedData" persistence-modifier="persistent">
+                    <collection element-type="DataCollectionEvent"/>
+                    <join/>
+                </field>	    
+            	<fetch-group name="allSharks_min">
+		            <field name="approved"/>
+		        </fetch-group>
 			<fetch-group name="count" />
 		</class>
 
@@ -231,12 +235,12 @@
 		<class name="SuperSpot" identity-type="datastore" />
 			
 			
-		<class name="DataCollectionEvent" identity-type="datastore">
+		<class name="DataCollectionEvent" identity-type="application">
 		    <inheritance strategy="new-table"/>
 		    <field name="correspondingEncounterNumber">
 		        <column name="CORRESPONDINGENCOUNTERNUMBER"/>
 		    </field>
-		    <field name="dataCollectionEventID">
+		    <field name="dataCollectionEventID" primary-key="true" value-strategy="native">
 		        <column name="DATACOLLECTIONEVENTID"/>
 		    </field>
 		        <field name="samplingProtocol">
@@ -284,7 +288,7 @@
 		    </field>
 		</class>
 		
-		<class name="SinglePhotoVideo" identity-type="datastore">
+		<class name="SinglePhotoVideo" identity-type="application">
 			<inheritance strategy="new-table"/>
 			<field name="filename">
 				        <column name="FILENAME"/>
@@ -303,7 +307,7 @@
   
   		</class>
   
-		<class name="MeasurementCollectionEvent" identity-type="datastore">
+		<class name="MeasurementCollectionEvent" identity-type="application">
            <inheritance strategy="new-table"/>
            <field name="value">
                <column name="VALUE"/>
