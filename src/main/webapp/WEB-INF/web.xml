@@ -283,6 +283,10 @@
         <servlet-class>org.ecocean.servlet.EncounterRemoveTissueSample</servlet-class>
   </servlet>
 
+    <servlet>
+      <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
+      <servlet-class>org.ecocean.servlet.TissueSampleRemoveHaplotype</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
@@ -535,6 +539,11 @@
     <servlet-mapping>
       <servlet-name>TissueSampleSetHaplotype</servlet-name>
       <url-pattern>/TissueSampleSetHaplotype</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+        <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
+        <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
@@ -950,6 +959,7 @@
        <url-pattern>/EncounterSetLifeStage</url-pattern>
         <url-pattern>/EncounterSetTissueSample</url-pattern>
         <url-pattern>/TissueSampleSetHaplotype</url-pattern>
+        <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
          <url-pattern>/EncounterRemoveTissueSample</url-pattern>
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>

@@ -177,8 +177,10 @@ public class Shepherd {
     pm.deletePersistent(genSample);
     return removedParameters;
   }
-  public void throwAwayGeneticAnalysis(GeneticAnalysis analysis) {
+  public String throwAwayGeneticAnalysis(GeneticAnalysis analysis) {
+    String removedParameters = analysis.getHTMLString();
     pm.deletePersistent(analysis);
+    return removedParameters;
   }
 
   public void throwAwayAdoption(Adoption ad) {

@@ -192,26 +192,26 @@
     -->
 
 table.tissueSample {
-    border-width: thin;
-    border-spacing: 0px;
-    border-style: solid;
-    border-color: black;
-    border-collapse: separate;
+    border-width: 1px;
+    border-spacing: 2px;
+    border-style: hidden;
+    border-color: gray;
+    border-collapse: collapse;
     background-color: white;
 }
 table.tissueSample th {
     border-width: 1px;
     padding: 1px;
     border-style: solid;
-    border-color: black;
-    background-color: white;
+    border-color: gray;
+    background-color: #99CCFF;
     -moz-border-radius: ;
 }
 table.tissueSample td {
     border-width: 1px;
-    padding: 1px;
+    padding: 2px;
     border-style: solid;
-    border-color: black;
+    border-color: gray;
     background-color: white;
     -moz-border-radius: ;
 }
@@ -3133,7 +3133,7 @@ for(int j=0;j<numTissueSamples;j++){
 			if(ga.getAnalysisType().equals("MitochondrialDNA")){
 				MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
 				%>
-				<tr><td><span class="caption"><%=encprops.getProperty("haplotype") %>: <%=mito.getHaplotype() %></span></td><td><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype#haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></td></tr></li>
+				<tr><td style="border-style: none;"><span class="caption"><%=encprops.getProperty("haplotype") %>: <%=mito.getHaplotype() %></span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype#haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
 			<%
 			}		
 		}
