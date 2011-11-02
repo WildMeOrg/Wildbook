@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.CommonConfiguration,org.ecocean.Encounter,org.ecocean.Keyword,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.MeasurementCollectionEvent, org.ecocean.Util.MeasurementCollectionEventDesc, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.CommonConfiguration,org.ecocean.Encounter,org.ecocean.Keyword,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.MeasurementCollectionEvent, org.ecocean.Util.MeasurementCollectionEventDesc, org.ecocean.genetics.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
@@ -189,7 +189,32 @@
     }
 
     -->
-  </style>
+
+table.tissueSample {
+    border-width: 1px;
+    border-spacing: 2px;
+    border-style: hidden;
+    border-color: gray;
+    border-collapse: collapse;
+    background-color: white;
+}
+table.tissueSample th {
+    border-width: 1px;
+    padding: 1px;
+    border-style: solid;
+    border-color: gray;
+    background-color: #99CCFF;
+    -moz-border-radius: ;
+}
+table.tissueSample td {
+    border-width: 1px;
+    padding: 2px;
+    border-style: solid;
+    border-color: gray;
+    background-color: white;
+    -moz-border-radius: ;
+}
+</style>
 
 
   <!--
@@ -275,11 +300,6 @@
       }
       catch(NullPointerException nullLogged){}
       
-      //if (session.getAttribute("logged") != null) {
-      //  Object OBJloggedIn = session.getAttribute("logged");
-      //  loggedIn = (String) OBJloggedIn;
-      //}
-//end user identity and authorization check
 
 
 %>
@@ -906,9 +926,11 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
 </a><br /> 
 <%
 }
-				//reset contact info
-			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
-		%> <a name="contact">
+//reset contact info
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
+		%> 
+
+<a name="contact">
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -960,11 +982,235 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
       </td>
     </tr>
   </table>
-</a><br> <%
-							}
-						//--------------------------
-						//edit sex reported for sighting	
-		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))){
+</a>
+<br /> 
+<%
+}
+
+
+//reset or create a tissue sample
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))){
+		%> 
+
+<a name="tissueSample">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+    <tr>
+      <td align="left" valign="top" class="para"><strong>
+      <font color="#990000"><%=encprops.getProperty("setTissueSample")%>:</font></strong></td>
+    </tr>
+    <tr>
+      <td></td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="setTissueSample" action="../EncounterSetTissueSample" method="post">
+
+          <%=encprops.getProperty("sampleID")%> (<%=encprops.getProperty("required")%>)<br />
+          <%
+          TissueSample thisSample=new TissueSample();
+          String sampleIDString="";
+          if((request.getParameter("sampleID")!=null)&&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+        	  sampleIDString=request.getParameter("sampleID");
+        	  thisSample=myShepherd.getTissueSample(sampleIDString, enc.getCatalogNumber());
+              
+          }
+          %>
+          <input name="sampleID" type="text" size="20" maxlength="100" value="<%=sampleIDString %>" /><br />
+          
+          <%
+          String alternateSampleID="";
+          if(thisSample.getAlternateSampleID()!=null){alternateSampleID=thisSample.getAlternateSampleID();}
+          %>
+          <%=encprops.getProperty("alternateSampleID")%><br />
+          <input name="alternateSampleID" type="text" size="20" maxlength="100" value="<%=alternateSampleID %>" /> 
+          
+          <%
+          String tissueType="";
+          if(thisSample.getTissueType()!=null){tissueType=thisSample.getTissueType();}
+          %>
+          <%=encprops.getProperty("tissueType")%><br />
+          <input name="tissueType" type="text" size="20" value="<%=tissueType %>" /> 
+          
+          <%
+          String preservationMethod="";
+          if(thisSample.getPreservationMethod()!=null){preservationMethod=thisSample.getPreservationMethod();}
+          %>
+          <%=encprops.getProperty("preservationMethod")%><br />
+          <input name="preservationMethod" type="text" size="20" maxlength="100" value="<%=preservationMethod %>"/> 
+          
+          <%
+          String storageLabID="";
+          if(thisSample.getStorageLabID()!=null){storageLabID=thisSample.getStorageLabID();}
+          %>
+          <%=encprops.getProperty("storageLabID")%><br />
+          <input name="storageLabID" type="text" size="20" maxlength="100" value="<%=storageLabID %>"/> 
+          
+          <%
+          String samplingProtocol="";
+          if(thisSample.getSamplingProtocol()!=null){samplingProtocol=thisSample.getSamplingProtocol();}
+          %>
+          <%=encprops.getProperty("samplingProtocol")%><br />
+          <input name="samplingProtocol" type="text" size="20" maxlength="100" value="<%=samplingProtocol %>" /> 
+          
+          <%
+          String samplingEffort="";
+          if(thisSample.getSamplingEffort()!=null){samplingEffort=thisSample.getSamplingEffort();}
+          %>
+          <%=encprops.getProperty("samplingEffort")%><br />
+          <input name="samplingEffort" type="text" size="20" maxlength="100" value="<%=samplingEffort%>"/> 
+     
+          <%
+          String fieldNumber="";
+          if(thisSample.getFieldNumber()!=null){fieldNumber=thisSample.getFieldNumber();}
+          %>
+		  <%=encprops.getProperty("fieldNumber")%><br />
+          <input name="fieldNumber" type="text" size="20" maxlength="100" value="<%=fieldNumber %>" /> 
+          
+          <%
+          String fieldNotes="";
+          if(thisSample.getFieldNotes()!=null){fieldNotes=thisSample.getFieldNotes();}
+          %>
+           <%=encprops.getProperty("fieldNotes")%><br />
+          <input name="fieldNNotes" type="text" size="20" maxlength="100" value="<%=fieldNotes %>" /> 
+          
+          
+          <%
+          String eventRemarks="";
+          if(thisSample.getEventRemarks()!=null){eventRemarks=thisSample.getEventRemarks();}
+          %>
+          <%=encprops.getProperty("eventRemarks")%><br />
+          <input name="eventRemarks" type="text" size="20" value="<%=eventRemarks %>" /> 
+          
+          <%
+          String institutionID="";
+          if(thisSample.getInstitutionID()!=null){institutionID=thisSample.getInstitutionID();}
+          %>
+          <%=encprops.getProperty("institutionID")%><br />
+          <input name="institutionID" type="text" size="20" maxlength="100" value="<%=institutionID %>" /> 
+          
+          <%
+          String collectionID="";
+          if(thisSample.getCollectionID()!=null){collectionID=thisSample.getCollectionID();}
+          %>
+          <%=encprops.getProperty("collectionID")%><br />
+          <input name="collectionID" type="text" size="20" maxlength="100" value="<%=collectionID %>" /> 
+          
+          <%
+          String collectionCode="";
+          if(thisSample.getCollectionCode()!=null){collectionCode=thisSample.getCollectionCode();}
+          %>
+          <%=encprops.getProperty("collectionCode")%><br />
+          <input name="collectionCode" type="text" size="20" maxlength="100" value="<%=collectionCode %>" /> 
+          
+          <%
+          String datasetID="";
+          if(thisSample.getDatasetID()!=null){datasetID=thisSample.getDatasetID();}
+          %>
+			<%=encprops.getProperty("datasetID")%><br />
+          <input name="datasetID" type="text" size="20" maxlength="100" value="<%=datasetID %>" /> 
+          
+          <%
+          String datasetName="";
+          if(thisSample.getDatasetName()!=null){datasetName=thisSample.getDatasetName();}
+          %>
+          <%=encprops.getProperty("datasetName")%><br />
+          <input name="datasetName" type="text" size="20" maxlength="100" value="<%=datasetName %>" /> 
+
+            
+            <input name="encounter" type="hidden" value="<%=num%>" /> 
+            <input name="action" type="hidden" value="setTissueSample" /> 
+            <input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</a>
+<br /> 
+<%
+}
+
+
+
+//reset or create a haplotype
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("haplotype"))){
+		%> 
+
+<a name="haplotype">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+  <tr>
+    <td align="left" valign="top" class="para"><strong>
+    <font color="#990000"><%=encprops.getProperty("setHaplotype")%>:</font></strong></td>
+  </tr>
+  <tr>
+    <td></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form name="setHaplotype" action="../TissueSampleSetHaplotype" method="post">
+
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+        <%
+        MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis();
+        String analysisIDString="";
+        if((request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID")))){
+      	    analysisIDString=request.getParameter("analysisID");
+      		mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
+        }
+        %>
+        <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+        
+        <%
+        String haplotypeString="";
+        if(mtDNA.getHaplotype()!=null){haplotypeString=mtDNA.getHaplotype();}
+        %>
+        <%=encprops.getProperty("haplotype")%> (<%=encprops.getProperty("required")%>)<br />
+        <input name="haplotype" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" /> 
+ 		
+ 		 <%
+        String processingLabTaskID="";
+        if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+        %>
+        <%=encprops.getProperty("processingLabTaskID")%><br />
+        <input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+ 
+  		 <%
+        String processingLabName="";
+        if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+        %>
+        <%=encprops.getProperty("processingLabName")%><br />
+        <input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+ 
+   		 <%
+        String processingLabContactName="";
+        if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+        %>
+        <%=encprops.getProperty("processingLabContactName")%><br />
+        <input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+ 
+   		 <%
+        String processingLabContactDetails="";
+        if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+        %>
+        <%=encprops.getProperty("processingLabContactDetails")%><br />
+        <input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+ 
+ 		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="setHaplotype" /> 
+          <input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
+      </form>
+    </td>
+  </tr>
+</table>
+</a>
+<br /> 
+<%
+}
+
+
+//--------------------------
+//edit sex reported for sighting	
+if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))){
 						%> <a name="sex"></a>
 <table width="150" border="1" cellpadding="1" cellspacing="0"
        bordercolor="#000000" bgcolor="#CCCCCC">
@@ -1350,7 +1596,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 		}
 
 	//reset scarring
-			if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("scar"))){
+	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("scar"))){
 	%> <a name="scar">
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
@@ -2829,8 +3075,7 @@ catch (Exception e) {
 %> Left-side<em>.</em><em> Click the image to view the full size
   original. <a href="encounterSpotVisualizer.jsp?number=<%=num%>">Click
     here to see the left-side spots mapped to the left-side image.</a> </em><br/>
-  <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image"
-                              width="250"></a> <%
+  <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image" width="250"></a> <%
     }
   %> <br/><br/> <%
     //--
@@ -2840,8 +3085,7 @@ catch (Exception e) {
       href="encounterSpotVisualizer.jsp?number=<%=num%>&rightSide=true">Click
       here to see the right-side spots mapped to the right-side image.</a> </em><br/>
   
-  		<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image"
-                               width="250"></a> 
+  		<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image" width="250"></a> 
                                
       <%
       }
@@ -2868,11 +3112,68 @@ catch (Exception e) {
 </td>
 </tr>
 </table>
+<%
+if(loggedIn){
+%>
+<hr />
+<a name="tissueSamples"></a>
+<p class="para"><img align="absmiddle" src="../images/microscope.gif">
+    <strong><%=encprops.getProperty("tissueSamples") %></strong></p>
+    <p class="para"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><%=encprops.getProperty("addTissueSample") %></a></p>
+<p>
+<%
+List<TissueSample> tissueSamples=enc.getCollectedDataOfClass(TissueSample.class);
+int numTissueSamples=tissueSamples.size();
+if(numTissueSamples>0){
+%>
+<table width="100%" class="tissueSample">
+<tr><th><strong><%=encprops.getProperty("sampleID") %></strong></th><th><strong><%=encprops.getProperty("values") %></strong></th><th><strong><%=encprops.getProperty("analyses") %></strong></th><th><strong><%=encprops.getProperty("editTissueSample") %></strong></th><th><strong><%=encprops.getProperty("removeTissueSample") %></strong></th></tr>
+<%
+for(int j=0;j<numTissueSamples;j++){
+	TissueSample thisSample=tissueSamples.get(j);
+	%>
+	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td>
+	
+	<td><table>
+		<%
+		int numAnalyses=thisSample.getNumAnalyses();
+		List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+		for(int g=0;g<numAnalyses;g++){
+			GeneticAnalysis ga = gAnalyses.get(g);
+			if(ga.getAnalysisType().equals("MitochondrialDNA")){
+				MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
+				%>
+				<tr><td style="border-style: none;"><span class="caption"><%=encprops.getProperty("haplotype") %>: <%=mito.getHaplotype() %></span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype#haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			<%
+			}		
+		}
+		%>
+		</table>
+		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+	
+	</td>
+	
+	
+	<td><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample#tissueSample"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
+	<%
+}
+%>
+</table>
+</p>
+<%
+}
+else {
+%>
+	<p class="para"><%=encprops.getProperty("noTissueSamples") %></p>
+<%
+}
+} //end if loggedIn
+%>
 <p>
     <%
 	  	  	  	if (request.getParameter("noscript")==null) {
 	  	  	  %>
-<hr>
+<hr />
 <p><a name="map"><strong><img
   src="../images/2globe_128.gif" width="56" height="56"
   align="absmiddle"/></a><%=encprops.getProperty("mapping") %></strong></p>

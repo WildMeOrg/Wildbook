@@ -543,11 +543,13 @@ public class Encounter implements java.io.Serializable {
   public Vector getAdditionalImageNames() {
     Vector imageNamesOnly=new Vector();
     
-    ArrayList<DataCollectionEvent> images=getCollectedDataOfType("SinglePhotoVideo");
-    int imagesSize=images.size();
-    for(int i=0;i<imagesSize;i++){
-      SinglePhotoVideo dce=(SinglePhotoVideo)images.get(i);
-      imageNamesOnly.add(dce.getFilename());
+    List<SinglePhotoVideo> images=getCollectedDataOfClass(SinglePhotoVideo.class);
+    if((images!=null)&&(images.size()>0)){
+      int imagesSize=images.size();
+      for(int i=0;i<imagesSize;i++){
+        SinglePhotoVideo dce=(SinglePhotoVideo)images.get(i);
+        imageNamesOnly.add(dce.getFilename());
+      }
     }
     return imageNamesOnly;
   }
@@ -1461,16 +1463,20 @@ public class Encounter implements java.io.Serializable {
     }
 
     public List<DataCollectionEvent> getCollectedData(){return collectedData;}
-    
+
+    /*
     public ArrayList<DataCollectionEvent> getCollectedDataOfType(String type){
       ArrayList<DataCollectionEvent> filteredList=new ArrayList<DataCollectionEvent>();
-      int size=collectedData.size();
-      for(int i=0;i<size;i++){
+      int cdSize=collectedData.size();
+      System.out.println("cdSize="+cdSize);
+      for(int i=0;i<cdSize;i++){
+        System.out.println("i="+i);
         DataCollectionEvent tempDCE=collectedData.get(i);
         if(tempDCE.getType().equals(type)){filteredList.add(tempDCE);}
       }
       return filteredList;
     }
+    */
     
     public <T extends DataCollectionEvent> List<T> getCollectedDataOfClass(Class<T> clazz) {
       List<DataCollectionEvent> collectedData = getCollectedData();

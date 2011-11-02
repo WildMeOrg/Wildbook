@@ -8,16 +8,14 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
   //primary key and unique identifier
   private String analysisID;
   private String analysisType;
+  private String correspondingEncounterNumber;
   
   //details about the processing lab making this analysis
   private String processingLabTaskID;
   private String processingLabName;
   private String processingLabContactName;
   private String processingLabContactDetails;
-  //ISO formatted date (e.g., 2009-10-23)
-  private String processingDateStart;
-//ISO formatted date (e.g., 2009-10-23)
-  private String processingDateEnd;
+  private String sampleID;
   
   /**
    * Empty constructor required for JDO processing.
@@ -25,9 +23,11 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
    */
   public GeneticAnalysis() {}
   
-  public GeneticAnalysis(String analysisID, String analysisType) {
+  public GeneticAnalysis(String analysisID, String analysisType, String correspondingEncounterNumber, String sampleID) {
     this.analysisID=analysisID;
     this.analysisType=analysisType;
+    this.correspondingEncounterNumber=correspondingEncounterNumber;
+    this.sampleID=sampleID;
   }
   
   public String getAnalysisID(){return analysisID;}
@@ -35,7 +35,7 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
   public String getAnalysisType(){return analysisType;}
   public void setAnalysisType(String newType){this.analysisType=newType;}
   
-  public String getProcessingLabname(){return processingLabName;}
+  public String getProcessingLabName(){return processingLabName;}
   public void setProcessingLabName(String newString){this.processingLabName=newString;}
   
   public String getProcessingLabTaskID(){return processingLabTaskID;}
@@ -48,10 +48,18 @@ public abstract class GeneticAnalysis implements java.io.Serializable {
   public String getProcessingLabContactDetails(){return processingLabContactDetails;}
   public void setProcessingLabContactDetails(String newString){this.processingLabContactDetails=newString;}
   
-  public String getProcessingDateStart(){return processingDateStart;}
-  public void setProcessingDateStart(String newString){this.processingDateStart=newString;}
+
+  public String getCorrespondingEncounterNumber(){return correspondingEncounterNumber;}
+  public String getSampleID(){return sampleID;}
   
-  public String getProcessingDateEnd(){return processingDateEnd;}
-  public void setProcessingDateEnd(String newString){this.processingDateEnd=newString;}
+  public String getHTMLString(){
+    String paramValues="";
+    if((this.getProcessingLabName()!=null)&&(!this.getProcessingLabName().equals(""))){paramValues+="     Processing lab name: "+this.getProcessingLabName()+"<br />";}
+    if((this.getProcessingLabTaskID()!=null)&&(!this.getProcessingLabTaskID().equals(""))){paramValues+="     Processing lab task ID: "+this.getProcessingLabTaskID()+"<br />";}
+    if((this.getProcessingLabContactName()!=null)&&(!this.getProcessingLabContactName().equals(""))){paramValues+="     Processing lab contact name: "+this.getProcessingLabContactName()+"<br />";}
+    if((this.getProcessingLabContactDetails()!=null)&&(!this.getProcessingLabContactDetails().equals(""))){paramValues+="     Processing lab contact details: "+this.getProcessingLabContactDetails()+"<br />";}
+    return paramValues; 
+  }
   
+
 }

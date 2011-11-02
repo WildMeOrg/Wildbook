@@ -14,8 +14,8 @@ public class MicrosatelliteMarkersAnalysis extends GeneticAnalysis{
   //DO NOT USE
   public MicrosatelliteMarkersAnalysis() {}
   
-  public MicrosatelliteMarkersAnalysis(String analysisID) {
-    super(analysisID, type);
+  public MicrosatelliteMarkersAnalysis(String analysisID, String sampleID, String correspondingEncounterNumber) {
+    super(analysisID, type, correspondingEncounterNumber, sampleID);
     loci=new ArrayList<Locus>();
   }
   

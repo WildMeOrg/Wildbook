@@ -272,7 +272,21 @@
     <servlet-name>EncounterResetDate</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterResetDate</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>EncounterSetTissueSample</servlet-name>
+      <servlet-class>org.ecocean.servlet.EncounterSetTissueSample</servlet-class>
+  </servlet>
+  
+    <servlet>
+        <servlet-name>EncounterRemoveTissueSample</servlet-name>
+        <servlet-class>org.ecocean.servlet.EncounterRemoveTissueSample</servlet-class>
+  </servlet>
 
+    <servlet>
+      <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
+      <servlet-class>org.ecocean.servlet.TissueSampleRemoveHaplotype</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
@@ -340,6 +354,11 @@
   <servlet>
     <servlet-name>EncounterSetSex</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSex</servlet-class>
+  </servlet>
+  
+    <servlet>
+      <servlet-name>TissueSampleSetHaplotype</servlet-name>
+      <servlet-class>org.ecocean.servlet.TissueSampleSetHaplotype</servlet-class>
   </servlet>
 
   <servlet>
@@ -515,6 +534,26 @@
   <servlet-mapping>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
     <url-pattern>/InterconnectSubmitSpots</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>TissueSampleSetHaplotype</servlet-name>
+      <url-pattern>/TissueSampleSetHaplotype</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+        <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
+        <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>EncounterSetTissueSample</servlet-name>
+      <url-pattern>/EncounterSetTissueSample</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+        <servlet-name>EncounterRemoveTissueSample</servlet-name>
+        <url-pattern>/EncounterRemoveTissueSample</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -918,6 +957,10 @@
       <url-pattern>/EncounterSetAlternateID</url-pattern>
        <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
        <url-pattern>/EncounterSetLifeStage</url-pattern>
+        <url-pattern>/EncounterSetTissueSample</url-pattern>
+        <url-pattern>/TissueSampleSetHaplotype</url-pattern>
+        <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+         <url-pattern>/EncounterRemoveTissueSample</url-pattern>
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>
       <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>

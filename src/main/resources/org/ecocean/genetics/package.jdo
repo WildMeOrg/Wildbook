@@ -17,7 +17,7 @@
 				    </field>
   		</class>
   		
-  		<class name="GeneticSample" identity-type="application" table="GENETICSAMPLE">
+  		<class name="TissueSample" identity-type="datastore" table="TISSUESAMPLE">
 				
 				<field name="sampleID" persistence-modifier="persistent">
 					<column length="256"/>
@@ -73,13 +73,7 @@
 						 	<column length="1024"/>
 						</field>
 						
-						  		<field name="processingDateStart" persistence-modifier="persistent">
-													<column length="256"/>
-						</field>
-						
-						  		<field name="processingDateEnd" persistence-modifier="persistent">
-													<column length="256"/>
-						</field>
+				
 		
 		</class>
 		

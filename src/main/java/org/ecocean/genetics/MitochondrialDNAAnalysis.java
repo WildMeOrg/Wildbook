@@ -17,8 +17,8 @@ public class MitochondrialDNAAnalysis extends GeneticAnalysis{
   //DO NOT USE
   public MitochondrialDNAAnalysis() {}
   
-  public MitochondrialDNAAnalysis(String analysisID, String haplotype) {
-    super(analysisID, type);
+  public MitochondrialDNAAnalysis(String analysisID, String haplotype, String correspondingEncounterNumber, String sampleID) {
+    super(analysisID, type, correspondingEncounterNumber, sampleID);
     this.haplotype=haplotype;
   }
   
@@ -42,5 +42,12 @@ public class MitochondrialDNAAnalysis extends GeneticAnalysis{
       }
     }
   }
+  
+  public String getHTMLString(){
+    String paramValues=super.getHTMLString();
+    if((this.getHaplotype()!=null)&&(!this.getHaplotype().equals(""))){paramValues+="     Haplotype: "+this.getHaplotype()+"<br />";}
+  return paramValues; 
+  }
+  
   
 }
