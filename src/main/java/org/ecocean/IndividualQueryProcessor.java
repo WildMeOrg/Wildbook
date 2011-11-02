@@ -36,7 +36,7 @@ public class IndividualQueryProcessor {
         filter+=" WHERE ";
 
         encFilter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint).replaceAll("SELECT FROM", "SELECT DISTINCT individualID FROM");
-        filter+="( "+encFilter+" ).contains(this.name)";
+        filter+="( "+encFilter+" ).contains(this.individualID)";
 
 
 
@@ -106,14 +106,14 @@ public class IndividualQueryProcessor {
       try{
         if(request.getParameter("sort")!=null) {
           if(request.getParameter("sort").equals("sex")){allSharks=myShepherd.getAllMarkedIndividuals(query, "sex ascending");}
-          else if(request.getParameter("sort").equals("name")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "name ascending");}
+          else if(request.getParameter("sort").equals("name")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending");}
           else if(request.getParameter("sort").equals("numberEncounters")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberEncounters descending");}
           else{
-            allSharks=myShepherd.getAllMarkedIndividuals(query, "name ascending");
+            allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending");
           }
         }
         else{
-          allSharks=myShepherd.getAllMarkedIndividuals(query, "name ascending");
+          allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending");
           //keyword and then name ascending
         }
         //process over to Vector
