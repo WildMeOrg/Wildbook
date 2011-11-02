@@ -122,7 +122,6 @@
 
 
 
-<%@page import="org.ecocean.Util.MeasurementCollectionEventDesc"%><html>
 <head>
   <title><%=encprops.getProperty("encounter") %> <%=num%>
   </title>
@@ -1368,17 +1367,28 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
         <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
         <form name="setMeasurements" method="post"
                 action="../EncounterSetMeasurements">
+        <input type="hidden" name="encounter" value="<%=num%>"/>
+        <c:set var="index" value="0"/>
         <c:forEach items="${items}" var="item">
         <%
           MeasurementCollectionEventDesc measurementCollectionEventDesc = (MeasurementCollectionEventDesc) pageContext.getAttribute("item");
           List<MeasurementCollectionEvent> list = (List<MeasurementCollectionEvent>) enc.getCollectedDataOfClassAndType(MeasurementCollectionEvent.class, measurementCollectionEventDesc.getType());
-          Double value = list.size() == 0 ? null : list.get(0).getValue();
-          pageContext.setAttribute("measurementValue", value == null ? "" : value.toString());
+          MeasurementCollectionEvent measurementEvent;
+          if (list.size() > 0) {
+              measurementEvent = list.get(0); // TODO: What if there is more than one?
+          }
+          else {
+              measurementEvent = new MeasurementCollectionEvent(enc.getEventID(), measurementCollectionEventDesc.getType(), null, measurementCollectionEventDesc.getUnits());
+          }
+          pageContext.setAttribute("measurementEvent", measurementEvent);
         %>
             <tr>
-              <td class="form_label"><c:out value="${item.label}"/></td>
-              <td><input name="measurement(${item.type})" id ="${item.type}" value="${measurementValue}"/><c:out value="(${item.unitsLabel})"/></td>
+              <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/></td>
+              <td><input name="measurement${index}(value)" value="${measurementEvent.value}"/>
+                  <input type="hidden" name="measurement${index}(type)" value="${item.type}"/><c:out value="(${item.unitsLabel})"/>
+              </td>
             </tr>
+            <c:set var="index" value="${index + 1}"/>
         </c:forEach>
         <%
         pageContext.setAttribute("set", encprops.getProperty("set"));

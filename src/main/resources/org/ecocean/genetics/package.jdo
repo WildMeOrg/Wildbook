@@ -18,7 +18,7 @@
 				    </field>
   		</class>
   		
-  		<class name="TissueSample" identity-type="datastore" table="TISSUESAMPLE">
+  		<class name="TissueSample" identity-type="application" table="TISSUESAMPLE">
   				<inheritance strategy="new-table"/>
 				
 				<field name="sampleID" persistence-modifier="persistent">
