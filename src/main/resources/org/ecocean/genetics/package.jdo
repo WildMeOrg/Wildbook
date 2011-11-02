@@ -14,7 +14,7 @@
 			
 				<field name="haplotype" persistence-modifier="persistent">
 							
-							<column jdbc-type="VARCHAR" length="64"/>
+							<column jdbc-type="VARCHAR" length="128"/>
 				    </field>
   		</class>
   		

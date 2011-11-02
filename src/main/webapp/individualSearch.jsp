@@ -74,6 +74,7 @@
     animatedcollapse.addDiv('date', 'fade=1')
     animatedcollapse.addDiv('observation', 'fade=1')
     animatedcollapse.addDiv('identity', 'fade=1')
+    animatedcollapse.addDiv('genetics', 'fade=1')
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -676,6 +677,54 @@ if(CommonConfiguration.showProperty("showLifestage")){
 	  </td>
 </tr>
       </table>
+
+    </div>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div id="genetics" style="display:none; ">
+      <p>Use the fields below to limit your search to encounters with available genetic data.</p>
+      
+
+      <p><strong><%=props.getProperty("haplotype")%>:</strong> <span class="para"><a
+        href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
+        target="_blank"><img src="../images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+                             <br />
+        (<em><%=props.getProperty("locationIDExample")%></em>)
+   </p>
+
+      <%
+        ArrayList<String> haplos = myShepherd.getAllHaplotypes();
+        int totalHaplos = haplos.size();
+		System.out.println(haplos.toString());
+
+        if (totalHaplos >= 1) {
+      %>
+
+      <select multiple size="<%=(totalHaplos+1) %>" name="haplotypeField" id="haplotypeField">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < totalHaplos; n++) {
+            String word = haplos.get(n);
+            if (!word.equals("")) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select>
+      <%
+      } else {
+      %>
+      <p><em><%=props.getProperty("noHaplotypes")%>
+      </em></p>
+      <%
+        }
+      %>
+
 
     </div>
   </td>

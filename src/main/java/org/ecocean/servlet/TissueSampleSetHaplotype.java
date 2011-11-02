@@ -51,7 +51,7 @@ public class TissueSampleSetHaplotype extends HttpServlet {
 
 
     myShepherd.beginDBTransaction();
-    if ( (request.getParameter("analysisID") != null) && (request.getParameter("sampleID") != null) && (request.getParameter("number")!=null) && (request.getParameter("haplotype")!=null) && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))&&(myShepherd.isEncounter(request.getParameter("number")))) {
+    if ( (request.getParameter("analysisID") != null) && (request.getParameter("sampleID") != null) && (request.getParameter("number")!=null) && (request.getParameter("haplotype")!=null) && (!request.getParameter("haplotype").equals("")) && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))&&(myShepherd.isEncounter(request.getParameter("number")))) {
       String sampleID=request.getParameter("sampleID");
       String encounterNumber=request.getParameter("number");
       String haplotype=request.getParameter("haplotype");

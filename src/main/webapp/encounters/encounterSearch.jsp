@@ -54,6 +54,7 @@
     animatedcollapse.addDiv('identity', 'fade=1')
     animatedcollapse.addDiv('metadata', 'fade=1')
     animatedcollapse.addDiv('export', 'fade=1')
+    animatedcollapse.addDiv('genetics', 'fade=1')
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -310,7 +311,6 @@
         ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
 
-
         if (totalLocIDs >= 1) {
       %>
 
@@ -321,8 +321,7 @@
             String word = locIDs.get(n);
             if (!word.equals("")) {
         %>
-        <option value="<%=word%>"><%=word%>
-        </option>
+        <option value="<%=word%>"><%=word%></option>
         <%
             }
           }
@@ -837,6 +836,66 @@ if(CommonConfiguration.showProperty("showLifestage")){
     </div>
   </td>
 </tr>
+
+
+<tr>
+  <td>
+    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
+      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+      <font color="#000000">Genetics filters</font></a></h4>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div id="genetics" style="display:none; ">
+      <p>Use the fields below to limit your search to encounters with available genetic data.</p>
+      
+
+      <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para"><a
+        href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
+        target="_blank"><img src="../images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+                             (<em><%=encprops.getProperty("locationIDExample")%></em>)
+   </p>
+
+      <%
+        ArrayList<String> haplos = myShepherd.getAllHaplotypes();
+        int totalHaplos = haplos.size();
+		System.out.println(haplos.toString());
+
+        if (totalHaplos >= 1) {
+      %>
+
+      <select multiple size="<%=(totalHaplos+1) %>" name="haplotypeField" id="haplotypeField">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < totalHaplos; n++) {
+            String word = haplos.get(n);
+            if (!word.equals("")) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select>
+      <%
+      } else {
+      %>
+      <p><em><%=encprops.getProperty("noHaplotypes")%>
+      </em></p>
+      <%
+        }
+      %>
+
+
+    </div>
+  </td>
+</tr>
+
+
+
 <tr>
   <td>
 

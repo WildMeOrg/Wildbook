@@ -1817,6 +1817,14 @@ public class Shepherd {
     Collection results = (Collection) q.execute();
     return (new ArrayList(results));
   }
+  
+  public ArrayList<String> getAllHaplotypes() {
+    Query q = pm.newQuery(MitochondrialDNAAnalysis.class);
+    q.setResult("distinct haplotype");
+    q.setOrdering("haplotype ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
 
   public ArrayList<String> getAllGenuses() {
       Query q = pm.newQuery(Encounter.class);
