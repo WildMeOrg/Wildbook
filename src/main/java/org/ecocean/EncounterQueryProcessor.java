@@ -14,6 +14,7 @@ public class EncounterQueryProcessor {
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint){
     String filter="SELECT FROM org.ecocean.Encounter WHERE ";
+    String jdoqlVariableDeclaration = "";
 
   //filter for location------------------------------------------
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
@@ -193,9 +194,39 @@ public class EncounterQueryProcessor {
     }
     //end verbatimEventDate filters-----------------------------------------------
 
+    
+    //------------------------------------------------------------------
+    //haplotype filters-------------------------------------------------
+    String[] haplotypes=request.getParameterValues("haplotypeField");
+    if((haplotypes!=null)&&(!haplotypes[0].equals("None"))){
+          prettyPrint.append("Haplotype is one of the following: ");
+          int kwLength=haplotypes.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
 
+              String kwParam=haplotypes[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" analysis.haplotype == \""+kwParam+"\" ";
+                }
+                else{
+                  locIDFilter+=" || analysis.haplotype == \""+kwParam+"\" ";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="collectedData.contains(dce) && dce.analyses.contains(analysis) && "+locIDFilter;}
+            else{filter+=(" && collectedData.contains(dce) && dce.analyses.contains(analysis) && "+locIDFilter);}
 
+            prettyPrint.append("<br />");
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
+            else{jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
+            
+    }
+    //end haplotype filters-----------------------------------------------
 
+    
 
     //filter for alternate ID------------------------------------------
     if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
@@ -205,6 +236,8 @@ public class EncounterQueryProcessor {
       prettyPrint.append("alternateIDField starts with \""+altID+"\".<br />");
 
     }
+    
+
 
     //filter for genus------------------------------------------
 	    if((request.getParameter("genusField")!=null)&&(!request.getParameter("genusField").equals(""))) {
@@ -363,7 +396,7 @@ public class EncounterQueryProcessor {
     if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){
       filter+="((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
     }
-    else{filter+="&& ((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
+    else{filter+=" && ((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
     }
 
 
@@ -457,7 +490,7 @@ public class EncounterQueryProcessor {
 
     //end GPS filters-----------------------------------------------
 
-
+    filter+=jdoqlVariableDeclaration;
 
     return filter;
 

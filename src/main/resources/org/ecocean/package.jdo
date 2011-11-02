@@ -95,11 +95,11 @@
 			<field name="catalogNumber" primary-key="true">
 				<column length="100"/>
 			</field>
-		        <field name="otherCatalogNumbers" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" />
+		        <field name="otherCatalogNumbers" persistence-modifier="persistent" default-fetch-group="false">
+				<column length="1024" allows-null="true" />
 			</field>
-		        <field name="informothers" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" />
+		        <field name="informothers" persistence-modifier="persistent" default-fetch-group="false">
+				<column length="1024" allows-null="true" />
 			</field>
 			
 			
@@ -118,7 +118,7 @@
 			</field>
 			
 			
-			<field name="occurrenceRemarks" persistence-modifier="persistent">
+			<field name="occurrenceRemarks" persistence-modifier="persistent" default-fetch-group="false">
 				<column jdbc-type="LONGVARCHAR" />
 			</field>
 			
@@ -171,26 +171,26 @@
 				<column length="1024" allows-null="true" />
 			</field>
 
-			<field name="eventID" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" />
+			<field name="eventID" persistence-modifier="persistent" default-fetch-group="false">
+				<column length="1024" allows-null="true" />
 			</field>
 			
-			<field name="dynamicProperties" persistence-modifier="persistent">
+			<field name="dynamicProperties" persistence-modifier="persistent" default-fetch-group="false">
 							<column jdbc-type="LONGVARCHAR" />
 			</field>
-			<field name="identificationRemarks" persistence-modifier="persistent">
+			<field name="identificationRemarks" persistence-modifier="persistent" default-fetch-group="false">
 										<column jdbc-type="LONGVARCHAR" />
 			</field>
 			
 			
 			
-			<field name="researcherComments" persistence-modifier="persistent">
+			<field name="researcherComments" persistence-modifier="persistent" default-fetch-group="false">
 				<column jdbc-type="LONGVARCHAR" />
 			</field>
-            	<field name="additionalImageNames" persistence-modifier="persistent">
+            	<field name="additionalImageNames" persistence-modifier="persistent" default-fetch-group="false">
                 		<collection element-type="java.lang.String"/>
             	</field>
-            	<field name="interestedResearchers" persistence-modifier="persistent">
+            	<field name="interestedResearchers" persistence-modifier="persistent" default-fetch-group="false">
                 		<collection element-type="java.lang.String"/>
             	</field>
             	<field name="spots" persistence-modifier="persistent">

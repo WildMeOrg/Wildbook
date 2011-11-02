@@ -1162,7 +1162,10 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
         
         <%
         String haplotypeString="";
-        if(mtDNA.getHaplotype()!=null){haplotypeString=mtDNA.getHaplotype();}
+        try{
+        	if(mtDNA.getHaplotype()!=null){haplotypeString=mtDNA.getHaplotype();}
+        }
+        catch(NullPointerException npe34){}
         %>
         <%=encprops.getProperty("haplotype")%> (<%=encprops.getProperty("required")%>)<br />
         <input name="haplotype" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" /> 

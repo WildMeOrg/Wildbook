@@ -22,7 +22,7 @@ public class MitochondrialDNAAnalysis extends GeneticAnalysis{
     this.haplotype=haplotype;
   }
   
-  public String getHaplotype(){return haplotype;}
+  public String getHaplotype(){return haplotype.trim();}
   public void setHaplotype(String newHaplo){this.haplotype=newHaplo;};
   
   public String getColorCode(String haplotype){
