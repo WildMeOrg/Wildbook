@@ -12,19 +12,21 @@
   		<class name="MitochondrialDNAAnalysis" identity-type="application">
 					<inheritance strategy="new-table"/>
 			
-				<field name="haplotype">
-							<column name="HAPLOTYPE"/>
+				<field name="haplotype" persistence-modifier="persistent">
+							
+							<column jdbc-type="VARCHAR" length="64"/>
 				    </field>
   		</class>
   		
-  		<class name="TissueSample" identity-type="application" table="TISSUESAMPLE">
+  		<class name="TissueSample" identity-type="datastore" table="TISSUESAMPLE">
+  				<inheritance strategy="new-table"/>
 				
 				<field name="sampleID" persistence-modifier="persistent">
-					<column length="256"/>
+					<column jdbc-type="VARCHAR" length="256"/>
 				</field>
 				
 				<field name="alternateSampleID" persistence-modifier="persistent">
-								<column length="512"/>
+								<column jdbc-type="VARCHAR" length="256"/>
 				</field>
 				
 	            		<field name="analyses" persistence-modifier="persistent">
@@ -33,16 +35,16 @@
 	            		</field>
 	            	
 	            		<field name="tissueType" persistence-modifier="persistent">
-					<column length="512"/>
+					<column jdbc-type="VARCHAR" length="512"/>
 				</field>
 			
 				
 				<field name="preservationMethod" persistence-modifier="persistent">
-					<column length="512"/>
+					<column jdbc-type="VARCHAR" length="512"/>
 				</field>
 	            		
 	            		 <field name="storageLabID" persistence-modifier="persistent">
-				 	<column length="256"/>
+				 	<column jdbc-type="VARCHAR" length="256"/>
 				</field>
 
 		</class>
@@ -50,27 +52,27 @@
 		  		<class name="GeneticAnalysis" identity-type="application" table="GENETICANALYSIS">
 						
 						<field name="analysisID" primary-key="true">
-							<column length="256"/>
+							<column jdbc-type="VARCHAR" length="256"/>
 						</field>
 						
 						<field name="analysisType" persistence-modifier="persistent">
-										<column length="512"/>
+										<column jdbc-type="VARCHAR" length="512"/>
 						</field>
 			            	
 			            		<field name="processingLabTaskID" persistence-modifier="persistent">
-							<column length="256"/>
+							<column jdbc-type="VARCHAR" length="256"/>
 						</field>
 						
 						<field name="processingLabName" persistence-modifier="persistent">
-							<column length="512"/>
+							<column jdbc-type="VARCHAR" length="512"/>
 						</field>
 						
 						<field name="processingLabContactName" persistence-modifier="persistent">
-							<column length="512"/>
+							<column jdbc-type="VARCHAR" length="512"/>
 						</field>
 			            		
 			            		 <field name="processingLabContactDetails" persistence-modifier="persistent">
-						 	<column length="1024"/>
+						 	<column jdbc-type="VARCHAR" length="1024"/>
 						</field>
 						
 				
