@@ -1493,7 +1493,7 @@ public class Encounter implements java.io.Serializable {
       List<T> collectedDataOfClass = getCollectedDataOfClass(clazz);
       List<T> result = new ArrayList<T>();
       for (T t : collectedDataOfClass) {
-        if (t.getType().equals(type)) {
+        if (type.equals(t.getType())) {
           result.add(t);
         }
       }
