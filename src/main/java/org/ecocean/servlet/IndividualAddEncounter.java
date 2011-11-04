@@ -107,7 +107,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
           if (!locked) {
 
-            myShepherd.commitDBTransaction(action);
+            myShepherd.commitDBTransaction();
             Vector e_images = new Vector();
 
             String updateMessage = ServletUtilities.getText("markedIndividualUpdate.txt");
