@@ -359,24 +359,33 @@ public class Shepherd {
    * @param newShark the new shark to be added to the database
    * @see MarkedIndividual
    */
-  public void addMarkedIndividual(MarkedIndividual newShark) {
-    boolean ok2add = true;
+  public boolean addMarkedIndividual(MarkedIndividual newShark) {
+    if(newShark.getIndividualID().trim().equals("")){
+      System.out.println("Returning false because newShark.getIndividualID() equals: "+newShark.getIndividualID());
+      return false;
+     }
     Extent sharkClass = pm.getExtent(MarkedIndividual.class, true);
     Query query = pm.newQuery(sharkClass);
     Iterator allsharks = getAllMarkedIndividuals(query);
     while (allsharks.hasNext()) {
       MarkedIndividual tempShark = (MarkedIndividual) allsharks.next();
+      System.out.println(tempShark.getName()+" vs "+newShark.getIndividualID());
       if (tempShark.getName().equals(newShark.getName())) {
-        ok2add = false;
+        System.out.println("failed in addMarkedIndividual");
+        query.closeAll();
+        query = null;
+        sharkClass = null;
+        return false;
       }
-      ;
     }
-    if (ok2add) {
+    
       pm.makePersistent(newShark);
-    }
-    query.closeAll();
-    query = null;
-    sharkClass = null;
+
+      query.closeAll();
+      query = null;
+      sharkClass = null;
+      return true;
+
   }
 
 

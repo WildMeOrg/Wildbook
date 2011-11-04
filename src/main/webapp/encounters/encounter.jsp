@@ -774,9 +774,9 @@ if(!loggedIn){
   <tr>
     <td align="left" valign="top">
       <form name="createShark" method="post" action="../IndividualCreate">
-        <input name="number" type="hidden" value="<%=num%>"> <input
-        name="action" type="hidden" value="create"> <input
-        name="individual" type="text" id="individual" size="10"
+        <input name="number" type="hidden" value="<%=num%>"> 
+        <input name="action" type="hidden" value="create"> 
+        <input name="individual" type="text" id="individual" size="10"
         maxlength="50"
         value="<%=getNextIndividualNumber(enc, myShepherd)%>"><br>
         <%

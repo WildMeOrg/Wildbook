@@ -79,7 +79,7 @@ public class MarkedIndividual {
 
   private int maxYearsBetweenResightings;
 
-  public MarkedIndividual(String name, Encounter enc) {
+  public MarkedIndividual(String individualID, Encounter enc) {
 
     this.individualID = individualID;
     encounters.add(enc);
