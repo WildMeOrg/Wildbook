@@ -114,7 +114,7 @@ public class IndividualQueryProcessor {
         }
         else{
           allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending");
-          //keyword and then name ascending
+          //keyword and then individualID ascending
         }
         //process over to Vector
         if(allSharks!=null){
