@@ -311,7 +311,8 @@ public class EncounterQueryProcessor {
 
 
 
-
+/*
+This code is no longer necessary with Charles Overbeck's new multi-measurement feature.
 
     //filter for length------------------------------------------
     if((request.getParameter("selectLength")!=null)&&(request.getParameter("lengthField")!=null)&&(!request.getParameter("lengthField").equals("skip"))&&(!request.getParameter("selectLength").equals(""))) {
@@ -337,7 +338,7 @@ public class EncounterQueryProcessor {
         prettyPrint.append("selectLength is = "+size+".<br />");
       }
     }
-
+*/
 
 
     //start date filter----------------------------

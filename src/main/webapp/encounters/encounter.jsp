@@ -1485,41 +1485,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 </a><br> <%
 			}
 				
-				//reset size reported for sighting
-				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("size"))){
-		%> <a name="size">
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setSize")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencsize" action="../EncounterSetSize" method="post">
-          <input name="lengthField" type="text" id="lengthField" size="8"
-                 maxlength="8"> <%=encprops.getProperty("meters")%><br />
-          <font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
-          </em></font><br />
-          <input name="lengthUnits" type="hidden" id="lengthUnits"
-                 value="Meters"> <select name="guessList" id="guessList">
-          <option value="directly measured"><%=encprops.getProperty("directlyMeasured")%>
-          </option>
-          <option value="submitter's guess"><%=encprops.getProperty("personalGuess")%>
-          </option>
-          <option value="guide/researcher's guess"
-                  selected><%=encprops.getProperty("guessOfGuide")%>
-          </option>
-        </select> <input name="number" type="hidden" value="<%=num%>" id="number">
-          <input name="action" type="hidden" value="setEncounterSize">
-          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setSize")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-</a><br> <%
-			}
-
+				
 				//reset water depth
 				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("depth"))){
 		%> <a name="depth">
@@ -2050,28 +2016,6 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 
 </p>
 
-<!-- Display size so long as show_size is not false in commonCnfiguration.properties-->
-<%
-  if (CommonConfiguration.showProperty("size")) {
-%>
-<p class="para"><strong><%=encprops.getProperty("size") %>
-</strong><br/> <%
-     if(enc.getSizeAsDouble()!=null) {%>
-    <%=enc.getSize()%> <%=encprops.getProperty("meters")%>
-    <br/> <em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%></em>
-    <%
-   } else {
-   %>
-    <%=encprops.getProperty("unknown") %>
-    <%
-   }
-				
- if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size#size">edit</a>]</font>
-    <%
- 					}
-				}
- %>
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
     <%

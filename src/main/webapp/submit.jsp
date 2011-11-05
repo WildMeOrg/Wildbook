@@ -271,32 +271,6 @@
     </select></td>
 </tr>
 
-<tr class="form_row">
-  <td class="form_label" rowspan="2"><strong><%=props.getProperty("submit_length")%>:</strong></td>
-  <td colspan="2">
-  
-  <input name="size" type="text" id="size" size="10" />
-  
-  <label> <input name="measureUnits" type="radio"
-                           value="Meters"
-                           checked="checked"/> <%=props.getProperty("submit_meters")%>
-  </label>
-
-    <label> <input type="radio" name="measureUnits" value="Feet"/>
-      <%=props.getProperty("submit_feet")%>
-    </label></td>
-</tr>
-<tr>
-  <td colspan="2"><label><%=props.getProperty("submit_howmeasure")%>
-    <select name="guess" id="guess">
-      <option value="submitter's guess"><%=props.getProperty("submit_personalguess")%>
-      </option>
-      <option value="guide/researcher's guess"><%=props.getProperty("submit_guessofguide")%>
-      </option>
-      <option value="directly measured"><%=props.getProperty("submit_directlymeasured")%>
-      </option>
-    </select> </label></td>
-</tr>
 
 
 <tr class="form_row">
