@@ -787,6 +787,24 @@ if(CommonConfiguration.showProperty("showLifestage")){
           </td>
         </tr>
 
+        <tr>
+          <td>
+            <p><strong><%=props.getProperty("firstSightedInYear")%>:</strong> 
+            <em> 
+            	<select name="firstYearField" id="firstYearField">
+            		<option value="" selected="selected"></option>
+            		<% for (int q = firstYear; q <= nowYear; q++) { %>
+            			<option value="<%=q%>">
+              				<%=q%>
+           			 	</option>
+
+            		<% } %>
+          		</select>
+              </em>
+            </p>
+          </td>
+        </tr>
+
       </table>
   </td>
 

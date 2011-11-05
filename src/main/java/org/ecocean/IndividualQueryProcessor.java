@@ -222,6 +222,23 @@ public class IndividualQueryProcessor {
     	}
 
 	}
+    
+    //filter based on first sighting year
+    if ((request.getParameter("firstYearField")!=null)&&(!request.getParameter("firstYearField").trim().equals(""))) {
+
+      prettyPrint.append("First sighted in year: "+request.getParameter("firstYearField") +"<br />");
+      int firstSightedInYear = new Integer(request.getParameter("firstYearField")).intValue();
+      for (int q = 0; q < rIndividuals.size(); q++) {
+            MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
+            if (tShark.getEarliestSightingYear()!=firstSightedInYear) {
+              rIndividuals.remove(q);
+              q--;
+            }
+          } //end for
+
+
+    }
+    
 
       return (new MarkedIndividualQueryResult(rIndividuals,filter,prettyPrint.toString()));
 
