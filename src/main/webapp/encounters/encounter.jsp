@@ -240,13 +240,17 @@ table.tissueSample td {
 
     //block right-click user copying if no permissions available
     <%
-    if(!request.isUserInRole("imageProcessor")){
+    if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
     %>
-    hs.blockRightClick = true;
+    hs.blockRightClick = false;
     <%
     }
+    else{
     %>
-
+    hs.blockRightClick = true;
+	<%
+    }
+	%>
     // Add the controlbar
     hs.addSlideshow({
       //slideshowGroup: 'group1',
