@@ -10,6 +10,7 @@ public class Locus implements java.io.Serializable{
    */
   private static final long serialVersionUID = 5458817893355984588L;
   private List<String> alleles;
+  private String name;
   
   //Empty JDO constructor
   //DO NOT USE
@@ -20,13 +21,17 @@ public class Locus implements java.io.Serializable{
    * @param allelle1
    * @param allelle2
    */
-  public Locus(String allelle1, String allelle2){
+  public Locus(String name, String allelle1, String allelle2){
     alleles=new ArrayList<String>();
     alleles.add(allelle1);
     alleles.add(allelle2);
+    this.name=name;
   }
   
-  public Locus(List<String> alleles){this.alleles=alleles;}
+  public Locus(String name, List<String> alleles){
+    this.alleles=alleles;
+    this.name=name;
+  }
   
   public String getAllele(int num){
     try{
@@ -38,5 +43,7 @@ public class Locus implements java.io.Serializable{
     return null;
   }
   
+  public String getName(){return name;}
+  public void setName(String newName){this.name=newName;}
   
 }

@@ -78,7 +78,7 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
             for(int q=0;q<numPloids;q++){
               alleles.add(request.getParameter(("allele"+numLoci+q)));
             }
-            Locus l=new Locus(alleles);
+            Locus l=new Locus(request.getParameter("locusName"+numLoci),alleles);
             loci.add(l);
           }
           catch(Exception e){}
