@@ -66,17 +66,19 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
       try{
         numPloids=(new Integer(CommonConfiguration.getProperty("numPloids"))).intValue();
       }
-      catch(Exception e){}
+      catch(Exception e){System.out.println("numPloids configuration value did not resolve to an integer.");e.printStackTrace();}
       
       boolean hasMoreLoci=true;
       while(hasMoreLoci){
         
-        if(request.getParameter(("allele"+numLoci+"0"))!=null){
+        if((request.getParameter(("allele"+numLoci+"0"))!=null)&&(!request.getParameter(("allele"+numLoci+"0")).trim().equals(""))){
           ArrayList<String> alleles=new ArrayList<String>(numPloids);
           //so at this point we know there is some allele data
           try{
             for(int q=0;q<numPloids;q++){
-              alleles.add(request.getParameter(("allele"+numLoci+q)));
+              if((request.getParameter(("allele"+numLoci+q))!=null)&&(!request.getParameter(("allele"+numLoci+q)).equals(""))){
+                alleles.add(request.getParameter(("allele"+numLoci+q)));
+              }
             }
             Locus l=new Locus(request.getParameter("locusName"+numLoci),alleles);
             loci.add(l);

@@ -44,7 +44,7 @@ public class MicrosatelliteMarkersAnalysis extends GeneticAnalysis{
     return paramValues; 
   }
   
-  private String getAllelesHTMLString(){
+  public String getAllelesHTMLString(){
     StringBuffer returnString=new StringBuffer("");
     if((loci!=null)&&(loci.size()>0)){
       int numLoci=this.getLoci().size();
