@@ -279,18 +279,7 @@ public class Shepherd {
   }
   
   
-  
-  /**
-  public Iterator getAllEncounters(String order) {
-    String filter = "!this.unidentifiable && this.approved == true";
-    Extent encClass = pm.getExtent(Encounter.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
-    acceptedEncounters.setOrdering(order);
-    Collection c = (Collection) (acceptedEncounters.execute());
-    Iterator it = c.iterator();
-    return it;
-  }
-   */
+ 
 
   public Adoption getAdoption(String num) {
     Adoption tempEnc = null;

@@ -32,7 +32,7 @@ import java.io.PrintWriter;
 
 
 //Set alternateID for this encounter/sighting
-public class TissueSampleRemoveHaplotype extends HttpServlet {
+public class TissueSampleRemoveMicrosatelliteMarkers extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -56,11 +56,14 @@ public class TissueSampleRemoveHaplotype extends HttpServlet {
         
         Encounter enc = myShepherd.getEncounter(request.getParameter("encounter"));
         TissueSample genSample=myShepherd.getTissueSample(request.getParameter("sampleID"), request.getParameter("encounter"));
-        MitochondrialDNAAnalysis mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), request.getParameter("encounter"), request.getParameter("analysisID"));
-        genSample.removeGeneticAnalysis(mtDNA);
+        
+        //MitochondrialDNAAnalysis mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), request.getParameter("encounter"), request.getParameter("analysisID"));
+        MicrosatelliteMarkersAnalysis msDNA=myShepherd.getMicrosatelliteMarkersAnalysis(request.getParameter("sampleID"), request.getParameter("encounter"), request.getParameter("analysisID"));
+        
+        genSample.removeGeneticAnalysis(msDNA);
 
-        String removedParameters=myShepherd.throwAwayGeneticAnalysis(mtDNA);          
-        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed haplotype analysis ID "+request.getParameter("analysisID")+".<br />"+removedParameters);
+        String removedParameters=myShepherd.throwAwayGeneticAnalysis(msDNA);          
+        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed microsatellite marker analysis ID "+request.getParameter("analysisID")+".<br />"+removedParameters);
 
       } 
       catch (Exception le) {
@@ -73,7 +76,7 @@ public class TissueSampleRemoveHaplotype extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully removed the haplotype for tissue sample "+request.getParameter("sampleID")+" for encounter " + request.getParameter("encounter") + ".</p>");
+        out.println("<strong>Success!</strong> I have successfully removed the microsatellite markers for tissue sample "+request.getParameter("sampleID")+" for encounter " + request.getParameter("encounter") + ".</p>");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("encounter") + "\">Return to encounter " + request.getParameter("encounter") + "</a></p>\n");
         out.println(ServletUtilities.getFooter());
@@ -90,7 +93,7 @@ public class TissueSampleRemoveHaplotype extends HttpServlet {
     } else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to remove the haplotype. I cannot find the encounter that you intended it for in the database.");
+      out.println("<strong>Error:</strong> I was unable to remove the microsatellite markers. I cannot find the encounter or tissue sample that you intended it for in the database.");
       out.println(ServletUtilities.getFooter());
 
     }

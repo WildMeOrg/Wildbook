@@ -282,10 +282,16 @@
         <servlet-name>EncounterRemoveTissueSample</servlet-name>
         <servlet-class>org.ecocean.servlet.EncounterRemoveTissueSample</servlet-class>
   </servlet>
+  
 
     <servlet>
       <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
       <servlet-class>org.ecocean.servlet.TissueSampleRemoveHaplotype</servlet-class>
+  </servlet>
+  
+      <servlet>
+        <servlet-name>TissueSampleRemoveMicrosatelliteMarkers</servlet-name>
+        <servlet-class>org.ecocean.servlet.TissueSampleRemoveMicrosatelliteMarkers</servlet-class>
   </servlet>
 
   <servlet>
@@ -557,6 +563,11 @@
       <servlet-mapping>
         <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+  </servlet-mapping>
+  
+        <servlet-mapping>
+          <servlet-name>TissueSampleRemoveMicrosatelliteMarkers</servlet-name>
+          <url-pattern>/TissueSampleRemoveMicrosatelliteMarkers</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>

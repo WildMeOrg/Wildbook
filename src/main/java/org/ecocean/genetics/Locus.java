@@ -46,4 +46,13 @@ public class Locus implements java.io.Serializable{
   public String getName(){return name;}
   public void setName(String newName){this.name=newName;}
   
+  public String getHTMLString(){
+   String returnString=name+":";
+   int numAlleles=alleles.size();
+   for(int i=0;i<numAlleles;i++){
+     returnString+=" "+getAllele(i);
+   }
+   return returnString;
+  }
+  
 }
