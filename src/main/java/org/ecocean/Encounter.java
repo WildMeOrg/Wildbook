@@ -27,6 +27,7 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.GregorianCalendar;
+import org.ecocean.genetics.*;
 
 
 /**
@@ -1514,6 +1515,33 @@ public class Encounter implements java.io.Serializable {
       else{lifeStage=null;}
     }
     
+    
+    /**
+     * A convenience method that returns the first haplotype found in the TissueSamples for this Encounter. 
+     * 
+     *@return a String if found or null if no haplotype is found
+     */
+    public String getHaplotype(){
+      List<TissueSample> tissueSamples=getCollectedDataOfClass(TissueSample.class);
+      int numTissueSamples=tissueSamples.size();
+      if(numTissueSamples>0){
+        for(int j=0;j<numTissueSamples;j++){
+          TissueSample thisSample=tissueSamples.get(j);
+          int numAnalyses=thisSample.getNumAnalyses();
+          if(numAnalyses>0){
+            List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+            for(int g=0;g<numAnalyses;g++){
+              GeneticAnalysis ga = gAnalyses.get(g);
+              if(ga.getAnalysisType().equals("MitochondrialDNA")){
+                MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
+                if(mito.getHaplotype()!=null){return mito.getHaplotype();}
+              }
+            }
+          }
+        }
+      }
+      return null;
+    }
     
 }
 
