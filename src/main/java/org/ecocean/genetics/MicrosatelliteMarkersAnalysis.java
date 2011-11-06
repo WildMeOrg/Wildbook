@@ -19,6 +19,11 @@ public class MicrosatelliteMarkersAnalysis extends GeneticAnalysis{
     loci=new ArrayList<Locus>();
   }
   
+  public MicrosatelliteMarkersAnalysis(String analysisID, String sampleID, String correspondingEncounterNumber, ArrayList<Locus> loci) {
+    super(analysisID, type, correspondingEncounterNumber, sampleID);
+    this.loci=loci;
+  }
+  
   public List<Locus> getLoci(){return loci;}
   public void addLocus(Locus l){
     if(!loci.contains(l)){loci.add(l);}
@@ -29,5 +34,6 @@ public class MicrosatelliteMarkersAnalysis extends GeneticAnalysis{
   public void removeLocus(int i){
     if(loci.size()>i){loci.remove(i);}
   }
+  public void setLoci(ArrayList<Locus> loci){this.loci=loci;}
 
 }

@@ -25,6 +25,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.genetics.GeneticAnalysis;
 import org.ecocean.genetics.MitochondrialDNAAnalysis;
+import org.ecocean.genetics.MicrosatelliteMarkersAnalysis;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -255,7 +256,6 @@ public class Shepherd {
   }
   
   public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID, String encounterNumber, String analysisID) {
-    TissueSample tempEnc = null;
     try {
       MitochondrialDNAAnalysis mtDNA = (MitochondrialDNAAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID);
       return mtDNA;
@@ -265,6 +265,20 @@ public class Shepherd {
       return null;
     }
   }
+  
+  
+  public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String sampleID, String encounterNumber, String analysisID) {
+    try {
+      MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID);
+      return msDNA;
+    } 
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+  }
+  
+  
   
   /**
   public Iterator getAllEncounters(String order) {
