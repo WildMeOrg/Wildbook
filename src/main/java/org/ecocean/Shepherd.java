@@ -25,6 +25,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.genetics.GeneticAnalysis;
 import org.ecocean.genetics.MitochondrialDNAAnalysis;
+import org.ecocean.genetics.MicrosatelliteMarkersAnalysis;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -255,7 +256,6 @@ public class Shepherd {
   }
   
   public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID, String encounterNumber, String analysisID) {
-    TissueSample tempEnc = null;
     try {
       MitochondrialDNAAnalysis mtDNA = (MitochondrialDNAAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID);
       return mtDNA;
@@ -266,17 +266,20 @@ public class Shepherd {
     }
   }
   
-  /**
-  public Iterator getAllEncounters(String order) {
-    String filter = "!this.unidentifiable && this.approved == true";
-    Extent encClass = pm.getExtent(Encounter.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
-    acceptedEncounters.setOrdering(order);
-    Collection c = (Collection) (acceptedEncounters.execute());
-    Iterator it = c.iterator();
-    return it;
+  
+  public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String sampleID, String encounterNumber, String analysisID) {
+    try {
+      MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID);
+      return msDNA;
+    } 
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
   }
-   */
+  
+  
+ 
 
   public Adoption getAdoption(String num) {
     Adoption tempEnc = null;

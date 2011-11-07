@@ -613,38 +613,7 @@
           </label>
           </td>
         </tr>
-        <tr>
-          <td><strong><%=encprops.getProperty("lengthIs")%>: </strong> <select name="selectLength"
-                                                                               size="1">
-            <option value="gt">&gt;</option>
-            <option value="lt">&lt;</option>
-            <option value="eq">=</option>
-          </select> <select name="lengthField" id="lengthField">
-            <option value="skip" selected><%=encprops.getProperty("none")%>
-            </option>
-            <option value="1.0">1</option>
-            <option value="2.0">2</option>
-            <option value="3.0">3</option>
-            <option value="4.0">4</option>
-            <option value="5.0">5</option>
-            <option value="6.0">6</option>
-            <option value="7.0">7</option>
-            <option value="8.0">8</option>
-            <option value="9.0">9</option>
-            <option value="10.0">10</option>
-            <option value="11.0">11</option>
-            <option value="12.0">12</option>
-            <option value="13.0">13</option>
-            <option value="14.0">14</option>
-            <option value="15.0">15</option>
-            <option value="16.0">16</option>
-            <option value="17.0">17</option>
-            <option value="18.0">18</option>
-            <option value="19.0">19</option>
-            <option value="20.0">20</option>
-          </select> <%=encprops.getProperty("meters")%>
-          </td>
-        </tr>
+        
 
 
         <tr>

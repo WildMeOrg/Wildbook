@@ -2,6 +2,7 @@ package org.ecocean.genetics;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.StringBuffer;
 
 public class MicrosatelliteMarkersAnalysis extends GeneticAnalysis{
 
@@ -19,6 +20,11 @@ public class MicrosatelliteMarkersAnalysis extends GeneticAnalysis{
     loci=new ArrayList<Locus>();
   }
   
+  public MicrosatelliteMarkersAnalysis(String analysisID, String sampleID, String correspondingEncounterNumber, ArrayList<Locus> loci) {
+    super(analysisID, type, correspondingEncounterNumber, sampleID);
+    this.loci=loci;
+  }
+  
   public List<Locus> getLoci(){return loci;}
   public void addLocus(Locus l){
     if(!loci.contains(l)){loci.add(l);}
@@ -28,6 +34,23 @@ public class MicrosatelliteMarkersAnalysis extends GeneticAnalysis{
   }
   public void removeLocus(int i){
     if(loci.size()>i){loci.remove(i);}
+  }
+  
+  public void setLoci(ArrayList<Locus> loci){this.loci=loci;}
+  
+  public String getHTMLString(){
+    String paramValues=super.getHTMLString();
+    paramValues+=getAllelesHTMLString();
+    return paramValues; 
+  }
+  
+  public String getAllelesHTMLString(){
+    StringBuffer returnString=new StringBuffer("");
+    if((loci!=null)&&(loci.size()>0)){
+      int numLoci=this.getLoci().size();
+      for(int i=0;i<numLoci;i++){returnString.append((loci.get(i).getHTMLString()+"<br />"));}
+    }
+    return returnString.toString();
   }
 
 }

@@ -1047,6 +1047,19 @@ public String getGenusSpecies(){
 }
 
 /**
+Returns the first haplotype found in the Encounter objects for this MarkedIndividual.
+@return a String if found or null if no haplotype is found
+*/
+public String getHaplotype(){
+      for (int c = 0; c < encounters.size(); c++) {
+        Encounter temp = (Encounter) encounters.get(c);
+        if(temp.getHaplotype()!=null){return temp.getHaplotype();}
+      }
+    return null;
+
+}
+
+/**
 *Obtains the email addresses of all submitters, photographs, and others to notify.
 *@return ArrayList of all emails to inform
 */

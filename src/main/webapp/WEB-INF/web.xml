@@ -282,10 +282,16 @@
         <servlet-name>EncounterRemoveTissueSample</servlet-name>
         <servlet-class>org.ecocean.servlet.EncounterRemoveTissueSample</servlet-class>
   </servlet>
+  
 
     <servlet>
       <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
       <servlet-class>org.ecocean.servlet.TissueSampleRemoveHaplotype</servlet-class>
+  </servlet>
+  
+      <servlet>
+        <servlet-name>TissueSampleRemoveMicrosatelliteMarkers</servlet-name>
+        <servlet-class>org.ecocean.servlet.TissueSampleRemoveMicrosatelliteMarkers</servlet-class>
   </servlet>
 
   <servlet>
@@ -385,6 +391,12 @@
   <servlet>
     <servlet-name>EncounterRemoveSpots</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterRemoveSpots</servlet-class>
+  </servlet>
+
+
+  <servlet>
+    <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
+    <servlet-class>org.ecocean.servlet.TissueSampleSetMicrosatelliteMarkers</servlet-class>
   </servlet>
 
   <servlet>
@@ -541,9 +553,21 @@
       <url-pattern>/TissueSampleSetHaplotype</url-pattern>
   </servlet-mapping>
   
+  
+      <servlet-mapping>
+        <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
+        <url-pattern>/TissueSampleSetMicrosatelliteMarkers</url-pattern>
+  </servlet-mapping>
+  
+  
       <servlet-mapping>
         <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+  </servlet-mapping>
+  
+        <servlet-mapping>
+          <servlet-name>TissueSampleRemoveMicrosatelliteMarkers</servlet-name>
+          <url-pattern>/TissueSampleRemoveMicrosatelliteMarkers</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>

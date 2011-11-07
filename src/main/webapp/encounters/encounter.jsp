@@ -240,13 +240,17 @@ table.tissueSample td {
 
     //block right-click user copying if no permissions available
     <%
-    if(!request.isUserInRole("imageProcessor")){
+    if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
     %>
-    hs.blockRightClick = true;
+    hs.blockRightClick = false;
     <%
     }
+    else{
     %>
-
+    hs.blockRightClick = true;
+	<%
+    }
+	%>
     // Add the controlbar
     hs.addSlideshow({
       //slideshowGroup: 'group1',
@@ -1210,6 +1214,111 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
 <%
 }
 
+//reset or create a haplotype
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("msMarkers"))){
+		%> 
+
+<a name="msMarkers">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+  <tr>
+    <td align="left" valign="top" class="para"><strong>
+    <font color="#990000"><%=encprops.getProperty("setMsMarkers")%>:</font></strong></td>
+  </tr>
+  <tr>
+    <td></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form name="setMsMarkers" action="../TissueSampleSetMicrosatelliteMarkers" method="post">
+
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+        <%
+        MicrosatelliteMarkersAnalysis msDNA=new MicrosatelliteMarkersAnalysis();
+        String analysisIDString="";
+        if((request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID")))){
+      	    analysisIDString=request.getParameter("analysisID");
+      		msDNA=myShepherd.getMicrosatelliteMarkersAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
+        }
+        %>
+        <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+        
+
+ 		 <%
+        String processingLabTaskID="";
+        if(msDNA.getProcessingLabTaskID()!=null){processingLabTaskID=msDNA.getProcessingLabTaskID();}
+        %>
+        <%=encprops.getProperty("processingLabTaskID")%><br />
+        <input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+ 
+  		 <%
+        String processingLabName="";
+        if(msDNA.getProcessingLabName()!=null){processingLabName=msDNA.getProcessingLabName();}
+        %>
+        <%=encprops.getProperty("processingLabName")%><br />
+        <input name="processingLabName" type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+ 
+   		 <%
+        String processingLabContactName="";
+        if(msDNA.getProcessingLabContactName()!=null){processingLabContactName=msDNA.getProcessingLabContactName();}
+        %>
+        <%=encprops.getProperty("processingLabContactName")%><br />
+        <input name="processingLabContactName" type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+ 		<br />
+   		 <%
+        String processingLabContactDetails="";
+        if(msDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=msDNA.getProcessingLabContactDetails();}
+        %>
+        <%=encprops.getProperty("processingLabContactDetails")%><br />
+        <input name="processingLabContactDetails" type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+ 		<br />
+ 		<%
+ 		//begin setting up the loci and alleles
+ 	      int numPloids=2; //most covered species will be diploids
+ 	      try{
+ 	        numPloids=(new Integer(CommonConfiguration.getProperty("numPloids"))).intValue();
+ 	      }
+ 	      catch(Exception e){System.out.println("numPloids configuration value did not resolve to an integer.");e.printStackTrace();}
+ 	      
+ 	      int numLoci=10;
+ 	      try{
+ 	 	  	numLoci=(new Integer(CommonConfiguration.getProperty("numLoci"))).intValue();
+ 	 	  }
+ 	 	  catch(Exception e){System.out.println("numLoci configuration value did not resolve to an integer.");e.printStackTrace();}
+ 	 	   
+ 		  for(int locus=0;locus<numLoci;locus++){
+ 			 String locusNameValue="";
+ 			 if((msDNA.getLoci()!=null)&&(locus<msDNA.getLoci().size())){locusNameValue=msDNA.getLoci().get(locus).getName();}
+ 		  %>
+			<br /><%=encprops.getProperty("locus") %>: <input name="locusName<%=locus %>" type="text" size="10" value="<%=locusNameValue %>" /><br />
+ 				<%
+ 				for(int ploid=0;ploid<numPloids;ploid++){
+ 					String ploidValue="";
+ 					if((msDNA.getLoci()!=null)&&(locus<msDNA.getLoci().size())&&(msDNA.getLoci().get(locus).getAllele(ploid)!=null)){ploidValue=msDNA.getLoci().get(locus).getAllele(ploid);}
+ 			 		  
+ 				%>
+ 				<%=encprops.getProperty("allele") %>: <input name="allele<%=locus %><%=ploid %>" type="text" size="10" value="<%=ploidValue %>" /><br />
+ 			
+ 			
+ 				<%
+ 				}
+ 				%>
+ 			
+		  <%
+ 		  }  //end for loci loop
+		  %> 
+ 		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="setHaplotype" /> 
+          <input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
+      </form>
+    </td>
+  </tr>
+</table>
+</a>
+<br /> 
+<%
+}
+
 
 //--------------------------
 //edit sex reported for sighting	
@@ -1485,41 +1594,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 </a><br> <%
 			}
 				
-				//reset size reported for sighting
-				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("size"))){
-		%> <a name="size">
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setSize")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencsize" action="../EncounterSetSize" method="post">
-          <input name="lengthField" type="text" id="lengthField" size="8"
-                 maxlength="8"> <%=encprops.getProperty("meters")%><br />
-          <font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
-          </em></font><br />
-          <input name="lengthUnits" type="hidden" id="lengthUnits"
-                 value="Meters"> <select name="guessList" id="guessList">
-          <option value="directly measured"><%=encprops.getProperty("directlyMeasured")%>
-          </option>
-          <option value="submitter's guess"><%=encprops.getProperty("personalGuess")%>
-          </option>
-          <option value="guide/researcher's guess"
-                  selected><%=encprops.getProperty("guessOfGuide")%>
-          </option>
-        </select> <input name="number" type="hidden" value="<%=num%>" id="number">
-          <input name="action" type="hidden" value="setEncounterSize">
-          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setSize")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-</a><br> <%
-			}
-
+				
 				//reset water depth
 				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("depth"))){
 		%> <a name="depth">
@@ -2050,28 +2125,6 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 
 </p>
 
-<!-- Display size so long as show_size is not false in commonCnfiguration.properties-->
-<%
-  if (CommonConfiguration.showProperty("size")) {
-%>
-<p class="para"><strong><%=encprops.getProperty("size") %>
-</strong><br/> <%
-     if(enc.getSizeAsDouble()!=null) {%>
-    <%=enc.getSize()%> <%=encprops.getProperty("meters")%>
-    <br/> <em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%></em>
-    <%
-   } else {
-   %>
-    <%=encprops.getProperty("unknown") %>
-    <%
-   }
-				
- if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size#size">edit</a>]</font>
-    <%
- 					}
-				}
- %>
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
     <%
@@ -3148,11 +3201,25 @@ for(int j=0;j<numTissueSamples;j++){
 				%>
 				<tr><td style="border-style: none;"><span class="caption"><%=encprops.getProperty("haplotype") %>: <%=mito.getHaplotype() %></span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype#haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
 			<%
-			}		
+			}
+			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+				MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
+				
+			%>
+			<tr>
+				<td style="border-style: none;">
+					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span></p>
+					<span class="caption"><%=mito.getAllelesHTMLString() %></span>
+				</td>
+				<td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=msMarkers#msMarkers"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			
+			<% 
+			}
 		}
 		%>
 		</table>
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=msMarkers#msMarkers"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
 	
 	</td>
 	
