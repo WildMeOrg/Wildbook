@@ -310,6 +310,11 @@ public class CommonConfiguration {
     }
     return useTapirLink;
   }
+  
+  public static boolean showMeasurements() {
+    String showMeasurements = getProperty("showMeasurements");
+    return !Boolean.FALSE.toString().equals(showMeasurements);
+  }
 
   public static String appendEmailRemoveHashString(HttpServletRequest request, String
                                                    originalString, String emailAddress) {

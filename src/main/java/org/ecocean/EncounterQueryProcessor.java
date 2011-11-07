@@ -1,19 +1,23 @@
 package org.ecocean;
 
-import java.util.Vector;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
-import javax.jdo.Extent;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
-import java.lang.StringBuffer;
-import java.util.GregorianCalendar;
+
+import org.ecocean.Util.MeasurementCollectionEventDesc;
 import org.ecocean.servlet.ServletUtilities;
-import java.util.StringTokenizer;
 
 public class EncounterQueryProcessor {
 
+  private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE ";
+
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint){
-    String filter="SELECT FROM org.ecocean.Encounter WHERE ";
+    String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
     String jdoqlVariableDeclaration = "";
 
   //filter for location------------------------------------------
@@ -160,6 +164,63 @@ public class EncounterQueryProcessor {
             else{filter+=(" && "+stageFilter);}
             prettyPrint.append("<br />");
     }
+    // Measurement filters-----------------------------------------------
+    List<MeasurementCollectionEventDesc> measurementCollectionEventDescs = Util.findMeasurementCollectionEventDescs("us");
+    String measurementPrefix = "measurement";
+    StringBuilder measurementFilter = new StringBuilder("( collectedData.contains(measurement) && (");
+    boolean atLeastOneMeasurement = false;
+    for (MeasurementCollectionEventDesc measurementCollectionEventDesc : measurementCollectionEventDescs) {
+      String valueParamName= measurementPrefix + measurementCollectionEventDesc.getType() + "(value)";
+      String value = request.getParameter(valueParamName);
+      if (value != null) {
+        value = value.trim();
+        if ( value.length() > 0) {
+          String operatorParamName = measurementPrefix + measurementCollectionEventDesc.getType() + "(operator)";
+          String operatorParamValue = request.getParameter(operatorParamName);
+          if (operatorParamValue == null) {
+            operatorParamValue = "";
+          }
+          String operator = null;
+          if ("gt".equals(operatorParamValue)) {
+            operator = ">";
+          }
+          else if ( "lt".equals(operatorParamValue)) {
+            operator = "<";
+          }
+          else if ("eq".equals(operatorParamValue)) {
+            operator = "==";
+          }
+          if (operator != null) {
+            prettyPrint.append(measurementCollectionEventDesc.getUnitsLabel());
+            prettyPrint.append(" is ");
+            prettyPrint.append(operator);
+            prettyPrint.append(value);
+            prettyPrint.append("<br/>");
+            if (atLeastOneMeasurement) {
+              measurementFilter.append("||");
+            }
+            measurementFilter.append("(measurement.value " + operator + " " + value);
+            measurementFilter.append(" && measurement.type == ");
+            measurementFilter.append("\"" + measurementCollectionEventDesc.getType() + "\") ");
+            atLeastOneMeasurement = true;
+          }
+        }
+      }
+    }
+    if (atLeastOneMeasurement) {
+      measurementFilter.append("))");
+      if(jdoqlVariableDeclaration.length() > 0){
+        jdoqlVariableDeclaration += ";";
+      }
+      jdoqlVariableDeclaration=" VARIABLES org.ecocean.MeasurementCollectionEvent measurement";
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+        filter+= measurementFilter.toString();
+      }
+      else{
+        filter+=(" && "+ measurementFilter.toString());
+      }
+    }
+    // end measurement filters
     //end behavior filters-----------------------------------------------
 
 

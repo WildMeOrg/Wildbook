@@ -453,7 +453,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 }
 %>
 <%
-    pageContext.setAttribute("showMeasurements", CommonConfiguration.showProperty("showMeasurements"));
+    pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
 %>
 <c:if test="${showMeasurements}">
 <%

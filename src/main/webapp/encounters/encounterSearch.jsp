@@ -23,6 +23,7 @@
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Properties" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
 
@@ -731,6 +732,28 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <%
 }
 %>
+
+<%
+  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements());
+%>
+<c:if test="${showMeasurement}">
+<%
+    pageContext.setAttribute("items", Util.findMeasurementCollectionEventDescs(langCode));
+%>
+<tr><td><strong><%=encprops.getProperty("measurements") %></strong></td></tr>
+<c:forEach items="${items}" var="item">
+<tr valign="top">
+<td>${item.label}
+<select name="measurement${item.type}(operator)">
+  <option value="gt">&gt;</option>
+  <option value="lt">&lt;</option>
+  <option value="eq">=</option>
+</select>
+<input name="measurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
+</td>
+</tr>
+</c:forEach>
+</c:if>
 
 <%
   int totalKeywords = myShepherd.getNumKeywords();
