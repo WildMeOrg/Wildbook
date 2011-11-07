@@ -393,6 +393,12 @@
     <servlet-name>EncounterSetGPS</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetGPS</servlet-class>
   </servlet>
+  
+  
+    <servlet>
+      <servlet-name>NingalooByMonthsSonification</servlet-name>
+      <servlet-class>org.ecocean.servlet.NingalooByMonthsSonification</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterDelete</servlet-name>
@@ -701,6 +707,11 @@
   <servlet-mapping>
     <servlet-name>MassSwapLocationCode</servlet-name>
     <url-pattern>/MassSwapLocationCode</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>NingalooByMonthsSonification</servlet-name>
+      <url-pattern>/NingalooByMonthsSonification</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
