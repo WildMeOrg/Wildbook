@@ -167,8 +167,9 @@ public class EncounterQueryProcessor {
     // Measurement filters-----------------------------------------------
     List<MeasurementCollectionEventDesc> measurementCollectionEventDescs = Util.findMeasurementCollectionEventDescs("us");
     String measurementPrefix = "measurement";
-    StringBuilder measurementFilter = new StringBuilder("( collectedData.contains(measurement) && (");
+    StringBuilder measurementFilter = new StringBuilder(); //"( collectedData.contains(measurement) && (");
     boolean atLeastOneMeasurement = false;
+    int measurementsInQuery = 0;
     for (MeasurementCollectionEventDesc measurementCollectionEventDesc : measurementCollectionEventDescs) {
       String valueParamName= measurementPrefix + measurementCollectionEventDesc.getType() + "(value)";
       String value = request.getParameter(valueParamName);
@@ -197,22 +198,29 @@ public class EncounterQueryProcessor {
             prettyPrint.append(value);
             prettyPrint.append("<br/>");
             if (atLeastOneMeasurement) {
-              measurementFilter.append("||");
+              measurementFilter.append("&&");
             }
-            measurementFilter.append("(measurement.value " + operator + " " + value);
-            measurementFilter.append(" && measurement.type == ");
-            measurementFilter.append("\"" + measurementCollectionEventDesc.getType() + "\") ");
+            String measurementVar = "measurement" + measurementsInQuery++;
+            measurementFilter.append("(collectedData.contains(" + measurementVar + ") && ");
+            measurementFilter.append( measurementVar + ".value " + operator + " " + value);
+            measurementFilter.append(" && " + measurementVar + ".type == ");
+            measurementFilter.append("\"" + measurementCollectionEventDesc.getType() + "\")");
             atLeastOneMeasurement = true;
           }
         }
       }
     }
     if (atLeastOneMeasurement) {
-      measurementFilter.append("))");
       if(jdoqlVariableDeclaration.length() > 0){
         jdoqlVariableDeclaration += ";";
       }
-      jdoqlVariableDeclaration=" VARIABLES org.ecocean.MeasurementCollectionEvent measurement";
+      jdoqlVariableDeclaration=" VARIABLES ";
+      for (int i = 0; i < measurementsInQuery; i++) {
+        if (i > 0) {
+          jdoqlVariableDeclaration += "; ";
+        }
+        jdoqlVariableDeclaration += " org.ecocean.MeasurementCollectionEvent measurement" + i;
+      }
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
         filter+= measurementFilter.toString();
       }
