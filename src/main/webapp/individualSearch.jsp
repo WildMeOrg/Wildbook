@@ -696,11 +696,11 @@ if(CommonConfiguration.showProperty("showLifestage")){
         <tr>
           <td>
             <%=props.getProperty("maxYearsBetweenResights")%>: <select
-            name="numResightsOperator" id="numResightsOperator">
+            name="resightGapOperator" id="resightGapOperator">
             <option value="greater" selected="selected">&#8250;=</option>
             <option value="equals">=</option>
             <option value="less">&#8249;=</option>
-          </select> &nbsp; <select name="numResights" id="numResights">
+          </select> &nbsp; <select name="resightGap" id="resightGap">
             <%
 
               int maxYearsBetweenResights = 0;
