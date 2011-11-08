@@ -23,7 +23,7 @@ public class EncounterQueryProcessor {
   //filter for location------------------------------------------
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
       String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
         filter+="(verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";
       }
       else{filter+=" && (verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";}
@@ -33,7 +33,7 @@ public class EncounterQueryProcessor {
 
     //filter for unidentifiable encounters------------------------------------------
     if(request.getParameter("unidentifiable")==null) {
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="!unidentifiable";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!unidentifiable";}
       else{filter+=" && !unidentifiable";}
       prettyPrint.append("Not identifiable.<br />");
     }
@@ -41,7 +41,7 @@ public class EncounterQueryProcessor {
 
     //---filter out approved
     if(request.getParameter("approved")==null) {
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="!approved";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!approved";}
       else{filter+=" && !approved";}
       prettyPrint.append("Not approved.<br />");
     }
@@ -49,7 +49,7 @@ public class EncounterQueryProcessor {
 
     //---filter out unapproved
     if(request.getParameter("unapproved")==null) {
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="(!approved && !unidentifiable)";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="(!approved && !unidentifiable)";}
       else{filter+=" && (!approved && !unidentifiable)";}
       prettyPrint.append("Not unapproved.<br />");
     }
@@ -77,7 +77,7 @@ public class EncounterQueryProcessor {
               }
             }
             locIDFilter+=" )";
-            if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=locIDFilter;}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
     }
@@ -107,7 +107,7 @@ public class EncounterQueryProcessor {
             patterningCodeFilter+=" )";
 
 
-            if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=patterningCodeFilter;}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=patterningCodeFilter;}
             else{filter+=(" && "+patterningCodeFilter);}
 
             prettyPrint.append("<br />");
@@ -134,7 +134,7 @@ public class EncounterQueryProcessor {
               }
             }
             locIDFilter+=" )";
-            if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=locIDFilter;}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
     }
@@ -160,7 +160,7 @@ public class EncounterQueryProcessor {
               }
             }
             stageFilter+=" ) ";
-            if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=stageFilter;}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=stageFilter;}
             else{filter+=(" && "+stageFilter);}
             prettyPrint.append("<br />");
     }
@@ -249,7 +249,7 @@ public class EncounterQueryProcessor {
               }
             }
             locIDFilter+=" )";
-            if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=locIDFilter;}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
     }
@@ -277,7 +277,7 @@ public class EncounterQueryProcessor {
               }
             }
             locIDFilter+=" )";
-            if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="collectedData.contains(dce) && dce.analyses.contains(analysis) && "+locIDFilter;}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="collectedData.contains(dce) && dce.analyses.contains(analysis) && "+locIDFilter;}
             else{filter+=(" && collectedData.contains(dce) && dce.analyses.contains(analysis) && "+locIDFilter);}
 
             prettyPrint.append("<br />");
@@ -292,7 +292,7 @@ public class EncounterQueryProcessor {
     //filter for alternate ID------------------------------------------
     if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
       String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim();
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="otherCatalogNumbers.startsWith('"+altID+"')";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="otherCatalogNumbers.startsWith('"+altID+"')";}
       else{filter+=" && otherCatalogNumbers.startsWith('"+altID+"')";}
       prettyPrint.append("alternateIDField starts with \""+altID+"\".<br />");
 
@@ -313,7 +313,7 @@ public class EncounterQueryProcessor {
 					genus=tokenizer.nextToken();
 					specificEpithet=tokenizer.nextToken();
 
-					if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="genus == '"+genus+"' ";}
+					if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="genus == '"+genus+"' ";}
 					else{filter+=" && genus == '"+genus+"' ";}
 
 					filter+=" && specificEpithet == '"+specificEpithet+"' ";
@@ -329,7 +329,7 @@ public class EncounterQueryProcessor {
     //filter for identificationRemarks------------------------------------------
     if((request.getParameter("identificationRemarksField")!=null)&&(!request.getParameter("identificationRemarksField").equals(""))) {
       String idRemarks=request.getParameter("identificationRemarksField").trim();
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="identificationRemarks.startsWith('"+idRemarks+"')";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="identificationRemarks.startsWith('"+idRemarks+"')";}
       else{filter+=" && identificationRemarks.startsWith('"+idRemarks+"')";}
       prettyPrint.append("identificationRemarks starts with \""+idRemarks+"\".<br />");
 
@@ -348,12 +348,12 @@ public class EncounterQueryProcessor {
 
     //filter by alive/dead status------------------------------------------
     if(request.getParameter("alive")==null) {
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="!livingStatus.startsWith('alive')";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('alive')";}
       else{filter+=" && !livingStatus.startsWith('alive')";}
       prettyPrint.append("Alive.<br />");
     }
     if(request.getParameter("dead")==null) {
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="!livingStatus.startsWith('dead')";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('dead')";}
       else{filter+=" && !livingStatus.startsWith('dead')";}
       prettyPrint.append("Dead.<br />");
     }
@@ -363,7 +363,7 @@ public class EncounterQueryProcessor {
     if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
       String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
       String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1))";
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=filterString;}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
       prettyPrint.append("nameField contains: \""+nameString+"\"<br />");
     }
@@ -382,19 +382,19 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
       if(request.getParameter("selectLength").equals("gt")) {
         String filterString="size > "+size;
-        if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=filterString;}
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
         else{filter+=(" && "+filterString);}
         prettyPrint.append("selectLength is > "+size+".<br />");
       }
       else if(request.getParameter("selectLength").equals("lt")) {
         String filterString="size < "+size;
-        if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=filterString;}
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
         else{filter+=(" && "+filterString);}
         prettyPrint.append("selectLength is < "+size+".<br />");
       }
       else if(request.getParameter("selectLength").equals("eq")) {
         String filterString="size == "+size;
-        if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+=filterString;}
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
         else{filter+=(" && "+filterString);}
         prettyPrint.append("selectLength is = "+size+".<br />");
       }
@@ -455,7 +455,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
     GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
 
-    if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){
+    if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
       filter+="((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
     }
     else{filter+=" && ((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
