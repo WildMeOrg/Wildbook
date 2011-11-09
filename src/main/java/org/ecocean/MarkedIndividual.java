@@ -87,6 +87,7 @@ public class MarkedIndividual {
     numberEncounters = 1;
     this.sex = enc.getSex();
     numUnidentifiableEncounters = 0;
+    maxYearsBetweenResightings=0;
   }
 
   /**
@@ -108,15 +109,18 @@ public class MarkedIndividual {
     if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
     if(newEncounter.wasRejected()) {
       numUnidentifiableEncounters++;
+      boolean ok=unidentifiableEncounters.add(newEncounter);
       resetMaxNumYearsBetweenSightings();
-      return unidentifiableEncounters.add(newEncounter);
+      return ok;
 
       }
     else {
+      boolean ok=encounters.add(newEncounter);
       numberEncounters++;
       resetMaxNumYearsBetweenSightings();
-      return encounters.add(newEncounter); }
-    }
+      return ok; 
+     }
+ }
 
    /**Removes an encounter from this MarkedIndividual.
    *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
