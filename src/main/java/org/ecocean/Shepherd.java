@@ -26,6 +26,7 @@ import org.ecocean.genetics.TissueSample;
 import org.ecocean.genetics.GeneticAnalysis;
 import org.ecocean.genetics.MitochondrialDNAAnalysis;
 import org.ecocean.genetics.MicrosatelliteMarkersAnalysis;
+import org.ecocean.genetics.Locus;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -1843,6 +1844,14 @@ public class Shepherd {
     Query q = pm.newQuery(MitochondrialDNAAnalysis.class);
     q.setResult("distinct haplotype");
     q.setOrdering("haplotype ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
+  
+  public ArrayList<String> getAllLoci() {
+    Query q = pm.newQuery(Locus.class);
+    q.setResult("distinct name");
+    q.setOrdering("name ascending");
     Collection results = (Collection) q.execute();
     return (new ArrayList(results));
   }

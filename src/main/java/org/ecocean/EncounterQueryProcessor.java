@@ -263,6 +263,23 @@ public class EncounterQueryProcessor {
     }
     //end verbatimEventDate filters-----------------------------------------------
 
+    //------------------------------------------------------------------
+    //hasTissueSample filters-------------------------------------------------
+    if(request.getParameter("hasTissueSample")!=null){
+          prettyPrint.append("Has tissue sample.");
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="collectedData.contains(dce)";}
+            else if (filter.indexOf("collectedData.contains(dce)")==-1){filter+=(" && collectedData.contains(dce) ");}
+
+            prettyPrint.append("<br />");
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce";}
+            else if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce";}
+            
+    }
+    //end hasTissueSample filters-----------------------------------------------
+
+    
+    
     
     //------------------------------------------------------------------
     //haplotype filters-------------------------------------------------
@@ -286,14 +303,70 @@ public class EncounterQueryProcessor {
             }
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="collectedData.contains(dce) && dce.analyses.contains(analysis) && "+locIDFilter;}
-            else{filter+=(" && collectedData.contains(dce) && dce.analyses.contains(analysis) && "+locIDFilter);}
+            else{
+              if(filter.indexOf("collectedData.contains(dce)")==-1){filter+=" && collectedData.contains(dce)";}
+             
+              if(filter.indexOf("dce.analyses.contains(analysis)")==-1){filter+=" && dce.analyses.contains(analysis)";}
+              filter+=(" && "+locIDFilter);
+            }
 
             prettyPrint.append("<br />");
             if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
-            else{jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
-            
-    }
+            //else{jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
+            else{ 
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce";}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.MitochondrialDNAAnalysis analysis")){jdoqlVariableDeclaration+=";org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
+              
+            }
+         
+      }
+  
     //end haplotype filters-----------------------------------------------
+
+    
+    
+    //------------------------------------------------------------------
+    //ms markers filters-------------------------------------------------
+    String[] msMarkers=request.getParameterValues("msMarkersField");
+    if((msMarkers!=null)&&(!msMarkers[0].equals("None"))){
+          prettyPrint.append("Microsatellite marker is one of the following: ");
+          int kwLength=msMarkers.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+
+              String kwParam=msMarkers[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" locus.name == \""+kwParam+"\" ";
+                }
+                else{
+                  locIDFilter+=" || locus.name == \""+kwParam+"\" ";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="collectedData.contains(dce) && dce.analyses.contains(msanalysis) && msanalysis.loci.contains(locus) && "+locIDFilter;}
+            else{
+              if(filter.indexOf("collectedData.contains(dce)")==-1){filter+=" && collectedData.contains(dce)";}
+              if(filter.indexOf("dce.analyses.contains(analysis)")==-1){filter+=" && dce.analyses.contains(msanalysis)";}
+              if(filter.indexOf("msanalysis.loci.contains(locus)")==-1){filter+=" && msanalysis.loci.contains(locus)";}
+              
+              filter+=(" && "+locIDFilter);
+            }
+
+            prettyPrint.append("<br />");
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MicrosatelliteMarkersAnalysis msanalysis;org.ecocean.genetics.Locus locus";}
+            else{ 
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce";}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.MitochondrialDNAAnalysis analysis")){jdoqlVariableDeclaration+=";org.ecocean.genetics.MicrosatelliteMarkersAnalysis msanalysis";}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.Locus locus")){jdoqlVariableDeclaration+=";org.ecocean.genetics.Locus locus";}
+              
+            }
+         
+      }
+  
+    //end ms markers filters-----------------------------------------------
 
     
 

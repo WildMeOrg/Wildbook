@@ -843,6 +843,11 @@ if(CommonConfiguration.showProperty("showLifestage")){
     <div id="genetics" style="display:none; ">
       <p>Use the fields below to limit your search to encounters with available genetic data.</p>
       
+      <p><strong><%=encprops.getProperty("hasTissueSample")%>: </strong>
+            <label> 
+            	<input name="hasTissueSample" type="checkbox" id="male" value="hasTissueSample" />
+            </label>
+      </p>
 
       <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
@@ -880,6 +885,45 @@ if(CommonConfiguration.showProperty("showLifestage")){
       <%
         }
       %>
+      
+      
+      <p><strong><%=encprops.getProperty("msmarker")%>:</strong> <span class="para"><a
+        href="<%=CommonConfiguration.getWikiLocation()%>loci"
+        target="_blank"><img src="../images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+                             (<em><%=encprops.getProperty("locationIDExample")%></em>)
+   </p>
+
+      <%
+        ArrayList<String> loci = myShepherd.getAllLoci();
+        int totalLoci = loci.size();
+		//System.out.println(haplos.toString());
+
+        if (totalLoci >= 1) {
+      %>
+
+      <select multiple size="<%=(totalLoci+1) %>" name="msMarkersField" id="msMarkersField">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < totalLoci; n++) {
+            String word = loci.get(n);
+            if (!word.equals("")) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select>
+      <%
+      } else {
+      %>
+      <p><em><%=encprops.getProperty("noLoci")%>
+      </em></p>
+      <%
+        }
+      %>
+      
 
 
     </div>
