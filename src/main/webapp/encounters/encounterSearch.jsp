@@ -845,7 +845,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
       
       <p><strong><%=encprops.getProperty("hasTissueSample")%>: </strong>
             <label> 
-            	<input name="hasTissueSample" type="checkbox" id="male" value="hasTissueSample" />
+            	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
             </label>
       </p>
 

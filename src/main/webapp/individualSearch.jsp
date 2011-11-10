@@ -631,15 +631,31 @@ if(CommonConfiguration.showProperty("showLifestage")){
     </div>
   </td>
 </tr>
+
+<tr>
+  <td>
+    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
+      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+      color="#000000">Genetics filters</font></a></h4>
+  </td>
+</tr>
+
 <tr>
   <td>
     <div id="genetics" style="display:none; ">
       <p>Use the fields below to limit your search to encounters with available genetic data.</p>
       
+      <p><strong><%=props.getProperty("hasTissueSample")%>: </strong>
+            <label> 
+            	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
+            </label>
+      </p>
+      
 
       <p><strong><%=props.getProperty("haplotype")%>:</strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
-        target="_blank"><img src="../images/information_icon_svg.gif"
+        target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
                              <br />
         (<em><%=props.getProperty("locationIDExample")%></em>)
@@ -675,6 +691,42 @@ if(CommonConfiguration.showProperty("showLifestage")){
         }
       %>
 
+
+      <p><strong><%=props.getProperty("msmarker")%>:</strong> <span class="para"><a
+        href="<%=CommonConfiguration.getWikiLocation()%>loci"
+        target="_blank"><img src="images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+                             (<em><%=props.getProperty("locationIDExample")%></em>)
+   </p>
+
+      <%
+        ArrayList<String> loci = myShepherd.getAllLoci();
+        int totalLoci = loci.size();
+	
+        if (totalLoci >= 1) {
+      %>
+
+      <select multiple size="<%=(totalLoci+1) %>" name="msMarkersField" id="msMarkersField">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < totalLoci; n++) {
+            String word = loci.get(n);
+            if (!word.equals("")) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select>
+      <%
+      } else {
+      %>
+      <p><em><%=props.getProperty("noLoci")%>
+      </em></p>
+      <%
+        }
+      %>
 
     </div>
   </td>
