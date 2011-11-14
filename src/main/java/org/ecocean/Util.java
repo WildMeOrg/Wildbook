@@ -27,6 +27,34 @@ public class Util {
     return list;
   }
   
+  /**
+   * Returns a map of sampling protocols, where the key is the name of protocol, and the
+   * value is the user-friendly, localized label.
+   * @param langCode
+   * @return
+   */
+  public static List<OptionDesc> findSamplingProtocols(String langCode) {
+    List<String> values = CommonConfiguration.getIndexedValues("samplingProtocol");
+    List<OptionDesc> list = new ArrayList<OptionDesc>();
+    for (String key : values) {
+      String label = findLabel(key, langCode);
+      list.add(new OptionDesc(key, label));
+    }
+    return list;
+  }
+  
+  public static String getLocalizedSamplingProtocol(String samplingProtocol, String langCode) {
+    if (samplingProtocol != null) {
+      List<OptionDesc> samplingProtocols = findSamplingProtocols(langCode);
+      for (OptionDesc optionDesc : samplingProtocols) {
+        if (optionDesc.name.equals(samplingProtocol)) {
+          return optionDesc.display;
+        }
+      }
+    }
+    return null;
+  }
+  
   private static String findLabel(String key, String langCode) {
     Locale locale = Locale.US;
     if (langCode != null) {
@@ -67,6 +95,22 @@ public class Util {
     public String getUnitsLabel() {
       return unitsLabel;
     }
+  }
+  
+  public static class OptionDesc {
+    private String name;
+    private String display;
+    private OptionDesc(String name, String display) {
+      this.name = name;
+      this.display = display;
+    }
+    public String getName() {
+      return name;
+    }
+    public String getDisplay() {
+      return display;
+    }
+    
   }
 
 }

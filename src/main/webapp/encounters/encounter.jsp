@@ -1487,14 +1487,27 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
               measurementEvent = list.get(0); // TODO: What if there is more than one?
           }
           else {
-              measurementEvent = new MeasurementCollectionEvent(enc.getEventID(), measurementCollectionEventDesc.getType(), null, measurementCollectionEventDesc.getUnits());
+              measurementEvent = new MeasurementCollectionEvent(enc.getEventID(), measurementCollectionEventDesc.getType(), null, measurementCollectionEventDesc.getUnits(), null);
           }
           pageContext.setAttribute("measurementEvent", measurementEvent);
+          pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode));
         %>
             <tr>
               <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/></td>
               <td><input name="measurement${index}(value)" value="${measurementEvent.value}"/>
                   <input type="hidden" name="measurement${index}(type)" value="${item.type}"/><c:out value="(${item.unitsLabel})"/>
+                  <select name="measurement${index}(samplingProtocol)">
+                  <c:forEach items="${optionDescs}" var="optionDesc">
+                    <c:choose>
+                    <c:when test="${measurementEvent.samplingProtocol eq optionDesc.name}">
+                      <option value="${optionDesc.name}" selected="selected"><c:out value="${optionDesc.display}"/></option>
+                    </c:when>
+                    <c:otherwise>
+                      <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
+                    </c:otherwise>
+                    </c:choose>
+                  </c:forEach>
+                  </select>
               </td>
             </tr>
             <c:set var="index" value="${index + 1}"/>
@@ -2249,11 +2262,13 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
     MeasurementCollectionEventDesc measurementCollectionEventDesc = (MeasurementCollectionEventDesc) pageContext.getAttribute("item");
     List<MeasurementCollectionEvent> list =  enc.getCollectedDataOfClassAndType(MeasurementCollectionEvent.class, measurementCollectionEventDesc.getType());
     if (list.size() > 0) {
-        pageContext.setAttribute("measurementValue", list.get(0).getValue());
+        MeasurementCollectionEvent event = list.get(0);
+        pageContext.setAttribute("measurementValue", event.getValue());
+        pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode));
     }
  %>
 <tr>
-    <td><c:out value="${item.label}:"/></td><td><c:out value="${measurementValue}"/><c:out value="(${item.unitsLabel})"/></td>
+    <td><c:out value="${item.label}:"/></td><td><c:out value="${measurementValue}"/><c:out value="(${item.unitsLabel})"/> -- <c:out value="${samplingProtocol}"/></td>
 </tr>
 </c:forEach>
 </table>

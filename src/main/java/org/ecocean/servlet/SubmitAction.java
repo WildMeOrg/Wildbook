@@ -400,7 +400,8 @@ public class SubmitAction extends Action {
             try {
               Double doubleVal = Double.valueOf(value);
               String units = (String) measurements.get(key + "units");
-              MeasurementCollectionEvent measurementCollectionEvent = new MeasurementCollectionEvent(enc.getEncounterNumber(), key, doubleVal, units);
+              String samplingProtocol = (String) measurements.get(key + "samplingProtocol");
+              MeasurementCollectionEvent measurementCollectionEvent = new MeasurementCollectionEvent(enc.getEncounterNumber(), key, doubleVal, units, samplingProtocol);
               enc.addCollectedDataPoint(measurementCollectionEvent);
             }
             catch(Exception ex) {

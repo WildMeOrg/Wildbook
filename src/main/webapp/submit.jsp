@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
-         import="java.util.ArrayList,org.ecocean.CommonConfiguration, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties" %>
+         import="java.util.ArrayList,org.ecocean.CommonConfiguration, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
   GregorianCalendar cal = new GregorianCalendar();
@@ -432,6 +432,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <c:if test="${showMeasurements}">
 <%
     pageContext.setAttribute("items", Util.findMeasurementCollectionEventDescs(langCode));
+    pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode));
 %>
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("measurements")%>:</strong></td>
@@ -439,8 +440,19 @@ if(CommonConfiguration.showProperty("showLifestage")){
   <table>
   <c:forEach items="${items}" var="item">
     <tr>
-    <td class="form_label">${item.label}:</td>
-    <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/><c:out value="(${item.unitsLabel})"/></td>
+    <td class="form_label2">${item.label}:</td>
+    <td><input name="measurement(${item.type})" id="${item.type}"/>
+        <input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/>
+        <c:out value="(${item.unitsLabel})"/>
+        <c:if test="${!empty samplingProtocols}">
+          <span class="form_label2">Sampling protocol:</span>
+          <select name="measurement(${item.type}samplingProtocol)">
+          <c:forEach items="${samplingProtocols}" var="optionDesc">
+            <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
+          </c:forEach>
+          </select>
+        </c:if>
+    </td>
     </tr>
   </c:forEach>
   </table>
