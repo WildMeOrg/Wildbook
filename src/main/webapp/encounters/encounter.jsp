@@ -1292,7 +1292,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
 			<br /><%=encprops.getProperty("locus") %>: <input name="locusName<%=locus %>" type="text" size="10" value="<%=locusNameValue %>" /><br />
  				<%
  				for(int ploid=0;ploid<numPloids;ploid++){
- 					String ploidValue="";
+ 					Integer ploidValue=0;
  					if((msDNA.getLoci()!=null)&&(locus<msDNA.getLoci().size())&&(msDNA.getLoci().get(locus).getAllele(ploid)!=null)){ploidValue=msDNA.getLoci().get(locus).getAllele(ploid);}
  			 		  
  				%>

@@ -9,8 +9,11 @@ public class Locus implements java.io.Serializable{
    * 
    */
   private static final long serialVersionUID = 5458817893355984588L;
-  private List<String> alleles;
   private String name;
+  private Integer allele0;
+  private Integer allele1;
+  private Integer allele2;
+  private Integer allele3;
   
   //Empty JDO constructor
   //DO NOT USE
@@ -18,28 +21,31 @@ public class Locus implements java.io.Serializable{
   
   /**
    * Convenience constructor for diploid organisms.
+   * @param allelle0
    * @param allelle1
-   * @param allelle2
    */
-  public Locus(String name, String allelle1, String allelle2){
-    alleles=new ArrayList<String>();
-    alleles.add(allelle1);
-    alleles.add(allelle2);
+  public Locus(String name, Integer allelle0, Integer allelle1){
+
+    this.allele0=allele0;
+    this.allele1=allele1;
     this.name=name;
   }
   
-  public Locus(String name, List<String> alleles){
-    this.alleles=alleles;
+  public Locus(String name, ArrayList<Integer> alleles){
+
+    if(alleles.get(0)!=null){this.allele0=alleles.get(0);}
+    if(alleles.get(1)!=null){this.allele1=alleles.get(1);}
+    if(alleles.get(2)!=null){this.allele1=alleles.get(2);}
+    if(alleles.get(3)!=null){this.allele1=alleles.get(3);}
     this.name=name;
   }
   
-  public String getAllele(int num){
-    try{
-      if(num<alleles.size()){return alleles.get(num);}
-    }
-    catch(Exception e){
-      System.out.println("Allele "+num+" is out of the array bounds for attributes alleles in Locus.class.");
-    }
+  public Integer getAllele(int num){
+
+    if((num==0)&&(allele0!=null)){return allele0;}
+    else if((num==1)&&(allele1!=null)){return allele1;}
+    else if((num==2)&&(allele2!=null)){return allele2;}
+    else if((num==3)&&(allele3!=null)){return allele3;}
     return null;
   }
   
@@ -48,11 +54,18 @@ public class Locus implements java.io.Serializable{
   
   public String getHTMLString(){
    String returnString=name+":";
-   int numAlleles=alleles.size();
-   for(int i=0;i<numAlleles;i++){
-     returnString+=" "+getAllele(i);
-   }
+   if(allele0!=null){returnString+=" "+allele0.toString();}
+   if(allele1!=null){returnString+=" "+allele1.toString();}
+   if(allele2!=null){returnString+=" "+allele2.toString();}
+   if(allele3!=null){returnString+=" "+allele3.toString();}
    return returnString;
   }
+  
+  public Integer getAllele0(){return allele0;}
+  public Integer getAllele1(){return allele1;}
+  public Integer getAllele2(){return allele2;}
+  public Integer getAllele3(){return allele3;}
+  
+  
   
 }

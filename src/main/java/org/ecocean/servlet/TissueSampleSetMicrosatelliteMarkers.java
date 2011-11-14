@@ -71,13 +71,13 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
       boolean hasMoreLoci=true;
       while(hasMoreLoci){
         
-        if((request.getParameter(("allele"+numLoci+"0"))!=null)&&(!request.getParameter(("allele"+numLoci+"0")).trim().equals(""))){
-          ArrayList<String> alleles=new ArrayList<String>(numPloids);
+        if((request.getParameter("locusName"+numLoci)!=null) && (!request.getParameter("locusName"+numLoci).trim().equals("")) && (request.getParameter(("allele"+numLoci+"0"))!=null)&&(!request.getParameter(("allele"+numLoci+"0")).trim().equals(""))){
+          ArrayList<Integer> alleles=new ArrayList<Integer>(numPloids);
           //so at this point we know there is some allele data
           try{
             for(int q=0;q<numPloids;q++){
-              if((request.getParameter(("allele"+numLoci+q))!=null)&&(!request.getParameter(("allele"+numLoci+q)).equals(""))){
-                alleles.add(request.getParameter(("allele"+numLoci+q)));
+              if((request.getParameter("locusName"+numLoci)!=null)&&(!request.getParameter("locusName"+numLoci).trim().equals(""))&&(request.getParameter(("allele"+numLoci+q))!=null)&&(!request.getParameter(("allele"+numLoci+q)).equals(""))){
+                alleles.add(new Integer(request.getParameter(("allele"+numLoci+q))));
               }
             }
             Locus l=new Locus(request.getParameter("locusName"+numLoci),alleles);

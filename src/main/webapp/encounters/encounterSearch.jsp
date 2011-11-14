@@ -1,4 +1,4 @@
-<%--
+<%--gen
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
   ~
@@ -849,8 +849,8 @@ if(CommonConfiguration.showProperty("showLifestage")){
             </label>
       </p>
 
-      <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
+      <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para">
+      <a href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
                              (<em><%=encprops.getProperty("locationIDExample")%></em>)
@@ -865,7 +865,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
       %>
 
       <select multiple size="<%=(totalHaplos+1) %>" name="haplotypeField" id="haplotypeField">
-        <option value="None"></option>
+        <option value="None" ></option>
         <%
           for (int n = 0; n < totalHaplos; n++) {
             String word = haplos.get(n);
@@ -887,44 +887,67 @@ if(CommonConfiguration.showProperty("showLifestage")){
       %>
       
       
-      <p><strong><%=encprops.getProperty("msmarker")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>loci"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
-                             (<em><%=encprops.getProperty("locationIDExample")%></em>)
+      <p><strong><%=encprops.getProperty("msmarker")%>:</strong> 
+      <span class="para">
+      	<a href="<%=CommonConfiguration.getWikiLocation()%>loci" target="_blank">
+      		<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
+      	</a>
+      </span> 
    </p>
+<p>
 
       <%
         ArrayList<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
-		//System.out.println(haplos.toString());
-
+		
         if (totalLoci >= 1) {
-      %>
+			%>
+            <table border="0">
+            <%
 
-      <select multiple size="<%=(totalLoci+1) %>" name="msMarkersField" id="msMarkersField">
-        <option value="None"></option>
-        <%
           for (int n = 0; n < totalLoci; n++) {
             String word = loci.get(n);
             if (!word.equals("")) {
         	%>
-        		<option value="<%=word%>"><%=word%></option>
+        	
+        	<tr><td width="100px"><input name="<%=word%>" type="checkbox" value="<%=word%>"><%=word%></input></td><td><%=encprops.getProperty("allele")%> 1: <input name="<%=word%>_alleleValue0" type="text" size="5" maxlength="10" />&nbsp;&nbsp;</td><td><%=encprops.getProperty("allele")%> 2: <input name="<%=word%>_alleleValue1" type="text" size="5" maxlength="10" /></td></tr>
+        		
         	<%
             }
           }
-        %>
-      </select>
-      <%
-      } else {
+%>
+<tr><td colspan="3">
+
+<%=encprops.getProperty("alleleRelaxValue")%>: +/- 
+<%
+int alleleRelaxMaxValue=0;
+try{
+	alleleRelaxMaxValue=(new Integer(CommonConfiguration.getProperty("alleleRelaxMaxValue"))).intValue();
+}
+catch(Exception d){}
+%>
+<select name="alleleRelaxValue" size="1">
+<%
+for(int k=0;k<alleleRelaxMaxValue;k++){
+%>
+	<option value="<%=k%>"><%=k%></option>	
+<%
+}
+%>
+</select>
+</td></tr>
+</table>
+<%
+      } 
+else {
       %>
       <p><em><%=encprops.getProperty("noLoci")%>
       </em></p>
       <%
         }
       %>
-      
-
+   
+</p>
 
     </div>
   </td>
