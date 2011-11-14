@@ -692,41 +692,68 @@ if(CommonConfiguration.showProperty("showLifestage")){
       %>
 
 
-      <p><strong><%=props.getProperty("msmarker")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>loci"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
-                             (<em><%=props.getProperty("locationIDExample")%></em>)
+   
+      <p><strong><%=props.getProperty("msmarker")%>:</strong> 
+      <span class="para">
+      	<a href="<%=CommonConfiguration.getWikiLocation()%>loci" target="_blank">
+      		<img src="images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
+      	</a>
+      </span> 
    </p>
+<p>
 
       <%
         ArrayList<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
-	
+		
         if (totalLoci >= 1) {
-      %>
+			%>
+            <table border="0">
+            <%
 
-      <select multiple size="<%=(totalLoci+1) %>" name="msMarkersField" id="msMarkersField">
-        <option value="None"></option>
-        <%
           for (int n = 0; n < totalLoci; n++) {
             String word = loci.get(n);
             if (!word.equals("")) {
         	%>
-        		<option value="<%=word%>"><%=word%></option>
+        	
+        	<tr><td width="100px"><input name="<%=word%>" type="checkbox" value="<%=word%>"><%=word%></input></td><td><%=props.getProperty("allele")%> 1: <input name="<%=word%>_alleleValue0" type="text" size="5" maxlength="10" />&nbsp;&nbsp;</td><td><%=props.getProperty("allele")%> 2: <input name="<%=word%>_alleleValue1" type="text" size="5" maxlength="10" /></td></tr>
+        		
         	<%
             }
           }
-        %>
-      </select>
-      <%
-      } else {
+%>
+<tr><td colspan="3">
+
+<%=props.getProperty("alleleRelaxValue")%>: +/- 
+<%
+int alleleRelaxMaxValue=0;
+try{
+	alleleRelaxMaxValue=(new Integer(CommonConfiguration.getProperty("alleleRelaxMaxValue"))).intValue();
+}
+catch(Exception d){}
+%>
+<select name="alleleRelaxValue" size="1">
+<%
+for(int k=0;k<alleleRelaxMaxValue;k++){
+%>
+	<option value="<%=k%>"><%=k%></option>	
+<%
+}
+%>
+</select>
+</td></tr>
+</table>
+<%
+      } 
+else {
       %>
       <p><em><%=props.getProperty("noLoci")%>
       </em></p>
       <%
         }
       %>
+   
+</p>
 
     </div>
   </td>

@@ -11,9 +11,10 @@
 					<field name="name">
 						<column length="100"/>
 					</field>
-		            	<field name="alleles" persistence-modifier="persistent">
-		                	<collection element-type="java.lang.String"/>
-		            	</field>
+		            		<field name="allele0" persistence-modifier="persistent"></field>
+		            		<field name="allele1" persistence-modifier="persistent"></field>
+		            		<field name="allele2" persistence-modifier="persistent"></field>
+		            		<field name="allele3" persistence-modifier="persistent"></field>
 		            		<fetch-group name="count" />
 		</class>
 
