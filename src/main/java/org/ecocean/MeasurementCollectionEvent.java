@@ -11,8 +11,9 @@ public class MeasurementCollectionEvent extends DataCollectionEvent {
   public MeasurementCollectionEvent() {
   }
   
-  public MeasurementCollectionEvent(String correspondingEncounterNumber, String type, Double value, String units) {
+  public MeasurementCollectionEvent(String correspondingEncounterNumber, String type, Double value, String units, String samplingProtocol) {
     super(correspondingEncounterNumber, type);
+    super.setSamplingProtocol(samplingProtocol);
     this.value = value;
     this.units = units;
   }

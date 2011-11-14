@@ -55,12 +55,13 @@ public class EncounterSetMeasurements extends HttpServlet {
           MeasurementCollectionEvent measurementCollectionEvent;
           if (requestEventValues.id == null || requestEventValues.id.trim().length() == 0) {
             // New Event -- I think these can happen for legacy encounters, e.g., encounters that were created when measurements didn't exist but now they do.
-            measurementCollectionEvent = new MeasurementCollectionEvent(encNum, null, requestEventValues.value, requestEventValues.units);
+            measurementCollectionEvent = new MeasurementCollectionEvent(encNum, null, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
             enc.addCollectedDataPoint(measurementCollectionEvent);
           }
           else {
             measurementCollectionEvent  = myShepherd.findDataCollectionEvent(MeasurementCollectionEvent.class, requestEventValues.id);
             measurementCollectionEvent.setValue(requestEventValues.value);
+            measurementCollectionEvent.setSamplingProtocol(requestEventValues.samplingProtocol);
           }
 
           requestEventValues = findRequestEventValues(request, index++);
@@ -114,6 +115,7 @@ public class EncounterSetMeasurements extends HttpServlet {
     String type = null;
     Double value = null;
     String units = null;
+    String samplingProtocol = null;
     while (enumeration.hasMoreElements()) {
       String paramName = (String) enumeration.nextElement();
       if (paramName.startsWith(key)) {
@@ -138,10 +140,13 @@ public class EncounterSetMeasurements extends HttpServlet {
         else if (paramName.substring(keyLength).startsWith("units")) {
           units = paramValue;
         }
+        else if (paramName.substring(keyLength).startsWith("samplingProtocol")) {
+          samplingProtocol = paramValue;
+        }
       }
     }
     if (id != null || type != null || value != null) {
-      return new RequestEventValues(id, type, value, units);
+      return new RequestEventValues(id, type, value, units, samplingProtocol);
     }
     return null;
   }
@@ -151,11 +156,13 @@ public class EncounterSetMeasurements extends HttpServlet {
     private String type;
     private Double value;
     private String units;
-    public RequestEventValues(String id, String type, Double value, String units) {
+    private String samplingProtocol;
+    public RequestEventValues(String id, String type, Double value, String units, String samplingProtocol) {
       this.id = id;
       this.type = type;
       this.value = value;
       this.units = units;
+      this.samplingProtocol = samplingProtocol;
     }
   }
 }
