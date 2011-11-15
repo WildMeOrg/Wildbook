@@ -40,8 +40,7 @@ public class Keyword {
 
 
   //use this constructor for new keywords
-  public Keyword(String indexname, String readableName) {
-    this.indexname = indexname;
+  public Keyword(String readableName) {
     this.readableName = readableName;
     photos = new Vector();
   }

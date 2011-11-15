@@ -129,7 +129,7 @@ public class Shepherd {
     return (uniqueID);
   }
 
-  public String storeNewKeyword(Keyword kw, String uniqueID) {
+  public String storeNewKeyword(Keyword kw) {
     beginDBTransaction();
     try {
 
@@ -139,7 +139,7 @@ public class Shepherd {
       rollbackDBTransaction();
       return "fail";
     }
-    return (uniqueID);
+    return "success";
   }
 
 

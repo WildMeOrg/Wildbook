@@ -221,7 +221,7 @@
 
 
 		<class name="Keyword" identity-type="application" table="KEYWORD">
-			<field name="indexname" primary-key="true">
+			<field name="indexname" primary-key="true" value-strategy="native">
 				<column length="100"/>
 			</field>
             	<field name="photos" persistence-modifier="persistent">

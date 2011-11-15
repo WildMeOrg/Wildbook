@@ -60,11 +60,10 @@ public class KeywordHandler extends HttpServlet {
     //System.out.println(request.getCharacterEncoding());
     if (action != null) {
 
-      if ((action.equals("addNewWord")) && (request.getParameter("keyword") != null) && (request.getParameter("readableName") != null)) {
-        String indexname = request.getParameter("keyword");
+      if ((action.equals("addNewWord")) && (request.getParameter("readableName") != null)) {
         String readableName = request.getParameter("readableName");
-        Keyword newword = new Keyword(indexname, readableName);
-        String newkw = myShepherd.storeNewKeyword(newword, indexname);
+        Keyword newword = new Keyword(readableName);
+        String newkw = myShepherd.storeNewKeyword(newword);
 
         //confirm success
         out.println(ServletUtilities.getHeader(request));
