@@ -2249,6 +2249,11 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
   %>
 </p>
 <%
+  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
+%>
+<c:if test="${showMeasurements}">
+<%
+  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
   pageContext.setAttribute("measurements", Util.findMeasurementCollectionEventDescs(langCode));
 %>
@@ -2273,6 +2278,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 </c:forEach>
 </table>
 </p>
+</c:if>
 
 <%
 

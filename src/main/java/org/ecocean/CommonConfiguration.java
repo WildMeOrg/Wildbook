@@ -19,7 +19,10 @@
 
 package org.ecocean;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -27,31 +30,78 @@ import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 
 public class CommonConfiguration {
-
+  
+  private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
+  
   //class setup
   private static Properties props = new Properties();
+  
+  private static volatile int propsSize = 0;
 
 
   private static void initialize() {
     //set up the file input stream
-    if (props.size() == 0) {
-      try {
-        props.load(CommonConfiguration.class.getResourceAsStream("/bundles/commonConfiguration.properties"));
-      } catch (IOException ioe) {
-        ioe.printStackTrace();
-      }
+    if (propsSize == 0) {
+      loadProps();
     }
   }
 
-  public static boolean refresh() {
-    try {
-      props = null;
-      props.load(CommonConfiguration.class.getResourceAsStream("/bundles/commonConfiguration.properties"));
-    } catch (IOException ioe) {
-      ioe.printStackTrace();
-      return false;
+  public static synchronized boolean refresh() {
+      props.clear();
+      propsSize = 0;
+      return loadProps();
+  }
+  
+  private static synchronized boolean loadProps() {
+    if (propsSize == 0) {
+      InputStream resourceAsStream = null;
+      try {
+        resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
+        props.load(resourceAsStream);
+      } catch (IOException ioe) {
+        ioe.printStackTrace();
+        return false;
+      }
+      finally {
+        if (resourceAsStream != null) {
+          try {
+            resourceAsStream.close();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
+      loadOverrideProps();
+      propsSize = props.size();
     }
     return true;
+  }
+  
+  private static void loadOverrideProps() {
+    File configDir = new File("config");
+    File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
+    if (configFile.exists()) {
+      System.out.println("Overriding default properties with " + configFile.getAbsolutePath());
+      FileInputStream fileInputStream = null;
+      try {
+        fileInputStream = new FileInputStream(configFile);
+        props.load(fileInputStream);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      finally {
+        if (fileInputStream != null) {
+          try {
+            fileInputStream.close();
+          } catch (Exception e2) {
+            e2.printStackTrace();
+          }
+        }
+      }
+    }
+    else {
+      System.out.println("No properties override file found at " + configFile.getAbsolutePath());
+    }
   }
 
   //start getter methods
