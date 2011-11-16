@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.CommonConfiguration,org.ecocean.Encounter,org.ecocean.Keyword,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.MeasurementCollectionEvent, org.ecocean.Util.MeasurementCollectionEventDesc, org.ecocean.genetics.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.MeasurementCollectionEvent, org.ecocean.Util.MeasurementCollectionEventDesc, org.ecocean.genetics.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
@@ -293,8 +293,9 @@ table.tissueSample td {
       if (enc.getLivingStatus().equals("dead")) {
         livingStatus = " (deceased)";
       }
-      int numImages = enc.getAdditionalImageNames().size();
-
+      //int numImages = enc.getAdditionalImageNames().size();
+	int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
+      
 //let's see if this user has ownership and can make edits
       boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
       pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable());
@@ -2520,11 +2521,15 @@ if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals("
 %>
 <table>
 <%
-  Enumeration images = enc.getAdditionalImageNames().elements();
-  int imageCount = 0;
-  while (images.hasMoreElements()) {
+  //Enumeration images = enc.getAdditionalImageNames().elements();
+ArrayList<SinglePhotoVideo> images=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+int numImagesHere=images.size();
+int imageCount = 0;
+  for(int myImage=0;myImage<numImagesHere;myImage++ ) {
     imageCount++;
-    String addTextFile = ((String) images.nextElement()).replaceAll("%20"," ");
+    //String addTextFile = ((String) images.nextElement()).replaceAll("%20"," ");
+    String addTextFile = images.get(myImage).getFilename().replaceAll("%20"," ");
+    
     try {
       if ((myShepherd.isAcceptableImageFile(addTextFile)) || (myShepherd.isAcceptableVideoFile(addTextFile))) {
         String addText = num + "/" + addTextFile;
@@ -3199,7 +3204,9 @@ if(loggedIn){
     <p class="para"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><%=encprops.getProperty("addTissueSample") %></a></p>
 <p>
 <%
-List<TissueSample> tissueSamples=enc.getCollectedDataOfClass(TissueSample.class);
+//List<TissueSample> tissueSamples=enc.getCollectedDataOfClass(TissueSample.class);
+List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
+
 int numTissueSamples=tissueSamples.size();
 if(numTissueSamples>0){
 %>

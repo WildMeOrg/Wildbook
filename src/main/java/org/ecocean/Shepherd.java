@@ -863,7 +863,22 @@ public class Shepherd {
     Collection c = (Collection) (acceptedEncounters.execute());
     Iterator it = c.iterator();
     return it;
-
+  }
+  
+  public ArrayList<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
+    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
+    Extent encClass = pm.getExtent(TissueSample.class, true);
+    Query samples = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (samples.execute());
+    return (new ArrayList<TissueSample>(c));
+  }
+  
+  public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosForEncounter(String encNum) {
+    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
+    Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
+    Query samples = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (samples.execute());
+    return (new ArrayList<SinglePhotoVideo>(c));
   }
 
   public Iterator getAllEncountersNoFilter(String order, String filter2use) {
@@ -1049,6 +1064,8 @@ public class Shepherd {
     }
     return newList;
   }
+  
+
 
   public Iterator getAllMarkedIndividuals(Query sharks) {
     Collection c = (Collection) (sharks.execute());

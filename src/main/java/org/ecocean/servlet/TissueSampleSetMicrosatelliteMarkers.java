@@ -49,7 +49,7 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-
+    System.out.println(request.toString());
 
     myShepherd.beginDBTransaction();
     if ( (request.getParameter("analysisID") != null) && (request.getParameter("sampleID") != null) && (request.getParameter("number")!=null) && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))&&(myShepherd.isEncounter(request.getParameter("number")))) {
@@ -70,7 +70,7 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
       
       boolean hasMoreLoci=true;
       while(hasMoreLoci){
-        
+        System.out.println(request.toString());
         if((request.getParameter("locusName"+numLoci)!=null) && (!request.getParameter("locusName"+numLoci).trim().equals("")) && (request.getParameter(("allele"+numLoci+"0"))!=null)&&(!request.getParameter(("allele"+numLoci+"0")).trim().equals(""))){
           ArrayList<Integer> alleles=new ArrayList<Integer>(numPloids);
           //so at this point we know there is some allele data
@@ -78,13 +78,15 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
             for(int q=0;q<numPloids;q++){
               if((request.getParameter("locusName"+numLoci)!=null)&&(!request.getParameter("locusName"+numLoci).trim().equals(""))&&(request.getParameter(("allele"+numLoci+q))!=null)&&(!request.getParameter(("allele"+numLoci+q)).equals(""))){
                 alleles.add(new Integer(request.getParameter(("allele"+numLoci+q))));
+                System.out.println(alleles.toString());
               }
             }
             Locus l=new Locus(request.getParameter("locusName"+numLoci),alleles);
             loci.add(l);
           }
-          catch(Exception e){}
+          catch(Exception e){e.printStackTrace();}
           numLoci++;
+          
         }
         else{hasMoreLoci=false;}
         
@@ -122,12 +124,12 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
       catch (Exception le) {
         locked = true;
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        le.printStackTrace();
       }
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully set the microsatellite markers for tissue sample " + request.getParameter("sampleID") + " for encounter "+encounterNumber+".</p>");
 
@@ -143,7 +145,8 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
         out.println(ServletUtilities.getFooter());
 
       }
-    } else {
+    } 
+    else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the microsatellite markers. I cannot find the encounter or tissue sample that you intended it for in the database.");

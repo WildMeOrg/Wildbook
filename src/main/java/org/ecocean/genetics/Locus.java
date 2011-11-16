@@ -32,11 +32,12 @@ public class Locus implements java.io.Serializable{
   }
   
   public Locus(String name, ArrayList<Integer> alleles){
-
-    if(alleles.get(0)!=null){this.allele0=alleles.get(0);}
-    if(alleles.get(1)!=null){this.allele1=alleles.get(1);}
-    if(alleles.get(2)!=null){this.allele1=alleles.get(2);}
-    if(alleles.get(3)!=null){this.allele1=alleles.get(3);}
+    System.out.println("In ctor: "+alleles.toString());
+    int size=alleles.size();
+    if(size>0){this.allele0=alleles.get(0);System.out.println(alleles.get(0));}
+    if(size>1){this.allele1=alleles.get(1);System.out.println(alleles.get(1));}
+    if(size>2){this.allele2=alleles.get(2);System.out.println(alleles.get(2));}
+    if(size>3){this.allele3=alleles.get(3);System.out.println(alleles.get(3));}
     this.name=name;
   }
   
