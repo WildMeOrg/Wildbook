@@ -11,8 +11,8 @@ public class Util {
   private static final String MEASUREMENT = "measurement";
   private static final String UNITS = MEASUREMENT + "Units";
   
-  public static List<MeasurementCollectionEventDesc> findMeasurementCollectionEventDescs(String langCode) {
-    List<MeasurementCollectionEventDesc> list = new ArrayList<MeasurementCollectionEventDesc>();
+  public static List<MeasurementDesc> findMeasurementDescs(String langCode) {
+    List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
     List<String> types = CommonConfiguration.getIndexedValues(MEASUREMENT);
     if (types.size() > 0) {
       List<String> units = CommonConfiguration.getIndexedValues(UNITS);
@@ -21,7 +21,7 @@ public class Util {
         String unit = units.get(i);
         String typeLabel = findLabel(type, langCode);
         String unitsLabel = findLabel(unit, langCode);
-        list.add(new MeasurementCollectionEventDesc(type, typeLabel, unit, unitsLabel));
+        list.add(new MeasurementDesc(type, typeLabel, unit, unitsLabel));
       }
     }
     return list;
@@ -70,13 +70,13 @@ public class Util {
     return key;
   }
   
-  public static class MeasurementCollectionEventDesc {
+  public static class MeasurementDesc {
     private String type;
     private String label;
     private String units;
     private String unitsLabel;
     
-    private MeasurementCollectionEventDesc(String type, String label, String units, String unitsLabel) {
+    private MeasurementDesc(String type, String label, String units, String unitsLabel) {
       this.type = type;
       this.label = label;
       this.units = units;

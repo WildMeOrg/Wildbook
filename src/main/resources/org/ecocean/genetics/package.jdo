@@ -7,7 +7,7 @@
 	<package name="org.ecocean.genetics">	
 	
 		
-				<class name="Locus" identity-type="database" table="LOCUS">
+				<class name="Locus" identity-type="datastore" table="LOCUS">
 					<field name="name">
 						<column length="100"/>
 					</field>

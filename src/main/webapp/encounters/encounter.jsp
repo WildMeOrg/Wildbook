@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.MeasurementCollectionEvent, org.ecocean.Util.MeasurementCollectionEventDesc, org.ecocean.genetics.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.MeasurementDesc, org.ecocean.genetics.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
@@ -1471,7 +1471,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 
 <c:if test="${param.edit eq 'measurements'}">
  <% 
-   pageContext.setAttribute("items", Util.findMeasurementCollectionEventDescs(langCode)); 
+   pageContext.setAttribute("items", Util.findMeasurementDescs(langCode)); 
  %>
         <a name="measurements" />
         <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
@@ -1479,18 +1479,17 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
                 action="../EncounterSetMeasurements">
         <input type="hidden" name="encounter" value="<%=num%>"/>
         <c:set var="index" value="0"/>
+          List<Measurement> list = (List<Measurement>) enc.getMeasurements();
+        <%
+        %>
         <c:forEach items="${items}" var="item">
         <%
-          MeasurementCollectionEventDesc measurementCollectionEventDesc = (MeasurementCollectionEventDesc) pageContext.getAttribute("item");
-          List<MeasurementCollectionEvent> list = (List<MeasurementCollectionEvent>) enc.getCollectedDataOfClassAndType(MeasurementCollectionEvent.class, measurementCollectionEventDesc.getType());
-          MeasurementCollectionEvent measurementEvent;
-          if (list.size() > 0) {
-              measurementEvent = list.get(0); // TODO: What if there is more than one?
+          MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
+          if (measurement == null) {
+              measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
           }
-          else {
-              measurementEvent = new MeasurementCollectionEvent(enc.getEventID(), measurementCollectionEventDesc.getType(), null, measurementCollectionEventDesc.getUnits(), null);
-          }
-          pageContext.setAttribute("measurementEvent", measurementEvent);
+          pageContext.setAttribute("measurementEvent", measurement);
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode));
         %>
             <tr>
@@ -2256,7 +2255,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 <%
   pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
-  pageContext.setAttribute("measurements", Util.findMeasurementCollectionEventDescs(langCode));
+  pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode));
 %>
 <p class="para"><strong><c:out value="${measurementTitle}"></c:out></strong>
 <c:if test="${editable and !empty measurements}">
@@ -2265,10 +2264,9 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 <table>
 <c:forEach var="item" items="${measurements}">
  <% 
-    MeasurementCollectionEventDesc measurementCollectionEventDesc = (MeasurementCollectionEventDesc) pageContext.getAttribute("item");
-    List<MeasurementCollectionEvent> list =  enc.getCollectedDataOfClassAndType(MeasurementCollectionEvent.class, measurementCollectionEventDesc.getType());
-    if (list.size() > 0) {
-        MeasurementCollectionEvent event = list.get(0);
+    MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+    Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
+    if (event != null) {
         pageContext.setAttribute("measurementValue", event.getValue());
         pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode));
     }

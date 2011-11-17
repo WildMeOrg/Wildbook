@@ -1,6 +1,6 @@
 package org.ecocean;
 
-public class MeasurementCollectionEvent extends DataCollectionEvent {
+public class Measurement extends DataCollectionEvent {
 
   private static final long serialVersionUID = -7934850478287322048L;
   
@@ -8,10 +8,10 @@ public class MeasurementCollectionEvent extends DataCollectionEvent {
   
   private String units;
   
-  public MeasurementCollectionEvent() {
+  public Measurement() {
   }
   
-  public MeasurementCollectionEvent(String correspondingEncounterNumber, String type, Double value, String units, String samplingProtocol) {
+  public Measurement(String correspondingEncounterNumber, String type, Double value, String units, String samplingProtocol) {
     super(correspondingEncounterNumber, type);
     super.setSamplingProtocol(samplingProtocol);
     this.value = value;

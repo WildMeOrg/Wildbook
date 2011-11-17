@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.MeasurementCollectionEvent;
+import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
 
 public class EncounterSetMeasurements extends HttpServlet {
@@ -52,16 +52,16 @@ public class EncounterSetMeasurements extends HttpServlet {
       try {
         while (requestEventValues != null) {
           list.add(requestEventValues);
-          MeasurementCollectionEvent measurementCollectionEvent;
+          Measurement measurement;
           if (requestEventValues.id == null || requestEventValues.id.trim().length() == 0) {
             // New Event -- I think these can happen for legacy encounters, e.g., encounters that were created when measurements didn't exist but now they do.
-            measurementCollectionEvent = new MeasurementCollectionEvent(encNum, null, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
-            enc.addCollectedDataPoint(measurementCollectionEvent);
+            measurement = new Measurement(encNum, null, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
+            enc.addMeasurement(measurement);
           }
           else {
-            measurementCollectionEvent  = myShepherd.findDataCollectionEvent(MeasurementCollectionEvent.class, requestEventValues.id);
-            measurementCollectionEvent.setValue(requestEventValues.value);
-            measurementCollectionEvent.setSamplingProtocol(requestEventValues.samplingProtocol);
+            measurement  = myShepherd.findDataCollectionEvent(Measurement.class, requestEventValues.id);
+            measurement.setValue(requestEventValues.value);
+            measurement.setSamplingProtocol(requestEventValues.samplingProtocol);
           }
 
           requestEventValues = findRequestEventValues(request, index++);

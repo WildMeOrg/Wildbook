@@ -431,7 +431,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 %>
 <c:if test="${showMeasurements}">
 <%
-    pageContext.setAttribute("items", Util.findMeasurementCollectionEventDescs(langCode));
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode));
     pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode));
 %>
 <tr class="form_row">

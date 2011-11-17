@@ -332,8 +332,8 @@
             <argument>org.datanucleus.enhancer.DataNucleusEnhancer</argument>
             <argument>-v</argument>
             <argument>target/classes/org/ecocean/package.jdo</argument>
-            <argument>target/classes/org/ecocean/grid/package.jdo</argument>
             <argument>target/classes/org/ecocean/genetics/package.jdo</argument>
+            <argument>target/classes/org/ecocean/grid/package.jdo</argument>
           </arguments>
         </configuration>
         <executions>

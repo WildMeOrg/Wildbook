@@ -219,6 +219,11 @@
 						  <join/>
 	            		</field>
 	            		
+                        <field name="measurements" persistence-modifier="persistent">
+                          <collection element-type="org.ecocean.Measurement"/>
+                          <join/>
+                        </field>
+                        
             	    			<fetch-group name="allSharks_min">
 		                		<field name="approved"/>
 		            		</fetch-group>
@@ -318,7 +323,7 @@
   
   		</class>
   
-		<class name="MeasurementCollectionEvent" identity-type="application">
+		<class name="Measurement" identity-type="application">
            <inheritance strategy="new-table"/>
            <field name="value">
                <column name="VALUE"/>
