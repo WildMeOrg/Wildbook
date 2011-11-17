@@ -10,7 +10,7 @@ import java.util.Vector;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 
-import org.ecocean.Util.MeasurementCollectionEventDesc;
+import org.ecocean.Util.MeasurementDesc;
 import org.ecocean.servlet.ServletUtilities;
 
 import org.ecocean.Shepherd;
@@ -169,18 +169,18 @@ public class EncounterQueryProcessor {
             prettyPrint.append("<br />");
     }
     // Measurement filters-----------------------------------------------
-    List<MeasurementCollectionEventDesc> measurementCollectionEventDescs = Util.findMeasurementCollectionEventDescs("us");
+    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs("us");
     String measurementPrefix = "measurement";
     StringBuilder measurementFilter = new StringBuilder(); //"( collectedData.contains(measurement) && (");
     boolean atLeastOneMeasurement = false;
     int measurementsInQuery = 0;
-    for (MeasurementCollectionEventDesc measurementCollectionEventDesc : measurementCollectionEventDescs) {
-      String valueParamName= measurementPrefix + measurementCollectionEventDesc.getType() + "(value)";
+    for (MeasurementDesc measurementDesc : measurementDescs) {
+      String valueParamName= measurementPrefix + measurementDesc.getType() + "(value)";
       String value = request.getParameter(valueParamName);
       if (value != null) {
         value = value.trim();
         if ( value.length() > 0) {
-          String operatorParamName = measurementPrefix + measurementCollectionEventDesc.getType() + "(operator)";
+          String operatorParamName = measurementPrefix + measurementDesc.getType() + "(operator)";
           String operatorParamValue = request.getParameter(operatorParamName);
           if (operatorParamValue == null) {
             operatorParamValue = "";
@@ -196,7 +196,7 @@ public class EncounterQueryProcessor {
             operator = "==";
           }
           if (operator != null) {
-            prettyPrint.append(measurementCollectionEventDesc.getUnitsLabel());
+            prettyPrint.append(measurementDesc.getUnitsLabel());
             prettyPrint.append(" is ");
             prettyPrint.append(operator);
             prettyPrint.append(value);
@@ -208,7 +208,7 @@ public class EncounterQueryProcessor {
             measurementFilter.append("(collectedData.contains(" + measurementVar + ") && ");
             measurementFilter.append( measurementVar + ".value " + operator + " " + value);
             measurementFilter.append(" && " + measurementVar + ".type == ");
-            measurementFilter.append("\"" + measurementCollectionEventDesc.getType() + "\")");
+            measurementFilter.append("\"" + measurementDesc.getType() + "\")");
             atLeastOneMeasurement = true;
           }
         }
@@ -223,7 +223,7 @@ public class EncounterQueryProcessor {
         if (i > 0) {
           jdoqlVariableDeclaration += "; ";
         }
-        jdoqlVariableDeclaration += " org.ecocean.MeasurementCollectionEvent measurement" + i;
+        jdoqlVariableDeclaration += " org.ecocean.Measurement measurement" + i;
       }
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
         filter+= measurementFilter.toString();

@@ -401,8 +401,8 @@ public class SubmitAction extends Action {
               Double doubleVal = Double.valueOf(value);
               String units = (String) measurements.get(key + "units");
               String samplingProtocol = (String) measurements.get(key + "samplingProtocol");
-              MeasurementCollectionEvent measurementCollectionEvent = new MeasurementCollectionEvent(enc.getEncounterNumber(), key, doubleVal, units, samplingProtocol);
-              enc.addCollectedDataPoint(measurementCollectionEvent);
+              Measurement measurement = new Measurement(enc.getEncounterNumber(), key, doubleVal, units, samplingProtocol);
+              enc.addMeasurement(measurement);
             }
             catch(Exception ex) {
               enc.addComments("<p>Reported measurement " + key + " was problematic: " + value + "</p>");

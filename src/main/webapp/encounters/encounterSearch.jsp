@@ -707,7 +707,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 %>
 <c:if test="${showMeasurement}">
 <%
-    pageContext.setAttribute("items", Util.findMeasurementCollectionEventDescs(langCode));
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode));
 %>
 <tr><td><strong><%=encprops.getProperty("measurements") %></strong></td></tr>
 <c:forEach items="${items}" var="item">
