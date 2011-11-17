@@ -286,46 +286,44 @@ public class EncounterQueryProcessor {
     
     
     //------------------------------------------------------------------
-    //haplotype filters-------------------------------------------------
-    String[] haplotypes=request.getParameterValues("haplotypeField");
-    if((haplotypes!=null)&&(!haplotypes[0].equals("None"))){
-          prettyPrint.append("Haplotype is one of the following: ");
-          int kwLength=haplotypes.length;
+    //keyword filters-------------------------------------------------
+    String[] keywords=request.getParameterValues("keyword");
+    if((keywords!=null)&&(!keywords[0].equals("None"))){
+          prettyPrint.append("Photo/video keyword is one of the following: ");
+          int kwLength=keywords.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
 
-              String kwParam=haplotypes[kwIter].replaceAll("%20", " ").trim();
+              String kwParam=keywords[kwIter].replaceAll("%20", " ").trim();
               if(!kwParam.equals("")){
                 if(locIDFilter.equals("(")){
-                  locIDFilter+=" analysis.haplotype == \""+kwParam+"\" ";
+                  locIDFilter+=" word.indexname == \""+kwParam+"\" ";
                 }
                 else{
-                  locIDFilter+=" || analysis.haplotype == \""+kwParam+"\" ";
+                  locIDFilter+=" || word.indexname == \""+kwParam+"\" ";
                 }
                 prettyPrint.append(kwParam+" ");
               }
             }
             locIDFilter+=" )";
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="tissueSamples.contains(dce) && dce.analyses.contains(analysis) && "+locIDFilter;}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="collectedData.contains(photo) && photo.keywords.contains(word) && "+locIDFilter;}
             else{
-              if(filter.indexOf("tissueSamples.contains(dce)")==-1){filter+=" && tissueSamples.contains(dce)";}
+              if(filter.indexOf("collectedData.contains(photo)")==-1){filter+=" && collectedData.contains(photo)";}
              
-              if(filter.indexOf("dce.analyses.contains(analysis)")==-1){filter+=" && dce.analyses.contains(analysis)";}
+              if(filter.indexOf("photo.keywords.contains(word)")==-1){filter+=" && photo.keywords.contains(word)";}
               filter+=(" && "+locIDFilter);
             }
 
             prettyPrint.append("<br />");
-            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
-            //else{jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.SinglePhotoVideo photo;org.ecocean.Keyword word";}
             else{ 
-              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce";}
-              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.MitochondrialDNAAnalysis analysis")){jdoqlVariableDeclaration+=";org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
-              
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo photo")){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo photo";}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word")){jdoqlVariableDeclaration+=";org.ecocean.Keyword word";}
             }
          
       }
   
-    //end haplotype filters-----------------------------------------------
+    //end photo keyword filters-----------------------------------------------
 
     
     
@@ -409,9 +407,50 @@ public class EncounterQueryProcessor {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="otherCatalogNumbers.startsWith('"+altID+"')";}
       else{filter+=" && otherCatalogNumbers.startsWith('"+altID+"')";}
       prettyPrint.append("alternateIDField starts with \""+altID+"\".<br />");
-
     }
     
+    //------------------------------------------------------------------
+    //haplotype filters-------------------------------------------------
+    String[] haplotypes=request.getParameterValues("haplotypeField");
+    if((haplotypes!=null)&&(!haplotypes[0].equals("None"))){
+          prettyPrint.append("Haplotype is one of the following: ");
+          int kwLength=haplotypes.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+
+              String kwParam=haplotypes[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" analysis.haplotype == \""+kwParam+"\" ";
+                }
+                else{
+                  locIDFilter+=" || analysis.haplotype == \""+kwParam+"\" ";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="tissueSamples.contains(dce) && dce.analyses.contains(analysis) && "+locIDFilter;}
+            else{
+              if(filter.indexOf("tissueSamples.contains(dce)")==-1){filter+=" && tissueSamples.contains(dce)";}
+             
+              if(filter.indexOf("dce.analyses.contains(analysis)")==-1){filter+=" && dce.analyses.contains(analysis)";}
+              filter+=(" && "+locIDFilter);
+            }
+
+            prettyPrint.append("<br />");
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
+            //else{jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
+            else{ 
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce";}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.MitochondrialDNAAnalysis analysis")){jdoqlVariableDeclaration+=";org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
+              
+            }
+         
+      }
+  
+    //end haplotype filters-----------------------------------------------
+
 
 
     //filter for genus------------------------------------------
@@ -760,7 +799,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 */
 
 
-
+/*
   //keyword filters-------------------------------------------------
   String[] keywords=request.getParameterValues("keyword");
   if((keywords!=null)&&(!keywords[0].equals("None"))){
@@ -796,7 +835,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
   }
   //end keyword filters-----------------------------------------------
-
+*/
 
   	//start photo filename filtering
   	    if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))) {

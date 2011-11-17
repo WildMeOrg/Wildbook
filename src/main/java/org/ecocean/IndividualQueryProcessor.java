@@ -126,7 +126,7 @@ public class IndividualQueryProcessor {
       }
       catch(NullPointerException npe){}
 
-
+/*
     //individuals with a photo keyword assigned to one of their encounters
     String[] keywords = request.getParameterValues("keyword");
     if ((keywords != null) && (!keywords[0].equals("None"))) {
@@ -153,7 +153,7 @@ public class IndividualQueryProcessor {
         } //end if isKeyword
       }
     }
-
+*/
 
 
 
