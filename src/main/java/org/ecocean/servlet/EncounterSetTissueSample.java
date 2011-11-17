@@ -67,7 +67,7 @@ public class EncounterSetTissueSample extends HttpServlet {
         }
         else{
           genSample=new TissueSample(enc.getCatalogNumber(), request.getParameter("sampleID"), request);
-          enc.addCollectedDataPoint(genSample);
+          enc.addTissueSample(genSample);
         }
         
         

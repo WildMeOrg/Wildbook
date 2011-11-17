@@ -213,6 +213,12 @@
 		    	                		<collection element-type="org.ecocean.DataCollectionEvent"/>
 		    					<join/>
 	            		</field>
+	            		
+	            		<field name="tissueSamples" persistence-modifier="persistent">
+						  <collection element-type="org.ecocean.genetics.TissueSample"/>
+						  <join/>
+	            		</field>
+	            		
             	    			<fetch-group name="allSharks_min">
 		                		<field name="approved"/>
 		            		</fetch-group>

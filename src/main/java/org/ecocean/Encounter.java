@@ -174,6 +174,7 @@ public class Encounter implements java.io.Serializable {
 
   //hold submittedData
   private List<DataCollectionEvent> collectedData;
+  private List<TissueSample> tissueSamples;
   
   //start constructors
 
@@ -1507,6 +1508,14 @@ public class Encounter implements java.io.Serializable {
     }
     public void removeCollectedDataPoint(int num){collectedData.remove(num);}
     
+    
+    public void addTissueSample(TissueSample dce){
+      if(tissueSamples==null){tissueSamples=new ArrayList<TissueSample>();}
+      if(!tissueSamples.contains(dce)){tissueSamples.add(dce);}
+    }
+    public void removeTissueSample(int num){tissueSamples.remove(num);}
+    public List<TissueSample> getTissueSamples(){return tissueSamples;}
+    public void removeTissueSample(TissueSample num){tissueSamples.remove(num);}
     
     
     public String getLifeStage(){return lifeStage;}

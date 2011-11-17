@@ -63,7 +63,7 @@ public class EncounterRemoveTissueSample extends HttpServlet {
         TissueSample genSample=new TissueSample();
         if(myShepherd.isTissueSample(request.getParameter("sampleID"), sharky)){
           genSample=myShepherd.getTissueSample(request.getParameter("sampleID"), sharky);
-          enc.removeDataCollectionEvent(genSample);
+          enc.removeTissueSample(genSample);
 
           String removedParameters=myShepherd.throwAwayTissueSample(genSample);          
           

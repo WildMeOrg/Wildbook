@@ -3204,8 +3204,8 @@ if(loggedIn){
     <p class="para"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><%=encprops.getProperty("addTissueSample") %></a></p>
 <p>
 <%
-//List<TissueSample> tissueSamples=enc.getCollectedDataOfClass(TissueSample.class);
-List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
+List<TissueSample> tissueSamples=enc.getTissueSamples();
+//List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
 
 int numTissueSamples=tissueSamples.size();
 if(numTissueSamples>0){
