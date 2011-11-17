@@ -237,6 +237,16 @@ public class Shepherd {
     return tempEnc;
   }
   
+  public SinglePhotoVideo getSinglePhotoVideo(String num) {
+    SinglePhotoVideo tempEnc = null;
+    try {
+      tempEnc = ((SinglePhotoVideo) (pm.getObjectById(pm.newObjectIdInstance(SinglePhotoVideo.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempEnc;
+  }
+  
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
     try {

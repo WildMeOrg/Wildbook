@@ -309,6 +309,11 @@
 		<field name="copyrightStatement">
 					<column name="COPYRIGHTSTATEMENT"/>
 		    </field>
+		    
+		    <field name="keywords" persistence-modifier="persistent">
+		    						  <collection element-type="org.ecocean.Keyword"/>
+		    						  <join/>
+	            		</field>
 		 
   
   		</class>

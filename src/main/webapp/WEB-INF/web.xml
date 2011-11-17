@@ -445,6 +445,17 @@
   </servlet>
 
   <servlet>
+    <servlet-name>SinglePhotoVideoAddKeyword</servlet-name>
+    <servlet-class>org.ecocean.servlet.SinglePhotoVideoAddKeyword</servlet-class>
+  </servlet>
+  
+    <servlet>
+      <servlet-name>SinglePhotoVideoRemoveKeyword</servlet-name>
+      <servlet-class>org.ecocean.servlet.SinglePhotoVideoRemoveKeyword</servlet-class>
+    </servlet>
+
+
+  <servlet>
     <servlet-name>MassSwapLocationCode</servlet-name>
     <servlet-class>org.ecocean.servlet.MassSwapLocationCode</servlet-class>
   </servlet>
@@ -648,6 +659,16 @@
   <servlet-mapping>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
     <url-pattern>/EncounterSetSubmitterPhotographerContactInfo</url-pattern>
+  </servlet-mapping>
+  
+   <servlet-mapping>
+      <servlet-name>SinglePhotoVideoRemoveKeyword</servlet-name>
+      <url-pattern>/SinglePhotoVideoRemoveKeyword</url-pattern>
+  </servlet-mapping>
+  
+     <servlet-mapping>
+        <servlet-name>SinglePhotoVideoAddKeyword</servlet-name>
+        <url-pattern>/SinglePhotoVideoAddKeyword</url-pattern>
   </servlet-mapping>
 
 
@@ -985,6 +1006,8 @@
         <url-pattern>/TissueSampleSetHaplotype</url-pattern>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
          <url-pattern>/EncounterRemoveTissueSample</url-pattern>
+         <url-pattern>/SinglePhotoVideoRemoveKeyword</url-pattern>
+         <url-pattern>/SinglePhotoVideoAddKeyword</url-pattern>
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>
       <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>

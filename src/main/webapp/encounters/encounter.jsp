@@ -2585,13 +2585,12 @@ int imageCount = 0;
         boolean haveAddedKeyword = false;
         for (int m = 0; m < totalKeywords; m++) {
           Keyword word = (Keyword) indexes.next();
-          if (word.isMemberOf(addText)) {
+          if (images.get(myImage).getKeywords().contains(word)) {
             haveAddedKeyword = true;
 
             if (CommonConfiguration.isCatalogEditable()) {
     %>
-    <a
-      href="../KeywordHandler?number=<%=num%>&action=removePhoto&photoName=<%=addTextFile%>&keyword=<%=word.getIndexname()%>">
+    <a href="../SinglePhotoVideoRemoveKeyword?number=<%=num%>&photoName=<%=images.get(myImage).getDataCollectionEventID()%>&keyword=<%=word.getIndexname()%>">
       <%
         }
       %>
@@ -2641,7 +2640,7 @@ int imageCount = 0;
           <%
             if (totalKeywords > 0) {
           %>
-          <form action="../KeywordHandler" method="post" name="keyword">
+          <form action="../SinglePhotoVideoAddKeyword" method="POST" name="keyword">
             <select name="keyword" id="keyword">
               <option value=" " selected>&nbsp;</option>
               <%
@@ -2651,16 +2650,14 @@ int imageCount = 0;
                   String indexname = word.getIndexname();
                   String readableName = word.getReadableName();
               %>
-              <option value="<%=indexname%>"><%=readableName%>
-              </option>
+              <option value="<%=indexname%>"><%=readableName%></option>
               <%
                 }
               %>
 
             </select>
             <input name="number" type="hidden" value=<%=num%>>
-            <input name="action" type="hidden" value="addPhoto">
-            <input name="photoName" type="hidden" value="<%=addTextFile%>">
+            <input name="photoName" type="hidden" value="<%=images.get(myImage).getDataCollectionEventID()%>">
             <input name="AddKW" type="submit" id="AddKW" value="<%=encprops.getProperty("add") %>">
           </form>
           <%

@@ -2,6 +2,10 @@ package org.ecocean;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.ecocean.genetics.TissueSample;
 
 public class SinglePhotoVideo extends DataCollectionEvent {
 
@@ -14,6 +18,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   private static String type="SinglePhotoVideo";
   private String copyrightOwner;
   private String copyrightStatement;
+  private List<Keyword> keywords;
 
   /**
    * Empty constructor required for JDO persistence
@@ -71,6 +76,15 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   
   public String getThumbnailFullFileSystemPath(){return thumbnailFullFileSystemPath;}
   public void setThumbnailFullFileSystemPath(String newPath){this.thumbnailFullFileSystemPath=newPath;}
+  
+  public void addKeyword(Keyword dce){
+    if(keywords==null){keywords=new ArrayList<Keyword>();}
+    if(!keywords.contains(dce)){keywords.add(dce);}
+  }
+  public void removeKeyword(int num){keywords.remove(num);}
+  public List<Keyword> getKeywords(){return keywords;}
+  public void removeKeyword(Keyword num){keywords.remove(num);}
+  
   
   
 }
