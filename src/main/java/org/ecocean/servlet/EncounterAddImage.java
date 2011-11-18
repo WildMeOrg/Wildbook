@@ -106,7 +106,7 @@ public class EncounterAddImage extends HttpServlet {
         try {
 
 
-          enc.addAdditionalImageName(new SinglePhotoVideo(encounterNumber,(new File(fullPathFilename))));
+          enc.addSinglePhotoVideo(new SinglePhotoVideo(encounterNumber,(new File(fullPathFilename))));
           enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Submitted new encounter image graphic: " + fileName + ".</p>");
           positionInList = enc.getAdditionalImageNames().size();
         } catch (Exception le) {

@@ -113,16 +113,20 @@ public class EncounterRemoveImage extends HttpServlet {
 
           enc.removeAdditionalImageName(fileName);
           enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter image graphic: " + fileName + ".</p>");
+          
+          /*
           Iterator keywords = myShepherd.getAllKeywords();
           String toRemove = encounterNumber + "/" + fileName;
           while (keywords.hasNext()) {
             Keyword word = (Keyword) keywords.next();
 
-            if (word.isMemberOf(toRemove)) {
+            //if (word.isMemberOf(toRemove)) {
 
               word.removeImageName(toRemove);
             }
           }
+          */
+          
 
         } catch (Exception le) {
           locked = true;

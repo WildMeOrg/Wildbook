@@ -70,7 +70,7 @@ public class SubmitAction extends Action {
 		  String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "", submitterOrganization="", submitterProject="";
 		  String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
 		  //Vector additionalImageNames = new Vector();
-		  ArrayList<DataCollectionEvent> images=new ArrayList<DataCollectionEvent>();
+		  ArrayList<SinglePhotoVideo> images=new ArrayList<SinglePhotoVideo>();
 		  
 		  int encounterNumber = 0;
 		  int day = 1, month = 1, year = 2003, hour = 12;

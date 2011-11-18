@@ -289,14 +289,7 @@ public class MarkedIndividual {
   public boolean isDescribedByPhotoKeyword(Keyword word) {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      Vector images = temp.getAdditionalImageNames();
-      int size = images.size();
-      for (int i = 0; i < size; i++) {
-        String imageName = temp.getEncounterNumber() + "/" + ((String) images.get(i));
-        if (word.isMemberOf(imageName)) {
-          return true;
-        }
-      }
+      if(temp.hasKeyword(word)){return true;}
     }
     return false;
   }
@@ -943,7 +936,7 @@ public class MarkedIndividual {
       Iterator it = myShepherd.getAllKeywords();
       while (it.hasNext()) {
         Keyword word = (Keyword) it.next();
-        if ((word.isMemberOf(enc)) && (!al.contains(word))) {
+        if (enc.hasKeyword(word) && (!al.contains(word))) {
           al.add(word);
         }
       }

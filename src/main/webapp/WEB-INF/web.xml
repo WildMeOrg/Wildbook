@@ -185,10 +185,7 @@
   </servlet>
 
 
-  <servlet>
-    <servlet-name>ImageSearch</servlet-name>
-    <servlet-class>org.ecocean.servlet.ImageSearch</servlet-class>
-  </servlet>
+  
 
   <servlet>
     <servlet-name>ScanAppletSupport</servlet-name>
@@ -817,10 +814,7 @@
     <url-pattern>/trackIt</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>ImageSearch</servlet-name>
-    <url-pattern>/ImageSearch</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>UpdateEmailAddress</servlet-name>

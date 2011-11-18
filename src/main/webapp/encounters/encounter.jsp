@@ -2865,9 +2865,11 @@ int imageCount = 0;
                         Iterator it = myShepherd.getAllKeywords();
                         while (it.hasNext()) {
                           Keyword word = (Keyword) it.next();
+							
 
-
-                          if (word.isMemberOf(num + "/" + addTextFile)) {
+                          //if (word.isMemberOf(num + "/" + addTextFile)) {
+                         //images.get(myImage)
+                         if (images.get(myImage).getKeywords().contains(word)) {
                       %>
 														<br/><%= word.getReadableName()%>
 														

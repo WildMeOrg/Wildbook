@@ -384,9 +384,13 @@ public class Shepherd {
     Iterator keywords = getAllKeywords();
     while (keywords.hasNext()) {
       Keyword kw = (Keyword) keywords.next();
-      if ((kw.isMemberOf(enc1)) && (kw.isMemberOf(enc2))) {
+
+      //if ((kw.isMemberOf(enc1)) && (kw.isMemberOf(enc2))) {
+      if (enc1.hasKeyword(kw) && enc2.hasKeyword(kw)) {
         inCommon.add(kw.getReadableName());
       }
+      
+      
     }
     return inCommon;
   }
@@ -1526,14 +1530,16 @@ public class Shepherd {
     int count = 0;
     while (it.hasNext()) {
       Encounter enc = (Encounter) it.next();
-      if ((count + enc.getAdditionalImageNames().size()) >= startNum) {
-        for (int i = 0; i < enc.getAdditionalImageNames().size(); i++) {
+      ArrayList<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+
+      if ((count + images.size()) >= startNum) {
+        for (int i = 0; i < images.size(); i++) {
           count++;
           if ((count <= endNum) && (count >= startNum)) {
             String m_thumb = "";
 
             //check for video or image
-            String imageName = (String) enc.getAdditionalImageNames().get(i);
+            String imageName = (String) images.get(i).getFilename();
 
             //check if this image has one of the assigned keywords
             boolean hasKeyword = false;
@@ -1544,7 +1550,12 @@ public class Shepherd {
               for (int n = 0; n < numKeywords; n++) {
                 if (!keywords[n].equals("None")) {
                   Keyword word = getKeyword(keywords[n]);
-                  if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+                  
+                  if (images.get(i).getKeywords().contains(word)) {
+                    
+                  
+                  //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+                  
                     hasKeyword = true;
                     //System.out.println("member of: "+word.getReadableName());
                   }
@@ -1561,10 +1572,7 @@ public class Shepherd {
 					String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
 					if(!nameString.equals(imageName)){hasKeyword=false;}
 			}
-
-
-
-            if (hasKeyword && isAcceptableVideoFile(imageName)) {
+      if (hasKeyword && isAcceptableVideoFile(imageName)) {
               m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
               thumbs.add(m_thumb);
             } else if (hasKeyword && isAcceptableImageFile(imageName)) {
@@ -1579,7 +1587,7 @@ public class Shepherd {
         }
       } //end if
       else {
-        count += enc.getAdditionalImageNames().size();
+        count += images.size();
       }
 
     }//end while
@@ -1613,7 +1621,10 @@ public class Shepherd {
                 for (int n = 0; n < numKeywords; n++) {
                   if (!keywords[n].equals("None")) {
                     Keyword word = getKeyword(keywords[n]);
-                    if (word.isMemberOf(indie.getCatalogNumber() + "/" + imageName)) {
+                    
+                    //if (word.isMemberOf(indie.getCatalogNumber() + "/" + imageName)) {
+                    if(indie.hasKeyword(word)){
+                      
                       hasKeyword = true;
                       //System.out.println("member of: "+word.getReadableName());
                     }
@@ -1672,7 +1683,9 @@ public class Shepherd {
           for (int n = 0; n < numKeywords; n++) {
             if (!keywords[n].equals("None")) {
               Keyword word = getKeyword(keywords[n]);
-              if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+              
+              //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+              if(enc.hasKeyword(word)){  
                 hasKeyword = true;
                 //System.out.println("member of: "+word.getReadableName());
               }
@@ -1725,7 +1738,8 @@ public class Shepherd {
             for (int n = 0; n < numKeywords; n++) {
               if (!keywords[n].equals("None")) {
                 Keyword word = getKeyword(keywords[n]);
-                if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+                //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+                if(enc.hasKeyword(word)){  
                   hasKeyword = true;
                   //System.out.println("member of: "+word.getReadableName());
                 }

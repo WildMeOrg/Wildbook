@@ -175,6 +175,7 @@ public class Encounter implements java.io.Serializable {
   //hold submittedData
   private List<DataCollectionEvent> collectedData;
   private List<TissueSample> tissueSamples;
+  private List<SinglePhotoVideo> images;
   private List<Measurement> measurements;
   
   //start constructors
@@ -190,7 +191,7 @@ public class Encounter implements java.io.Serializable {
    * The Vector <code>additionalImages</code> must be a Vector of Blob objects
    *
    */
-  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<DataCollectionEvent> collectedData) {
+  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
     this.verbatimLocality = location;
     this.recordedBy = submitterName;
     this.submitterEmail = submitterEmail;
@@ -198,7 +199,7 @@ public class Encounter implements java.io.Serializable {
     //now we need to set the hashed form of the email addresses
     this.hashedSubmitterEmail = Encounter.getHashOfEmailString(submitterEmail);
 
-    this.collectedData = collectedData;
+    this.images = images;
     this.day = day;
     this.month = month;
     this.year = year;
@@ -546,7 +547,7 @@ public class Encounter implements java.io.Serializable {
   public Vector getAdditionalImageNames() {
     Vector imageNamesOnly=new Vector();
     
-    List<SinglePhotoVideo> images=getCollectedDataOfClass(SinglePhotoVideo.class);
+    //List<SinglePhotoVideo> images=getCollectedDataOfClass(SinglePhotoVideo.class);
     if((images!=null)&&(images.size()>0)){
       int imagesSize=images.size();
       for(int i=0;i<imagesSize;i++){
@@ -561,11 +562,12 @@ public class Encounter implements java.io.Serializable {
    * Adds another image to the collection of images for this encounter.
    * These images should be the additional or non-side shots.
    *
-   */
+
   public void addAdditionalImageName(SinglePhotoVideo file) {
-    collectedData.add(file);
+    images.add(file);
 
   }
+*/
 
   public void approve() {
     approved = true;
@@ -1518,6 +1520,16 @@ public class Encounter implements java.io.Serializable {
     public List<TissueSample> getTissueSamples(){return tissueSamples;}
     public void removeTissueSample(TissueSample num){tissueSamples.remove(num);}
 
+    public void addSinglePhotoVideo(SinglePhotoVideo dce){
+      if(images==null){images=new ArrayList<SinglePhotoVideo>();}
+      if(!images.contains(dce)){images.add(dce);}
+    }
+    public void removeSinglePhotoVideo(int num){images.remove(num);}
+    public List<SinglePhotoVideo> getSinglePhotoVideo(){return images;}
+    public void removeSinglePhotoVideo(SinglePhotoVideo num){images.remove(num);}
+    
+    
+    
     public void addMeasurement(Measurement measurement){
       if(measurements==null){measurements=new ArrayList<Measurement>();}
       if(!measurements.contains(measurement)){measurements.add(measurement);}
@@ -1568,6 +1580,17 @@ public class Encounter implements java.io.Serializable {
         }
       }
       return null;
+    }
+    
+    public List<SinglePhotoVideo> getImages(){return images;}
+    
+    public boolean hasKeyword(Keyword word){
+     int imagesSize=images.size();
+     for(int i=0;i<imagesSize;i++){
+       SinglePhotoVideo image=images.get(i);
+       if(image.getKeywords().contains(word)){return true;}
+     }
+     return false; 
     }
     
 }

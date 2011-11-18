@@ -210,17 +210,23 @@
             	    <join/>
             	    </field>	    
             <field name="collectedData" persistence-modifier="persistent">
-		    	                		<collection element-type="org.ecocean.DataCollectionEvent"/>
+		    	                		<collection element-type="org.ecocean.DataCollectionEvent" dependent="true"/>
 		    					<join/>
 	            		</field>
 	            		
-	            		<field name="tissueSamples" persistence-modifier="persistent">
-						  <collection element-type="org.ecocean.genetics.TissueSample"/>
+	    <field name="tissueSamples" persistence-modifier="persistent">
+						  <collection element-type="org.ecocean.genetics.TissueSample" dependent="true"/>
 						  <join/>
-	            		</field>
+	    </field>
+	    
+	    	    <field name="images" persistence-modifier="persistent" >
+	    						  <collection element-type="org.ecocean.SinglePhotoVideo" dependent="true"/>
+	    						  <join/>
+	    </field>
+	    
 	            		
                         <field name="measurements" persistence-modifier="persistent">
-                          <collection element-type="org.ecocean.Measurement"/>
+                          <collection element-type="org.ecocean.Measurement" dependent="true" />
                           <join/>
                         </field>
                         
@@ -235,9 +241,7 @@
 			<field name="indexname" primary-key="true" value-strategy="native">
 				<column length="100"/>
 			</field>
-            	<field name="photos" persistence-modifier="persistent">
-                		<collection element-type="java.lang.String"/>
-            	</field>
+
             		<fetch-group name="count" />
 		</class>
 		

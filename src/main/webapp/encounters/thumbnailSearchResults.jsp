@@ -310,7 +310,7 @@
 			
 			try {
 				thumbLocs=myShepherd.getThumbnails(request, rEncounters.iterator(), startNum, endNum, keywords);
-
+					System.out.println("thumLocs.size="+thumbLocs.size());
 					for(int rows=0;rows<15;rows++) {		%>
 
   <tr valign="top">
@@ -503,8 +503,11 @@
                         Iterator allKeywords2 = myShepherd.getAllKeywords();
                         while (allKeywords2.hasNext()) {
                           Keyword word = (Keyword) allKeywords2.next();
-                          if (word.isMemberOf(encNum + "/" + fileName)) {
-
+                          
+                          
+                          //if (word.isMemberOf(encNum + "/" + fileName)) {
+						  if(thisEnc.hasKeyword(word)){
+                        	  
                             String renderMe = word.getReadableName();
 
                             for (int kwIter = 0; kwIter < kwLength; kwIter++) {
@@ -654,8 +657,8 @@
 
                         while (allKeywords.hasNext()) {
                           Keyword word = (Keyword) allKeywords.next();
-                          if (word.isMemberOf(encNum + "/" + fileName)) {
-
+                          //if (word.isMemberOf(encNum + "/" + fileName)) {
+						  if(thisEnc.hasKeyword(word)){
                             String renderMe = word.getReadableName();
 
                             for (int kwIter = 0; kwIter < kwLength; kwIter++) {

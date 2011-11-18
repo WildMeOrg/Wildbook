@@ -68,21 +68,23 @@ public class EncounterDelete extends HttpServlet {
       setDateLastModified(enc2trash);
 
       //first unregister the images from the index
-
+      /*
       Vector additionalImageNames = enc2trash.getAdditionalImageNames();
       int initNumberImages = additionalImageNames.size();
       for (int i = 0; i < initNumberImages; i++) {
         Iterator keywords = myShepherd.getAllKeywords();
         String fileName = (String) additionalImageNames.get(i);
         String toRemove = request.getParameter("number") + "/" + fileName;
+       
         while (keywords.hasNext()) {
           Keyword word = (Keyword) keywords.next();
-          if (word.isMemberOf(toRemove)) {
+          //if (word.isMemberOf(toRemove)) {
             word.removeImageName(toRemove);
           }
         }
+        
       }
-
+*/
       if (enc2trash.isAssignedToMarkedIndividual().equals("Unassigned")) {
 
         try {

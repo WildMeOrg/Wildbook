@@ -306,9 +306,9 @@ public class EncounterQueryProcessor {
               }
             }
             locIDFilter+=" )";
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="collectedData.contains(photo) && photo.keywords.contains(word) && "+locIDFilter;}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="images.contains(photo) && photo.keywords.contains(word) && "+locIDFilter;}
             else{
-              if(filter.indexOf("collectedData.contains(photo)")==-1){filter+=" && collectedData.contains(photo)";}
+              if(filter.indexOf("images.contains(photo)")==-1){filter+=" && images.contains(photo)";}
              
               if(filter.indexOf("photo.keywords.contains(word)")==-1){filter+=" && photo.keywords.contains(word)";}
               filter+=(" && "+locIDFilter);
@@ -818,7 +818,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
             String kwParam=keywords[kwIter];
             if(myShepherd.isKeyword(kwParam)) {
               Keyword word=myShepherd.getKeyword(kwParam);
-              if(word.isMemberOf(tShark)) {
+              //if(word.isMemberOf(tShark)) {
                 hasNeededKeyword=true;
 
               }
