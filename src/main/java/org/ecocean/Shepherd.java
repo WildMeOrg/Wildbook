@@ -479,6 +479,15 @@ public class Shepherd {
     }
     return true;
   }
+  
+  public boolean isSinglePhotoVideo(String indexname) {
+    try {
+      SinglePhotoVideo tempEnc = ((org.ecocean.SinglePhotoVideo) (pm.getObjectById(pm.newObjectIdInstance(SinglePhotoVideo.class, indexname.trim()), true)));
+    } catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
 
   public boolean isScanTask(String uniqueID) {
     try {
@@ -1524,8 +1533,8 @@ public class Shepherd {
   }
 
 
-  public Vector getThumbnails(HttpServletRequest request, Iterator it, int startNum, int endNum, String[] keywords) {
-    Vector thumbs = new Vector();
+  public ArrayList<SinglePhotoVideo> getThumbnails(HttpServletRequest request, Iterator it, int startNum, int endNum, String[] keywords) {
+    ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
     boolean stopMe = false;
     int count = 0;
     while (it.hasNext()) {
@@ -1574,13 +1583,17 @@ public class Shepherd {
 			}
       if (hasKeyword && isAcceptableVideoFile(imageName)) {
               m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
-              thumbs.add(m_thumb);
-            } else if (hasKeyword && isAcceptableImageFile(imageName)) {
+              //thumbs.add(m_thumb);
+              thumbs.add(images.get(i));
+      } 
+      else if (hasKeyword && isAcceptableImageFile(imageName)) {
               m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
-              thumbs.add(m_thumb);
-            } else {
+              //thumbs.add(m_thumb);
+              thumbs.add(images.get(i));
+      } 
+      else {
               count--;
-            }
+      }
           } else if (count > endNum) {
             stopMe = true;
           }
@@ -1594,23 +1607,26 @@ public class Shepherd {
     return thumbs;
   }
 
-  public Vector getMarkedIndividualThumbnails(HttpServletRequest request, Iterator<MarkedIndividual> it, int startNum, int endNum, String[] keywords) {
-    Vector thumbs = new Vector();
+  public ArrayList<SinglePhotoVideo> getMarkedIndividualThumbnails(HttpServletRequest request, Iterator<MarkedIndividual> it, int startNum, int endNum, String[] keywords) {
+    ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
+    
     boolean stopMe = false;
     int count = 0;
     while (it.hasNext()) {
       MarkedIndividual markie = it.next();
       Iterator allEncs = markie.getEncounters().iterator();
       while (allEncs.hasNext()) {
-        Encounter indie = (Encounter) allEncs.next();
-        if ((count + indie.getAdditionalImageNames().size()) >= startNum) {
-          for (int i = 0; i < indie.getAdditionalImageNames().size(); i++) {
+        Encounter enc = (Encounter) allEncs.next();
+        ArrayList<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+
+        if ((count + images.size()) >= startNum) {
+          for (int i = 0; i < images.size(); i++) {
             count++;
             if ((count <= endNum) && (count >= startNum)) {
               String m_thumb = "";
 
               //check for video or image
-              String imageName = (String) indie.getAdditionalImageNames().get(i);
+              String imageName = (String) images.get(i).getFilename();
 
               //check if this image has one of the assigned keywords
               boolean hasKeyword = false;
@@ -1622,9 +1638,11 @@ public class Shepherd {
                   if (!keywords[n].equals("None")) {
                     Keyword word = getKeyword(keywords[n]);
                     
-                    //if (word.isMemberOf(indie.getCatalogNumber() + "/" + imageName)) {
-                    if(indie.hasKeyword(word)){
+                    if (images.get(i).getKeywords().contains(word)) {
                       
+                    
+                    //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+                    
                       hasKeyword = true;
                       //System.out.println("member of: "+word.getReadableName());
                     }
@@ -1636,23 +1654,31 @@ public class Shepherd {
 
               }
 
-
-              if (hasKeyword && isAcceptableVideoFile(imageName)) {
-                m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + indie.getEncounterNumber() + "BREAK" + imageName;
-                thumbs.add(m_thumb);
-              } else if (hasKeyword && isAcceptableImageFile(imageName)) {
-                m_thumb = indie.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + indie.getEncounterNumber() + "BREAK" + imageName;
-                thumbs.add(m_thumb);
-              } else {
+        //check for specific filename conditions here
+        if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))){
+            String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
+            if(!nameString.equals(imageName)){hasKeyword=false;}
+        }
+        if (hasKeyword && isAcceptableVideoFile(imageName)) {
+                m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
+                //thumbs.add(m_thumb);
+                thumbs.add(images.get(i));
+        } 
+        else if (hasKeyword && isAcceptableImageFile(imageName)) {
+                m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
+                //thumbs.add(m_thumb);
+                thumbs.add(images.get(i));
+        } 
+        else {
                 count--;
-              }
+        }
             } else if (count > endNum) {
               stopMe = true;
             }
           }
         } //end if
         else {
-          count += indie.getAdditionalImageNames().size();
+          count += images.size();
         }
 
       }//end while

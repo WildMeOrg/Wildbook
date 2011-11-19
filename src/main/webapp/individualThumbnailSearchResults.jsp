@@ -308,14 +308,18 @@
 
 			
 			int countMe=0;
-			Vector thumbLocs=new Vector();
+			//Vector thumbLocs=new Vector();
+			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+			
 			
 			try {
+				//thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
 				thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
-
+				
+				
 				//now let's order these alphabetical by the highest keyword
 				//Cascadia Research only! TBD--remove on release of Shepherd Project
-				Collections.sort(thumbLocs, (new ThumbnailKeywordComparator()));
+				//Collections.sort(thumbLocs, (new ThumbnailKeywordComparator()));
 				
 				
 				
@@ -327,7 +331,15 @@
       <%
 							for(int columns=0;columns<3;columns++){
 								if(countMe<thumbLocs.size()) {
-									String combined=(String)thumbLocs.get(countMe);
+									//String combined=(String)thumbLocs.get(countMe);
+									String combined ="";
+									if(myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
+										combined = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
+									}
+									else{
+										combined= thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "/" + thumbLocs.get(countMe).getDataCollectionEventID() + ".jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
+							              
+									}
 									StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
 									String thumbLink=stzr.nextToken();
 									String encNum=stzr.nextToken();
@@ -456,28 +468,31 @@
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
                         //int numKeywords=myShepherd.getNumKeywords();
-                        Iterator allKeywords2 = myShepherd.getAllKeywords();
+										      //while (allKeywords2.hasNext()) {
+					                          //Keyword word = (Keyword) allKeywords2.next();
+					                          
+					                          
+					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
+											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
+					                        	  
+					                            //String renderMe = word.getReadableName();
+												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+												int myWordsSize=myWords.size();
+					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+					                              //String kwParam = keywords[kwIter];
+					                              //if (kwParam.equals(word.getIndexname())) {
+					                              //  renderMe = "<strong>" + renderMe + "</strong>";
+					                              //}
+					                      		 	%>
+					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
+					 								<%
+					                            }
 
-                        while (allKeywords2.hasNext()) {
-                          Keyword word = (Keyword) allKeywords2.next();
-                          if (word.isMemberOf(encNum + "/" + fileName)) {
-
-                            String renderMe = word.getReadableName();
-
-                            for (int kwIter = 0; kwIter < kwLength; kwIter++) {
-                              String kwParam = keywords[kwIter];
-                              if (kwParam.equals(word.getIndexname())) {
-                                renderMe = "<strong>" + renderMe + "</strong>";
-                              }
-                            }
 
 
-                      %>
-													<br/><%= renderMe%>
-													<%
 
-                              }
-                            }
+					                          //    }
+					                       // } 
 
                           %>
 										</span></td>
@@ -595,29 +610,32 @@
   <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-                        //int numKeywords=myShepherd.getNumKeywords();
-                        Iterator allKeywords = myShepherd.getAllKeywords();
+											   //int numKeywords=myShepherd.getNumKeywords();
+										      //while (allKeywords2.hasNext()) {
+					                          //Keyword word = (Keyword) allKeywords2.next();
+					                          
+					                          
+					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
+											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
+					                        	  
+					                            //String renderMe = word.getReadableName();
+												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+												int myWordsSize=myWords.size();
+					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+					                              //String kwParam = keywords[kwIter];
+					                              //if (kwParam.equals(word.getIndexname())) {
+					                              //  renderMe = "<strong>" + renderMe + "</strong>";
+					                              //}
+					                      		 	%>
+					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
+					 								<%
+					                            }
 
-                        while (allKeywords.hasNext()) {
-                          Keyword word = (Keyword) allKeywords.next();
-                          if (word.isMemberOf(encNum + "/" + fileName)) {
-
-                            String renderMe = word.getReadableName();
-
-                            for (int kwIter = 0; kwIter < kwLength; kwIter++) {
-                              String kwParam = keywords[kwIter];
-                              if (kwParam.equals(word.getIndexname())) {
-                                renderMe = "<strong>" + renderMe + "</strong>";
-                              }
-                            }
 
 
-                      %>
-													<br/><%= renderMe%>
-													<%
 
-                              }
-                            }
+					                          //    }
+					                       // } 
 
                           %>
 										</span></td>

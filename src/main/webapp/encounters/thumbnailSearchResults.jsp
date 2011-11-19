@@ -306,11 +306,11 @@
 
 			
 			int countMe=0;
-			Vector thumbLocs=new Vector();
+			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 			
 			try {
 				thumbLocs=myShepherd.getThumbnails(request, rEncounters.iterator(), startNum, endNum, keywords);
-					System.out.println("thumLocs.size="+thumbLocs.size());
+					//System.out.println("thumLocs.size="+thumbLocs.size());
 					for(int rows=0;rows<15;rows++) {		%>
 
   <tr valign="top">
@@ -318,7 +318,16 @@
       <%
 							for(int columns=0;columns<3;columns++){
 								if(countMe<thumbLocs.size()) {
-									String combined=(String)thumbLocs.get(countMe);
+									String combined ="";
+									if(myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
+										combined = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
+									}
+									else{
+										combined= thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "/" + thumbLocs.get(countMe).getDataCollectionEventID() + ".jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
+							              
+									}
+									
+									//String combined=(String)thumbLocs.get(countMe);
 									StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
 									String thumbLink=stzr.nextToken();
 									String encNum=stzr.nextToken();
@@ -500,30 +509,32 @@
                         <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-                        Iterator allKeywords2 = myShepherd.getAllKeywords();
-                        while (allKeywords2.hasNext()) {
-                          Keyword word = (Keyword) allKeywords2.next();
+                        //Iterator allKeywords2 = myShepherd.getAllKeywords();
+                        //while (allKeywords2.hasNext()) {
+                          //Keyword word = (Keyword) allKeywords2.next();
                           
                           
                           //if (word.isMemberOf(encNum + "/" + fileName)) {
-						  if(thisEnc.hasKeyword(word)){
+						  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
                         	  
-                            String renderMe = word.getReadableName();
-
-                            for (int kwIter = 0; kwIter < kwLength; kwIter++) {
-                              String kwParam = keywords[kwIter];
-                              if (kwParam.equals(word.getIndexname())) {
-                                renderMe = "<strong>" + renderMe + "</strong>";
-                              }
+                            //String renderMe = word.getReadableName();
+							List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+							int myWordsSize=myWords.size();
+                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+                              //String kwParam = keywords[kwIter];
+                              //if (kwParam.equals(word.getIndexname())) {
+                              //  renderMe = "<strong>" + renderMe + "</strong>";
+                              //}
+                      		 	%>
+ 								<br/><%=myWords.get(kwIter).getReadableName()%>
+ 								<%
                             }
 
 
-                      %>
-													<br/><%= renderMe%>
-													<%
 
-                              }
-                        }
+
+                          //    }
+                       // } 
                             }
 
                           %>
@@ -653,28 +664,32 @@
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
                         //int numKeywords=myShepherd.getNumKeywords();
-                        Iterator allKeywords = myShepherd.getAllKeywords();
+									          //Iterator allKeywords2 = myShepherd.getAllKeywords();
+					                        //while (allKeywords2.hasNext()) {
+					                          //Keyword word = (Keyword) allKeywords2.next();
+					                          
+					                          
+					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
+											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
+					                        	  
+					                            //String renderMe = word.getReadableName();
+												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+												int myWordsSize=myWords.size();
+					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+					                              //String kwParam = keywords[kwIter];
+					                              //if (kwParam.equals(word.getIndexname())) {
+					                              //  renderMe = "<strong>" + renderMe + "</strong>";
+					                              //}
+					                      		 	%>
+					 								<br/><%=myWords.get(kwIter).getReadableName() %>
+					 								<%
+					                            }
 
-                        while (allKeywords.hasNext()) {
-                          Keyword word = (Keyword) allKeywords.next();
-                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-						  if(thisEnc.hasKeyword(word)){
-                            String renderMe = word.getReadableName();
-
-                            for (int kwIter = 0; kwIter < kwLength; kwIter++) {
-                              String kwParam = keywords[kwIter];
-                              if (kwParam.equals(word.getIndexname())) {
-                                renderMe = "<strong>" + renderMe + "</strong>";
-                              }
-                            }
 
 
-                      %>
-													<br/><%= renderMe%>
-													<%
 
-                              }
-                            }
+					                          //    }
+					                       // } 
 
                           %>
 										</span></td>

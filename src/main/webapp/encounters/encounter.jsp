@@ -2714,8 +2714,10 @@ int imageCount = 0;
          <%
         }
 
-        String thumbLocation = "file-" + num + "/" + imageCount + ".jpg";
-        File processedImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/" + imageCount + ".jpg")));
+        //String thumbLocation = "file-" + num + "/" + imageCount + ".jpg";
+
+        String thumbLocation = "file-" + num + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg";
+        File processedImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg")));
 
 
         int intWidth = 250;
@@ -2779,7 +2781,7 @@ int imageCount = 0;
         </di:text>
       </di:img>
       <img width="<%=thumbnailWidth %>" alt="photo <%=enc.getLocation()%>"
-           src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left" valign="left"> <%
+           src="<%=(num+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
       if (isOwner) {
     %>
     </a>
@@ -2797,8 +2799,8 @@ int imageCount = 0;
       }
     %> <%
   } else {
-  %> <img id="img<%=imageCount%> " width="<%=thumbnailWidth %>" alt="photo <%=enc.getLocation()%>"
-          src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
+  %> <img id="img<%=images.get(myImage).getDataCollectionEventID()%> " width="<%=thumbnailWidth %>" alt="photo <%=enc.getLocation()%>"
+          src="<%=(num+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
           valign="left"> <%
 	if (session.getAttribute("logged")!=null) {
 				%></a>
@@ -2959,7 +2961,7 @@ int imageCount = 0;
       :</strong> <%=addTextFile%> <%
       if (isOwner && CommonConfiguration.isCatalogEditable()) {
     %> <br/>
-    <a href="/EncounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>"><%=encprops.getProperty("clickremove") %>
+    <a href="/EncounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&dcID=<%=images.get(myImage).getDataCollectionEventID()%>"><%=encprops.getProperty("clickremove") %>
     </a></p>
     <%
       }
@@ -3021,12 +3023,11 @@ catch (Exception e) {
         <input
           name="number" type="hidden" value=<%=num%>> <strong><img
           align="absmiddle" src="../images/cancel.gif"/> <%=encprops.getProperty("removefile") %>:
-        </strong> <select name="position">
+        </strong> <select name="dcID">
           <%
-            for (int rmi = 1; rmi <= imageCount; rmi++) {
+            for (int rmi = 0; rmi < imageCount; rmi++) {
           %>
-          <option value="<%=rmi%>"><%=rmi%>
-          </option>
+          <option value="<%=enc.getImages().get(rmi).getDataCollectionEventID()%>"><%=(rmi+1)%></option>
           <%
             }
           %>

@@ -1000,6 +1000,7 @@
         <url-pattern>/TissueSampleSetHaplotype</url-pattern>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
          <url-pattern>/EncounterRemoveTissueSample</url-pattern>
+         <url-pattern>/EncounterRemoveImage</url-pattern>
          <url-pattern>/SinglePhotoVideoRemoveKeyword</url-pattern>
          <url-pattern>/SinglePhotoVideoAddKeyword</url-pattern>
       <url-pattern>/CJS</url-pattern>

@@ -13,8 +13,12 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   private static final long serialVersionUID = 7999349137348568641L;
   private String filename;
   private String fullFileSystemPath;
+  
+  /*
   private String thumbnailFilename;
   private String thumbnailFullFileSystemPath;
+  */
+  
   private static String type="SinglePhotoVideo";
   private String copyrightOwner;
   private String copyrightStatement;
@@ -52,12 +56,14 @@ public class SinglePhotoVideo extends DataCollectionEvent {
     else{return null;}
   }
   
+  /*
   public File getThumbnailFile(){
     if(thumbnailFullFileSystemPath!=null){
         return (new File(thumbnailFullFileSystemPath));
     }
     else{return null;}
   }
+  */
   
   public String getFilename(){return filename;}
   public void setFilename(String newName){this.filename=newName;}
@@ -71,11 +77,15 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   public String getCopyrightStatement(){return copyrightStatement;}
   public void setCopyrightStatement(String statement){copyrightStatement=statement;}
   
-  public String getThumbnailFilename(){return thumbnailFilename;}
+  
+  //public String getThumbnailFilename(){return (this.getDataCollectionEventID()+".jpg");}
+  
+  /*
   public void setThumbnailFilename(String newName){this.thumbnailFilename=newName;}
   
   public String getThumbnailFullFileSystemPath(){return thumbnailFullFileSystemPath;}
   public void setThumbnailFullFileSystemPath(String newPath){this.thumbnailFullFileSystemPath=newPath;}
+  */
   
   public void addKeyword(Keyword dce){
     if(keywords==null){keywords=new ArrayList<Keyword>();}

@@ -590,14 +590,14 @@ public class Encounter implements java.io.Serializable {
   public void removeAdditionalImageName(String imageFile) {
 
     for (int i = 0; i < collectedData.size(); i++) {
-      if(collectedData.get(i).getType().equals("SinglePhotoVideo")){
+   
         
-      String thisName = ((SinglePhotoVideo)collectedData.get(i)).getFilename();
+      String thisName = images.get(i).getFilename();
       if ((thisName.equals(imageFile)) || (thisName.indexOf("#") != -1)) {
-        collectedData.remove(i);
+        images.remove(i);
         i--;
       }
-      }
+    
     }
 
 
