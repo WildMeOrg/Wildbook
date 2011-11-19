@@ -209,10 +209,7 @@
             	    <collection element-type="SuperSpot"/>
             	    <join/>
             	    </field>	    
-            <field name="collectedData" persistence-modifier="persistent">
-		    	                		<collection element-type="org.ecocean.DataCollectionEvent" dependent-element="true"/>
-		    					<join/>
-	            		</field>
+        
 	            		
 	    <field name="tissueSamples" persistence-modifier="persistent">
 						  <collection element-type="org.ecocean.genetics.TissueSample" dependent-element="true"/>

@@ -205,7 +205,7 @@ public class EncounterQueryProcessor {
               measurementFilter.append("&&");
             }
             String measurementVar = "measurement" + measurementsInQuery++;
-            measurementFilter.append("(collectedData.contains(" + measurementVar + ") && ");
+            measurementFilter.append("(measurements.contains(" + measurementVar + ") && ");
             measurementFilter.append( measurementVar + ".value " + operator + " " + value);
             measurementFilter.append(" && " + measurementVar + ".type == ");
             measurementFilter.append("\"" + measurementDesc.getType() + "\")");

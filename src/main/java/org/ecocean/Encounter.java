@@ -173,7 +173,7 @@ public class Encounter implements java.io.Serializable {
   private String submitterProject;
 
   //hold submittedData
-  private List<DataCollectionEvent> collectedData;
+  //private List<DataCollectionEvent> collectedData;
   private List<TissueSample> tissueSamples;
   private List<SinglePhotoVideo> images;
   private List<Measurement> measurements;
@@ -587,6 +587,7 @@ public class Encounter implements java.io.Serializable {
    *
    * @param  imageFile  the image to be removed from the additional images stored for this encounter
    */
+  /*
   public void removeAdditionalImageName(String imageFile) {
 
     for (int i = 0; i < collectedData.size(); i++) {
@@ -602,11 +603,13 @@ public class Encounter implements java.io.Serializable {
 
 
   }
+  */
   
+  /*
   public void removeDataCollectionEvent(DataCollectionEvent dce) {
    collectedData.remove(dce);
   }
-
+*/
   /**
    * Returns the unique encounter identifier number for this encounter.
    *
@@ -1467,7 +1470,7 @@ public class Encounter implements java.io.Serializable {
     	else{submitterOrganization=null;}
     }
 
-    public List<DataCollectionEvent> getCollectedData(){return collectedData;}
+   // public List<DataCollectionEvent> getCollectedData(){return collectedData;}
 
     /*
     public ArrayList<DataCollectionEvent> getCollectedDataOfType(String type){
@@ -1482,7 +1485,7 @@ public class Encounter implements java.io.Serializable {
       return filteredList;
     }
     */
-    
+    /*
     public <T extends DataCollectionEvent> List<T> getCollectedDataOfClass(Class<T> clazz) {
       List<DataCollectionEvent> collectedData = getCollectedData();
       List<T> result = new ArrayList<T>();
@@ -1510,7 +1513,7 @@ public class Encounter implements java.io.Serializable {
       if(!collectedData.contains(dce)){collectedData.add(dce);}
     }
     public void removeCollectedDataPoint(int num){collectedData.remove(num);}
-    
+    */
     
     public void addTissueSample(TissueSample dce){
       if(tissueSamples==null){tissueSamples=new ArrayList<TissueSample>();}
@@ -1561,7 +1564,7 @@ public class Encounter implements java.io.Serializable {
      *@return a String if found or null if no haplotype is found
      */
     public String getHaplotype(){
-      List<TissueSample> tissueSamples=getCollectedDataOfClass(TissueSample.class);
+      //List<TissueSample> tissueSamples=getCollectedDataOfClass(TissueSample.class);
       int numTissueSamples=tissueSamples.size();
       if(numTissueSamples>0){
         for(int j=0;j<numTissueSamples;j++){
