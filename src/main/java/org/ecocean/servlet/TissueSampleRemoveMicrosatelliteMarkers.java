@@ -59,22 +59,24 @@ public class TissueSampleRemoveMicrosatelliteMarkers extends HttpServlet {
         
         //MitochondrialDNAAnalysis mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), request.getParameter("encounter"), request.getParameter("analysisID"));
         MicrosatelliteMarkersAnalysis msDNA=myShepherd.getMicrosatelliteMarkersAnalysis(request.getParameter("sampleID"), request.getParameter("encounter"), request.getParameter("analysisID"));
-        
+        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed microsatellite marker analysis ID "+request.getParameter("analysisID")+".<br />"+msDNA.getHTMLString());
+
         genSample.removeGeneticAnalysis(msDNA);
 
-        String removedParameters=myShepherd.throwAwayGeneticAnalysis(msDNA);          
-        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed microsatellite marker analysis ID "+request.getParameter("analysisID")+".<br />"+removedParameters);
+        myShepherd.throwAwayMicrosatelliteMarkersAnalysis(msDNA);          
+        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed microsatellite marker analysis ID "+request.getParameter("analysisID")+".<br />");
 
       } 
       catch (Exception le) {
         locked = true;
+        le.printStackTrace();
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
       }
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully removed the microsatellite markers for tissue sample "+request.getParameter("sampleID")+" for encounter " + request.getParameter("encounter") + ".</p>");
 

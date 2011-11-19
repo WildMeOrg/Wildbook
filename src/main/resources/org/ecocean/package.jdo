@@ -210,23 +210,23 @@
             	    <join/>
             	    </field>	    
             <field name="collectedData" persistence-modifier="persistent">
-		    	                		<collection element-type="org.ecocean.DataCollectionEvent" dependent="true"/>
+		    	                		<collection element-type="org.ecocean.DataCollectionEvent" dependent-element="true"/>
 		    					<join/>
 	            		</field>
 	            		
 	    <field name="tissueSamples" persistence-modifier="persistent">
-						  <collection element-type="org.ecocean.genetics.TissueSample" dependent="true"/>
+						  <collection element-type="org.ecocean.genetics.TissueSample" dependent-element="true"/>
 						  <join/>
 	    </field>
 	    
 	    	    <field name="images" persistence-modifier="persistent" >
-	    						  <collection element-type="org.ecocean.SinglePhotoVideo" dependent="true"/>
+	    						  <collection element-type="org.ecocean.SinglePhotoVideo" dependent-element="true"/>
 	    						  <join/>
 	    </field>
 	    
 	            		
                         <field name="measurements" persistence-modifier="persistent">
-                          <collection element-type="org.ecocean.Measurement" dependent="true" />
+                          <collection element-type="org.ecocean.Measurement" dependent-element="true" />
                           <join/>
                         </field>
                         

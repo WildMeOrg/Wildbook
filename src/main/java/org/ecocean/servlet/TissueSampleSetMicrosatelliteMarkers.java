@@ -91,7 +91,7 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
         else{hasMoreLoci=false;}
         
       }
-      
+      System.out.println("Detected loci are: "+loci.toString());
       
       try {
         Encounter enc=myShepherd.getEncounter(encounterNumber);

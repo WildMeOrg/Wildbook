@@ -64,10 +64,10 @@ public class EncounterRemoveTissueSample extends HttpServlet {
         if(myShepherd.isTissueSample(request.getParameter("sampleID"), sharky)){
           genSample=myShepherd.getTissueSample(request.getParameter("sampleID"), sharky);
           enc.removeTissueSample(genSample);
-
-          String removedParameters=myShepherd.throwAwayTissueSample(genSample);          
+          enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed tissue sample ID "+request.getParameter("sampleID")+".<br />");
           
-          enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed tissue sample ID "+request.getParameter("sampleID")+".<br />"+removedParameters);
+          myShepherd.throwAwayTissueSample(genSample);          
+          
           
           
         }
@@ -76,13 +76,14 @@ public class EncounterRemoveTissueSample extends HttpServlet {
       } 
       catch (Exception le) {
         locked = true;
+        le.printStackTrace();
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
       }
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully removed tissue sample "+request.getParameter("sampleID")+" for encounter " + sharky + ".</p>");
 
@@ -98,7 +99,8 @@ public class EncounterRemoveTissueSample extends HttpServlet {
         out.println(ServletUtilities.getFooter());
 
       }
-    } else {
+    } 
+    else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to remove the tissue sample. I cannot find the encounter that you intended it for in the database.");

@@ -167,22 +167,36 @@ public class Shepherd {
     pm.deletePersistent(enc);
   }
   
-  public String throwAwayTissueSample(TissueSample genSample) {
-    String removedParameters = genSample.getHTMLString();
-    List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
+  public void throwAwayTissueSample(TissueSample genSample) {
+    //String removedParameters = genSample.getHTMLString();
+    //List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
+    /*
     for(int i=0;i<list.size();i++){
       GeneticAnalysis gen=list.get(i);
       genSample.removeGeneticAnalysis(gen);
       pm.deletePersistent(gen);
       i--;
-    }
+    }*/
     pm.deletePersistent(genSample);
-    return removedParameters;
+    //return removedParameters;
   }
-  public String throwAwayGeneticAnalysis(GeneticAnalysis analysis) {
-    String removedParameters = analysis.getHTMLString();
+  public void throwAwayGeneticAnalysis(GeneticAnalysis analysis) {
+    //String removedParameters = analysis.getHTMLString();
     pm.deletePersistent(analysis);
-    return removedParameters;
+    //return removedParameters;
+  }
+  
+  public void throwAwayMicrosatelliteMarkersAnalysis(MicrosatelliteMarkersAnalysis analysis) {
+    //String removedParameters = analysis.getHTMLString();
+    /*
+    while(analysis.getLoci().size()>0){
+      Locus l=analysis.getLoci().get(0);
+      analysis.getLoci().remove(0);
+      pm.deletePersistent(l);
+    }
+    */
+    pm.deletePersistent(analysis);
+    //return removedParameters;
   }
 
   public void throwAwayAdoption(Adoption ad) {

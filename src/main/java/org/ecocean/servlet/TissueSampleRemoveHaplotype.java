@@ -58,20 +58,21 @@ public class TissueSampleRemoveHaplotype extends HttpServlet {
         TissueSample genSample=myShepherd.getTissueSample(request.getParameter("sampleID"), request.getParameter("encounter"));
         MitochondrialDNAAnalysis mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), request.getParameter("encounter"), request.getParameter("analysisID"));
         genSample.removeGeneticAnalysis(mtDNA);
+        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed haplotype analysis ID "+request.getParameter("analysisID")+".<br />");
 
-        String removedParameters=myShepherd.throwAwayGeneticAnalysis(mtDNA);          
-        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed haplotype analysis ID "+request.getParameter("analysisID")+".<br />"+removedParameters);
-
+        myShepherd.throwAwayGeneticAnalysis(mtDNA);          
+        
       } 
       catch (Exception le) {
         locked = true;
+        le.printStackTrace();
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
       }
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully removed the haplotype for tissue sample "+request.getParameter("sampleID")+" for encounter " + request.getParameter("encounter") + ".</p>");
 
