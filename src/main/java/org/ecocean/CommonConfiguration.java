@@ -362,8 +362,19 @@ public class CommonConfiguration {
   }
   
   public static boolean showMeasurements() {
-    String showMeasurements = getProperty("showMeasurements");
-    return !Boolean.FALSE.toString().equals(showMeasurements);
+    return showCategory("showMeasurements");
+  }
+  
+  public static boolean showMetalTags() {
+    return showCategory("showMetalTags");
+  }
+  
+  public static boolean showAcousticTag() {
+    return showCategory("showAcousticTag");
+  }
+  
+  public static boolean showSatelliteTag() {
+    return showCategory("showSatelliteTag");
   }
 
   public static String appendEmailRemoveHashString(HttpServletRequest request, String
@@ -392,8 +403,12 @@ public class CommonConfiguration {
         hasMore = false;
       }
     }
-    System.out.println("Returning for key " + baseKey + list);
     return list;
+  }
+  
+  private static boolean showCategory(final String category) {
+    String showMeasurements = getProperty(category);
+    return !Boolean.FALSE.toString().equals(showMeasurements);
   }
   
 

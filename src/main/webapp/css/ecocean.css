@@ -1066,6 +1066,26 @@ img.rotor {
   font-weight: bold;
 }
 
+table.measurements,
+table.metalTags {
+ border-collapse: collapse;
+}
+
+table.measurements th,
+table.metalTags th
+ {
+  border-bottom: 1px dotted;
+  text-align: center;
+  padding: 0px; 5px;
+}
+
+table.measurements td,
+table.metalTags td
+ {
+  border-botton: 1px solid #66CCFF;
+  text-align: center;
+  padding: 5px;
+}
 /* ================================================================
 This copyright notice must be untouched at all times.
 

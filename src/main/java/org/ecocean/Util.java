@@ -10,6 +10,8 @@ public class Util {
   
   private static final String MEASUREMENT = "measurement";
   private static final String UNITS = MEASUREMENT + "Units";
+  private static final String METAL_TAG_LOCATION = "metalTagLocation";
+  private static final String SATELLITE_TAG_NAME = "satelliteTagName";
   
   public static List<MeasurementDesc> findMeasurementDescs(String langCode) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
@@ -53,6 +55,20 @@ public class Util {
       }
     }
     return null;
+  }
+  
+  public static List<MetalTagDesc> findMetalTagDescs(String langCode) {
+    List<String> metalTagLocations = CommonConfiguration.getIndexedValues(METAL_TAG_LOCATION);
+    List<MetalTagDesc> list = new ArrayList<MetalTagDesc>();
+    for (String location : metalTagLocations) {
+      String locationLabel = findLabel(location, langCode);
+      list.add(new MetalTagDesc(location, locationLabel));
+    }
+    return list;
+  }
+  
+  public static List<String> findSatelliteTagNames() {
+    return CommonConfiguration.getIndexedValues(SATELLITE_TAG_NAME);
   }
   
   private static String findLabel(String key, String langCode) {
@@ -109,6 +125,25 @@ public class Util {
     }
     public String getDisplay() {
       return display;
+    }
+    
+  }
+  
+  public static class MetalTagDesc {
+    private String location;
+    private String locationLabel;
+    
+    private MetalTagDesc(String location, String locationLabel) {
+      this.location = location;
+      this.locationLabel = locationLabel;
+    }
+
+    public String getLocation() {
+      return location;
+    }
+
+    public String getLocationLabel() {
+      return locationLabel;
     }
     
   }

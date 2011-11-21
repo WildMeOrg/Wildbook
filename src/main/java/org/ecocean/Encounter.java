@@ -28,6 +28,9 @@ import java.util.TreeMap;
 import java.util.Vector;
 import java.util.GregorianCalendar;
 import org.ecocean.genetics.*;
+import org.ecocean.tag.AcousticTag;
+import org.ecocean.tag.MetalTag;
+import org.ecocean.tag.SatelliteTag;
 
 
 /**
@@ -177,6 +180,9 @@ public class Encounter implements java.io.Serializable {
   private List<TissueSample> tissueSamples;
   private List<SinglePhotoVideo> images;
   private List<Measurement> measurements;
+  private List<MetalTag> metalTags;
+  private AcousticTag acousticTag;
+  private SatelliteTag satelliteTag;
   
   //start constructors
 
@@ -1542,15 +1548,59 @@ public class Encounter implements java.io.Serializable {
     public void removeMeasurement(Measurement num){measurements.remove(num);}
     public Measurement findMeasurementOfType(String type) {
       List<Measurement> measurements = getMeasurements();
-      for (Measurement measurement : measurements) {
-        if (type.equals(measurement.getType())) {
-          return measurement;
+      if (measurements != null) {
+        for (Measurement measurement : measurements) {
+          if (type.equals(measurement.getType())) {
+            return measurement;
+          }
         }
       }
       return null;
     }
     
+    public void addMetalTag(MetalTag metalTag) {
+      if (metalTags == null) {
+        metalTags = new ArrayList<MetalTag>();
+      }
+      metalTags.add(metalTag);
+    }
     
+    public void removeMetalTag(MetalTag metalTag) {
+      metalTags.remove(metalTag);
+    }
+    
+    public List<MetalTag> getMetalTags() {
+      return metalTags;
+    }
+    
+    public MetalTag findMetalTagForLocation(String location) {
+      List<MetalTag> metalTags = getMetalTags();
+      if (metalTags != null) {
+        for (MetalTag metalTag : metalTags) {
+          if (location.equals(metalTag.getLocation())) {
+            return metalTag;
+          }
+        }
+      }
+      return null;
+    }
+    
+    public AcousticTag getAcousticTag() {
+      return acousticTag;
+    }
+
+    public void setAcousticTag(AcousticTag acousticTag) {
+      this.acousticTag = acousticTag;
+    }
+
+    public SatelliteTag getSatelliteTag() {
+      return satelliteTag;
+    }
+
+    public void setSatelliteTag(SatelliteTag satelliteTag) {
+      this.satelliteTag = satelliteTag;
+    }
+
     public String getLifeStage(){return lifeStage;}
     public void setLifeStage(String newStage) {
       if(newStage!=null){lifeStage = newStage;}

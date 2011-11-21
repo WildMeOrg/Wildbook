@@ -437,26 +437,102 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("measurements")%>:</strong></td>
   <td colspan="2">
-  <table>
+  <table class="measurements">
+  <tr>
+  <th>Type</th><th>Size</th><th>Units</th><c:if test="${!empty samplingProtocols}"><th>Sampling Protocol</th></c:if>
+  </tr>
   <c:forEach items="${items}" var="item">
     <tr>
-    <td class="form_label2">${item.label}:</td>
-    <td><input name="measurement(${item.type})" id="${item.type}"/>
-        <input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/>
-        <c:out value="(${item.unitsLabel})"/>
-        <c:if test="${!empty samplingProtocols}">
-          <span class="form_label2">Sampling protocol:</span>
-          <select name="measurement(${item.type}samplingProtocol)">
-          <c:forEach items="${samplingProtocols}" var="optionDesc">
-            <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
-          </c:forEach>
-          </select>
-        </c:if>
-    </td>
+    <td>${item.label}</td>
+    <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
+    <td><c:out value="${item.unitsLabel}"/></td>
+    <c:if test="${!empty samplingProtocols}">
+      <td>
+        <select name="measurement(${item.type}samplingProtocol)">
+        <c:forEach items="${samplingProtocols}" var="optionDesc">
+          <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
+        </c:forEach>
+        </select>
+      </td>
+    </c:if>
     </tr>
   </c:forEach>
   </table>
   </td>
+</tr>
+</c:if>
+<%
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags());
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
+  pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode));
+%>
+
+<c:if test="${showMetalTags and !empty metalTags}">
+<tr class="form_row">
+  <td class="form_label"><strong>Metal Tags:</strong></td>
+  <td colspan="2">
+    <table class="metalTags">
+    <tr>
+      <th>Location</th><th>Tag Number</th>
+    </tr>
+    <c:forEach items="${metalTags}" var="metalTagDesc">
+      <tr>
+        <td><c:out value="${metalTagDesc.locationLabel}:"/></td>
+        <td><input name="metalTag(${metalTagDesc.location})"/></td>
+      </tr>
+    </c:forEach>
+    </table>
+  </td>
+</tr>
+</c:if>
+
+<c:if test="${showAcousticTag}">
+<tr class="form_row">
+    <td class="form_label"><strong>Acoustic Tag:</strong></td>
+    <td colspan="2">
+      <table class="acousticTag">
+      <tr>
+      <td>Serial number:</td>
+      <td><input name="acousticTagSerial"/></td>
+      </tr>
+      <tr>
+        <td>ID:</td>
+        <td><input name="acousticTagId"/></td>
+      </tr>
+      </table>
+    </td>
+</tr>
+</c:if>
+
+<c:if test="${showSatelliteTag}">
+<%
+  pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
+%>
+<tr class="form_row">
+    <td class="form_label"><strong>Satellite Tag:</strong></td>
+    <td colspan="2">
+      <table class="satelliteTag">
+      <tr>
+        <td>Name:</td>
+        <td>
+            <select name="satelliteTagName">
+              <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+                <option value="${satelliteTagName}">${satelliteTagName}</option>
+              </c:forEach>
+            </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Serial number:</td>
+        <td><input name="satelliteTagSerial"/></td>
+      </tr>
+      <tr>
+        <td>Argos PTT Number:</td>
+        <td><input name="satelliteTagArgosPttNumber"/></td>
+      </tr>
+      </table>
+    </td>
 </tr>
 </c:if>
 

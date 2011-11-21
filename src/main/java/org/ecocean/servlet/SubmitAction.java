@@ -25,6 +25,9 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.upload.FormFile;
 import org.ecocean.*;
+import org.ecocean.tag.AcousticTag;
+import org.ecocean.tag.MetalTag;
+import org.ecocean.tag.SatelliteTag;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -394,7 +397,7 @@ public class SubmitAction extends Action {
       }
       Map<String, Object> measurements = theForm.getMeasurements();
       for (String key : measurements.keySet()) {
-        if (!key.endsWith("units")) {
+        if (!key.endsWith("units") && !key.endsWith("samplingProtocol")) {
           String value = ((String) measurements.get(key)).trim();
           if (value.length() > 0) {
             try {
@@ -410,6 +413,12 @@ public class SubmitAction extends Action {
           }
         }
       }
+      List<MetalTag> metalTags = getMetalTags(theForm);
+      for (MetalTag metalTag : metalTags) {
+        enc.addMetalTag(metalTag);
+      }
+      enc.setAcousticTag(getAcousticTag(theForm));
+      enc.setSatelliteTag(getSatelliteTag(theForm));
       enc.setSex(sex);
       enc.setLivingStatus(livingStatus);
 
@@ -709,6 +718,40 @@ public class SubmitAction extends Action {
 
     myShepherd.closeDBTransaction();
     return null;
+  }
+
+  private SatelliteTag getSatelliteTag(SubmitForm theForm) {
+    String argosPttNumber =  ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSatelliteTagArgosPttNumber()).trim();
+    String satelliteTagName = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSatelliteTagName()).trim();
+    String tagSerial = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSatelliteTagSerial()).trim();
+    if (argosPttNumber.length() > 0 || satelliteTagName.length() > 0 || tagSerial.length() > 0) {
+      return new SatelliteTag(satelliteTagName, tagSerial, argosPttNumber);
+    }
+    return null;
+  }
+
+  private AcousticTag getAcousticTag(SubmitForm theForm) {
+    String acousticTagId = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getAcousticTagId()).trim();
+    String acousticTagSerial = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getAcousticTagSerial()).trim();
+    if (acousticTagId.length() > 0 || acousticTagSerial.length() > 0) {
+      return new AcousticTag(acousticTagSerial, acousticTagId);
+    }
+    return null;
+  }
+
+  private List<MetalTag> getMetalTags(SubmitForm theForm) {
+    List<MetalTag> list = new ArrayList<MetalTag>();
+    for (String key : theForm.getMetalTags().keySet()) {
+      // The keys are the location
+      String value = (String) theForm.getMetalTag(key);
+      if (value != null) {
+        value = ServletUtilities.preventCrossSiteScriptingAttacks(value).trim();
+        if (value.length() > 0) {
+          list.add(new MetalTag(value, key));
+        }
+      }
+    }
+    return list;
   }
 
 

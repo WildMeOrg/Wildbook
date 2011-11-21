@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jdo PUBLIC
+    "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN"
+    "http://java.sun.com/dtd/jdo_2_0.dtd">
+
+<jdo>
+    <package name="org.ecocean.tag">   
+
+        <class name="AbstractTag" identity-type="application">
+            <inheritance strategy="subclass-table"/>
+            <field name="id" primary-key="true" value-strategy="native"/>
+        </class>    
+        
+        <class name="MetalTag" table="METALTAG">
+            <inheritance strategy="new-table"/>
+            <field name="location"/>
+            <field name="tagNumber"/>
+        </class>
+        
+        <class name="AcousticTag" table="ACOUSTICTAG">
+            <inheritance strategy="new-table"/>
+            <field name="serialNumber"/>
+            <field name="idNumber"/>
+        </class>
+
+        <class name="SatelliteTag" table="SATELLITETAG">
+            <inheritance strategy="new-table"/>
+            <field name="name"/>
+            <field name="serialNumber"/>
+            <field name="argosPttNumber"/>
+        </class>
+
+    </package>
+</jdo>

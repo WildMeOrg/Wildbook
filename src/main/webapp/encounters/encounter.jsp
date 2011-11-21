@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.MeasurementDesc, org.ecocean.genetics.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
@@ -2250,10 +2250,12 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 </p>
 <%
   pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements());
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
 %>
 <c:if test="${showMeasurements}">
 <%
-  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
   pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode));
 %>
@@ -2262,6 +2264,9 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
   <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=measurements#measurements">edit</a>]</font>
 </c:if>
 <table>
+<tr>
+<th>Type</th><th>Size</th><th>Units</th><c:if test="${!empty samplingProtocols}"><th>Sampling Protocol</th></c:if>
+</tr>
 <c:forEach var="item" items="${measurements}">
  <% 
     MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
@@ -2272,9 +2277,77 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
     }
  %>
 <tr>
-    <td><c:out value="${item.label}:"/></td><td><c:out value="${measurementValue}"/><c:out value="(${item.unitsLabel})"/> -- <c:out value="${samplingProtocol}"/></td>
+    <td><c:out value="${item.label}"/></td><td><c:out value="${measurementValue}"/></td><td><c:out value="${item.unitsLabel}"/></td><td><c:out value="${samplingProtocol}"/></td>
 </tr>
 </c:forEach>
+</table>
+</p>
+</c:if>
+
+<c:if test="${showMetalTags}">
+<%
+  pageContext.setAttribute("metalTagTitle", encprops.getProperty("metalTags"));
+  pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode));
+%>
+<p class="para"><strong><c:out value="${metalTagTitle}"></c:out></strong>
+<c:if test="${editable and !empty metalTags}">
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=metalTags#metalTags">edit</a>]</font>
+</c:if>
+<table>
+<c:forEach var="item" items="${metalTags}">
+ <% 
+    MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("item");
+    MetalTag metalTag =  enc.findMetalTagForLocation(metalTagDesc.getLocation());
+    pageContext.setAttribute("number", metalTag == null ? null : metalTag.getTagNumber());
+    pageContext.setAttribute("locationLabel", metalTagDesc.getLocationLabel());
+ %>
+<tr>
+    <td><c:out value="${locationLabel}:"/></td><td><c:out value="${number}"/></td>
+</tr>
+</c:forEach>
+</table>
+</p>
+</c:if>
+
+<c:if test="${showAcousticTag}">
+<%
+  pageContext.setAttribute("acousticTagTitle", encprops.getProperty("acousticTag"));
+  pageContext.setAttribute("acousticTag", enc.getAcousticTag());
+%>
+<p class="para"><strong><c:out value="${acousticTagTitle}"></c:out></strong>
+<c:if test="${editable}">
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=acousticTag#acousticTag">edit</a>]</font>
+</c:if>
+<table>
+<tr>
+    <td>Serial Number:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.serialNumber}"/></td>
+</tr>
+<tr>
+    <td>ID:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.idNumber}"/></td>
+</tr>
+</table>
+</p>
+</c:if>
+
+<c:if test="${showSatelliteTag}">
+<%
+  pageContext.setAttribute("satelliteTagTitle", encprops.getProperty("satelliteTag"));
+  pageContext.setAttribute("satelliteTag", enc.getSatelliteTag());
+%>
+<p class="para"><strong><c:out value="${satelliteTagTitle}"></c:out></strong>
+<c:if test="${editable}">
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=satelliteTag#satelliteTag">edit</a>]</font>
+</c:if>
+<table>
+<tr>
+    <td>Name:</td><td><c:out value="${satelliteTag.name}"/></td>
+</tr>
+<tr>
+    <td>Serial Number:</td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.serialNumber}"/></td>
+</tr>
+<tr>
+    <td>Argos PTT Number:</td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.argosPttNumber}"/></td>
+</tr>
 </table>
 </p>
 </c:if>
