@@ -52,49 +52,45 @@
         </class>
 
 
-        <class name="MarkedIndividual" identity-type="application"
-            table="MARKEDINDIVIDUAL">
-            <field name="individualID" primary-key="true">
-                <column length="100" />
-            </field>
-            <field name="comments" persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="encounters" persistence-modifier="persistent">
-                <collection element-type="org.ecocean.Encounter" />
-                <join />
-            </field>
-            <field name="unidentifiableEncounters"
-                persistence-modifier="persistent">
-                <collection element-type="org.ecocean.Encounter" />
-                <join />
-            </field>
-            <field name="dataFiles" persistence-modifier="persistent">
-                <collection element-type="java.lang.String" />
-            </field>
-            <field name="interestedResearchers"
-                persistence-modifier="persistent">
-                <collection element-type="java.lang.String" />
-            </field>
+<class name="MarkedIndividual" identity-type="application" table="MARKEDINDIVIDUAL">
+			<field name="individualID" primary-key="true">
+				<column length="100"/>
+			</field>
+			<field name="comments" persistence-modifier="persistent" default-fetch-group="false">
+				<column jdbc-type="LONGVARCHAR" />
+			</field>
+            		<field name="encounters" persistence-modifier="persistent">
+                		<collection element-type="org.ecocean.Encounter"/>
+				<join/>
+            		</field>
+            		<field name="unidentifiableEncounters" persistence-modifier="persistent">
+                		<collection element-type="org.ecocean.Encounter" />
+				<join/>
+            		</field>
+            		<field name="dataFiles" persistence-modifier="persistent">
+                		<collection element-type="java.lang.String"/>
+            		</field>
+            		<field name="interestedResearchers" persistence-modifier="persistent" default-fetch-group="false">
+                		<collection element-type="java.lang.String"/>
+            		</field>
+            	
+		        <field name="dateTimeCreated" persistence-modifier="persistent" default-fetch-group="false">
+				            		<column jdbc-type="LONGVARCHAR" />
+		        </field>
+		        <field name="alternateid" persistence-modifier="persistent">
+				<column length="512"/>
+			</field>
+			
+			<field name="maxYearsBetweenResightings" persistence-modifier="persistent">
+				<column jdbc-type="INTEGER" allows-null="true" />
+			</field>
+		            	
+		            	        		<fetch-group name="allSharks_min">
+				            		<field name="encounters"/>
+				        		</fetch-group>
+			<fetch-group name="count" />
 
-            <field name="dateTimeCreated" persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="alternateid" persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-
-            <field name="maxYearsBetweenResightings"
-                persistence-modifier="persistent">
-                <column jdbc-type="INTEGER" allows-null="true" />
-            </field>
-
-            <fetch-group name="allSharks_min">
-                <field name="encounters" />
-            </fetch-group>
-            <fetch-group name="count" />
-
-        </class>
+		</class>
 
         <class name="Encounter" identity-type="application" table="ENCOUNTER">
             <field name="catalogNumber" primary-key="true">
