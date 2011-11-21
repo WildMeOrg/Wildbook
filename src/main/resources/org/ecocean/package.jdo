@@ -55,7 +55,7 @@
 			<field name="individualID" primary-key="true">
 				<column length="100"/>
 			</field>
-			<field name="comments" persistence-modifier="persistent">
+			<field name="comments" persistence-modifier="persistent" default-fetch-group="false">
 				<column jdbc-type="LONGVARCHAR" />
 			</field>
             		<field name="encounters" persistence-modifier="persistent">
@@ -69,15 +69,15 @@
             		<field name="dataFiles" persistence-modifier="persistent">
                 		<collection element-type="java.lang.String"/>
             		</field>
-            		<field name="interestedResearchers" persistence-modifier="persistent">
+            		<field name="interestedResearchers" persistence-modifier="persistent" default-fetch-group="false">
                 		<collection element-type="java.lang.String"/>
             		</field>
             	
-		        <field name="dateTimeCreated" persistence-modifier="persistent">
+		        <field name="dateTimeCreated" persistence-modifier="persistent" default-fetch-group="false">
 				            		<column jdbc-type="LONGVARCHAR" />
 		        </field>
 		        <field name="alternateid" persistence-modifier="persistent">
-				<column jdbc-type="LONGVARCHAR" />
+				<column length="512"/>
 			</field>
 			
 			<field name="maxYearsBetweenResightings" persistence-modifier="persistent">
