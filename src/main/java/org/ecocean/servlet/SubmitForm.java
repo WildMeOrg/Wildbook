@@ -62,6 +62,14 @@ public class SubmitForm extends ActionForm {
   
   private Map<String, Object> measurements = new HashMap<String, Object>();
   
+  private Map<String, Object> metalTags = new HashMap<String, Object>();
+  private String acousticTagSerial = "";
+  private String acousticTagId = "";
+  private String satelliteTagSerial = "";
+  private String satelliteTagArgosPttNumber = "";
+  private String satelliteTagName = "";
+  
+  
   /**
    * The value of the text the user has sent as form data
    */
@@ -492,6 +500,58 @@ public class SubmitForm extends ActionForm {
   
   public Map<String, Object> getMeasurements() {
     return measurements;
+  }
+
+  public Map<String, Object> getMetalTags() {
+    return metalTags;
+  }
+
+
+  public void setMetalTag(String key, Object value) {
+    metalTags.put(key, value);
+  }
+
+  public Object getMetalTag(String key) {
+    return metalTags.get(key);
+  }
+  public String getAcousticTagSerial() {
+    return acousticTagSerial;
+  }
+
+  public void setAcousticTagSerial(String acousticTagSerial) {
+    this.acousticTagSerial = acousticTagSerial;
+  }
+
+  public String getAcousticTagId() {
+    return acousticTagId;
+  }
+
+  public void setAcousticTagId(String acousticTagId) {
+    this.acousticTagId = acousticTagId;
+  }
+
+  public String getSatelliteTagSerial() {
+    return satelliteTagSerial;
+  }
+
+  public void setSatelliteTagSerial(String satelliteTagSerial) {
+    this.satelliteTagSerial = satelliteTagSerial;
+  }
+
+  public String getSatelliteTagArgosPttNumber() {
+    return satelliteTagArgosPttNumber;
+  }
+
+  public void setSatelliteTagArgosPttNumber(String satelliteTagArgosPttNumber) {
+    this.satelliteTagArgosPttNumber = satelliteTagArgosPttNumber;
+  }
+
+  public String getSatelliteTagName() {
+    return satelliteTagName;
+  }
+
+  public void setSatelliteTagName(String satelliteTagName) {
+    this.satelliteTagName = satelliteTagName;
   }
 
   public String getInformothers() {

@@ -54,8 +54,8 @@ public class EncounterSetMeasurements extends HttpServlet {
           list.add(requestEventValues);
           Measurement measurement;
           if (requestEventValues.id == null || requestEventValues.id.trim().length() == 0) {
-            // New Event -- I think these can happen for legacy encounters, e.g., encounters that were created when measurements didn't exist but now they do.
-            measurement = new Measurement(encNum, null, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
+            // New Event -- the user didn't enter any values the first time.
+            measurement = new Measurement(encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
             enc.addMeasurement(measurement);
           }
           else {
