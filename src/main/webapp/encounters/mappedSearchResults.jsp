@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.net.URI,java.sql.Date,java.util.zip.ZipEntry,java.io.IOException,java.io.FileInputStream,java.io.FileOutputStream,java.util.zip.ZipOutputStream,org.dom4j.Document,org.dom4j.DocumentHelper, org.dom4j.Element, org.ecocean.*, java.io.File,java.io.FileWriter, java.util.Properties, java.util.Map, java.util.HashMap, java.io.Serializable, java.util.Vector,org.geotools.data.*,org.geotools.data.shapefile.*,org.geotools.data.simple.*,org.geotools.feature.FeatureCollections,org.geotools.feature.simple.*,org.geotools.geometry.jts.JTSFactoryFinder,org.geotools.referencing.crs.DefaultGeographicCRS,org.opengis.feature.simple.*,com.vividsolutions.jts.geom.*" %>
+         import="org.ecocean.genetics.*,java.util.List,java.net.URI,java.sql.Date,java.util.zip.ZipEntry,java.io.IOException,java.io.FileInputStream,java.io.FileOutputStream,java.util.zip.ZipOutputStream,org.dom4j.Document,org.dom4j.DocumentHelper, org.dom4j.Element, org.ecocean.*, java.io.File,java.io.FileWriter, java.util.Properties, java.util.Map, java.util.HashMap, java.io.Serializable, java.util.Vector,org.geotools.data.*,org.geotools.data.shapefile.*,org.geotools.data.simple.*,org.geotools.feature.FeatureCollections,org.geotools.feature.simple.*,org.geotools.geometry.jts.JTSFactoryFinder,org.geotools.referencing.crs.DefaultGeographicCRS,org.opengis.feature.simple.*,com.vividsolutions.jts.geom.*" %>
 
 <%!
     /**
@@ -43,6 +43,7 @@
         builder.add("Encounter", String.class); 
         builder.add("Individual", String.class); 
         builder.add("Sex", String.class);
+        builder.add("Haplotype", String.class);
         builder.add("URL", String.class); 
 
         // build the type
@@ -269,6 +270,27 @@
       featureBuilder.add(enc.getCatalogNumber());
       featureBuilder.add(enc.isAssignedToMarkedIndividual());
       featureBuilder.add(enc.getSex());
+      String haploString="";
+      if(enc.getTissueSamples().size()>0){
+    	  List<TissueSample> samples=enc.getTissueSamples();
+    	  int sampleSize=samples.size();
+    	  for(int sample=0;sample<sampleSize;sample++){
+    		  TissueSample thisSample=samples.get(sample);
+    		  if(thisSample.getNumAnalyses()>0){
+    			  List<GeneticAnalysis> analyses=thisSample.getGeneticAnalyses();
+    			  int numAnalyses=analyses.size();
+    			  for(int analy=0;analy<numAnalyses;analy++){
+    				  GeneticAnalysis thisAnalysis=analyses.get(analy);
+    				  if(thisAnalysis.getAnalysisType().equals("MitochondrialDNA")){
+    					  MitochondrialDNAAnalysis thisDNA=(MitochondrialDNAAnalysis)thisAnalysis;
+    					  haploString=thisDNA.getHaplotype();
+    				  }
+    			  }
+    		  }
+    	  }
+    	  
+      }
+      featureBuilder.add(haploString);
       featureBuilder.add(("http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+enc.getCatalogNumber()));
       SimpleFeature feature = featureBuilder.buildFeature(null);
       collection.add(feature);
