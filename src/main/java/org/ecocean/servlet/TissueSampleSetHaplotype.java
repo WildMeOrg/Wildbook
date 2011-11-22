@@ -65,7 +65,7 @@ public class TissueSampleSetHaplotype extends HttpServlet {
         Encounter enc=myShepherd.getEncounter(encounterNumber);
         TissueSample sample = myShepherd.getTissueSample(sampleID, encounterNumber);
         
-        if(myShepherd.isGeneticAnalysis(sampleID, encounterNumber, analysisID)){
+        if(myShepherd.isGeneticAnalysis(sampleID, encounterNumber, analysisID, "MitochondrialDNA")){
           mtDNA=myShepherd.getMitochondrialDNAAnalysis(sampleID, encounterNumber, analysisID);
           
           //now set the new values

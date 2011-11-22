@@ -97,7 +97,8 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
         Encounter enc=myShepherd.getEncounter(encounterNumber);
         TissueSample sample = myShepherd.getTissueSample(sampleID, encounterNumber);
         
-        if(myShepherd.isGeneticAnalysis(sampleID, encounterNumber, analysisID)){
+        //TBD
+        if(myShepherd.isGeneticAnalysis(sampleID, encounterNumber, analysisID, "MicrosatelliteMarkers")){
           msMarkers=myShepherd.getMicrosatelliteMarkersAnalysis(sampleID, encounterNumber, analysisID);
           
           //now set the new values

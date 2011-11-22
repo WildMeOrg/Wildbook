@@ -439,10 +439,11 @@ public class Shepherd {
     return false;
   }
   
-  public boolean isGeneticAnalysis(String sampleID, String encounterNumber, String analysisID) {
+  //TBD - need separate for haplotype and ms markers
+  public boolean isGeneticAnalysis(String sampleID, String encounterNumber, String analysisID, String type) {
     TissueSample tempEnc = null;
     try {
-      String filter = "this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      String filter = "this.type == \""+type+"\" && this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
       Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
       Query acceptedEncounters = pm.newQuery(encClass, filter);
       Collection c = (Collection) (acceptedEncounters.execute());
