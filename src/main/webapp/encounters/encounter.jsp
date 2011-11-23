@@ -1157,7 +1157,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
         <%
         MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis();
         String analysisIDString="";
-        if((request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID")))){
+        if((request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"MitochondrialDNA"))){
       	    analysisIDString=request.getParameter("analysisID");
       		mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
         }
@@ -1236,7 +1236,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
         <%
         MicrosatelliteMarkersAnalysis msDNA=new MicrosatelliteMarkersAnalysis();
         String analysisIDString="";
-        if((request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID")))){
+        if((request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"MicrosatelliteMarkers"))){
       	    analysisIDString=request.getParameter("analysisID");
       		msDNA=myShepherd.getMicrosatelliteMarkersAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
         }

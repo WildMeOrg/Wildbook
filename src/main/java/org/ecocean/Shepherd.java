@@ -282,7 +282,7 @@ public class Shepherd {
   
   public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
-      MitochondrialDNAAnalysis mtDNA = (MitochondrialDNAAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID);
+      MitochondrialDNAAnalysis mtDNA = (MitochondrialDNAAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "MitochondrialDNA");
       return mtDNA;
     } 
     catch (Exception nsoe) {
@@ -294,7 +294,7 @@ public class Shepherd {
   
   public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
-      MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID);
+      MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "MicrosatelliteMarkers");
       return msDNA;
     } 
     catch (Exception nsoe) {
@@ -302,6 +302,7 @@ public class Shepherd {
       return null;
     }
   }
+  
   
   
  
@@ -443,7 +444,7 @@ public class Shepherd {
   public boolean isGeneticAnalysis(String sampleID, String encounterNumber, String analysisID, String type) {
     TissueSample tempEnc = null;
     try {
-      String filter = "this.type == \""+type+"\" && this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      String filter = "this.analysisType == \""+type+"\" && this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
       Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
       Query acceptedEncounters = pm.newQuery(encClass, filter);
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -462,6 +463,24 @@ public class Shepherd {
   public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       String filter = "this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+        return (GeneticAnalysis)it.next();
+      }
+    } 
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return null;
+  }
+  
+  public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID, String type) {
+    try {
+      String filter = "this.analysisType == \""+type+"\" && this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
       Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
       Query acceptedEncounters = pm.newQuery(encClass, filter);
       Collection c = (Collection) (acceptedEncounters.execute());

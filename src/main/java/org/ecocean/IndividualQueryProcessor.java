@@ -7,14 +7,11 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 import java.lang.StringBuffer;
 import javax.servlet.http.HttpServletRequest;
-import javax.jdo.Extent;
+//import javax.jdo.Extent;
 import javax.jdo.Query;
-
 import org.ecocean.Util.MeasurementDesc;
-
 import java.util.Iterator;
-//import java.util.StringTokenizer;
-//import java.util.Collections;
+
 
 
 public class IndividualQueryProcessor {
@@ -299,15 +296,16 @@ public class IndividualQueryProcessor {
                 }
               }
               locIDFilter+=" )";
-              if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="enc.images.contains(photo) && photo.keywords.contains(word) && "+locIDFilter;}
+              if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="enc3.images.contains(photo) && photo.keywords.contains(word) && "+locIDFilter;}
               else{
-                if(filter.indexOf("enc.images.contains(photo)")==-1){filter+=" && enc.images.contains(photo)";}
+                if(filter.indexOf("enc3.images.contains(photo)")==-1){filter+=" && enc3.images.contains(photo)";}
                
                 if(filter.indexOf("photo.keywords.contains(word)")==-1){filter+=" && photo.keywords.contains(word)";}
                 filter+=(" && "+locIDFilter);
               }
 
               prettyPrint.append("<br />");
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc3")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc3";}
               
                 if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo photo")){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo photo";}
                 if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word")){jdoqlVariableDeclaration+=";org.ecocean.Keyword word";}
