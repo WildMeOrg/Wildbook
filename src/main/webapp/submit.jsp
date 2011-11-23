@@ -107,18 +107,17 @@
         requiredfields += "\n   *  Your name";
       }
 
-      if ((document.encounter_submission.submitterEmail.value.length == 0) ||
-        (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
-        (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
-        /*
-         * here we look to make sure the email address field contains
-         * the @ symbol and a . to determine that it is in the correct format
-         */
-        requiredfields += "\n   *  valid Email address";
-      }
-      if ((document.encounter_submission.location.value.length == 0)) {
-        requiredfields += "\n   *  valid sighting location";
-      }
+        /*         
+        if ((document.encounter_submission.submitterEmail.value.length == 0) ||
+          (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
+          (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
+      
+             requiredfields += "\n   *  valid Email address";
+        }
+        if ((document.encounter_submission.location.value.length == 0)) {
+            requiredfields += "\n   *  valid sighting location";
+        }
+        */
 
       if (requiredfields != "") {
         requiredfields = "Please correctly enter the following fields:\n" + requiredfields;
