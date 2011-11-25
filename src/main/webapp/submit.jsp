@@ -161,8 +161,36 @@
 <tr class="form_row">
   <td class="form_label"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%>:</font></strong>
   </td>
-  <td colspan="2"><em>&nbsp;<%=props.getProperty("submit_day")%>
-  </em>
+  <td colspan="2">
+  
+      <em>&nbsp;<%=props.getProperty("submit_year")%></em> 
+    <select name="year" id="year">
+      <option selected="selected"><%=nowYear%>
+      </option>
+      <% for (int p = 1; p < 40; p++) { %>
+      <option value="<%=(nowYear-p)%>"><%=(nowYear - p)%>
+      </option>
+
+      <% } %>
+    </select>
+  
+   <em>&nbsp;<%=props.getProperty("submit_month")%></em> 
+    <select name="month" id="month">
+      <option value="1" selected="selected">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+    </select> 
+  
+  <em>&nbsp;<%=props.getProperty("submit_day")%></em>
     <select name="day" id="day">
       <option value="0" selected="selected">?</option>
       <option value="1">1</option>
@@ -196,32 +224,10 @@
       <option value="29">29</option>
       <option value="30">30</option>
       <option value="31">31</option>
-    </select> <em>&nbsp;<%=props.getProperty("submit_month")%>
-    </em> <select
-      name="month" id="month">
-      <option value="1" selected="selected">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-      <option value="7">7</option>
-      <option value="8">8</option>
-      <option value="9">9</option>
-      <option value="10">10</option>
-      <option value="11">11</option>
-      <option value="12">12</option>
-    </select> <em>&nbsp;<%=props.getProperty("submit_year")%>
-    </em> <select
-      name="year" id="year">
-      <option selected="selected"><%=nowYear%>
-      </option>
-      <% for (int p = 1; p < 40; p++) { %>
-      <option vale="<%=(nowYear-p)%>"><%=(nowYear - p)%>
-      </option>
+    </select> 
+   
 
-      <% } %>
-    </select></td>
+    </td>
 </tr>
 
 <tr class="form_row">
