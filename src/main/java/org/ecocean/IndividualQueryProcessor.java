@@ -263,11 +263,13 @@ public class IndividualQueryProcessor {
       if(request.getParameter("hasTissueSample")!=null){
             prettyPrint.append("Has tissue sample.");
 
-              if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="enc.tissueSamples.contains(dce)";}
-              else if (filter.indexOf("enc.tissueSamples.contains(dce)")==-1){filter+=(" && enc.tissueSamples.contains(dce) ");}
+              if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="enc4.tissueSamples.contains(dce3)";}
+              else if (filter.indexOf("enc4.tissueSamples.contains(dce3)")==-1){filter+=(" && enc4.tissueSamples.contains(dce3) ");}
 
               prettyPrint.append("<br />");
-              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce";}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce3")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce3";}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc4")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc4";}
+              
               
       }
       //end hasTissueSample filters-----------------------------------------------
