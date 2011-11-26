@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
 
 <%
 
@@ -150,6 +150,29 @@
       padding: 8px;
     }
 
+table.tissueSample {
+    border-width: 1px;
+    border-spacing: 2px;
+    border-color: gray;
+    border-collapse: collapse;
+    background-color: white;
+}
+table.tissueSample th {
+    border-width: 1px;
+    padding: 1px;
+    border-style: solid;
+    border-color: gray;
+    background-color: #99CCFF;
+    -moz-border-radius: ;
+}
+table.tissueSample td {
+    border-width: 1px;
+    padding: 2px;
+    border-style: solid;
+    border-color: gray;
+    background-color: white;
+    -moz-border-radius: ;
+}
     -->
   </style>
 
@@ -865,8 +888,77 @@ if (isOwner) {
 </table>
 <!-- end thumbnail gallery -->
 
-<p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %>
-</strong></p>
+<!-- Start genetics -->
+<br />
+<a name="tissueSamples"></a>
+<p class="para"><img align="absmiddle" src="images/microscope.gif" /><strong><%=props.getProperty("tissueSamples") %></strong></p>
+<p>
+<%
+List<TissueSample> tissueSamples=sharky.getAllTissueSamples();
+
+int numTissueSamples=tissueSamples.size();
+if(numTissueSamples>0){
+%>
+<table width="100%" class="tissueSample">
+<tr><th><strong><%=props.getProperty("sampleID") %></strong></th><th><strong><%=props.getProperty("values") %></strong></th><th><strong><%=props.getProperty("analyses") %></strong></th></tr>
+<%
+for(int j=0;j<numTissueSamples;j++){
+	TissueSample thisSample=tissueSamples.get(j);
+	%>
+	<tr><td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td>
+	
+	<td><table>
+		<%
+		int numAnalyses=thisSample.getNumAnalyses();
+		List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+		for(int g=0;g<numAnalyses;g++){
+			GeneticAnalysis ga = gAnalyses.get(g);
+			if(ga.getAnalysisType().equals("MitochondrialDNA")){
+				MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
+				%>
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %></span></td></tr></li>
+			<%
+			}
+			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+				MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
+				
+			%>
+			<tr>
+				<td style="border-style: none;">
+					<p><span class="caption"><strong><%=props.getProperty("msMarkers") %></strong></span></p>
+					<span class="caption"><%=mito.getAllelesHTMLString() %></span>
+				</td>
+				</tr></li>
+			
+			<% 
+			}
+		}
+		%>
+		</table>
+
+	</td>
+	
+	
+	</tr>
+	<%
+}
+%>
+</table>
+</p>
+<%
+}
+else {
+%>
+	<p class="para"><%=props.getProperty("noTissueSamples") %></p>
+<%
+}
+
+%>
+<!-- End genetics -->
+
+<!-- Start mapping -->
+<br />
+<p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>
 <%
   Vector haveGPSData = new Vector();
   haveGPSData = sharky.returnEncountersWithGPSData();
@@ -947,9 +1039,10 @@ if (isOwner) {
 
   if (isOwner) {
 %>
-
-<p><strong><%=additionalDataFiles %>
-</strong>: <%if (sharky.getDataFiles().size() > 0) {%>
+<br />
+<p>
+<strong><img align="absmiddle" src="images/48px-Crystal_Clear_mimetype_binary.png" /> <%=additionalDataFiles %></strong>: 
+<%if (sharky.getDataFiles().size() > 0) {%>
 </p>
 <table>
   <%
@@ -959,8 +1052,7 @@ if (isOwner) {
   %>
 
   <tr>
-    <td><img src="disk.gif"> <a
-      href="individuals/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%>
+    <td><a href="individuals/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%>
     </a></td>
     <td>&nbsp;&nbsp;&nbsp;[<a
       href="IndividualRemoveDataFile?individual=<%=name%>&filename=<%=file_name%>"><%=delete %>
@@ -992,8 +1084,8 @@ if (isOwner) {
   }
 %>
 
-
-<p><strong><%=researcherComments %>
+<br />
+<p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %>
 </strong>: </p>
 
 <p><%=sharky.getComments().replaceAll("\n", "<br>")%>
