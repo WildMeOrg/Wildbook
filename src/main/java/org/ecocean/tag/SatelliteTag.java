@@ -6,6 +6,10 @@ public class SatelliteTag extends AbstractTag {
   private String serialNumber;
   private String argosPttNumber;
   
+  public SatelliteTag() {
+    
+  }
+  
   public SatelliteTag(String name, String serialNumber, String argosPttNumber) {
     this.name = name;
     this.serialNumber = serialNumber;

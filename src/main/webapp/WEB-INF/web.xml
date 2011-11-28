@@ -432,6 +432,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>EncounterSetTags</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetTags</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>EncounterSetDynamicProperty</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetDynamicProperty</servlet-class>
   </servlet>
@@ -631,6 +636,11 @@
   <servlet-mapping>
     <servlet-name>EncounterSetMeasurements</servlet-name>
     <url-pattern>/EncounterSetMeasurements</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterSetTags</servlet-name>
+    <url-pattern>/EncounterSetTags</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

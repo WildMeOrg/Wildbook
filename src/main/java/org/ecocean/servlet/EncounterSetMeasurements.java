@@ -96,7 +96,7 @@ public class EncounterSetMeasurements extends HttpServlet {
     else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to set the lifeStage. I cannot find the encounter that you intended in the database.");
+      out.println("<strong>Error:</strong> I was unable to set the measurements. I cannot find the encounter that you intended in the database.");
       out.println(ServletUtilities.getFooter());
 
     }

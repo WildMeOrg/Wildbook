@@ -6,6 +6,10 @@ public class AcousticTag extends AbstractTag {
   
   private String idNumber;
   
+  public AcousticTag() {
+    
+  }
+  
   public AcousticTag(String serialNumber, String idNumber) {
     this.serialNumber = serialNumber;
     this.idNumber = idNumber;

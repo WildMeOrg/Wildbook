@@ -724,7 +724,7 @@ public class SubmitAction extends Action {
     String argosPttNumber =  ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSatelliteTagArgosPttNumber()).trim();
     String satelliteTagName = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSatelliteTagName()).trim();
     String tagSerial = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getSatelliteTagSerial()).trim();
-    if (argosPttNumber.length() > 0 || satelliteTagName.length() > 0 || tagSerial.length() > 0) {
+    if (argosPttNumber.length() > 0 || tagSerial.length() > 0) {
       return new SatelliteTag(satelliteTagName, tagSerial, argosPttNumber);
     }
     return null;
