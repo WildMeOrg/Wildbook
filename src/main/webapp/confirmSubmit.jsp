@@ -40,7 +40,7 @@
   props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
 
 
-  email_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/confirmSubmitEmails.properties"));
+  email_props.load(getClass().getResourceAsStream("/bundles/confirmSubmitEmails.properties"));
 
 
   //link path to submit page with appropriate language

@@ -635,6 +635,21 @@ public class MarkedIndividual {
   public int getMaxNumYearsBetweenSightings(){
     return maxYearsBetweenResightings;
   }
+  
+  public int getMaxNumYearsBetweenSightingsInLocationID(String locID){
+    int numEncounters=encounters.size();
+    int firstYearIn=3000;
+    int lastYearIn=0;
+    for(int i=0;i<numEncounters;i++){
+      Encounter enc=(Encounter)encounters.get(i);
+      if(enc.getLocationID().equals(locID)){
+        int year=enc.getYear();
+        if(year>lastYearIn){lastYearIn=year;}
+        if(year<firstYearIn){firstYearIn=year;}
+      }
+    }
+    return (lastYearIn-firstYearIn);
+  }
 
   public int getEarliestSightingYear() {
     int lowestYear = 5000;
