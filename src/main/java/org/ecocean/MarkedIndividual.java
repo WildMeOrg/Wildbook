@@ -21,6 +21,7 @@ package org.ecocean;
 
 import java.util.*;
 import java.util.GregorianCalendar;
+import org.ecocean.genetics.*;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -939,6 +940,19 @@ public class MarkedIndividual {
         if (enc.hasKeyword(word) && (!al.contains(word))) {
           al.add(word);
         }
+      }
+    }
+    return al;
+  }
+  
+  public ArrayList<TissueSample> getAllTissueSamples() {
+    ArrayList<TissueSample> al = new ArrayList<TissueSample>();
+    int numEncounters = encounters.size();
+    for (int i = 0; i < numEncounters; i++) {
+      Encounter enc = (Encounter) encounters.get(i);
+      List<TissueSample> list = enc.getTissueSamples();
+      if((list!=null)&&(list.size()>0)){
+        al.addAll(list);
       }
     }
     return al;
