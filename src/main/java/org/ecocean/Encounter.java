@@ -165,6 +165,10 @@ public class Encounter implements java.io.Serializable {
   //to be used to help narrow the search for a marked individual
   private String patterningCode;
 
+  //submitting organization and project further detail the scope of who submitted this project
+  private String submitterOrganization;
+  private String submitterProject;
+
   //start constructors
 
   /**
@@ -1422,5 +1426,25 @@ public class Encounter implements java.io.Serializable {
     if(decimalLatitude!=null){return Double.toString(decimalLongitude);}
     return null;
   }
+
+
+
+  public String getSubmitterProject() {
+      return submitterProject;
+  }
+  public void setSubmitterProject(String newProject) {
+      if(newProject!=null){submitterProject = newProject;}
+  	else{submitterProject=null;}
+  }
+
+    public String getSubmitterOrganization() {
+        return submitterOrganization;
+    }
+    public void setSubmitterOrganization(String newOrg) {
+        if(newOrg!=null){submitterOrganization = newOrg;}
+    	else{submitterOrganization=null;}
+    }
+
+
 }
 

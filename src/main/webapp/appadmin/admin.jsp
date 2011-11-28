@@ -155,7 +155,7 @@
           <td>
             <p><font size="+1">Logs</font></p>
 
-            <p><a href="../logs/user-access.html">View user accesss and
+            <p><a href="../logs/user-access.html">View user access and
               error log</a></p>
 
             <p>&nbsp;</p>

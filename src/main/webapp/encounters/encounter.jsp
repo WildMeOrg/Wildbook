@@ -34,7 +34,7 @@
         //let's see if we can find a string in the mapping properties file
         Properties props = new Properties();
         //set up the file input stream
-        props.load(getClass().getResourceAsStream("/bundles/en/newSharkNumbers.properties"));
+        props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
 
 
         //let's see if the property is defined
@@ -888,20 +888,37 @@ if(!loggedIn){
               method="post"><label> <input type="radio"
                                            name="contact"
                                            value="submitter"><%=encprops.getProperty("submitter")%>
-        </label> <br><label>
+        </label> <br /><label>
           <input type="radio" name="contact"
                  value="photographer"><%=encprops.getProperty("photographer")%>
         </label>
-          <br> <%=encprops.getProperty("name")%><br><input name="name" type="text" size="20"
-                                                           maxlength="100"> <%=encprops.getProperty("email")%>
-          <br><input name="email"
-                     type="text" size="20"> <%=encprops.getProperty("phone")%><br><input
-            name="phone"
-            type="text" size="20" maxlength="100"> <%=encprops.getProperty("phone")%><br><input
-            name="address" type="text" size="20" maxlength="100"> <input
-            name="number" type="hidden" value=<%=num%>> <input
-            name="action" type="hidden" value="editcontact"> <input
-            name="EditContact" type="submit" id="EditContact" value="Update">
+          <br /> 
+          
+          <%=encprops.getProperty("name")%><br />
+          <input name="name" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("email")%><br />
+          <input name="email" type="text" size="20" /> 
+          
+          <%=encprops.getProperty("phone")%><br />
+          <input name="phone" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("address")%><br />
+          <input name="address" type="text" size="20" maxlength="100" /> 
+          
+           <%=encprops.getProperty("submitterOrganization")%><br />
+          <input name="submitterOrganization" type="text" size="20" maxlength="100" /> 
+          
+          <%=encprops.getProperty("submitterProject")%><br />
+	  <input name="submitterProject" type="text" size="20" maxlength="100" /> 
+	            
+          
+            
+            
+            
+            <input name="number" type="hidden" value="<%=num%>" /> 
+            <input name="action" type="hidden" value="editcontact" /> 
+            <input name="EditContact" type="submit" id="EditContact" value="Update" />
         </form>
       </td>
     </tr>
@@ -1828,22 +1845,48 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
     <%
  	}
- %><br/> <%=enc.getSubmitterName()%><br/> <%
-		if (isOwner) {
+ %> 
+ <%
+ if(enc.getSubmitterName()!=null){
+ %>
+ <br/><%=enc.getSubmitterName()%>
+ <%
+ }
+     	if (isOwner) {
 			
-			if(enc.getSubmitterEmail().indexOf(",")!=-1) {
-		//break up the string
-		StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");
+		if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))&&(enc.getSubmitterEmail().indexOf(",")!=-1)) {
+			//break up the string
+			StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");
 		
 		while(stzr.hasMoreTokens()) {
-	%> <%=stzr.nextToken()%><br/> <%
+	%> <br/><%=stzr.nextToken()%> <%
 				}
 				
-					}
-					else {
-			%> <%=enc.getSubmitterEmail()%><br/> <%
-			}
-		%> <%=enc.getSubmitterPhone()%><br/> <%=enc.getSubmitterAddress()%>
+		}
+		else if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))) {
+			%> <br/><%=enc.getSubmitterEmail()%> <%
+		}
+		if((enc.getSubmitterPhone()!=null)&&(!enc.getSubmitterPhone().equals(""))){
+		%> 
+			<br/> <%=enc.getSubmitterPhone()%>
+		<%
+		}
+		if((enc.getSubmitterAddress()!=null)&&(!enc.getSubmitterAddress().equals(""))){
+		%>
+			<br /><%=enc.getSubmitterAddress()%>
+		<%
+		}
+		%>
+		<%
+		if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){%>
+			<br/><%=enc.getSubmitterOrganization()%>
+		<%
+		}
+		if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
+			<br/><%=enc.getSubmitterProject()%>
+		<%}%>
+		
+		
     <%
 	}
 %>
@@ -1851,14 +1894,33 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 <p class="para"><strong><%=encprops.getProperty("photographer") %>
 </strong> <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %><font size="-1">[<a
-  href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
-    <%
+		 %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
+    	<%
  	}
- %><br/> <%=enc.getPhotographerName()%><br/> <%
-	if (isOwner) {
-%> <%=enc.getPhotographerEmail()%><br/> <%=enc.getPhotographerPhone()%><br/>
-    <%=enc.getPhotographerAddress()%>
+ if(enc.getPhotographerName()!=null){	
+ %>
+ 	<br/> <%=enc.getPhotographerName()%> <%
+ }
+ 
+if (isOwner) {
+
+if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
+%>
+	<br/><%=enc.getPhotographerEmail()%> 
+<%
+}
+if((enc.getPhotographerPhone()!=null)&&(!enc.getPhotographerPhone().equals(""))){
+%>
+	<br/><%=enc.getPhotographerPhone()%>
+<%
+}
+if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals(""))){
+%>
+	<br/><%=enc.getPhotographerAddress()%>
+<%
+}
+%>
+
 
 
 <p class="para"><strong><%=encprops.getProperty("inform_others") %>
