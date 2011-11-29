@@ -35,6 +35,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 //import java.io.FileInputStream;
@@ -389,6 +390,16 @@ public class SubmitAction extends Action {
       //now let's add our encounter to the database
       Encounter enc = new Encounter(day, month, year, hour, minutes, guess, location, submitterName, submitterEmail, images);
       enc.setComments(comments.replaceAll("\n", "<br>"));
+      if (theForm.getReleaseDate() != null && theForm.getReleaseDate().length() > 0) {
+        String dateStr = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getReleaseDate());
+        String dateFormatPattern = CommonConfiguration.getProperty("releaseDateFormat");
+        try {
+          SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
+          enc.setReleaseDate(simpleDateFormat.parse(dateStr));
+        } catch (Exception e) {
+          enc.addComments("<p>Reported release date was problematic: " + dateStr + "</p>");
+        }
+      }
       if(theForm.getBehavior()!=null){
   			enc.setBehavior(behavior);
   		}

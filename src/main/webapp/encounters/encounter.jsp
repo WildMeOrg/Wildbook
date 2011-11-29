@@ -22,7 +22,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
 <%!
 
@@ -514,6 +515,33 @@ if(!loggedIn){
 </table>
 <br> <%
 				}
+     %>
+<c:if test="${param.edit eq 'releaseDate'}">
+  <a name="releaseDate"/>
+  <table class="editEncounter">
+    <tr>
+      <td align="left" valign="top" class="para"><strong><font color="#990000">
+                    <%=encprops.getProperty("releaseDate")%>:</font></strong><br />
+      </td>
+    </tr>
+    <tr>
+        <td>
+            <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate">
+                <input type="hidden" name="encounter" value="${num}"/>
+            <table>
+                <tr><td><%=encprops.getProperty("releaseDateFormat") %></td></tr>
+                <c:set var="releaseDate">
+                    <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
+                </c:set>
+                <tr><td><input name="releaseDate" value="${releaseDate}"/></td></tr>
+                <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
+            </table>
+            </form>
+        </td>
+    </tr>
+  </table>
+</c:if>     
+     <%
 				//set location code
 				if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("loccode"))){
 			%> <a name="loccode"><br>
@@ -2171,6 +2199,17 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
     href="encounter.jsp?number=<%=num%>&edit=verbatimEventDate#verbatimEventDate">edit</a>]</font> <%
         		}
         		%>
+<%
+  pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
+%>
+<c:if test="${showReleaseDate}">
+  <p class="para"><strong><%=encprops.getProperty("releaseDate") %></strong>
+    <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
+    <c:if test="${editable}">
+        <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=releaseDate#releaseDate">edit</a>]</font>
+    </c:if>
+  </p>
+</c:if>
 
 <p class="para"><strong><%=encprops.getProperty("location") %>
 </strong><br/> <%=enc.getLocation()%>
