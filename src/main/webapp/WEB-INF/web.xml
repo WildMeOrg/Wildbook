@@ -234,6 +234,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>EncounterSetBehavior</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetBehavior</servlet-class>
+  </servlet>
+  
+  <servlet>
     <servlet-name>EncounterSetAsUnidentifiable</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetAsUnidentifiable</servlet-class>
   </servlet>
@@ -598,6 +603,11 @@
   <servlet-mapping>
     <servlet-name>EncounterSetAsUnidentifiable</servlet-name>
     <url-pattern>/EncounterSetAsUnidentifiable</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>EncounterSetBehavior</servlet-name>
+      <url-pattern>/EncounterSetBehavior</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

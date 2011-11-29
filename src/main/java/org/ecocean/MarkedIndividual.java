@@ -35,7 +35,7 @@ import java.util.GregorianCalendar;
 public class MarkedIndividual {
 
   //unique name of the MarkedIndividual, such as 'A-109'
-  private String name = "";
+  private String individualID = "";
 
   //alternate id for the MarkedIndividual, such as a physical tag number of reference in another database
   private String alternateid;
@@ -79,9 +79,9 @@ public class MarkedIndividual {
 
   private int maxYearsBetweenResightings;
 
-  public MarkedIndividual(String name, Encounter enc) {
+  public MarkedIndividual(String individualID, Encounter enc) {
 
-    this.name = name;
+    this.individualID = individualID;
     encounters.add(enc);
     dataFiles = new Vector();
     numberEncounters = 1;
@@ -105,7 +105,7 @@ public class MarkedIndividual {
 
   public boolean addEncounter(Encounter newEncounter) {
 
-    newEncounter.assignToMarkedIndividual(name);
+    newEncounter.assignToMarkedIndividual(individualID);
     if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
     if(newEncounter.wasRejected()) {
       numUnidentifiableEncounters++;
@@ -418,7 +418,11 @@ public class MarkedIndividual {
    * @return the name of the MarkedIndividual as a String
    */
   public String getName() {
-    return name;
+    return individualID;
+  }
+
+  public String getIndividualID() {
+      return individualID;
   }
 
   public String getNickName() {
@@ -449,8 +453,13 @@ public class MarkedIndividual {
   }
 
   public void setName(String newName) {
-    name = newName;
+    individualID = newName;
   }
+
+    public void setIndividualID(String newName) {
+      individualID = newName;
+    }
+
 
   /**
    * Returns the specified encounter, where the encounter numbers range from 0 to n-1, where n is the total number of encounters stored

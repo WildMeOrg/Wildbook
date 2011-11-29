@@ -778,9 +778,9 @@ if(!loggedIn){
   <tr>
     <td align="left" valign="top">
       <form name="createShark" method="post" action="../IndividualCreate">
-        <input name="number" type="hidden" value="<%=num%>"> <input
-        name="action" type="hidden" value="create"> <input
-        name="individual" type="text" id="individual" size="10"
+        <input name="number" type="hidden" value="<%=num%>"> 
+        <input name="action" type="hidden" value="create"> 
+        <input name="individual" type="text" id="individual" size="10"
         maxlength="50"
         value="<%=getNextIndividualNumber(enc, myShepherd)%>"><br>
         <%
@@ -801,7 +801,7 @@ if(!loggedIn){
     			bordercolor="#000000" bgcolor="#CCCCCC">
     			<tr>
     				<td align="left" valign="top" class="para"><span class="style3"><font
-    					color="#990000"><%=encprops.getProperty("resetGPS")%>:</font></span><br> <font size="-1"><%=encprops.getProperty("noteGPS")%></font>
+    					color="#990000"><%=encprops.getProperty("resetGPS")%>:</font></span><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
     				</td>
     			</tr>
     			<tr>
@@ -846,9 +846,10 @@ if(!loggedIn){
 </a><br> <%
 			}
 				
-				//update submitted comments for sighting
-			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("comments"))){
-		%> <a name="comments">
+//update submitted comments for sighting
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("comments"))){
+%> 
+<a name="comments">
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -867,8 +868,44 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
-			}
+</a><br /> 
+<%
+}
+
+//update submitted comments for sighting
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("behavior"))){
+%> 
+<a name="behavior">
+  <table width="150" border="1" cellpadding="1" cellspacing="0"
+         bordercolor="#000000" bgcolor="#CCCCCC">
+    <tr>
+      <td align="left" valign="top" class="para">
+      	<strong><font color="#990000"><%=encprops.getProperty("editBehaviorComments")%>:</font></strong>
+      	<br /><font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
+      </td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="setBehaviorComments" action="../EncounterSetBehavior"
+              method="post"><textarea name="behaviorComment" size="15">
+         <%
+         if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
+         %>
+              <%=enc.getBehavior()%>
+        <%
+        }
+        %>
+        </textarea>
+          <input name="number" type="hidden" value=<%=num%>> <input
+            name="action" type="hidden" value="editBehavior"> <input
+            name="EditBeh" type="submit" id="EditBeh"
+            value="<%=encprops.getProperty("submitEdit")%>"></form>
+      </td>
+    </tr>
+  </table>
+</a><br /> 
+<%
+}
 				//reset contact info
 			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
 		%> <a name="contact">
