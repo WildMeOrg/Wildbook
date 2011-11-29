@@ -213,9 +213,9 @@
                                 } else if (request.getParameter("sort").equals("encountersdown")) {
                                     allSharks = myShepherd.getAllMarkedIndividuals(query, "numberEncounters descending");
                                 } else if (request.getParameter("sort").equals("nameup")) {
-                                    allSharks = myShepherd.getAllMarkedIndividuals(query, "name ascending");
+                                    allSharks = myShepherd.getAllMarkedIndividuals(query, "individualID ascending");
                                 } else if (request.getParameter("sort").equals("namedown")) {
-                                    allSharks = myShepherd.getAllMarkedIndividuals(query, "name descending");
+                                    allSharks = myShepherd.getAllMarkedIndividuals(query, "individualID descending");
                                 } else if (request.getParameter("sort").equals("seriesup")) {
                                     allSharks = myShepherd.getAllMarkedIndividuals(query, "seriesCode ascending");
                                 } else if (request.getParameter("sort").equals("seriesdown")) {

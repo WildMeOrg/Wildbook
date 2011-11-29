@@ -53,6 +53,8 @@ public class SubmitForm extends ActionForm {
   private int day = 1, month = 1, year = 2003, hour = 12;
   private String lat = "", longitude = "", latDirection = "", longDirection = "", scars = "None";
   private String minutes = "00", gpsLongitudeMinutes = "", gpsLongitudeSeconds = "", gpsLatitudeMinutes = "", gpsLatitudeSeconds = "", submitterID = "N/A", informothers = "";
+  private String genusSpecies="";
+  private String behavior="";
   /**
    * The value of the text the user has sent as form data
    */
@@ -129,6 +131,7 @@ public class SubmitForm extends ActionForm {
     submitterID = "N/A";
     informothers = "";
     livingStatus = "";
+    genusSpecies="";
   }
 
 
@@ -454,6 +457,14 @@ public class SubmitForm extends ActionForm {
     this.gpsLatitudeSeconds = gpsLatitudeSeconds;
   }
 
+    public String getBehavior() {
+      return this.behavior;
+    }
+
+    public void setBehavior(String behavior) {
+      this.behavior = behavior;
+  }
+
   public String getInformothers() {
     return this.informothers;
   }
@@ -461,6 +472,12 @@ public class SubmitForm extends ActionForm {
   public void setInformothers(String informit) {
     this.informothers = informit;
   }
+
+  public String getGenusSpecies(){return this.genusSpecies;}
+  public void setGenusSpecies(String newValue) {
+      this.genusSpecies = newValue;
+  }
+
 
   /**
    * Retrieve the value of the text the user has sent as form data
