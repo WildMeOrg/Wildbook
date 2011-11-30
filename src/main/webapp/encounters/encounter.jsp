@@ -3298,7 +3298,18 @@ for(int j=0;j<numTissueSamples;j++){
 			if(ga.getAnalysisType().equals("MitochondrialDNA")){
 				MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
 				%>
-				<tr><td style="border-style: none;"><strong><span class="caption"><%=encprops.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %></span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype#haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=encprops.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %>
+				<%
+				if(!mito.getSuperHTMLString().equals("")){
+				%>
+				<em>
+				<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+				<br /><%=mito.getSuperHTMLString()%>
+				</em>
+				<%
+				}
+				%>
+				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype#haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
 			<%
 			}
 			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
@@ -3308,7 +3319,19 @@ for(int j=0;j<numTissueSamples;j++){
 			<tr>
 				<td style="border-style: none;">
 					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span></p>
-					<span class="caption"><%=mito.getAllelesHTMLString() %></span>
+					<span class="caption"><%=mito.getAllelesHTMLString() %>
+						<%
+									if(!mito.getSuperHTMLString().equals("")){
+									%>
+									<em>
+									<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+									<br /><%=mito.getSuperHTMLString()%>
+									</em>
+									<%
+									}
+				%>
+					
+					</span>
 				</td>
 				<td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=msMarkers#msMarkers"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
 			

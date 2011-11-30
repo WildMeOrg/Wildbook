@@ -44,6 +44,11 @@ public class MicrosatelliteMarkersAnalysis extends GeneticAnalysis{
     return paramValues; 
   }
   
+  public String getSuperHTMLString(){
+    String paramValues=super.getHTMLString();
+    return paramValues; 
+  }
+  
   public String getAllelesHTMLString(){
     StringBuffer returnString=new StringBuffer("");
     if((loci!=null)&&(loci.size()>0)){

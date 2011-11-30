@@ -49,5 +49,10 @@ public class MitochondrialDNAAnalysis extends GeneticAnalysis{
   return paramValues; 
   }
   
+  public String getSuperHTMLString(){
+    String paramValues=super.getHTMLString();
+    return paramValues; 
+  }
+  
   
 }
