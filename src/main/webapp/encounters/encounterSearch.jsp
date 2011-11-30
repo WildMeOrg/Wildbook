@@ -52,6 +52,7 @@
     animatedcollapse.addDiv('map', 'fade=1')
     animatedcollapse.addDiv('date', 'fade=1')
     animatedcollapse.addDiv('observation', 'fade=1')
+    animatedcollapse.addDiv('tags', 'fade=1')
     animatedcollapse.addDiv('identity', 'fade=1')
     animatedcollapse.addDiv('metadata', 'fade=1')
     animatedcollapse.addDiv('export', 'fade=1')
@@ -829,6 +830,42 @@ if(CommonConfiguration.showProperty("showLifestage")){
   </td>
 </tr>
 
+<%
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags());
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
+%>
+<c:if test="${showMetalTags or showAcousticTag or showSatelliteTag}">
+ <tr>
+     <td>
+     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+       href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
+       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+       <font color="#000000">Tags</font></a></h4>
+     </td>
+ </tr>
+ <tr>
+    <td>
+        <div id="tags" style="display:none;">
+        <p>Use the fields below to limit your search to specific tags.</p>
+        <c:if test="${showMetalTags}">
+            <% 
+              pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); 
+            %>
+        </c:if>
+        <c:if test="${showAcousticTag}">
+        <h5>Acoustic Tag</h5>
+        <table>
+        <tr><td>Serial number:</td><td><input name="acousticTagSerial"/></td></tr>
+        <tr><td>ID:</td><td><input name="acousticTagId"/></td></tr>
+        </table>
+        </c:if>
+        <c:if test="${showSatelliteTag}">
+        </c:if>
+        </div>
+    </td>
+ </tr>
+</c:if>
 
 <tr>
   <td>

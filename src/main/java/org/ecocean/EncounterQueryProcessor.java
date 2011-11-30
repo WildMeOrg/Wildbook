@@ -144,6 +144,16 @@ public class EncounterQueryProcessor {
     }
     //end behavior filters-----------------------------------------------
     //------------------------------------------------------------------
+    
+    //Tag Filters--------------------------------------------------------
+    String tagFilters = processTagFilters(request, prettyPrint);
+    if (tagFilters.length() > 0) {
+      if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+        filter += " && ";
+      }
+      filter += tagFilters.toString();
+    }
+    //end tag filters----------------------------------------------------
    
     //lifeStage filters-------------------------------------------------
     String[] stages=request.getParameterValues("lifeStageField");
@@ -867,5 +877,36 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
   }
 
 
+  private static String processTagFilters(HttpServletRequest request, StringBuffer prettyPrint) {
+    StringBuilder tagFilter = new StringBuilder();
+    String acousticTagSerial = request.getParameter("acousticTagSerial");
+    if (acousticTagSerial != null && acousticTagSerial.length() > 0) {
+      prettyPrint.append("acoustic tag serial number is: ");
+      prettyPrint.append(acousticTagSerial);
+      prettyPrint.append("<br/>");
+      tagFilter.append('(');
+      tagFilter.append("acousticTag.serialNumber == ");
+      tagFilter.append("\"");
+      tagFilter.append(acousticTagSerial);
+      tagFilter.append("\"");
+      tagFilter.append(')');
+    }
+    String acousticTagId = request.getParameter("acousticTagId");
+    if (acousticTagId != null && acousticTagId.length() > 0) {
+      prettyPrint.append("acoustic tag id is: ");
+      prettyPrint.append(acousticTagId);
+      prettyPrint.append("<br/>");
+      if (tagFilter.length() > 0) {
+        tagFilter.append(" && ");
+      }
+      tagFilter.append('(');
+      tagFilter.append("acousticTag.idNumber == ");
+      tagFilter.append("\"");
+      tagFilter.append(acousticTagId);
+      tagFilter.append("\"");
+      tagFilter.append(')');
+    }
+    return tagFilter.toString();
+  }
 
 }
