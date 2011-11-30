@@ -230,6 +230,16 @@
     </td>
 </tr>
 
+<%
+  pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
+%>
+<c:if test="${showReleaseDate}">
+    <tr class="form_row">
+    <td class="form_label"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
+    <td colspan="2"><input name="releaseDate"/> <%= props.getProperty("submit_releasedate_format") %></td>
+    </tr>
+</c:if>
+
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_time")%>:</strong>
   </td>

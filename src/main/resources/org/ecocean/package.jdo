@@ -110,7 +110,9 @@
                 <column jdbc-type="BIGINT" allows-null="true" />
             </field>
 
-
+            <field name="releaseDate" persistence-modifier="persistent">
+                <column jdbc-type="DATE" allows-null="true"/>
+            </field>
 
             <field name="maximumDepthInMeters"
                 persistence-modifier="persistent">

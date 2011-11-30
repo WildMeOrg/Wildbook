@@ -22,6 +22,7 @@ package org.ecocean;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
@@ -93,6 +94,9 @@ public class Encounter implements java.io.Serializable {
 
   //Date the encounter was added to the library.
   private String dwcDateAdded;
+  
+  // If Encounter spanned more than one day, date of release
+  private Date releaseDate;
 
   //Size of the individual in meters
   private Double size;
@@ -1114,9 +1118,17 @@ public class Encounter implements java.io.Serializable {
   public void setDWCDateAdded(String m_dateAdded) {
     dwcDateAdded = m_dateAdded;
   }
-
+  
   //public void setDateAdded(long date){dateAdded=date;}
   //public long getDateAdded(){return dateAdded;}
+
+  public Date getReleaseDate() {
+    return releaseDate;
+  }
+
+  public void setReleaseDate(Date releaseDate) {
+    this.releaseDate = releaseDate;
+  }
 
   public void setDWCDecimalLatitude(double lat) {
     if (lat == -9999.0) {

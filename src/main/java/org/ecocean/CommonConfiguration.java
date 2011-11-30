@@ -376,6 +376,10 @@ public class CommonConfiguration {
   public static boolean showSatelliteTag() {
     return showCategory("showSatelliteTag");
   }
+  
+  public static boolean showReleaseDate() {
+    return showCategory("showReleaseDate");
+  }
 
   public static String appendEmailRemoveHashString(HttpServletRequest request, String
                                                    originalString, String emailAddress) {

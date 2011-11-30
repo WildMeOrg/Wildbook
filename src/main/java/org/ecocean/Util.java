@@ -6,6 +6,8 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+import org.ecocean.tag.MetalTag;
+
 public class Util {
   
   private static final String MEASUREMENT = "measurement";
@@ -65,6 +67,25 @@ public class Util {
       list.add(new MetalTagDesc(location, locationLabel));
     }
     return list;
+  }
+  
+  /**
+   * Find the MetalTag instance belonging to an Encounter that is described by the MetalTagDesc.
+   * @param metalTagDesc
+   * @param langCode
+   * @param encounter
+   * @return
+   */
+  public static MetalTag findMetalTag(MetalTagDesc metalTagDesc, Encounter encounter) {
+    List<MetalTag> metalTags = encounter.getMetalTags();
+    if (metalTags != null) {
+      for (MetalTag metalTag : metalTags) {
+        if (metalTag.getLocation().equals(metalTagDesc.getLocation())) {
+          return metalTag;
+        }
+      }
+    }
+    return null;
   }
   
   public static List<String> findSatelliteTagNames() {

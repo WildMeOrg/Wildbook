@@ -427,8 +427,18 @@
   </servlet>
   
   <servlet>
+        <servlet-name>EncounterSetReleaseDate</servlet-name>
+        <servlet-class>org.ecocean.servlet.EncounterSetReleaseDate</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>EncounterSetMeasurements</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetMeasurements</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>EncounterSetTags</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetTags</servlet-class>
   </servlet>
 
   <servlet>
@@ -629,8 +639,18 @@
   </servlet-mapping>
   
   <servlet-mapping>
+        <servlet-name>EncounterSetReleaseDate</servlet-name>
+        <url-pattern>/EncounterSetReleaseDate</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
     <servlet-name>EncounterSetMeasurements</servlet-name>
     <url-pattern>/EncounterSetMeasurements</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterSetTags</servlet-name>
+    <url-pattern>/EncounterSetTags</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
