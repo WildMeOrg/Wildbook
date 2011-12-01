@@ -23,10 +23,7 @@ import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.genetics.TissueSample;
-import org.ecocean.genetics.GeneticAnalysis;
-import org.ecocean.genetics.MitochondrialDNAAnalysis;
-import org.ecocean.genetics.MicrosatelliteMarkersAnalysis;
-import org.ecocean.genetics.Locus;
+import org.ecocean.genetics.*;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -283,6 +280,17 @@ public class Shepherd {
   public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       MitochondrialDNAAnalysis mtDNA = (MitochondrialDNAAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "MitochondrialDNA");
+      return mtDNA;
+    } 
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+  }
+  
+  public SexAnalysis getSexAnalysis(String sampleID, String encounterNumber, String analysisID) {
+    try {
+      SexAnalysis mtDNA = (SexAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "SexAnalysis");
       return mtDNA;
     } 
     catch (Exception nsoe) {
