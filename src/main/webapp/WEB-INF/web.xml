@@ -287,6 +287,12 @@
   </servlet>
   
       <servlet>
+        <servlet-name>TissueSampleRemoveSexAnalysis</servlet-name>
+        <servlet-class>org.ecocean.servlet.TissueSampleRemoveSexAnalysis</servlet-class>
+  </servlet>
+  
+  
+      <servlet>
         <servlet-name>TissueSampleRemoveMicrosatelliteMarkers</servlet-name>
         <servlet-class>org.ecocean.servlet.TissueSampleRemoveMicrosatelliteMarkers</servlet-class>
   </servlet>
@@ -394,6 +400,11 @@
   <servlet>
     <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
     <servlet-class>org.ecocean.servlet.TissueSampleSetMicrosatelliteMarkers</servlet-class>
+  </servlet>
+  
+    <servlet>
+      <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
+      <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
   </servlet>
 
   <servlet>
@@ -571,6 +582,11 @@
       <url-pattern>/TissueSampleSetHaplotype</url-pattern>
   </servlet-mapping>
   
+      <servlet-mapping>
+        <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
+        <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
+  </servlet-mapping>
+  
   
       <servlet-mapping>
         <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
@@ -581,6 +597,11 @@
       <servlet-mapping>
         <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+  </servlet-mapping>
+  
+       <servlet-mapping>
+          <servlet-name>TissueSampleRemoveSexAnalysis</servlet-name>
+          <url-pattern>/TissueSampleRemoveSexAnalysis</url-pattern>
   </servlet-mapping>
   
         <servlet-mapping>
@@ -1019,6 +1040,10 @@
         <url-pattern>/EncounterSetTissueSample</url-pattern>
         <url-pattern>/TissueSampleSetHaplotype</url-pattern>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+        
+                <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
+        <url-pattern>/TissueSampleRemoveSexAnalysis</url-pattern>
+        
          <url-pattern>/EncounterRemoveTissueSample</url-pattern>
          <url-pattern>/EncounterRemoveImage</url-pattern>
          <url-pattern>/SinglePhotoVideoRemoveKeyword</url-pattern>
