@@ -854,13 +854,29 @@ if(CommonConfiguration.showProperty("showLifestage")){
             %>
         </c:if>
         <c:if test="${showAcousticTag}">
-        <h5>Acoustic Tag</h5>
-        <table>
-        <tr><td>Serial number:</td><td><input name="acousticTagSerial"/></td></tr>
-        <tr><td>ID:</td><td><input name="acousticTagId"/></td></tr>
-        </table>
-        </c:if>
+          <h5>Acoustic Tag</h5>
+          <table>
+          <tr><td>Serial number:</td><td><input name="acousticTagSerial"/></td></tr>
+          <tr><td>ID:</td><td><input name="acousticTagId"/></td></tr>
+          </table>
+          </c:if>
         <c:if test="${showSatelliteTag}">
+          <%
+            pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
+           %>
+          <h5>Satellite Tag</h5>
+          <table>
+          <tr><td>Name:</td><td>
+            <select name="satelliteTagName">
+                <option value="None">None</option>
+                <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+                    <option value="${satelliteTagName}">${satelliteTagName}</option>
+                </c:forEach>
+            </select>
+          </td></tr>
+          <tr><td>Serial Number:</td><td><input name="satelliteTagSerial"/></td></tr>
+          <tr><td>Argos PTT Number</td><td><input name="satelliteTagArgosPttNumber"/></td></tr>
+          </table>
         </c:if>
         </div>
     </td>

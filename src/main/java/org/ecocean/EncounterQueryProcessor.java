@@ -878,6 +878,60 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
   private static String processTagFilters(HttpServletRequest request, StringBuffer prettyPrint) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(processAcousticTagFilter(request, prettyPrint));
+    String satelliteTagFilter = processSatelliteTagFilter(request, prettyPrint);
+    if (sb.length() > 0) {
+      sb.append(" && ");
+    }
+    sb.append(satelliteTagFilter);
+    return sb.toString();
+  }
+
+  private static String processSatelliteTagFilter(HttpServletRequest request,
+      StringBuffer prettyPrint) {
+    StringBuilder sb = new StringBuilder();
+    String name = request.getParameter("satelliteTagName");
+    if (name != null && name.length() > 0 && !"None".equals(name)) {
+      prettyPrint.append("satellite tag name is: ");
+      prettyPrint.append(name);
+      prettyPrint.append("<br/>");
+      sb.append('(');
+      sb.append("satelliteTag.name == ");
+      sb.append(quote(name));
+      sb.append(')');
+    }
+    String serialNumber = request.getParameter("satelliteTagSerial");
+    if (serialNumber != null && serialNumber.length() > 0) {
+      prettyPrint.append("satellite tag serial is: ");
+      prettyPrint.append(serialNumber);
+      prettyPrint.append("<br/>");
+      if (sb.length() > 0) {
+        sb.append(" && ");
+      }
+      sb.append('(');
+      sb.append("satelliteTag.serialNumber == ");
+      sb.append(quote(serialNumber));
+      sb.append(')');
+    }
+    String argosPttNumber = request.getParameter("satelliteTagArgosPttNumber");
+    if (argosPttNumber != null && argosPttNumber.length() > 0) {
+      prettyPrint.append("satellite tag Argos PTT Number is: ");
+      prettyPrint.append(argosPttNumber);
+      prettyPrint.append("<br/>");
+      if (sb.length() > 0) {
+        sb.append(" && ");
+      }
+      sb.append('(');
+      sb.append("satelliteTag.argosPttNumber == ");
+      sb.append(quote(argosPttNumber));
+      sb.append(')');
+    }
+    return sb.toString();
+  }
+
+  private static String processAcousticTagFilter(HttpServletRequest request,
+      StringBuffer prettyPrint) {
     StringBuilder tagFilter = new StringBuilder();
     String acousticTagSerial = request.getParameter("acousticTagSerial");
     if (acousticTagSerial != null && acousticTagSerial.length() > 0) {
@@ -886,9 +940,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       prettyPrint.append("<br/>");
       tagFilter.append('(');
       tagFilter.append("acousticTag.serialNumber == ");
-      tagFilter.append("\"");
-      tagFilter.append(acousticTagSerial);
-      tagFilter.append("\"");
+      tagFilter.append(quote(acousticTagSerial));
       tagFilter.append(')');
     }
     String acousticTagId = request.getParameter("acousticTagId");
@@ -901,12 +953,18 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       }
       tagFilter.append('(');
       tagFilter.append("acousticTag.idNumber == ");
-      tagFilter.append("\"");
-      tagFilter.append(acousticTagId);
-      tagFilter.append("\"");
+      tagFilter.append(quote(acousticTagId));
       tagFilter.append(')');
     }
     return tagFilter.toString();
+  }
+  
+  private static String quote(String arg) {
+    StringBuilder sb = new StringBuilder(arg.length() + 2);
+    sb.append('"');
+    sb.append(arg);
+    sb.append('"');
+    return sb.toString();
   }
 
 }
