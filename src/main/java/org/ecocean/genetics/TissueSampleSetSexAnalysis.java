@@ -51,7 +51,7 @@ public class TissueSampleSetSexAnalysis extends HttpServlet {
 
 
     myShepherd.beginDBTransaction();
-    if ( (request.getParameter("analysisID") != null) && (request.getParameter("sampleID") != null) && (request.getParameter("number")!=null) && (request.getParameter("haplotype")!=null) && (!request.getParameter("haplotype").equals("")) && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))&&(myShepherd.isEncounter(request.getParameter("number")))) {
+    if ( (request.getParameter("analysisID") != null) && (request.getParameter("sampleID") != null) && (request.getParameter("number")!=null) && (request.getParameter("sex")!=null) && (!request.getParameter("sex").equals("")) && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))&&(myShepherd.isEncounter(request.getParameter("number")))) {
       String sampleID=request.getParameter("sampleID");
       String encounterNumber=request.getParameter("number");
       String sex=request.getParameter("sex");

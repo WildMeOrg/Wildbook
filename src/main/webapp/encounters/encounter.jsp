@@ -360,8 +360,8 @@ table.tissueSample td {
     <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
       <%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %><font size="-1">[<a
-        href="encounter.jsp?number=<%=num%>&edit=manageIdentity">edit</a>]</font>
+      %>
+      <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=manageIdentity">edit</a>]</font>
       <%
         }
       %>
@@ -1012,7 +1012,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
 if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))){
 		%> 
 
-<a name="tissueSample">
+<a name="tissueSample" />
 <table class="editEncounter">
     <tr>
       <td align="left" valign="top" class="para"><strong>
@@ -1144,7 +1144,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
       </td>
     </tr>
   </table>
-</a>
+
 <br /> 
 <%
 }
@@ -1155,7 +1155,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
 if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("haplotype"))){
 		%> 
 
-<a name="haplotype">
+<a name="haplotype"></a>
 <table class="editEncounter">
   <tr>
     <td align="left" valign="top" class="para"><strong>
@@ -1225,12 +1225,93 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
     </td>
   </tr>
 </table>
-</a>
 <br /> 
 <%
 }
 
-//reset or create a haplotype
+
+
+//reset or create a genetic sex analysis
+if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sexAnalysis"))){
+		%> 
+
+<a name="sexAnalysis"></a>
+<table class="editEncounter">
+<tr>
+  <td align="left" valign="top" class="para"><strong>
+  <font color="#990000"><%=encprops.getProperty("setSexAnalysis")%>:</font></strong></td>
+</tr>
+<tr>
+  <td></td>
+</tr>
+<tr>
+  <td align="left" valign="top">
+    <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
+
+      <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+      <%
+      SexAnalysis mtDNA=new SexAnalysis();
+      String analysisIDString="";
+      if((request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"SexAnalysis"))){
+    	    analysisIDString=request.getParameter("analysisID");
+    		mtDNA=myShepherd.getSexAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
+      }
+      %>
+      <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+      
+      <%
+      String haplotypeString="";
+      try{
+      	if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
+      }
+      catch(NullPointerException npe34){}
+      %>
+      <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
+      <input name="sex" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" /> 
+		
+		 <%
+      String processingLabTaskID="";
+      if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+      %>
+      <%=encprops.getProperty("processingLabTaskID")%><br />
+      <input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+
+		 <%
+      String processingLabName="";
+      if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+      %>
+      <%=encprops.getProperty("processingLabName")%><br />
+      <input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+
+ 		 <%
+      String processingLabContactName="";
+      if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+      %>
+      <%=encprops.getProperty("processingLabContactName")%><br />
+      <input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+
+ 		 <%
+      String processingLabContactDetails="";
+      if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+      %>
+      <%=encprops.getProperty("processingLabContactDetails")%><br />
+      <input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+
+		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
+        <input name="number" type="hidden" value="<%=num%>" /> 
+        <input name="action" type="hidden" value="setSexAnalysis" /> 
+        <input name="EditTissueSampleSexAnalysis" type="submit" id="EditTissueSampleSexAnalysis" value="Set" />
+    </form>
+  </td>
+</tr>
+</table>
+<br /> 
+<%
+}
+
+
+
+//reset or create ms markers
 if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("msMarkers"))){
 		%> 
 
@@ -3432,6 +3513,23 @@ for(int j=0;j<numTissueSamples;j++){
 				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype#haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
 			<%
 			}
+			else if(ga.getAnalysisType().equals("SexAnalysis")){
+				SexAnalysis mito=(SexAnalysis)ga;
+				%>
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=encprops.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %>
+				<%
+				if(!mito.getSuperHTMLString().equals("")){
+				%>
+				<em>
+				<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+				<br /><%=mito.getSuperHTMLString()%>
+				</em>
+				<%
+				}
+				%>
+				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=sexAnalysis#sexAnalysis"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			<%
+			}
 			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
 				MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
 				
@@ -3462,6 +3560,7 @@ for(int j=0;j<numTissueSamples;j++){
 		</table>
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><%=encprops.getProperty("addHaplotype") %></a></span></p>
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=msMarkers#msMarkers"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
+		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
 	
 	</td>
 	

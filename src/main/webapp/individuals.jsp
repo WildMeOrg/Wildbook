@@ -919,6 +919,12 @@ for(int j=0;j<numTissueSamples;j++){
 				<tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %></span></td></tr></li>
 			<%
 			}
+			else if(ga.getAnalysisType().equals("SexAnalysis")){
+				SexAnalysis mito=(SexAnalysis)ga;
+				%>
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %></span></td></tr></li>
+			<%
+			}
 			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
 				MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
 				
