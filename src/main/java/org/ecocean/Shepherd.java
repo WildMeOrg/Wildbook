@@ -22,7 +22,6 @@ package org.ecocean;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.genetics.TissueSample;
 import org.ecocean.genetics.*;
 
 import javax.jdo.*;
@@ -1953,6 +1952,14 @@ public class Shepherd {
     Query q = pm.newQuery(MitochondrialDNAAnalysis.class);
     q.setResult("distinct haplotype");
     q.setOrdering("haplotype ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
+  
+  public ArrayList<String> getAllGeneticSexes() {
+    Query q = pm.newQuery(SexAnalysis.class);
+    q.setResult("distinct sex");
+    q.setOrdering("sex ascending");
     Collection results = (Collection) q.execute();
     return (new ArrayList(results));
   }

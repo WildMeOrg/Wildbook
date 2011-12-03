@@ -940,6 +940,44 @@ if(CommonConfiguration.showProperty("showLifestage")){
       %>
       
       
+    <p><strong><%=encprops.getProperty("geneticSex")%>:</strong> <span class="para">
+      <a href="<%=CommonConfiguration.getWikiLocation()%>geneticSex"
+        target="_blank"><img src="../images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+                             (<em><%=encprops.getProperty("locationIDExample")%></em>)
+   </p>
+
+      <%
+        ArrayList<String> genSexes = myShepherd.getAllGeneticSexes();
+        int totalSexes = genSexes.size();
+		//System.out.println(haplos.toString());
+
+        if (totalSexes >= 1) {
+      %>
+
+      <select multiple size="<%=(totalSexes+1) %>" name="geneticSexField" id="geneticSexField">
+        <option value="None" ></option>
+        <%
+          for (int n = 0; n < totalSexes; n++) {
+            String word = genSexes.get(n);
+            if (!word.equals("")) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select>
+      <%
+      } else {
+      %>
+      <p><em><%=encprops.getProperty("noGeneticSexes")%>
+      </em></p>
+      <%
+        }
+      %>
+      
+      
       <p><strong><%=encprops.getProperty("msmarker")%>:</strong> 
       <span class="para">
       	<a href="<%=CommonConfiguration.getWikiLocation()%>loci" target="_blank">

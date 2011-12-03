@@ -450,7 +450,6 @@ public class EncounterQueryProcessor {
 
             prettyPrint.append("<br />");
             if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
-            //else{jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
             else{ 
               if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce";}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.MitochondrialDNAAnalysis analysis")){jdoqlVariableDeclaration+=";org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
@@ -460,6 +459,48 @@ public class EncounterQueryProcessor {
       }
   
     //end haplotype filters-----------------------------------------------
+
+    
+    //------------------------------------------------------------------
+    //genetic sex filters-------------------------------------------------
+    String[] genSexes=request.getParameterValues("geneticSexField");
+    if((genSexes!=null)&&(!genSexes[0].equals("None"))){
+          prettyPrint.append("Genetic determination of sex is one of the following: ");
+          int kwLength=genSexes.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+
+              String kwParam=genSexes[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" sexanalysis.sex == \""+kwParam+"\" ";
+                }
+                else{
+                  locIDFilter+=" || sexanalysis.sex == \""+kwParam+"\" ";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="tissueSamples.contains(dce9) && dce9.analyses.contains(sexanalysis) && "+locIDFilter;}
+            else{
+              if(filter.indexOf("tissueSamples.contains(dce9)")==-1){filter+=" && tissueSamples.contains(dce9)";}
+             
+              if(filter.indexOf("dce9.analyses.contains(sexanalysis)")==-1){filter+=" && dce9.analyses.contains(sexanalysis)";}
+              filter+=(" && "+locIDFilter);
+            }
+
+            prettyPrint.append("<br />");
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce9;org.ecocean.genetics.SexAnalysis sexanalysis";}
+            else{ 
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce9")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce9";}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.SexAnalysis analysis")){jdoqlVariableDeclaration+=";org.ecocean.genetics.SexAnalysis sexanalysis";}
+              
+            }
+         
+      }
+  
+    //end genetic sex filters-----------------------------------------------
 
 
 
