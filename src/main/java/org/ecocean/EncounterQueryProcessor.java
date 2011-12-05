@@ -1,9 +1,13 @@
 package org.ecocean;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -19,9 +23,10 @@ public class EncounterQueryProcessor {
 
   private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE ";
 
-  public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint){
+  public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
     String jdoqlVariableDeclaration = "";
+    String parameterDeclaration = "";
     Shepherd myShepherd=new Shepherd();
 
   //filter for location------------------------------------------
@@ -228,7 +233,9 @@ public class EncounterQueryProcessor {
       if(jdoqlVariableDeclaration.length() > 0){
         jdoqlVariableDeclaration += ";";
       }
-      jdoqlVariableDeclaration=" VARIABLES ";
+      else {
+        jdoqlVariableDeclaration=" VARIABLES ";
+      }
       for (int i = 0; i < measurementsInQuery; i++) {
         if (i > 0) {
           jdoqlVariableDeclaration += "; ";
@@ -665,14 +672,44 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     else{filter+=" && ((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
     }
 
-
-
-
       } catch(NumberFormatException nfe) {
     //do nothing, just skip on
     nfe.printStackTrace();
       }
     }
+    
+    String releaseDateStr = request.getParameter("releaseDate");
+    if (releaseDateStr != null && releaseDateStr.trim().length() > 0) {
+      String pattern = CommonConfiguration.getProperty("releaseDateFormat");
+      SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+      try {
+        Date releaseDate = simpleDateFormat.parse(releaseDateStr);
+        if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+          filter += " && ";
+        }
+        String operator = request.getParameter("releaseDateOperator");
+        if ("gt".equals(operator)) {
+          operator = " > ";
+        }
+        else if ("lt".equals(operator)) {
+          operator = " < ";
+        }
+        else {
+          operator = " == ";
+        }
+        filter += "(releaseDate ";
+        filter += operator;
+        filter += "relDate)";
+        parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date relDate");
+        paramMap.put("relDate", releaseDate);
+        prettyPrint.append("release date " + operator + simpleDateFormat.format(releaseDate));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+
+    
 
     //end date filter ----------------------------------------
 
@@ -757,6 +794,8 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     //end GPS filters-----------------------------------------------
 
     filter+=jdoqlVariableDeclaration;
+    
+    filter += parameterDeclaration;
 
     return filter;
 
@@ -775,15 +814,17 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     String filter="";
     StringBuffer prettyPrint=new StringBuffer("");
+    
+    Map<String,Object> paramMap = new HashMap<String, Object>();
 
-    filter=queryStringBuilder(request, prettyPrint);
+    filter=queryStringBuilder(request, prettyPrint, paramMap);
 
     Query query=myShepherd.getPM().newQuery(filter);
 
     if(!filter.trim().equals("")){
         //filter="("+filter+")";
         //query.setFilter(filter);
-        allEncounters=myShepherd.getAllEncounters(query);
+        allEncounters=myShepherd.getAllEncounters(query, paramMap);
     }
     else{
       allEncounters=myShepherd.getAllEncountersNoFilter();
@@ -1007,5 +1048,35 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     sb.append('"');
     return sb.toString();
   }
+  
+  private static String updateJdoqlVariableDeclaration(String jdoqlVariableDeclaration, String typeAndVariable) {
+    StringBuilder sb = new StringBuilder(jdoqlVariableDeclaration);
+    if (jdoqlVariableDeclaration.length() == 0) {
+      sb.append(" VARIABLES ");
+      sb.append(typeAndVariable);
+    }
+    else {
+      if (!jdoqlVariableDeclaration.contains(typeAndVariable)) {
+        sb.append("; ");
+        sb.append(typeAndVariable);
+      }
+    }
+    return sb.toString();
+  }
+  
+  private static String updateParametersDeclaration(
+      String parameterDeclaration, String typeAndVariable) {
+    StringBuilder sb = new StringBuilder(parameterDeclaration);
+    if (parameterDeclaration.length() == 0) {
+      sb.append(" PARAMETERS ");
+    }
+    else {
+      sb.append(", ");
+    }
+    sb.append(typeAndVariable);
+    return sb.toString();
+  }
+
+  
 
 }

@@ -729,6 +729,21 @@ public class Shepherd {
       return null;
     }
   }
+  
+  public Iterator getAllEncounters(Query acceptedEncounters, Map<String, Object> paramMap) {
+    Collection c;
+    try {
+      c = (Collection) (acceptedEncounters.executeWithMap(paramMap));
+      ArrayList list = new ArrayList(c);
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
 
   public Iterator getAvailableScanWorkItems(int pageSize, long timeout) {

@@ -533,6 +533,19 @@
       <%
         }
       %>
+      <%
+        pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
+      %>
+      <c:if test="${showReleaseDate}">
+        <p><em><%= encprops.getProperty("releaseDate") %></em>
+        <select name="releaseDateOperator">
+          <option value="gt">&gt;</option>
+          <option value="lt">&lt;</option>
+          <option value="eq">=</option>
+        </select>
+        <input name="releaseDate"/> <%=encprops.getProperty("releaseDateFormat") %>
+        </p>
+      </c:if>
     </div>
   </td>
 </tr>
