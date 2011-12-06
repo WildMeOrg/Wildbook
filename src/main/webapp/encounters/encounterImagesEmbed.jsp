@@ -61,7 +61,6 @@ Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
 %>
 <table>
 <%
-  //Enumeration images = imageEnc.getAdditionalImageNames().elements();
 ArrayList<SinglePhotoVideo> images=imageShepherd.getAllSinglePhotoVideosForEncounter(imageEnc.getCatalogNumber());
 int numImagesHere=images.size();
 int imageCount = 0;
