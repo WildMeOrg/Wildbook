@@ -2507,7 +2507,7 @@ if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals("
       :</strong> <%=addTextFile%> <%
       if (isOwner && CommonConfiguration.isCatalogEditable()) {
     %> <br/>
-    <a href="/EncounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>"><%=encprops.getProperty("clickremove") %>
+    <a href="../EncounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>"><%=encprops.getProperty("clickremove") %>
     </a></p>
     <%
       }
