@@ -489,7 +489,7 @@ if(!loggedIn){
 				}
 				//set location code
 				if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("loccode"))){
-			%> <a name="loccode"><br>
+			%> <a name="loccode"></a><br />
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -509,12 +509,12 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
+<br /> <%
 			}
 				
 		//set alternateid
 		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){
-		%> <a name="alternateid"><br>
+		%> <a name="alternateid"></a><br />
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -532,13 +532,13 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br /> <%
+<br /> <%
 		}
 		
 		//set verbatimEventDate
 		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("verbatimEventDate"))){
 		%> 
-		<a name="verbatimEventDate"><br>
+		<a name="verbatimEventDate"></a><br />
 		  <table width="150" border="1" cellpadding="1" cellspacing="0"
 		         bordercolor="#000000" bgcolor="#CCCCCC">
 		    <tr>
@@ -558,13 +558,13 @@ if(!loggedIn){
 		      </td>
 		    </tr>
 		  </table>
-		</a><br /> <%
+		<br /> <%
 				}
 		
 		
 		//encounter set dynamic property
 		if(CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
-		%> <a name="dynamicproperty"><br>
+		%> <a name="dynamicproperty"></a><br />
   <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
          bgcolor="#CCCCCC">
     <tr>
@@ -601,12 +601,12 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
+<br /> <%
 		}
 		
 		//encounter add dynamic property
 		if(isOwner&&CommonConfiguration.isCatalogEditable()){
-		%> <a name="add_dynamicproperty"><br>
+		%> <a name="add_dynamicproperty"></a><br />
   <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
          bgcolor="#CCCCCC">
     <tr>
@@ -633,14 +633,14 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
+<br /> <%
 		}
 		
 				
 				
 				//set informothers
 			if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("others"))){
-		%> <a name="others"><br>
+		%> <a name="others"></a><br />
   <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
          bgcolor="#CCCCCC">
     <tr>
@@ -659,12 +659,12 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
+<br> <%
 			}
 				
 				//set matchedBy type
 			if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageMatchedBy"))){
-		%> <a name="matchedBy">
+		%> <a name="matchedBy"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -690,13 +690,13 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
+<br /> <%
 			}
 				
 				
 			  //add this encounter to a MarkedIndividual object
 			  if ((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))) {
-		%> <a name="manageIdentity">
+		%> <a name="manageIdentity"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -730,7 +730,7 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-<br> <%
+<br /> <%
 		  	}
 		  	  //Remove from MarkedIndividual if not unassigned
 		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned"))&&CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))) {
@@ -762,7 +762,7 @@ if(!loggedIn){
     </td>
   </tr>
 </table>
-<br> <%
+<br /> <%
       	}
       	  //create new MarkedIndividual with name
       	  if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))){
@@ -792,11 +792,11 @@ if(!loggedIn){
       </form>
     </td>
   </tr>
-</table></a>
-<br> <%
+</table>
+<br /> <%
 			}
       	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
-    		%> <a name="gps">
+    		%> <a name="gps"></a>
     		<table width="150" border="1" cellpadding="1" cellspacing="0"
     			bordercolor="#000000" bgcolor="#CCCCCC">
     			<tr>
@@ -820,11 +820,11 @@ if(!loggedIn){
     				</td>
     			</tr>
     		</table>
-    		</a><br> <%
+    		<br /> <%
     			}
 				//set location for sighting
 			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("location"))){
-		%> <a name="location">
+		%> <a name="location"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -843,13 +843,13 @@ if(!loggedIn){
       </td>
     </tr>
   </table>
-</a><br> <%
+<br /> <%
 			}
 				
 //update submitted comments for sighting
 if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("comments"))){
 %> 
-<a name="comments">
+<a name="comments"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -868,14 +868,14 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
       </td>
     </tr>
   </table>
-</a><br /> 
+<br /> 
 <%
 }
 
 //update submitted comments for sighting
 if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("behavior"))){
 %> 
-<a name="behavior">
+<a name="behavior"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -903,12 +903,12 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
       </td>
     </tr>
   </table>
-</a><br /> 
+<br /> 
 <%
 }
 				//reset contact info
 			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
-		%> <a name="contact">
+		%> <a name="contact"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -960,7 +960,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
       </td>
     </tr>
   </table>
-</a><br> <%
+<br /> <%
 							}
 						//--------------------------
 						//edit sex reported for sighting	
@@ -989,7 +989,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
     </td>
   </tr>
 </table>
-<br> <%
+<br /> <%
 			}
 			
 		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("livingStatus"))){
@@ -1020,7 +1020,7 @@ if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").
 			}
 			
 if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("genusSpecies"))){
-									%> <a name="genusSpecies" />
+									%> <a name="genusSpecies"></a>
 			<table width="150" border="1" cellpadding="1" cellspacing="0"
 			       bordercolor="#000000" bgcolor="#CCCCCC">
 			  <tr>
@@ -1068,7 +1068,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 			
 				//reset encounter date
 				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("date"))){
-		%> <a name="date">
+		%> <a name="date"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -1146,12 +1146,12 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       </td>
     </tr>
   </table>
-</a><br> <%
+<br /> <%
 			}
 				
 				//reset size reported for sighting
 				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("size"))){
-		%> <a name="size">
+		%> <a name="size"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -1181,12 +1181,12 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       </td>
     </tr>
   </table>
-</a><br> <%
+<br /> <%
 			}
 
 				//reset water depth
 				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("depth"))){
-		%> <a name="depth">
+		%> <a name="depth"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -1207,13 +1207,13 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       </td>
     </tr>
   </table>
-</a><br> <%
+<br /> <%
 			}
 			
 			
 				//reset elevation
 		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("elevation"))){
-		%> <a name="elevation">
+		%> <a name="elevation"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -1233,11 +1233,11 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       </td>
     </tr>
   </table>
-</a><br/> <%
+<br/> <%
 			}
 
 		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("user"))){
-		%> <a name="user">
+		%> <a name="user"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
          bgcolor="#CCCCCC">
     <tr>
@@ -1259,12 +1259,12 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       </td>
     </tr>
   </table>
-</a><br/> <%
+<br/> <%
 		}
 
 	//reset scarring
 			if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("scar"))){
-	%> <a name="scar">
+	%> <a name="scar"></a>
   <table width="150" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -1283,7 +1283,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       </td>
     </tr>
   </table>
-</a><br/> <%
+<br /> <%
 			}
 
 		//kick off a scan
@@ -1460,7 +1460,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 	  	  if(isOwner) {
 	  	  
 	  	  if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("rmSpots"))){
-	  %> <a name="rmSpots">
+	  %> <a name="rmSpots"></a>
   <table border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -1497,10 +1497,10 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       </td>
     </tr>
   </table>
-</a><br/> <%
+<br/> <%
 	  	}
 	  	  if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("spotImage"))){
-	  %> <a name="spotImage">
+	  %> <a name="spotImage"></a>
   <table border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
@@ -1522,7 +1522,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       </td>
     </tr>
   </table>
-</a><br/> <%
+<br /> <%
 	  	  	}
 			if(CommonConfiguration.isCatalogEditable()){
 	  	  %>
@@ -1554,7 +1554,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
     </td>
   </tr>
 </table>
-<br/> <a name="tapirlink">
+<br/> <a name="tapirlink"></a>
   <table width="175" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CECFCE">
     <tr>
@@ -1581,7 +1581,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       </td>
     </tr>
   </table>
-</a> <br/> <%
+<br/> <%
 		}
 	  	//end isOwner permissions
 	  	  }
@@ -2746,9 +2746,9 @@ catch (Exception e) {
 	  	  	  	if (request.getParameter("noscript")==null) {
 	  	  	  %>
 <hr>
-<p><a name="map"><strong><img
+<p><a name="map"></a><strong><img
   src="../images/2globe_128.gif" width="56" height="56"
-  align="absmiddle"/></a><%=encprops.getProperty("mapping") %></strong></p>
+  align="absmiddle"/><%=encprops.getProperty("mapping") %></strong></p>
 <%
   if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
 %>
