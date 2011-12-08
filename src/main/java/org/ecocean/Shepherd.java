@@ -1472,7 +1472,8 @@ public class Shepherd {
               } else if (hasKeyword && isAcceptableImageFile(imageName)) {
                 m_thumb = indie.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + indie.getEncounterNumber() + "BREAK" + imageName;
                 thumbs.add(m_thumb);
-              } else {
+              } 
+              else {
                 count--;
               }
             } else if (count > endNum) {
@@ -1620,7 +1621,7 @@ public class Shepherd {
   }
 
   public boolean isAcceptableImageFile(String fileName) {
-    if ((fileName.toLowerCase().indexOf(".jpg") != -1) || (fileName.toLowerCase().indexOf(".gif") != -1) || (fileName.toLowerCase().indexOf(".jpeg") != -1) || (fileName.toLowerCase().indexOf(".jpe") != -1) || (fileName.toLowerCase().indexOf(".bmp") != -1)) {
+    if ((fileName.toLowerCase().indexOf(".jpg") != -1) || (fileName.toLowerCase().indexOf(".gif") != -1) || (fileName.toLowerCase().indexOf(".jpeg") != -1) || (fileName.toLowerCase().indexOf(".jpe") != -1) || (fileName.toLowerCase().indexOf(".bmp") != -1) || (fileName.toLowerCase().indexOf(".png") != -1)) {
       return true;
     }
     return false;
