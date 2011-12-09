@@ -680,21 +680,31 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
     String releaseDateToStr = request.getParameter("releaseDateTo");
-    if (releaseDateFromStr != null && releaseDateFromStr.trim().length() > 0 && releaseDateToStr != null && releaseDateToStr.trim().length() > 0) {
-      String pattern = CommonConfiguration.getProperty("releaseDateFormat");
-      SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+    String pattern = CommonConfiguration.getProperty("releaseDateFormat");
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+    if (releaseDateFromStr != null && releaseDateFromStr.trim().length() > 0) {
       try {
         Date releaseDateFrom = simpleDateFormat.parse(releaseDateFromStr);
+        if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+          filter += " && ";
+        }
+        filter += "(releaseDate >= releaseDateFrom)";
+        parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateFrom");
+        paramMap.put("releaseDateFrom", releaseDateFrom);
+        prettyPrint.append("release date >= " + simpleDateFormat.format(releaseDateFrom));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    if (releaseDateToStr != null && releaseDateToStr.trim().length() > 0) {
+      try {
         Date releaseDateTo = simpleDateFormat.parse(releaseDateToStr);
         if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
           filter += " && ";
         }
-        filter += "(releaseDate >= releaseDateFrom && releaseDate <= releaseDateTo)";
-        parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateFrom");
+        filter += "(releaseDate <= releaseDateTo)";
         parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateTo");
-        paramMap.put("releaseDateFrom", releaseDateFrom);
         paramMap.put("releaseDateTo", releaseDateTo);
-        prettyPrint.append("release date >= " + simpleDateFormat.format(releaseDateFrom));
         prettyPrint.append("releaseDate <= " + simpleDateFormat.format(releaseDateTo));
       } catch (Exception e) {
         e.printStackTrace();
