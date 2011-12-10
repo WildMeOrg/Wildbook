@@ -40,7 +40,7 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 	private void getIVECNodes() {
 
 		GridManager gm=GridManagerFactory.getGridManager();
-		int maxIVECNodes=10;
+		int maxIVECNodes=25;
 		int currentIVECNodeRequests=0;
 
 
@@ -111,8 +111,8 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 				System.out.print((char)myChar);
 				sb.append((char)myChar);
 				if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser1")!=-1)) {break;}
-				else if ((hostname.equals("xe.ivec.org"))&&(sb.toString().indexOf("jholmberg@xeuser")!=-1)) {break;}
-				else if ((hostname.equals("cognac.ivec.org"))&&(sb.toString().indexOf("-bash-")!=-1)) {break;}
+				//else if ((hostname.equals("xe.ivec.org"))&&(sb.toString().indexOf("jholmberg@xeuser")!=-1)) {break;}
+				//else if ((hostname.equals("cognac.ivec.org"))&&(sb.toString().indexOf("-bash-")!=-1)) {break;}
 
 
 			}
@@ -124,9 +124,9 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 
 			int numUnfullfilledRequests=0;
 
-			if (hostname.equals("xe.ivec.org")) {numUnfullfilledRequests=countOccurrences(sb.toString(),".xe");}
-			else if (hostname.equals("epic.ivec.org")) {numUnfullfilledRequests=countOccurrences(sb.toString(),".epic");}
-			else if (hostname.equals("cognac.ivec.org")) {numUnfullfilledRequests=countOccurrences(sb.toString(),".beer");}
+			//if (hostname.equals("xe.ivec.org")) {numUnfullfilledRequests=countOccurrences(sb.toString(),".xe");}
+			if (hostname.equals("epic.ivec.org")) {numUnfullfilledRequests=countOccurrences(sb.toString(),".epic");}
+			//else if (hostname.equals("cognac.ivec.org")) {numUnfullfilledRequests=countOccurrences(sb.toString(),".beer");}
 
 
 
