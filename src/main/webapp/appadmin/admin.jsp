@@ -153,19 +153,6 @@
       <table width="600" border="1">
         <tr>
           <td>
-            <p><font size="+1">Logs</font></p>
-
-            <p><a href="../logs/user-access.html">View user access and
-              error log</a></p>
-
-            <p>&nbsp;</p>
-          </td>
-        </tr>
-      </table>
-      <p>&nbsp;</p>
-      <table width="600" border="1">
-        <tr>
-          <td>
             <p><font size="+1">Set the location code for all encounters
               matching a string</font></p>
 
