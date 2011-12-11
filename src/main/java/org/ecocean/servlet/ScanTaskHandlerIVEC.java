@@ -10,7 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import java.util.Properties;
 import org.ecocean.*;
 import org.ecocean.grid.*;
 
@@ -49,6 +49,14 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		String action=request.getParameter("action");
 		System.out.println("scanTaskHandler action is: "+action);
+
+		Properties props = new Properties();
+  		props.load(getClass().getResourceAsStream("/bundles/ivec.properties"));
+  		String username="";
+  		String password="";
+  		username=props.getProperty("username");
+		password=props.getProperty("password");
+
 		if(action!=null){
 
 
@@ -252,7 +260,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 						//check if we can get some IVEC help
 						//es.execute(new IVECRequestThread("cognac.ivec.org", "jholmberg", "lookthisup"));
 						//es.execute(new IVECRequestThread("xe.ivec.org", "jholmberg", "lookthisup"));
-						es.execute(new IVECRequestThread("epic.ivec.org","jholmberg", "wa?digra"));
+						es.execute(new IVECRequestThread("epic.ivec.org",username, password));
 
 
 					}
