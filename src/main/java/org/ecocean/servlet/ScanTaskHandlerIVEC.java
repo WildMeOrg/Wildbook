@@ -252,7 +252,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 						//check if we can get some IVEC help
 						//es.execute(new IVECRequestThread("cognac.ivec.org", "jholmberg", "lookthisup"));
 						//es.execute(new IVECRequestThread("xe.ivec.org", "jholmberg", "lookthisup"));
-						es.execute(new IVECRequestThread("epic.ivec.org","jholmberg", "lookthisup"));
+						es.execute(new IVECRequestThread("epic.ivec.org","jholmberg", "wa?digra"));
 
 
 					}
