@@ -19,7 +19,8 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.Shepherd, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
+         import="org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
   Shepherd myShepherd = new Shepherd();
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
@@ -73,6 +74,7 @@
     animatedcollapse.addDiv('map', 'fade=1')
     animatedcollapse.addDiv('date', 'fade=1')
     animatedcollapse.addDiv('observation', 'fade=1')
+    animatedcollapse.addDiv('tags', 'fade=1')
     animatedcollapse.addDiv('identity', 'fade=1')
     animatedcollapse.addDiv('genetics', 'fade=1')
 
@@ -541,7 +543,6 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <%
 }
 %>
-        
                 <%
 	        if(CommonConfiguration.showProperty("showTaxonomy")){
 	        %>
@@ -631,6 +632,62 @@ if(CommonConfiguration.showProperty("showLifestage")){
     </div>
   </td>
 </tr>
+
+<%
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags());
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
+%>
+<c:if test="${showMetalTags or showAcousticTag or showSatelliteTag}">
+
+  <tr>
+    <td>
+      <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
+        src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+        color="#000000">Tags</font></a></h4>
+    </td>
+  </tr>
+  
+  <tr>
+    <td>
+        <div id="tags" style="display:none;">
+            <p>Use the fields below to limit your search to encounters with the specified tag(s)</p>
+            <c:if test="${showMetalTags}">
+                <% 
+                  pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); 
+                %>
+            </c:if>
+            <c:if test="${showAcousticTag}">
+              <h5>Acoustic Tag</h5>
+              <table>
+              <tr><td>Serial number:</td><td><input name="acousticTagSerial"/></td></tr>
+              <tr><td>ID:</td><td><input name="acousticTagId"/></td></tr>
+              </table>
+            </c:if>
+            <c:if test="${showSatelliteTag}">
+              <%
+                pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
+               %>
+              <h5>Satellite Tag</h5>
+              <table>
+              <tr><td>Name:</td><td>
+                <select name="satelliteTagName">
+                    <option value="None">None</option>
+                    <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+                        <option value="${satelliteTagName}">${satelliteTagName}</option>
+                    </c:forEach>
+                </select>
+              </td></tr>
+              <tr><td>Serial Number:</td><td><input name="satelliteTagSerial"/></td></tr>
+              <tr><td>Argos PTT Number</td><td><input name="satelliteTagArgosPttNumber"/></td></tr>
+              </table>
+            </c:if>
+        </div>
+    </td>
+  </tr>
+
+</c:if>
 
 <tr>
   <td>

@@ -107,6 +107,14 @@ public class Util {
     return key;
   }
   
+  public static String quote(String arg) {
+    StringBuilder sb = new StringBuilder(arg.length() + 2);
+    sb.append('"');
+    sb.append(arg);
+    sb.append('"');
+    return sb.toString();
+  }
+  
   public static class MeasurementDesc {
     private String type;
     private String label;

@@ -859,6 +859,14 @@ if(CommonConfiguration.showProperty("showLifestage")){
             <% 
               pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); 
             %>
+            <h5>Metal Tags</h5>
+            <table>
+            <c:forEach items="${metalTagDescs}" var="metalTagDesc">
+                <tr>
+                    <td><c:out value="${metalTagDesc.locationLabel}:"/></td><td><input name="metalTag(${metalTagDesc.location})"/></td>
+                </tr>
+            </c:forEach>
+            </table>
         </c:if>
         <c:if test="${showAcousticTag}">
           <h5>Acoustic Tag</h5>
@@ -866,7 +874,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
           <tr><td>Serial number:</td><td><input name="acousticTagSerial"/></td></tr>
           <tr><td>ID:</td><td><input name="acousticTagId"/></td></tr>
           </table>
-          </c:if>
+        </c:if>
         <c:if test="${showSatelliteTag}">
           <%
             pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());

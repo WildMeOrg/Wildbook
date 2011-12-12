@@ -257,6 +257,19 @@ public class IndividualQueryProcessor {
               prettyPrint.append("<br />");
       }
       //end verbatimEventDate filters-----------------------------------------------
+      
+      // Tag filters------------------------------------------------------
+      String satelliteTagFilter = processSatelliteTagFilter(request, prettyPrint);
+      if (satelliteTagFilter.length() > 0) {
+        if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
+          filter += " && ";
+        }
+        filter += satelliteTagFilter.toString();
+        filter += " && (encounters.contains(enc10)) ";
+        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc10");
+      }
+      
+      // end Tag Filters -------------------------------------------------
 
       //------------------------------------------------------------------
       //hasTissueSample filters-------------------------------------------------
@@ -871,5 +884,92 @@ public class IndividualQueryProcessor {
       return (new MarkedIndividualQueryResult(rIndividuals,filter,prettyPrint.toString()));
 
   }
+
+  private static String processSatelliteTagFilter(HttpServletRequest request,
+      StringBuffer prettyPrint) {
+    StringBuilder sb = new StringBuilder();
+    String name = request.getParameter("satelliteTagName");
+    if (name != null && name.length() > 0 && !"None".equals(name)) {
+      prettyPrint.append("satellite tag name is: ");
+      prettyPrint.append(name);
+      prettyPrint.append("<br/>");
+      sb.append('(');
+      sb.append("enc10.satelliteTag.name == ");
+      sb.append(Util.quote(name));
+      sb.append(')');
+    }
+    String serialNumber = request.getParameter("satelliteTagSerial");
+    if (serialNumber != null && serialNumber.length() > 0) {
+      prettyPrint.append("satellite tag serial is: ");
+      prettyPrint.append(serialNumber);
+      prettyPrint.append("<br/>");
+      if (sb.length() > 0) {
+        sb.append(" && ");
+      }
+      sb.append('(');
+      sb.append("enc10.satelliteTag.serialNumber == ");
+      sb.append(Util.quote(serialNumber));
+      sb.append(')');
+    }
+    String argosPttNumber = request.getParameter("satelliteTagArgosPttNumber");
+    if (argosPttNumber != null && argosPttNumber.length() > 0) {
+      prettyPrint.append("satellite tag Argos PTT Number is: ");
+      prettyPrint.append(argosPttNumber);
+      prettyPrint.append("<br/>");
+      if (sb.length() > 0) {
+        sb.append(" && ");
+      }
+      sb.append('(');
+      sb.append("enc10.satelliteTag.argosPttNumber == ");
+      sb.append(Util.quote(argosPttNumber));
+      sb.append(')');
+    }
+    return sb.toString();
+  }
+
+  private static String processAcousticTagFilter(HttpServletRequest request,
+      StringBuffer prettyPrint) {
+    StringBuilder tagFilter = new StringBuilder();
+    String acousticTagSerial = request.getParameter("acousticTagSerial");
+    if (acousticTagSerial != null && acousticTagSerial.length() > 0) {
+      prettyPrint.append("acoustic tag serial number is: ");
+      prettyPrint.append(acousticTagSerial);
+      prettyPrint.append("<br/>");
+      tagFilter.append('(');
+      tagFilter.append("acousticTag.serialNumber == ");
+      tagFilter.append(Util.quote(acousticTagSerial));
+      tagFilter.append(')');
+    }
+    String acousticTagId = request.getParameter("acousticTagId");
+    if (acousticTagId != null && acousticTagId.length() > 0) {
+      prettyPrint.append("acoustic tag id is: ");
+      prettyPrint.append(acousticTagId);
+      prettyPrint.append("<br/>");
+      if (tagFilter.length() > 0) {
+        tagFilter.append(" && ");
+      }
+      tagFilter.append('(');
+      tagFilter.append("acousticTag.idNumber == ");
+      tagFilter.append(Util.quote(acousticTagId));
+      tagFilter.append(')');
+    }
+    return tagFilter.toString();
+  }
+
+  private static String updateJdoqlVariableDeclaration(String jdoqlVariableDeclaration, String typeAndVariable) {
+    StringBuilder sb = new StringBuilder(jdoqlVariableDeclaration);
+    if (jdoqlVariableDeclaration.length() == 0) {
+      sb.append(" VARIABLES ");
+      sb.append(typeAndVariable);
+    }
+    else {
+      if (!jdoqlVariableDeclaration.contains(typeAndVariable)) {
+        sb.append("; ");
+        sb.append(typeAndVariable);
+      }
+    }
+    return sb.toString();
+  }
+  
 
 }

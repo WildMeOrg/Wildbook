@@ -1,12 +1,13 @@
 package org.ecocean;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -16,8 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.Util.MeasurementDesc;
 import org.ecocean.servlet.ServletUtilities;
-
-import org.ecocean.Shepherd;
 
 public class EncounterQueryProcessor {
 
@@ -151,6 +150,43 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     
     //Tag Filters--------------------------------------------------------
+    
+    StringBuilder metalTagFilter = new StringBuilder();
+    Enumeration<String> parameterNames = request.getParameterNames();
+    int metalTagsInQuery = 0;
+    while (parameterNames.hasMoreElements()) {
+      String parameterName = parameterNames.nextElement();
+      final String metalTagPrefix = "metalTag(";
+      if (parameterName.startsWith(metalTagPrefix)) {
+        String metalTagLocation = parameterName.substring(metalTagPrefix.length(), parameterName.lastIndexOf(')'));
+        String value = request.getParameter(parameterName);
+        if (value != null && value.trim().length() > 0) {
+          prettyPrint.append("metal tag ");
+          prettyPrint.append(metalTagLocation);
+          prettyPrint.append(" is ");
+          prettyPrint.append(value);
+          prettyPrint.append("<br/>");
+          String metalTagVar = "metalTag" + metalTagsInQuery++;
+          metalTagFilter.append("(metalTags.contains(" + metalTagVar + ") && ");
+          metalTagFilter.append(metalTagVar + ".location == " + Util.quote(metalTagLocation));
+          String jdoParam = "tagNumber" + metalTagsInQuery;
+          metalTagFilter.append(" && " + metalTagVar + ".tagNumber == " + jdoParam + ")");
+          paramMap.put(jdoParam, value);
+          parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "String " + jdoParam);
+        }
+      }
+    }
+    if (metalTagFilter.length() > 0) {
+      if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
+        filter += " && ";
+      }
+      filter += metalTagFilter.toString();
+      for (int i = 0; i < metalTagsInQuery; i++) {
+        updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.tag.MetalTag metalTag" + i);
+      }
+    }
+
+    // We don't do metal tags (above) in processTagFilters because of the dependency on jdoqlVariableDeclaration
     String tagFilters = processTagFilters(request, prettyPrint);
     if (tagFilters.length() > 0) {
       if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
@@ -973,6 +1009,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     return sb.toString();
   }
 
+  
   private static String processSatelliteTagFilter(HttpServletRequest request,
       StringBuffer prettyPrint) {
     StringBuilder sb = new StringBuilder();
@@ -983,7 +1020,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       prettyPrint.append("<br/>");
       sb.append('(');
       sb.append("satelliteTag.name == ");
-      sb.append(quote(name));
+      sb.append(Util.quote(name));
       sb.append(')');
     }
     String serialNumber = request.getParameter("satelliteTagSerial");
@@ -996,7 +1033,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       }
       sb.append('(');
       sb.append("satelliteTag.serialNumber == ");
-      sb.append(quote(serialNumber));
+      sb.append(Util.quote(serialNumber));
       sb.append(')');
     }
     String argosPttNumber = request.getParameter("satelliteTagArgosPttNumber");
@@ -1009,7 +1046,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       }
       sb.append('(');
       sb.append("satelliteTag.argosPttNumber == ");
-      sb.append(quote(argosPttNumber));
+      sb.append(Util.quote(argosPttNumber));
       sb.append(')');
     }
     return sb.toString();
@@ -1025,7 +1062,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       prettyPrint.append("<br/>");
       tagFilter.append('(');
       tagFilter.append("acousticTag.serialNumber == ");
-      tagFilter.append(quote(acousticTagSerial));
+      tagFilter.append(Util.quote(acousticTagSerial));
       tagFilter.append(')');
     }
     String acousticTagId = request.getParameter("acousticTagId");
@@ -1038,18 +1075,10 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       }
       tagFilter.append('(');
       tagFilter.append("acousticTag.idNumber == ");
-      tagFilter.append(quote(acousticTagId));
+      tagFilter.append(Util.quote(acousticTagId));
       tagFilter.append(')');
     }
     return tagFilter.toString();
-  }
-  
-  private static String quote(String arg) {
-    StringBuilder sb = new StringBuilder(arg.length() + 2);
-    sb.append('"');
-    sb.append(arg);
-    sb.append('"');
-    return sb.toString();
   }
   
   private static String updateJdoqlVariableDeclaration(String jdoqlVariableDeclaration, String typeAndVariable) {
