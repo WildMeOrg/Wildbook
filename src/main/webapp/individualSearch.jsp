@@ -657,6 +657,14 @@ if(CommonConfiguration.showProperty("showLifestage")){
                 <% 
                   pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); 
                 %>
+            <h5>Metal Tags</h5>
+            <table>
+            <c:forEach items="${metalTagDescs}" var="metalTagDesc">
+                <tr>
+                    <td><c:out value="${metalTagDesc.locationLabel}:"/></td><td><input name="metalTag(${metalTagDesc.location})"/></td>
+                </tr>
+            </c:forEach>
+            </table>
             </c:if>
             <c:if test="${showAcousticTag}">
               <h5>Acoustic Tag</h5>

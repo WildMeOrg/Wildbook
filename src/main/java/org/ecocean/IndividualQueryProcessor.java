@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -27,6 +28,7 @@ public class IndividualQueryProcessor {
       Vector<MarkedIndividual> rIndividuals=new Vector<MarkedIndividual>();
       StringBuffer prettyPrint=new StringBuffer();
       Iterator allSharks;
+      String parameterDeclaration = "";
 
       int day1=1, day2=31, month1=1, month2=12, year1=0, year2=3000;
       try{month1=(new Integer(request.getParameter("month1"))).intValue();} catch(NumberFormatException nfe) {}
@@ -259,14 +261,57 @@ public class IndividualQueryProcessor {
       //end verbatimEventDate filters-----------------------------------------------
       
       // Tag filters------------------------------------------------------
+      StringBuilder metalTagFilter = new StringBuilder();
+      Enumeration<String> parameterNames = request.getParameterNames();
+      int metalTagsInQuery = 0;
+      while (parameterNames.hasMoreElements()) {
+        String parameterName = parameterNames.nextElement();
+        final String metalTagPrefix = "metalTag(";
+        if (parameterName.startsWith(metalTagPrefix)) {
+          String metalTagLocation = parameterName.substring(metalTagPrefix.length(), parameterName.lastIndexOf(')'));
+          String value = request.getParameter(parameterName);
+          if (value != null && value.trim().length() > 0) {
+            prettyPrint.append("metal tag ");
+            prettyPrint.append(metalTagLocation);
+            prettyPrint.append(" is ");
+            prettyPrint.append(value);
+            prettyPrint.append("<br/>");
+            String metalTagVar = "metalTag" + metalTagsInQuery++;
+            metalTagFilter.append("(enc12.metalTags.contains(" + metalTagVar + ") && ");
+            metalTagFilter.append(metalTagVar + ".location == " + Util.quote(metalTagLocation));
+            String jdoParam = "tagNumber" + metalTagsInQuery;
+            metalTagFilter.append(" && " + metalTagVar + ".tagNumber == " + Util.quote(value) + ")");
+          }
+        }
+      }
+      if (metalTagFilter.length() > 0) {
+        if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
+          filter += " && ";
+        }
+        filter += metalTagFilter.toString();
+        for (int i = 0; i < metalTagsInQuery; i++) {
+          jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.tag.MetalTag metalTag" + i);
+        }
+        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc12");
+      }
+      
       String satelliteTagFilter = processSatelliteTagFilter(request, prettyPrint);
       if (satelliteTagFilter.length() > 0) {
         if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
           filter += " && ";
         }
-        filter += satelliteTagFilter.toString();
-        filter += " && (encounters.contains(enc10)) ";
+        filter += " (encounters.contains(enc10)) && ";
+        filter += satelliteTagFilter;
         jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc10");
+      }
+      String acousticTagFilter = processAcousticTagFilter(request, prettyPrint);
+      if (acousticTagFilter.length() > 0) {
+        if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
+          filter += " && ";
+        }
+        filter += acousticTagFilter;
+        filter += " && (encounters.contains(enc11)) ";
+        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc11");
       }
       
       // end Tag Filters -------------------------------------------------
@@ -936,7 +981,7 @@ public class IndividualQueryProcessor {
       prettyPrint.append(acousticTagSerial);
       prettyPrint.append("<br/>");
       tagFilter.append('(');
-      tagFilter.append("acousticTag.serialNumber == ");
+      tagFilter.append("enc11.acousticTag.serialNumber == ");
       tagFilter.append(Util.quote(acousticTagSerial));
       tagFilter.append(')');
     }
@@ -949,7 +994,7 @@ public class IndividualQueryProcessor {
         tagFilter.append(" && ");
       }
       tagFilter.append('(');
-      tagFilter.append("acousticTag.idNumber == ");
+      tagFilter.append("enc11.acousticTag.idNumber == ");
       tagFilter.append(Util.quote(acousticTagId));
       tagFilter.append(')');
     }
@@ -971,5 +1016,17 @@ public class IndividualQueryProcessor {
     return sb.toString();
   }
   
+  private static String updateParametersDeclaration(
+      String parameterDeclaration, String typeAndVariable) {
+    StringBuilder sb = new StringBuilder(parameterDeclaration);
+    if (parameterDeclaration.length() == 0) {
+      sb.append(" PARAMETERS ");
+    }
+    else {
+      sb.append(", ");
+    }
+    sb.append(typeAndVariable);
+    return sb.toString();
+  }
 
 }

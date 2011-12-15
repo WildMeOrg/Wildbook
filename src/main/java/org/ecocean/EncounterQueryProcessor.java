@@ -1002,10 +1002,12 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     StringBuilder sb = new StringBuilder();
     sb.append(processAcousticTagFilter(request, prettyPrint));
     String satelliteTagFilter = processSatelliteTagFilter(request, prettyPrint);
-    if (sb.length() > 0) {
-      sb.append(" && ");
+    if (satelliteTagFilter.length() > 0) {
+      if (sb.length() > 0) {
+        sb.append(" && ");
+      }
+      sb.append(satelliteTagFilter);
     }
-    sb.append(satelliteTagFilter);
     return sb.toString();
   }
 
