@@ -9,11 +9,11 @@
   <packaging>war</packaging>
 
   <properties>
-    <datanucleus.version>3.0.2</datanucleus.version>
+    <datanucleus.version>3.0.4</datanucleus.version>
     <datanucleus.enhancer.version>3.0.1</datanucleus.enhancer.version>
     <datanucleus.spatial.version>3.0.1</datanucleus.spatial.version>
     <datanucleus.rest.version>2.0.1</datanucleus.rest.version>
-    <datanucleus.jodatime.version>3.0.0-release</datanucleus.jodatime.version>
+    <datanucleus.jodatime.version>3.0.1</datanucleus.jodatime.version>
     <datanucleus.jpa.version>2.1.8</datanucleus.jpa.version>
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
      <geotools.version>2.7.0</geotools.version>
