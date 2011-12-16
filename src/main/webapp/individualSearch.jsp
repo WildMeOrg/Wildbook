@@ -464,6 +464,13 @@
       <%
         }
       %>
+      <%
+        pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
+      %>
+      <c:if test="${showReleaseDate}">
+        <p><strong><%= props.getProperty("releaseDate") %></strong></p>
+        <p>From: <input name="releaseDateFrom"/> to <input name="releaseDateTo"/> <%=props.getProperty("releaseDateFormat") %></p>
+      </c:if>
     </div>
   </td>
 </tr>

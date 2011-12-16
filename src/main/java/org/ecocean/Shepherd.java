@@ -1161,8 +1161,13 @@ public class Shepherd {
    * @see shark, java.util.Iterator
    */
   public Iterator getAllMarkedIndividuals(Query sharkies, String order) {
+    Map<String, Object> emptyMap = Collections.emptyMap();
+    return getAllMarkedIndividuals(sharkies, order, emptyMap);
+  }
+  
+  public Iterator getAllMarkedIndividuals(Query sharkies, String order, Map<String, Object> params) {
     sharkies.setOrdering(order);
-    Collection c = (Collection) (sharkies.execute());
+    Collection c = (Collection) (sharkies.executeWithMap(params));
     ArrayList list = new ArrayList(c);
     //Collections.reverse(list);
     Iterator it = list.iterator();

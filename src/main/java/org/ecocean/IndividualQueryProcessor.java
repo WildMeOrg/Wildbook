@@ -1,9 +1,13 @@
 package org.ecocean;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.lang.StringBuffer;
@@ -29,6 +33,7 @@ public class IndividualQueryProcessor {
       StringBuffer prettyPrint=new StringBuffer();
       Iterator allSharks;
       String parameterDeclaration = "";
+      Map<String,Object> paramMap = new HashMap<String, Object>();
 
       int day1=1, day2=31, month1=1, month2=12, year1=0, year2=3000;
       try{month1=(new Integer(request.getParameter("month1"))).intValue();} catch(NumberFormatException nfe) {}
@@ -259,6 +264,46 @@ public class IndividualQueryProcessor {
               prettyPrint.append("<br />");
       }
       //end verbatimEventDate filters-----------------------------------------------
+
+      String releaseDateFromStr = request.getParameter("releaseDateFrom");
+      String releaseDateToStr = request.getParameter("releaseDateTo");
+      String pattern = CommonConfiguration.getProperty("releaseDateFormat");
+      SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+      if (releaseDateFromStr != null && releaseDateFromStr.trim().length() > 0) {
+        try {
+          Date releaseDateFrom = simpleDateFormat.parse(releaseDateFromStr);
+          if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
+            filter += " && ";
+          }
+          filter += "(enc13.releaseDate >= releaseDateFrom)";
+          filter += " && encounters.contains(enc13) ";
+          parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateFrom");
+          jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
+          paramMap.put("releaseDateFrom", releaseDateFrom);
+          prettyPrint.append("release date >= " + simpleDateFormat.format(releaseDateFrom));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+      if (releaseDateToStr != null && releaseDateToStr.trim().length() > 0) {
+        try {
+          Date releaseDateTo = simpleDateFormat.parse(releaseDateToStr);
+          if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
+            filter += " && ";
+          }
+          filter += "(enc13.releaseDate <= releaseDateTo)";
+          if (!filter.contains("enc13")) {
+            filter += " && encounters.contains(enc13) ";
+          }
+          parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateTo");
+          jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
+          paramMap.put("releaseDateTo", releaseDateTo);
+          prettyPrint.append("releaseDate <= " + simpleDateFormat.format(releaseDateTo));
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+      
       
       // Tag filters------------------------------------------------------
       StringBuilder metalTagFilter = new StringBuilder();
@@ -812,6 +857,7 @@ public class IndividualQueryProcessor {
       } //end if not noQuery
 
       filter+=jdoqlVariableDeclaration;
+      filter += parameterDeclaration;
       
       System.out.println("IndividualQueryProcessor filter: "+filter);
 
@@ -820,15 +866,15 @@ public class IndividualQueryProcessor {
 
       try{
         if(request.getParameter("sort")!=null) {
-          if(request.getParameter("sort").equals("sex")){allSharks=myShepherd.getAllMarkedIndividuals(query, "sex ascending");}
-          else if(request.getParameter("sort").equals("name")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending");}
-          else if(request.getParameter("sort").equals("numberEncounters")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberEncounters descending");}
+          if(request.getParameter("sort").equals("sex")){allSharks=myShepherd.getAllMarkedIndividuals(query, "sex ascending", paramMap);}
+          else if(request.getParameter("sort").equals("name")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);}
+          else if(request.getParameter("sort").equals("numberEncounters")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberEncounters descending", paramMap);}
           else{
-            allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending");
+            allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);
           }
         }
         else{
-          allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending");
+          allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);
           //keyword and then individualID ascending
         }
         //process over to Vector
