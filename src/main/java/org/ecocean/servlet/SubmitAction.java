@@ -38,9 +38,8 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-//import java.io.FileInputStream;
-//import java.text.CharacterIterator;
-//import java.text.StringCharacterIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -75,7 +74,7 @@ public class SubmitAction extends Action {
 		  String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
 		  //Vector additionalImageNames = new Vector();
 		  ArrayList<SinglePhotoVideo> images=new ArrayList<SinglePhotoVideo>();
-		  
+
 		  int encounterNumber = 0;
 		  int day = 1, month = 1, year = 2003, hour = 12;
 		  String lat = "", longitude = "", latDirection = "", longDirection = "", scars = "None";
@@ -689,6 +688,11 @@ public class SubmitAction extends Action {
       String newnum = "";
       if (!spamBot) {
         newnum = myShepherd.storeNewEncounter(enc, uniqueID);
+
+        Logger log = LoggerFactory.getLogger(SubmitAction.class);
+	    log.info("New encounter submission: <a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + uniqueID+"\">"+uniqueID+"</a>");
+
+
       }
 
       if (newnum.equals("fail")) {

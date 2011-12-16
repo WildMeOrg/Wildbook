@@ -228,6 +228,12 @@
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("general")%>
         </a></li>
         
+                <li><a
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/logs.jsp"
+	          class="enclose"
+	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("logs")%>
+        </a></li>
+        
         <%
         if(CommonConfiguration.useSpotPatternRecognition()){
         %>
