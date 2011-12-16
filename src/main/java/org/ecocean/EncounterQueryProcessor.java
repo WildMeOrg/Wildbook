@@ -34,7 +34,7 @@ public class EncounterQueryProcessor {
     //-----------------------------------------------------
 
     //---filter out approved
-    if(request.getParameter("approved")==null) {
+    if((request.getParameter("approved")==null)&&(request.getParameter("unapproved")!=null)) {
       if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="!approved";}
       else{filter+=" && !approved";}
       prettyPrint.append("Not approved.<br />");
@@ -42,13 +42,31 @@ public class EncounterQueryProcessor {
     //----------------------------
 
     //---filter out unapproved
-    if(request.getParameter("unapproved")==null) {
-      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="(!approved && !unidentifiable)";}
-      else{filter+=" && (!approved && !unidentifiable)";}
+    if((request.getParameter("unapproved")==null)&&(request.getParameter("approved")!=null)) {
+      
+      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="approved";}
+      else{filter+=" && approved";}
       prettyPrint.append("Not unapproved.<br />");
     }
     //----------------------------
 
+    //---filter out unapproved and unapproved, leaving only unidentifiable
+    if((request.getParameter("unapproved")==null)&&(request.getParameter("approved")==null)&&(request.getParameter("unidentifiable")!=null)) {
+      
+      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="unidentifiable";}
+      else{filter+=" && unidentifiable";}
+      prettyPrint.append("Not unapproved.<br />");
+    }
+    //----------------------------
+    
+    //---filter out all - nonsense use case, but we would expect someone to get no results if they did deselect all
+    if((request.getParameter("unapproved")==null)&&(request.getParameter("approved")==null)&&(request.getParameter("unidentifiable")==null)) {
+      
+      if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){filter+="unidentifiable && !identifiable";}
+      else{filter+=" && unidentifiable && !unidentifiable";}
+      prettyPrint.append("No encounter types were selected!<br />");
+    }
+    //----------------------------
 
 
     //------------------------------------------------------------------
@@ -327,7 +345,7 @@ public class EncounterQueryProcessor {
     if(filter.equals("SELECT FROM org.ecocean.Encounter WHERE ")){
       filter+="((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
     }
-    else{filter+="&& ((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
+    else{filter+=" && ((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
     }
 
 
