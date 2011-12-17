@@ -39,7 +39,7 @@ public class EncounterQueryProcessor {
     }
     //end location filter--------------------------------------------------------------------------------------
 
-    //filter for unidentifiable encounters------------------------------------------
+  //filter for unidentifiable encounters------------------------------------------
     if(request.getParameter("unidentifiable")==null) {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!unidentifiable";}
       else{filter+=" && !unidentifiable";}
@@ -48,7 +48,7 @@ public class EncounterQueryProcessor {
     //-----------------------------------------------------
 
     //---filter out approved
-    if(request.getParameter("approved")==null) {
+    if((request.getParameter("approved")==null)&&(request.getParameter("unapproved")!=null)) {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!approved";}
       else{filter+=" && !approved";}
       prettyPrint.append("Not approved.<br />");
@@ -56,9 +56,19 @@ public class EncounterQueryProcessor {
     //----------------------------
 
     //---filter out unapproved
-    if(request.getParameter("unapproved")==null) {
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="(!approved && !unidentifiable)";}
-      else{filter+=" && (!approved && !unidentifiable)";}
+    if((request.getParameter("unapproved")==null)&&(request.getParameter("approved")!=null)) {
+      
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="approved";}
+      else{filter+=" && approved";}
+      prettyPrint.append("Not unapproved.<br />");
+    }
+    //----------------------------
+
+    //---filter out unapproved and unapproved, leaving only unidentifiable
+    if((request.getParameter("unapproved")==null)&&(request.getParameter("approved")==null)&&(request.getParameter("unidentifiable")!=null)) {
+      
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="unidentifiable";}
+      else{filter+=" && unidentifiable";}
       prettyPrint.append("Not unapproved.<br />");
     }
     //----------------------------
