@@ -102,7 +102,7 @@
             
             <%
 	        Logger log = LoggerFactory.getLogger(getClass());
-	        log.info(request.getRemoteUser()+" logged in.");
+	        log.info(request.getRemoteUser()+" logged in from IP address "+request.getRemoteAddr()+".");
 
 	    %>
 
