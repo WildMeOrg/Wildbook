@@ -162,7 +162,7 @@ public class Shepherd {
     String number = enc.getEncounterNumber();
     pm.deletePersistent(enc);
   }
-  
+
   public void throwAwayTissueSample(TissueSample genSample) {
     //String removedParameters = genSample.getHTMLString();
     //List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
@@ -181,7 +181,7 @@ public class Shepherd {
     pm.deletePersistent(analysis);
     //return removedParameters;
   }
-  
+
   public void throwAwayMicrosatelliteMarkersAnalysis(MicrosatelliteMarkersAnalysis analysis) {
     //String removedParameters = analysis.getHTMLString();
     /*
@@ -246,7 +246,7 @@ public class Shepherd {
     }
     return tempEnc;
   }
-  
+
   public SinglePhotoVideo getSinglePhotoVideo(String num) {
     SinglePhotoVideo tempEnc = null;
     try {
@@ -256,7 +256,7 @@ public class Shepherd {
     }
     return tempEnc;
   }
-  
+
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
     try {
@@ -268,51 +268,51 @@ public class Shepherd {
       while(it.hasNext()){
         return ((TissueSample)it.next());
       }
-    } 
+    }
     catch (Exception nsoe) {
       nsoe.printStackTrace();
       return null;
     }
     return null;
   }
-  
+
   public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       MitochondrialDNAAnalysis mtDNA = (MitochondrialDNAAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "MitochondrialDNA");
       return mtDNA;
-    } 
+    }
     catch (Exception nsoe) {
       nsoe.printStackTrace();
       return null;
     }
   }
-  
+
   public SexAnalysis getSexAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       SexAnalysis mtDNA = (SexAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "SexAnalysis");
       return mtDNA;
-    } 
+    }
     catch (Exception nsoe) {
       nsoe.printStackTrace();
       return null;
     }
   }
-  
-  
+
+
   public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "MicrosatelliteMarkers");
       return msDNA;
-    } 
+    }
     catch (Exception nsoe) {
       nsoe.printStackTrace();
       return null;
     }
   }
-  
-  
-  
- 
+
+
+
+
 
   public Adoption getAdoption(String num) {
     Adoption tempEnc = null;
@@ -323,7 +323,7 @@ public class Shepherd {
     }
     return tempEnc;
   }
-  
+
   public <T extends DataCollectionEvent> T findDataCollectionEvent(Class<T> clazz, String num) {
     T dataCollectionEvent = null;
     try {
@@ -388,14 +388,15 @@ public class Shepherd {
     return tempTask;
   }
 
-  public Keyword getKeyword(String indexname) {
-    Keyword tempEnc = null;
-    try {
-      tempEnc = ((Keyword) (pm.getObjectById(pm.newObjectIdInstance(Keyword.class, indexname.trim()), true)));
-    } catch (Exception nsoe) {
-      return null;
-    }
-    return tempEnc;
+  public Keyword getKeyword(String readableName) {
+
+    Iterator keywords = getAllKeywords();
+	while (keywords.hasNext()) {
+      Keyword kw = (Keyword) keywords.next();
+      if(kw.getReadableName().equals(readableName)){return kw;}
+  	}
+  return null;
+
   }
 
   public ArrayList<String> getKeywordsInCommon(String encounterNumber1, String encounterNumber2) {
@@ -411,8 +412,8 @@ public class Shepherd {
       if (enc1.hasKeyword(kw) && enc2.hasKeyword(kw)) {
         inCommon.add(kw.getReadableName());
       }
-      
-      
+
+
     }
     return inCommon;
   }
@@ -427,7 +428,7 @@ public class Shepherd {
     }
     return true;
   }
-  
+
   public boolean isTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
     try {
@@ -439,14 +440,14 @@ public class Shepherd {
       while(it.hasNext()){
         return true;
       }
-    } 
+    }
     catch (Exception nsoe) {
       nsoe.printStackTrace();
       return false;
     }
     return false;
   }
-  
+
   //TBD - need separate for haplotype and ms markers
   public boolean isGeneticAnalysis(String sampleID, String encounterNumber, String analysisID, String type) {
     TissueSample tempEnc = null;
@@ -459,14 +460,14 @@ public class Shepherd {
       while(it.hasNext()){
         return true;
       }
-    } 
+    }
     catch (Exception nsoe) {
       nsoe.printStackTrace();
       return false;
     }
     return false;
   }
-  
+
   public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       String filter = "this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
@@ -477,14 +478,14 @@ public class Shepherd {
       while(it.hasNext()){
         return (GeneticAnalysis)it.next();
       }
-    } 
+    }
     catch (Exception nsoe) {
       nsoe.printStackTrace();
       return null;
     }
     return null;
   }
-  
+
   public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID, String type) {
     try {
       String filter = "this.analysisType == \""+type+"\" && this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
@@ -495,7 +496,7 @@ public class Shepherd {
       while(it.hasNext()){
         return (GeneticAnalysis)it.next();
       }
-    } 
+    }
     catch (Exception nsoe) {
       nsoe.printStackTrace();
       return null;
@@ -512,15 +513,16 @@ public class Shepherd {
     return true;
   }
 
-  public boolean isKeyword(String indexname) {
-    try {
-      Keyword tempEnc = ((org.ecocean.Keyword) (pm.getObjectById(pm.newObjectIdInstance(Keyword.class, indexname.trim()), true)));
-    } catch (Exception nsoe) {
-      return false;
-    }
-    return true;
+  public boolean isKeyword(String keywordDescription) {
+    Iterator keywords = getAllKeywords();
+	    while (keywords.hasNext()) {
+      Keyword kw = (Keyword) keywords.next();
+      if(kw.getReadableName().equals(keywordDescription)){return true;}
+ 	}
+
+    return false;
   }
-  
+
   public boolean isSinglePhotoVideo(String indexname) {
     try {
       SinglePhotoVideo tempEnc = ((org.ecocean.SinglePhotoVideo) (pm.getObjectById(pm.newObjectIdInstance(SinglePhotoVideo.class, indexname.trim()), true)));
@@ -575,7 +577,7 @@ public class Shepherd {
         return false;
       }
     }
-    
+
       pm.makePersistent(newShark);
 
       query.closeAll();
@@ -729,7 +731,7 @@ public class Shepherd {
       return null;
     }
   }
-  
+
   public Iterator getAllEncounters(Query acceptedEncounters, Map<String, Object> paramMap) {
     Collection c;
     try {
@@ -943,7 +945,7 @@ public class Shepherd {
     Iterator it = c.iterator();
     return it;
   }
-  
+
   public ArrayList<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
     Extent encClass = pm.getExtent(TissueSample.class, true);
@@ -951,7 +953,7 @@ public class Shepherd {
     Collection c = (Collection) (samples.execute());
     return (new ArrayList<TissueSample>(c));
   }
-  
+
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
     Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
@@ -1123,7 +1125,7 @@ public class Shepherd {
     Iterator it = list.iterator();
     return it;
   }
-  
+
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsFromLocationID(String locCode) {
     Extent allSharks = null;
     try {
@@ -1143,7 +1145,7 @@ public class Shepherd {
     }
     return newList;
   }
-  
+
 
 
   public Iterator getAllMarkedIndividuals(Query sharks) {
@@ -1164,7 +1166,7 @@ public class Shepherd {
     Map<String, Object> emptyMap = Collections.emptyMap();
     return getAllMarkedIndividuals(sharkies, order, emptyMap);
   }
-  
+
   public Iterator getAllMarkedIndividuals(Query sharkies, String order, Map<String, Object> params) {
     sharkies.setOrdering(order);
     Collection c = (Collection) (sharkies.executeWithMap(params));
@@ -1620,12 +1622,12 @@ public class Shepherd {
               for (int n = 0; n < numKeywords; n++) {
                 if (!keywords[n].equals("None")) {
                   Keyword word = getKeyword(keywords[n]);
-                  
+
                   if (images.get(i).getKeywords().contains(word)) {
-                    
-                  
+
+
                   //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
-                  
+
                     hasKeyword = true;
                     //System.out.println("member of: "+word.getReadableName());
                   }
@@ -1646,12 +1648,12 @@ public class Shepherd {
               m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
               //thumbs.add(m_thumb);
               thumbs.add(images.get(i));
-      } 
+      }
       else if (hasKeyword && isAcceptableImageFile(imageName)) {
               m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
               //thumbs.add(m_thumb);
               thumbs.add(images.get(i));
-      } 
+      }
       else {
               count--;
       }
@@ -1670,7 +1672,7 @@ public class Shepherd {
 
   public ArrayList<SinglePhotoVideo> getMarkedIndividualThumbnails(HttpServletRequest request, Iterator<MarkedIndividual> it, int startNum, int endNum, String[] keywords) {
     ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
-    
+
     boolean stopMe = false;
     int count = 0;
     while (it.hasNext()) {
@@ -1698,12 +1700,12 @@ public class Shepherd {
                 for (int n = 0; n < numKeywords; n++) {
                   if (!keywords[n].equals("None")) {
                     Keyword word = getKeyword(keywords[n]);
-                    
+
                     if (images.get(i).getKeywords().contains(word)) {
-                      
-                    
+
+
                     //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
-                    
+
                       hasKeyword = true;
                       //System.out.println("member of: "+word.getReadableName());
                     }
@@ -1724,12 +1726,12 @@ public class Shepherd {
                 m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                 //thumbs.add(m_thumb);
                 thumbs.add(images.get(i));
-        } 
+        }
         else if (hasKeyword && isAcceptableImageFile(imageName)) {
                 m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                 //thumbs.add(m_thumb);
                 thumbs.add(images.get(i));
-        } 
+        }
         else {
                 count--;
         }
@@ -1770,9 +1772,9 @@ public class Shepherd {
           for (int n = 0; n < numKeywords; n++) {
             if (!keywords[n].equals("None")) {
               Keyword word = getKeyword(keywords[n]);
-              
+
               //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
-              if(enc.hasKeyword(word)){  
+              if(enc.hasKeyword(word)){
                 hasKeyword = true;
                 //System.out.println("member of: "+word.getReadableName());
               }
@@ -1826,7 +1828,7 @@ public class Shepherd {
               if (!keywords[n].equals("None")) {
                 Keyword word = getKeyword(keywords[n]);
                 //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
-                if(enc.hasKeyword(word)){  
+                if(enc.hasKeyword(word)){
                   hasKeyword = true;
                   //System.out.println("member of: "+word.getReadableName());
                 }
@@ -1967,7 +1969,7 @@ public class Shepherd {
     Collection results = (Collection) q.execute();
     return (new ArrayList(results));
   }
-  
+
   public ArrayList<String> getAllHaplotypes() {
     Query q = pm.newQuery(MitochondrialDNAAnalysis.class);
     q.setResult("distinct haplotype");
@@ -1975,7 +1977,7 @@ public class Shepherd {
     Collection results = (Collection) q.execute();
     return (new ArrayList(results));
   }
-  
+
   public ArrayList<String> getAllGeneticSexes() {
     Query q = pm.newQuery(SexAnalysis.class);
     q.setResult("distinct sex");
@@ -1983,7 +1985,7 @@ public class Shepherd {
     Collection results = (Collection) q.execute();
     return (new ArrayList(results));
   }
-  
+
   public ArrayList<String> getAllLoci() {
     Query q = pm.newQuery(Locus.class);
     q.setResult("distinct name");
@@ -2065,7 +2067,7 @@ public class Shepherd {
     Collection results = (Collection)q.execute ();
     return (new ArrayList(results));
   }
-  
+
   public ArrayList<String> getAllLifeStages(){
     Query q = pm.newQuery (Encounter.class);
     q.setResult ("distinct lifeStage");
