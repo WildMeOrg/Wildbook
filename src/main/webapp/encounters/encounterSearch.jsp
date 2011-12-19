@@ -1124,12 +1124,15 @@ else {
 
       <p><input name="export" type="checkbox" id="export" value="true">
         <strong><%=encprops.getProperty("generateExportFile")%>
-        </strong><br>
+        </strong><br />
         &nbsp;&nbsp;&nbsp;&nbsp;<input name="locales" type="checkbox"
                                        id="locales"
                                        value="true"> <%=encprops.getProperty("localeExport")%>
       </p>
-      </p>
+      <p><input name="exportGeneGIS" type="checkbox" id="exportGeneGIS" value="true">
+        <strong><%=encprops.getProperty("generateGeneGIS")%>
+        </strong>
+        </input></p>
 
       <p><input name="addTimeStamp" type="checkbox" id="addTimeStamp" value="true">
         <strong><%=encprops.getProperty("addTimestamp2KML")%>

@@ -198,30 +198,6 @@
   sheet.addCell(label30);
 
 
-//let's write out headers for the normal export file
-/* 
-WritableWorkbook workbookExport = Workbook.createWorkbook(fileExport);
-  WritableSheet sheetExport = workbookExport.createSheet("Search Results", 0);
-  Label label0E = new Label(0, 0, encprops.getProperty("markedIndividual"));
-  sheetExport.addCell(label0E);
-  Label label0F = new Label(1, 0, encprops.getProperty("number"));
-  sheetExport.addCell(label0F);
-  Label label1E = new Label(2, 0, encprops.getProperty("alternateID"));
-  sheetExport.addCell(label1E);
-  Label label2E = new Label(3, 0, encprops.getProperty("submitterName"));
-  sheetExport.addCell(label2E);
-  Label label2aE = new Label(4, 0, encprops.getProperty("date"));
-  sheetExport.addCell(label2aE);
-  Label label3E = new Label(5, 0, encprops.getProperty("vessel"));
-  sheetExport.addCell(label3E);
-  Label label5E = new Label(6, 0, encprops.getProperty("eventID"));
-  sheetExport.addCell(label5E);
-  Label label6E = new Label(7, 0, encprops.getProperty("location"));
-  sheetExport.addCell(label6E);
-  Label label7E = new Label(8, 0, encprops.getProperty("locationID"));
-  sheetExport.addCell(label7E);
-*/
-
 //setup the KML output
   Document document = DocumentHelper.createDocument();
   Element root = document.addElement("kml");
@@ -454,8 +430,17 @@ WritableWorkbook workbookExport = Workbook.createWorkbook(fileExport);
 </p>
 <%
   }
-%>
 
+  if (request.getParameter("exportGeneGIS") != null) {
+%>
+<p><%=encprops.getProperty("exportedGeneGIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportGeneGISFormat?<%=request.getQueryString()%>">
+Click here</a><br>
+  <em><%=encprops.getProperty("rightClickLink")%>
+  </em>
+</p>
+<%
+  }
+%>
 <table width="810px">
 <tr>
   <td class="lineitem" bgcolor="#99CCFF"></td>
