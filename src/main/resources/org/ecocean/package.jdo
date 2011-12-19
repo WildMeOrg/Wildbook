@@ -141,6 +141,10 @@
             <field name="specificEpithet" persistence-modifier="persistent">
                 <column length="128" />
             </field>
+            
+              <field name="state" persistence-modifier="persistent">
+	                    <column length="128" />
+            </field>
 
             <field name="photographerEmail" persistence-modifier="persistent">
                 <column length="256" />

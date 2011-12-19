@@ -121,6 +121,8 @@ public class Encounter implements java.io.Serializable {
   //time metrics of the report
   private int hour = 0;
   private String minutes = "00";
+  
+  private String state="";
 
   private long dateInMilliseconds=0;
   //describes how the shark was measured
@@ -1657,6 +1659,10 @@ public class Encounter implements java.io.Serializable {
      }
      return false; 
     }
+    
+    public String getState(){return state;}
+    
+    public void setState(String newState){this.state=newState;}
     
 }
 
