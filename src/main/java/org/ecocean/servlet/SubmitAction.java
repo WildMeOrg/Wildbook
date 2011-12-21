@@ -671,9 +671,7 @@ public class SubmitAction extends Action {
 
       //return a forward to display.jsp
       System.out.println("Ending data submission.");
-      if ((!spamBot) && (submitterID != null) && (submitterID.equals("deepblue"))) {
-        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/participate/deepblue/confirmSubmit.jsp?number=" + uniqueID);
-      } else if (!spamBot) {
+      if (!spamBot) {
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + uniqueID);
       } else {
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/spambot.jsp");
