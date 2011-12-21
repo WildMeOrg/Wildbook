@@ -131,7 +131,7 @@
 <p><em><%=props.getProperty("instructions")%>
 </em></p>
 
-<form action="individualThumbnailSearchResults.jsp" method="get" name="search"
+<form action="individualSearchResults.jsp" method="get" name="search"
       id="search">
 <table width="810px">
 

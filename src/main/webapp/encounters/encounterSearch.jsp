@@ -140,7 +140,7 @@
 <p><em><%=encprops.getProperty("instructions")%>
 </em></p>
 
-<form action="thumbnailSearchResults.jsp" method="get" name="search" id="search">
+<form action="searchResults.jsp" method="get" name="search" id="search">
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
