@@ -140,7 +140,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 				
 			
 			//approve new encounter
-			if ((!enc.approved)&&(request.getParameter("isOwner").equals("true"))) {
+			if ((enc.getState()!=null) && (enc.getState().equals("unapproved")) && (request.getParameter("isOwner").equals("true"))) {
 		%>
 <table width="175" border="1" cellpadding="1" cellspacing="0"
        bordercolor="#000000" bgcolor="#CECFCE">
@@ -1699,7 +1699,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 </table>
 <br/> <%
 	  	}
-	  	  if ((enc.wasRejected())&&request.getParameter("isOwner").equals("true")) {
+	  	  if ((enc.getState()!=null) && (enc.getState().equals("unidentifiable")) && request.getParameter("isOwner").equals("true")) {
 	  %>
 <table width="150" border="1" cellpadding="1" cellspacing="0"
        bordercolor="#000000" bgcolor="#CECFCE">

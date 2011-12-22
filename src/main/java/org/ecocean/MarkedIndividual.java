@@ -107,20 +107,12 @@ public class MarkedIndividual {
   public boolean addEncounter(Encounter newEncounter) {
 
     newEncounter.assignToMarkedIndividual(individualID);
-    if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
-    if(newEncounter.wasRejected()) {
-      numUnidentifiableEncounters++;
-      boolean ok=unidentifiableEncounters.add(newEncounter);
-      resetMaxNumYearsBetweenSightings();
-      return ok;
-
-      }
-    else {
+    
       boolean ok=encounters.add(newEncounter);
       numberEncounters++;
       resetMaxNumYearsBetweenSightings();
       return ok; 
-     }
+     
  }
 
    /**Removes an encounter from this MarkedIndividual.
@@ -129,22 +121,7 @@ public class MarkedIndividual {
    *@see  Shepherd#commitDBTransaction()
    */
   public boolean removeEncounter(Encounter getRidOfMe){
-    if(getRidOfMe.wasRejected()) {
-      numUnidentifiableEncounters--;
-      boolean changed=false;
-      for(int i=0;i<unidentifiableEncounters.size();i++) {
-        Encounter tempEnc=(Encounter)unidentifiableEncounters.get(i);
-        if(tempEnc.getEncounterNumber().equals(getRidOfMe.getEncounterNumber())) {
-          unidentifiableEncounters.remove(i);
-          i--;
-          changed=true;
-          }
-        }
-      resetMaxNumYearsBetweenSightings();
-      return changed;
 
-      }
-    else {
       numberEncounters--;
       boolean changed=false;
       for(int i=0;i<encounters.size();i++) {
@@ -157,8 +134,8 @@ public class MarkedIndividual {
         }
       resetMaxNumYearsBetweenSightings();
       return changed;
-    }
   }
+  
 
   /**
    * Returns the total number of submitted encounters for this MarkedIndividual
@@ -295,15 +272,17 @@ public class MarkedIndividual {
     return false;
   }
 
+  /*
   public boolean hasApprovedEncounters() {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if (temp.isApproved()) {
+      if (temp.getState()!=null) {
         return true;
       }
     }
     return false;
   }
+  */
 
   public boolean wasSightedInMonth(int year, int month) {
     for (int c = 0; c < encounters.size(); c++) {

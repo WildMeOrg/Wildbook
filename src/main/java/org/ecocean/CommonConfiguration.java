@@ -253,6 +253,19 @@ public class CommonConfiguration {
     initialize();
     return props.getProperty(name);
   }
+  
+  public static ArrayList<String> getSequentialPropertyValues(String propertyPrefix){
+    initialize();
+    ArrayList<String> returnThese=new ArrayList<String>();
+    int iter=0;
+    while(props.getProperty(propertyPrefix+iter)!=null){
+      returnThese.add(props.getProperty(propertyPrefix+iter));
+      iter++;
+    }
+    
+    return returnThese;
+  }
+  
 
   /*
    * This method is used to determined the show/hide condition of an element of the UI.

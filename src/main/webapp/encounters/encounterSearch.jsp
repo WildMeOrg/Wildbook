@@ -1077,29 +1077,25 @@ else {
       <p>Use the fields below to limit your search by catalog metadata fields.</p>
       <table width="720px" align="left">
         <tr>
-          <td width="154"><strong><%=encprops.getProperty("types2search")%>
-          </strong>:
-          </td>
-          <td width="208"><label>
-            <input type="checkbox" name="approved" value="acceptedEncounters"
-                   checked><%=encprops.getProperty("approved")%>
-            </input></label>
-          </td>
-
-
-          <td width="188"><label>
-            <input name="unapproved" type="checkbox" value="allEncounters"
-                   checked><%=encprops.getProperty("unapproved")%>
-            </input></label>
-          </td>
-
-          <td width="145"><label>
-            <input name="unidentifiable" type="checkbox" value="allEncounters"
-                   checked><%=encprops.getProperty("unidentifiable")%>
-            </input></label>
-          </td>
-
-
+          <td width="154">
+          <p><strong><%=encprops.getProperty("types2search")%></strong>:</p>
+     		<%
+     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("encounterState");
+     		int numProps=values.size();
+     		%>
+     		<p><select size="<%=numProps %>" multiple="multiple" name="state" id="state">
+     		<option value="None"></option>
+     		<%
+     		
+     		for(int y=0;y<numProps;y++){
+     		%>
+     			<option value="<%=values.get(y) %>"><%=values.get(y) %></option>
+     		<%
+     		}
+     		%>
+     		</select>
+			</p>
+		</td>
         </tr>
       </table>
     </div>

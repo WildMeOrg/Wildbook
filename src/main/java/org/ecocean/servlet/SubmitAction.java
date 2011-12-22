@@ -658,7 +658,10 @@ public class SubmitAction extends Action {
       enc.setPhotographerName(photographerName);
       enc.setPhotographerEmail(photographerEmail);
       enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + request.getRemoteHost() + "</p>");
-      enc.approved = false;
+      //enc.approved = false;
+      if(CommonConfiguration.getProperty("encounterState0")!=null){
+        enc.setState(CommonConfiguration.getProperty("encounterState0"));
+      }
       if (request.getRemoteUser() != null) {
         enc.setSubmitterID(request.getRemoteUser());
       } else if (submitterID != null) {

@@ -39,6 +39,8 @@ public class EncounterQueryProcessor {
     }
     //end location filter--------------------------------------------------------------------------------------
 
+
+/**    
   //filter for unidentifiable encounters------------------------------------------
     if(request.getParameter("unidentifiable")==null) {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!unidentifiable";}
@@ -73,7 +75,7 @@ public class EncounterQueryProcessor {
     }
     //----------------------------
 
-
+*/
 
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
@@ -101,6 +103,35 @@ public class EncounterQueryProcessor {
     }
     //end locationID filters-----------------------------------------------
 
+    
+    //------------------------------------------------------------------
+    //state filters-------------------------------------------------
+    String[] states=request.getParameterValues("state");
+    if((states!=null)&&(!states[0].equals("None"))){
+          prettyPrint.append("State is one of the following: ");
+          int kwLength=states.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              String kwParam=states[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" state == \""+kwParam+"\"";
+                }
+                else{
+                  locIDFilter+=" || state == \""+kwParam+"\"";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end locationID filters-----------------------------------------------
+
+    
+    
   //------------------------------------------------------------------
     //patterningCode filters-------------------------------------------------
     String[] patterningCodes=request.getParameterValues("patterningCode");

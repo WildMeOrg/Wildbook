@@ -595,7 +595,7 @@ public class Shepherd {
    * @see encounter, java.util.Iterator
    */
   public Iterator getUnassignedEncounters() {
-    String filter = "this.individualID == \"Unassigned\" && this.unidentifiable == false && this.approved==true";
+    String filter = "this.individualID == \"Unassigned\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -603,7 +603,7 @@ public class Shepherd {
   }
 
   public Iterator getUnassignedEncountersIncludingUnapproved() {
-    String filter = "this.individualID == \"Unassigned\" && this.unidentifiable == false";
+    String filter = "this.individualID == \"Unassigned\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -611,7 +611,7 @@ public class Shepherd {
   }
 
   public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
-    String filter = "this.individualID == \"Unassigned\" && this.unidentifiable == false";
+    String filter = "this.individualID == \"Unassigned\" && this.state != \"unidentifiable\"";
     //Extent encClass=pm.getExtent(encounter.class, true);
     orphanedEncounters.setFilter(filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -702,9 +702,9 @@ public class Shepherd {
    */
   public Iterator getAllEncounters() {
     Collection c;
-    String filter = "!this.unidentifiable && this.approved == true";
+    //String filter = "!this.state == \"unidentifiable\" && this.state == \"approved\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Query acceptedEncounters = pm.newQuery(encClass);
     try {
       c = (Collection) (acceptedEncounters.execute());
       ArrayList list = new ArrayList(c);
@@ -871,7 +871,7 @@ public class Shepherd {
 
   public Iterator getAllEncountersAndUnapproved() {
     Collection c;
-    String filter = "!this.unidentifiable";
+    String filter = "this.state != \"unidentifiable\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
@@ -895,9 +895,9 @@ public class Shepherd {
    * @see encounter, java.util.Iterator
    */
   public Iterator getAllEncounters(String order) {
-    String filter = "!this.unidentifiable && this.approved == true";
+    //String filter = "this.state != \"unidentifiable\" && this.state == \"approved\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Query acceptedEncounters = pm.newQuery(encClass);
     acceptedEncounters.setOrdering(order);
     Collection c = (Collection) (acceptedEncounters.execute());
     Iterator it = c.iterator();
@@ -937,9 +937,9 @@ public class Shepherd {
    * @see encounter, java.util.Iterator
    */
   public Iterator getAllEncounters(String order, String filter2use) {
-    String filter = filter2use + " && this.approved == true";
+    //String filter = filter2use + " && this.approved == true";
     Extent encClass = pm.getExtent(Encounter.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Query acceptedEncounters = pm.newQuery(encClass, filter2use);
     acceptedEncounters.setOrdering(order);
     Collection c = (Collection) (acceptedEncounters.execute());
     Iterator it = c.iterator();
@@ -989,7 +989,7 @@ public class Shepherd {
    * @see encounter, java.util.Iterator
    */
   public Iterator getAllUnidentifiableEncounters(Query rejectedEncounters) {
-    rejectedEncounters.setFilter("this.unidentifiable");
+    rejectedEncounters.setFilter("this.state == \"unidentifiable\"");
     Collection c = (Collection) (rejectedEncounters.execute());
     ArrayList list = new ArrayList(c);
 
@@ -1229,7 +1229,7 @@ public class Shepherd {
   public int getNumEncounters() {
     pm.getFetchPlan().setGroup("count");
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable == false";
+    String filter = "this.state != \"unidentifiable\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1262,7 +1262,7 @@ public class Shepherd {
   public int getNumApprovedEncounters() {
     pm.getFetchPlan().setGroup("count");
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable == false && this.approved == true";
+    String filter = "this.state == \"approved\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1278,7 +1278,7 @@ public class Shepherd {
 
   public int getNumEncounters(String locationCode) {
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable == false && this.locationID == " + locationCode;
+    String filter = "this.locationID == \"" + locationCode+"\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1295,7 +1295,7 @@ public class Shepherd {
 
   public int getNumUnidentifiableEncountersForMarkedIndividual(String individual) {
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable && this.individualID == " + individual;
+    String filter = "this.state == \"unidentifiable\" && this.individualID == \"" + individual+"\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1312,7 +1312,7 @@ public class Shepherd {
 
   public int getNumUnidentifiableEncounters() {
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable";
+    String filter = "this.state == \"unidentifiable\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1329,7 +1329,7 @@ public class Shepherd {
 
   public Vector getUnidentifiableEncountersForMarkedIndividual(String individual) {
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable && this.individualID == " + individual;
+    String filter = "this.state == \"unidentifiable\" && this.individualID == " + individual;
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1372,7 +1372,7 @@ public class Shepherd {
 
   public int getNumRejectedEncounters() {
     Extent allEncounters = null;
-    String filter = "this.unidentifiable == true";
+    String filter = "this.state == \"unidentifiable\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
@@ -1392,7 +1392,7 @@ public class Shepherd {
   }
 
   public int getNumUnapprovedEncounters() {
-    String filter = "!this.unidentifiable && this.approved == false";
+    String filter = "this.state == \"unapproved\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query unacceptedEncounters = pm.newQuery(encClass, filter);
     try {

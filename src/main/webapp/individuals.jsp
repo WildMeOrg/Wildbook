@@ -471,14 +471,12 @@ if (isOwner) {
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
       Encounter enc = dateSortedEncs[i];
-      if ((enc.isApproved()) || (isOwner)) {
+      
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
-        if (enc.isApproved()) {
+        
           imgName = "encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
-        } else {
-          imgName = "images/logbook.gif";
-        }
+        
 
 
   %>
@@ -529,7 +527,7 @@ if (isOwner) {
     %>
   </tr>
   <%
-      }
+      
     } //end for
 
   %>

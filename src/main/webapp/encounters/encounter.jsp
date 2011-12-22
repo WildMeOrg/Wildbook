@@ -261,7 +261,7 @@ table.tissueSample td {
 <tr>
   <td colspan="3">
     <%
-      if (enc.wasRejected()) {%>
+      if ((enc.getState()!=null)&&(enc.getState().equals("unidentifiable"))) {%>
     <table width="810">
       <tr>
         <td bgcolor="#0033CC" colspan="3">
@@ -274,7 +274,8 @@ table.tissueSample td {
     </p>
     <%
 
-    } else if (!enc.approved) {%>
+    } 
+    else if ((enc.getState()!=null)&&(enc.getState().equals("unapproved"))) {%>
     <table width="810">
       <tr>
         <td bgcolor="#CC6600" colspan="3">

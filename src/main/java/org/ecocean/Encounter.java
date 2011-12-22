@@ -131,7 +131,7 @@ public class Encounter implements java.io.Serializable {
   private String gpsLongitude = "", gpsLatitude = "";
   //whether this encounter has been rejected and should be hidden from public display
   //unidentifiable encounters generally contain some data worth saving but not enough for accurate photo-identification
-  public boolean unidentifiable = false;
+  private boolean unidentifiable = false;
   //whether this encounter has a left-side spot image extracted
   public boolean hasSpotImage = false;
   //whether this encounter has a right-side spot image extracted
@@ -139,7 +139,7 @@ public class Encounter implements java.io.Serializable {
   //Indicates whether this record can be exposed via TapirLink
   private boolean okExposeViaTapirLink = false;
   //whether this encounter has been approved for public display
-  public boolean approved = true;
+  private boolean approved = true;
   //integers of the latitude and longitude degrees
   //private int lat=-1000, longitude=-1000;
   //name of the stored file from which the left-side spots were extracted
@@ -580,12 +580,12 @@ public class Encounter implements java.io.Serializable {
 
   }
 */
-
+/*
   public void approve() {
     approved = true;
     okExposeViaTapirLink = true;
   }
-
+*/
   /**
   public void resetAdditionalImageName(int position, String fileName) {
     additionalImageNames.set(position, fileName);
@@ -808,6 +808,7 @@ public class Encounter implements java.io.Serializable {
     individualID = sharky;
   }
 
+  /*
   public boolean wasRejected() {
 
     return unidentifiable;
@@ -822,7 +823,7 @@ public class Encounter implements java.io.Serializable {
     unidentifiable = false;
     //okExposeViaTapirLink=true;
   }
-
+*/
   public String getGPSLongitude() {
     if (gpsLongitude == null) {
       return "";
@@ -898,6 +899,7 @@ public class Encounter implements java.io.Serializable {
     interestedResearchers.add(email);
   }
 
+  
   public boolean isApproved() {
     return approved;
   }
@@ -1663,6 +1665,11 @@ public class Encounter implements java.io.Serializable {
     public String getState(){return state;}
     
     public void setState(String newState){this.state=newState;}
+    
+    //DO NOT USE - LEGACY MIGRATION ONLY
+    public boolean getApproved(){return approved;}
+    public boolean getUnidentifiable(){return unidentifiable;}
+    
     
 }
 
