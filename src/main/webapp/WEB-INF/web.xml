@@ -395,6 +395,11 @@
     <servlet-name>EncounterSetScarring</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetScarring</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>EncounterSetState</servlet-name>
+      <servlet-class>org.ecocean.servlet.EncounterSetState</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterRemoveSpots</servlet-name>
@@ -796,6 +801,11 @@
     <servlet-name>EncounterSetScarring</servlet-name>
     <url-pattern>/EncounterSetScarring</url-pattern>
   </servlet-mapping>
+  
+  <servlet-mapping>
+      <servlet-name>EncounterSetState</servlet-name>
+      <url-pattern>/EncounterSetState</url-pattern>
+  </servlet-mapping>
 
 
   <servlet-mapping>
@@ -1045,6 +1055,8 @@
       <url-pattern>/encounters/encounterSpotVisualizer.jsp</url-pattern>
       <url-pattern>/IndividualSetAlternateID</url-pattern>
       <url-pattern>/EncounterSetAlternateID</url-pattern>
+      <url-pattern>/EncounterSetState</url-pattern>
+      <url-pattern>/EncounterSetScarring</url-pattern>
        <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
        <url-pattern>/EncounterSetLifeStage</url-pattern>
         <url-pattern>/EncounterSetTissueSample</url-pattern>
