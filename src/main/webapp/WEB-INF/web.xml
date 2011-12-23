@@ -303,6 +303,11 @@
       <servlet-class>org.ecocean.servlet.EncounterSearchExportGeneGISFormat</servlet-class>
   </servlet>
   
+      <servlet>
+        <servlet-name>EncounterSearchExportKML</servlet-name>
+        <servlet-class>org.ecocean.servlet.EncounterSearchExportKML</servlet-class>
+  </servlet>
+  
   
       <servlet>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
@@ -713,6 +718,11 @@
   </servlet-mapping>
   
       <servlet-mapping>
+        <servlet-name>EncounterSearchExportKML</servlet-name>
+        <url-pattern>/EncounterSearchExportKML</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
         <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
   </servlet-mapping>
@@ -1084,6 +1094,7 @@
          <url-pattern>/SinglePhotoVideoRemoveKeyword</url-pattern>
          <url-pattern>/SinglePhotoVideoAddKeyword</url-pattern>
          <url-pattern>/EncounterSearchExportGeneGISFormat</url-pattern>
+         <url-pattern>/EncounterSearchExportKML</url-pattern>
          <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>

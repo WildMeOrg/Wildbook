@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.genetics.*,java.util.List,java.net.URI,java.sql.Date,java.util.zip.ZipEntry,java.io.IOException,java.io.FileInputStream,java.io.FileOutputStream,java.util.zip.ZipOutputStream,org.dom4j.Document,org.dom4j.DocumentHelper, org.dom4j.Element, org.ecocean.*, java.io.File,java.io.FileWriter, java.util.Properties, java.util.Map, java.util.HashMap, java.io.Serializable, java.util.Vector,org.geotools.data.*,org.geotools.data.shapefile.*,org.geotools.data.simple.*,org.geotools.feature.FeatureCollections,org.geotools.feature.simple.*,org.geotools.geometry.jts.JTSFactoryFinder,org.geotools.referencing.crs.DefaultGeographicCRS,org.opengis.feature.simple.*,com.vividsolutions.jts.geom.*" %>
+         import="org.ecocean.genetics.*,java.util.List,java.net.URI,java.sql.Date,java.util.zip.ZipEntry,java.io.IOException,java.io.FileInputStream,java.io.FileOutputStream,java.util.zip.ZipOutputStream, org.ecocean.*, java.io.File,java.io.FileWriter, java.util.Properties, java.util.Map, java.util.HashMap, java.io.Serializable, java.util.Vector,org.geotools.data.*,org.geotools.data.shapefile.*,org.geotools.data.simple.*,org.geotools.feature.FeatureCollections,org.geotools.feature.simple.*,org.geotools.geometry.jts.JTSFactoryFinder,org.geotools.referencing.crs.DefaultGeographicCRS,org.opengis.feature.simple.*,com.vividsolutions.jts.geom.*" %>
 
 <%!
     /**
@@ -87,22 +87,7 @@
      //shapefile
      String shapeFilename = "ShapefileExport_" + request.getRemoteUser() + ".shp";
 
-    //setup the KML output file
-    String kmlFilename = "KMLExport_" + request.getRemoteUser() + ".kml";
-    Document document = DocumentHelper.createDocument();
-    Element root = document.addElement("kml");
-    root.addAttribute("xmlns", "http://www.opengis.net/kml/2.2");
-    root.addAttribute("xmlns:gx", "http://www.google.com/kml/ext/2.2");
-    Element docElement = root.addElement("Document");
 
-    boolean addTimeStamp = false;
-    boolean generateKML = false;
-    if (request.getParameter("generateKML") != null) {
-      generateKML = true;
-    }
-    if (request.getParameter("addTimeStamp") != null) {
-      addTimeStamp = true;
-    }
 
 
 
@@ -296,108 +281,8 @@
       collection.add(feature);
       
     }
-
-    //populate KML file ====================================================
-
-    if ((enc.getDWCDecimalLongitude() != null) && (enc.getDWCDecimalLatitude() != null)) {
-      Element placeMark = docElement.addElement("Placemark");
-      Element name = placeMark.addElement("name");
-      String nameText = "";
-
-      //add the name
-      if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
-        nameText = "Encounter " + enc.getEncounterNumber();
-      } else {
-        nameText = enc.isAssignedToMarkedIndividual() + ": Encounter " + enc.getEncounterNumber();
-      }
-      name.setText(nameText);
-
-      //add the visibility element
-      Element viz = placeMark.addElement("visibility");
-      viz.setText("1");
-
-      //add the descriptive HTML
-      Element description = placeMark.addElement("description");
-
-      String descHTML = "<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\">Direct Link</a></p>";
-      descHTML += "<p> <strong>Date:</strong> " + enc.getDate() + "</p>";
-      descHTML += "<p> <strong>Location:</strong><br>" + enc.getLocation() + "</p>";
-      
-      //trying to find problematic sizes...
-      try{
-      	if (enc.getSizeAsDouble() != null) {
-      	  descHTML += "<p> <strong>Size:</strong> " + enc.getSize() + " meters</p>";
-      	}
-      }
-      catch(Exception npe){npe.printStackTrace();System.out.println("NPE on size for encounter: "+enc.getCatalogNumber());}
-      
-      
-      descHTML += "<p> <strong>Sex:</strong> " + enc.getSex() + "</p>";
-      if (!enc.getComments().equals("")) {
-        descHTML += "<p> <strong>Comments:</strong> " + enc.getComments() + "</p>";
-      }
-
-      descHTML += "<strong>Images</strong><br>";
-      Vector imgs = enc.getAdditionalImageNames();
-      int imgsNum = enc.getAdditionalImageNames().size();
-      for (int imgNum = 0; imgNum < imgsNum; imgNum++) {
-        descHTML += ("<br>" + "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\"><img src=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/" + enc.getEncounterNumber() + "/" + (imgNum + 1) + ".jpg\"></a>");
-      }
-
-      description.addCDATA(descHTML);
-
-      if (addTimeStamp) {
-        //add the timestamp
-        String stampString = "";
-        if (enc.getYear() != -1) {
-          stampString += enc.getYear();
-          if (enc.getMonth() != -1) {
-            String tsMonth = Integer.toString(enc.getMonth());
-            if (tsMonth.length() == 1) {
-              tsMonth = "0" + tsMonth;
-            }
-            stampString += ("-" + tsMonth);
-            if (enc.getDay() != -1) {
-              String tsDay = Integer.toString(enc.getDay());
-              if (tsDay.length() == 1) {
-                tsDay = "0" + tsDay;
-              }
-              stampString += ("-" + tsDay);
-            }
-          }
-        }
-
-        if (!stampString.equals("")) {
-          Element timeStamp = placeMark.addElement("TimeStamp");
-          timeStamp.addNamespace("gx", "http://www.google.com/kml/ext/2.2");
-          Element when = timeStamp.addElement("when");
-          when.setText(stampString);
-        }
-      }
-
-      //add the actual lat-long points
-      Element point = placeMark.addElement("Point");
-      Element coords = point.addElement("coordinates");
-      String coordsString = enc.getDWCDecimalLongitude() + "," + enc.getDWCDecimalLatitude();
-      if (enc.getMaximumElevationInMeters() != null) {
-        coordsString += "," + enc.getMaximumElevationInMeters();
-      }
-      else if (enc.getMaximumDepthInMeters() != null) {
-        coordsString += ",-" + enc.getMaximumDepthInMeters();
-      }
-      else {
-        coordsString += ",0";
-      }
-      coords.setText(coordsString);
-
-
-    }
   }
-  //end KML ==============================================================
-
-
-  // end KML export =========================================================
-
+    
 
   myShepherd.rollbackDBTransaction();
 
@@ -421,18 +306,11 @@
 %>
 
 
-<br>
+<br />
 
 <%
 
-  //write out KML	
-  File kmlFile = new File(getServletContext().getRealPath(("/encounters/" + kmlFilename)));
-  FileWriter kmlWriter = new FileWriter(kmlFile);
-  org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
-  format.setLineSeparator(System.getProperty("line.separator"));
-  org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(kmlWriter, format);
-  writer.write(document);
-  writer.close();
+
   
   
   //write out the shapefile
@@ -631,10 +509,9 @@ if(numberResultsToMap>-1){
 <div id="map_canvas" style="width: 510px; height: 340px"></div>
 
 <p><%=encprops.getProperty("exportedKML")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=kmlFilename%>"><%=kmlFilename%>
-</a><br>
-  <em><%=encprops.getProperty("rightClickLink")%>
-  </em>
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>"><%=encprops.getProperty("clickHere")%></a><br />
+  <%=encprops.getProperty("exportedKMLTimeline")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>&addTimeStamp=true"><%=encprops.getProperty("clickHere")%></a>
 </p>
 
 <p><%=encprops.getProperty("exportedShapefile")%>: <a
@@ -646,7 +523,8 @@ if(numberResultsToMap>-1){
 
 <%
 
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       e.printStackTrace();
     }
 

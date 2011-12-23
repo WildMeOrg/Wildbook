@@ -1127,9 +1127,6 @@ else {
         </strong>
         </input></p>
 
-      <p><input name="addTimeStamp" type="checkbox" id="addTimeStamp" value="true">
-        <strong><%=encprops.getProperty("addTimestamp2KML")%>
-        </strong></p>
 
       <p><input name="generateEmails" type="checkbox"
                 id="generateEmails" value="true">
