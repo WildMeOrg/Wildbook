@@ -1118,14 +1118,10 @@ else {
     <div id="export" style="display:none; ">
       <p>Use the fields below to specify data export options.</p>
 
-      <p><input name="export" type="checkbox" id="export" value="true">
-        <strong><%=encprops.getProperty("generateExportFile")%>
-        </strong>
-      </p>
-      <p><input name="exportGeneGIS" type="checkbox" id="exportGeneGIS" value="true">
-        <strong><%=encprops.getProperty("generateGeneGIS")%>
-        </strong>
-        </input></p>
+      <input name="export" type="hidden" id="export" value="true">
+        
+      <input name="exportGeneGIS" type="hidden" id="exportGeneGIS" value="true" />
+      
 
 
       <p><input name="generateEmails" type="checkbox"

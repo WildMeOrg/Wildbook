@@ -292,36 +292,9 @@
   </tr>
 </table>
 
-<%
-  if (request.getParameter("export") != null) {
-%>
 
 
-<p><%=encprops.getProperty("exportedOBIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=encprops.getProperty("clickHere")%></a><br />
-<%=encprops.getProperty("exportedOBISLocales")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=encprops.getProperty("clickHere")%></a>
-</p>
-<%
-  }
 
-  if (generateEmails) {
-%>
-<p><%=encprops.getProperty("exportedEmail")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=emailFilename%>"><%=emailFilename%>
-</a><br>
-  <em><%=encprops.getProperty("rightClickLink")%>
-  </em>
-</p>
-<%
-  }
-
-  if (request.getParameter("exportGeneGIS") != null) {
-%>
-<p><%=encprops.getProperty("exportedGeneGIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportGeneGISFormat?<%=request.getQueryString()%>">
-<%=encprops.getProperty("clickHere")%></a>
-</p>
-<%
-  }
-%>
 <table width="810px">
 <tr>
   <td class="lineitem" bgcolor="#99CCFF"></td>
@@ -432,7 +405,6 @@
 %>
 </table>
 
-
 <%
 
 
@@ -490,6 +462,31 @@
     %>
   </tr>
 </table>
+
+<p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
+<p><%=encprops.getProperty("exportedOBIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=encprops.getProperty("clickHere")%></a><br />
+<%=encprops.getProperty("exportedOBISLocales")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=encprops.getProperty("clickHere")%></a>
+</p>
+<%
+
+
+  if (generateEmails) {
+%>
+<p><%=encprops.getProperty("exportedEmail")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=emailFilename%>"><%=emailFilename%>
+</a><br>
+  <em><%=encprops.getProperty("rightClickLink")%>
+  </em>
+</p>
+<%
+  }
+
+%>
+<p><%=encprops.getProperty("exportedGeneGIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportGeneGISFormat?<%=request.getQueryString()%>">
+<%=encprops.getProperty("clickHere")%></a>
+</p>
+
+
 <p>
 <table width="810" border="0" cellspacing="0" cellpadding="0">
   <tr>

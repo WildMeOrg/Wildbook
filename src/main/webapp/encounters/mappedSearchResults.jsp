@@ -336,6 +336,7 @@ if(numberResultsToMap>-1){
 
 <div id="map_canvas" style="width: 510px; height: 340px"></div>
 
+<p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
 <p><%=encprops.getProperty("exportedKML")%>: <a
   href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>"><%=encprops.getProperty("clickHere")%></a><br />
   <%=encprops.getProperty("exportedKMLTimeline")%>: <a
