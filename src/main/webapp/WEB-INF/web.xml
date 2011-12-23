@@ -302,6 +302,14 @@
       <servlet-name>EncounterSearchExportGeneGISFormat</servlet-name>
       <servlet-class>org.ecocean.servlet.EncounterSearchExportGeneGISFormat</servlet-class>
   </servlet>
+  
+  
+      <servlet>
+        <servlet-name>EncounterSearchExportExcelFile</servlet-name>
+        <servlet-class>org.ecocean.servlet.EncounterSearchExportExcelFile</servlet-class>
+  </servlet>
+  
+  
   <servlet>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetTapirLinkExposure</servlet-class>
@@ -704,6 +712,11 @@
       <url-pattern>/EncounterSearchExportGeneGISFormat</url-pattern>
   </servlet-mapping>
   
+      <servlet-mapping>
+        <servlet-name>EncounterSearchExportExcelFile</servlet-name>
+        <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
+  </servlet-mapping>
+  
     <servlet-mapping>
       <servlet-name>EncounterSetBehavior</servlet-name>
       <url-pattern>/EncounterSetBehavior</url-pattern>
@@ -1071,6 +1084,7 @@
          <url-pattern>/SinglePhotoVideoRemoveKeyword</url-pattern>
          <url-pattern>/SinglePhotoVideoAddKeyword</url-pattern>
          <url-pattern>/EncounterSearchExportGeneGISFormat</url-pattern>
+         <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>
       <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>
