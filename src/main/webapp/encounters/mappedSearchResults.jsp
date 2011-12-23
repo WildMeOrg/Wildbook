@@ -20,38 +20,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.genetics.*,java.util.List,java.net.URI,java.sql.Date,java.util.zip.ZipEntry,java.io.IOException,java.io.FileInputStream,java.io.FileOutputStream,java.util.zip.ZipOutputStream, org.ecocean.*, java.io.File,java.io.FileWriter, java.util.Properties, java.util.Map, java.util.HashMap, java.io.Serializable, java.util.Vector,org.geotools.data.*,org.geotools.data.shapefile.*,org.geotools.data.simple.*,org.geotools.feature.FeatureCollections,org.geotools.feature.simple.*,org.geotools.geometry.jts.JTSFactoryFinder,org.geotools.referencing.crs.DefaultGeographicCRS,org.opengis.feature.simple.*,com.vividsolutions.jts.geom.*" %>
+         import="java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.List,java.net.URI, org.ecocean.*" %>
 
-<%!
-    /**
-     * Here is how you can use a SimpleFeatureType builder to create the schema for your shapefile
-     * dynamically.
-     * <p>
-     * This method is an improvement on the code used in the main method above (where we used
-     * DataUtilities.createFeatureType) because we can set a Coordinate Reference System for the
-     * FeatureType and a a maximum field length for the 'name' field dddd
-     */
-    private static SimpleFeatureType createFeatureType() {
 
-        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-        builder.setName(CommonConfiguration.getHTMLTitle());
-        builder.setCRS(DefaultGeographicCRS.WGS84); // <- Coordinate reference system
-
-        // add attributes in order
-        builder.add("Location", Point.class);
-        builder.add("Date", java.sql.Date.class);
-        builder.add("Encounter", String.class); 
-        builder.add("Individual", String.class); 
-        builder.add("Sex", String.class);
-        builder.add("Haplotype", String.class);
-        builder.add("URL", String.class); 
-
-        // build the type
-        final SimpleFeatureType LOCATION = builder.buildFeatureType();
-
-        return LOCATION;
-    }
-%>
 
 <html>
 <head>
@@ -71,21 +42,6 @@
 
     //get our Shepherd
     Shepherd myShepherd = new Shepherd();
-
-
-
-     /*
-     * We create a FeatureCollection into which we will put each Feature created from a record
-     * in the input csv data file
-     */
-     SimpleFeatureCollection collection = FeatureCollections.newCollection();
-     /*
-     * GeometryFactory will be used to create the geometry attribute of each feature (a Point
-     * object for the location)
-     */
-     GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(null);
-     //shapefile
-     String shapeFilename = "ShapefileExport_" + request.getRemoteUser() + ".shp";
 
 
 
@@ -247,38 +203,7 @@
     if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
       haveGPSData.add(enc);
       
-      //let's also populate the Shapefile
-      Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble(), enc.getDecimalLatitudeAsDouble()));
-      SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(createFeatureType());
-      featureBuilder.add(point);
-      featureBuilder.add((new java.sql.Date(enc.getDateInMilliseconds())));
-      featureBuilder.add(enc.getCatalogNumber());
-      featureBuilder.add(enc.isAssignedToMarkedIndividual());
-      featureBuilder.add(enc.getSex());
-      String haploString="";
-      if(enc.getTissueSamples().size()>0){
-    	  List<TissueSample> samples=enc.getTissueSamples();
-    	  int sampleSize=samples.size();
-    	  for(int sample=0;sample<sampleSize;sample++){
-    		  TissueSample thisSample=samples.get(sample);
-    		  if(thisSample.getNumAnalyses()>0){
-    			  List<GeneticAnalysis> analyses=thisSample.getGeneticAnalyses();
-    			  int numAnalyses=analyses.size();
-    			  for(int analy=0;analy<numAnalyses;analy++){
-    				  GeneticAnalysis thisAnalysis=analyses.get(analy);
-    				  if(thisAnalysis.getAnalysisType().equals("MitochondrialDNA")){
-    					  MitochondrialDNAAnalysis thisDNA=(MitochondrialDNAAnalysis)thisAnalysis;
-    					  haploString=thisDNA.getHaplotype();
-    				  }
-    			  }
-    		  }
-    	  }
-    	  
-      }
-      featureBuilder.add(haploString);
-      featureBuilder.add(("http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+enc.getCatalogNumber()));
-      SimpleFeature feature = featureBuilder.buildFeature(null);
-      collection.add(feature);
+     
       
     }
   }
@@ -308,104 +233,7 @@
 
 <br />
 
-<%
 
-
-  
-  
-  //write out the shapefile
-  File shapeFile = new File(getServletContext().getRealPath(("/encounters/" + shapeFilename)));
-  ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
-  Map<String, Serializable> params = new HashMap<String, Serializable>();
-  params.put("url", shapeFile.toURI().toURL());
-  params.put("create spatial index", Boolean.TRUE);
-  ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
-  newDataStore.createSchema(createFeatureType());
-  /*
-   * You can comment out this line if you are using the createFeatureType
-   * method (at end of class file) rather than DataUtilities.createType
-   */
-   newDataStore.forceSchemaCRS(DefaultGeographicCRS.WGS84);
-   Transaction transaction = new DefaultTransaction("create");
-   String typeName = newDataStore.getTypeNames()[0];
-   SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
-   
-   
-   if (featureSource instanceof SimpleFeatureStore) {
-  
-           	SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
-   
-               featureStore.setTransaction(transaction);
-               
-                
-               try {
-                   featureStore.addFeatures(collection);
-                   transaction.commit();
-   
-               } catch (Exception problem) {
-                   problem.printStackTrace();
-                   transaction.rollback();
-   
-               } 
-               finally {
-                   transaction.close();
-               }
-               
-               //zip the results
-               // These are the files to include in the ZIP file
-	       String[] filenames = new String[]{
-	       	shapeFile.getAbsolutePath(),
-	        shapeFile.getAbsolutePath().replaceAll(".shp",".shx"),
-	        shapeFile.getAbsolutePath().replaceAll(".shp",".dbf"),
-	        shapeFile.getAbsolutePath().replaceAll(".shp",".fix"),
-	        shapeFile.getAbsolutePath().replaceAll(".shp",".prj"),
-	        shapeFile.getAbsolutePath().replaceAll(".shp",".qix")
-	       };
-	       
-	       // Create a buffer for reading the files
-	       byte[] buf = new byte[1024];
-	       
-	       try {
-	           // Create the ZIP file
-	           String outFilename = shapeFile.getParentFile().getAbsolutePath()+File.separator+shapeFile.getName().replaceAll(".shp",".zip");
-	           //System.out.println(outFilename);
-	           ZipOutputStream zipout = new ZipOutputStream(new FileOutputStream(outFilename));
-	       
-	           // Compress the files
-	           for (int i=0; i<filenames.length; i++) {
-	               FileInputStream in = new FileInputStream(filenames[i]);
-	       		System.out.println(filenames[i]);
-	               // Add ZIP entry to output stream.
-	               File file2add=new File(filenames[i]);
-	               zipout.putNextEntry(new ZipEntry(file2add.getName()));
-	       
-	               // Transfer bytes from the file to the ZIP file
-	               int len;
-	               while ((len = in.read(buf)) > 0) {
-	                   zipout.write(buf, 0, len);
-	               }
-	       
-	               // Complete the entry
-	               zipout.closeEntry();
-	               in.close();
-	           }
-	       
-	           // Complete the ZIP file
-	           zipout.close();
-	       } 
-	       catch (IOException e) {
-	       	e.printStackTrace();
-	       }
-               
-          
-           
-    } //end if
-    else {
-                   System.out.println(typeName + " does not support read/write access");
-                   
-           }
-
-%>
 
 
 <p><strong>
@@ -515,10 +343,7 @@ if(numberResultsToMap>-1){
 </p>
 
 <p><%=encprops.getProperty("exportedShapefile")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=shapeFilename.replaceAll(".shp",".zip")%>"><%=shapeFilename.replaceAll(".shp",".zip")%>
-</a><br>
-  <em><%=encprops.getProperty("rightClickLink")%>
-  </em>
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportShapefile?<%=request.getQueryString() %>"><%=encprops.getProperty("clickHere")%></a>
 </p>
 
 <%

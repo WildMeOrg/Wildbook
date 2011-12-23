@@ -1,10 +1,12 @@
-package org.ecocean.servlet;
+package org.ecocean.servlet.export;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
+import org.ecocean.servlet.ServletUtilities;
+
 import javax.jdo.*;
 import java.lang.StringBuffer;
 import jxl.write.*;

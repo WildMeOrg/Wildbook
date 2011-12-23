@@ -300,18 +300,23 @@
 
     <servlet>
       <servlet-name>EncounterSearchExportGeneGISFormat</servlet-name>
-      <servlet-class>org.ecocean.servlet.EncounterSearchExportGeneGISFormat</servlet-class>
+      <servlet-class>org.ecocean.servlet.export.EncounterSearchExportGeneGISFormat</servlet-class>
+  </servlet>
+  
+     <servlet>
+        <servlet-name>EncounterSearchExportShapefile</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.EncounterSearchExportShapefile</servlet-class>
   </servlet>
   
       <servlet>
         <servlet-name>EncounterSearchExportKML</servlet-name>
-        <servlet-class>org.ecocean.servlet.EncounterSearchExportKML</servlet-class>
+        <servlet-class>org.ecocean.servlet.export.EncounterSearchExportKML</servlet-class>
   </servlet>
   
   
       <servlet>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
-        <servlet-class>org.ecocean.servlet.EncounterSearchExportExcelFile</servlet-class>
+        <servlet-class>org.ecocean.servlet.export.EncounterSearchExportExcelFile</servlet-class>
   </servlet>
   
   
@@ -718,6 +723,11 @@
   </servlet-mapping>
   
       <servlet-mapping>
+        <servlet-name>EncounterSearchExportShapefile</servlet-name>
+        <url-pattern>/EncounterSearchExportShapefile</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
         <servlet-name>EncounterSearchExportKML</servlet-name>
         <url-pattern>/EncounterSearchExportKML</url-pattern>
   </servlet-mapping>
@@ -1096,6 +1106,7 @@
          <url-pattern>/EncounterSearchExportGeneGISFormat</url-pattern>
          <url-pattern>/EncounterSearchExportKML</url-pattern>
          <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
+         <url-pattern>/EncounterSearchExportShapefile</url-pattern>
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>
       <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>

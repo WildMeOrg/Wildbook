@@ -1,10 +1,12 @@
-package org.ecocean.servlet;
+package org.ecocean.servlet.export;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
+import org.ecocean.servlet.ServletUtilities;
+
 import javax.jdo.*;
 //import com.poet.jdo.*;
 import java.lang.StringBuffer;
@@ -153,6 +155,23 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
         outp.close();
         outp=null;
         
+        //now write out the file
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition","attachment;filename="+gisFilename);
+        ServletContext ctx = getServletContext();
+        InputStream is = ctx.getResourceAsStream("/encounters/"+gisFilename);
+       
+        int read=0;
+        byte[] bytes = new byte[BYTES_DOWNLOAD];
+        OutputStream os = response.getOutputStream();
+       
+        while((read = is.read(bytes))!= -1){
+          os.write(bytes, 0, read);
+        }
+        os.flush();
+        os.close(); 
+        
+        
       }
       catch(Exception ioe){
         ioe.printStackTrace();
@@ -182,26 +201,6 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
 
-      
-      //response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/encounters/" + gisFilename);
-      
-      //now write out the file
-      response.setContentType("text/plain");
-      response.setHeader("Content-Disposition","attachment;filename="+gisFilename);
-      ServletContext ctx = getServletContext();
-      InputStream is = ctx.getResourceAsStream("/encounters/"+gisFilename);
-     
-      int read=0;
-      byte[] bytes = new byte[BYTES_DOWNLOAD];
-      OutputStream os = response.getOutputStream();
-     
-      while((read = is.read(bytes))!= -1){
-        os.write(bytes, 0, read);
-      }
-      os.flush();
-      os.close(); 
-      
-      
       
     }
 

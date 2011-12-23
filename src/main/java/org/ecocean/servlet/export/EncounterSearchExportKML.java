@@ -1,10 +1,12 @@
-package org.ecocean.servlet;
+package org.ecocean.servlet.export;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
+import org.ecocean.servlet.ServletUtilities;
+
 import javax.jdo.*;
 import java.lang.StringBuffer;
 import org.dom4j.Document;
@@ -218,15 +220,5 @@ public class EncounterSearchExportKML extends HttpServlet{
       
     }
   
-  /**
-   * Here is how you can use a SimpleFeatureType builder to create the schema for your shapefile
-   * dynamically.
-   * <p>
-   * This method is an improvement on the code used in the main method above (where we used
-   * DataUtilities.createFeatureType) because we can set a Coordinate Reference System for the
-   * FeatureType and a a maximum field length for the 'name' field dddd
-   */
-
-
   
   }
