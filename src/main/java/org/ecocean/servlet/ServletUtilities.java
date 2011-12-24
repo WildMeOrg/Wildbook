@@ -70,10 +70,11 @@ public class ServletUtilities {
 
       int end_header = templateFile.indexOf("INSERT_HERE");
       return (templateFile.substring(0, end_header));
-    } catch (IOException e) {
+    } 
+    catch (Exception e) {
       //out.println("I couldn't find the template file to read from.");
       e.printStackTrace();
-      String error = "An error occurred while attempting to read from the template file servletResponseTemplate.htm. This probably will not affect the success of the operation you were trying to perform.";
+      String error = "<html><body><p>An error occurred while attempting to read from the template file servletResponseTemplate.htm. This probably will not affect the success of the operation you were trying to perform.";
       return error;
     }
 
@@ -95,10 +96,10 @@ public class ServletUtilities {
 
       int end_header = templateFile.indexOf("INSERT_HERE");
       return (templateFile.substring(end_header + 11));
-    } catch (IOException e) {
+    } catch (Exception e) {
       //out.println("I couldn't find the template file to read from.");
       e.printStackTrace();
-      String error = "An error occurred while attempting to read from an HTML template file. This probably will not affect the success of the operation you were trying to perform.";
+      String error = "An error occurred while attempting to read from an HTML template file. This probably will not affect the success of the operation you were trying to perform.</p></body></html>";
       return error;
     }
 
