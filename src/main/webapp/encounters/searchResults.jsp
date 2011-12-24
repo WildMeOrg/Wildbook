@@ -26,58 +26,6 @@
 <head>
 
 
-<%!
-  public String addEmails(Vector encs) {
-
-    StringBuffer contributors = new StringBuffer();
-    int size = encs.size();
-    for (int f = 0; f < size; f++) {
-
-      Encounter tempEnc = (Encounter) encs.get(f);
-
-      //calculate the number of submitter contributors
-      if ((tempEnc.getSubmitterEmail() != null) && (!tempEnc.getSubmitterEmail().equals(""))) {
-        //check for comma separated list
-        if (tempEnc.getSubmitterEmail().indexOf(",") != -1) {
-          //break up the string
-          StringTokenizer stzr = new StringTokenizer(tempEnc.getSubmitterEmail(), ",");
-          while (stzr.hasMoreTokens()) {
-            String token = stzr.nextToken();
-            if (contributors.indexOf(token) == -1) {
-              contributors.append(token + "\n");
-            }
-          }
-        } else if (contributors.indexOf(tempEnc.getSubmitterEmail()) == -1) {
-          contributors.append(tempEnc.getSubmitterEmail() + "\n");
-        }
-      }
-
-      //calculate the number of photographer contributors
-      if ((tempEnc.getPhotographerEmail() != null) && (!tempEnc.getPhotographerEmail().equals(""))) {
-        //check for comma separated list
-        if (tempEnc.getPhotographerEmail().indexOf(",") != -1) {
-          //break up the string
-          StringTokenizer stzr = new StringTokenizer(tempEnc.getPhotographerEmail(), ",");
-          while (stzr.hasMoreTokens()) {
-            String token = stzr.nextToken();
-            if (contributors.indexOf(token) == -1) {
-              contributors.append(token + "\n");
-            }
-          }
-        } else if (contributors.indexOf(tempEnc.getPhotographerEmail()) == -1) {
-          contributors.append(tempEnc.getPhotographerEmail() + "\n");
-        }
-      }
-
-
-    }
-
-    return contributors.toString();
-
-  } //end for
-%>
-
-
 <%
 
 
@@ -98,29 +46,14 @@
   int startNum = 1;
   int endNum = 10;
 
-//Let's setup our email export file options
-  String emailFilename = "emailResults_" + request.getRemoteUser() + ".txt";
-  File emailFile = new File(getServletContext().getRealPath(("/encounters/" + emailFilename)));
 
 
 //let's set up our Excel spreasheeting operations
-  String filenameOBIS = "searchResults_OBIS_" + request.getRemoteUser() + ".xls";
+  //String filenameOBIS = "searchResults_OBIS_" + request.getRemoteUser() + ".xls";
   //String filenameExport = "searchResults_" + request.getRemoteUser() + ".xls";
-  String kmlFilename = "KMLExport_" + request.getRemoteUser() + ".kml";
-  File fileOBIS = new File(getServletContext().getRealPath(("/encounters/" + filenameOBIS)));
+  //String kmlFilename = "KMLExport_" + request.getRemoteUser() + ".kml";
+  //File fileOBIS = new File(getServletContext().getRealPath(("/encounters/" + filenameOBIS)));
   //File fileExport = new File(getServletContext().getRealPath(("/encounters/" + filenameExport)));
-
-
-
-
-
-
-//should we generate emails
-  boolean generateEmails = false;
-  if (request.getParameter("generateEmails") != null) {
-    generateEmails = true;
-  }
-
 
   try {
 
@@ -171,23 +104,6 @@
 
 //--end unique counting------------------------------------------
 
-
-//let's print out the contributors file
-  if (generateEmails) {
-    try {
-      String contribs = addEmails(rEncounters);
-      FileOutputStream fos = new FileOutputStream(emailFile);
-      OutputStreamWriter outp = new OutputStreamWriter(fos);
-      outp.write(contribs);
-      outp.close();
-    } catch (Exception e) {
-      e.printStackTrace();
-%>
-<p>Failed to write out the contributors file!</p>
-<%
-    }
-
-  }
 %>
 <title><%=CommonConfiguration.getHTMLTitle()%>
 </title>
@@ -467,21 +383,12 @@
 <p><%=encprops.getProperty("exportedOBIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=encprops.getProperty("clickHere")%></a><br />
 <%=encprops.getProperty("exportedOBISLocales")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=encprops.getProperty("clickHere")%></a>
 </p>
-<%
 
-
-  if (generateEmails) {
-%>
 <p><%=encprops.getProperty("exportedEmail")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=emailFilename%>"><%=emailFilename%>
-</a><br>
-  <em><%=encprops.getProperty("rightClickLink")%>
-  </em>
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportEmailAddresses?<%=request.getQueryString()%>"><%=encprops.getProperty("clickHere")%>
+</a>
 </p>
-<%
-  }
 
-%>
 <p><%=encprops.getProperty("exportedGeneGIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportGeneGISFormat?<%=request.getQueryString()%>">
 <%=encprops.getProperty("clickHere")%></a>
 </p>

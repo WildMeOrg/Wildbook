@@ -303,6 +303,12 @@
       <servlet-class>org.ecocean.servlet.export.EncounterSearchExportGeneGISFormat</servlet-class>
   </servlet>
   
+  
+      <servlet>
+        <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.EncounterSearchExportEmailAddresses</servlet-class>
+  </servlet>
+  
      <servlet>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportShapefile</servlet-class>
@@ -723,6 +729,11 @@
   </servlet-mapping>
   
       <servlet-mapping>
+        <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
+        <url-pattern>/EncounterSearchExportEmailAddresses</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
         <url-pattern>/EncounterSearchExportShapefile</url-pattern>
   </servlet-mapping>
@@ -1107,6 +1118,7 @@
          <url-pattern>/EncounterSearchExportKML</url-pattern>
          <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
          <url-pattern>/EncounterSearchExportShapefile</url-pattern>
+         <url-pattern>/EncounterSearchExportEmailAddresses</url-pattern>
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>
       <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>

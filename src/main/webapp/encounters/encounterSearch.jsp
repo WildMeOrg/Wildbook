@@ -1083,7 +1083,7 @@ else {
      		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("encounterState");
      		int numProps=values.size();
      		%>
-     		<p><select size="<%=numProps %>" multiple="multiple" name="state" id="state">
+     		<p><select size="<%=(numProps+1) %>" multiple="multiple" name="state" id="state">
      		<option value="None"></option>
      		<%
      		
@@ -1110,26 +1110,7 @@ else {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('export')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Export options</font></a></h4>
 
-    <div id="export" style="display:none; ">
-      <p>Use the fields below to specify data export options.</p>
-
-      <input name="export" type="hidden" id="export" value="true">
-        
-      <input name="exportGeneGIS" type="hidden" id="exportGeneGIS" value="true" />
-      
-
-
-      <p><input name="generateEmails" type="checkbox"
-                id="generateEmails" value="true">
-        <strong><%=encprops.getProperty("generateEmailList")%>
-        </strong></p>
-      </p>
-    </div>
     <p><em> <input name="submitSearch" type="submit"
                    id="submitSearch" value="<%=encprops.getProperty("goSearch")%>"></em>
 
