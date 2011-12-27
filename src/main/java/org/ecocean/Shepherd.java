@@ -1689,10 +1689,10 @@ public class Shepherd {
 
     boolean stopMe = false;
     int count = 0;
-    while (it.hasNext()) {
+    while (it.hasNext()&&!stopMe) {
       MarkedIndividual markie = it.next();
       Iterator allEncs = markie.getEncounters().iterator();
-      while (allEncs.hasNext()) {
+      while (allEncs.hasNext()&&!stopMe) {
         Encounter enc = (Encounter) allEncs.next();
         ArrayList<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
 
@@ -1749,8 +1749,10 @@ public class Shepherd {
         else {
                 count--;
         }
-            } else if (count > endNum) {
+            } 
+            else if (count > endNum) {
               stopMe = true;
+              return thumbs;
             }
           }
         } //end if

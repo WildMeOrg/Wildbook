@@ -39,6 +39,18 @@ public class EncounterQueryProcessor {
     }
     //end location filter--------------------------------------------------------------------------------------
 
+    
+    //filter for resighted encounter------------------------------------------
+    if(request.getParameter("resightOnly")!=null) {
+      //String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+        filter+="(individualID != \"Unassigned\")";
+      }
+      else{filter+=" && (individualID != \"Unassigned\")";}
+      prettyPrint.append("Identified and resighted.<br />");
+    }
+    //end resighted filter--------------------------------------------------------------------------------------
+
 
 /**    
   //filter for unidentifiable encounters------------------------------------------
@@ -951,17 +963,17 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
       for(int q=0;q<rEncounters.size();q++) {
         Encounter rEnc=(Encounter)rEncounters.get(q);
-        if(rEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
-          rEncounters.remove(q);
-          q--;
-          }
-        else{
+        //if(rEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
+          //rEncounters.remove(q);
+          //q--;
+        //}
+        //else{
           MarkedIndividual s=myShepherd.getMarkedIndividual(rEnc.isAssignedToMarkedIndividual());
           if(s.totalEncounters()<numResights) {
             rEncounters.remove(q);
             q--;
           }
-        }
+        //}
       }
     }
   //end if resightOnly--------------------------------------------------------------------------------------

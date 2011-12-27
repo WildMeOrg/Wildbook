@@ -69,8 +69,12 @@
       keywords = new String[0];
     }
 
-    int numThumbnails = myShepherd.getNumMarkedIndividualThumbnails(rIndividuals.iterator(), keywords);
-
+    //int numThumbnails = myShepherd.getNumMarkedIndividualThumbnails(rIndividuals.iterator(), keywords);
+	int numThumbnails=0;
+	ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+	thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
+	
+    
     String queryString = "";
     if (request.getQueryString() != null) {
       queryString = request.getQueryString();
@@ -244,10 +248,7 @@
         %>
       </h1>
 
-      </p>
-      <p><strong><%=encprops.getProperty("totalMatches")%>
-      </strong>: <%=numThumbnails%>
-      </p>
+
 
       <p><%=encprops.getProperty("belowMatches")%> <%=startNum%> - <%=endNum%>&nbsp;
         <%
@@ -309,12 +310,10 @@
 			
 			int countMe=0;
 			//Vector thumbLocs=new Vector();
-			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
-			
+		
 			
 			try {
 				//thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
-				thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
 				
 				
 				//now let's order these alphabetical by the highest keyword
@@ -382,7 +381,7 @@
 	<%
             	if(!thumbLink.endsWith("video.jpg")){
             	%>
-              <h3><%=(countMe + startNum) %>/<%=numThumbnails %>
+              <h3><%=(countMe + startNum) %>
               </h3>
               <h4><%=encprops.getProperty("imageMetadata") %>
               </h4>
@@ -405,7 +404,7 @@
                       if(!thumbLink.endsWith("video.jpg")){
                     	  
                       %>
-                        <td><span class="caption"><em><%=(countMe + startNum) %>/<%=numThumbnails %>
+                        <td><span class="caption"><em><%=(countMe + startNum) %>
                         </em></span></td>
                       </tr>
                       <tr>

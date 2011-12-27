@@ -90,7 +90,7 @@
 
     //int numThumbnails = myShepherd.getNumThumbnails(rEncounters.iterator(), keywords);
 	//int numThumbnails=0;
-    String countFilter=filter.replaceAll("SELECT from","SELECT count(this) from");
+    String countFilter=filter.replaceFirst("SELECT from","SELECT count(this) from");
 	Query countQuery=myShepherd.getPM().newQuery(countFilter);
 	//List results = (List)countQuery.execute();
 	int numThumbnails=((Long)countQuery.execute()).intValue();
@@ -782,10 +782,16 @@
   <tr>
     <td align="left">
 
+
+
       <p><strong><%=encprops.getProperty("queryDetails")%>
       </strong></p>
 
-
+      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
+      </strong><br/>
+        <%=prettyPrint.toString().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField")).replaceAll("alternateIDField", (encprops.getProperty("alternateID"))).replaceAll("alternateIDField", (encprops.getProperty("size")))%>
+      </p>
+      
       <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
       </strong><br/>
         <%=filter%>
