@@ -731,7 +731,11 @@ if(CommonConfiguration.showProperty("showLifestage")){
 </tr>
 </c:forEach>
 </c:if>
-
+      <p><strong><%=encprops.getProperty("hasPhoto")%>: </strong>
+            <label> 
+            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+            </label>
+      </p>
 <%
   int totalKeywords = myShepherd.getNumKeywords();
 %>

@@ -376,7 +376,21 @@ public class EncounterQueryProcessor {
     }
     //end hasTissueSample filters-----------------------------------------------
 
-    
+    //------------------------------------------------------------------
+    //hasPhoto filters-------------------------------------------------
+    if(request.getParameter("hasPhoto")!=null){
+          prettyPrint.append("Has at least one photo.");
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="images.contains(dce15)";}
+            else if (filter.indexOf("images.contains(dce15)")==-1){filter+=(" && images.contains(dce15) ");}
+
+            prettyPrint.append("<br />");
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.SinglePhotoVideo dce15";}
+            else if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo dce15")){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo dce15";}
+            
+    }
+    //end hasPhoto filters-----------------------------------------------
+
     
     
     //------------------------------------------------------------------
