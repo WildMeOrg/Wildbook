@@ -731,6 +731,20 @@ public class Shepherd {
       return null;
     }
   }
+  
+  public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideo(Query acceptedEncounters) {
+    Collection c;
+    try {
+      c = (Collection) (acceptedEncounters.execute());
+      ArrayList<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>(c);
+      return list;
+    } 
+    catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
   public Iterator getAllEncounters(Query acceptedEncounters, Map<String, Object> paramMap) {
     Collection c;

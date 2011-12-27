@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory,com.drew.metadata.Metadata, com.drew.metadata.Tag,org.ecocean.*,java.io.File, java.util.*" %>
+         import="javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory,com.drew.metadata.Metadata, com.drew.metadata.Tag,org.ecocean.*,java.io.File, java.util.*" %>
 
 <html>
 <head>
@@ -56,30 +56,44 @@
 
     Shepherd myShepherd = new Shepherd();
 
-    Vector rEncounters = new Vector();
+    ArrayList<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
 
     myShepherd.beginDBTransaction();
     EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
-
+	String filter="";
+  	StringBuffer prettyPrint=new StringBuffer("");
+  	Map<String,Object> paramMap = new HashMap<String, Object>();
 
     if (request.getParameter("noQuery") == null) {
-      queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
-      rEncounters = queryResult.getResult();
-    } else {
-      Iterator allEncounters = myShepherd.getAllEncounters();
+    	filter="SELECT from org.ecocean.SinglePhotoVideo WHERE ("+EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap).replaceAll("SELECT FROM", "SELECT DISTINCT catalogNumber FROM")+").contains(this.correspondingEncounterNumber)";
+    } 
+    else {
+      
+      /*Iterator allEncounters = myShepherd.getAllEncounters();
       while (allEncounters.hasNext()) {
         Encounter enc = (Encounter) allEncounters.next();
         rEncounters.add(enc);
-      }
+      }*/
+		filter="SELECT from org.ecocean.SinglePhotoVideo";
+    	
     }
+    
+	Query query=myShepherd.getPM().newQuery(filter);
+	query.setRange((startNum-1), endNum);
+	rEncounters=myShepherd.getAllSinglePhotoVideo(query);
+	
 
     String[] keywords = request.getParameterValues("keyword");
     if (keywords == null) {
       keywords = new String[0];
     }
 
-    int numThumbnails = myShepherd.getNumThumbnails(rEncounters.iterator(), keywords);
-
+    //int numThumbnails = myShepherd.getNumThumbnails(rEncounters.iterator(), keywords);
+	//int numThumbnails=0;
+    String countFilter=filter.replaceAll("SELECT from","SELECT count(this) from");
+	Query countQuery=myShepherd.getPM().newQuery(countFilter);
+	//List results = (List)countQuery.execute();
+	int numThumbnails=((Long)countQuery.execute()).intValue();
 
   %>
   <title><%=CommonConfiguration.getHTMLTitle() %>
@@ -309,8 +323,9 @@
 			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 			
 			try {
-				thumbLocs=myShepherd.getThumbnails(request, rEncounters.iterator(), startNum, endNum, keywords);
-					//System.out.println("thumLocs.size="+thumbLocs.size());
+				//thumbLocs=myShepherd.getThumbnails(request, rEncounters.iterator(), startNum, endNum, keywords);
+				thumbLocs=rEncounters;	
+				//System.out.println("thumLocs.size="+thumbLocs.size());
 					for(int rows=0;rows<15;rows++) {		%>
 
   <tr valign="top">
@@ -770,14 +785,10 @@
       <p><strong><%=encprops.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
-      </p>
 
       <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
       </strong><br/>
-        <%=queryResult.getJDOQLRepresentation()%>
+        <%=filter%>
       </p>
 
     </td>
