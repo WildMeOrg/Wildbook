@@ -228,15 +228,21 @@
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("general")%>
         </a></li>
         
-                <li><a
+        <li><a
 	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/logs.jsp"
 	          class="enclose"
 	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("logs")%>
         </a></li>
-        
+                
         <%
         if(CommonConfiguration.useSpotPatternRecognition()){
         %>
+         <li><a
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/software/software.jsp"
+	          class="enclose"
+	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("gridSoftware")%>
+        </a></li>
+
         	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/scanTaskAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Grid Administration</a></li>
 		<%
           }

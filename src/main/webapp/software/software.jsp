@@ -26,18 +26,6 @@
   Properties props = new Properties();
   String langCode = "en";
 
-  //check what language is requested
-  if (request.getParameter("langCode") != null) {
-    if (request.getParameter("langCode").equals("fr")) {
-      langCode = "fr";
-    }
-    if (request.getParameter("langCode").equals("de")) {
-      langCode = "de";
-    }
-    if (request.getParameter("langCode").equals("es")) {
-      langCode = "es";
-    }
-  }
 
 
 %>
