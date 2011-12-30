@@ -114,7 +114,7 @@
                     Keyword word = (Keyword) keys.next();
                 %>
 
-                <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
+                <option value="<%=word.getReadableName()%>"><%=word.getReadableName()%>
                 </option>
                 <%}%>
 
@@ -142,7 +142,7 @@
                     Keyword word = (Keyword) keys.next();
                 %>
 
-                <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
+                <option value="<%=word.getReadableName()%>"><%=word.getReadableName()%>
                 </option>
                 <%}%>
 

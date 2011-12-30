@@ -129,7 +129,7 @@ int imageCount = 0;
 
             if (CommonConfiguration.isCatalogEditable()) {
     %>
-    <a href="../SinglePhotoVideoRemoveKeyword?number=<%=imageEncNum%>&photoName=<%=images.get(myImage).getDataCollectionEventID()%>&keyword=<%=word.getIndexname()%>">
+    <a href="../SinglePhotoVideoRemoveKeyword?number=<%=imageEncNum%>&photoName=<%=images.get(myImage).getDataCollectionEventID()%>&keyword=<%=word.getReadableName()%>">
       <%
         }
       %>
@@ -189,7 +189,7 @@ int imageCount = 0;
                   String indexname = word.getIndexname();
                   String readableName = word.getReadableName();
               %>
-              <option value="<%=indexname%>"><%=readableName%></option>
+              <option value="<%=readableName%>"><%=readableName%></option>
               <%
                 }
               %>
