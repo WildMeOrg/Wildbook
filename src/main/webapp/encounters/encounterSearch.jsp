@@ -1,4 +1,4 @@
-<%--
+<%--gen
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
   ~
@@ -23,6 +23,7 @@
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Properties" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
 
@@ -51,9 +52,11 @@
     animatedcollapse.addDiv('map', 'fade=1')
     animatedcollapse.addDiv('date', 'fade=1')
     animatedcollapse.addDiv('observation', 'fade=1')
+    animatedcollapse.addDiv('tags', 'fade=1')
     animatedcollapse.addDiv('identity', 'fade=1')
     animatedcollapse.addDiv('metadata', 'fade=1')
     animatedcollapse.addDiv('export', 'fade=1')
+    animatedcollapse.addDiv('genetics', 'fade=1')
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -137,7 +140,7 @@
 <p><em><%=encprops.getProperty("instructions")%>
 </em></p>
 
-<form action="thumbnailSearchResults.jsp" method="get" name="search" id="search">
+<form action="searchResults.jsp" method="get" name="search" id="search">
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
@@ -310,7 +313,6 @@
         ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
 
-
         if (totalLocIDs >= 1) {
       %>
 
@@ -321,8 +323,7 @@
             String word = locIDs.get(n);
             if (!word.equals("")) {
         %>
-        <option value="<%=word%>"><%=word%>
-        </option>
+        <option value="<%=word%>"><%=word%></option>
         <%
             }
           }
@@ -532,6 +533,13 @@
       <%
         }
       %>
+      <%
+        pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
+      %>
+      <c:if test="${showReleaseDate}">
+        <p><strong><%= encprops.getProperty("releaseDate") %></strong></p>
+        <p>From: <input name="releaseDateFrom"/> to <input name="releaseDateTo"/> <%=encprops.getProperty("releaseDateFormat") %></p>
+      </c:if>
     </div>
   </td>
 </tr>
@@ -568,7 +576,40 @@
               <%=encprops.getProperty("unknown")%>
             </label></td>
         </tr>
-
+        <%
+        if(CommonConfiguration.showProperty("showTaxonomy")){
+        %>
+        <tr>
+        <td>
+         <strong><%=encprops.getProperty("genusSpecies")%></strong>: <select name="genusField" id="genusField">
+		<option value=""></option>
+				       
+				       <%
+				       boolean hasMoreTax=true;
+				       int taxNum=0;
+				       while(hasMoreTax){
+				       	  String currentGenuSpecies = "genusSpecies"+taxNum;
+				       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
+				       	  	%>
+				       	  	 
+				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+				       	  	<%
+				       		taxNum++;
+				          }
+				          else{
+				             hasMoreTax=false;
+				          }
+				          
+				       }
+				       %>
+				       
+				       
+			      </select>
+        </td>
+	</tr>
+	<%
+	}
+	%>
 
         <tr>
           <td><strong><%=encprops.getProperty("status")%>: </strong><label>
@@ -580,38 +621,7 @@
           </label>
           </td>
         </tr>
-        <tr>
-          <td><strong><%=encprops.getProperty("lengthIs")%>: </strong> <select name="selectLength"
-                                                                               size="1">
-            <option value="gt">&gt;</option>
-            <option value="lt">&lt;</option>
-            <option value="eq">=</option>
-          </select> <select name="lengthField" id="lengthField">
-            <option value="skip" selected><%=encprops.getProperty("none")%>
-            </option>
-            <option value="1.0">1</option>
-            <option value="2.0">2</option>
-            <option value="3.0">3</option>
-            <option value="4.0">4</option>
-            <option value="5.0">5</option>
-            <option value="6.0">6</option>
-            <option value="7.0">7</option>
-            <option value="8.0">8</option>
-            <option value="9.0">9</option>
-            <option value="10.0">10</option>
-            <option value="11.0">11</option>
-            <option value="12.0">12</option>
-            <option value="13.0">13</option>
-            <option value="14.0">14</option>
-            <option value="15.0">15</option>
-            <option value="16.0">16</option>
-            <option value="17.0">17</option>
-            <option value="18.0">18</option>
-            <option value="19.0">19</option>
-            <option value="20.0">20</option>
-          </select> <%=encprops.getProperty("meters")%>
-          </td>
-        </tr>
+        
 
 
         <tr>
@@ -661,6 +671,71 @@
       </p>
   </td>
 </tr>
+<%
+
+if(CommonConfiguration.showProperty("showLifestage")){
+
+%>
+<tr valign="top">
+  <td><strong><%=encprops.getProperty("lifeStage")%>:</strong>
+  
+  <select name="lifeStageField" id="lifeStageField">
+  	<option value="None" selected="selected"></option>
+  <%
+  			       boolean hasMoreStages=true;
+  			       int stageNum=0;
+  			       
+  			       while(hasMoreStages){
+  			       	  String currentLifeStage = "lifeStage"+stageNum;
+  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+  			       	  	<%
+  			       		stageNum++;
+  			          }
+  			          else{
+  			        	hasMoreStages=false;
+  			          }
+  			          
+			       }
+			       if(stageNum==0){%>
+			    	   <p><em><%=encprops.getProperty("noStages")%></em></p>
+			       <% }
+			       
+ %>
+  </select></td>
+</tr>
+<%
+}
+%>
+
+<%
+  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements());
+%>
+<c:if test="${showMeasurement}">
+<%
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode));
+%>
+<tr><td><strong><%=encprops.getProperty("measurements") %></strong></td></tr>
+<c:forEach items="${items}" var="item">
+<tr valign="top">
+<td>${item.label}
+<select name="measurement${item.type}(operator)">
+  <option value="gt">&gt;</option>
+  <option value="lt">&lt;</option>
+  <option value="eq">=</option>
+</select>
+<input name="measurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
+</td>
+</tr>
+</c:forEach>
+</c:if>
+      <p><strong><%=encprops.getProperty("hasPhoto")%>: </strong>
+            <label> 
+            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+            </label>
+      </p>
 <%
   int totalKeywords = myShepherd.getNumKeywords();
 %>
@@ -765,6 +840,231 @@
     </div>
   </td>
 </tr>
+
+<%
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags());
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
+%>
+<c:if test="${showMetalTags or showAcousticTag or showSatelliteTag}">
+ <tr>
+     <td>
+     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+       href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
+       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+       <font color="#000000">Tags</font></a></h4>
+     </td>
+ </tr>
+ <tr>
+    <td>
+        <div id="tags" style="display:none;">
+        <p>Use the fields below to limit your search to specific tags.</p>
+        <c:if test="${showMetalTags}">
+            <% 
+              pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); 
+            %>
+            <h5>Metal Tags</h5>
+            <table>
+            <c:forEach items="${metalTagDescs}" var="metalTagDesc">
+                <tr>
+                    <td><c:out value="${metalTagDesc.locationLabel}:"/></td><td><input name="metalTag(${metalTagDesc.location})"/></td>
+                </tr>
+            </c:forEach>
+            </table>
+        </c:if>
+        <c:if test="${showAcousticTag}">
+          <h5>Acoustic Tag</h5>
+          <table>
+          <tr><td>Serial number:</td><td><input name="acousticTagSerial"/></td></tr>
+          <tr><td>ID:</td><td><input name="acousticTagId"/></td></tr>
+          </table>
+        </c:if>
+        <c:if test="${showSatelliteTag}">
+          <%
+            pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
+           %>
+          <h5>Satellite Tag</h5>
+          <table>
+          <tr><td>Name:</td><td>
+            <select name="satelliteTagName">
+                <option value="None">None</option>
+                <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+                    <option value="${satelliteTagName}">${satelliteTagName}</option>
+                </c:forEach>
+            </select>
+          </td></tr>
+          <tr><td>Serial Number:</td><td><input name="satelliteTagSerial"/></td></tr>
+          <tr><td>Argos PTT Number</td><td><input name="satelliteTagArgosPttNumber"/></td></tr>
+          </table>
+        </c:if>
+        </div>
+    </td>
+ </tr>
+</c:if>
+
+<tr>
+  <td>
+    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
+      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+      <font color="#000000">Genetics filters</font></a></h4>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div id="genetics" style="display:none; ">
+      <p>Use the fields below to limit your search to encounters with available genetic data.</p>
+      
+      <p><strong><%=encprops.getProperty("hasTissueSample")%>: </strong>
+            <label> 
+            	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
+            </label>
+      </p>
+
+      <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para">
+      <a href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
+        target="_blank"><img src="../images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+                             (<em><%=encprops.getProperty("locationIDExample")%></em>)
+   </p>
+
+      <%
+        ArrayList<String> haplos = myShepherd.getAllHaplotypes();
+        int totalHaplos = haplos.size();
+		System.out.println(haplos.toString());
+
+        if (totalHaplos >= 1) {
+      %>
+
+      <select multiple size="<%=(totalHaplos+1) %>" name="haplotypeField" id="haplotypeField">
+        <option value="None" ></option>
+        <%
+          for (int n = 0; n < totalHaplos; n++) {
+            String word = haplos.get(n);
+            if (!word.equals("")) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select>
+      <%
+      } else {
+      %>
+      <p><em><%=encprops.getProperty("noHaplotypes")%>
+      </em></p>
+      <%
+        }
+      %>
+      
+      
+    <p><strong><%=encprops.getProperty("geneticSex")%>:</strong> <span class="para">
+      <a href="<%=CommonConfiguration.getWikiLocation()%>geneticSex"
+        target="_blank"><img src="../images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+                             (<em><%=encprops.getProperty("locationIDExample")%></em>)
+   </p>
+
+      <%
+        ArrayList<String> genSexes = myShepherd.getAllGeneticSexes();
+        int totalSexes = genSexes.size();
+		//System.out.println(haplos.toString());
+
+        if (totalSexes >= 1) {
+      %>
+
+      <select multiple size="<%=(totalSexes+1) %>" name="geneticSexField" id="geneticSexField">
+        <option value="None" ></option>
+        <%
+          for (int n = 0; n < totalSexes; n++) {
+            String word = genSexes.get(n);
+            if (!word.equals("")) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select>
+      <%
+      } else {
+      %>
+      <p><em><%=encprops.getProperty("noGeneticSexes")%>
+      </em></p>
+      <%
+        }
+      %>
+      
+      
+      <p><strong><%=encprops.getProperty("msmarker")%>:</strong> 
+      <span class="para">
+      	<a href="<%=CommonConfiguration.getWikiLocation()%>loci" target="_blank">
+      		<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
+      	</a>
+      </span> 
+   </p>
+<p>
+
+      <%
+        ArrayList<String> loci = myShepherd.getAllLoci();
+        int totalLoci = loci.size();
+		
+        if (totalLoci >= 1) {
+			%>
+            <table border="0">
+            <%
+
+          for (int n = 0; n < totalLoci; n++) {
+            String word = loci.get(n);
+            if (!word.equals("")) {
+        	%>
+        	
+        	<tr><td width="100px"><input name="<%=word%>" type="checkbox" value="<%=word%>"><%=word%></input></td><td><%=encprops.getProperty("allele")%> 1: <input name="<%=word%>_alleleValue0" type="text" size="5" maxlength="10" />&nbsp;&nbsp;</td><td><%=encprops.getProperty("allele")%> 2: <input name="<%=word%>_alleleValue1" type="text" size="5" maxlength="10" /></td></tr>
+        		
+        	<%
+            }
+          }
+%>
+<tr><td colspan="3">
+
+<%=encprops.getProperty("alleleRelaxValue")%>: +/- 
+<%
+int alleleRelaxMaxValue=0;
+try{
+	alleleRelaxMaxValue=(new Integer(CommonConfiguration.getProperty("alleleRelaxMaxValue"))).intValue();
+}
+catch(Exception d){}
+%>
+<select name="alleleRelaxValue" size="1">
+<%
+for(int k=0;k<alleleRelaxMaxValue;k++){
+%>
+	<option value="<%=k%>"><%=k%></option>	
+<%
+}
+%>
+</select>
+</td></tr>
+</table>
+<%
+      } 
+else {
+      %>
+      <p><em><%=encprops.getProperty("noLoci")%>
+      </em></p>
+      <%
+        }
+      %>
+   
+</p>
+
+    </div>
+  </td>
+</tr>
+
+
+
 <tr>
   <td>
 
@@ -781,29 +1081,25 @@
       <p>Use the fields below to limit your search by catalog metadata fields.</p>
       <table width="720px" align="left">
         <tr>
-          <td width="154"><strong><%=encprops.getProperty("types2search")%>
-          </strong>:
-          </td>
-          <td width="208"><label>
-            <input type="checkbox" name="approved" value="acceptedEncounters"
-                   checked><%=encprops.getProperty("approved")%>
-            </input></label>
-          </td>
-
-
-          <td width="188"><label>
-            <input name="unapproved" type="checkbox" value="allEncounters"
-                   checked><%=encprops.getProperty("unapproved")%>
-            </input></label>
-          </td>
-
-          <td width="145"><label>
-            <input name="unidentifiable" type="checkbox" value="allEncounters"
-                   checked><%=encprops.getProperty("unidentifiable")%>
-            </input></label>
-          </td>
-
-
+          <td width="154">
+          <p><strong><%=encprops.getProperty("types2search")%></strong>:</p>
+     		<%
+     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("encounterState");
+     		int numProps=values.size();
+     		%>
+     		<p><select size="<%=(numProps+1) %>" multiple="multiple" name="state" id="state">
+     		<option value="None"></option>
+     		<%
+     		
+     		for(int y=0;y<numProps;y++){
+     		%>
+     			<option value="<%=values.get(y) %>"><%=values.get(y) %></option>
+     		<%
+     		}
+     		%>
+     		</select>
+			</p>
+		</td>
         </tr>
       </table>
     </div>
@@ -818,33 +1114,7 @@
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('export')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Export options</font></a></h4>
 
-    <div id="export" style="display:none; ">
-      <p>Use the fields below to specify data export options.</p>
-
-      <p><input name="export" type="checkbox" id="export" value="true">
-        <strong><%=encprops.getProperty("generateExportFile")%>
-        </strong><br>
-        &nbsp;&nbsp;&nbsp;&nbsp;<input name="locales" type="checkbox"
-                                       id="locales"
-                                       value="true"> <%=encprops.getProperty("localeExport")%>
-      </p>
-      </p>
-
-      <p><input name="addTimeStamp" type="checkbox" id="addTimeStamp" value="true">
-        <strong><%=encprops.getProperty("addTimestamp2KML")%>
-        </strong></p>
-
-      <p><input name="generateEmails" type="checkbox"
-                id="generateEmails" value="true">
-        <strong><%=encprops.getProperty("generateEmailList")%>
-        </strong></p>
-      </p>
-    </div>
     <p><em> <input name="submitSearch" type="submit"
                    id="submitSearch" value="<%=encprops.getProperty("goSearch")%>"></em>
 

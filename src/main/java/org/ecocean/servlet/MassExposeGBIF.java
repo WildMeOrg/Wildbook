@@ -72,7 +72,7 @@ public class MassExposeGBIF extends HttpServlet {
 
       while (it.hasNext()) {
         Encounter tempEnc = (Encounter) it.next();
-        if ((tempEnc.isApproved()) && (!tempEnc.getOKExposeViaTapirLink())) {
+        if (!tempEnc.getOKExposeViaTapirLink()) {
           tempEnc.setOKExposeViaTapirLink(true);
           madeChanges = true;
           count++;

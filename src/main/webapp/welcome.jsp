@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*,java.util.Properties,java.util.Vector,java.util.concurrent.ThreadPoolExecutor" %>
+         import="org.ecocean.CommonConfiguration,java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <html>
 <head>
   <title><%=CommonConfiguration.getHTMLTitle() %>
@@ -69,12 +69,7 @@
 <div id="wrapper">
   <div id="page">
     <jsp:include page="header.jsp" flush="true">
-   
-	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
-	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
-	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
-	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-
+      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
     <div id="main">
       <div id="leftcol">
@@ -97,22 +92,20 @@
 
             <%
               String role = "";
-            if (request.isUserInRole("admin")) {role="Administrator";}
-            else if (request.isUserInRole("manager")) {role="Manager";}
-            else if (request.isUserInRole("researcher")) {role="Researcher";}
-            else if (request.isUserInRole("reviewer")) {role="Content Reviewer";}
-            else {role="Local Specialist";}
+              if (request.isUserInRole("admin")) {
+                role = "Administrator";
+              }
 
-            //email support
-          	Shepherd myShepherd=new Shepherd();
-          	Vector e_images=new Vector();
-          	NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), "holmbergius@gmail.com", (request.getRemoteUser()+" has logged in."), (request.getRemoteUser()+" has logged in from "+request.getRemoteAddr()+".\n\nYou can check the geographic location of this IP address at:\nhttp://www.geobytes.com/IpLocator.htm"), e_images);
-		  //let's get ready for emailing
-          ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-		  es.execute(mailer);
 
             %> <strong><%=role%>
             </strong>.</p>
+            
+            <%
+	        Logger log = LoggerFactory.getLogger(getClass());
+	        log.info(request.getRemoteUser()+" logged in from IP address "+request.getRemoteAddr()+".");
+
+	    %>
+
 
           <p><%=props.getProperty("pleaseChoose")%>
           </p>

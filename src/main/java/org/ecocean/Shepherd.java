@@ -22,6 +22,7 @@ package org.ecocean;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.genetics.*;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -124,7 +125,7 @@ public class Shepherd {
     return (uniqueID);
   }
 
-  public String storeNewKeyword(Keyword kw, String uniqueID) {
+  public String storeNewKeyword(Keyword kw) {
     beginDBTransaction();
     try {
 
@@ -134,7 +135,7 @@ public class Shepherd {
       rollbackDBTransaction();
       return "fail";
     }
-    return (uniqueID);
+    return "success";
   }
 
 
@@ -160,6 +161,38 @@ public class Shepherd {
   public void throwAwayEncounter(Encounter enc) {
     String number = enc.getEncounterNumber();
     pm.deletePersistent(enc);
+  }
+
+  public void throwAwayTissueSample(TissueSample genSample) {
+    //String removedParameters = genSample.getHTMLString();
+    //List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
+    /*
+    for(int i=0;i<list.size();i++){
+      GeneticAnalysis gen=list.get(i);
+      genSample.removeGeneticAnalysis(gen);
+      pm.deletePersistent(gen);
+      i--;
+    }*/
+    pm.deletePersistent(genSample);
+    //return removedParameters;
+  }
+  public void throwAwayGeneticAnalysis(GeneticAnalysis analysis) {
+    //String removedParameters = analysis.getHTMLString();
+    pm.deletePersistent(analysis);
+    //return removedParameters;
+  }
+
+  public void throwAwayMicrosatelliteMarkersAnalysis(MicrosatelliteMarkersAnalysis analysis) {
+    //String removedParameters = analysis.getHTMLString();
+    /*
+    while(analysis.getLoci().size()>0){
+      Locus l=analysis.getLoci().get(0);
+      analysis.getLoci().remove(0);
+      pm.deletePersistent(l);
+    }
+    */
+    pm.deletePersistent(analysis);
+    //return removedParameters;
   }
 
   public void throwAwayAdoption(Adoption ad) {
@@ -214,6 +247,73 @@ public class Shepherd {
     return tempEnc;
   }
 
+  public SinglePhotoVideo getSinglePhotoVideo(String num) {
+    SinglePhotoVideo tempEnc = null;
+    try {
+      tempEnc = ((SinglePhotoVideo) (pm.getObjectById(pm.newObjectIdInstance(SinglePhotoVideo.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempEnc;
+  }
+
+  public TissueSample getTissueSample(String sampleID, String encounterNumber) {
+    TissueSample tempEnc = null;
+    try {
+      String filter = "this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      Extent encClass = pm.getExtent(TissueSample.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+        return ((TissueSample)it.next());
+      }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return null;
+  }
+
+  public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID, String encounterNumber, String analysisID) {
+    try {
+      MitochondrialDNAAnalysis mtDNA = (MitochondrialDNAAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "MitochondrialDNA");
+      return mtDNA;
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+  }
+
+  public SexAnalysis getSexAnalysis(String sampleID, String encounterNumber, String analysisID) {
+    try {
+      SexAnalysis mtDNA = (SexAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "SexAnalysis");
+      return mtDNA;
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+  }
+
+
+  public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String sampleID, String encounterNumber, String analysisID) {
+    try {
+      MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "MicrosatelliteMarkers");
+      return msDNA;
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+  }
+
+
+
+
+
   public Adoption getAdoption(String num) {
     Adoption tempEnc = null;
     try {
@@ -222,6 +322,15 @@ public class Shepherd {
       return null;
     }
     return tempEnc;
+  }
+
+  public <T extends DataCollectionEvent> T findDataCollectionEvent(Class<T> clazz, String num) {
+    T dataCollectionEvent = null;
+    try {
+      dataCollectionEvent = (T) pm.getObjectById((pm.newObjectIdInstance(clazz, num.trim())), true);
+    } catch (Exception e) {
+    }
+    return dataCollectionEvent;
   }
 
 
@@ -279,14 +388,15 @@ public class Shepherd {
     return tempTask;
   }
 
-  public Keyword getKeyword(String indexname) {
-    Keyword tempEnc = null;
-    try {
-      tempEnc = ((Keyword) (pm.getObjectById(pm.newObjectIdInstance(Keyword.class, indexname.trim()), true)));
-    } catch (Exception nsoe) {
-      return null;
-    }
-    return tempEnc;
+  public Keyword getKeyword(String readableName) {
+
+    Iterator keywords = getAllKeywords();
+	while (keywords.hasNext()) {
+      Keyword kw = (Keyword) keywords.next();
+      if(kw.getReadableName().equals(readableName)){return kw;}
+  	}
+  return null;
+
   }
 
   public ArrayList<String> getKeywordsInCommon(String encounterNumber1, String encounterNumber2) {
@@ -297,9 +407,13 @@ public class Shepherd {
     Iterator keywords = getAllKeywords();
     while (keywords.hasNext()) {
       Keyword kw = (Keyword) keywords.next();
-      if ((kw.isMemberOf(enc1)) && (kw.isMemberOf(enc2))) {
+
+      //if ((kw.isMemberOf(enc1)) && (kw.isMemberOf(enc2))) {
+      if (enc1.hasKeyword(kw) && enc2.hasKeyword(kw)) {
         inCommon.add(kw.getReadableName());
       }
+
+
     }
     return inCommon;
   }
@@ -315,6 +429,81 @@ public class Shepherd {
     return true;
   }
 
+  public boolean isTissueSample(String sampleID, String encounterNumber) {
+    TissueSample tempEnc = null;
+    try {
+      String filter = "this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      Extent encClass = pm.getExtent(TissueSample.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+        return true;
+      }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return false;
+    }
+    return false;
+  }
+
+  //TBD - need separate for haplotype and ms markers
+  public boolean isGeneticAnalysis(String sampleID, String encounterNumber, String analysisID, String type) {
+    TissueSample tempEnc = null;
+    try {
+      String filter = "this.analysisType == \""+type+"\" && this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+        return true;
+      }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return false;
+    }
+    return false;
+  }
+
+  public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID) {
+    try {
+      String filter = "this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+        return (GeneticAnalysis)it.next();
+      }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return null;
+  }
+
+  public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID, String type) {
+    try {
+      String filter = "this.analysisType == \""+type+"\" && this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
+      Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      Iterator it = c.iterator();
+      while(it.hasNext()){
+        return (GeneticAnalysis)it.next();
+      }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return null;
+  }
+
   public boolean isAdoption(String num) {
     try {
       Adoption tempEnc = ((org.ecocean.Adoption) (pm.getObjectById(pm.newObjectIdInstance(Adoption.class, num.trim()), true)));
@@ -324,9 +513,19 @@ public class Shepherd {
     return true;
   }
 
-  public boolean isKeyword(String indexname) {
+  public boolean isKeyword(String keywordDescription) {
+    Iterator keywords = getAllKeywords();
+	    while (keywords.hasNext()) {
+      Keyword kw = (Keyword) keywords.next();
+      if(kw.getReadableName().equals(keywordDescription)){return true;}
+ 	}
+
+    return false;
+  }
+
+  public boolean isSinglePhotoVideo(String indexname) {
     try {
-      Keyword tempEnc = ((org.ecocean.Keyword) (pm.getObjectById(pm.newObjectIdInstance(Keyword.class, indexname.trim()), true)));
+      SinglePhotoVideo tempEnc = ((org.ecocean.SinglePhotoVideo) (pm.getObjectById(pm.newObjectIdInstance(SinglePhotoVideo.class, indexname.trim()), true)));
     } catch (Exception nsoe) {
       return false;
     }
@@ -378,7 +577,7 @@ public class Shepherd {
         return false;
       }
     }
-    
+
       pm.makePersistent(newShark);
 
       query.closeAll();
@@ -396,7 +595,7 @@ public class Shepherd {
    * @see encounter, java.util.Iterator
    */
   public Iterator getUnassignedEncounters() {
-    String filter = "this.individualID == \"Unassigned\" && this.unidentifiable == false && this.approved==true";
+    String filter = "this.individualID == \"Unassigned\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -404,7 +603,7 @@ public class Shepherd {
   }
 
   public Iterator getUnassignedEncountersIncludingUnapproved() {
-    String filter = "this.individualID == \"Unassigned\" && this.unidentifiable == false";
+    String filter = "this.individualID == \"Unassigned\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -412,7 +611,7 @@ public class Shepherd {
   }
 
   public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
-    String filter = "this.individualID == \"Unassigned\" && this.unidentifiable == false";
+    String filter = "this.individualID == \"Unassigned\" && this.state != \"unidentifiable\"";
     //Extent encClass=pm.getExtent(encounter.class, true);
     orphanedEncounters.setFilter(filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -503,9 +702,9 @@ public class Shepherd {
    */
   public Iterator getAllEncounters() {
     Collection c;
-    String filter = "!this.unidentifiable && this.approved == true";
+    //String filter = "!this.state == \"unidentifiable\" && this.state == \"approved\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Query acceptedEncounters = pm.newQuery(encClass);
     try {
       c = (Collection) (acceptedEncounters.execute());
       ArrayList list = new ArrayList(c);
@@ -522,6 +721,35 @@ public class Shepherd {
     Collection c;
     try {
       c = (Collection) (acceptedEncounters.execute());
+      ArrayList list = new ArrayList(c);
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+  
+  public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideo(Query acceptedEncounters) {
+    Collection c;
+    try {
+      c = (Collection) (acceptedEncounters.execute());
+      ArrayList<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>(c);
+      return list;
+    } 
+    catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+  public Iterator getAllEncounters(Query acceptedEncounters, Map<String, Object> paramMap) {
+    Collection c;
+    try {
+      c = (Collection) (acceptedEncounters.executeWithMap(paramMap));
       ArrayList list = new ArrayList(c);
       //Collections.reverse(list);
       Iterator it = list.iterator();
@@ -657,7 +885,7 @@ public class Shepherd {
 
   public Iterator getAllEncountersAndUnapproved() {
     Collection c;
-    String filter = "!this.unidentifiable";
+    String filter = "this.state != \"unidentifiable\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
@@ -681,9 +909,9 @@ public class Shepherd {
    * @see encounter, java.util.Iterator
    */
   public Iterator getAllEncounters(String order) {
-    String filter = "!this.unidentifiable && this.approved == true";
+    //String filter = "this.state != \"unidentifiable\" && this.state == \"approved\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Query acceptedEncounters = pm.newQuery(encClass);
     acceptedEncounters.setOrdering(order);
     Collection c = (Collection) (acceptedEncounters.execute());
     Iterator it = c.iterator();
@@ -723,14 +951,29 @@ public class Shepherd {
    * @see encounter, java.util.Iterator
    */
   public Iterator getAllEncounters(String order, String filter2use) {
-    String filter = filter2use + " && this.approved == true";
+    //String filter = filter2use + " && this.approved == true";
     Extent encClass = pm.getExtent(Encounter.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Query acceptedEncounters = pm.newQuery(encClass, filter2use);
     acceptedEncounters.setOrdering(order);
     Collection c = (Collection) (acceptedEncounters.execute());
     Iterator it = c.iterator();
     return it;
+  }
 
+  public ArrayList<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
+    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
+    Extent encClass = pm.getExtent(TissueSample.class, true);
+    Query samples = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (samples.execute());
+    return (new ArrayList<TissueSample>(c));
+  }
+
+  public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosForEncounter(String encNum) {
+    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
+    Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
+    Query samples = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (samples.execute());
+    return (new ArrayList<SinglePhotoVideo>(c));
   }
 
   public Iterator getAllEncountersNoFilter(String order, String filter2use) {
@@ -760,7 +1003,7 @@ public class Shepherd {
    * @see encounter, java.util.Iterator
    */
   public Iterator getAllUnidentifiableEncounters(Query rejectedEncounters) {
-    rejectedEncounters.setFilter("this.unidentifiable");
+    rejectedEncounters.setFilter("this.state == \"unidentifiable\"");
     Collection c = (Collection) (rejectedEncounters.execute());
     ArrayList list = new ArrayList(c);
 
@@ -896,7 +1139,7 @@ public class Shepherd {
     Iterator it = list.iterator();
     return it;
   }
-  
+
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsFromLocationID(String locCode) {
     Extent allSharks = null;
     try {
@@ -917,6 +1160,8 @@ public class Shepherd {
     return newList;
   }
 
+
+
   public Iterator getAllMarkedIndividuals(Query sharks) {
     Collection c = (Collection) (sharks.execute());
     ArrayList list = new ArrayList(c);
@@ -932,8 +1177,13 @@ public class Shepherd {
    * @see shark, java.util.Iterator
    */
   public Iterator getAllMarkedIndividuals(Query sharkies, String order) {
+    Map<String, Object> emptyMap = Collections.emptyMap();
+    return getAllMarkedIndividuals(sharkies, order, emptyMap);
+  }
+
+  public Iterator getAllMarkedIndividuals(Query sharkies, String order, Map<String, Object> params) {
     sharkies.setOrdering(order);
-    Collection c = (Collection) (sharkies.execute());
+    Collection c = (Collection) (sharkies.executeWithMap(params));
     ArrayList list = new ArrayList(c);
     //Collections.reverse(list);
     Iterator it = list.iterator();
@@ -993,7 +1243,7 @@ public class Shepherd {
   public int getNumEncounters() {
     pm.getFetchPlan().setGroup("count");
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable == false";
+    String filter = "this.state != \"unidentifiable\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1026,7 +1276,7 @@ public class Shepherd {
   public int getNumApprovedEncounters() {
     pm.getFetchPlan().setGroup("count");
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable == false && this.approved == true";
+    String filter = "this.state == \"approved\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1042,7 +1292,7 @@ public class Shepherd {
 
   public int getNumEncounters(String locationCode) {
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable == false && this.locationID == " + locationCode;
+    String filter = "this.locationID == \"" + locationCode+"\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1059,7 +1309,7 @@ public class Shepherd {
 
   public int getNumUnidentifiableEncountersForMarkedIndividual(String individual) {
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable && this.individualID == " + individual;
+    String filter = "this.state == \"unidentifiable\" && this.individualID == \"" + individual+"\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1076,7 +1326,7 @@ public class Shepherd {
 
   public int getNumUnidentifiableEncounters() {
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable";
+    String filter = "this.state == \"unidentifiable\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1093,7 +1343,7 @@ public class Shepherd {
 
   public Vector getUnidentifiableEncountersForMarkedIndividual(String individual) {
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.unidentifiable && this.individualID == " + individual;
+    String filter = "this.state == \"unidentifiable\" && this.individualID == " + individual;
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
@@ -1136,7 +1386,7 @@ public class Shepherd {
 
   public int getNumRejectedEncounters() {
     Extent allEncounters = null;
-    String filter = "this.unidentifiable == true";
+    String filter = "this.state == \"unidentifiable\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
@@ -1156,7 +1406,7 @@ public class Shepherd {
   }
 
   public int getNumUnapprovedEncounters() {
-    String filter = "!this.unidentifiable && this.approved == false";
+    String filter = "this.state == \"unapproved\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query unacceptedEncounters = pm.newQuery(encClass, filter);
     try {
@@ -1360,20 +1610,22 @@ public class Shepherd {
   }
 
 
-  public Vector getThumbnails(HttpServletRequest request, Iterator it, int startNum, int endNum, String[] keywords) {
-    Vector thumbs = new Vector();
+  public ArrayList<SinglePhotoVideo> getThumbnails(HttpServletRequest request, Iterator it, int startNum, int endNum, String[] keywords) {
+    ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
     boolean stopMe = false;
     int count = 0;
     while (it.hasNext()) {
       Encounter enc = (Encounter) it.next();
-      if ((count + enc.getAdditionalImageNames().size()) >= startNum) {
-        for (int i = 0; i < enc.getAdditionalImageNames().size(); i++) {
+      ArrayList<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+
+      if ((count + images.size()) >= startNum) {
+        for (int i = 0; i < images.size(); i++) {
           count++;
           if ((count <= endNum) && (count >= startNum)) {
             String m_thumb = "";
 
             //check for video or image
-            String imageName = (String) enc.getAdditionalImageNames().get(i);
+            String imageName = (String) images.get(i).getFilename();
 
             //check if this image has one of the assigned keywords
             boolean hasKeyword = false;
@@ -1384,7 +1636,12 @@ public class Shepherd {
               for (int n = 0; n < numKeywords; n++) {
                 if (!keywords[n].equals("None")) {
                   Keyword word = getKeyword(keywords[n]);
-                  if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+
+                  if (images.get(i).getKeywords().contains(word)) {
+
+
+                  //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+
                     hasKeyword = true;
                     //System.out.println("member of: "+word.getReadableName());
                   }
@@ -1401,48 +1658,52 @@ public class Shepherd {
 					String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
 					if(!nameString.equals(imageName)){hasKeyword=false;}
 			}
-
-
-
-            if (hasKeyword && isAcceptableVideoFile(imageName)) {
+      if (hasKeyword && isAcceptableVideoFile(imageName)) {
               m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
-              thumbs.add(m_thumb);
-            } else if (hasKeyword && isAcceptableImageFile(imageName)) {
+              //thumbs.add(m_thumb);
+              thumbs.add(images.get(i));
+      }
+      else if (hasKeyword && isAcceptableImageFile(imageName)) {
               m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
-              thumbs.add(m_thumb);
-            } else {
+              //thumbs.add(m_thumb);
+              thumbs.add(images.get(i));
+      }
+      else {
               count--;
-            }
+      }
           } else if (count > endNum) {
             stopMe = true;
           }
         }
       } //end if
       else {
-        count += enc.getAdditionalImageNames().size();
+        count += images.size();
       }
 
     }//end while
     return thumbs;
   }
 
-  public Vector getMarkedIndividualThumbnails(HttpServletRequest request, Iterator<MarkedIndividual> it, int startNum, int endNum, String[] keywords) {
-    Vector thumbs = new Vector();
+  public ArrayList<SinglePhotoVideo> getMarkedIndividualThumbnails(HttpServletRequest request, Iterator<MarkedIndividual> it, int startNum, int endNum, String[] keywords) {
+    ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
+
     boolean stopMe = false;
     int count = 0;
-    while (it.hasNext()) {
+    while (it.hasNext()&&!stopMe) {
       MarkedIndividual markie = it.next();
       Iterator allEncs = markie.getEncounters().iterator();
-      while (allEncs.hasNext()) {
-        Encounter indie = (Encounter) allEncs.next();
-        if ((count + indie.getAdditionalImageNames().size()) >= startNum) {
-          for (int i = 0; i < indie.getAdditionalImageNames().size(); i++) {
+      while (allEncs.hasNext()&&!stopMe) {
+        Encounter enc = (Encounter) allEncs.next();
+        ArrayList<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+
+        if ((count + images.size()) >= startNum) {
+          for (int i = 0; i < images.size(); i++) {
             count++;
             if ((count <= endNum) && (count >= startNum)) {
               String m_thumb = "";
 
               //check for video or image
-              String imageName = (String) indie.getAdditionalImageNames().get(i);
+              String imageName = (String) images.get(i).getFilename();
 
               //check if this image has one of the assigned keywords
               boolean hasKeyword = false;
@@ -1453,7 +1714,12 @@ public class Shepherd {
                 for (int n = 0; n < numKeywords; n++) {
                   if (!keywords[n].equals("None")) {
                     Keyword word = getKeyword(keywords[n]);
-                    if (word.isMemberOf(indie.getCatalogNumber() + "/" + imageName)) {
+
+                    if (images.get(i).getKeywords().contains(word)) {
+
+
+                    //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+
                       hasKeyword = true;
                       //System.out.println("member of: "+word.getReadableName());
                     }
@@ -1465,24 +1731,33 @@ public class Shepherd {
 
               }
 
-
-              if (hasKeyword && isAcceptableVideoFile(imageName)) {
-                m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + indie.getEncounterNumber() + "BREAK" + imageName;
-                thumbs.add(m_thumb);
-              } else if (hasKeyword && isAcceptableImageFile(imageName)) {
-                m_thumb = indie.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + indie.getEncounterNumber() + "BREAK" + imageName;
-                thumbs.add(m_thumb);
-              } 
-              else {
+        //check for specific filename conditions here
+        if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))){
+            String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
+            if(!nameString.equals(imageName)){hasKeyword=false;}
+        }
+        if (hasKeyword && isAcceptableVideoFile(imageName)) {
+                m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
+                //thumbs.add(m_thumb);
+                thumbs.add(images.get(i));
+        }
+        else if (hasKeyword && isAcceptableImageFile(imageName)) {
+                m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
+                //thumbs.add(m_thumb);
+                thumbs.add(images.get(i));
+        }
+        else {
                 count--;
-              }
-            } else if (count > endNum) {
+        }
+            } 
+            else if (count > endNum) {
               stopMe = true;
+              return thumbs;
             }
           }
         } //end if
         else {
-          count += indie.getAdditionalImageNames().size();
+          count += images.size();
         }
 
       }//end while
@@ -1513,7 +1788,9 @@ public class Shepherd {
           for (int n = 0; n < numKeywords; n++) {
             if (!keywords[n].equals("None")) {
               Keyword word = getKeyword(keywords[n]);
-              if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+
+              //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+              if(enc.hasKeyword(word)){
                 hasKeyword = true;
                 //System.out.println("member of: "+word.getReadableName());
               }
@@ -1566,7 +1843,8 @@ public class Shepherd {
             for (int n = 0; n < numKeywords; n++) {
               if (!keywords[n].equals("None")) {
                 Keyword word = getKeyword(keywords[n]);
-                if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+                //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
+                if(enc.hasKeyword(word)){
                   hasKeyword = true;
                   //System.out.println("member of: "+word.getReadableName());
                 }
@@ -1708,6 +1986,46 @@ public class Shepherd {
     return (new ArrayList(results));
   }
 
+  public ArrayList<String> getAllHaplotypes() {
+    Query q = pm.newQuery(MitochondrialDNAAnalysis.class);
+    q.setResult("distinct haplotype");
+    q.setOrdering("haplotype ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
+
+  public ArrayList<String> getAllGeneticSexes() {
+    Query q = pm.newQuery(SexAnalysis.class);
+    q.setResult("distinct sex");
+    q.setOrdering("sex ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
+
+  public ArrayList<String> getAllLoci() {
+    Query q = pm.newQuery(Locus.class);
+    q.setResult("distinct name");
+    q.setOrdering("name ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
+
+  public ArrayList<String> getAllGenuses() {
+      Query q = pm.newQuery(Encounter.class);
+      q.setResult("distinct genus");
+      q.setOrdering("genus ascending");
+      Collection results = (Collection) q.execute();
+      return (new ArrayList(results));
+  }
+
+  public ArrayList<String> getAllSpecificEpithets() {
+      Query q = pm.newQuery(Encounter.class);
+      q.setResult("distinct specificEpithet");
+      q.setOrdering("specificEpithet ascending");
+      Collection results = (Collection) q.execute();
+      return (new ArrayList(results));
+  }
+
   public ArrayList<String> getAllBehaviors() {
 
     Query q = pm.newQuery(Encounter.class);
@@ -1762,6 +2080,14 @@ public class Shepherd {
     Query q = pm.newQuery (Encounter.class);
     q.setResult ("distinct patterningCode");
     q.setOrdering("patterningCode ascending");
+    Collection results = (Collection)q.execute ();
+    return (new ArrayList(results));
+  }
+
+  public ArrayList<String> getAllLifeStages(){
+    Query q = pm.newQuery (Encounter.class);
+    q.setResult ("distinct lifeStage");
+    q.setOrdering("lifeStage ascending");
     Collection results = (Collection)q.execute ();
     return (new ArrayList(results));
   }

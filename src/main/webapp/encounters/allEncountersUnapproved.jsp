@@ -295,7 +295,7 @@
 
   query = ServletUtilities.setRange(query, iterTotal, highCount, lowCount);
 
-  query.setFilter("!this.unidentifiable && this.approved == false");
+  query.setFilter("this.state == \"unapproved\"");
 
   if (request.getParameter("sort") != null) {
 
@@ -372,7 +372,7 @@
   <td class="lineitems"><%=enc.getLocationCode()%>
   </td>
   <%
-    if ((enc.getSizeAsDouble()!=null)&&(enc.getSize() != 0)) {
+    if (enc.getSizeAsDouble() != null) {
   %>
   <td class="lineitems"><%=enc.getSize()%>
   </td>

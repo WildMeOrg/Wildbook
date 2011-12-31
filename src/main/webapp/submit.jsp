@@ -19,7 +19,8 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
-         import="org.ecocean.CommonConfiguration, java.util.GregorianCalendar, java.util.Properties" %>
+         import="java.util.ArrayList,org.ecocean.CommonConfiguration, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -106,18 +107,17 @@
         requiredfields += "\n   *  Your name";
       }
 
-      if ((document.encounter_submission.submitterEmail.value.length == 0) ||
-        (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
-        (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
-        /*
-         * here we look to make sure the email address field contains
-         * the @ symbol and a . to determine that it is in the correct format
-         */
-        requiredfields += "\n   *  valid Email address";
-      }
-      if ((document.encounter_submission.location.value.length == 0)) {
-        requiredfields += "\n   *  valid sighting location";
-      }
+        /*         
+        if ((document.encounter_submission.submitterEmail.value.length == 0) ||
+          (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
+          (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
+      
+             requiredfields += "\n   *  valid Email address";
+        }
+        if ((document.encounter_submission.location.value.length == 0)) {
+            requiredfields += "\n   *  valid sighting location";
+        }
+        */
 
       if (requiredfields != "") {
         requiredfields = "Please correctly enter the following fields:\n" + requiredfields;
@@ -161,8 +161,36 @@
 <tr class="form_row">
   <td class="form_label"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%>:</font></strong>
   </td>
-  <td colspan="2"><em>&nbsp;<%=props.getProperty("submit_day")%>
-  </em>
+  <td colspan="2">
+  
+      <em>&nbsp;<%=props.getProperty("submit_year")%></em> 
+    <select name="year" id="year">
+      <option selected="selected"><%=nowYear%>
+      </option>
+      <% for (int p = 1; p < 40; p++) { %>
+      <option value="<%=(nowYear-p)%>"><%=(nowYear - p)%>
+      </option>
+
+      <% } %>
+    </select>
+  
+   <em>&nbsp;<%=props.getProperty("submit_month")%></em> 
+    <select name="month" id="month">
+      <option value="1" selected="selected">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+    </select> 
+  
+  <em>&nbsp;<%=props.getProperty("submit_day")%></em>
     <select name="day" id="day">
       <option value="0" selected="selected">?</option>
       <option value="1">1</option>
@@ -196,33 +224,21 @@
       <option value="29">29</option>
       <option value="30">30</option>
       <option value="31">31</option>
-    </select> <em>&nbsp;<%=props.getProperty("submit_month")%>
-    </em> <select
-      name="month" id="month">
-      <option value="1" selected="selected">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-      <option value="7">7</option>
-      <option value="8">8</option>
-      <option value="9">9</option>
-      <option value="10">10</option>
-      <option value="11">11</option>
-      <option value="12">12</option>
-    </select> <em>&nbsp;<%=props.getProperty("submit_year")%>
-    </em> <select
-      name="year" id="year">
-      <option selected="selected"><%=nowYear%>
-      </option>
-      <% for (int p = 1; p < 40; p++) { %>
-      <option vale="<%=(nowYear-p)%>"><%=(nowYear - p)%>
-      </option>
+    </select> 
+   
 
-      <% } %>
-    </select></td>
+    </td>
 </tr>
+
+<%
+  pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
+%>
+<c:if test="${showReleaseDate}">
+    <tr class="form_row">
+    <td class="form_label"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
+    <td colspan="2"><input name="releaseDate"/> <%= props.getProperty("submit_releasedate_format") %></td>
+    </tr>
+</c:if>
 
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_time")%>:</strong>
@@ -270,32 +286,6 @@
     </select></td>
 </tr>
 
-<tr class="form_row">
-  <td class="form_label" rowspan="2"><strong><%=props.getProperty("submit_length")%>:</strong></td>
-  <td colspan="2">
-  
-  <input name="size" type="text" id="size" size="10" />
-  
-  <label> <input name="measureUnits" type="radio"
-                           value="Meters"
-                           checked="checked"/> <%=props.getProperty("submit_meters")%>
-  </label>
-
-    <label> <input type="radio" name="measureUnits" value="Feet"/>
-      <%=props.getProperty("submit_feet")%>
-    </label></td>
-</tr>
-<tr>
-  <td colspan="2"><label><%=props.getProperty("submit_howmeasure")%>
-    <select name="guess" id="guess">
-      <option value="submitter's guess"><%=props.getProperty("submit_personalguess")%>
-      </option>
-      <option value="guide/researcher's guess"><%=props.getProperty("submit_guessofguide")%>
-      </option>
-      <option value="directly measured"><%=props.getProperty("submit_directlymeasured")%>
-      </option>
-    </select> </label></td>
-</tr>
 
 
 <tr class="form_row">
@@ -411,6 +401,155 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
   </select></td>
 </tr>
 
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("submit_behavior")%>:</strong></td>
+  <td colspan="2">
+    <input name="behavior" type="text" id="scars" size="75"/></td>
+</tr>
+<%
+
+if(CommonConfiguration.showProperty("showLifestage")){
+
+%>
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("lifeStage")%>:</strong></td>
+  <td colspan="2">
+  <select name="lifeStage" id="lifeStage">
+  	<option value="" selected="selected"></option>
+  <%
+  			       boolean hasMoreStages=true;
+  			       int stageNum=0;
+  			       
+  			       while(hasMoreStages){
+  			       	  String currentLifeStage = "lifeStage"+stageNum;
+  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+  			       	  	<%
+  			       		stageNum++;
+  			          }
+  			          else{
+  			        	hasMoreStages=false;
+  			          }
+  			          
+			       }
+			       
+ %>
+  </select></td>
+</tr>
+<%
+}
+%>
+<%
+    pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
+%>
+<c:if test="${showMeasurements}">
+<%
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode));
+    pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode));
+%>
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("measurements")%>:</strong></td>
+  <td colspan="2">
+  <table class="measurements">
+  <tr>
+  <th>Type</th><th>Size</th><th>Units</th><c:if test="${!empty samplingProtocols}"><th>Sampling Protocol</th></c:if>
+  </tr>
+  <c:forEach items="${items}" var="item">
+    <tr>
+    <td>${item.label}</td>
+    <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
+    <td><c:out value="${item.unitsLabel}"/></td>
+    <c:if test="${!empty samplingProtocols}">
+      <td>
+        <select name="measurement(${item.type}samplingProtocol)">
+        <c:forEach items="${samplingProtocols}" var="optionDesc">
+          <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
+        </c:forEach>
+        </select>
+      </td>
+    </c:if>
+    </tr>
+  </c:forEach>
+  </table>
+  </td>
+</tr>
+</c:if>
+<%
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags());
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
+  pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode));
+%>
+
+<c:if test="${showMetalTags and !empty metalTags}">
+<tr class="form_row">
+  <td class="form_label"><strong>Metal Tags:</strong></td>
+  <td colspan="2">
+    <table class="metalTags">
+    <tr>
+      <th>Location</th><th>Tag Number</th>
+    </tr>
+    <c:forEach items="${metalTags}" var="metalTagDesc">
+      <tr>
+        <td><c:out value="${metalTagDesc.locationLabel}:"/></td>
+        <td><input name="metalTag(${metalTagDesc.location})"/></td>
+      </tr>
+    </c:forEach>
+    </table>
+  </td>
+</tr>
+</c:if>
+
+<c:if test="${showAcousticTag}">
+<tr class="form_row">
+    <td class="form_label"><strong>Acoustic Tag:</strong></td>
+    <td colspan="2">
+      <table class="acousticTag">
+      <tr>
+      <td>Serial number:</td>
+      <td><input name="acousticTagSerial"/></td>
+      </tr>
+      <tr>
+        <td>ID:</td>
+        <td><input name="acousticTagId"/></td>
+      </tr>
+      </table>
+    </td>
+</tr>
+</c:if>
+
+<c:if test="${showSatelliteTag}">
+<%
+  pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
+%>
+<tr class="form_row">
+    <td class="form_label"><strong>Satellite Tag:</strong></td>
+    <td colspan="2">
+      <table class="satelliteTag">
+      <tr>
+        <td>Name:</td>
+        <td>
+            <select name="satelliteTagName">
+              <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+                <option value="${satelliteTagName}">${satelliteTagName}</option>
+              </c:forEach>
+            </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Serial number:</td>
+        <td><input name="satelliteTagSerial"/></td>
+      </tr>
+      <tr>
+        <td>Argos PTT Number:</td>
+        <td><input name="satelliteTagArgosPttNumber"/></td>
+      </tr>
+      </table>
+    </td>
+</tr>
+</c:if>
 
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>

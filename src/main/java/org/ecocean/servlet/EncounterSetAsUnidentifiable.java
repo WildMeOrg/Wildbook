@@ -72,9 +72,11 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
         myShepherd.beginDBTransaction();
         try {
 
-          enc2reject.reject();
+          //enc2reject.reject();
+          enc2reject.setState("unidentifiable");
           enc2reject.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Set this encounter as unidentifiable in the database.</p>");
-          enc2reject.approved = false;
+          //enc2reject.approved = false;
+          enc2reject.setState("unidentifiable");
         } catch (Exception le) {
           locked = true;
           le.printStackTrace();

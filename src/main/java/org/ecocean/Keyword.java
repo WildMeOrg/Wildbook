@@ -30,7 +30,7 @@ public class Keyword {
   private String readableName;
 
   //a Vector of String relative paths to the photo file that the keyword applies to
-  public Vector photos;
+  //public Vector photos;
 
   /**
    * empty constructor required by JDO Enhancer
@@ -40,12 +40,12 @@ public class Keyword {
 
 
   //use this constructor for new keywords
-  public Keyword(String indexname, String readableName) {
-    this.indexname = indexname;
+  public Keyword(String readableName) {
     this.readableName = readableName;
-    photos = new Vector();
+    //photos = new Vector();
   }
 
+  /*
   public void removeImageName(String imageFile) {
     for (int i = 0; i < photos.size(); i++) {
       String thisName = (String) photos.get(i);
@@ -55,7 +55,7 @@ public class Keyword {
       }
     }
   }
-
+*/
   public String getReadableName() {
     return readableName;
   }
@@ -68,12 +68,14 @@ public class Keyword {
     return indexname;
   }
 
+  /*
   public void addImageName(String photoName) {
     if (!isMemberOf(photoName)) {
       photos.add(photoName);
     }
   }
-
+*/
+  /*
   public boolean isMemberOf(String photoName) {
     //boolean truth=false;
     for (int i = 0; i < photos.size(); i++) {
@@ -98,9 +100,11 @@ public class Keyword {
     }
     return false;
   }
+  */
 
+  /*
   public Vector getMembers() {
     return photos;
   }
-
+*/
 }
