@@ -19,16 +19,19 @@
 
 package org.ecocean.servlet;
 
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.struts.action.ActionError;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.upload.FormFile;
 import org.apache.struts.upload.MultipartRequestHandler;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Calendar;
-import java.util.Vector;
 
 
 public class SubmitForm extends ActionForm {
@@ -42,6 +45,7 @@ public class SubmitForm extends ActionForm {
   private String mailList = "no";
   private Calendar date = Calendar.getInstance();
   private String uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
+  private String releaseDate = "";
   private String size="", depth="";
   private String elevation="";
   private String measureUnits = "", location = "", sex = "unknown", comments = "", primaryImageName = "", guess = "no estimate provided";
@@ -55,6 +59,18 @@ public class SubmitForm extends ActionForm {
   private String minutes = "00", gpsLongitudeMinutes = "", gpsLongitudeSeconds = "", gpsLatitudeMinutes = "", gpsLatitudeSeconds = "", submitterID = "N/A", informothers = "";
   private String genusSpecies="";
   private String behavior="";
+  private String lifeStage="";
+  
+  private Map<String, Object> measurements = new HashMap<String, Object>();
+  
+  private Map<String, Object> metalTags = new HashMap<String, Object>();
+  private String acousticTagSerial = "";
+  private String acousticTagId = "";
+  private String satelliteTagSerial = "";
+  private String satelliteTagArgosPttNumber = "";
+  private String satelliteTagName = "";
+  
+  
   /**
    * The value of the text the user has sent as form data
    */
@@ -93,6 +109,7 @@ public class SubmitForm extends ActionForm {
     mailList = "no";
     date = Calendar.getInstance();
     uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
+    releaseDate = null;
     size = "";
     depth = "";
     elevation = "";
@@ -132,6 +149,14 @@ public class SubmitForm extends ActionForm {
     informothers = "";
     livingStatus = "";
     genusSpecies="";
+    lifeStage="";
+    measurements.clear();
+    metalTags.clear();
+    acousticTagSerial = "";
+    acousticTagId = "";
+    satelliteTagSerial = "";
+    satelliteTagArgosPttNumber = "";
+    satelliteTagName = "";
   }
 
 
@@ -149,6 +174,14 @@ public class SubmitForm extends ActionForm {
 
   public void setDate(Calendar date) {
     this.date = date;
+  }
+  
+  public void setReleaseDate(String releaseDate) {
+    this.releaseDate = releaseDate;
+  }
+  
+  public String getReleaseDate() {
+    return releaseDate;
   }
 
   public String getUniqueID() {
@@ -463,6 +496,78 @@ public class SubmitForm extends ActionForm {
 
     public void setBehavior(String behavior) {
       this.behavior = behavior;
+  }
+    
+    public String getLifeStage() {
+      return this.lifeStage;
+    }
+
+    public void setLifeStage(String lifeStage) {
+      this.lifeStage = lifeStage;
+  }
+    
+  public Object getMeasurement(String key) {
+    return measurements.get(key);
+  }
+  
+  public void setMeasurement(String key, Object measurement) {
+    measurements.put(key, measurement);
+  }
+  
+  public Map<String, Object> getMeasurements() {
+    return measurements;
+  }
+
+  public Map<String, Object> getMetalTags() {
+    return metalTags;
+  }
+
+
+  public void setMetalTag(String key, Object value) {
+    metalTags.put(key, value);
+  }
+
+  public Object getMetalTag(String key) {
+    return metalTags.get(key);
+  }
+  public String getAcousticTagSerial() {
+    return acousticTagSerial;
+  }
+
+  public void setAcousticTagSerial(String acousticTagSerial) {
+    this.acousticTagSerial = acousticTagSerial;
+  }
+
+  public String getAcousticTagId() {
+    return acousticTagId;
+  }
+
+  public void setAcousticTagId(String acousticTagId) {
+    this.acousticTagId = acousticTagId;
+  }
+
+  public String getSatelliteTagSerial() {
+    return satelliteTagSerial;
+  }
+
+  public void setSatelliteTagSerial(String satelliteTagSerial) {
+    this.satelliteTagSerial = satelliteTagSerial;
+  }
+
+  public String getSatelliteTagArgosPttNumber() {
+    return satelliteTagArgosPttNumber;
+  }
+
+  public void setSatelliteTagArgosPttNumber(String satelliteTagArgosPttNumber) {
+    this.satelliteTagArgosPttNumber = satelliteTagArgosPttNumber;
+  }
+
+  public String getSatelliteTagName() {
+    return satelliteTagName;
+  }
+
+  public void setSatelliteTagName(String satelliteTagName) {
+    this.satelliteTagName = satelliteTagName;
   }
 
   public String getInformothers() {

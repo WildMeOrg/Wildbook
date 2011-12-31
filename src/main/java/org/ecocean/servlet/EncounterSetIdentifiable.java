@@ -89,7 +89,8 @@ public class EncounterSetIdentifiable extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       myShepherd.beginDBTransaction();
       try {
-        enc2reaccept.reaccept();
+        //enc2reaccept.reaccept();
+        enc2reaccept.setState("unapproved");
         enc2reaccept.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Reaccepted into visual database.</p>");
       } catch (Exception le) {
         //System.out.println("Hit locked exception on action: "+action);

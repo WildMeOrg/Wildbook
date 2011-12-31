@@ -30,6 +30,8 @@ import java.io.*;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class EncounterDelete extends HttpServlet {
@@ -67,21 +69,6 @@ public class EncounterDelete extends HttpServlet {
       Encounter enc2trash = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2trash);
 
-      //first unregister the images from the index
-
-      Vector additionalImageNames = enc2trash.getAdditionalImageNames();
-      int initNumberImages = additionalImageNames.size();
-      for (int i = 0; i < initNumberImages; i++) {
-        Iterator keywords = myShepherd.getAllKeywords();
-        String fileName = (String) additionalImageNames.get(i);
-        String toRemove = request.getParameter("number") + "/" + fileName;
-        while (keywords.hasNext()) {
-          Keyword word = (Keyword) keywords.next();
-          if (word.isMemberOf(toRemove)) {
-            word.removeImageName(toRemove);
-          }
-        }
-      }
 
       if (enc2trash.isAssignedToMarkedIndividual().equals("Unassigned")) {
 
@@ -118,6 +105,12 @@ public class EncounterDelete extends HttpServlet {
 
         if (!locked) {
           myShepherd.commitDBTransaction();
+
+          //log it
+          Logger log = LoggerFactory.getLogger(EncounterDelete.class);
+		  log.info("Click to restore deleted encounter: <a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/ResurrectDeletedEncounter?number=" + request.getParameter("number")+"\">"+request.getParameter("number")+"</a>");
+
+
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have removed encounter " + request.getParameter("number") + " from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter " + request.getParameter("number") + " to have it restored.");
           out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");

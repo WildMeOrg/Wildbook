@@ -22,10 +22,16 @@ package org.ecocean;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.GregorianCalendar;
+import org.ecocean.genetics.*;
+import org.ecocean.tag.AcousticTag;
+import org.ecocean.tag.MetalTag;
+import org.ecocean.tag.SatelliteTag;
 
 
 /**
@@ -71,6 +77,7 @@ public class Encounter implements java.io.Serializable {
   public String identificationRemarks = "";
   public String genus = "";
   public String specificEpithet;
+  public String lifeStage;
 
 
   /*
@@ -87,6 +94,9 @@ public class Encounter implements java.io.Serializable {
 
   //Date the encounter was added to the library.
   private String dwcDateAdded;
+  
+  // If Encounter spanned more than one day, date of release
+  private Date releaseDate;
 
   //Size of the individual in meters
   private Double size;
@@ -111,15 +121,17 @@ public class Encounter implements java.io.Serializable {
   //time metrics of the report
   private int hour = 0;
   private String minutes = "00";
+  
+  private String state="";
 
   private long dateInMilliseconds=0;
-  //describes how the animal was measured
+  //describes how the shark was measured
   private String size_guess = "none provided";
   //String reported GPS values for lat and long of the encounter
   private String gpsLongitude = "", gpsLatitude = "";
   //whether this encounter has been rejected and should be hidden from public display
   //unidentifiable encounters generally contain some data worth saving but not enough for accurate photo-identification
-  public boolean unidentifiable = false;
+  private boolean unidentifiable = false;
   //whether this encounter has a left-side spot image extracted
   public boolean hasSpotImage = false;
   //whether this encounter has a right-side spot image extracted
@@ -127,7 +139,7 @@ public class Encounter implements java.io.Serializable {
   //Indicates whether this record can be exposed via TapirLink
   private boolean okExposeViaTapirLink = false;
   //whether this encounter has been approved for public display
-  public boolean approved = true;
+  private boolean approved = true;
   //integers of the latitude and longitude degrees
   //private int lat=-1000, longitude=-1000;
   //name of the stored file from which the left-side spots were extracted
@@ -169,6 +181,15 @@ public class Encounter implements java.io.Serializable {
   private String submitterOrganization;
   private String submitterProject;
 
+  //hold submittedData
+  //private List<DataCollectionEvent> collectedData;
+  private List<TissueSample> tissueSamples;
+  private List<SinglePhotoVideo> images;
+  private List<Measurement> measurements;
+  private List<MetalTag> metalTags;
+  private AcousticTag acousticTag;
+  private SatelliteTag satelliteTag;
+  
   //start constructors
 
   /**
@@ -177,19 +198,12 @@ public class Encounter implements java.io.Serializable {
   public Encounter() {
   }
 
-  /**temporary constructor for testing purposes only - REMOVE ME
-   */
-  //public encounter(superSpot[] spots) {
-  //	this.spots=spots;
-  //    }
-
   /**
    * Use this constructor to add the minimum level of information for a new encounter
    * The Vector <code>additionalImages</code> must be a Vector of Blob objects
    *
-   * @see com.poet.jdo.Blob, shepherd#makeBlobFromImageFile(File imageFile)
    */
-  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, Vector additionalImageNames) {
+  public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
     this.verbatimLocality = location;
     this.recordedBy = submitterName;
     this.submitterEmail = submitterEmail;
@@ -197,7 +211,7 @@ public class Encounter implements java.io.Serializable {
     //now we need to set the hashed form of the email addresses
     this.hashedSubmitterEmail = Encounter.getHashOfEmailString(submitterEmail);
 
-    this.additionalImageNames = additionalImageNames;
+    this.images = images;
     this.day = day;
     this.month = month;
     this.year = year;
@@ -543,54 +557,75 @@ public class Encounter implements java.io.Serializable {
    * @return a vector of image name Strings
    */
   public Vector getAdditionalImageNames() {
-    return additionalImageNames;
+    Vector imageNamesOnly=new Vector();
+    
+    //List<SinglePhotoVideo> images=getCollectedDataOfClass(SinglePhotoVideo.class);
+    if((images!=null)&&(images.size()>0)){
+      int imagesSize=images.size();
+      for(int i=0;i<imagesSize;i++){
+        SinglePhotoVideo dce=(SinglePhotoVideo)images.get(i);
+        imageNamesOnly.add(dce.getFilename());
+      }
+    }
+    return imageNamesOnly;
   }
 
   /**
    * Adds another image to the collection of images for this encounter.
    * These images should be the additional or non-side shots.
    *
-   * @param  imageFile  an additional image, converted to type Blob, to add to this encounter
-   * @see com.poet.jdo.Blob, shepherd#makeBlobFromImageFile(File imageFile)
-   */
-  public void addAdditionalImageName(String fileName) {
-    additionalImageNames.add(fileName);
-    //additionalImageNames.add(fileName);
-  }
 
+  public void addAdditionalImageName(SinglePhotoVideo file) {
+    images.add(file);
+
+  }
+*/
+/*
   public void approve() {
     approved = true;
     okExposeViaTapirLink = true;
   }
-
+*/
+  /**
   public void resetAdditionalImageName(int position, String fileName) {
     additionalImageNames.set(position, fileName);
     //additionalImageNames.add(fileName);
   }
-
+*/
+  
+  
   /**
    * Removes the specified additional image from this encounter.
    *
    * @param  imageFile  the image to be removed from the additional images stored for this encounter
    */
+  /*
   public void removeAdditionalImageName(String imageFile) {
-    for (int i = 0; i < additionalImageNames.size(); i++) {
-      String thisName = (String) additionalImageNames.get(i);
+
+    for (int i = 0; i < collectedData.size(); i++) {
+   
+        
+      String thisName = images.get(i).getFilename();
       if ((thisName.equals(imageFile)) || (thisName.indexOf("#") != -1)) {
-        additionalImageNames.remove(i);
+        images.remove(i);
         i--;
       }
+    
     }
 
 
   }
-
-
+  */
+  
+  /*
+  public void removeDataCollectionEvent(DataCollectionEvent dce) {
+   collectedData.remove(dce);
+  }
+*/
   /**
    * Returns the unique encounter identifier number for this encounter.
    *
    * @return a unique integer String used to identify this encounter in the database
-   * @see com.poet.jdo.Blob, shepherd#makeBlobFromImageFile(File imageFile)
    */
   public String getEncounterNumber() {
     return catalogNumber;
@@ -773,6 +808,7 @@ public class Encounter implements java.io.Serializable {
     individualID = sharky;
   }
 
+  /*
   public boolean wasRejected() {
 
     return unidentifiable;
@@ -787,7 +823,7 @@ public class Encounter implements java.io.Serializable {
     unidentifiable = false;
     //okExposeViaTapirLink=true;
   }
-
+*/
   public String getGPSLongitude() {
     if (gpsLongitude == null) {
       return "";
@@ -863,6 +899,7 @@ public class Encounter implements java.io.Serializable {
     interestedResearchers.add(email);
   }
 
+  
   public boolean isApproved() {
     return approved;
   }
@@ -1085,9 +1122,17 @@ public class Encounter implements java.io.Serializable {
   public void setDWCDateAdded(String m_dateAdded) {
     dwcDateAdded = m_dateAdded;
   }
-
+  
   //public void setDateAdded(long date){dateAdded=date;}
   //public long getDateAdded(){return dateAdded;}
+
+  public Date getReleaseDate() {
+    return releaseDate;
+  }
+
+  public void setReleaseDate(Date releaseDate) {
+    this.releaseDate = releaseDate;
+  }
 
   public void setDWCDecimalLatitude(double lat) {
     if (lat == -9999.0) {
@@ -1387,7 +1432,8 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setGenus(String newGenus) {
-    this.genus = newGenus;
+    if(newGenus!=null){genus = newGenus;}
+	else{genus=null;}
   }
 
   public String getSpecificEpithet() {
@@ -1395,7 +1441,8 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setSpecificEpithet(String newEpithet) {
-    this.specificEpithet = newEpithet;
+    if(newEpithet!=null){specificEpithet = newEpithet;}
+	else{specificEpithet=null;}
   }
 
   public String getPatterningCode(){ return patterningCode;}
@@ -1445,6 +1492,184 @@ public class Encounter implements java.io.Serializable {
     	else{submitterOrganization=null;}
     }
 
+   // public List<DataCollectionEvent> getCollectedData(){return collectedData;}
 
+    /*
+    public ArrayList<DataCollectionEvent> getCollectedDataOfType(String type){
+      ArrayList<DataCollectionEvent> filteredList=new ArrayList<DataCollectionEvent>();
+      int cdSize=collectedData.size();
+      System.out.println("cdSize="+cdSize);
+      for(int i=0;i<cdSize;i++){
+        System.out.println("i="+i);
+        DataCollectionEvent tempDCE=collectedData.get(i);
+        if(tempDCE.getType().equals(type)){filteredList.add(tempDCE);}
+      }
+      return filteredList;
+    }
+    */
+    /*
+    public <T extends DataCollectionEvent> List<T> getCollectedDataOfClass(Class<T> clazz) {
+      List<DataCollectionEvent> collectedData = getCollectedData();
+      List<T> result = new ArrayList<T>();
+      for (DataCollectionEvent dataCollectionEvent : collectedData) {
+        if (dataCollectionEvent.getClass().isAssignableFrom(clazz)) {
+          result.add((T) dataCollectionEvent);
+        }
+      }
+      return result;
+    }
+    
+    public <T extends DataCollectionEvent> List<T> getCollectedDataOfClassAndType(Class<T> clazz, String type) {
+      List<T> collectedDataOfClass = getCollectedDataOfClass(clazz);
+      List<T> result = new ArrayList<T>();
+      for (T t : collectedDataOfClass) {
+        if (type.equals(t.getType())) {
+          result.add(t);
+        }
+      }
+      return result;
+    }
+    
+    public void addCollectedDataPoint(DataCollectionEvent dce){
+      if(collectedData==null){collectedData=new ArrayList<DataCollectionEvent>();}
+      if(!collectedData.contains(dce)){collectedData.add(dce);}
+    }
+    public void removeCollectedDataPoint(int num){collectedData.remove(num);}
+    */
+    
+    public void addTissueSample(TissueSample dce){
+      if(tissueSamples==null){tissueSamples=new ArrayList<TissueSample>();}
+      if(!tissueSamples.contains(dce)){tissueSamples.add(dce);}
+    }
+    public void removeTissueSample(int num){tissueSamples.remove(num);}
+    public List<TissueSample> getTissueSamples(){return tissueSamples;}
+    public void removeTissueSample(TissueSample num){tissueSamples.remove(num);}
+
+    public void addSinglePhotoVideo(SinglePhotoVideo dce){
+      if(images==null){images=new ArrayList<SinglePhotoVideo>();}
+      if(!images.contains(dce)){images.add(dce);}
+    }
+    public void removeSinglePhotoVideo(int num){images.remove(num);}
+    public List<SinglePhotoVideo> getSinglePhotoVideo(){return images;}
+    public void removeSinglePhotoVideo(SinglePhotoVideo num){images.remove(num);}
+    
+    
+    
+    public void addMeasurement(Measurement measurement){
+      if(measurements==null){measurements=new ArrayList<Measurement>();}
+      if(!measurements.contains(measurement)){measurements.add(measurement);}
+    }
+    public void removeMeasurement(int num){measurements.remove(num);}
+    public List<Measurement> getMeasurements(){return measurements;}
+    public void removeMeasurement(Measurement num){measurements.remove(num);}
+    public Measurement findMeasurementOfType(String type) {
+      List<Measurement> measurements = getMeasurements();
+      if (measurements != null) {
+        for (Measurement measurement : measurements) {
+          if (type.equals(measurement.getType())) {
+            return measurement;
+          }
+        }
+      }
+      return null;
+    }
+    
+    public void addMetalTag(MetalTag metalTag) {
+      if (metalTags == null) {
+        metalTags = new ArrayList<MetalTag>();
+      }
+      metalTags.add(metalTag);
+    }
+    
+    public void removeMetalTag(MetalTag metalTag) {
+      metalTags.remove(metalTag);
+    }
+    
+    public List<MetalTag> getMetalTags() {
+      return metalTags;
+    }
+    
+    public MetalTag findMetalTagForLocation(String location) {
+      List<MetalTag> metalTags = getMetalTags();
+      if (metalTags != null) {
+        for (MetalTag metalTag : metalTags) {
+          if (location.equals(metalTag.getLocation())) {
+            return metalTag;
+          }
+        }
+      }
+      return null;
+    }
+    
+    public AcousticTag getAcousticTag() {
+      return acousticTag;
+    }
+
+    public void setAcousticTag(AcousticTag acousticTag) {
+      this.acousticTag = acousticTag;
+    }
+
+    public SatelliteTag getSatelliteTag() {
+      return satelliteTag;
+    }
+
+    public void setSatelliteTag(SatelliteTag satelliteTag) {
+      this.satelliteTag = satelliteTag;
+    }
+
+    public String getLifeStage(){return lifeStage;}
+    public void setLifeStage(String newStage) {
+      if(newStage!=null){lifeStage = newStage;}
+      else{lifeStage=null;}
+    }
+    
+    
+    /**
+     * A convenience method that returns the first haplotype found in the TissueSamples for this Encounter. 
+     * 
+     *@return a String if found or null if no haplotype is found
+     */
+    public String getHaplotype(){
+      //List<TissueSample> tissueSamples=getCollectedDataOfClass(TissueSample.class);
+      int numTissueSamples=tissueSamples.size();
+      if(numTissueSamples>0){
+        for(int j=0;j<numTissueSamples;j++){
+          TissueSample thisSample=tissueSamples.get(j);
+          int numAnalyses=thisSample.getNumAnalyses();
+          if(numAnalyses>0){
+            List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+            for(int g=0;g<numAnalyses;g++){
+              GeneticAnalysis ga = gAnalyses.get(g);
+              if(ga.getAnalysisType().equals("MitochondrialDNA")){
+                MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
+                if(mito.getHaplotype()!=null){return mito.getHaplotype();}
+              }
+            }
+          }
+        }
+      }
+      return null;
+    }
+    
+    public List<SinglePhotoVideo> getImages(){return images;}
+    
+    public boolean hasKeyword(Keyword word){
+     int imagesSize=images.size();
+     for(int i=0;i<imagesSize;i++){
+       SinglePhotoVideo image=images.get(i);
+       if(image.getKeywords().contains(word)){return true;}
+     }
+     return false; 
+    }
+    
+    public String getState(){return state;}
+    
+    public void setState(String newState){this.state=newState;}
+    
+    //DO NOT USE - LEGACY MIGRATION ONLY
+    public boolean getApproved(){return approved;}
+    public boolean getUnidentifiable(){return unidentifiable;}
+    
+    
 }
 

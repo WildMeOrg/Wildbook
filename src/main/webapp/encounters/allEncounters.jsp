@@ -417,39 +417,30 @@ if (highCount<totalCount) {%> <a
 					allEncounters=myShepherd.getSortedUserEncounters( query, "locationID descending" );
 					}
 				else if (request.getParameter("sort").equals("sexup")) {
-					//query.setFilter("this.approved && this.submitterID == \""+request.getParameter("user")+"\"");
 					allEncounters=myShepherd.getSortedUserEncounters( query, "sex ascending" );
 					}
 				else if (request.getParameter("sort").equals("sexdown")) {
-					//query.setFilter("this.approved && this.submitterID == \""+request.getParameter("user")+"\"");
 					allEncounters=myShepherd.getSortedUserEncounters( query, "sex descending" );
 					}
 				else if (request.getParameter("sort").equals("numberup")) {
-					//query.setFilter("this.approved && this.submitterID == \""+request.getParameter("user")+"\"");
 					allEncounters=myShepherd.getSortedUserEncounters( query, "catalogNumber ascending" );
 					}
 				else if (request.getParameter("sort").equals("numberdown")) {
-					//query.setFilter("this.approved && this.submitterID == \""+request.getParameter("user")+"\"");
 					allEncounters=myShepherd.getSortedUserEncounters( query, "catalogNumber descending" );
 					}
 				else if (request.getParameter("sort").equals("dateup")) {
-					//query.setFilter("this.approved && this.submitterID == \""+request.getParameter("user")+"\"");
 					allEncounters=myShepherd.getSortedUserEncounters( query, "year ascending, month ascending, day ascending, hour ascending, minutes ascending" );
 					}
 				else if (request.getParameter("sort").equals("datedown")) {
-					//query.setFilter("this.approved && this.submitterID == \""+request.getParameter("user")+"\"");
 					allEncounters=myShepherd.getSortedUserEncounters( query, "year descending, month descending, day descending, hour descending, minutes descending" );
 					}
 				else if (request.getParameter("sort").equals("assignedup")) {
-					//query.setFilter("this.approved && this.submitterID == \""+request.getParameter("user")+"\"");
 					allEncounters=myShepherd.getSortedUserEncounters( query, "individualID ascending" );
 					}
 				else if (request.getParameter("sort").equals("assigneddown")) {
-					//query.setFilter("this.approved && this.submitterID == \""+request.getParameter("user")+"\"");
 					allEncounters=myShepherd.getSortedUserEncounters( query, "individualID descending" );
 					}
 				else {
-					//query.setFilter(("this.approved && this.submitterID == \""+user+"\""));
 					allEncounters=myShepherd.getUserEncounters(query, request.getParameter("user"));
 					}
 			}
@@ -469,55 +460,55 @@ if (highCount<totalCount) {%> <a
 			
 
 				if (request.getParameter("sort").equals("sizeup")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "size ascending");
 					}
 				else if (request.getParameter("sort").equals("sizedown")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "size descending");
 					}
 				else if (request.getParameter("sort").equals("sexup")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "sex ascending");
 					}
 				else if (request.getParameter("sort").equals("sexdown")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "sex descending");
 					}
 				else if (request.getParameter("sort").equals("locationCodeup")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "locationID ascending");
 					}
 				else if (request.getParameter("sort").equals("locationCodedown")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "locationID descending");
 					}
 				else if (request.getParameter("sort").equals("numberup")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "catalogNumber ascending");
 					}
 				else if (request.getParameter("sort").equals("numberdown")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "catalogNumber descending");
 					}
 				else if (request.getParameter("sort").equals("dateup")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "year ascending, month ascending, day ascending, hour ascending, minutes ascending");
 					}
 				else if (request.getParameter("sort").equals("datedown")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "year descending, month descending, day descending, hour descending, minutes descending");
 					}
 				else if (request.getParameter("sort").equals("assignedup")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "individualID ascending");
 					}
 				else if (request.getParameter("sort").equals("assigneddown")) {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "individualID descending");
 					}
 				else {
-					query.setFilter("!this.unidentifiable && this.approved == true");
+					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "dwcDateAdded descending");
 					}
 				}
@@ -529,7 +520,7 @@ if (highCount<totalCount) {%> <a
 				//query.setRange((iterTotal-highCount),(totalCount-lowCount+1));
 				query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 
-				query.setFilter("!this.unidentifiable && this.approved == true");
+				query.setFilter("this.state == \"approved\"");
 				allEncounters=myShepherd.getAllEncounters(query, "dwcDateAdded descending");
 			}
 			
@@ -561,7 +552,7 @@ if (highCount<totalCount) {%> <a
 	
 		<td class="lineitems"><%=enc.getLocationCode()%></td>
 		<%
-	if((enc.getSizeAsDouble()!=null)&&(enc.getSize()!=0)) {
+	if(enc.getSizeAsDouble()!=null) {
 	%>
 		<td class="lineitems"><%=enc.getSize()%></td>
 		<%} else {%>

@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="org.ecocean.CommonConfiguration, java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%
 
   //handle some cache-related security
@@ -132,8 +132,14 @@
         </div>
 
         <p>Thank you for using this software! You are now safely logged out.</p>
+        
+            <%
+		        Logger log = LoggerFactory.getLogger(getClass());
+		        log.info(request.getRemoteUser()+" logged out.");
+	
+	    %>
 
-        <p>Click <a href="welcome.jsp">here</a> to log back in.</p>
+        <p><a href="welcome.jsp">Click here to log back in.</a></p>
 
         <p>&nbsp;</p>
       </div>

@@ -21,6 +21,7 @@ package org.ecocean;
 
 import java.util.*;
 import java.util.GregorianCalendar;
+import org.ecocean.genetics.*;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -106,20 +107,12 @@ public class MarkedIndividual {
   public boolean addEncounter(Encounter newEncounter) {
 
     newEncounter.assignToMarkedIndividual(individualID);
-    if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
-    if(newEncounter.wasRejected()) {
-      numUnidentifiableEncounters++;
-      boolean ok=unidentifiableEncounters.add(newEncounter);
-      resetMaxNumYearsBetweenSightings();
-      return ok;
-
-      }
-    else {
+    
       boolean ok=encounters.add(newEncounter);
       numberEncounters++;
       resetMaxNumYearsBetweenSightings();
       return ok; 
-     }
+     
  }
 
    /**Removes an encounter from this MarkedIndividual.
@@ -128,22 +121,7 @@ public class MarkedIndividual {
    *@see  Shepherd#commitDBTransaction()
    */
   public boolean removeEncounter(Encounter getRidOfMe){
-    if(getRidOfMe.wasRejected()) {
-      numUnidentifiableEncounters--;
-      boolean changed=false;
-      for(int i=0;i<unidentifiableEncounters.size();i++) {
-        Encounter tempEnc=(Encounter)unidentifiableEncounters.get(i);
-        if(tempEnc.getEncounterNumber().equals(getRidOfMe.getEncounterNumber())) {
-          unidentifiableEncounters.remove(i);
-          i--;
-          changed=true;
-          }
-        }
-      resetMaxNumYearsBetweenSightings();
-      return changed;
 
-      }
-    else {
       numberEncounters--;
       boolean changed=false;
       for(int i=0;i<encounters.size();i++) {
@@ -156,8 +134,8 @@ public class MarkedIndividual {
         }
       resetMaxNumYearsBetweenSightings();
       return changed;
-    }
   }
+  
 
   /**
    * Returns the total number of submitted encounters for this MarkedIndividual
@@ -289,27 +267,22 @@ public class MarkedIndividual {
   public boolean isDescribedByPhotoKeyword(Keyword word) {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      Vector images = temp.getAdditionalImageNames();
-      int size = images.size();
-      for (int i = 0; i < size; i++) {
-        String imageName = temp.getEncounterNumber() + "/" + ((String) images.get(i));
-        if (word.isMemberOf(imageName)) {
-          return true;
-        }
-      }
+      if(temp.hasKeyword(word)){return true;}
     }
     return false;
   }
 
+  /*
   public boolean hasApprovedEncounters() {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if (temp.isApproved()) {
+      if (temp.getState()!=null) {
         return true;
       }
     }
     return false;
   }
+  */
 
   public boolean wasSightedInMonth(int year, int month) {
     for (int c = 0; c < encounters.size(); c++) {
@@ -644,21 +617,6 @@ public class MarkedIndividual {
   public int getMaxNumYearsBetweenSightings(){
     return maxYearsBetweenResightings;
   }
-  
-  public int getMaxNumYearsBetweenSightingsInLocationID(String locID){
-    int numEncounters=encounters.size();
-    int firstYearIn=3000;
-    int lastYearIn=0;
-    for(int i=0;i<numEncounters;i++){
-      Encounter enc=(Encounter)encounters.get(i);
-      if(enc.getLocationID().equals(locID)){
-        int year=enc.getYear();
-        if(year>lastYearIn){lastYearIn=year;}
-        if(year<firstYearIn){firstYearIn=year;}
-      }
-    }
-    return (lastYearIn-firstYearIn);
-  }
 
   public int getEarliestSightingYear() {
     int lowestYear = 5000;
@@ -958,9 +916,22 @@ public class MarkedIndividual {
       Iterator it = myShepherd.getAllKeywords();
       while (it.hasNext()) {
         Keyword word = (Keyword) it.next();
-        if ((word.isMemberOf(enc)) && (!al.contains(word))) {
+        if (enc.hasKeyword(word) && (!al.contains(word))) {
           al.add(word);
         }
+      }
+    }
+    return al;
+  }
+  
+  public ArrayList<TissueSample> getAllTissueSamples() {
+    ArrayList<TissueSample> al = new ArrayList<TissueSample>();
+    int numEncounters = encounters.size();
+    for (int i = 0; i < numEncounters; i++) {
+      Encounter enc = (Encounter) encounters.get(i);
+      List<TissueSample> list = enc.getTissueSamples();
+      if((list!=null)&&(list.size()>0)){
+        al.addAll(list);
       }
     }
     return al;
@@ -1062,6 +1033,19 @@ public String getGenusSpecies(){
 
     	}
 		return null;
+
+}
+
+/**
+Returns the first haplotype found in the Encounter objects for this MarkedIndividual.
+@return a String if found or null if no haplotype is found
+*/
+public String getHaplotype(){
+      for (int c = 0; c < encounters.size(); c++) {
+        Encounter temp = (Encounter) encounters.get(c);
+        if(temp.getHaplotype()!=null){return temp.getHaplotype();}
+      }
+    return null;
 
 }
 

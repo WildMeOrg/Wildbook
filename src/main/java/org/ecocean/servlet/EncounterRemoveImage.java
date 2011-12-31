@@ -20,9 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Keyword;
-import org.ecocean.Shepherd;
+import org.ecocean.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -59,29 +57,31 @@ public class EncounterRemoveImage extends HttpServlet {
     boolean locked = false;
     //boolean assigned=false;
     String fileName = "None", encounterNumber = "None";
-    int positionInList = -1;
+    //int positionInList = -1;
+    String dcID="";
 
     //fileName=request.getParameter("filename").replaceAll("%20"," ");
     encounterNumber = request.getParameter("number");
     try {
-      positionInList = (new Integer(request.getParameter("position"))).intValue();
-      positionInList--;
+      dcID = request.getParameter("dcID");
+      //positionInList--;
     } catch (Exception e) {
 
       System.out.println("encounterRemoveImage: " + request.getParameter("number") + " " + request.getParameter("position"));
     }
     myShepherd.beginDBTransaction();
-    if ((myShepherd.isEncounter(encounterNumber)) && (positionInList > -1)) {
+    if ((myShepherd.isEncounter(encounterNumber)) && (myShepherd.isSinglePhotoVideo(dcID))) {
       Encounter enc = myShepherd.getEncounter(encounterNumber);
+      SinglePhotoVideo sid=myShepherd.getSinglePhotoVideo(dcID);
       if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
 
         //positionInList=0;
         try {
 
 
-          Vector additionalImageNames = enc.getAdditionalImageNames();
-          fileName = (String) additionalImageNames.get(positionInList);
-          int initNumberImages = additionalImageNames.size();
+          //Vector additionalImageNames = enc.getAdditionalImageNames();
+          fileName = sid.getFilename();
+          int initNumberImages = enc.getImages().size();
           //remove copyrighted images to allow them to be reset
 
           //for(int i=0;i<initNumberImages;i++){
@@ -89,6 +89,8 @@ public class EncounterRemoveImage extends HttpServlet {
           //	if((thisImageName.equals(fileName))&&(positionInList==0)){positionInList=i;}
           //}
           //positionInList++;
+          
+          /*
           for (int j = positionInList; j < (initNumberImages + 1); j++) {
             //remove copyrighted images
             try {
@@ -109,20 +111,26 @@ public class EncounterRemoveImage extends HttpServlet {
             }
 
           }
+          */
 
-
-          enc.removeAdditionalImageName(fileName);
+          //enc.removeAdditionalImageName(fileName);
+          enc.removeSinglePhotoVideo(sid);
           enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter image graphic: " + fileName + ".</p>");
+          myShepherd.getPM().deletePersistent(sid);
+          
+          /*
           Iterator keywords = myShepherd.getAllKeywords();
           String toRemove = encounterNumber + "/" + fileName;
           while (keywords.hasNext()) {
             Keyword word = (Keyword) keywords.next();
 
-            if (word.isMemberOf(toRemove)) {
+            //if (word.isMemberOf(toRemove)) {
 
               word.removeImageName(toRemove);
             }
           }
+          */
+          
 
         } catch (Exception le) {
           locked = true;

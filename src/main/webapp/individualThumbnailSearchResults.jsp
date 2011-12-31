@@ -69,8 +69,12 @@
       keywords = new String[0];
     }
 
-    int numThumbnails = myShepherd.getNumMarkedIndividualThumbnails(rIndividuals.iterator(), keywords);
-
+    //int numThumbnails = myShepherd.getNumMarkedIndividualThumbnails(rIndividuals.iterator(), keywords);
+	int numThumbnails=0;
+	ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+	thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
+	
+    
     String queryString = "";
     if (request.getQueryString() != null) {
       queryString = request.getQueryString();
@@ -205,11 +209,7 @@
 <div id="page">
 <jsp:include page="header.jsp" flush="true">
 
-	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
-	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
-	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
-	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-
+  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
 
 <div id="main">
@@ -248,10 +248,7 @@
         %>
       </h1>
 
-      </p>
-      <p><strong><%=encprops.getProperty("totalMatches")%>
-      </strong>: <%=numThumbnails%>
-      </p>
+
 
       <p><%=encprops.getProperty("belowMatches")%> <%=startNum%> - <%=endNum%>&nbsp;
         <%
@@ -312,14 +309,16 @@
 
 			
 			int countMe=0;
-			Vector thumbLocs=new Vector();
+			//Vector thumbLocs=new Vector();
+		
 			
 			try {
-				thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
-
+				//thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
+				
+				
 				//now let's order these alphabetical by the highest keyword
 				//Cascadia Research only! TBD--remove on release of Shepherd Project
-				Collections.sort(thumbLocs, (new ThumbnailKeywordComparator()));
+				//Collections.sort(thumbLocs, (new ThumbnailKeywordComparator()));
 				
 				
 				
@@ -331,18 +330,17 @@
       <%
 							for(int columns=0;columns<3;columns++){
 								if(countMe<thumbLocs.size()) {
-									String combined=(String)thumbLocs.get(countMe);
-									StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
-									String thumbLink=stzr.nextToken();
-									String encNum=stzr.nextToken();
-									int fileNamePos=combined.lastIndexOf("BREAK")+5;
-									String fileName=combined.substring(fileNamePos).replaceAll("%20"," ");
+									String thumbLink="";
 									boolean video=true;
-									if(!thumbLink.endsWith("video.jpg")){
-										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLink;
+									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
+										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
 										video=false;
 									}
-									String link="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+encNum+"/"+fileName;
+									else{
+										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
+										
+									}
+									String link="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
 						
 							%>
 
@@ -374,7 +372,7 @@
 	<%
             	if(!thumbLink.endsWith("video.jpg")){
             	%>
-              <h3><%=(countMe + startNum) %>/<%=numThumbnails %>
+              <h3><%=(countMe + startNum) %>
               </h3>
               <h4><%=encprops.getProperty("imageMetadata") %>
               </h4>
@@ -390,14 +388,14 @@
                       <%
 
                         int kwLength = keywords.length;
-                        Encounter thisEnc = myShepherd.getEncounter(encNum);
+                        Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
                       %>
                       <tr>
                       <% 
                       if(!thumbLink.endsWith("video.jpg")){
                     	  
                       %>
-                        <td><span class="caption"><em><%=(countMe + startNum) %>/<%=numThumbnails %>
+                        <td><span class="caption"><em><%=(countMe + startNum) %>
                         </em></span></td>
                       </tr>
                       <tr>
@@ -460,28 +458,31 @@
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
                         //int numKeywords=myShepherd.getNumKeywords();
-                        Iterator allKeywords2 = myShepherd.getAllKeywords();
+										      //while (allKeywords2.hasNext()) {
+					                          //Keyword word = (Keyword) allKeywords2.next();
+					                          
+					                          
+					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
+											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
+					                        	  
+					                            //String renderMe = word.getReadableName();
+												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+												int myWordsSize=myWords.size();
+					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+					                              //String kwParam = keywords[kwIter];
+					                              //if (kwParam.equals(word.getIndexname())) {
+					                              //  renderMe = "<strong>" + renderMe + "</strong>";
+					                              //}
+					                      		 	%>
+					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
+					 								<%
+					                            }
 
-                        while (allKeywords2.hasNext()) {
-                          Keyword word = (Keyword) allKeywords2.next();
-                          if (word.isMemberOf(encNum + "/" + fileName)) {
-
-                            String renderMe = word.getReadableName();
-
-                            for (int kwIter = 0; kwIter < kwLength; kwIter++) {
-                              String kwParam = keywords[kwIter];
-                              if (kwParam.equals(word.getIndexname())) {
-                                renderMe = "<strong>" + renderMe + "</strong>";
-                              }
-                            }
 
 
-                      %>
-													<br/><%= renderMe%>
-													<%
 
-                              }
-                            }
+					                          //    }
+					                       // } 
 
                           %>
 										</span></td>
@@ -509,9 +510,9 @@
 						<div class="scroll">	
 						<span class="caption">
 					<%
-            if ((fileName.toLowerCase().endsWith("jpg")) || (fileName.toLowerCase().endsWith("jpeg"))) {
+            if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
-              File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + thisEnc.getCatalogNumber() + "/" + fileName)));
+              File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename())));
               Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               // iterate through metadata directories
               Iterator directories = metadata.getDirectoryIterator();
@@ -532,7 +533,7 @@
 		                	 %>
 		    		            <p>Cannot read metadata for this file.</p>
 		                	<%
-		                	System.out.println("Cannout read metadata for: "+fileName);
+		                	System.out.println("Cannout read metadata for: "+thumbLocs.get(countMe).getFilename());
 		                	e.printStackTrace();
             	}
 
@@ -599,29 +600,32 @@
   <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-                        //int numKeywords=myShepherd.getNumKeywords();
-                        Iterator allKeywords = myShepherd.getAllKeywords();
+											   //int numKeywords=myShepherd.getNumKeywords();
+										      //while (allKeywords2.hasNext()) {
+					                          //Keyword word = (Keyword) allKeywords2.next();
+					                          
+					                          
+					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
+											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
+					                        	  
+					                            //String renderMe = word.getReadableName();
+												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+												int myWordsSize=myWords.size();
+					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+					                              //String kwParam = keywords[kwIter];
+					                              //if (kwParam.equals(word.getIndexname())) {
+					                              //  renderMe = "<strong>" + renderMe + "</strong>";
+					                              //}
+					                      		 	%>
+					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
+					 								<%
+					                            }
 
-                        while (allKeywords.hasNext()) {
-                          Keyword word = (Keyword) allKeywords.next();
-                          if (word.isMemberOf(encNum + "/" + fileName)) {
-
-                            String renderMe = word.getReadableName();
-
-                            for (int kwIter = 0; kwIter < kwLength; kwIter++) {
-                              String kwParam = keywords[kwIter];
-                              if (kwParam.equals(word.getIndexname())) {
-                                renderMe = "<strong>" + renderMe + "</strong>";
-                              }
-                            }
 
 
-                      %>
-													<br/><%= renderMe%>
-													<%
 
-                              }
-                            }
+					                          //    }
+					                       // } 
 
                           %>
 										</span></td>

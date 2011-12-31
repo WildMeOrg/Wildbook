@@ -60,11 +60,10 @@ public class KeywordHandler extends HttpServlet {
     //System.out.println(request.getCharacterEncoding());
     if (action != null) {
 
-      if ((action.equals("addNewWord")) && (request.getParameter("keyword") != null) && (request.getParameter("readableName") != null)) {
-        String indexname = request.getParameter("keyword");
+      if ((action.equals("addNewWord")) && (request.getParameter("readableName") != null)) {
         String readableName = request.getParameter("readableName");
-        Keyword newword = new Keyword(indexname, readableName);
-        String newkw = myShepherd.storeNewKeyword(newword, indexname);
+        Keyword newword = new Keyword(readableName);
+        String newkw = myShepherd.storeNewKeyword(newword);
 
         //confirm success
         out.println(ServletUtilities.getHeader(request));
@@ -74,7 +73,8 @@ public class KeywordHandler extends HttpServlet {
         out.println("<p><a href=\"../encounters/allEncounters.jsp\">View all encounters</a></font></p>");
         out.println(ServletUtilities.getFooter());
 
-      } else if ((action.equals("removeWord")) && (request.getParameter("keyword") != null)) {
+      } 
+      else if ((action.equals("removeWord")) && (request.getParameter("keyword") != null)) {
         myShepherd.beginDBTransaction();
         Keyword word = myShepherd.getKeyword(request.getParameter("keyword"));
         String desc = word.getReadableName();
@@ -88,7 +88,9 @@ public class KeywordHandler extends HttpServlet {
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/kwAdmin.jsp\">Return to keyword administration page.</a></p>\n");
         out.println("<p><a href=\"../encounters/allEncounters.jsp\">View all encounters</a></font></p>");
         out.println(ServletUtilities.getFooter());
-      } else if ((action.equals("addPhoto")) && (request.getParameter("photoName") != null) && (request.getParameter("keyword") != null) && (request.getParameter("number") != null)) {
+      } 
+      /*
+      else if ((action.equals("addPhoto")) && (request.getParameter("photoName") != null) && (request.getParameter("keyword") != null) && (request.getParameter("number") != null)) {
         boolean locked = false;
         String readableName = "";
         myShepherd.beginDBTransaction();
@@ -121,7 +123,7 @@ public class KeywordHandler extends HttpServlet {
 
           out.println(ServletUtilities.getFooter());
         }
-      }
+      }*/
 
       //edit the text of a keyword
       else if ((action.equals("rename")) && (request.getParameter("keyword") != null) && (request.getParameter("newName") != null)) {
@@ -137,7 +139,9 @@ public class KeywordHandler extends HttpServlet {
         out.println("<strong>Success:</strong> The keyword <i>" + oldName + "</i> has been changed to <i>" + request.getParameter("newName") + "</i>.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/kwAdmin.jsp\">Return to keyword administration.</a></font></p>");
         out.println(ServletUtilities.getFooter());
-      } else if ((action.equals("removePhoto")) && (request.getParameter("photoName") != null) && (request.getParameter("keyword") != null) && (request.getParameter("number") != null)) {
+      } 
+      /*
+        else if ((action.equals("removePhoto")) && (request.getParameter("photoName") != null) && (request.getParameter("keyword") != null) && (request.getParameter("number") != null)) {
         myShepherd.beginDBTransaction();
         Keyword word = myShepherd.getKeyword(request.getParameter("keyword"));
         word.removeImageName(request.getParameter("number") + "/" + request.getParameter("photoName"));
@@ -151,7 +155,8 @@ public class KeywordHandler extends HttpServlet {
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         out.println("<p><a href=\"../encounters/allEncounters.jsp\">View all encounters</a></font></p>");
         out.println(ServletUtilities.getFooter());
-      } else {
+      }*/ 
+      else {
 
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
@@ -163,7 +168,8 @@ public class KeywordHandler extends HttpServlet {
       }
 
 
-    } else {
+    } 
+    else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<p>I did not receive enough data to process your command. No action was indicated to me.</p>");
       out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");

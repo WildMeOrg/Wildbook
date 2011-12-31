@@ -92,7 +92,8 @@ public class EncounterApprove extends HttpServlet {
 
       try {
 
-        newenc.approve();
+        //newenc.approve();
+        newenc.setState("approved");
         newenc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Approved this encounter for public display.");
       } catch (Exception le) {
         locked = true;

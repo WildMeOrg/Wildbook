@@ -257,7 +257,7 @@
     <td width="355" align="left" valign="top">
       <table width="100%" border="1" align="left" cellpadding="3">
         <tr align="left" valign="top">
-          <td><strong>Shark</strong></td>
+          <td><strong>Individual ID</strong></td>
           <td><strong> Encounter</strong></td>
           <td><strong>Fraction Matched Triangles </strong></td>
           <td><strong>Match Score </strong></td>
