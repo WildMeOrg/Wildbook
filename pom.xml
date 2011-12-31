@@ -109,6 +109,11 @@
       <version>2.0</version>
     </dependency>
     <dependency>
+    	<groupId>ch.ethz.ganymed</groupId>
+    	<artifactId>ganymed-ssh2</artifactId>
+    	<version>build210</version>
+    </dependency>
+    <dependency>
       <groupId>org.datanucleus</groupId>
       <artifactId>datanucleus-enhancer</artifactId>
       <version>${datanucleus.enhancer.version}</version>
