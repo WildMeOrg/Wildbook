@@ -1,0 +1,48 @@
+#
+# The Shepherd Project - A Mark-Recapture Framework
+# Copyright (C) 2011 Jason Holmberg
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+1a = A-
+1a1 = A-
+1a2 = A-
+1b = X-
+1c = ID-
+1d = MY-
+1e = T-
+1f = MR-
+2 = CRB-
+2a = H-
+2b = BZ-
+2c = MXA-
+2d = TX-
+2e = GC-
+2g = USA-
+4a = MZ-
+4b = TZ-
+4c = K-
+4d = SA-
+4e = DJ-
+4g = R-
+4h1 = Q-
+5a = M-
+5b = S-
+6a = P-
+6b = TW-
+7a = G-
+7b = CR-
+7c = PAN-
+7d = MX-
