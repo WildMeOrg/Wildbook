@@ -20,37 +20,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.net.URI,java.sql.Date,java.util.zip.ZipEntry,java.io.IOException,java.io.FileInputStream,java.io.FileOutputStream,java.util.zip.ZipOutputStream,org.dom4j.Document,org.dom4j.DocumentHelper, org.dom4j.Element, org.ecocean.*, java.io.File,java.io.FileWriter, java.util.Properties, java.util.Map, java.util.HashMap, java.io.Serializable, java.util.Vector,org.geotools.data.*,org.geotools.data.shapefile.*,org.geotools.data.simple.*,org.geotools.feature.FeatureCollections,org.geotools.feature.simple.*,org.geotools.geometry.jts.JTSFactoryFinder,org.geotools.referencing.crs.DefaultGeographicCRS,org.opengis.feature.simple.*,com.vividsolutions.jts.geom.*" %>
+         import="java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.List,java.net.URI, org.ecocean.*" %>
 
-<%!
-    /**
-     * Here is how you can use a SimpleFeatureType builder to create the schema for your shapefile
-     * dynamically.
-     * <p>
-     * This method is an improvement on the code used in the main method above (where we used
-     * DataUtilities.createFeatureType) because we can set a Coordinate Reference System for the
-     * FeatureType and a a maximum field length for the 'name' field dddd
-     */
-    private static SimpleFeatureType createFeatureType() {
 
-        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-        builder.setName(CommonConfiguration.getHTMLTitle());
-        builder.setCRS(DefaultGeographicCRS.WGS84); // <- Coordinate reference system
-
-        // add attributes in order
-        builder.add("Location", Point.class);
-        builder.add("Date", java.sql.Date.class);
-        builder.add("Encounter", String.class); 
-        builder.add("Individual", String.class); 
-        builder.add("Sex", String.class);
-        builder.add("URL", String.class); 
-
-        // build the type
-        final SimpleFeatureType LOCATION = builder.buildFeatureType();
-
-        return LOCATION;
-    }
-%>
 
 <html>
 <head>
@@ -72,36 +44,6 @@
     Shepherd myShepherd = new Shepherd();
 
 
-
-     /*
-     * We create a FeatureCollection into which we will put each Feature created from a record
-     * in the input csv data file
-     */
-     SimpleFeatureCollection collection = FeatureCollections.newCollection();
-     /*
-     * GeometryFactory will be used to create the geometry attribute of each feature (a Point
-     * object for the location)
-     */
-     GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory(null);
-     //shapefile
-     String shapeFilename = "ShapefileExport_" + request.getRemoteUser() + ".shp";
-
-    //setup the KML output file
-    String kmlFilename = "KMLExport_" + request.getRemoteUser() + ".kml";
-    Document document = DocumentHelper.createDocument();
-    Element root = document.addElement("kml");
-    root.addAttribute("xmlns", "http://www.opengis.net/kml/2.2");
-    root.addAttribute("xmlns:gx", "http://www.google.com/kml/ext/2.2");
-    Element docElement = root.addElement("Document");
-
-    boolean addTimeStamp = false;
-    boolean generateKML = false;
-    if (request.getParameter("generateKML") != null) {
-      generateKML = true;
-    }
-    if (request.getParameter("addTimeStamp") != null) {
-      addTimeStamp = true;
-    }
 
 
 
@@ -261,121 +203,11 @@
     if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
       haveGPSData.add(enc);
       
-      //let's also populate the Shapefile
-      Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble(), enc.getDecimalLatitudeAsDouble()));
-      SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(createFeatureType());
-      featureBuilder.add(point);
-      featureBuilder.add((new java.sql.Date(enc.getDateInMilliseconds())));
-      featureBuilder.add(enc.getCatalogNumber());
-      featureBuilder.add(enc.isAssignedToMarkedIndividual());
-      featureBuilder.add(enc.getSex());
-      featureBuilder.add(("http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+enc.getCatalogNumber()));
-      SimpleFeature feature = featureBuilder.buildFeature(null);
-      collection.add(feature);
+     
       
-    }
-
-    //populate KML file ====================================================
-
-    if ((enc.getDWCDecimalLongitude() != null) && (enc.getDWCDecimalLatitude() != null)) {
-      Element placeMark = docElement.addElement("Placemark");
-      Element name = placeMark.addElement("name");
-      String nameText = "";
-
-      //add the name
-      if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
-        nameText = "Encounter " + enc.getEncounterNumber();
-      } else {
-        nameText = enc.isAssignedToMarkedIndividual() + ": Encounter " + enc.getEncounterNumber();
-      }
-      name.setText(nameText);
-
-      //add the visibility element
-      Element viz = placeMark.addElement("visibility");
-      viz.setText("1");
-
-      //add the descriptive HTML
-      Element description = placeMark.addElement("description");
-
-      String descHTML = "<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\">Direct Link</a></p>";
-      descHTML += "<p> <strong>Date:</strong> " + enc.getDate() + "</p>";
-      descHTML += "<p> <strong>Location:</strong><br>" + enc.getLocation() + "</p>";
-      
-      //trying to find problematic sizes...
-      try{
-      	if (enc.getSizeAsDouble() != null) {
-      	  descHTML += "<p> <strong>Size:</strong> " + enc.getSize() + " meters</p>";
-      	}
-      }
-      catch(Exception npe){npe.printStackTrace();System.out.println("NPE on size for encounter: "+enc.getCatalogNumber());}
-      
-      
-      descHTML += "<p> <strong>Sex:</strong> " + enc.getSex() + "</p>";
-      if (!enc.getComments().equals("")) {
-        descHTML += "<p> <strong>Comments:</strong> " + enc.getComments() + "</p>";
-      }
-
-      descHTML += "<strong>Images</strong><br>";
-      Vector imgs = enc.getAdditionalImageNames();
-      int imgsNum = enc.getAdditionalImageNames().size();
-      for (int imgNum = 0; imgNum < imgsNum; imgNum++) {
-        descHTML += ("<br>" + "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\"><img src=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/" + enc.getEncounterNumber() + "/" + (imgNum + 1) + ".jpg\"></a>");
-      }
-
-      description.addCDATA(descHTML);
-
-      if (addTimeStamp) {
-        //add the timestamp
-        String stampString = "";
-        if (enc.getYear() != -1) {
-          stampString += enc.getYear();
-          if (enc.getMonth() != -1) {
-            String tsMonth = Integer.toString(enc.getMonth());
-            if (tsMonth.length() == 1) {
-              tsMonth = "0" + tsMonth;
-            }
-            stampString += ("-" + tsMonth);
-            if (enc.getDay() != -1) {
-              String tsDay = Integer.toString(enc.getDay());
-              if (tsDay.length() == 1) {
-                tsDay = "0" + tsDay;
-              }
-              stampString += ("-" + tsDay);
-            }
-          }
-        }
-
-        if (!stampString.equals("")) {
-          Element timeStamp = placeMark.addElement("TimeStamp");
-          timeStamp.addNamespace("gx", "http://www.google.com/kml/ext/2.2");
-          Element when = timeStamp.addElement("when");
-          when.setText(stampString);
-        }
-      }
-
-      //add the actual lat-long points
-      Element point = placeMark.addElement("Point");
-      Element coords = point.addElement("coordinates");
-      String coordsString = enc.getDWCDecimalLongitude() + "," + enc.getDWCDecimalLatitude();
-      if (enc.getMaximumElevationInMeters() != null) {
-        coordsString += "," + enc.getMaximumElevationInMeters();
-      }
-      else if (enc.getMaximumDepthInMeters() != null) {
-        coordsString += ",-" + enc.getMaximumDepthInMeters();
-      }
-      else {
-        coordsString += ",0";
-      }
-      coords.setText(coordsString);
-
-
     }
   }
-  //end KML ==============================================================
-
-
-  // end KML export =========================================================
-
+    
 
   myShepherd.rollbackDBTransaction();
 
@@ -399,113 +231,9 @@
 %>
 
 
-<br>
+<br />
 
-<%
 
-  //write out KML	
-  File kmlFile = new File(getServletContext().getRealPath(("/encounters/" + kmlFilename)));
-  FileWriter kmlWriter = new FileWriter(kmlFile);
-  org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
-  format.setLineSeparator(System.getProperty("line.separator"));
-  org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(kmlWriter, format);
-  writer.write(document);
-  writer.close();
-  
-  
-  //write out the shapefile
-  File shapeFile = new File(getServletContext().getRealPath(("/encounters/" + shapeFilename)));
-  ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
-  Map<String, Serializable> params = new HashMap<String, Serializable>();
-  params.put("url", shapeFile.toURI().toURL());
-  params.put("create spatial index", Boolean.TRUE);
-  ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
-  newDataStore.createSchema(createFeatureType());
-  /*
-   * You can comment out this line if you are using the createFeatureType
-   * method (at end of class file) rather than DataUtilities.createType
-   */
-   newDataStore.forceSchemaCRS(DefaultGeographicCRS.WGS84);
-   Transaction transaction = new DefaultTransaction("create");
-   String typeName = newDataStore.getTypeNames()[0];
-   SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
-   
-   
-   if (featureSource instanceof SimpleFeatureStore) {
-  
-           	SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
-   
-               featureStore.setTransaction(transaction);
-               
-                
-               try {
-                   featureStore.addFeatures(collection);
-                   transaction.commit();
-   
-               } catch (Exception problem) {
-                   problem.printStackTrace();
-                   transaction.rollback();
-   
-               } 
-               finally {
-                   transaction.close();
-               }
-               
-               //zip the results
-               // These are the files to include in the ZIP file
-	       String[] filenames = new String[]{
-	       	shapeFile.getAbsolutePath(),
-	        shapeFile.getAbsolutePath().replaceAll(".shp",".shx"),
-	        shapeFile.getAbsolutePath().replaceAll(".shp",".dbf"),
-	        shapeFile.getAbsolutePath().replaceAll(".shp",".fix"),
-	        shapeFile.getAbsolutePath().replaceAll(".shp",".prj"),
-	        shapeFile.getAbsolutePath().replaceAll(".shp",".qix")
-	       };
-	       
-	       // Create a buffer for reading the files
-	       byte[] buf = new byte[1024];
-	       
-	       try {
-	           // Create the ZIP file
-	           String outFilename = shapeFile.getParentFile().getAbsolutePath()+File.separator+shapeFile.getName().replaceAll(".shp",".zip");
-	           //System.out.println(outFilename);
-	           ZipOutputStream zipout = new ZipOutputStream(new FileOutputStream(outFilename));
-	       
-	           // Compress the files
-	           for (int i=0; i<filenames.length; i++) {
-	               FileInputStream in = new FileInputStream(filenames[i]);
-	       		System.out.println(filenames[i]);
-	               // Add ZIP entry to output stream.
-	               File file2add=new File(filenames[i]);
-	               zipout.putNextEntry(new ZipEntry(file2add.getName()));
-	       
-	               // Transfer bytes from the file to the ZIP file
-	               int len;
-	               while ((len = in.read(buf)) > 0) {
-	                   zipout.write(buf, 0, len);
-	               }
-	       
-	               // Complete the entry
-	               zipout.closeEntry();
-	               in.close();
-	           }
-	       
-	           // Complete the ZIP file
-	           zipout.close();
-	       } 
-	       catch (IOException e) {
-	       	e.printStackTrace();
-	       }
-               
-          
-           
-    } //end if
-    else {
-                   System.out.println(typeName + " does not support read/write access");
-                   
-           }
-
-%>
 
 
 <p><strong>
@@ -608,23 +336,21 @@ if(numberResultsToMap>-1){
 
 <div id="map_canvas" style="width: 510px; height: 340px"></div>
 
+<p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
 <p><%=encprops.getProperty("exportedKML")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=kmlFilename%>"><%=kmlFilename%>
-</a><br>
-  <em><%=encprops.getProperty("rightClickLink")%>
-  </em>
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>"><%=encprops.getProperty("clickHere")%></a><br />
+  <%=encprops.getProperty("exportedKMLTimeline")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>&addTimeStamp=true"><%=encprops.getProperty("clickHere")%></a>
 </p>
 
 <p><%=encprops.getProperty("exportedShapefile")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=shapeFilename.replaceAll(".shp",".zip")%>"><%=shapeFilename.replaceAll(".shp",".zip")%>
-</a><br>
-  <em><%=encprops.getProperty("rightClickLink")%>
-  </em>
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportShapefile?<%=request.getQueryString() %>"><%=encprops.getProperty("clickHere")%></a>
 </p>
 
 <%
 
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       e.printStackTrace();
     }
 

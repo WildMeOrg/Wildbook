@@ -295,7 +295,7 @@
 
   query = ServletUtilities.setRange(query, iterTotal, highCount, lowCount);
 
-  query.setFilter("!this.unidentifiable && this.approved == false");
+  query.setFilter("this.state == \"unapproved\"");
 
   if (request.getParameter("sort") != null) {
 

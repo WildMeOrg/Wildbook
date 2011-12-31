@@ -1,3 +1,4 @@
+
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
@@ -19,63 +20,11 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.CommonConfiguration,org.ecocean.Encounter,org.ecocean.Keyword,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities,javax.jdo.Extent, javax.jdo.Query, java.awt.*, java.io.File, java.text.DecimalFormat, java.util.*" %>
-<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
-
-<%!
-
-  //shepherd must have an open trasnaction when passed in
-  public String getNextIndividualNumber(Encounter enc, Shepherd myShepherd) {
-    String returnString = "";
-    try {
-      String lcode = enc.getLocationCode();
-      if ((lcode != null) && (!lcode.equals(""))) {
-
-        //let's see if we can find a string in the mapping properties file
-        Properties props = new Properties();
-        //set up the file input stream
-        props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
 
-        //let's see if the property is defined
-        if (props.getProperty(lcode) != null) {
-          returnString = props.getProperty(lcode);
-
-
-          int startNum = 1;
-          boolean keepIterating = true;
-
-          //let's iterate through the potential individuals
-          while (keepIterating) {
-            String startNumString = Integer.toString(startNum);
-            if (startNumString.length() < 3) {
-              while (startNumString.length() < 3) {
-                startNumString = "0" + startNumString;
-              }
-            }
-            String compositeString = returnString + startNumString;
-            if (!myShepherd.isMarkedIndividual(compositeString)) {
-              keepIterating = false;
-              returnString = compositeString;
-            } else {
-              startNum++;
-            }
-
-          }
-          return returnString;
-
-        }
-
-
-      }
-      return returnString;
-    } catch (Exception e) {
-      e.printStackTrace();
-      return returnString;
-    }
-  }
-
-%>
 
 <%
 
@@ -107,6 +56,7 @@
 
 
   String num = request.getParameter("number").replaceAll("\\+", "").trim();
+  pageContext.setAttribute("num", num);
 
 
   Shepherd myShepherd = new Shepherd();
@@ -115,10 +65,11 @@
   boolean proceed = true;
   boolean haveRendered = false;
 
-
+  pageContext.setAttribute("set", encprops.getProperty("set"));
 %>
 
-<html>
+
+
 <head>
   <title><%=encprops.getProperty("encounter") %> <%=num%>
   </title>
@@ -186,7 +137,32 @@
     }
 
     -->
-  </style>
+
+table.tissueSample {
+    border-width: 1px;
+    border-spacing: 2px;
+    border-style: hidden;
+    border-color: gray;
+    border-collapse: collapse;
+    background-color: white;
+}
+table.tissueSample th {
+    border-width: 1px;
+    padding: 1px;
+    border-style: solid;
+    border-color: gray;
+    background-color: #99CCFF;
+    -moz-border-radius: ;
+}
+table.tissueSample td {
+    border-width: 1px;
+    padding: 2px;
+    border-style: solid;
+    border-color: gray;
+    background-color: white;
+    -moz-border-radius: ;
+}
+</style>
 
 
   <!--
@@ -261,25 +237,23 @@
     try {
 
       Encounter enc = myShepherd.getEncounter(num);
+      pageContext.setAttribute("enc", enc);
       String livingStatus = "";
       if (enc.getLivingStatus().equals("dead")) {
         livingStatus = " (deceased)";
       }
-      int numImages = enc.getAdditionalImageNames().size();
-
+      //int numImages = enc.getAdditionalImageNames().size();
+	int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
+      
 //let's see if this user has ownership and can make edits
       boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+      pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable());
       boolean loggedIn = false;
       try{
       	if(request.getUserPrincipal()!=null){loggedIn=true;}
       }
       catch(NullPointerException nullLogged){}
       
-      //if (session.getAttribute("logged") != null) {
-      //  Object OBJloggedIn = session.getAttribute("logged");
-      //  loggedIn = (String) OBJloggedIn;
-      //}
-//end user identity and authorization check
 
 
 %>
@@ -287,7 +261,7 @@
 <tr>
   <td colspan="3">
     <%
-      if (enc.wasRejected()) {%>
+      if ((enc.getState()!=null)&&(enc.getState().equals("unidentifiable"))) {%>
     <table width="810">
       <tr>
         <td bgcolor="#0033CC" colspan="3">
@@ -300,7 +274,8 @@
     </p>
     <%
 
-    } else if (!enc.approved) {%>
+    } 
+    else if ((enc.getState()!=null)&&(enc.getState().equals("unapproved"))) {%>
     <table width="810">
       <tr>
         <td bgcolor="#CC6600" colspan="3">
@@ -332,8 +307,8 @@
     <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
       <%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %><font size="-1">[<a
-        href="encounter.jsp?number=<%=num%>&edit=manageIdentity">edit</a>]</font>
+      %>
+      <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=manageIdentity">edit</a>]</font>
       <%
         }
       %>
@@ -424,1212 +399,32 @@
 </tr>
 <tr>
   <%
+
+  String isLoggedInValue="true";
+  String isOwnerValue="true";
+
+  if(!loggedIn){isLoggedInValue="false";}
+  if(!isOwner){isOwnerValue="false";}
+
 	if(CommonConfiguration.isCatalogEditable()){
 	%>
-<td width="170" align="left" valign="top" bgcolor="#99CCFF">
-  <%
- 	//start deciding menu bar contents
 
- //if not logged in
-if(!loggedIn){
-	 
- %>
-<p class="para"><a
-  href="../welcome.jsp?reflect=<%=request.getRequestURI()%>?number=<%=num%>"><%=encprops.getProperty("login")%>
-</a></p>
+ 
+ 
+  <jsp:include page="encounterFormsEmbed.jsp" flush="true">
+    <jsp:param name="encounterNumber" value="<%=num%>" />
 
-  <%
-			} 
-		//if logged in, limit commands displayed			
-		else {
-		%>
-<p align="center" class="para"><font color="#000000" size="+1"><strong>
-  <%=encprops.getProperty("action") %> <font color="#000000" size="+1"><strong><img
-  src="../images/Crystal_Clear_app_advancedsettings.gif" width="29" height="29" align="absmiddle"/></strong></font> <%=encprops.getProperty("uppercaseEdit") %>
-</strong></font><br> <br> <em><font
-  size="-1"><%=encprops.getProperty("editarea")%>
-</font></em>
-</p>
-  <%
-			//manager-level commands
-				if(isOwner) {
-				
-			
-			//approve new encounter
-			if ((!enc.approved)&&(isOwner)) {
-		%>
-<table width="175" border="1" cellpadding="1" cellspacing="0"
-       bordercolor="#000000" bgcolor="#CECFCE">
-  <tr>
-    <td height="30" class="para">
-      <p><font color="#990000"><font color="#990000">&nbsp;<img
-        align="absmiddle" src="../images/check_green.png"/></font>
-        <strong><%=encprops.getProperty("approve_encounter")%>
-        </strong></font></p>
+    	<jsp:param name="isOwner" value="<%=isOwnerValue %>" />
 
-      <p><font color="#990000"><font color="#990000"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>approving_an_encounter"
-        target="_blank">&nbsp;<img src="../images/information_icon_svg.gif" alt="Help" border="0"
-                                   align="absmiddle"/></a></font> </font><span
-        class="style2"><%=encprops.getProperty("approval_checklist")%></span></p>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <form name="approve_form" method="post" action="../EncounterApprove">
-        <input name="action" type="hidden" id="action" value="approve">
-        <input name="number" type="hidden"
-               value=<%=request.getParameter("number")%>> <input
-        name="approve" type="submit" id="approve" value="<%=encprops.getProperty("approve")%> ">
-      </form>
-    </td>
-  </tr>
-</table>
-<br> <%
-				}
-				//set location code
-				if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("loccode"))){
-			%> <a name="loccode"></a><br />
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setLocationID")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="addLocCode" action="../EncounterSetLocationID"
-              method="post"><input name="code" type="text" size="5"
-                                   maxlength="5"> <input name="number" type="hidden"
-                                                         value=<%=num%>> <input name="action"
-                                                                                type="hidden"
-                                                                                value="addLocCode">
-          <input name="Set Location ID"
-                 type="submit" id="Add" value="<%=encprops.getProperty("setLocationID")%>"></form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-				
-		//set alternateid
-		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){
-		%> <a name="alternateid"></a><br />
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setAlternateID")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setAltID" action="../EncounterSetAlternateID"
-              method="post"><input name="alternateid" type="text"
-                                   size="10" maxlength="50"> <input name="encounter"
-                                                                    type="hidden" value=<%=num%>>
-          <input name="Set"
-                 type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-		}
-		
-		//set verbatimEventDate
-		if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("verbatimEventDate"))){
-		%> 
-		<a name="verbatimEventDate"></a><br />
-		  <table width="150" border="1" cellpadding="1" cellspacing="0"
-		         bordercolor="#000000" bgcolor="#CCCCCC">
-		    <tr>
-		      <td align="left" valign="top" class="para"><strong><font
-		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
-		        <br />
-			<font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
-          		</em></font>
-		        </td>
-		    </tr>
-		    <tr>
-		      <td align="left" valign="top">
-		        <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate"
-		              method="post"><input name="verbatimEventDate" type="text" size="10" maxlength="50"> 
-		              <input name="encounter" type="hidden" value=<%=num%>>
-		          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
-		      </td>
-		    </tr>
-		  </table>
-		<br /> <%
-				}
-		
-		
-		//encounter set dynamic property
-		if(CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
-		%> <a name="dynamicproperty"></a><br />
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-         bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para">
-        <table>
-          <tr>
-            <td><img align="absmiddle" src="../images/lightning_dynamic_props.gif"/></td>
-            <td><strong><font
-              color="#990000"><%=encprops.getProperty("initCapsSet")%> <%=request.getParameter("name")%>
-            </font></strong></td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setDynProp" action="../EncounterSetDynamicProperty" method="post">
-          <%
-            if (enc.getDynamicPropertyValue(request.getParameter("name")) != null) {
-          %>
-          <input name="value" type="text" size="10" maxlength="500"
-                 value="<%=enc.getDynamicPropertyValue(request.getParameter("name"))%>">
-          <%
-          } else {
-          %>
-          <input name="value" type="text" size="10" maxlength="500">
-          <%
-            }
-          %>
-          <input name="number" type="hidden" value="<%=num%>">
-          <input name="name" type="hidden" value="<%=request.getParameter("name")%>">
-          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>"
-                 value="<%=encprops.getProperty("initCapsSet")%>"></form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-		}
-		
-		//encounter add dynamic property
-		if(isOwner&&CommonConfiguration.isCatalogEditable()){
-		%> <a name="add_dynamicproperty"></a><br />
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-         bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para">
-        <table>
-          <tr>
-            <td><img align="absmiddle" src="../images/lightning_dynamic_props.gif"/></td>
-            <td><strong><font color="#990000"><%=encprops.getProperty("addDynamicProperty")%>
-            </font></strong></td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top" class="para">
-        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">
-          <%=encprops.getProperty("propertyName")%>:<br/><input name="name" type="text" size="10"
-                                                                maxlength="50"><br/>
-          <%=encprops.getProperty("propertyValue")%>:<br/><input name="value" type="text" size="10"
-                                                                 maxlength="500">
-          <input name="number" type="hidden" value="<%=num%>">
-          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>"
-                 value="<%=encprops.getProperty("initCapsSet")%>"></form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-		}
-		
-				
-				
-				//set informothers
-			if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("others"))){
-		%> <a name="others"></a><br />
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-         bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para">
-        <strong><%=encprops.getProperty("setOthersToInform")%>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setOthers" action="../EncounterSetInformOthers" method="post">
-          <input name="encounter" type="hidden" value="<%=num%>">
-          <input name="informothers" type="text" size="28" <%if(enc.getInformOthers()!=null){%>
-                 value="<%=enc.getInformOthers().trim()%>" <%}%> maxlength="1000">
-          <br> <input name="Set" type="submit" id="Set" value="<%=encprops.getProperty("set")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br> <%
-			}
-				
-				//set matchedBy type
-			if((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageMatchedBy"))){
-		%> <a name="matchedBy"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><font
-        color="#990000"><img align="absmiddle"
-                             src="../images/Crystal_Clear_app_matchedBy.gif"/>
-        <strong><%=encprops.getProperty("matchedBy")%>:</strong></font></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setMBT" action="../EncounterSetMatchedBy" method="post">
-          <select name="matchedBy" id="matchedBy">
-            <option
-              value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%>
-            </option>
-            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%>
-            </option>
-            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%>
-            </option>
-          </select> <input name="number" type="hidden" value=<%=num%>>
-          <input name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-				
-				
-			  //add this encounter to a MarkedIndividual object
-			  if ((isOwner)&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))) {
-		%> <a name="manageIdentity"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><font
-        color="#990000">
-        <img align="absmiddle" src="../images/tag_small.gif"/><br></br>
-        <strong><%=encprops.getProperty("add2MarkedIndividual")%>:</strong></font></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="add2shark" action="../IndividualAddEncounter"
-              method="post"><%=encprops.getProperty("individual")%>: <input name="individual"
-                                                                            type="text" size="10"
-                                                                            maxlength="50"><br> <%=encprops.getProperty("matchedBy")%>
-          :<br>
-          <select name="matchType" id="matchType">
-            <option
-              value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%>
-            </option>
-            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%>
-            </option>
-            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%>
-            </option>
-          </select> <br> <input name="noemail" type="checkbox" value="noemail">
-          <%=encprops.getProperty("suppressEmail")%><br> <input name="number" type="hidden"
-                                                                value=<%=num%>> <input name="action"
-                                                                                       type="hidden"
-                                                                                       value="add">
-          <input name="Add" type="submit" id="Add"
-                 value="<%=encprops.getProperty("add")%>"></form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-		  	}
-		  	  //Remove from MarkedIndividual if not unassigned
-		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned"))&&CommonConfiguration.isCatalogEditable()&&isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))) {
-		  %>
-<table width="150" border="1" cellpadding="1" cellspacing="0"
-       bordercolor="#000000" bgcolor="#CCCCCC">
-  <tr>
-    <td align="left" valign="top" class="para"><font
-      color="#990000">
-      <table>
-        <tr>
-          <td><font color="#990000"><img align="absmiddle"
-                                         src="../images/cancel.gif"/></font></td>
-          <td><strong><%=encprops.getProperty("removeFromMarkedIndividual")%>
-          </strong></td>
-        </tr>
-      </table>
-    </font></td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form action="../IndividualRemoveEncounter" method="post"
-            name="removeShark"><input name="number" type="hidden"
-                                      value=<%=num%>> <input name="action" type="hidden"
-                                                             value="remove"> <input type="submit"
-                                                                                    name="Submit"
-                                                                                    value="<%=encprops.getProperty("remove")%>">
-      </form>
-    </td>
-  </tr>
-</table>
-<br /> <%
-      	}
-      	  //create new MarkedIndividual with name
-      	  if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))){
-      %>
-<table width="150" border="1" cellpadding="1" cellspacing="0"
-       bordercolor="#000000" bgcolor="#CCCCCC">
-  <tr>
-    <td align="left" valign="top" class="para"><font
-      color="#990000">
-      <img align="absmiddle" src="../images/tag_small.gif"/>
-      <strong><%=encprops.getProperty("createMarkedIndividual")%>:</strong></font></td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form name="createShark" method="post" action="../IndividualCreate">
-        <input name="number" type="hidden" value="<%=num%>"> 
-        <input name="action" type="hidden" value="create"> 
-        <input name="individual" type="text" id="individual" size="10"
-        maxlength="50"
-        value="<%=getNextIndividualNumber(enc, myShepherd)%>"><br>
-        <%
-          if (isOwner) {
-        %> <input name="noemail" type="checkbox" value="noemail">
-        <%=encprops.getProperty("suppressEmail")%><br> <%
-        }
-      %> <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>">
-      </form>
-    </td>
-  </tr>
-</table>
-<br /> <%
-			}
-      	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
-    		%> <a name="gps"></a>
-    		<table width="150" border="1" cellpadding="1" cellspacing="0"
-    			bordercolor="#000000" bgcolor="#CCCCCC">
-    			<tr>
-    				<td align="left" valign="top" class="para"><span class="style3"><font
-    					color="#990000"><%=encprops.getProperty("resetGPS")%>:</font></span><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
-    				</td>
-    			</tr>
-    			<tr>
-    				<td>
-    				<form name="resetGPSform" method="post" action="../EncounterSetGPS">
-    				<input name="action" type="hidden" value="resetGPS" />
-    				<p><strong><%=encprops.getProperty("latitude")%>:</strong><br /> 
-    				<input type="text" size="7" maxlength="10" name="lat" id="lat" />
-    				 
-    				<br /> <strong><%=encprops.getProperty("longitude")%>:</strong><br> 
-    				<input type="text" size="7" maxlength="10" name="longitude" id="longitude" /> 
-    				<input name="number" type="hidden" value=<%=num%> /> 
-    				<input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" />
-    				</p>
-    				</form>
-    				</td>
-    			</tr>
-    		</table>
-    		<br /> <%
-    			}
-				//set location for sighting
-			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("location"))){
-		%> <a name="location"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setLocation")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setLocation" action="../EncounterSetLocation"
-              method="post"><textarea name="location" size="15"><%=enc.getLocation()%>
-        </textarea>
-          <input name="number" type="hidden" value=<%=num%>> <input
-            name="action" type="hidden" value="setLocation"> <input
-            name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setLocation")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-				
-//update submitted comments for sighting
-if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("comments"))){
-%> 
-<a name="comments"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("editSubmittedComments")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setComments" action="../EncounterSetOccurrenceRemarks"
-              method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%>
-        </textarea>
-          <input name="number" type="hidden" value=<%=num%>> <input
-            name="action" type="hidden" value="editComments"> <input
-            name="EditComm" type="submit" id="EditComm"
-            value="<%=encprops.getProperty("submitEdit")%>"></form>
-      </td>
-    </tr>
-  </table>
-<br /> 
-<%
-}
+    	<jsp:param name="loggedIn" value="<%=isLoggedInValue %>" />
 
-//update submitted comments for sighting
-if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("behavior"))){
-%> 
-<a name="behavior"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para">
-      	<strong><font color="#990000"><%=encprops.getProperty("editBehaviorComments")%>:</font></strong>
-      	<br /><font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setBehaviorComments" action="../EncounterSetBehavior"
-              method="post"><textarea name="behaviorComment" size="15">
-         <%
-         if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
-         %>
-              <%=enc.getBehavior()%>
-        <%
-        }
-        %>
-        </textarea>
-          <input name="number" type="hidden" value=<%=num%>> <input
-            name="action" type="hidden" value="editBehavior"> <input
-            name="EditBeh" type="submit" id="EditBeh"
-            value="<%=encprops.getProperty("submitEdit")%>"></form>
-      </td>
-    </tr>
-  </table>
-<br /> 
-<%
-}
-				//reset contact info
-			if(isOwner&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
-		%> <a name="contact"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("editContactInfo")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setPersonalDetails"
-              action="../EncounterSetSubmitterPhotographerContactInfo"
-              method="post"><label> <input type="radio"
-                                           name="contact"
-                                           value="submitter"><%=encprops.getProperty("submitter")%>
-        </label> <br /><label>
-          <input type="radio" name="contact"
-                 value="photographer"><%=encprops.getProperty("photographer")%>
-        </label>
-          <br /> 
-          
-          <%=encprops.getProperty("name")%><br />
-          <input name="name" type="text" size="20" maxlength="100" /> 
-          
-          <%=encprops.getProperty("email")%><br />
-          <input name="email" type="text" size="20" /> 
-          
-          <%=encprops.getProperty("phone")%><br />
-          <input name="phone" type="text" size="20" maxlength="100" /> 
-          
-          <%=encprops.getProperty("address")%><br />
-          <input name="address" type="text" size="20" maxlength="100" /> 
-          
-           <%=encprops.getProperty("submitterOrganization")%><br />
-          <input name="submitterOrganization" type="text" size="20" maxlength="100" /> 
-          
-          <%=encprops.getProperty("submitterProject")%><br />
-	  <input name="submitterProject" type="text" size="20" maxlength="100" /> 
-	            
-          
-            
-            
-            
-            <input name="number" type="hidden" value="<%=num%>" /> 
-            <input name="action" type="hidden" value="editcontact" /> 
-            <input name="EditContact" type="submit" id="EditContact" value="Update" />
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-							}
-						//--------------------------
-						//edit sex reported for sighting	
-		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))){
-						%> <a name="sex"></a>
-<table width="150" border="1" cellpadding="1" cellspacing="0"
-       bordercolor="#000000" bgcolor="#CCCCCC">
-  <tr>
-    <td align="left" valign="top" class="para"><strong><font
-      color="#990000"><%=encprops.getProperty("resetSex")%>:</font></strong></td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form name="setxencshark" action="../EncounterSetSex" method="post">
-        <select name="selectSex" size="1" id="selectSex">
-          <option value="unknown" selected><%=encprops.getProperty("unknown")%>
-          </option>
-          <option value="male"><%=encprops.getProperty("male")%>
-          </option>
-          <option value="female"><%=encprops.getProperty("female")%>
-          </option>
-        </select> <input name="number" type="hidden" value="<%=num%>" id="number">
-        <input name="action" type="hidden" value="setEncounterSex">
-        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetSex")%>">
-      </form>
-    </td>
-  </tr>
-</table>
-<br /> <%
-			}
-			
-		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("livingStatus"))){
-						%> <a name="livingStatus"></a>
-<table width="150" border="1" cellpadding="1" cellspacing="0"
-       bordercolor="#000000" bgcolor="#CCCCCC">
-  <tr>
-    <td align="left" valign="top" class="para"><strong><font
-      color="#990000"><img align="absmiddle"
-                           src="../images/life_icon.gif"> <%=encprops.getProperty("resetStatus")%>:</font></strong>
-    </td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form name="livingStatusForm" action="../EncounterSetLivingStatus"
-            method="post"><select name="livingStatus" id="livingStatus">
-        <option value="alive" selected><%=encprops.getProperty("alive")%>
-        </option>
-        <option value="dead"><%=encprops.getProperty("dead")%>
-        </option>
-      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
-        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetStatus")%>">
-      </form>
-    </td>
-  </tr>
-</table>
-<br /> <%
-			}
-			
-if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("genusSpecies"))){
-									%> <a name="genusSpecies"></a>
-			<table width="150" border="1" cellpadding="1" cellspacing="0"
-			       bordercolor="#000000" bgcolor="#CCCCCC">
-			  <tr>
-			    <td align="left" valign="top" class="para"><strong><font
-			      color="#990000"><img align="absmiddle"
-			                           src="../images/taxontree.gif"> <%=encprops.getProperty("resetTaxonomy")%>:</font></strong>
-			    </td>
-			  </tr>
-			  <tr>
-			    <td align="left" valign="top">
-			      <form name="taxonomyForm" action="../EncounterSetGenusSpecies" method="post">
-			            <select name="genusSpecies" id="genusSpecies">
-			            	<option value="unknown"><%=encprops.getProperty("notAvailable")%></option>
-			       
-			       <%
-			       boolean hasMoreTax=true;
-			       int taxNum=0;
-			       while(hasMoreTax){
-			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
-			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
-			       	  	%>
-			       	  	 
-			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
-			       	  	<%
-			       		taxNum++;
-			          }
-			          else{
-			             hasMoreTax=false;
-			          }
-			          
-			       }
-			       %>
-			       
-			       
-			      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
-			        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
-			      </form>
-			    </td>
-			  </tr>
-			</table>
-			<br /> <%
-	}
-			
-			
-			
-				//reset encounter date
-				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("date"))){
-		%> <a name="date"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("resetEncounterDate")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setxencshark" action="../EncounterResetDate" method="post">
-          <em><%=encprops.getProperty("day")%>
-          </em> <select name="day" id="day">
-          <option value="0">?</option>
-          <%
-            for (int pday = 1; pday < 32; pday++) {
-          %>
-          <option value="<%=pday%>"><%=pday%>
-          </option>
-          <%
-            }
-          %>
-        </select><br> <em>&nbsp;<%=encprops.getProperty("month")%>
-        </em> <select name="month" id="month">
-          <option value="-1">?</option>
-          <%
-            for (int pmonth = 1; pmonth < 13; pmonth++) {
-          %>
-          <option value="<%=pmonth%>"><%=pmonth%>
-          </option>
-          <%
-            }
-          %>
-        </select><br> <em>&nbsp;<%=encprops.getProperty("year")%>
-        </em> <select name="year" id="year">
-          <option value="-1">?</option>
-
-          <%
-            for (int pyear = nowYear; pyear > (nowYear - 50); pyear--) {
-          %>
-          <option value="<%=pyear%>"><%=pyear%>
-          </option>
-          <%
-            }
-          %>
-        </select><br> <em>&nbsp;<%=encprops.getProperty("hour")%>
-        </em> <select name="hour" id="hour">
-          <option value="-1" selected>?</option>
-          <option value="6">6 am</option>
-          <option value="7">7 am</option>
-          <option value="8">8 am</option>
-          <option value="9">9 am</option>
-          <option value="10">10 am</option>
-          <option value="11">11 am</option>
-          <option value="12">12 pm</option>
-          <option value="13">1 pm</option>
-          <option value="14">2 pm</option>
-          <option value="15">3 pm</option>
-          <option value="16">4 pm</option>
-          <option value="17">5 pm</option>
-          <option value="18">6 pm</option>
-          <option value="19">7 pm</option>
-          <option value="20">8 pm</option>
-        </select><br> <em>&nbsp;<%=encprops.getProperty("minutes")%>
-        </em> <select name="minutes" id="minutes">
-          <option value="00" selected>:00</option>
-          <option value="15">:15</option>
-          <option value="30">:30</option>
-          <option value="45">:45</option>
-        </select><br> <input name="number" type="hidden" value="<%=num%>"
-                             id="number"> <input name="action" type="hidden"
-                                                 value="changeEncounterDate"> <input name="AddDate"
-                                                                                     type="submit"
-                                                                                     id="AddDate"
-                                                                                     value="<%=encprops.getProperty("setDate")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-				
-				//reset size reported for sighting
-				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("size"))){
-		%> <a name="size"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setSize")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencsize" action="../EncounterSetSize" method="post">
-          <input name="lengthField" type="text" id="lengthField" size="8"
-                 maxlength="8"> <%=encprops.getProperty("meters")%><br />
-          <font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
-          </em></font><br />
-          <input name="lengthUnits" type="hidden" id="lengthUnits"
-                 value="Meters"> <select name="guessList" id="guessList">
-          <option value="directly measured"><%=encprops.getProperty("directlyMeasured")%>
-          </option>
-          <option value="submitter's guess"><%=encprops.getProperty("personalGuess")%>
-          </option>
-          <option value="guide/researcher's guess"
-                  selected><%=encprops.getProperty("guessOfGuide")%>
-          </option>
-        </select> <input name="number" type="hidden" value="<%=num%>" id="number">
-          <input name="action" type="hidden" value="setEncounterSize">
-          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setSize")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-
-				//reset water depth
-				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("depth"))){
-		%> <a name="depth"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setDepth")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencdepth" action="../EncounterSetMaximumDepth" method="post">
-          <input name="depth" type="text" id="depth" size="10"> <%=encprops.getProperty("meters")%>
-          <input name="lengthUnits" type="hidden"
-                 id="lengthUnits" value="Meters"> <input name="number"
-                                                         type="hidden" value="<%=num%>" id="number">
-          <input
-            name="action" type="hidden" value="setEncounterDepth"> <input
-          name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-			
-			
-				//reset elevation
-		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("elevation"))){
-		%> <a name="elevation"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setElevation")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencelev" action="../EncounterSetMaximumElevation" method="post">
-          <input name="elevation" type="text" id="elevation" size="10"> Meters <input
-          name="lengthUnits" type="hidden" id="lengthUnits" value="Meters">
-          <input name="number" type="hidden" value="<%=num%>" id="number">
-          <input name="action" type="hidden" value="setEncounterElevation">
-          <input name="AddElev" type="submit" id="AddElev"
-                 value="<%=encprops.getProperty("setElevation")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br/> <%
-			}
-
-		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("user"))){
-		%> <a name="user"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-         bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><font
-        color="#990000"><img align="absmiddle"
-                             src="../images/Crystal_Clear_app_Login_Manager.gif"/>
-        <strong><%=encprops.getProperty("assignUser")%>:</strong></font></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="asetSubmID" action="../EncounterSetSubmitterID"
-              method="post"><input name="submitter" type="text" size="10"
-                                   maxlength="50"> <input name="number" type="hidden"
-                                                          value=<%=num%>> <input name="Assign"
-                                                                                 type="submit"
-                                                                                 id="Assign"
-                                                                                 value="<%=encprops.getProperty("assign")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br/> <%
-		}
-
-	//reset scarring
-			if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("scar"))){
-	%> <a name="scar"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("editScarring")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencsize" action="../EncounterSetScarring" method="post">
-          <textarea name="scars" size="15"><%=enc.getDistinguishingScar()%>
-          </textarea>
-          <input name="number" type="hidden" value="<%=num%>" id="number">
-          <input name="action" type="hidden" value="setScarring"> <input
-          name="Add" type="submit" id="scar" value="<%=encprops.getProperty("resetScarring")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-
-		//kick off a scan
-				if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))&&isOwner) {
-		%> <br/>
-<table width="150" border="1" cellpadding="1" cellspacing="0"
-       bgcolor="#CCCCCC">
-  <tr>
-    <td align="left" valign="top">
-      <p class="para"><font color="#990000"><strong><img
-        align="absmiddle" src="../images/Crystal_Clear_action_find.gif"/>
-        Find Pattern Match <a
-          href="<%=CommonConfiguration.getWikiLocation()%>sharkgrid"
-          target="_blank"><img src="../images/information_icon_svg.gif"
-                               alt="Help" border="0" align="absmiddle"></a><br/>
-      </strong> Scan entire database on the <a href="http://www.sharkgrid.org">sharkGrid</a>
-        using the <a
-          href="http://www.blackwell-synergy.com/doi/pdf/10.1111/j.1365-2664.2005.01117.x">Modified
-          Groth</a> and <a
-          href="http://www.blackwell-synergy.com/doi/abs/10.1111/j.1365-2664.2006.01273.x?journalCode=jpe">I3S</a>
-        algorithms</font>
-
-      <div id="formDiv">
-        <form name="formSharkGrid" id="formSharkGrid" method="post"
-              action="../ScanTaskHandler"><input name="action" type="hidden"
-                                                 id="action" value="addTask"> <input
-          name="encounterNumber"
-          type="hidden" value=<%=num%>>
-
-          <table width="200">
-            <tr>
-              <%
-                if ((enc.getSpots() != null) && (enc.getSpots().size() > 0)) {
-              %>
-              <td class="para"><label> <input name="rightSide"
-                                              type="radio" value="false" checked> left-side</label>
-              </td>
-              <%
-                }
-              %>
-              <%
-                if ((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0) && (enc.getSpots() != null) && (enc.getSpots().size() == 0)) {
-              %>
-              <td class="para"><label> <input type="radio"
-                                              name="rightSide" value="true" checked>
-                right-side</label></td>
-              <%
-              } else if ((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {
-              %>
-              <td class="para"><label> <input type="radio"
-                                              name="rightSide" value="true"> right-side</label></td>
-              <%
-                }
-              %>
-            </tr>
-          </table>
-
-          <input name="writeThis" type="hidden" id="writeThis" value="true">
-          <br/> <input name="scan" type="submit" id="scan"
-                       value="Start Scan"
-                       onclick="submitForm(document.getElementById('formSharkGrid'))">
-          <input name="cutoff" type="hidden" value="0.02"></form>
-      </p>
-</div>
-</td>
-</tr>
-</table>
-<br/> <!--
-			<%}
-			
-			if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))&&isOwner) {%>
-			<table width="150" border="1" cellpadding="1" cellspacing="0" bgcolor="#CCCCCC">
-        		<tr>
-          			<td align="left" valign="top">
-		  				<form name="formSingleScan" method="get" action="appletScan.jsp">
-              				<p class="para"><font color="#990000"><strong>Groth:</strong> Scan against one other encounter</font>
-						    <table width="200">
-							  <tr>
-							    <%if(enc.getNumSpots()>0) {%>
-								<td width="93" class="para"><label>
-							      <input name="rightSide" type="radio" value="false" checked>
-							      left-side</label></td>
-						    <%}%>
-							<%if(enc.getNumRightSpots()>0) {%>
-							    <td width="95" class="para"><label>
-							      <input type="radio" name="rightSide" value="true">
-							      right-side</label></td>
-								  <%}%>
-						    </tr>
-							
-						  </table>
-							
-   						      <input name="singleComparison" type="text" size="15" maxlength="50">
-						      <input name="scan" type="submit" id="scan" value="Scan">
-  						      <input name="number" type="hidden" value=<%=num%>>
-  						      <input name="R" type="hidden" value="8">
-  						      <input name="Sizelim" type="hidden" value="0.85">
-								<input name="cutoff" type="hidden" value="0.02">
-  						      <input name="epsilon" type="hidden" value="0.01">
-						      <input name="C" type="hidden" value="0.99">
-						      <input name="maxTriangleRotation" type="hidden" value="10">
-							  
-				      </form>
-		  			</td>
-				</tr>
-			</table><br />
-			--> <%
-	  	}
+  </jsp:include>
 
 
-	  //reject encounter
-	  if (isOwner&&CommonConfiguration.isCatalogEditable()) {
-	  %>
-<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-       bgcolor="#CECFCE">
-  <tr>
-    <td>
-      <p class="para"><font color="#990000"><img
-        align="absmiddle" src="../images/cancel.gif"/>
-        <strong><%=encprops.getProperty("rejectEncounter")%>
-        </strong></font></p>
-
-      <p class="para"><font color="#990000"><strong><font color="#990000"><font color="#990000"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>approving_an_encounter"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a>
-      </font></font></strong></font><span
-        class="style4"><%=encprops.getProperty("moreInfo")%> </span></p>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <form name="reject_form" method="post" action="reject.jsp">
-        <input name="action" type="hidden" id="action" value="reject">
-        <input name="number" type="hidden" value=<%=num%>> <input
-        name="reject" type="submit" id="reject"
-        value="<%=encprops.getProperty("rejectEncounter")%>"></form>
-    </td>
-  </tr>
-</table>
-<br/> <%
-	  	}
-	  	  if ((enc.wasRejected())&&isOwner) {
-	  %>
-<table width="150" border="1" cellpadding="1" cellspacing="0"
-       bordercolor="#000000" bgcolor="#CECFCE">
-  <tr>
-    <td class="para">
-      <p><strong><font color="#990000"><%=encprops.getProperty("setIdentifiable")%>
-      </font></strong></p>
-
-      <p><font color="#990000"><font color="#990000"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>approving_an_encounter"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></font> </font><span
-        class="style4"><%=encprops.getProperty("moreInfo")%> </span></p>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <form name="reacceptEncounter" method="post"
-            action="../EncounterSetIdentifiable"><input name="action"
-                                                        type="hidden" id="action" value="reaccept">
-        <input
-          name="number" type="hidden" value=<%=num%>> <input
-          name="reject" type="submit" id="reject" value="<%=encprops.getProperty("reaccept")%>">
-      </form>
-    </td>
-  </tr>
-</table>
-<br/> <%
-	  	}
-	  	  //remove spot data
-	  	  if(isOwner) {
-	  	  
-	  	  if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("rmSpots"))){
-	  %> <a name="rmSpots"></a>
-  <table border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000">Remove spot data:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <center>
-          <form name="removeSpots" method="post"
-                action="../EncounterRemoveSpots">
-            <table width="200">
-              <tr>
-                <%
-                  if (enc.getSpots().size() > 0) {
-                %>
-                <td><label> <input name="rightSide" type="radio"
-                                   value="false"> left-side</label></td>
-                <%
-                  }
-                  if (enc.getRightSpots().size() > 0) {
-                %>
-                <td><label> <input type="radio" name="rightSide"
-                                   value="true"> right-side</label></td>
-                <%
-                  }
-                %>
-              </tr>
-            </table>
-            <input name="number" type="hidden" value=<%=num%>> <input
-            name="action" type="hidden" value="removeSpots"> <input
-            name="Remove3" type="submit" id="Remove3" value="Remove"></form>
-        </center>
-      </td>
-    </tr>
-  </table>
-<br/> <%
-	  	}
-	  	  if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("spotImage"))){
-	  %> <a name="spotImage"></a>
-  <table border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td class="para">
-        <form action="../EncounterAddSpotFile" method="post"
-              enctype="multipart/form-data" name="addSpotsFile"><input
-          name="action" type="hidden" value="fileadder" id="action">
-          <input name="number" type="hidden" value="<%=num%>" id="shark">
-          <font color="#990000"><strong><img align="absmiddle"
-                                             src="../images/upload_small.gif"/></strong> <strong>Set
-            spot
-            image file:</strong></font><br/> <label><input name="rightSide"
-                                                           type="radio" value="false">
-            left</label><br/> <label><input
-            name="rightSide" type="radio" value="true"> right</label><br/>
-          <br/> <input name="file2add" type="file" size="15"><br/>
-          <input name="addtlFile" type="submit" id="addtlFile"
-                 value="Upload spot image"></form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-	  	  	}
-			if(CommonConfiguration.isCatalogEditable()){
-	  	  %>
-<table border="1" cellpadding="2" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-  <tr>
-    <td align="left" valign="top" class="para">
-      <font color="#990000"><img
-        align="absmiddle" src="../images/thumbnail_image.gif"/></font>
-      <strong><%=encprops.getProperty("resetThumbnail")%>
-      </strong>&nbsp;</font></td>
-  </tr>
-  <tr>
-    <td align="left">
-      <form action="../resetThumbnail.jsp" method="get" enctype="multipart/form-data"
-            name="resetThumbnail">
-        <input name="number" type="hidden" value="<%=num%>" id="numreset"><br/>
-        <%=encprops.getProperty("useImage")%>: <select name="imageNum">
-        <%
-          for (int rmi2 = 1; rmi2 <= numImages; rmi2++) {
-        %>
-        <option value="<%=rmi2%>"><%=rmi2%>
-        </option>
-        <%
-          }
-        %>
-      </select><br/>
-        <input name="resetSubmit" type="submit" id="resetSubmit"
-               value="<%=encprops.getProperty("resetThumbnail")%>"></form>
-    </td>
-  </tr>
-</table>
-<br/> <a name="tapirlink"></a>
-  <table width="175" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CECFCE">
-    <tr>
-      <td height="30" class="para"><font color="#990000">&nbsp;<img
-        align="absmiddle" src="../images/interop.gif"/> <strong>TapirLink?</strong>
-        <a href="<%=CommonConfiguration.getWikiLocation()%>tapirlink"
-           target="_blank"><img src="../images/information_icon_svg.gif"
-                                alt="Help" border="0" align="absmiddle"/></a></font></td>
-    </tr>
-    <tr>
-      <td height="30" class="para">&nbsp; <%=encprops.getProperty("currentValue")%>
-        : <%=enc.getOKExposeViaTapirLink()%>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <form name="approve_form" method="post"
-              action="../EncounterSetTapirLinkExposure"><input name="action"
-                                                               type="hidden" id="action"
-                                                               value="tapirLinkExpose"> <input
-          name="number" type="hidden" value=<%=num%>> <input
-          name="approve" type="submit" id="approve" value="<%=encprops.getProperty("change")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br/> <%
-		}
-	  	//end isOwner permissions
-	  	  }
-	  	  
-	  	  	  //end else if-edit not null
-	  	  }
-	  	  
-	  	  //add e-mail for tracking
-	  	 
-	  %> <!--<br /><table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-      	<tr>
-        	<td align="left" valign="top" class="para"><font color="#990000">Track data changes to this encounter via email address:</font></td>
-        </tr>
-        <tr>
-        	<td align="left" valign="top"> 
-           		<form name="trackShark" method="post" action="../TrackIt">
-		  			<input name="number" type="hidden" value=<%=num%>>
-              		<input name="email" type="text" id="email" size="20" maxlength="50">
-              		<input name="Track" type="submit" id="Track" value="Track">
-            	</form>
-			</td>
-        </tr>
-      </table><br />
-	        <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-      	<tr>
-        	<td align="left" valign="top" class="para"><font color="#990000">Remove email address from tracking:</font></td>
-        </tr>
-        <tr>
-        	<td align="left" valign="top"> 
-           		<form name="trackShark" method="post" action="../DontTrack">
-		  			<input name="number" type="hidden" value=<%=num%>>
-              		<input name="email" type="text" id="email" size="20" maxlength="50">
-              		<input name="Remove" type="submit" id="RemoveTrack" value="Remove">
-            	</form>
-			</td>
-        </tr>
-      </table><br />-->
-
-<p>&nbsp;</p>
-  <%
-				}
-			%>
-
-</td>
   <%
 		}
 		%>
-
+  
 <td align="left" valign="top">
 <table border="0" cellspacing="0" cellpadding="5">
 
@@ -1666,6 +461,17 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
     href="encounter.jsp?number=<%=num%>&edit=verbatimEventDate#verbatimEventDate">edit</a>]</font> <%
         		}
         		%>
+<%
+  pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
+%>
+<c:if test="${showReleaseDate}">
+  <p class="para"><strong><%=encprops.getProperty("releaseDate") %></strong>
+    <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
+    <c:if test="${editable}">
+        <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=releaseDate#releaseDate">edit</a>]</font>
+    </c:if>
+  </p>
+</c:if>
 
 <p class="para"><strong><%=encprops.getProperty("location") %>
 </strong><br/> <%=enc.getLocation()%>
@@ -1714,28 +520,6 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 
 </p>
 
-<!-- Display size so long as show_size is not false in commonCnfiguration.properties-->
-<%
-  if (CommonConfiguration.showProperty("size")) {
-%>
-<p class="para"><strong><%=encprops.getProperty("size") %>
-</strong><br/> <%
-     if(enc.getSizeAsDouble()!=null) {%>
-    <%=enc.getSize()%> <%=encprops.getProperty("meters")%>
-    <br/> <em><%=encprops.getProperty("method") %>: <%=enc.getSizeGuess()%></em>
-    <%
-   } else {
-   %>
-    <%=encprops.getProperty("unknown") %>
-    <%
-   }
-				
- if(isOwner&&CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=size#size">edit</a>]</font>
-    <%
- 					}
-				}
- %>
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
     <%
@@ -1830,6 +614,126 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
     }
   %>
 </p>
+
+<p class="para"><strong><%=encprops.getProperty("lifeStage") %>
+</strong> <br/>
+  <%
+    if (enc.getLifeStage() != null) {
+  %>
+  <%=enc.getLifeStage()%>
+  <%
+  } 
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=lifeStage#lifeStage">edit</a>]</font>
+  <%
+    }
+  %>
+</p>
+<%
+  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements());
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
+%>
+<c:if test="${showMeasurements}">
+<%
+  pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
+  pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode));
+%>
+<p class="para"><strong><c:out value="${measurementTitle}"></c:out></strong>
+<c:if test="${editable and !empty measurements}">
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=measurements#measurements">edit</a>]</font>
+</c:if>
+<table>
+<tr>
+<th>Type</th><th>Size</th><th>Units</th><c:if test="${!empty samplingProtocols}"><th>Sampling Protocol</th></c:if>
+</tr>
+<c:forEach var="item" items="${measurements}">
+ <% 
+    MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+    Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
+    if (event != null) {
+        pageContext.setAttribute("measurementValue", event.getValue());
+        pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode));
+    }
+ %>
+<tr>
+    <td><c:out value="${item.label}"/></td><td><c:out value="${measurementValue}"/></td><td><c:out value="${item.unitsLabel}"/></td><td><c:out value="${samplingProtocol}"/></td>
+</tr>
+</c:forEach>
+</table>
+</p>
+</c:if>
+
+<c:if test="${showMetalTags}">
+<%
+  pageContext.setAttribute("metalTagTitle", encprops.getProperty("metalTags"));
+  pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode));
+%>
+<p class="para"><strong><c:out value="${metalTagTitle}"></c:out></strong>
+<c:if test="${editable and !empty metalTags}">
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=metalTags#metalTags">edit</a>]</font>
+</c:if>
+<table>
+<c:forEach var="item" items="${metalTags}">
+ <% 
+    MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("item");
+    MetalTag metalTag =  enc.findMetalTagForLocation(metalTagDesc.getLocation());
+    pageContext.setAttribute("number", metalTag == null ? null : metalTag.getTagNumber());
+    pageContext.setAttribute("locationLabel", metalTagDesc.getLocationLabel());
+ %>
+<tr>
+    <td><c:out value="${locationLabel}:"/></td><td><c:out value="${number}"/></td>
+</tr>
+</c:forEach>
+</table>
+</p>
+</c:if>
+
+<c:if test="${showAcousticTag}">
+<%
+  pageContext.setAttribute("acousticTagTitle", encprops.getProperty("acousticTag"));
+  pageContext.setAttribute("acousticTag", enc.getAcousticTag());
+%>
+<p class="para"><strong><c:out value="${acousticTagTitle}"></c:out></strong>
+<c:if test="${editable}">
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=acousticTag#acousticTag">edit</a>]</font>
+</c:if>
+<table>
+<tr>
+    <td>Serial Number:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.serialNumber}"/></td>
+</tr>
+<tr>
+    <td>ID:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.idNumber}"/></td>
+</tr>
+</table>
+</p>
+</c:if>
+
+<c:if test="${showSatelliteTag}">
+<%
+  pageContext.setAttribute("satelliteTagTitle", encprops.getProperty("satelliteTag"));
+  pageContext.setAttribute("satelliteTag", enc.getSatelliteTag());
+%>
+<p class="para"><strong><c:out value="${satelliteTagTitle}"></c:out></strong>
+<c:if test="${editable}">
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=satelliteTag#satelliteTag">edit</a>]</font>
+</c:if>
+<table>
+<tr>
+    <td>Name:</td><td><c:out value="${satelliteTag.name}"/></td>
+</tr>
+<tr>
+    <td>Serial Number:</td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.serialNumber}"/></td>
+</tr>
+<tr>
+    <td>Argos PTT Number:</td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.argosPttNumber}"/></td>
+</tr>
+</table>
+</p>
+</c:if>
+
 <%
 
   if (enc.getDynamicProperties() != null) {
@@ -2058,673 +962,24 @@ if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals("
 
 
 <td width="250" align="left" valign="top">
-<p class="para"><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px"
-                     height="*"><strong>&nbsp;<%=encprops.getProperty("images")%>
-</strong><br/> <%
-  if (session.getAttribute("logged") != null) {
-%> <em><%=encprops.getProperty("click2view")%>
-</em>
-</p>
 <%
-  }
-%>
-<table>
-<%
-  Enumeration images = enc.getAdditionalImageNames().elements();
-  int imageCount = 0;
-  while (images.hasMoreElements()) {
-    imageCount++;
-    String addTextFile = ((String) images.nextElement()).replaceAll("%20"," ");
-    try {
-      if ((myShepherd.isAcceptableImageFile(addTextFile)) || (myShepherd.isAcceptableVideoFile(addTextFile))) {
-        String addText = num + "/" + addTextFile;
-%>
-<tr>
-<td>
-<table>
-<tr>
-  <td class="para"><em><%=encprops.getProperty("image") %> <%=imageCount%>
-  </em></td>
-</tr>
-<%
-  if (isOwner) {
-%>
-<tr>
-  <td class="para"><img align="absmiddle"
-                        src="../images/Crystal_Clear_action_find.gif">
-    <strong><%=encprops.getProperty("image_commands") %>
-    </strong>:<br/> <font size="-1">
-      [<a
-      href="encounterSearch.jsp?referenceImageName=<%=(num+"/"+(addTextFile.replaceAll(" ","%20")))%>"><%=encprops.getProperty("look4photos") %>
-    </a>] </font></td>
-</tr>
+//String isLoggedInValue="true";
+//String isOwnerValue="true";
 
-<%
-  }
-  if (isOwner) {
-    int totalKeywords = myShepherd.getNumKeywords();
-
-
+if(!loggedIn){isLoggedInValue="false";}
+if(!isOwner){isOwnerValue="false";}
 %>
 
-<tr>
-  <td class="para">
-    <%
-      if (isOwner && CommonConfiguration.isCatalogEditable()) {
-    %>
-    <img align="absmiddle" src="../images/cancel.gif">
-    <strong><%=encprops.getProperty("remove_keyword") %>
-    </strong>
-    <%
-    } else {
-    %>
-    <strong><%=encprops.getProperty("matchingKeywords") %>
-    </strong>
-    <%
-      }
-    %>
-    <br/>
-    <%
-      Iterator indexes = myShepherd.getAllKeywords();
-      if (totalKeywords > 0) {
-        boolean haveAddedKeyword = false;
-        for (int m = 0; m < totalKeywords; m++) {
-          Keyword word = (Keyword) indexes.next();
-          if (word.isMemberOf(addText)) {
-            haveAddedKeyword = true;
+  <jsp:include page="encounterImagesEmbed.jsp" flush="true">
+    <jsp:param name="encounterNumber" value="<%=num%>" />
 
-            if (CommonConfiguration.isCatalogEditable()) {
-    %>
-    <a
-      href="../KeywordHandler?number=<%=num%>&action=removePhoto&photoName=<%=addTextFile%>&keyword=<%=word.getIndexname()%>">
-      <%
-        }
-      %>
-      "<%=word.getReadableName()%>"
-      <%
-        if (CommonConfiguration.isCatalogEditable()) {
-      %>
-    </a>
-    <%
-      }
-    %>
-    &nbsp;
-    <%
-        } //end if
-      } //end for
-      if (!haveAddedKeyword) {%>
+    	<jsp:param name="isOwner" value="<%=isOwnerValue %>" />
 
-    <%=encprops.getProperty("none_assigned")%>
+    	<jsp:param name="loggedIn" value="<%=isLoggedInValue %>" />
 
-    <% }
-    } //end if
-    else { %>
-    <%=encprops.getProperty("none_defined")%>
+  </jsp:include>
 
 
-    <% }
-    %>
-  </td>
-</tr>
-<%
-  if (CommonConfiguration.isCatalogEditable()) {
-%>
-<tr>
-  <td>
-
-    <table>
-      <tr>
-        <td class="para"><img align="absmiddle"
-                              src="../images/keyword_icon_small.gif">
-          <strong><%=encprops.getProperty("add_keyword") %> <a
-            href="<%=CommonConfiguration.getWikiLocation()%>photo_keywords" target="_blank">
-            <img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a></strong>
-        </td>
-      </tr>
-      <tr>
-        <td class="para">
-          <%
-            if (totalKeywords > 0) {
-          %>
-          <form action="../KeywordHandler" method="post" name="keyword">
-            <select name="keyword" id="keyword">
-              <option value=" " selected>&nbsp;</option>
-              <%
-                Iterator keys = myShepherd.getAllKeywords(kwQuery);
-                for (int n = 0; n < totalKeywords; n++) {
-                  Keyword word = (Keyword) keys.next();
-                  String indexname = word.getIndexname();
-                  String readableName = word.getReadableName();
-              %>
-              <option value="<%=indexname%>"><%=readableName%>
-              </option>
-              <%
-                }
-              %>
-
-            </select>
-            <input name="number" type="hidden" value=<%=num%>>
-            <input name="action" type="hidden" value="addPhoto">
-            <input name="photoName" type="hidden" value="<%=addTextFile%>">
-            <input name="AddKW" type="submit" id="AddKW" value="<%=encprops.getProperty("add") %>">
-          </form>
-          <%
-          } else {
-          %>
-          <%=encprops.getProperty("no_keywords") %>
-          <%
-            }
-          %>
-
-        </td>
-      </tr>
-    </table>
-
-  </td>
-</tr>
-<%
-  }
-%>
-
-<%
-
-
-  }
-%>
-<tr>
-  <td>
-    <%
-      boolean isBMP = false;
-      boolean isVideo = false;
-      if (addTextFile.toLowerCase().indexOf(".bmp") != -1) {
-        isBMP = true;
-      }
-      if (myShepherd.isAcceptableVideoFile(addTextFile)) {
-        isVideo = true;
-      }
-      if (isOwner && (!isBMP) && (!isVideo)) {
-    %>
-    <a href="<%=num%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)"
-       title="Click to enlarge">
-      <%
-      } else if (isOwner||(loggedIn)) {
-      %>
-      <a href="<%=addText%>" 
-        <%
-        if(!isVideo){
-        %>
-      class="highslide" onclick="return hs.expand(this)"
-		<%
-            }
-		%>
-          
-         title="Click to enlarge">
-         
-         
-         <%
-        }
-
-        String thumbLocation = "file-" + num + "/" + imageCount + ".jpg";
-        File processedImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/" + imageCount + ".jpg")));
-
-
-        int intWidth = 250;
-        int intHeight = 200;
-        int thumbnailHeight = 200;
-        int thumbnailWidth = 250;
-
-
-        if(!isVideo){
-        	File file2process = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + addText)));
-        	Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
-        	String width = Double.toString(imageDimensions.getWidth());
-        	String height = Double.toString(imageDimensions.getHeight());
-        	intHeight = ((new Double(height)).intValue());
-        	intWidth = ((new Double(width)).intValue());
-        }
-        
-        if (intWidth > thumbnailWidth) {
-          double scalingFactor = intWidth / thumbnailWidth;
-          intWidth = (int) (intWidth / scalingFactor);
-          intHeight = (int) (intHeight / scalingFactor);
-          if (intHeight < thumbnailHeight) {
-            thumbnailHeight = intHeight;
-          }
-        } else {
-          thumbnailWidth = intWidth;
-          thumbnailHeight = intHeight;
-        }
-        int copyrightTextPosition = (int) (thumbnailHeight / 3);
-
-
-        if (isVideo) {
-      %> <img width="250" height="200" alt="video <%=enc.getLocation()%>"
-              src="../images/video.jpg" border="0" align="left" valign="left">
-
-      </a>
-
-
-      <%
-
-
-      } else if ((!processedImage.exists()) && (!haveRendered)) {
-        haveRendered = true;
-        //System.out.println("Using DynamicImage to render thumbnail: "+num);
-        //System.gc();
-
-
-      %>
-      <di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>"
-              imgParams="rendering=speed,quality=low" border="0"
-              output="<%=thumbLocation%>" expAfter="0" threading="limited"
-              fillPaint="#FFFFFF" align="left" valign="left">
-        <di:image width="<%=Integer.toString(thumbnailWidth) %>"
-                  height="<%=Integer.toString(thumbnailHeight) %>" composite="70"
-                  srcurl="<%=addText%>"/>
-        <di:rectangle x="0" y="<%=copyrightTextPosition %>" width="<%=thumbnailWidth %>"
-                      composite="30" height="13" fillPaint="#99CCFF"></di:rectangle>
-
-        <di:text x="4" y="<%=copyrightTextPosition %>" align="left" font="Arial-bold-11"
-                 fillPaint="#000000"><%=encprops.getProperty("nocopying") %>
-        </di:text>
-      </di:img>
-      <img width="<%=thumbnailWidth %>" alt="photo <%=enc.getLocation()%>"
-           src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left" valign="left"> <%
-      if (isOwner) {
-    %>
-    </a>
-    <%
-      }
-    %> <%
-  } else if ((!processedImage.exists()) && (haveRendered)) {
-  %> <img width="250" height="200" alt="photo <%=enc.getLocation()%>"
-          src="../images/processed.gif" border="0" align="left" valign="left">
-      <%
-		if (session.getAttribute("logged")!=null) {
-		%>
-		</a>
-    <%
-      }
-    %> <%
-  } else {
-  %> <img id="img<%=imageCount%> " width="<%=thumbnailWidth %>" alt="photo <%=enc.getLocation()%>"
-          src="<%=(num+"/"+imageCount+".jpg")%>" border="0" align="left"
-          valign="left"> <%
-	if (session.getAttribute("logged")!=null) {
-				%></a>
-                <div 
-            <%
-            if(!isVideo){
-            %>
-            class="highslide-caption"
-            <%
-            }
-            %>
-            >
-      <h3><%=encprops.getProperty("imageMetadata") %>
-      </h3>
-      <table>
-        <tr>
-          <td align="left" valign="top">
-
-            <table>
-
-              <tr>
-                <td align="left" valign="top"><span
-                  class="caption"><%=encprops.getProperty("filename") %>: <%=addTextFile%></span>
-                </td>
-              </tr>
-
-
-              <tr>
-                <td align="left" valign="top"><span
-                  class="caption"><%=encprops.getProperty("location") %>: <%=enc.getLocation() %></span>
-                </td>
-              </tr>
-
-
-              <tr>
-                <td align="left" valign="top"><span
-                  class="caption"><%=encprops.getProperty("location") %>: <%=enc.getLocation() %></span>
-                </td>
-              </tr>
-              <tr>
-                <td><span
-                  class="caption"><%=encprops.getProperty("locationID") %>: <%=enc.getLocationID() %></span>
-                </td>
-              </tr>
-              <tr>
-                <td><span
-                  class="caption"><%=encprops.getProperty("date") %>: <%=enc.getDate() %></span>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="caption"><%=encprops.getProperty("individualID") %>: <a
-                  href="../individuals.jsp?number=<%=enc.getIndividualID() %>"><%=enc.getIndividualID() %>
-                </a></span></td>
-              </tr>
-              <tr>
-                <td><span class="caption"><%=encprops.getProperty("title") %>: <a
-                  href="encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %>
-                </a></span></td>
-              </tr>
-              <tr>
-                <td><span class="caption">
-											<%=encprops.getProperty("matchingKeywords") %>
-											<%
-                        Iterator it = myShepherd.getAllKeywords();
-                        while (it.hasNext()) {
-                          Keyword word = (Keyword) it.next();
-
-
-                          if (word.isMemberOf(num + "/" + addTextFile)) {
-                      %>
-														<br/><%= word.getReadableName()%>
-														
-														<%
-
-
-                                }
-
-                              }
-                            %>
-										</span></td>
-              </tr>
-
-            </table>
-
-
-            <%
-              if (CommonConfiguration.showEXIFData()&&!isVideo) {
-            %>
-
-
-            <p><strong>EXIF Data</strong></p>
-					<span class="caption">
-					<div class="scroll"><span class="caption">	
-					<%
-            if ((addTextFile.toLowerCase().endsWith("jpg")) || (addTextFile.toLowerCase().endsWith("jpeg"))) {
-              try{
-              	File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/" + addTextFile)));
-              	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              	// iterate through metadata directories
-              	Iterator directories = metadata.getDirectoryIterator();
-              	while (directories.hasNext()) {
-              	  Directory directory = (Directory) directories.next();
-              	  // iterate through tags and print to System.out
-              	  Iterator tags = directory.getTagIterator();
-              	  while (tags.hasNext()) {
-              	    Tag tag = (Tag) tags.next();
-
-          %>
-								<%=tag.toString() %><br/>
-								<%
-              	  } //end while
-             	} //end while
-           } //end try
-            catch(Exception e){
-            %>
-            <p>Cannot read metadata for this file.</p>
-            <%
-            System.out.println("Cannot read metadata for: "+addTextFile);
-            e.printStackTrace();
-            }
-              } //end if
- 
-                %>
-   									</span>
-          </div>
-   								
-   								</span>
-          </td>
-          <%
-            }
-          %>
-
-
-        </tr>
-      </table>
-
-    </div>
-
-    <%
-        }
-
-      }
-    %>
-  </td>
-</tr>
-
-</table>
-
-  <%
-						}
-				else {
-					%>
-<tr>
-  <td>
-    <p><img src="../alert.gif"> <strong><%=encprops.getProperty("badfile") %>
-      :</strong> <%=addTextFile%> <%
-      if (isOwner && CommonConfiguration.isCatalogEditable()) {
-    %> <br/>
-    <a href="../EncounterRemoveImage?number=<%=(num)%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&position=<%=imageCount%>"><%=encprops.getProperty("clickremove") %>
-    </a></p>
-    <%
-      }
-    %>
-  </td>
-</tr>
-<%
-  } //close else of if
-} //close try
-catch (Exception e) {
-  e.printStackTrace();
-%>
-<table width="250px">
-<tr>
-<td>
-<img width="250px" height="200px" src="../images/Crystal_Clear_filesystem_file_broken.png" />
-</td></tr>
-<tr>
-<td class="para">
-<p>Error message:<br /> <%=e.getMessage()%></p>
-</td></tr>
-</table>
-<%
-    }
-  } //close while
-%>
-
-</table>
-
-<p class="para">
-    <%
-		 			if (isOwner&&CommonConfiguration.isCatalogEditable()) {
-		 		%>
-<table width="250" bgcolor="#99CCFF">
-  <tr>
-    <td class="para">
-      <form action="../EncounterAddImage" method="post"
-            enctype="multipart/form-data" name="encounterAddImage"><input
-        name="action" type="hidden" value="imageadder" id="action">
-        <input name="number" type="hidden" value="<%=num%>" id="shark">
-        <strong><img align="absmiddle"
-                     src="../images/upload_small.gif"/> <%=encprops.getProperty("addfile") %>
-          :</strong><br/>
-        <input name="file2add" type="file" size="20">
-
-        <p><input name="addtlFile" type="submit" id="addtlFile"
-                  value="Upload"></p></form>
-
-    </td>
-  </tr>
-</table>
-<br/>
-<table width="250" bgcolor="#99CCFF">
-  <tr>
-    <td class="para">
-      <form action="../EncounterRemoveImage" method="post"
-            name="encounterRemoveImage"><input name="action"
-                                               type="hidden" value="imageremover" id="action">
-        <input
-          name="number" type="hidden" value=<%=num%>> <strong><img
-          align="absmiddle" src="../images/cancel.gif"/> <%=encprops.getProperty("removefile") %>:
-        </strong> <select name="position">
-          <%
-            for (int rmi = 1; rmi <= imageCount; rmi++) {
-          %>
-          <option value="<%=rmi%>"><%=rmi%>
-          </option>
-          <%
-            }
-          %>
-        </select><br/>
-
-        <p><input name="rmFile" type="submit" id="rmFile"
-                  value="Remove"></p></form>
-
-    </td>
-  </tr>
-</table>
-
-<%
-  }
-%>
-
-
-<p>
-    <%
-		 	if (isOwner&&CommonConfiguration.useSpotPatternRecognition()&&((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
-		 	
-
-		 			
-		 			//File extractImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+num+"/extract"+num+".jpg");
-		 			File extractImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/extract"+num+".jpg")));
-
-		 			//File extractRightImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+num+"/extractRight"+num+".jpg");
-		 			File extractRightImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/extractRight"+num+".jpg")));
-
-		 			
-		 			//File uploadedFile=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+num+"/"+enc.getSpotImageFileName());
-		 			File uploadedFile=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/"+enc.getSpotImageFileName())));
-
-		 			
-		 			//File uploadedRightFile=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+num+"/"+enc.getRightSpotImageFileName());
-		 			File uploadedRightFile=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+num+"/"+enc.getRightSpotImageFileName())));
-
-		 			
-		 			String extractLocation="file-"+num+"/extract"+num+".jpg";
-		 			String extractRightLocation="file-"+num+"/extractRight"+num+".jpg";
-		 			String addText=num+"/"+enc.getSpotImageFileName();
-		 			String addTextRight=num+"/"+enc.getRightSpotImageFileName();
-		 			//System.out.println(addText);
-		 			String height="";
-		 			String width="";
-		 			String heightR="";
-		 			String widthR="";
-		 			
-
-		 			//System.out.println(extractImage.exists());
-		 			//System.out.println(uploadedFile.exists());
-		 			//System.out.println(iInfo.check());
-		 			//ImageInfo iInfo=new ImageInfo();
-		 			
-					
-		 			
-		 			if((uploadedFile.exists())&&(uploadedFile.isFile())&&(uploadedFile.length()>0)&&(enc.getNumSpots()>0)) {
-
-		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
-		 				
-		 				//iInfo.setInput(new FileInputStream(uploadedFile));
-		 				if (!extractImage.exists()) {
-		 					//System.out.println("Made it here.");
-		 					
-		 					height+=Double.toString(imageDimensions.getHeight());
-		 					width+=Double.toString(imageDimensions.getWidth());
-		 					//height+=iInfo.getHeight();
-		 					//width+=iInfo.getWidth();
-		 					
-		 					
-		 					
-		 					//System.out.println(height+"and"+width);
-		 					int intHeight=((new Double(height)).intValue());
-		 					int intWidth=((new Double(width)).intValue());
-		 					//System.out.println("Made it here: "+enc.hasSpotImage+" "+enc.hasRightSpotImage);
-		 					System.gc();
-		 %>
-  <di:img width="<%=intWidth%>" height="<%=intHeight%>"
-          imgParams="rendering=speed,quality=low" expAfter="0" border="0"
-          threading="limited" output="<%=extractLocation%>">
-    <di:image srcurl="<%=addText%>"/>
-  </di:img> <%
-							}
-										}
-									//set the right file
-									
-						if((uploadedRightFile.exists())&&uploadedRightFile.isFile()&&(uploadedRightFile.length()>0)&&(enc.getNumRightSpots()>0)) {
-									
-									//iInfo=new ImageInfo();
-									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
-		 				
-									//iInfo.setInput(new FileInputStream(uploadedRightFile));
-									if (!extractRightImage.exists()) {
-										//System.out.println("Made it here.");
-										//heightR+=iInfo.getHeight();
-										//widthR+=iInfo.getWidth();
-										//System.out.println(height+"and"+width);
-										
-										heightR+=Double.toString(imageDimensions.getHeight());
-		 								widthR+=Double.toString(imageDimensions.getWidth());
-										
-										
-										int intHeightR=((new Double(heightR)).intValue());
-										int intWidthR=((new Double(widthR)).intValue());
-										System.gc();
-						%>
-  <di:img width="<%=intWidthR%>" height="<%=intHeightR%>"
-          imgParams="rendering=speed,quality=low" expAfter="0"
-          threading="limited" border="0" output="<%=extractRightLocation%>">
-    <di:image srcurl="<%=addTextRight%>"/>
-  </di:img> <%
-						}
-								}
-								
-								
-								String fileloc=(num+"/"+enc.getSpotImageFileName());
-								String filelocR=(num+"/"+enc.getRightSpotImageFileName());
-					%>
-
-<p class="para"><strong>Spot data image files used for
-  matching</strong><br/> <font size="-1">[<a
-  href="encounter.jsp?number=<%=num%>&edit=spotImage#spotImage">reset
-  left or right spot data image</a>]</font><br/> <br/> <%
-  if ((enc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
-%> Left-side<em>.</em><em> Click the image to view the full size
-  original. <a href="encounterSpotVisualizer.jsp?number=<%=num%>">Click
-    here to see the left-side spots mapped to the left-side image.</a> </em><br/>
-  <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image"
-                              width="250"></a> <%
-    }
-  %> <br/><br/> <%
-    //--
-    if ((enc.getNumRightSpots() > 0)&&(uploadedRightFile.exists())&&(uploadedRightFile.isFile())) {
-  %> Right-side<em>.</em><em> Click the image to view the full
-    size original. <a
-      href="encounterSpotVisualizer.jsp?number=<%=num%>&rightSide=true">Click
-      here to see the right-side spots mapped to the right-side image.</a> </em><br/>
-  
-  		<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image"
-                               width="250"></a> 
-                               
-      <%
-      }
-      //--
-
-
-    }
-  %>
-
-</p>
 
 
 <%
@@ -2732,7 +987,7 @@ catch (Exception e) {
 %>
 <div class="module">
   <jsp:include page="encounterAdoptionEmbed.jsp" flush="true">
-    <jsp:param name="num" value="<%=num%>"/>
+    <jsp:param name="encounterNumber" value="<%=enc.getCatalogNumber()%>"/>
   </jsp:include>
 </div>
 <%
@@ -2741,14 +996,128 @@ catch (Exception e) {
 </td>
 </tr>
 </table>
+<%
+if(loggedIn){
+%>
+<hr />
+<a name="tissueSamples"></a>
+<p class="para"><img align="absmiddle" src="../images/microscope.gif">
+    <strong><%=encprops.getProperty("tissueSamples") %></strong></p>
+    <p class="para"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><%=encprops.getProperty("addTissueSample") %></a></p>
+<p>
+<%
+List<TissueSample> tissueSamples=enc.getTissueSamples();
+//List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
+
+int numTissueSamples=tissueSamples.size();
+if(numTissueSamples>0){
+%>
+<table width="100%" class="tissueSample">
+<tr><th><strong><%=encprops.getProperty("sampleID") %></strong></th><th><strong><%=encprops.getProperty("values") %></strong></th><th><strong><%=encprops.getProperty("analyses") %></strong></th><th><strong><%=encprops.getProperty("editTissueSample") %></strong></th><th><strong><%=encprops.getProperty("removeTissueSample") %></strong></th></tr>
+<%
+for(int j=0;j<numTissueSamples;j++){
+	TissueSample thisSample=tissueSamples.get(j);
+	%>
+	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td>
+	
+	<td><table>
+		<%
+		int numAnalyses=thisSample.getNumAnalyses();
+		List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+		for(int g=0;g<numAnalyses;g++){
+			GeneticAnalysis ga = gAnalyses.get(g);
+			if(ga.getAnalysisType().equals("MitochondrialDNA")){
+				MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
+				%>
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=encprops.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %>
+				<%
+				if(!mito.getSuperHTMLString().equals("")){
+				%>
+				<em>
+				<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+				<br /><%=mito.getSuperHTMLString()%>
+				</em>
+				<%
+				}
+				%>
+				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype#haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			<%
+			}
+			else if(ga.getAnalysisType().equals("SexAnalysis")){
+				SexAnalysis mito=(SexAnalysis)ga;
+				%>
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=encprops.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %>
+				<%
+				if(!mito.getSuperHTMLString().equals("")){
+				%>
+				<em>
+				<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+				<br /><%=mito.getSuperHTMLString()%>
+				</em>
+				<%
+				}
+				%>
+				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=sexAnalysis#sexAnalysis"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			<%
+			}
+			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+				MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
+				
+			%>
+			<tr>
+				<td style="border-style: none;">
+					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span></p>
+					<span class="caption"><%=mito.getAllelesHTMLString() %>
+						<%
+									if(!mito.getSuperHTMLString().equals("")){
+									%>
+									<em>
+									<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+									<br /><%=mito.getSuperHTMLString()%>
+									</em>
+									<%
+									}
+				%>
+					
+					</span>
+				</td>
+				<td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=msMarkers#msMarkers"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			
+			<% 
+			}
+		}
+		%>
+		</table>
+		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=msMarkers#msMarkers"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
+		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
+	
+	</td>
+	
+	
+	<td><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample#tissueSample"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
+	<%
+}
+%>
+</table>
+</p>
+<%
+}
+else {
+%>
+	<p class="para"><%=encprops.getProperty("noTissueSamples") %></p>
+<%
+}
+} //end if loggedIn
+%>
 <p>
     <%
 	  	  	  	if (request.getParameter("noscript")==null) {
 	  	  	  %>
-<hr>
-<p><a name="map"></a><strong><img
+<hr />
+<p><a name="map"><strong><img
   src="../images/2globe_128.gif" width="56" height="56"
-  align="absmiddle"/><%=encprops.getProperty("mapping") %></strong></p>
+  align="absmiddle"/></a><%=encprops.getProperty("mapping") %></strong></p>
 <%
   if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
 %>

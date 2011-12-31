@@ -26,7 +26,7 @@ import com.oreilly.servlet.multipart.Part;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
-
+import org.ecocean.SinglePhotoVideo;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -59,8 +59,9 @@ public class EncounterAddImage extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    String fileName = "None", encounterNumber = "None";
-
+    String fileName = "None";
+    String encounterNumber = "None";
+    String fullPathFilename="";
 
     try {
       MultipartParser mp = new MultipartParser(request, 10 * 1024 * 1024); // 2MB
@@ -89,10 +90,9 @@ public class EncounterAddImage extends HttpServlet {
           if (fileName != null) {
 
             File thisSharkDir = new File(getServletContext().getRealPath(("/encounters/" + encounterNumber)));
-
-            long file_size = filePart.writeTo(
-              new File(thisSharkDir, fileName)
-            );
+            File finalFile=new File(thisSharkDir, fileName);
+            fullPathFilename=finalFile.getCanonicalPath();
+            long file_size = filePart.writeTo(finalFile);
 
           }
         }
@@ -106,7 +106,7 @@ public class EncounterAddImage extends HttpServlet {
         try {
 
 
-          enc.addAdditionalImageName(fileName);
+          enc.addSinglePhotoVideo(new SinglePhotoVideo(encounterNumber,(new File(fullPathFilename))));
           enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Submitted new encounter image graphic: " + fileName + ".</p>");
           positionInList = enc.getAdditionalImageNames().size();
         } catch (Exception le) {
