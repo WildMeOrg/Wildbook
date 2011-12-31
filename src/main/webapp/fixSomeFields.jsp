@@ -55,14 +55,7 @@ while(allEncs.hasNext()){
 
 	Encounter sharky=(Encounter)allEncs.next();
 	
-	//populate dateInMilliseconds
-	//sharky.resetDateInMilliseconds();
-	
-	//fix depth
-	if((sharky.getDepthAsDouble()!=null)&&(sharky.getDepthAsDouble()<=0)){
-		sharky.setDepth(null);
-	}
-	
+	if((sharky.getYear()<1900)||(sharky.getYear()>2012)){myShepherd.throwAwayEncounter(sharky);}
 	
 	//
 	//if((sharky.getGPSLatitude()!=null)&&(!sharky.getGPSLatitude().equals(""))){
