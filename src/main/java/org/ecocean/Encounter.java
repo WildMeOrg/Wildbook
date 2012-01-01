@@ -115,7 +115,7 @@ public class Encounter implements java.io.Serializable {
   //name, email, phone, address of the encounter photographer
   private String photographerName, photographerEmail, photographerPhone, photographerAddress;
   //a Vector of Strings defining the relative path to each photo. The path is relative to the servlet base directory
-  private Vector additionalImageNames = new Vector();
+  public Vector additionalImageNames = new Vector();
   //a Vector of Strings of email addresses to notify when this encounter is modified
   private Vector interestedResearchers = new Vector();
   //time metrics of the report
