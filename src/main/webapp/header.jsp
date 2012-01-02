@@ -286,7 +286,12 @@ z-index:99;
 					if((request.getParameter("isAdmin")!=null)&&(request.getParameter("isAdmin").equals("true"))) {%>
 					
 	        			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;" >General</a></li>
-            			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/tapirlink/admin/configurator.php?resource=RhincodonTypus" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">TapirLink</a></li>
+     <li><a
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/logs.jsp"
+	          class="enclose"
+	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Logs
+        </a></li>            			
+<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/tapirlink/admin/configurator.php?resource=RhincodonTypus" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">TapirLink</a></li>
 	        			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/kwAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Photo Keywords</a></li>
 						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/stats.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Statistics</a></li>
 						

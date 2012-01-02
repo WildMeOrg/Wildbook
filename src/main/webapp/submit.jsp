@@ -406,41 +406,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
   <td colspan="2">
     <input name="behavior" type="text" id="scars" size="75"/></td>
 </tr>
-<%
 
-if(CommonConfiguration.showProperty("showLifestage")){
-
-%>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("lifeStage")%>:</strong></td>
-  <td colspan="2">
-  <select name="lifeStage" id="lifeStage">
-  	<option value="" selected="selected"></option>
-  <%
-  			       boolean hasMoreStages=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMoreStages){
-  			       	  String currentLifeStage = "lifeStage"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMoreStages=false;
-  			          }
-  			          
-			       }
-			       
- %>
-  </select></td>
-</tr>
-<%
-}
-%>
 <%
     pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
 %>
@@ -483,73 +449,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
   pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode));
 %>
 
-<c:if test="${showMetalTags and !empty metalTags}">
-<tr class="form_row">
-  <td class="form_label"><strong>Metal Tags:</strong></td>
-  <td colspan="2">
-    <table class="metalTags">
-    <tr>
-      <th>Location</th><th>Tag Number</th>
-    </tr>
-    <c:forEach items="${metalTags}" var="metalTagDesc">
-      <tr>
-        <td><c:out value="${metalTagDesc.locationLabel}:"/></td>
-        <td><input name="metalTag(${metalTagDesc.location})"/></td>
-      </tr>
-    </c:forEach>
-    </table>
-  </td>
-</tr>
-</c:if>
 
-<c:if test="${showAcousticTag}">
-<tr class="form_row">
-    <td class="form_label"><strong>Acoustic Tag:</strong></td>
-    <td colspan="2">
-      <table class="acousticTag">
-      <tr>
-      <td>Serial number:</td>
-      <td><input name="acousticTagSerial"/></td>
-      </tr>
-      <tr>
-        <td>ID:</td>
-        <td><input name="acousticTagId"/></td>
-      </tr>
-      </table>
-    </td>
-</tr>
-</c:if>
-
-<c:if test="${showSatelliteTag}">
-<%
-  pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
-%>
-<tr class="form_row">
-    <td class="form_label"><strong>Satellite Tag:</strong></td>
-    <td colspan="2">
-      <table class="satelliteTag">
-      <tr>
-        <td>Name:</td>
-        <td>
-            <select name="satelliteTagName">
-              <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
-                <option value="${satelliteTagName}">${satelliteTagName}</option>
-              </c:forEach>
-            </select>
-        </td>
-      </tr>
-      <tr>
-        <td>Serial number:</td>
-        <td><input name="satelliteTagSerial"/></td>
-      </tr>
-      <tr>
-        <td>Argos PTT Number:</td>
-        <td><input name="satelliteTagArgosPttNumber"/></td>
-      </tr>
-      </table>
-    </td>
-</tr>
-</c:if>
 
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>
