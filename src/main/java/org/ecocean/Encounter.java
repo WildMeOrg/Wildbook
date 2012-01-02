@@ -1670,6 +1670,8 @@ public class Encounter implements java.io.Serializable {
     public boolean getApproved(){return approved;}
     public boolean getUnidentifiable(){return unidentifiable;}
     
+    public Vector getOldAdditionalImageNames(){return additionalImageNames;}
+    
     
 }
 
