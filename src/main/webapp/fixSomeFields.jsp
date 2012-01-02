@@ -44,6 +44,9 @@ Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
 Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
 Iterator allSharks;
 
+//empty comment
+
+
 
 try{
 
@@ -53,17 +56,30 @@ allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
 
 while(allEncs.hasNext()){
 
+	//change state
 	Encounter sharky=(Encounter)allEncs.next();
+	if(sharky.getApproved()){sharky.setState("approved");}
+	else if(sharky.getUnidentifiable()){sharky.setState("unidentifiable");}
+	else{sharky.setState("unapproved");}
 	
-	if((sharky.getYear()<1900)||(sharky.getYear()>2012)){myShepherd.throwAwayEncounter(sharky);}
+	//change to SinglePhotoVideo
+	int numPhotos=sharky.getOldAdditionalImageNames().size();
+
+	for(int i=0;i<numPhotos;i++){
+		SinglePhotoVideo single=new SinglePhotoVideo(sharky.getCatalogNumber(), ((String)sharky.additionalImageNames.get(i)), ("/opt/tomcat6/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+((String)sharky.additionalImageNames.get(i))));
+		
+		//set keywords
+		String checkString=sharky.getEncounterNumber() + "/" + (String)sharky.additionalImageNames.get(i);
+		Iterator keywords=myShepherd.getAllKeywords();
+		while(keywords.hasNext()){
+			Keyword word=(Keyword)keywords.next();
+			if(word.isMemberOf(checkString)){single.addKeyword(word);}
+		}
+		sharky.addSinglePhotoVideo(single);
+
 	
-	//
-	//if((sharky.getGPSLatitude()!=null)&&(!sharky.getGPSLatitude().equals(""))){
-	//	sharky.setDecimalLatitude(new Double(sharky.getGPSLatitude()));
-	//}
-	//if((sharky.getGPSLongitude()!=null)&&(!sharky.getGPSLongitude().equals(""))){
-	//		sharky.setDecimalLongitude(new Double(sharky.getGPSLongitude()));
-	//}
+	}
+
 }
 /*
 while(allSharks.hasNext()){
