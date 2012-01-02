@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="java.net.*,java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%
 
@@ -58,25 +58,47 @@ while(allEncs.hasNext()){
 
 	//change state
 	Encounter sharky=(Encounter)allEncs.next();
-	if(sharky.getApproved()){sharky.setState("approved");}
-	else if(sharky.getUnidentifiable()){sharky.setState("unidentifiable");}
-	else{sharky.setState("unapproved");}
+	//if(sharky.getApproved()){sharky.setState("approved");}
+	//else if(sharky.getUnidentifiable()){sharky.setState("unidentifiable");}
+	//else{sharky.setState("unapproved");}
 	
 	//change to SinglePhotoVideo
-	int numPhotos=sharky.getOldAdditionalImageNames().size();
-
+	int numPhotos=sharky.getImages().size();
+	//List<SinglePhotoVideo> images=sharky.getImages();
+	
+	/*
+	if(sharky.getSizeAsDouble()!=null){
+		Measurement measurement = new Measurement(sharky.getEncounterNumber(), "length", sharky.getSizeAsDouble(), "meters", sharky.getSizeGuess());
+        sharky.addMeasurement(measurement);
+	}
+	*/
+	
+	
 	for(int i=0;i<numPhotos;i++){
-		SinglePhotoVideo single=new SinglePhotoVideo(sharky.getCatalogNumber(), ((String)sharky.additionalImageNames.get(i)), ("/opt/tomcat6/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+((String)sharky.additionalImageNames.get(i))));
 		
-		//set keywords
-		String checkString=sharky.getEncounterNumber() + "/" + (String)sharky.additionalImageNames.get(i);
-		Iterator keywords=myShepherd.getAllKeywords();
-		while(keywords.hasNext()){
-			Keyword word=(Keyword)keywords.next();
-			if(word.isMemberOf(checkString)){single.addKeyword(word);}
-		}
-		sharky.addSinglePhotoVideo(single);
 
+		try{
+			
+			URL url = new URL("http://www.whaleshark.org/encounters/encounter.jsp?number="+sharky.getCatalogNumber());
+			BufferedReader in=new BufferedReader(new InputStreamReader(url.openStream()));
+			in.close();
+			in=null;
+			url=null;
+		}
+		catch(Exception e){}
+	
+		
+		//SinglePhotoVideo single=new SinglePhotoVideo(sharky.getCatalogNumber(), ((String)sharky.additionalImageNames.get(i)), ("/opt/tomcat6/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+((String)sharky.additionalImageNames.get(i))));
+		//SinglePhotoVideo single=images.get(i);
+		//single.
+		//set keywords
+		//String checkString=sharky.getEncounterNumber() + "/" + (String)sharky.additionalImageNames.get(i);
+		//Iterator keywords=myShepherd.getAllKeywords();
+	//	while(keywords.hasNext()){
+		//	Keyword word=(Keyword)keywords.next();
+			//if(word.isMemberOf(checkString)){single.addKeyword(word);}
+		//}
+		//sharky.addSinglePhotoVideo(single);
 	
 	}
 
