@@ -270,6 +270,9 @@
                 value-strategy="native">
                 <column length="100" />
             </field>
+                    	<field name="photos" persistence-modifier="persistent">
+	                    		<collection element-type="java.lang.String"/>
+            	</field>
 
             <fetch-group name="count" />
         </class>
