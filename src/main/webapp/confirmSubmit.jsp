@@ -136,8 +136,12 @@
   String thumbLocation = "file-encounters/" + number + "/thumb.jpg";
   if (myShepherd.isAcceptableVideoFile(addText)) {
     addText = "images/video_thumb.jpg";
-  } else {
+  } 
+  else if(myShepherd.isAcceptableImageFile(addText)){
     addText = "encounters/" + number + "/" + addText;
+  }
+  else{
+	  addText = "images/no_images.jpg";
   }
 
 
