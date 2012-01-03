@@ -1141,6 +1141,6 @@ public ArrayList getAllEmailsToUpdate(){
 
 }
 
-
+public void removeLogEncounter(Encounter enc){if(unidentifiableEncounters.contains(enc)){unidentifiableEncounters.remove(enc);}}
 
 }

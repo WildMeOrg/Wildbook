@@ -40,6 +40,8 @@ Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
 Query encQuery=myShepherd.getPM().newQuery(encClass);
 Iterator allEncs;
 
+
+
 Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
 Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
 Iterator allSharks;
@@ -52,10 +54,10 @@ try{
 
 
 allEncs=myShepherd.getAllEncounters(encQuery);
-allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
+//allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
 
 while(allEncs.hasNext()){
-
+	
 	//change state
 	Encounter sharky=(Encounter)allEncs.next();
 	//if(sharky.getApproved()){sharky.setState("approved");}
@@ -103,13 +105,23 @@ while(allEncs.hasNext()){
 	}
 
 }
+
 /*
 while(allSharks.hasNext()){
 
 	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
 	
 	//populate max years between resightings
-	sharky.resetMaxNumYearsBetweenSightings();
+	if(sharky.totalLogEncounters()>0){
+		//int numLogEncounters=);
+		for(int i=0;i<sharky.totalLogEncounters();i++){
+			Encounter enc=sharky.getLogEncounter(i);
+			sharky.removeLogEncounter(enc);
+			sharky.addEncounter(enc);
+			i--;
+			
+		}
+	}
 	
 }
 */
@@ -129,8 +141,8 @@ catch(Exception ex) {
 	System.out.println("!!!An error occurred on page allEncounters.jsp. The error was:");
 	ex.printStackTrace();
 	//System.out.println("fixSomeFields.jsp page is attempting to rollback a transaction because of an exception...");
-	encQuery.closeAll();
-	encQuery=null;
+	//encQuery.closeAll();
+	//encQuery=null;
 	sharkQuery.closeAll();
 	sharkQuery=null;
 	myShepherd.rollbackDBTransaction();
