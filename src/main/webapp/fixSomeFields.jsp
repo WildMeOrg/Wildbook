@@ -80,12 +80,14 @@ while(allEncs.hasNext()){
 		
 
 		try{
-			
-			URL url = new URL("http://www.whaleshark.org/encounters/encounter.jsp?number="+sharky.getCatalogNumber());
-			BufferedReader in=new BufferedReader(new InputStreamReader(url.openStream()));
-			in.close();
-			in=null;
-			url=null;
+			File file=new File("/opt/tomcat6/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+"/"+sharky.getImages().get(i).getDataCollectionEventID()+".jpg");
+			if(!file.exists()){
+				URL url = new URL("http://www.whaleshark.org/encounters/encounter.jsp?number="+sharky.getCatalogNumber());
+				BufferedReader in=new BufferedReader(new InputStreamReader(url.openStream()));
+				in.close();
+				in=null;
+				url=null;
+			}
 		}
 		catch(Exception e){}
 	
