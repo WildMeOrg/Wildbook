@@ -1294,6 +1294,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
  <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
  </table>
  </form>
+ <br />
 </c:if>
  
 <c:if test="${param.edit eq 'acousticTag'}">
@@ -1327,7 +1328,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
       </td>
     </tr>
  </table>
- 
+ <br />
 </c:if>
  
 <c:if test="${param.edit eq 'satelliteTag'}">
@@ -1368,6 +1369,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
     <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
  </table>
  </form>
+ <br />
 </c:if>
  
   
