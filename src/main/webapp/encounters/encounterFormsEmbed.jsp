@@ -174,7 +174,7 @@ if(!request.getParameter("loggedIn").equals("true")){
      %>
 <c:if test="${param.edit eq 'releaseDate'}">
   <a name="releaseDate"></a>
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><strong><font color="#990000">
                     <%=encprops.getProperty("releaseDate")%>:</font></strong><br />
@@ -201,7 +201,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 				//set location code
 				if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("loccode"))){
 			%> <a name="loccode"></a><br />
-  <tableclass="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><strong><font
         color="#990000"><%=encprops.getProperty("setLocationID")%>:</font></strong></td>
@@ -225,7 +225,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 		//set alternateid
 		if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){
 		%> <a name="alternateid"></a><br />
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><strong><font
         color="#990000"><%=encprops.getProperty("setAlternateID")%>:</font></strong></td>
@@ -248,7 +248,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 		if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("verbatimEventDate"))){
 		%> 
 		<a name="verbatimEventDate"></a><br />
-		  <table class="editEncounter">
+		  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 		    <tr>
 		      <td align="left" valign="top" class="para"><strong><font
 		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
@@ -273,7 +273,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 		//encounter set dynamic property
 		if(CommonConfiguration.isCatalogEditable()&&request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
 		%> <a name="dynamicproperty"></a><br />
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para">
         <table>
@@ -316,7 +316,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 		%> 
 		<a name="add_dynamicproperty"></a>
 		<br />
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para">
         <table>
@@ -349,7 +349,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 				//set informothers
 			if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("others"))){
 		%> <a name="others"></a><br />
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para">
         <strong><%=encprops.getProperty("setOthersToInform")%>
@@ -372,7 +372,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 				//set matchedBy type
 			if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageMatchedBy"))){
 		%> <a name="matchedBy"></a>
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><font
         color="#990000"><img align="absmiddle"
@@ -403,7 +403,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 			  //add this encounter to a MarkedIndividual object
 			  if ((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))) {
 		%> <a name="manageIdentity"></a>
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><font
         color="#990000">
@@ -440,7 +440,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 		  	  //Remove from MarkedIndividual if not unassigned
 		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned"))&&CommonConfiguration.isCatalogEditable()&&request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))) {
 		  %>
-<table class="editEncounter">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
   <tr>
     <td align="left" valign="top" class="para"><font
       color="#990000">
@@ -471,7 +471,7 @@ if(!request.getParameter("loggedIn").equals("true")){
       	  //create new MarkedIndividual with name
       	  if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))){
       %>
-<table class="editEncounter">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
   <tr>
     <td align="left" valign="top" class="para"><font
       color="#990000">
@@ -500,7 +500,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 			}
       	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
     		%> <a name="gps"></a>
-    		<table class="editEncounter">
+    		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     			<tr>
     				<td align="left" valign="top" class="para"><span class="style3"><font
     					color="#990000"><%=encprops.getProperty("resetGPS")%>:</font></span><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
@@ -527,7 +527,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 				//set location for sighting
 			if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("location"))){
 		%> <a name="location"></a>
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><strong><font
         color="#990000"><%=encprops.getProperty("setLocation")%>:</font></strong></td>
@@ -551,7 +551,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("comments"))){
 %> 
 <a name="comments"></a>
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><strong><font
         color="#990000"><%=encprops.getProperty("editSubmittedComments")%>:</font></strong></td>
@@ -576,7 +576,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("behavior"))){
 %> 
 <a name="behavior"></a>
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para">
       	<strong><font color="#990000"><%=encprops.getProperty("editBehaviorComments")%>:</font></strong>
@@ -610,7 +610,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 		%> 
 
 <a name="contact"></a>
-  <table class="editEncounter">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><strong><font
         color="#990000"><%=encprops.getProperty("editContactInfo")%>:</font></strong></td>
@@ -671,7 +671,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 		%> 
 
 <a name="tissueSample"></a>
-<table class="editEncounter">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><strong>
       <font color="#990000"><%=encprops.getProperty("setTissueSample")%>:</font></strong></td>
@@ -814,7 +814,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 		%> 
 
 <a name="haplotype"></a>
-<table class="editEncounter">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
   <tr>
     <td align="left" valign="top" class="para"><strong>
     <font color="#990000"><%=encprops.getProperty("setHaplotype")%>:</font></strong></td>
@@ -894,7 +894,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 		%> 
 
 <a name="sexAnalysis"></a>
-<table class="editEncounter">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 <tr>
   <td align="left" valign="top" class="para"><strong>
   <font color="#990000"><%=encprops.getProperty("setSexAnalysis")%>:</font></strong></td>
@@ -974,7 +974,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 		%> 
 
 <a name="msMarkers"></a>
-<table class="editEncounter">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
   <tr>
     <td align="left" valign="top" class="para"><strong>
     <font color="#990000"><%=encprops.getProperty("setMsMarkers")%>:</font></strong></td>
@@ -1079,7 +1079,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))){
 						%> 
 <a name="sex"></a>
-<table class="editEncounter">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
   <tr>
     <td align="left" valign="top" class="para"><strong><font
       color="#990000"><%=encprops.getProperty("resetSex")%>:</font></strong></td>
@@ -1106,7 +1106,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("s
 			
 		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("livingStatus"))){
 						%> <a name="livingStatus"></a>
-<table class="editEncounter">
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
   <tr>
     <td align="left" valign="top" class="para"><strong><font
       color="#990000"><img align="absmiddle"
@@ -1132,7 +1132,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("s
 			
 if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("genusSpecies"))){
 									%> <a name="genusSpecies"></a>
-			<table class="editEncounter">
+			<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 			  <tr>
 			    <td align="left" valign="top" class="para"><strong><font
 			      color="#990000"><img align="absmiddle"
@@ -1178,7 +1178,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("lifeStage"))){
 		%> 
 		<a name="lifeStage"></a>
-		<table class="editEncounter">
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font color="#990000">
 					<%=encprops.getProperty("resetLifeStage")%>:</font></strong><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
@@ -1225,7 +1225,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode)); 
  %>
         <a name="measurements"></a>
-        <table class="editEncounter">
+        <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
         <form name="setMeasurements" method="post"
                 action="../EncounterSetMeasurements">
         <input type="hidden" name="encounter" value="${num}"/>
@@ -1278,7 +1278,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
  <form name="setMetalTags" method="post" action="../EncounterSetTags">
  <input type="hidden" name="tagType" value="metalTags"/>
  <input type="hidden" name="encounter" value="${num}"/>
- <table class="editEncounter">
+ <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
  <c:forEach items="${metalTagDescs}" var="metalTagDesc">
     <%
       MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("metalTagDesc");
@@ -1304,7 +1304,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
  %>
  </c:if>
  <a name="acousticTag"></a>
- <table class="editEncounter">
+ <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><strong><font color="#990000">
                     <%=encprops.getProperty("resetAcousticTag")%>:</font></strong><br />
@@ -1345,7 +1345,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
  <input type="hidden" name="tagType" value="satelliteTag"/>
  <input type="hidden" name="encounter" value="${num}"/>
  <input type="hidden" name="id" value="${satelliteTag.id}"/>
- <table class="editEncounter">
+ <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr><td class="formLabel">Name:</td></tr>
     <tr><td>
       <select name="satelliteTagName">
@@ -1376,8 +1376,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 <%				//reset encounter date
 				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("date"))){
 		%> <a name="date"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><strong><font
         color="#990000"><%=encprops.getProperty("resetEncounterDate")%>:</font></strong></td>
