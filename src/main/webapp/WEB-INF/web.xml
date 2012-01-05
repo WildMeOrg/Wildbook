@@ -183,6 +183,11 @@
       <servlet-name>EncounterSetVerbatimEventDate</servlet-name>
       <servlet-class>org.ecocean.servlet.EncounterSetVerbatimEventDate</servlet-class>
     </servlet>
+    
+        <servlet>
+          <servlet-name>InterconnectSubmitSpots</servlet-name>
+          <servlet-class>org.ecocean.servlet.InterconnectSubmitSpots</servlet-class>
+    </servlet>
 
 
   <servlet>
@@ -214,10 +219,6 @@
   </servlet>
 
 
-  <servlet>
-    <servlet-name>InterconnectSubmitSpots</servlet-name>
-    <servlet-class>org.ecocean.servlet.InterconnectSubmitSpots</servlet-class>
-  </servlet>
 
 
   <servlet>
@@ -649,10 +650,6 @@
   </servlet-mapping>
 
 
-  <servlet-mapping>
-    <servlet-name>InterconnectSubmitSpots</servlet-name>
-    <url-pattern>/InterconnectSubmitSpots</url-pattern>
-  </servlet-mapping>
   
     <servlet-mapping>
       <servlet-name>TissueSampleSetHaplotype</servlet-name>
@@ -1038,6 +1035,12 @@
     <servlet-name>TrackerFeed</servlet-name>
     <url-pattern>/TrackerFeed</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>InterconnectSubmitSpots</servlet-name>
+      <url-pattern>/InterconnectSubmitSpots</url-pattern>
+      <url-pattern>/interconnectSubmitSpots</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterAddSpotFile</servlet-name>
@@ -1147,7 +1150,6 @@
       
       	 
             <url-pattern>/CJS</url-pattern>
-            <url-pattern>/InterconnectSubmitSpots</url-pattern>
             <url-pattern>/IndividualAddComment</url-pattern>
 	  
 	    <url-pattern>/EncounterSetIdentifiable</url-pattern>
@@ -1263,6 +1265,7 @@
             <url-pattern>/encounters/allEncountersUnapproved.jsp</url-pattern>
             <url-pattern>/software.jsp</url-pattern>
             <url-pattern>/interconnect/mac/Interconnect.jnlp</url-pattern>
+            
             <url-pattern>/appadmin/scanTaskAdmin.jsp</url-pattern>
             <url-pattern>/individualSearch.jsp</url-pattern>
             <url-pattern>/individualSearchResults.jsp</url-pattern>
@@ -1305,7 +1308,6 @@
       <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>
       <url-pattern>/xcalendar/*</url-pattern>
 
-      <url-pattern>/interconnectSubmitSpots</url-pattern>
 
       <url-pattern>/appadmin/kwSearch.jsp</url-pattern>
       <url-pattern>/appadmin/kwResults.jsp</url-pattern>
