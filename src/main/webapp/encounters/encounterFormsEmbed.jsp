@@ -1279,6 +1279,11 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
  <input type="hidden" name="tagType" value="metalTags"/>
  <input type="hidden" name="encounter" value="${num}"/>
  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+     <tr>
+      <td align="left" valign="top" class="para"><strong><font color="#990000">
+                    <%=encprops.getProperty("resetMetalTags")%></font></strong><br />
+      </td>
+    </tr>
  <c:forEach items="${metalTagDescs}" var="metalTagDesc">
     <%
       MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("metalTagDesc");
@@ -1308,7 +1313,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><strong><font color="#990000">
-                    <%=encprops.getProperty("resetAcousticTag")%>:</font></strong><br />
+                    <%=encprops.getProperty("resetAcousticTag")%></font></strong><br />
       </td>
     </tr>
     <tr>
@@ -1347,6 +1352,11 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
  <input type="hidden" name="encounter" value="${num}"/>
  <input type="hidden" name="id" value="${satelliteTag.id}"/>
  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+      <tr>
+      <td align="left" valign="top" class="para"><strong><font color="#990000">
+                    <%=encprops.getProperty("resetSatelliteTag")%></font></strong><br />
+      </td>
+    </tr>
     <tr><td class="formLabel">Name:</td></tr>
     <tr><td>
       <select name="satelliteTagName">
