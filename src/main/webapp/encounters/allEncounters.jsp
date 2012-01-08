@@ -344,7 +344,7 @@ if (highCount<totalCount) {%> <a
 			int total=totalCount;
 			int iterTotal=totalCount;
 			if ((session.getAttribute("logged")!=null)&&(request.getParameter("rejects")!=null)&&(request.getParameter("sort")!=null)) {
-					
+					query.setFilter("this.state == \"unidentifiable\"");
 					iterTotal=totalCount;
 					query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 					
@@ -391,7 +391,7 @@ if (highCount<totalCount) {%> <a
 
 
 				query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
-					
+				query.setFilter("this.state == \"unidentifiable\"");
 				allEncounters=myShepherd.getAllUnidentifiableEncounters(query);
 			}
 			
@@ -448,7 +448,7 @@ if (highCount<totalCount) {%> <a
 			
 		
 			else if(request.getParameter("user")!=null) {
-				query.setFilter(("this.approved && this.submitterID == \""+request.getParameter("user")+"\""));
+				query.setFilter(("this.state == \"approved\" && this.submitterID == \""+request.getParameter("user")+"\""));
 				allEncounters=myShepherd.getUserEncounters(query, request.getParameter("user"));
 				}
 			else if(request.getParameter("sort")!=null) {

@@ -581,25 +581,31 @@ if (isOwner) {
       						while(countMe<numThumbs){
 							//for(int columns=0;columns<numColumns;columns++){
 								if(countMe<numThumbs) {
-									String combined ="";
-									if(myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										combined = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
-									}
-									else{
-										combined= thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "/" + thumbLocs.get(countMe).getDataCollectionEventID() + ".jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
+									//String combined ="";
+									//if(myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
+									//	combined = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
+									//}
+									//else{
+									//	combined= thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "/" + thumbLocs.get(countMe).getDataCollectionEventID() + ".jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
 							              
-									}
-									StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
-									String thumbLink=stzr.nextToken();
-									String encNum=stzr.nextToken();
-									int fileNamePos=combined.lastIndexOf("BREAK")+5;
-									String fileName=combined.substring(fileNamePos).replaceAll("%20"," ");
+									//}
+
+									//StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
+									//String thumbLink=stzr.nextToken();
+									//String encNum=stzr.nextToken();
+									//int fileNamePos=combined.lastIndexOf("BREAK")+5;
+									//String fileName=combined.substring(fileNamePos).replaceAll("%20"," ");
+									String thumbLink="";
 									boolean video=true;
-									if(!thumbLink.endsWith("video.jpg")){
-										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLink;
+									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
+										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
 										video=false;
 									}
-									String link="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+encNum+"/"+fileName;
+									else{
+										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
+										
+									}
+									String link="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
 						
 							%>
 
@@ -608,13 +614,13 @@ if (isOwner) {
       <table align="left" width="<%=100/numColumns %>%">
         <tr>
           <td valign="top">
-
+			
               <%
 			if(isOwner){
 												%>
             <a href="<%=link%>" 
             <%
-            if(!thumbLink.endsWith("video.jpg")){
+            if(thumbLink.indexOf("video.jpg")==-1){
             %>
             	class="highslide" onclick="return hs.expand(this)"
             <%
@@ -652,7 +658,7 @@ if (isOwner) {
                       <%
 
                         int kwLength = keywords.length;
-                        Encounter thisEnc = myShepherd.getEncounter(encNum);
+                        Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
                       %>
                       
                       
@@ -734,9 +740,9 @@ if (isOwner) {
 						<div class="scroll">	
 						<span class="caption">
 					<%
-            if ((fileName.toLowerCase().endsWith("jpg")) || (fileName.toLowerCase().endsWith("jpeg"))) {
+            if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
-              File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + thisEnc.getCatalogNumber() + "/" + fileName)));
+              File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename())));
               Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               // iterate through metadata directories
               Iterator directories = metadata.getDirectoryIterator();
@@ -757,7 +763,7 @@ if (isOwner) {
             	 %>
 		            <p>Cannot read metadata for this file.</p>
             	<%
-            	System.out.println("Cannout read metadata for: "+fileName);
+            	System.out.println("Cannout read metadata for: "+thumbLocs.get(countMe).getFilename());
             	e.printStackTrace();
             }
 

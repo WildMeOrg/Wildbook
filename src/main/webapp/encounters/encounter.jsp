@@ -614,7 +614,9 @@ table.tissueSample td {
     }
   %>
 </p>
-
+<%
+  if (CommonConfiguration.showProperty("showLifestage")) {
+%>
 <p class="para"><strong><%=encprops.getProperty("lifeStage") %>
 </strong> <br/>
   <%
@@ -630,6 +632,9 @@ table.tissueSample td {
     }
   %>
 </p>
+<%
+  }
+%>
 <%
   pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements());

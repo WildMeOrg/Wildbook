@@ -90,7 +90,7 @@
         </ul>
         <p><strong>Open Source Components </strong></p>
         <ul>
-          <li>DataNucleus Access Platform 2.1 is used for object-relational mapping and persistence
+          <li>DataNucleus Access Platform 3.0.4 is used for object-relational mapping and persistence
             under the Apache 2 License.<a href="http://www.datanucleus.org%20">http://www.datanucleus.org</a>
           </li>
           <li>Joda Time for date manipulation and standardization is used under the Apache 2

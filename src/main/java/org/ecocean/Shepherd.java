@@ -731,6 +731,20 @@ public class Shepherd {
       return null;
     }
   }
+  
+  public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideo(Query acceptedEncounters) {
+    Collection c;
+    try {
+      c = (Collection) (acceptedEncounters.execute());
+      ArrayList<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>(c);
+      return list;
+    } 
+    catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
   public Iterator getAllEncounters(Query acceptedEncounters, Map<String, Object> paramMap) {
     Collection c;
@@ -1675,10 +1689,10 @@ public class Shepherd {
 
     boolean stopMe = false;
     int count = 0;
-    while (it.hasNext()) {
+    while (it.hasNext()&&!stopMe) {
       MarkedIndividual markie = it.next();
       Iterator allEncs = markie.getEncounters().iterator();
-      while (allEncs.hasNext()) {
+      while (allEncs.hasNext()&&!stopMe) {
         Encounter enc = (Encounter) allEncs.next();
         ArrayList<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
 
@@ -1735,8 +1749,10 @@ public class Shepherd {
         else {
                 count--;
         }
-            } else if (count > endNum) {
+            } 
+            else if (count > endNum) {
               stopMe = true;
+              return thumbs;
             }
           }
         } //end if
@@ -1890,7 +1906,7 @@ public class Shepherd {
   }
 
   public boolean isAcceptableVideoFile(String fileName) {
-    if ((fileName.toLowerCase().indexOf(".mov") != -1) || (fileName.toLowerCase().indexOf(".avi") != -1) || (fileName.toLowerCase().indexOf("mpg") != -1) || (fileName.toLowerCase().indexOf(".wmv") != -1) || (fileName.toLowerCase().indexOf(".mp4") != -1)) {
+    if ((fileName.toLowerCase().indexOf(".mov") != -1) || (fileName.toLowerCase().indexOf(".avi") != -1) || (fileName.toLowerCase().indexOf("mpg") != -1) || (fileName.toLowerCase().indexOf(".wmv") != -1) || (fileName.toLowerCase().indexOf(".mp4") != -1)|| (fileName.toLowerCase().indexOf(".flv") != -1)) {
       return true;
     }
     return false;
