@@ -228,11 +228,18 @@ z-index:99;
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Encounters</a></li>
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/xcalendar/calendar.jsp?scDate=<%=dato%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">Encounter Calendar</a></li>
 	
+		
+		<%
+		if(request.getRemoteUser()!=null) {
+		%>			
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncountersUnapproved.jsp?start=1&end=10&sort=nosort&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Unapproved Encounters</a></li>
 	
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&user=<%=request.getRemoteUser()%>&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View My Submissions</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&rejects=true&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Unidentifiable Encounters</a></li>
-
+		
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&rejects=true&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Unidentifiable Encounters</a></li>
+		<%
+		}
+		%>
 
 
 
