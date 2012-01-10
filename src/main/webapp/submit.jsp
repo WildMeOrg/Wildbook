@@ -370,9 +370,8 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters")){
   <td class="form_label"><strong><%=props.getProperty("submit_depth")%>:</strong></td>
   <td colspan="2">
 <input name="depth" type="text" id="depth" size="10" />
-  <br/>
-    <em>&nbsp;<%=props.getProperty("submit_usesameunits")%>
-    </em></td>
+  &nbsp;<%=props.getProperty("submit_meters")%>
+    </td>
 </tr>
 <%
 }
@@ -385,9 +384,8 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
   <td class="form_label"><strong><%=props.getProperty("submit_elevation")%>:</strong></td>
   <td colspan="2">
 <input name="elevation" type="text" id="elevation" size="10" />
-  <br/>
-    <em>&nbsp;<%=props.getProperty("submit_usesameunits")%>
-    </em></td>
+  &nbsp;<%=props.getProperty("submit_meters")%>
+    </td>
 </tr>
 <%
 }

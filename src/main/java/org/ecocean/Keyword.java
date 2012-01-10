@@ -30,7 +30,7 @@ public class Keyword {
   private String readableName;
 
   //a Vector of String relative paths to the photo file that the keyword applies to
-  //public Vector photos;
+  public Vector photos;
 
   /**
    * empty constructor required by JDO Enhancer
@@ -75,7 +75,7 @@ public class Keyword {
     }
   }
 */
-  /*
+ 
   public boolean isMemberOf(String photoName) {
     //boolean truth=false;
     for (int i = 0; i < photos.size(); i++) {
@@ -88,6 +88,7 @@ public class Keyword {
   }
 
 
+  /*
   public boolean isMemberOf(Encounter enc) {
     //boolean truth=false;
     Vector photos = enc.getAdditionalImageNames();

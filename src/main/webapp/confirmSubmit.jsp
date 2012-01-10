@@ -89,7 +89,7 @@
   String photographer = "None";
   boolean emailPhoto = false;
   //get all needed DB reads out of the way in case Dynamic Image fails
-  String addText = "";
+  String addText = "images/Crystal_Clear_action_edit.png";
   boolean hasImages = true;
   String submitter = "";
   String informOthers = "";
@@ -136,8 +136,12 @@
   String thumbLocation = "file-encounters/" + number + "/thumb.jpg";
   if (myShepherd.isAcceptableVideoFile(addText)) {
     addText = "images/video_thumb.jpg";
-  } else {
+  } 
+  else if(myShepherd.isAcceptableImageFile(addText)){
     addText = "encounters/" + number + "/" + addText;
+  }
+  else{
+	  addText = "images/no_images.jpg";
   }
 
 

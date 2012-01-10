@@ -381,7 +381,7 @@
             }
             %>
               <%
-                if (request.getParameter("referenceImageName") != null) {
+                if ((request.getParameter("referenceImageName") != null)&&(!thumbLink.endsWith("video.jpg"))) {
               %>
               <h4>Reference Image</h4>
               <table id="table<%=(countMe+startNum) %>">
