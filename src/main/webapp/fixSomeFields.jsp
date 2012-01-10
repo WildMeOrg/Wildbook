@@ -54,7 +54,9 @@ try{
 
 
 allEncs=myShepherd.getAllEncounters(encQuery);
-//allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
+allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
+
+int numLogEncounters=0;
 
 while(allEncs.hasNext()){
 	
@@ -65,8 +67,11 @@ while(allEncs.hasNext()){
 	//else{sharky.setState("unapproved");}
 	
 	//change to SinglePhotoVideo
-	int numPhotos=sharky.getImages().size();
+	//int numPhotos=sharky.getImages().size();
 	//List<SinglePhotoVideo> images=sharky.getImages();
+	
+
+	
 	
 	/*
 	if(sharky.getSizeAsDouble()!=null){
@@ -75,6 +80,7 @@ while(allEncs.hasNext()){
 	}
 	*/
 	
+	/*
 	
 	for(int i=0;i<numPhotos;i++){
 		
@@ -105,10 +111,11 @@ while(allEncs.hasNext()){
 		//sharky.addSinglePhotoVideo(single);
 	
 	}
+	*/
 
 }
 
-/*
+
 while(allSharks.hasNext()){
 
 	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
@@ -121,12 +128,14 @@ while(allSharks.hasNext()){
 			sharky.removeLogEncounter(enc);
 			sharky.addEncounter(enc);
 			i--;
+			//check if log encounters still exist
+			numLogEncounters++;
 			
 		}
 	}
 	
 }
-*/
+
 
 myShepherd.commitDBTransaction();
 	myShepherd.closeDBTransaction();
@@ -135,6 +144,7 @@ myShepherd.commitDBTransaction();
 
 
 <p>Done successfully!</p>
+<p>numLogEncounters: <%=numLogEncounters %></p>
 
 <%
 } 
