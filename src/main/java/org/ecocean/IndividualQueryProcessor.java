@@ -92,11 +92,11 @@ public class IndividualQueryProcessor {
               String kwParam=patterningCodes[kwIter].replaceAll("%20", " ").trim();
               if(!kwParam.equals("")){
                 if(patterningCodeFilter.equals("(")){
-                  patterningCodeFilter+=" enc.patterningCode == \""+kwParam+"\"";
+                  patterningCodeFilter+=" enc97.patterningCode == \""+kwParam+"\"";
                 }
                 else{
 
-                  patterningCodeFilter+=" || enc.patterningCode == \""+kwParam+"\"";
+                  patterningCodeFilter+=" || enc97.patterningCode == \""+kwParam+"\"";
                 }
                 prettyPrint.append(kwParam+" ");
               }
@@ -104,9 +104,10 @@ public class IndividualQueryProcessor {
             patterningCodeFilter+=" )";
 
 
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=patterningCodeFilter;}
-            else{filter+=(" && "+patterningCodeFilter);}
-
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=("encounters.contains(enc97)"+ patterningCodeFilter);}
+            else{filter+=(" && "+patterningCodeFilter+" &&  encounters.contains(enc97)");}
+            if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc97")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc97";}
+            
             prettyPrint.append("<br />");
     }
     //end patterningCode filters-----------------------------------------------
@@ -361,8 +362,12 @@ public class IndividualQueryProcessor {
     if(request.getParameter("hasTissueSample")!=null){
           prettyPrint.append("Has tissue sample.");
 
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="enc4.tissueSamples.contains(dce3)";}
-            else if (filter.indexOf("enc4.tissueSamples.contains(dce3)")==-1){filter+=(" && enc4.tissueSamples.contains(dce3) ");}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc4) && enc4.tissueSamples.contains(dce3)";}
+            else{ 
+              if (filter.indexOf("enc4.tissueSamples.contains(dce3)")==-1){filter+=(" && enc4.tissueSamples.contains(dce3) ");}
+              if(filter.indexOf("encounters.contains(enc4)")==-1){filter+=" && encounters.contains(enc4)";}
+              
+            }
 
             prettyPrint.append("<br />");
             if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce3")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce3";}
@@ -396,8 +401,10 @@ public class IndividualQueryProcessor {
               }
             }
             locIDFilter+=" )";
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="enc3.images.contains(photo) && photo.keywords.contains(word) && "+locIDFilter;}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc3) && enc3.images.contains(photo) && photo.keywords.contains(word) && "+locIDFilter;}
             else{
+              if(filter.indexOf("encounters.contains(enc3)")==-1){filter+=" && encounters.contains(enc3)";}
+              
               if(filter.indexOf("enc3.images.contains(photo)")==-1){filter+=" && enc3.images.contains(photo)";}
              
               if(filter.indexOf("photo.keywords.contains(word)")==-1){filter+=" && photo.keywords.contains(word)";}
@@ -494,8 +501,10 @@ public class IndividualQueryProcessor {
     //filter for alternate ID------------------------------------------
     if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
       String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim();
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="enc.otherCatalogNumbers.startsWith('"+altID+"')";}
-      else{filter+=" && enc.otherCatalogNumbers.startsWith('"+altID+"')";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc99) && enc99.otherCatalogNumbers.startsWith('"+altID+"')";}
+      else{filter+=" && encounters.contains(enc99) && enc99.otherCatalogNumbers.startsWith('"+altID+"')";}
+      if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc99")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc99";}
+      
       prettyPrint.append("alternateIDField starts with \""+altID+"\".<br />");
     }
     
@@ -614,8 +623,12 @@ public class IndividualQueryProcessor {
     //filter for identificationRemarks------------------------------------------
     if((request.getParameter("identificationRemarksField")!=null)&&(!request.getParameter("identificationRemarksField").equals(""))) {
       String idRemarks=request.getParameter("identificationRemarksField").trim();
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="enc.identificationRemarks.startsWith('"+idRemarks+"')";}
-      else{filter+=" && enc.identificationRemarks.startsWith('"+idRemarks+"')";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc98) && enc98.identificationRemarks.startsWith('"+idRemarks+"')";}
+      else{filter+=" && encounters.contains(enc98) && enc.identificationRemarks.startsWith('"+idRemarks+"')";}
+      
+      if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc98")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc98";}
+      
+      
       prettyPrint.append("identificationRemarks starts with \""+idRemarks+"\".<br />");
 
     }
