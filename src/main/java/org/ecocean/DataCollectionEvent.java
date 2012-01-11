@@ -31,7 +31,7 @@ public abstract class DataCollectionEvent implements java.io.Serializable {
 
 
 /**
-* DataCollectionEvent is an abstract base class that provides registration fields 
+* DataCollectionEvent is an abstract base class that provides registration fields
 * for common metadata related to data that may be collected about an individual during an Encounter instance
 * of wildlife data in the field. The following types of classes are expected to extend DataCollectionEvent:
 *   -PhotoVideoCollectionEvent class for managing photo and video data
@@ -64,7 +64,7 @@ private String datasetName;
 
 /*
  * Empty constructor required for JDO persistence
- * 
+ *
  */
 public DataCollectionEvent(){}
 
@@ -76,7 +76,7 @@ public DataCollectionEvent(String correspondingEncounterNumber, String type){
 public DataCollectionEvent(String correspondingEncounterNumber, String type, HttpServletRequest request){
   this.correspondingEncounterNumber=correspondingEncounterNumber;
   this.type=type;
-  
+
   if(((request.getParameter("samplingProtocol"))!=null)&&(!request.getParameter("samplingProtocol").equals(""))){this.samplingProtocol=request.getParameter("samplingProtocol");}
   if(((request.getParameter("samplingEffort"))!=null)&&(!request.getParameter("samplingEffort").equals(""))){this.samplingEffort=request.getParameter("samplingEffort");}
   if(((request.getParameter("eventStartDate"))!=null)&&(!request.getParameter("eventStartDate").equals(""))){this.eventStartDate=request.getParameter("eventStartDate");}
@@ -154,7 +154,7 @@ public void resetAbstractClassParameters(HttpServletRequest request){
   if(((request.getParameter("collectionCode"))!=null)&&(!request.getParameter("collectionCode").equals(""))){this.collectionCode=request.getParameter("collectionCode");}
   if(((request.getParameter("datasetName"))!=null)&&(!request.getParameter("datasetName").equals(""))){this.datasetName=request.getParameter("datasetName");}
 
-  
+
 }
 
 public String getHTMLString(){
@@ -169,10 +169,10 @@ public String getHTMLString(){
   if((this.getFieldNotes()!=null)&&(!this.getFieldNotes().equals(""))){paramValues+="     Field notes: "+this.getFieldNotes()+"<br />";}
   if((this.getFieldNumber()!=null)&&(!this.getFieldNumber().equals(""))){paramValues+="     Field number: "+this.getFieldNumber()+"<br />";}
   if((this.getInstitutionCode()!=null)&&(!this.getInstitutionCode().equals(""))){paramValues+="     Institution code: "+this.getInstitutionCode()+"<br />";}
-  if((this.getInstitutionID()!=null)&&(!this.getInstitutionID().equals(""))){paramValues+="     Instituion ID: "+this.getInstitutionID()+"<br />";}
+  if((this.getInstitutionID()!=null)&&(!this.getInstitutionID().equals(""))){paramValues+="     Institution ID: "+this.getInstitutionID()+"<br />";}
   if((this.getSamplingEffort()!=null)&&(!this.getSamplingEffort().equals(""))){paramValues+="     Sampli]/ng effort: "+this.getSamplingEffort()+"<br />";}
   if((this.getSamplingProtocol()!=null)&&(!this.getSamplingProtocol().equals(""))){paramValues+="     Sampling protocol: "+this.getSamplingProtocol()+"<br />";}
-  return paramValues; 
+  return paramValues;
 }
 
 }
