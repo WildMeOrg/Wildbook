@@ -90,14 +90,17 @@ while(allEncs.hasNext()){
 		//set keywords
 		String checkString=sharky.getEncounterNumber() + "/" + (String)sharky.additionalImageNames.get(i);
 		
+		/*
 		Iterator keywords=myShepherd.getAllKeywords();
 		while(keywords.hasNext()){
 			Keyword word=(Keyword)keywords.next();
 			if(word.isMemberOf(checkString)){single.addKeyword(word);}
 		}
 		sharky.addSinglePhotoVideo(single);
-
-		/*
+		*/
+		
+		//another important comment
+		
 		try{
 			File file=new File("/opt/tomcat6/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+"/"+sharky.getImages().get(i).getDataCollectionEventID()+".jpg");
 			if(!file.exists()){
@@ -109,7 +112,7 @@ while(allEncs.hasNext()){
 			}
 		}
 		catch(Exception e){}
-	    */
+	    
 		
 
 	
