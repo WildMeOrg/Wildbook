@@ -61,20 +61,35 @@ int numLogEncounters=0;
 while(allEncs.hasNext()){
 	
 	//change state
+	
 	Encounter sharky=(Encounter)allEncs.next();
-	if(sharky.getApproved()){sharky.setState("approved");}
+	
+	
+	/*if(sharky.getApproved()){sharky.setState("approved");}
 	else if(sharky.getUnidentifiable()){sharky.setState("unidentifiable");}
 	else{sharky.setState("unapproved");}
+	*/
+	
+	
+	//more comments here
+	
+	//and then some more
 	
 	//change to SinglePhotoVideo
-	int numPhotos=sharky.getImages().size();
+	int numPhotos=sharky.getOldAdditionalImageNames().size();
+	%>
+	<%=numPhotos %>
+	<% 
 	//List<SinglePhotoVideo> images=sharky.getImages();
 	for(int i=0;i<numPhotos;i++){
 		SinglePhotoVideo single=new SinglePhotoVideo(sharky.getCatalogNumber(), ((String)sharky.additionalImageNames.get(i)), ("/opt/tomcat7/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+((String)sharky.additionalImageNames.get(i))));
+
+		
 		//SinglePhotoVideo single=images.get(i);
 		//single.
 		//set keywords
 		String checkString=sharky.getEncounterNumber() + "/" + (String)sharky.additionalImageNames.get(i);
+		
 		Iterator keywords=myShepherd.getAllKeywords();
 		while(keywords.hasNext()){
 			Keyword word=(Keyword)keywords.next();
@@ -102,21 +117,21 @@ while(allEncs.hasNext()){
 	
 
 	
-	
+	/*
 	
 	if(sharky.getSizeAsDouble()!=null){
 		Measurement measurement = new Measurement(sharky.getEncounterNumber(), "disc width", sharky.getSizeAsDouble(), "meters", sharky.getSizeGuess());
         sharky.addMeasurement(measurement);
 	}
 	
-	
+	*/
 
 	
 
 
 }
 
-
+/*
 while(allSharks.hasNext()){
 
 	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
@@ -136,7 +151,7 @@ while(allSharks.hasNext()){
 	}
 	
 }
-
+*/
 
 myShepherd.commitDBTransaction();
 	myShepherd.closeDBTransaction();
@@ -153,6 +168,9 @@ catch(Exception ex) {
 
 	System.out.println("!!!An error occurred on page allEncounters.jsp. The error was:");
 	ex.printStackTrace();
+	%>
+	!!!An error occurred on page allEncounters.jsp.
+	<%
 	//System.out.println("fixSomeFields.jsp page is attempting to rollback a transaction because of an exception...");
 	encQuery.closeAll();
 	encQuery=null;
