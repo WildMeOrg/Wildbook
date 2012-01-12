@@ -68,10 +68,10 @@ while(allEncs.hasNext()){
 	
 	//change to SinglePhotoVideo
 	int numPhotos=sharky.getImages().size();
-	List<SinglePhotoVideo> images=sharky.getImages();
+	//List<SinglePhotoVideo> images=sharky.getImages();
 	for(int i=0;i<numPhotos;i++){
 		SinglePhotoVideo single=new SinglePhotoVideo(sharky.getCatalogNumber(), ((String)sharky.additionalImageNames.get(i)), ("/opt/tomcat7/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+((String)sharky.additionalImageNames.get(i))));
-		SinglePhotoVideo single=images.get(i);
+		//SinglePhotoVideo single=images.get(i);
 		//single.
 		//set keywords
 		String checkString=sharky.getEncounterNumber() + "/" + (String)sharky.additionalImageNames.get(i);
@@ -105,7 +105,7 @@ while(allEncs.hasNext()){
 	
 	
 	if(sharky.getSizeAsDouble()!=null){
-		Measurement measurement = new Measurement(sharky.getEncounterNumber(), "length", sharky.getSizeAsDouble(), "meters", sharky.getSizeGuess());
+		Measurement measurement = new Measurement(sharky.getEncounterNumber(), "disc width", sharky.getSizeAsDouble(), "meters", sharky.getSizeGuess());
         sharky.addMeasurement(measurement);
 	}
 	
