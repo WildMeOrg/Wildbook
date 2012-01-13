@@ -990,6 +990,7 @@ tr.paging {
   text-align: left;
   vertical-align: top;
   width: 230px;
+  font-weight: bolder;
 }
 
 .form_label1 {
@@ -997,6 +998,12 @@ tr.paging {
   vertical-align: top;
   width: 135px;
 }
+
+.form_label2 {
+  font-weight: bold;
+  text-align: left;
+  vertical-align: top;
+ }
 
 td.you, td.photo {
   width: 50%;
@@ -1059,6 +1066,40 @@ img.rotor {
   font-weight: bold;
 }
 
+table.measurements,
+table.metalTags {
+ border-collapse: collapse;
+}
+
+table.measurements th,
+table.metalTags th
+ {
+  border-bottom: 1px dotted;
+  text-align: center;
+  padding: 0px; 5px;
+}
+
+table.measurements td,
+table.metalTags td
+ {
+  border-botton: 1px solid #66CCFF;
+  text-align: center;
+  padding: 5px;
+}
+table.editEncounter {
+ width: 150px;
+ border: 1;
+ padding: 1px;
+ border-spacing: 0;
+ border-collapse: collapse;  /* For IE 7 */
+ border-color: #000000;
+ background-color: #CCCCCC;
+}
+ 
+table.editEncounter .formLabel {
+ text-align: left;
+ font: bold;
+} 
 /* ================================================================
 This copyright notice must be untouched at all times.
 

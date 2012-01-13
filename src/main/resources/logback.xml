@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+<appender name="SUBMISSIONFILE" class="ch.qos.logback.core.FileAppender">
+	<file>../webapps/ROOT/logs/encounter-submission.htm</file>
+   <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+      <layout class="ch.qos.logback.classic.html.HTMLLayout">
+        <pattern>%date%thread%mdc%level%logger%msg</pattern>
+      </layout>
+</appender>
+
+<appender name="ENCOUNTERDELETEFILE" class="ch.qos.logback.core.FileAppender">
+	<file>../webapps/ROOT/logs/encounter-delete.htm</file>
+   <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+      <layout class="ch.qos.logback.classic.html.HTMLLayout">
+        <pattern>%date%thread%mdc%level%logger%msg</pattern>
+      </layout>
+</appender>
+
+<appender name="USERFILE" class="ch.qos.logback.core.FileAppender">
+	<file>../webapps/ROOT/logs/user-access.htm</file>
+   <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+      <layout class="ch.qos.logback.classic.html.HTMLLayout">
+        <pattern>%date%thread%mdc%level%logger%msg</pattern>
+      </layout>
+</appender>
+
+<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+	<file>../webapps/ROOT/logs/logback-debug.htm</file>
+   <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+      <layout class="ch.qos.logback.classic.html.HTMLLayout">
+        <pattern>%date%thread%mdc%level%logger%msg</pattern>
+      </layout>
+</appender>
+
+
+<logger name="org.ecocean.servlet.SubmitAction" level="INFO">
+     <appender-ref ref="SUBMISSIONFILE" />
+</logger>
+
+<logger name="org.ecocean.servlet.EncounterDelete" level="INFO">
+     <appender-ref ref="ENCOUNTERDELETEFILE" />
+</logger>
+
+<logger name="org.apache.jsp.welcome_jsp" level="INFO">
+     <appender-ref ref="USERFILE" />
+</logger>
+<logger name="org.apache.jsp.logout_jsp" level="INFO">
+     <appender-ref ref="USERFILE" />
+</logger>
+
+
+<root level="DEBUG">
+<appender-ref ref="FILE" />
+</root>
+
+</configuration>

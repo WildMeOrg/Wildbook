@@ -21,6 +21,7 @@ package org.ecocean;
 
 import java.util.*;
 import java.util.GregorianCalendar;
+import org.ecocean.genetics.*;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -35,7 +36,7 @@ import java.util.GregorianCalendar;
 public class MarkedIndividual {
 
   //unique name of the MarkedIndividual, such as 'A-109'
-  private String name = "";
+  private String individualID = "";
 
   //alternate id for the MarkedIndividual, such as a physical tag number of reference in another database
   private String alternateid;
@@ -79,14 +80,15 @@ public class MarkedIndividual {
 
   private int maxYearsBetweenResightings;
 
-  public MarkedIndividual(String name, Encounter enc) {
+  public MarkedIndividual(String individualID, Encounter enc) {
 
-    this.name = name;
+    this.individualID = individualID;
     encounters.add(enc);
     dataFiles = new Vector();
     numberEncounters = 1;
     this.sex = enc.getSex();
     numUnidentifiableEncounters = 0;
+    maxYearsBetweenResightings=0;
   }
 
   /**
@@ -104,19 +106,14 @@ public class MarkedIndividual {
 
   public boolean addEncounter(Encounter newEncounter) {
 
-    newEncounter.assignToMarkedIndividual(name);
-    if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
-    if(newEncounter.wasRejected()) {
-      numUnidentifiableEncounters++;
-      resetMaxNumYearsBetweenSightings();
-      return unidentifiableEncounters.add(newEncounter);
-
-      }
-    else {
+    newEncounter.assignToMarkedIndividual(individualID);
+    
+      boolean ok=encounters.add(newEncounter);
       numberEncounters++;
       resetMaxNumYearsBetweenSightings();
-      return encounters.add(newEncounter); }
-    }
+      return ok; 
+     
+ }
 
    /**Removes an encounter from this MarkedIndividual.
    *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
@@ -124,22 +121,7 @@ public class MarkedIndividual {
    *@see  Shepherd#commitDBTransaction()
    */
   public boolean removeEncounter(Encounter getRidOfMe){
-    if(getRidOfMe.wasRejected()) {
-      numUnidentifiableEncounters--;
-      boolean changed=false;
-      for(int i=0;i<unidentifiableEncounters.size();i++) {
-        Encounter tempEnc=(Encounter)unidentifiableEncounters.get(i);
-        if(tempEnc.getEncounterNumber().equals(getRidOfMe.getEncounterNumber())) {
-          unidentifiableEncounters.remove(i);
-          i--;
-          changed=true;
-          }
-        }
-      resetMaxNumYearsBetweenSightings();
-      return changed;
 
-      }
-    else {
       numberEncounters--;
       boolean changed=false;
       for(int i=0;i<encounters.size();i++) {
@@ -152,8 +134,8 @@ public class MarkedIndividual {
         }
       resetMaxNumYearsBetweenSightings();
       return changed;
-    }
   }
+  
 
   /**
    * Returns the total number of submitted encounters for this MarkedIndividual
@@ -285,27 +267,22 @@ public class MarkedIndividual {
   public boolean isDescribedByPhotoKeyword(Keyword word) {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      Vector images = temp.getAdditionalImageNames();
-      int size = images.size();
-      for (int i = 0; i < size; i++) {
-        String imageName = temp.getEncounterNumber() + "/" + ((String) images.get(i));
-        if (word.isMemberOf(imageName)) {
-          return true;
-        }
-      }
+      if(temp.hasKeyword(word)){return true;}
     }
     return false;
   }
 
+  /*
   public boolean hasApprovedEncounters() {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if (temp.isApproved()) {
+      if (temp.getState()!=null) {
         return true;
       }
     }
     return false;
   }
+  */
 
   public boolean wasSightedInMonth(int year, int month) {
     for (int c = 0; c < encounters.size(); c++) {
@@ -414,7 +391,11 @@ public class MarkedIndividual {
    * @return the name of the MarkedIndividual as a String
    */
   public String getName() {
-    return name;
+    return individualID;
+  }
+
+  public String getIndividualID() {
+      return individualID;
   }
 
   public String getNickName() {
@@ -445,8 +426,13 @@ public class MarkedIndividual {
   }
 
   public void setName(String newName) {
-    name = newName;
+    individualID = newName;
   }
+
+    public void setIndividualID(String newName) {
+      individualID = newName;
+    }
+
 
   /**
    * Returns the specified encounter, where the encounter numbers range from 0 to n-1, where n is the total number of encounters stored
@@ -930,9 +916,22 @@ public class MarkedIndividual {
       Iterator it = myShepherd.getAllKeywords();
       while (it.hasNext()) {
         Keyword word = (Keyword) it.next();
-        if ((word.isMemberOf(enc)) && (!al.contains(word))) {
+        if (enc.hasKeyword(word) && (!al.contains(word))) {
           al.add(word);
         }
+      }
+    }
+    return al;
+  }
+  
+  public ArrayList<TissueSample> getAllTissueSamples() {
+    ArrayList<TissueSample> al = new ArrayList<TissueSample>();
+    int numEncounters = encounters.size();
+    for (int i = 0; i < numEncounters; i++) {
+      Encounter enc = (Encounter) encounters.get(i);
+      List<TissueSample> list = enc.getTissueSamples();
+      if((list!=null)&&(list.size()>0)){
+        al.addAll(list);
       }
     }
     return al;
@@ -1038,6 +1037,19 @@ public String getGenusSpecies(){
 }
 
 /**
+Returns the first haplotype found in the Encounter objects for this MarkedIndividual.
+@return a String if found or null if no haplotype is found
+*/
+public String getHaplotype(){
+      for (int c = 0; c < encounters.size(); c++) {
+        Encounter temp = (Encounter) encounters.get(c);
+        if(temp.getHaplotype()!=null){return temp.getHaplotype();}
+      }
+    return null;
+
+}
+
+/**
 *Obtains the email addresses of all submitters, photographs, and others to notify.
 *@return ArrayList of all emails to inform
 */
@@ -1129,6 +1141,6 @@ public ArrayList getAllEmailsToUpdate(){
 
 }
 
-
+public void removeLogEncounter(Encounter enc){if(unidentifiableEncounters.contains(enc)){unidentifiableEncounters.remove(enc);}}
 
 }

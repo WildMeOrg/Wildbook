@@ -40,12 +40,12 @@ public class Keyword {
 
 
   //use this constructor for new keywords
-  public Keyword(String indexname, String readableName) {
-    this.indexname = indexname;
+  public Keyword(String readableName) {
     this.readableName = readableName;
-    photos = new Vector();
+    //photos = new Vector();
   }
 
+  /*
   public void removeImageName(String imageFile) {
     for (int i = 0; i < photos.size(); i++) {
       String thisName = (String) photos.get(i);
@@ -55,7 +55,7 @@ public class Keyword {
       }
     }
   }
-
+*/
   public String getReadableName() {
     return readableName;
   }
@@ -68,12 +68,14 @@ public class Keyword {
     return indexname;
   }
 
+  /*
   public void addImageName(String photoName) {
     if (!isMemberOf(photoName)) {
       photos.add(photoName);
     }
   }
-
+*/
+ 
   public boolean isMemberOf(String photoName) {
     //boolean truth=false;
     for (int i = 0; i < photos.size(); i++) {
@@ -86,6 +88,7 @@ public class Keyword {
   }
 
 
+  /*
   public boolean isMemberOf(Encounter enc) {
     //boolean truth=false;
     Vector photos = enc.getAdditionalImageNames();
@@ -98,9 +101,11 @@ public class Keyword {
     }
     return false;
   }
+  */
 
+  /*
   public Vector getMembers() {
     return photos;
   }
-
+*/
 }

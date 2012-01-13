@@ -19,16 +19,19 @@
 
 package org.ecocean.servlet;
 
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.struts.action.ActionError;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.upload.FormFile;
 import org.apache.struts.upload.MultipartRequestHandler;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Calendar;
-import java.util.Vector;
 
 
 public class SubmitForm extends ActionForm {
@@ -42,10 +45,11 @@ public class SubmitForm extends ActionForm {
   private String mailList = "no";
   private Calendar date = Calendar.getInstance();
   private String uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
+  private String releaseDate = "";
   private String size="", depth="";
   private String elevation="";
   private String measureUnits = "", location = "", sex = "unknown", comments = "", primaryImageName = "", guess = "no estimate provided";
-  private String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "";
+  private String submitterName = "", submitterEmail = "", submitterPhone = "", submitterAddress = "", submitterOrganization="", submitterProject="";
   private String photographerName = "", photographerEmail = "", photographerPhone = "", photographerAddress = "";
   private Vector additionalImageNames = new Vector();
   private String livingStatus = "";
@@ -53,6 +57,20 @@ public class SubmitForm extends ActionForm {
   private int day = 1, month = 1, year = 2003, hour = 12;
   private String lat = "", longitude = "", latDirection = "", longDirection = "", scars = "None";
   private String minutes = "00", gpsLongitudeMinutes = "", gpsLongitudeSeconds = "", gpsLatitudeMinutes = "", gpsLatitudeSeconds = "", submitterID = "N/A", informothers = "";
+  private String genusSpecies="";
+  private String behavior="";
+  private String lifeStage="";
+  
+  private Map<String, Object> measurements = new HashMap<String, Object>();
+  
+  private Map<String, Object> metalTags = new HashMap<String, Object>();
+  private String acousticTagSerial = "";
+  private String acousticTagId = "";
+  private String satelliteTagSerial = "";
+  private String satelliteTagArgosPttNumber = "";
+  private String satelliteTagName = "";
+  
+  
   /**
    * The value of the text the user has sent as form data
    */
@@ -91,6 +109,7 @@ public class SubmitForm extends ActionForm {
     mailList = "no";
     date = Calendar.getInstance();
     uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
+    releaseDate = null;
     size = "";
     depth = "";
     elevation = "";
@@ -104,6 +123,8 @@ public class SubmitForm extends ActionForm {
     submitterEmail = "";
     submitterPhone = "";
     submitterAddress = "";
+    submitterOrganization = "";
+    submitterProject = "";
     photographerName = "";
     photographerEmail = "";
     photographerPhone = "";
@@ -127,6 +148,15 @@ public class SubmitForm extends ActionForm {
     submitterID = "N/A";
     informothers = "";
     livingStatus = "";
+    genusSpecies="";
+    lifeStage="";
+    measurements.clear();
+    metalTags.clear();
+    acousticTagSerial = "";
+    acousticTagId = "";
+    satelliteTagSerial = "";
+    satelliteTagArgosPttNumber = "";
+    satelliteTagName = "";
   }
 
 
@@ -144,6 +174,14 @@ public class SubmitForm extends ActionForm {
 
   public void setDate(Calendar date) {
     this.date = date;
+  }
+  
+  public void setReleaseDate(String releaseDate) {
+    this.releaseDate = releaseDate;
+  }
+  
+  public String getReleaseDate() {
+    return releaseDate;
   }
 
   public String getUniqueID() {
@@ -276,6 +314,20 @@ public class SubmitForm extends ActionForm {
 
   public void setSubmitterAddress(String submitterAddress) {
     this.submitterAddress = submitterAddress;
+  }
+
+  public String getSubmitterOrganization() {
+      return this.submitterOrganization;
+  }
+  public void setSubmitterOrganization(String submitterOrganization) {
+      this.submitterOrganization = submitterOrganization;
+  }
+
+  public String getSubmitterProject() {
+        return this.submitterProject;
+  }
+  public void setSubmitterProject(String submitterProject) {
+        this.submitterProject = submitterProject;
   }
 
   public String getPhotographerName() {
@@ -438,6 +490,86 @@ public class SubmitForm extends ActionForm {
     this.gpsLatitudeSeconds = gpsLatitudeSeconds;
   }
 
+    public String getBehavior() {
+      return this.behavior;
+    }
+
+    public void setBehavior(String behavior) {
+      this.behavior = behavior;
+  }
+    
+    public String getLifeStage() {
+      return this.lifeStage;
+    }
+
+    public void setLifeStage(String lifeStage) {
+      this.lifeStage = lifeStage;
+  }
+    
+  public Object getMeasurement(String key) {
+    return measurements.get(key);
+  }
+  
+  public void setMeasurement(String key, Object measurement) {
+    measurements.put(key, measurement);
+  }
+  
+  public Map<String, Object> getMeasurements() {
+    return measurements;
+  }
+
+  public Map<String, Object> getMetalTags() {
+    return metalTags;
+  }
+
+
+  public void setMetalTag(String key, Object value) {
+    metalTags.put(key, value);
+  }
+
+  public Object getMetalTag(String key) {
+    return metalTags.get(key);
+  }
+  public String getAcousticTagSerial() {
+    return acousticTagSerial;
+  }
+
+  public void setAcousticTagSerial(String acousticTagSerial) {
+    this.acousticTagSerial = acousticTagSerial;
+  }
+
+  public String getAcousticTagId() {
+    return acousticTagId;
+  }
+
+  public void setAcousticTagId(String acousticTagId) {
+    this.acousticTagId = acousticTagId;
+  }
+
+  public String getSatelliteTagSerial() {
+    return satelliteTagSerial;
+  }
+
+  public void setSatelliteTagSerial(String satelliteTagSerial) {
+    this.satelliteTagSerial = satelliteTagSerial;
+  }
+
+  public String getSatelliteTagArgosPttNumber() {
+    return satelliteTagArgosPttNumber;
+  }
+
+  public void setSatelliteTagArgosPttNumber(String satelliteTagArgosPttNumber) {
+    this.satelliteTagArgosPttNumber = satelliteTagArgosPttNumber;
+  }
+
+  public String getSatelliteTagName() {
+    return satelliteTagName;
+  }
+
+  public void setSatelliteTagName(String satelliteTagName) {
+    this.satelliteTagName = satelliteTagName;
+  }
+
   public String getInformothers() {
     return this.informothers;
   }
@@ -445,6 +577,12 @@ public class SubmitForm extends ActionForm {
   public void setInformothers(String informit) {
     this.informothers = informit;
   }
+
+  public String getGenusSpecies(){return this.genusSpecies;}
+  public void setGenusSpecies(String newValue) {
+      this.genusSpecies = newValue;
+  }
+
 
   /**
    * Retrieve the value of the text the user has sent as form data

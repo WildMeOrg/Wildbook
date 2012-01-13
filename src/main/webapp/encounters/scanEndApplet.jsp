@@ -227,7 +227,7 @@
 
 <%
   if (xmlOK) {%>
-<p><img src="../alert.gif" hspace="2" vspace="2" align="absmiddle"><strong>Saved
+<p><img src="../images/Crystal_Clear_action_flag.png" width="28px" height="28px" hspace="2" vspace="2" align="absmiddle">&nbsp;<strong>Saved
   scan data may be old and invalid. Check the date below and run a fresh
   scan for the latest results.</strong></p>
 
@@ -257,7 +257,7 @@
     <td width="355" align="left" valign="top">
       <table width="100%" border="1" align="left" cellpadding="3">
         <tr align="left" valign="top">
-          <td><strong>Shark</strong></td>
+          <td><strong>Individual ID</strong></td>
           <td><strong> Encounter</strong></td>
           <td><strong>Fraction Matched Triangles </strong></td>
           <td><strong>Match Score </strong></td>

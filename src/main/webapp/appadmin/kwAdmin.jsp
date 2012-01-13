@@ -85,17 +85,12 @@
             <p><strong>Add a new keyword</strong></p>
 
             <form action="../KeywordHandler" method="post" name="addNew" id="addNew">
-              <p>New keyword string identifier (used by the database only): <input
-                name="keyword" type="text" id="keyword" size="20" maxlength="50">
-                <br> <em> This should be one word with no spaces or special
-                  characters.</em> <br>Example: <font face="Courier New, Courier, mono">scar1stdorsal</font>
-                <input name="action" type="hidden" id="action" value="addNewWord"></p>
 
-              <p>New keyword description (visible to users): <input
-                name="readableName" type="text" id="readableName" size="40"
-                maxlength="40"> <br>Example: <font
-                face="Courier New, Courier, mono">scar, fin, 1st dorsal</font></p>
-
+              <p>New keyword description (visible to users): 
+              <input name="readableName" type="text" id="readableName" size="40" maxlength="40"> 
+              <br />
+              Example: <font face="Courier New, Courier, mono">scar, fin, 1st dorsal</font></p>
+				<input name="action" type="hidden" id="action" value="addNewWord" />
               <p><input type="submit" name="Submit" value="Add"></p>
             </form>
           </td>
@@ -119,7 +114,7 @@
                     Keyword word = (Keyword) keys.next();
                 %>
 
-                <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
+                <option value="<%=word.getReadableName()%>"><%=word.getReadableName()%>
                 </option>
                 <%}%>
 
@@ -147,7 +142,7 @@
                     Keyword word = (Keyword) keys.next();
                 %>
 
-                <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
+                <option value="<%=word.getReadableName()%>"><%=word.getReadableName()%>
                 </option>
                 <%}%>
 
