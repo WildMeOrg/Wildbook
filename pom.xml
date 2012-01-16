@@ -9,6 +9,7 @@
   <packaging>war</packaging>
 
   <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <datanucleus.version>3.0.4</datanucleus.version>
     <datanucleus.enhancer.version>3.0.1</datanucleus.enhancer.version>
     <datanucleus.spatial.version>3.0.1</datanucleus.spatial.version>
