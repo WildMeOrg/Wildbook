@@ -71,22 +71,6 @@
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
 </jsp:include>	
 <div id="main">
-	<div id="leftcol">
-		<div id="menu">
-	
-						
-			<div class="module">
-				<img src="images/area.jpg" width="190" height="115" border="0" title="Area to photograph" alt="Area to photograph" />
-				<p class="caption"><%=area%></p>
-			</div>
-						
-			<div class="module">
-				<img src="images/match.jpg" width="190" height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-				<p class="caption"><%=match%></p>
-			</div>
-						
-		</div><!-- end menu -->
-	</div><!-- end leftcol -->
 	<div id="maincol-wide">
 
 		<div id="maintext">
@@ -99,12 +83,25 @@
 			<p><a href="http://www.getpaint.net/"><strong>Paint.NET</strong> (Windows only, external link) </a><br />
               <em>Purpose</em>: Image pre-processing <br />
               <em>Requirements</em>: <a href="http://msdn2.microsoft.com/en-us/netframework/aa731542.aspx">.NET 2.0</a></p>
+			
 			<p><a href="spot/spot.jnlp"><strong>Spot!</strong></a><br />
               <em>Purpose</em>: Mapping 2D images to 3D models for perspective correction <br />
-              <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 1.5</a> or higher              
+              <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 1.5</a> or higher   
+              
+              
+              
+              
+              
               <script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=searchbox_001757959497386081976%3An08dpv5rq-m"></script>
               <!-- Google CSE Search Box Ends -->
             </p>
+            
+            
+            <p><a href="http://www.whaleshark.org/wiki/doku.php?id=how_to_join_sharkgrid"><strong>sharkGrid Client</strong></a><br />
+	    			  <em>Purpose</em>: Contribute processing power to match patterns<br />
+		    <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 1.6</a> or higher</p>
+            
+            
 	</div>
 	<!-- end maintext -->
   </div><!-- end maincol -->
