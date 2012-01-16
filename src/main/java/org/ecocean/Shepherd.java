@@ -695,9 +695,9 @@ public class Shepherd {
 
 
   /**
-   * Retrieves any all approved encounters that are stored in the database
+   * Retrieves any all encounters that are stored in the database
    *
-   * @return an Iterator of all whale shark encounters stored in the database that are approved
+   * @return an Iterator of all whale shark encounters stored in the database
    * @see encounter, java.util.Iterator
    */
   public Iterator getAllEncounters() {
