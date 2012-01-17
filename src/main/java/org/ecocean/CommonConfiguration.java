@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -426,6 +427,11 @@ public class CommonConfiguration {
   private static boolean showCategory(final String category) {
     String showMeasurements = getProperty(category);
     return !Boolean.FALSE.toString().equals(showMeasurements);
+  }
+  
+  public static Set<Object> getPropertyNames() {
+    initialize();
+    return props.keySet();
   }
   
 
