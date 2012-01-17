@@ -65,7 +65,7 @@ public class Shepherd {
 
   //the JDO persistence manager used under the covers in this class
   private PersistenceManager pm;
-  //public static Vector matches = new Vector();
+  public static Vector matches = new Vector();
   private PersistenceManagerFactory pmf;
 
 

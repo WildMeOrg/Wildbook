@@ -587,6 +587,20 @@
       <param-value>ShepherdProject</param-value>
     </init-param>
   </servlet>
+  
+      <servlet>
+          <servlet-name>DataNucleus</servlet-name>
+          <servlet-class>org.datanucleus.api.rest.RestServlet</servlet-class>
+          <init-param>
+              <param-name>persistence-context</param-name>
+              <param-value>transactions-optional</param-value>
+          </init-param>	     
+      </servlet>
+      
+      <servlet-mapping>
+          <servlet-name>DataNucleus</servlet-name>
+          <url-pattern>/dn/*</url-pattern>
+    </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>DataNucleus</servlet-name>
