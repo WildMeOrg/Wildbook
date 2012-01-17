@@ -29,34 +29,43 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
- * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
- * The <code>shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it.
- * Any application seeking access to	whale shark	data must invoke an	instance of	shepherd first and use it to retrieve any data stored in the
+ * <code>Shepherd</code> is the main	information	retrieval, processing, and persistence class in the Shepherd Project.
+ * The <code>Shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it, using the Java Data Objects (JDO) implementation from DataNucleus.org.
+ * Any application seeking access to	mark-recapture data must invoke an	instance of	Shepherd first and use it to retrieve any data stored in the
  * database.
  * <p/>
- * While	a <code>shepherd</code>	object is easily invoked with a	single,	simple constructor,	no data
- * can be retrieved until a new Transaction has been	started. Changes made using the Transaction must be committed (store changes) or rolled back (ignore changes) before the application can finish.
+ * While	a <code>Shepherd</code>	object is easily invoked with a	single constructor,	no data
+ * can be retrieved until a new Transaction has been	started. Changes made using the Transaction must be committed (store changes) or rolled back (ignore changes).
  * Example:
- * <p align="center"><code>
- * <p/>
- * shepherd myShepherd=new shepherd();<br>
- * myShepherd.beginDBTransaction();
- * <p align="center">Now	make any changes to	the	database objects that are needed.
- * <p align="center">
- * <p/>
- * myShepherd.commitDBTransaction();
- * *myShepherd.closeDBTransaction();
- * </code>
- * <p/>
+ * <code>
+ *<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+ *<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,javax.jdo.*"%>
+ *<html>
+ *<head>
+ *<title>My Sample JSP File Using a Shepherd Object</title>
+ *</head>
+ *<body>
+ *<%
+ *Shepherd myShepherd=new Shepherd();
+ *%>
  *
+ *<p>The number of encounters in the database is: <%=myShepherd.getNumEncounters()%></p>
+ *<p>The number of marked individuals in the database is: <%=myShepherd.getNumMarkedIndividuals()%></p>
+ *<%
+ *myShepherd.rollbackDBTransaction();
+ *myShepherd.closeDBTransaction();
+ *%>
+ *</body>
+ *</html>
+ *</code>
  * @author Jason Holmberg
- * @version alpha-2
- * @see shark, encounter, superSpot,	spot
+ * @see MarkedIndividual, Encounter, Keyword
  */
 public class Shepherd {
 
+  //the JDO persistence manager used under the covers in this class
   private PersistenceManager pm;
-  public static Vector matches = new Vector();
+  //public static Vector matches = new Vector();
   private PersistenceManagerFactory pmf;
 
 
@@ -75,24 +84,29 @@ public class Shepherd {
     }
   }
 
-
+/*
+ * Returns the JDO persistence manager used by Shepherd under the covers.
+ * 
+ */
   public PersistenceManager getPM() {
     return pm;
   }
 
+  /*
+   * Returns the JDO factory class that creates persistence managers.
+   * 
+   */
   public PersistenceManagerFactory getPMF() {
     return pmf;
   }
 
 
   /**
-   * Stores a new, unassigned encounter in the database for later retrieval and analysis.
+   * Stores a new, unassigned Encounter in the database for later retrieval and analysis.
    * Each new encounter is assigned a unique number which is also its unique retrievable ID in the database.
-   * This method will be the primary method used for future web submissions to shepherd from web-based applications.
-   *
-   * @param enc the new, unassociated encounter to be considered for addition to the database
-   * @return an Integer number that represents the unique number of this new encounter in the datatbase
-   * @ see encounter
+   * @param enc The new encounter to be added to the database.
+   * @return An identifier that represents the unique number of this new encounter in the database.
+   * @ see Encounter
    */
   public String storeNewEncounter(Encounter enc, String uniqueID) {
     enc.setEncounterNumber(uniqueID);
@@ -102,7 +116,7 @@ public class Shepherd {
       commitDBTransaction();
     } catch (Exception e) {
       rollbackDBTransaction();
-      System.out.println("I failed to create a new encounter in shepherd.storeNewEncounter().");
+      System.out.println("I failed to create a new encounter in Shepherd.storeNewEncounter().");
       System.out.println("     uniqueID:" + uniqueID);
       e.printStackTrace();
       return "fail";
