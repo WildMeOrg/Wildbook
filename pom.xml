@@ -13,7 +13,8 @@
     <datanucleus.version>3.0.4</datanucleus.version>
     <datanucleus.enhancer.version>3.0.1</datanucleus.enhancer.version>
     <datanucleus.spatial.version>3.0.1</datanucleus.spatial.version>
-    <datanucleus.rest.version>2.0.1</datanucleus.rest.version>
+    <datanucleus.rest.version>3.0.1</datanucleus.rest.version>
+     <datanucleus.json.version>3.0.2</datanucleus.json.version>
     <datanucleus.jodatime.version>3.0.1</datanucleus.jodatime.version>
     <datanucleus.jpa.version>2.1.8</datanucleus.jpa.version>
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
@@ -123,9 +124,15 @@
     </dependency>
     <dependency>
       <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-rest</artifactId>
+      <artifactId>datanucleus-api-rest</artifactId>
       <version>${datanucleus.rest.version}</version>
       <scope>${datanucleus.lib.scope}</scope>
+    </dependency>
+        <dependency>
+          <groupId>org.datanucleus</groupId>
+          <artifactId>datanucleus-api-json</artifactId>
+          <version>${datanucleus.json.version}</version>
+          <scope>${datanucleus.lib.scope}</scope>
     </dependency>
     <dependency>
       <groupId>org.datanucleus</groupId>
