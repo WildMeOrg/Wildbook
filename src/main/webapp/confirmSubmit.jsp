@@ -89,7 +89,7 @@
   String photographer = "None";
   boolean emailPhoto = false;
   //get all needed DB reads out of the way in case Dynamic Image fails
-  String addText = "images/Crystal_Clear_action_edit.png";
+  String addText = "";
   boolean hasImages = true;
   String submitter = "";
   String informOthers = "";
