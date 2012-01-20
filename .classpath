@@ -25,12 +25,13 @@
   <classpathentry kind="var" path="M2_REPO/servlets/com/cos/05Nov2002/cos-05Nov2002.jar"/>
   <classpathentry kind="var" path="M2_REPO/net/sourceforge/cssparser/cssparser/0.9.5/cssparser-0.9.5.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-jdo/3.0.4/datanucleus-api-jdo-3.0.4.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-json/3.0.2/datanucleus-api-json-3.0.2.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-rest/3.0.1/datanucleus-api-rest-3.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-core/3.0.4/datanucleus-core-3.0.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-enhancer/3.0.1/datanucleus-enhancer-3.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-jodatime/3.0.1/datanucleus-jodatime-3.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-jpa/2.1.8/datanucleus-jpa-2.1.8.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-rdbms/3.0.4/datanucleus-rdbms-3.0.4.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-rest/2.0.1/datanucleus-rest-2.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-spatial/3.0.1/datanucleus-spatial-3.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/derby/derby/10.6.1.0/derby-10.6.1.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/dilib/dilib/1.0/dilib-1.0.jar"/>
