@@ -63,11 +63,17 @@ import java.util.*;
  */
 public class Shepherd {
 
-  //the JDO persistence manager used under the covers in this class
+  /*
+   * The JDO persistence manager used under the covers in this class.
+   */
   private PersistenceManager pm;
-  public static Vector matches = new Vector();
+
+  /*
+   * The PersistenceMangerFactory used to generate a PersistenceManger instance for this Shepherd.
+   */
   private PersistenceManagerFactory pmf;
 
+  public static Vector matches = new Vector();
 
   /**
    * Constructor to create a new shepherd thread object
