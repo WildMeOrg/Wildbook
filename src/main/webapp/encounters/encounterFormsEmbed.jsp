@@ -209,11 +209,49 @@ if(!request.getParameter("loggedIn").equals("true")){
     <tr>
       <td align="left" valign="top">
         <form name="addLocCode" action="../EncounterSetLocationID"
-              method="post"><input name="code" type="text" size="5"
-                                   maxlength="5"> <input name="number" type="hidden"
-                                                         value=<%=num%>> <input name="action"
-                                                                                type="hidden"
-                                                                                value="addLocCode">
+              method="post">
+              
+              <%
+              if(CommonConfiguration.getProperty("locationID0")==null){
+              %>
+              <input name="code" type="text" size="10" maxlength="50"> 
+              <%
+              }
+              else{
+            	  //iterate and find the locationID options
+            	  %>
+            	  <select name="code" id="code">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreLocs=true;
+						       int taxNum=0;
+						       while(hasMoreLocs){
+						       	  String currentLoc = "locationID"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLoc)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc)%>"><%=CommonConfiguration.getProperty(currentLoc)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreLocs=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select>  
+            	  
+            	  
+            <% 	  
+              }
+              %>
+              
+                                   <input name="number" type="hidden" value="<%=num%>"> 
+                                   <input name="action" type="hidden" value="addLocCode">
           <input name="Set Location ID"
                  type="submit" id="Add" value="<%=encprops.getProperty("setLocationID")%>"></form>
       </td>
