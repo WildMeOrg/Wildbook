@@ -82,15 +82,15 @@
 		<li>a quote from you stating why manta research and conservation are important </li>
 		</ul>
 	<p>Please allow 24-48 hours after receipt of your email for processing. We are currently working to automate and speed this process through PayPal. </p>
-	<p>Your adoption (photograph, name, and quote) will be displayed on the web site page for your shark, and one adoption will be randomly chosen to be displayed on the front page of whaleshark.org.</p>
+	<p>Your adoption (photograph, name, and quote) will be displayed on the web site page for your manta, and one adoption will be randomly chosen to be displayed on the front page of mantamatcher.org.</p>
 	<p><em><strong>Thank you for adopting a manta and supporting our global research efforts! </strong></em></p>
 	</td>
 	<td width="200" align="left">
-	<p align="center"><a href="http://www.whaleshark.org/individuals.jsp?number=A-001"><img src="images/sample_adoption.gif" border="0" /></a>	
+	<p align="center"><a href="http://www.mantamatcher.org/individuals.jsp?number=SA18B"><img src="images/sample_adoption.gif" border="0" /></a>	
 	</p>
 	  <p align="center"><strong>
-	  Sample adoption for manta XXXXX. <br />
-	  </strong><strong><a href="http://www.mantamatcher.org/individuals.jsp?number=A-001">Click here to see it on the manta page. </a> </strong></p>
+	  Sample adoption for manta SA18B. <br />
+	  </strong><strong><a href="http://www.mantamatcher.org/individuals.jsp?number=SA18B">Click here to see it on the manta page. </a> </strong></p>
 	  </td></tr></table>
 	</div>
 	<!-- end maintext -->
