@@ -93,7 +93,11 @@ public class EncounterSetLocationID extends HttpServlet {
       try {
 
         oldCode = changeMe.getLocationCode();
+        
+      if(request.getParameter("code").trim().equals("")){changeMe.setLocationCode(null);}
+      else{
         changeMe.setLocationCode(request.getParameter("code"));
+      }
         changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed location code from " + oldCode + " to " + request.getParameter("code") + ".</p>");
 
       } catch (Exception le) {

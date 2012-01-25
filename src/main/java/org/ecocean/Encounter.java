@@ -749,7 +749,7 @@ public class Encounter implements java.io.Serializable {
    * Sets the String holding specific location data used for searching
    */
   public void setLocationCode(String newLoc) {
-    locationID = newLoc;
+    setLocationID(newLoc);
   }
 
   /**
@@ -1203,7 +1203,8 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setLocationID(String newLocationID) {
-    this.locationID = newLocationID;
+    if(newLocationID!=null){locationID = newLocationID;}
+    else{locationID = null;}
   }
 
   public Double getMaximumDepthInMeters() {
@@ -1292,7 +1293,8 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setBehavior(String beh) {
-    this.behavior = beh;
+    if(beh!=null){behavior = beh;}
+    else{behavior = null;}
   }
 
   public String getEventID() {

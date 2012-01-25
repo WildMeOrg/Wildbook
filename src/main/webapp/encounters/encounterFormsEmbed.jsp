@@ -623,16 +623,59 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
     </tr>
     <tr>
       <td align="left" valign="top">
-        <form name="setBehaviorComments" action="../EncounterSetBehavior"
-              method="post"><textarea name="behaviorComment" size="15">
-         <%
-         if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
-         %>
-              <%=enc.getBehavior()%>
+        <form name="setBehaviorComments" action="../EncounterSetBehavior" method="post">
+       
         <%
-        }
-        %>
-        </textarea>
+              if(CommonConfiguration.getProperty("locationID0")==null){
+              %>
+                      <textarea name="behaviorComment" size="15">
+         				<%
+        				 if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
+         				%>
+              				<%=enc.getBehavior()%>
+        				<%
+        				}
+        				%>
+        			  </textarea>
+              <%
+              }
+              else{
+            	  //iterate and find the behavior options
+            	  %>
+            	  <select name="behaviorComment" id="behaviorComment">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreLocs=true;
+						       int taxNum=0;
+						       while(hasMoreLocs){
+						       	  String currentLoc = "behavior"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLoc)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc)%>"><%=CommonConfiguration.getProperty(currentLoc)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreLocs=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select>  
+            	  
+            	  
+            <% 	  
+              }
+              %>
+       
+
+        
+        
+        
           <input name="number" type="hidden" value=<%=num%>> <input
             name="action" type="hidden" value="editBehavior"> <input
             name="EditBeh" type="submit" id="EditBeh"

@@ -593,6 +593,8 @@ table.tissueSample td {
   <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=scar#scar">edit</a>]</font>
     <%
  	}
+    
+if (CommonConfiguration.showProperty("showBehavior")) {   
  	%>
 
 <p class="para"><strong><%=encprops.getProperty("behavior") %>
@@ -615,6 +617,8 @@ table.tissueSample td {
   %>
 </p>
 <%
+}
+
   if (CommonConfiguration.showProperty("showLifestage")) {
 %>
 <p class="para"><strong><%=encprops.getProperty("lifeStage") %>
