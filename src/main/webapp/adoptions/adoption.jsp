@@ -247,7 +247,7 @@
 
     <tr>
       <td valign="top">Adopter quote:</td>
-      <td>Why are shark research and conservation important?<br><textarea
+      <td>Why are research and conservation for this species important?<br><textarea
         name="adopterQuote" cols="40" id="adopterQuote" rows="10"><%=adopterQuote%>
       </textarea>
       </td>
@@ -255,7 +255,7 @@
 
 
     <tr>
-      <td>Shark:</td>
+      <td>Marked Individual:</td>
       <td><input name="shark" type="text" size="30"
                  value="<%=sharkForm%>"> </input> <%if (!sharkForm.equals("")) { %>
         <a href="../individuals.jsp?number=<%=sharkForm%>">Link</a> <%
