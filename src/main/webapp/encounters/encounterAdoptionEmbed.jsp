@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
+         import="org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList,java.io.File" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -40,11 +40,20 @@
     Adoption ad = (Adoption) adoptions.get(ia);
 %>
 <table class="adopter" width="250px">
-  <tr>
-    <td class="image"><img
-      src="../adoptions/<%=ad.getID()%>/thumb.jpg" width="250px"></td>
-  </tr>
+  <%
+  File adopterImage = new File(getServletContext().getRealPath(("/adoptions/" + ad.getID() + "/thumb.jpg")));
 
+    if ((ad.getAdopterImage() != null) && (adopterImage.exists())) {
+  %>
+  <tr>
+    <td class="image" style="padding-top: 0px;">
+      <center><img width="188px"
+                   src="../adoptions/<%=ad.getID()%>/thumb.jpg"/></center>
+    </td>
+  </tr>
+  <%
+    }
+  %>
   <tr>
     <td class="name">
       <table>
@@ -55,20 +64,18 @@
       </table>
     </td>
   </tr>
-  <%
-    if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().equals(""))) {
-  %>
-
-  <tr>
-    <td>Why are research and conservation important for this
-      species?
-    </td>
-  </tr>
-  <tr>
-    <td width="250px"><em>"<%=ad.getAdopterQuote()%>"</em></td>
-  </tr>
-
-  <%
+   <%
+     if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
+   %>
+ 
+   <tr>
+     <td>Why are research and conservation for this species important?</td>
+   </tr>
+   <tr>
+     <td><em>"<%=ad.getAdopterQuote()%>"</em></td>
+   </tr>
+ 
+   <%
     }
 
     if (request.isUserInRole("admin")) {
