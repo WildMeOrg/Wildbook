@@ -22,7 +22,7 @@
 
 <%
   Shepherd adoptShepherd = new Shepherd();
-  String num = request.getParameter("num");
+  String num = request.getParameter("encounterNumber");
 
   try {
 
