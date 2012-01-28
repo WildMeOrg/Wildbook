@@ -70,6 +70,8 @@
   <div id="page">
     <jsp:include page="header.jsp" flush="true">
       <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+      <jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>" />
+      <jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>" />
     </jsp:include>
     <div id="main">
       <div id="leftcol">
@@ -84,9 +86,8 @@
           </h1>
 
 
-          <p><%=props.getProperty("loggedInAs")%> <strong><%=request.getRemoteUser()%>
-          </strong>.
-          </p>
+          <p><%=props.getProperty("loggedInAs")%>: <strong><%=request.getRemoteUser()%>
+          </strong></p>
 
           <p><%=props.getProperty("grantedRole")%>
 
@@ -95,10 +96,15 @@
               if (request.isUserInRole("admin")) {
                 role = "Administrator";
               }
+              else if (request.isUserInRole("manager")) {
+                role = "Manager";
+              }
+	     else if (request.isUserInRole("researcher")) {
+		                role = "Researcher";
+              }
 
-
-            %> <strong><%=role%>
-            </strong>.</p>
+            %> 
+            <strong><%=role%></strong></p>
             
             <%
 	        Logger log = LoggerFactory.getLogger(getClass());
