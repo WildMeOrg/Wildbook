@@ -49,6 +49,14 @@ public class ResurrectDeletedAdoption extends HttpServlet {
     //initialize shepherd
     Shepherd myShepherd = new Shepherd();
 
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, "shepherd_data_dir");
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -67,7 +75,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
       //ok, let's get the encounter object back from the .dat file
       String datFilename = request.getParameter("number") + ".dat";
       //File thisEncounterDat=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getAdoptionDirectory()+File.separator+request.getParameter("number")+File.separator+datFilename);
-      File thisAdoptionDat = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getAdoptionDirectory() + "/" + request.getParameter("number") + "/" + datFilename)));
+      File thisAdoptionDat = new File(adoptionsDir.getAbsolutePath() + "/" + request.getParameter("number") + "/" + datFilename);
 
 
       if (thisAdoptionDat.exists()) {

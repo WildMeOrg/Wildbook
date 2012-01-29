@@ -60,6 +60,15 @@ public class EncounterAddSpotFile extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     Shepherd myShepherd = new Shepherd();
+    
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, "shepherd_data_dir");
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -94,12 +103,12 @@ public class EncounterAddSpotFile extends HttpServlet {
 
         }
 
-
+        File thisEncounterDir = new File(encountersDir, encounterNumber);
         if (part.isFile()) {
           FilePart filePart = (FilePart) part;
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());
           if ((fileName != null)&&(myShepherd.isAcceptableImageFile(fileName))) {
-            File thisSharkDir = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + encounterNumber)));
+            File thisSharkDir = new File(thisEncounterDir.getAbsolutePath() + "/" + encounterNumber);
 
 
             //eliminate the previous JPG version of this file if it existed      										//eliminate the previous JPG if it existed

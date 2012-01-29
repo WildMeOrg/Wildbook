@@ -52,7 +52,13 @@ public class DeleteAdoption extends HttpServlet {
 
     String number = request.getParameter("number");
 
-
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, "shepherd_data_dir");
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
+    
     myShepherd.beginDBTransaction();
     if ((myShepherd.isAdoption(number))) {
 
@@ -61,7 +67,7 @@ public class DeleteAdoption extends HttpServlet {
 
         String savedFilename = request.getParameter("number") + ".dat";
         //File thisEncounterDir=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getAdoptionDirectory()+File.separator+request.getParameter("number"));
-        File thisEncounterDir = new File(getServletContext().getRealPath(("/adoptions/" + request.getParameter("number"))));
+        File thisEncounterDir = new File(adoptionsDir.getAbsolutePath()+"/" + request.getParameter("number"));
 
         File serializedBackup = new File(thisEncounterDir, savedFilename);
         FileOutputStream fout = new FileOutputStream(serializedBackup);
@@ -89,7 +95,8 @@ public class DeleteAdoption extends HttpServlet {
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/" + CommonConfiguration.getAdoptionDirectory() + "/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
         out.println(ServletUtilities.getFooter());
-      } else {
+      } 
+      else {
 
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> I failed to delete this adoption. Check the logs for more details.");

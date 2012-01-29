@@ -552,8 +552,7 @@ catch (Exception e) {
         name="action" type="hidden" value="imageadder" id="action">
         <input name="number" type="hidden" value="<%=imageEncNum%>" id="shark">
         <strong><img align="absmiddle"
-                     src="../images/upload_small.gif"/> <%=encprops.getProperty("addfile") %>
-          :</strong><br/>
+                     src="../images/upload_small.gif"/> <%=encprops.getProperty("addfile") %>:</strong><br/>
         <input name="file2add" type="file" size="20">
 
         <p><input name="addtlFile" type="submit" id="addtlFile"
