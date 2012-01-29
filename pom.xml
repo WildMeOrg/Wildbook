@@ -199,7 +199,7 @@
     <dependency>
       <groupId>org.mortbay.jetty</groupId>
       <artifactId>jetty-runner</artifactId>
-      <version>8.1.0.RC2</version>
+      <version>8.1.0.RC4</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.jwebunit</groupId>
@@ -234,6 +234,11 @@
       	<groupId>jstl</groupId>
       	<artifactId>jstl</artifactId>
       	<version>1.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.6.1</version>
       </dependency>
     
     
@@ -283,8 +288,8 @@
       
       <plugin>
         <groupId>org.mortbay.jetty</groupId>
-        <artifactId>maven-jetty-plugin</artifactId>
-        <version>8.1.0.RC2</version>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>8.1.0.RC4</version>
         <configuration>
           <!--jettyConfig>src/test/resources/jetty/jetty.xml</jettyConfig-->
           <loginServices>
