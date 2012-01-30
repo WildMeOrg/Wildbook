@@ -84,8 +84,7 @@
           </h1>
 
 
-          <p><%=props.getProperty("loggedInAs")%> <strong><%=request.getRemoteUser()%>
-          </strong>.
+          <p><%=props.getProperty("loggedInAs")%> <strong><%=request.getRemoteUser()%></strong>.
           </p>
 
           <p><%=props.getProperty("grantedRole")%>
@@ -95,10 +94,15 @@
               if (request.isUserInRole("admin")) {
                 role = "Administrator";
               }
+              else if (request.isUserInRole("manager")) {
+	                      role = "Manager";
+              }
+               else if (request.isUserInRole("researcher")) {
+	      	                      role = "Researcher";
+              }
 
 
-            %> <strong><%=role%>
-            </strong>.</p>
+            %> <strong><%=role%></strong>.</p>
             
             <%
 	        Logger log = LoggerFactory.getLogger(getClass());
