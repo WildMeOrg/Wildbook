@@ -70,7 +70,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
 
     myShepherd.beginDBTransaction();
 
-    if ((request.getParameter("number") != null) && (!myShepherd.isEncounter(encounterNumber))) {
+    if ((request.getParameter("number") != null) && (!myShepherd.isAdoption(encounterNumber))) {
       myShepherd.rollbackDBTransaction();
       //ok, let's get the encounter object back from the .dat file
       String datFilename = request.getParameter("number") + ".dat";
