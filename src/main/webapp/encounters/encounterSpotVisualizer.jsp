@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.*,java.awt.*,java.io.IOException, java.io.InputStream, java.net.URL, java.net.URLConnection, java.util.ArrayList" %>
+         import="org.ecocean.*,java.awt.*,java.io.*, java.net.URL, java.net.URLConnection, java.util.ArrayList" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -39,6 +39,14 @@
  // int intThisClusterCentroidY = 0;
  // double[] spots_MahaDistances = new double[0];
  // SuperSpot[] newSpots = new SuperSpot[0];
+ 
+     //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, "shepherd_data_dir");
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
 
   if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
     side = "Right";
@@ -136,7 +144,7 @@ if (myShepherd.isEncounter(num)) {
   } else {
     fileloc = (enc.getEncounterNumber() + "/extract" + num + ".jpg");
   }
-  URL encURL = new URL("http://" + CommonConfiguration.getURLLocation(request) + "/encounters/" + fileloc);
+  URL encURL = new URL("http://" + CommonConfiguration.getURLLocation(request) + "/shepherd_data_dir/encounters/" + fileloc);
   //System.out.println(encURL.toString());
   URLConnection connEnc;
   InputStream encStream = null;
@@ -170,7 +178,7 @@ if (myShepherd.isEncounter(num)) {
   	}
   	StringBuffer xmlData = new StringBuffer();
 
-  	String thumbLocation = "file-" + num + "/" + side + "SideSpotsMapped.jpg";
+  	String thumbLocation = "file-" + encountersDir.getAbsolutePath()+"/"+ num + "/" + side + "SideSpotsMapped.jpg";
 
 	%>
 	<di:img width="<%=encImageWidth%>"
@@ -178,7 +186,7 @@ if (myShepherd.isEncounter(num)) {
         imgParams="rendering=speed,quality=low" border="0" expAfter="0"
         threading="limited" fillPaint="#000000" align="top" valign="left"
         output="<%=thumbLocation %>">
-  	<di:image srcurl="<%=fileloc%>"/>
+  	<di:image srcurl="/shepherd_dat_dir/encounters/<%=fileloc%>"/>
   	<%
 
 
@@ -265,7 +273,7 @@ if (myShepherd.isEncounter(num)) {
 </di:img>
 
 <!-- Put the image URL in now -->
-<img src="<%=(num+"/"+side+"SideSpotsMapped.jpg")%>" border="0" align="left" valign="left">
+<img src="/shepherd_data_dir/encounters/<%=(num+"/"+side+"SideSpotsMapped.jpg")%>" border="0" align="left" valign="left">
 
 
 
@@ -292,7 +300,7 @@ if (myShepherd.isEncounter(num)) {
   all encounters</a></font></p>
 
 <p><font color="#990000"><a href="../allIndividuals.jsp">View
-  all sharks</a></font></p>
+  all marked individuals</a></font></p>
 
 <p></p>
 <%
