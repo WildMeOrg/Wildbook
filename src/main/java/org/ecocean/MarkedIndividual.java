@@ -622,7 +622,9 @@ public class MarkedIndividual {
     int lowestYear = 5000;
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if (temp.getYear() < lowestYear) lowestYear = temp.getYear();
+      if ((temp.getYear() < lowestYear)&&(temp.getYear()>-1)){ 
+        lowestYear = temp.getYear();
+      }
     }
     return lowestYear;
   }
@@ -982,7 +984,7 @@ public class MarkedIndividual {
     int highestYear=0;
     for(int c=0;c<encounters.size();c++) {
       Encounter temp=(Encounter)encounters.get(c);
-      if(temp.getYear()<lowestYear) lowestYear=temp.getYear();
+      if((temp.getYear()<lowestYear)&&(temp.getYear()>-1)) lowestYear=temp.getYear();
       if(temp.getYear()>highestYear) highestYear=temp.getYear();
       maxYears=highestYear-lowestYear;
       }
