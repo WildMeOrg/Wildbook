@@ -78,7 +78,8 @@ public class CommonConfiguration {
   }
   
   private static void loadOverrideProps() {
-    File configDir = new File("config");
+    File configDir = new File("webapps/shepherd_data_dir/WEB-INF/classes/bundles");
+    if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
     if (configFile.exists()) {
       System.out.println("Overriding default properties with " + configFile.getAbsolutePath());
