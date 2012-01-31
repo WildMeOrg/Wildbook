@@ -649,7 +649,7 @@ catch (Exception e) {
   <di:img width="<%=intWidth%>" height="<%=intHeight%>"
           imgParams="rendering=speed,quality=low" expAfter="0" border="0"
           threading="limited" output="<%=extractLocation%>">
-    <di:image srcurl="<%=addText%>"/>
+    <di:image srcurl="<%=(encountersDir.getAbsolutePath()+"/"+addText)%>"/>
   </di:img> <%
 							}
 										}
@@ -678,7 +678,7 @@ catch (Exception e) {
   <di:img width="<%=intWidthR%>" height="<%=intHeightR%>"
           imgParams="rendering=speed,quality=low" expAfter="0"
           threading="limited" border="0" output="<%=extractRightLocation%>">
-    <di:image srcurl="<%=addTextRight%>"/>
+    <di:image srcurl="<%=(encountersDir.getAbsolutePath()+"/"+addTextRight)%>"/>
   </di:img> <%
 						}
 								}
