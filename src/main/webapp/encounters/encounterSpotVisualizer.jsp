@@ -144,25 +144,26 @@ if (myShepherd.isEncounter(num)) {
   } else {
     fileloc = (enc.getEncounterNumber() + "/extract" + num + ".jpg");
   }
-  URL encURL = new URL("http://" + CommonConfiguration.getURLLocation(request) + "/shepherd_data_dir/encounters/" + fileloc);
+  //URL encURL = new URL("http://" + CommonConfiguration.getURLLocation(request) + "/shepherd_data_dir/encounters/" + fileloc);
   //System.out.println(encURL.toString());
-  URLConnection connEnc;
+  //URLConnection connEnc;
   InputStream encStream = null;
   boolean canDirectMap = true;
   Dimension imageDimensions = null;
+  FileInputStream fip=new FileInputStream(new File(encountersDir.getAbsolutePath()+"/" + fileloc));
   try {
-    connEnc = encURL.openConnection();
+    //connEnc = encURL.openConnection();
     //System.out.println("Opened new encounter connection");
-    encStream = connEnc.getInputStream();
-    imageDimensions = org.apache.sanselan.Sanselan.getImageSize(encStream, ("extract" + num + ".jpg"));
+    //encStream = connEnc.getInputStream();
+    imageDimensions = org.apache.sanselan.Sanselan.getImageSize(fip, ("extract" + num + ".jpg"));
 
   } 
   catch (IOException ioe) {
     System.out.println("I failed to get the image input stream while using the spotVisualizer");
     canDirectMap = false;
 	%>
-	<p>I could not connect to and find the spot image.</p>
-	<p><%=encURL.toString() %></p>
+	<p>I could not connect to and find the spot image at: <%=(encountersDir.getAbsolutePath()+"/" + fileloc) %></p>
+
 	<%
   }
 
@@ -186,7 +187,10 @@ if (myShepherd.isEncounter(num)) {
         imgParams="rendering=speed,quality=low" border="0" expAfter="0"
         threading="limited" fillPaint="#000000" align="top" valign="left"
         output="<%=thumbLocation %>">
-  	<di:image srcurl="/shepherd_dat_dir/encounters/<%=fileloc%>"/>
+        <%
+        System.out.println(encountersDir.getAbsolutePath()+"/"+fileloc);
+        %>
+  	<di:image srcurl="<%=(encountersDir.getAbsolutePath()+"/"+fileloc)%>"/>
   	<%
 
 

@@ -108,7 +108,7 @@ public class EncounterAddSpotFile extends HttpServlet {
           FilePart filePart = (FilePart) part;
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());
           if ((fileName != null)&&(myShepherd.isAcceptableImageFile(fileName))) {
-            File thisSharkDir = new File(thisEncounterDir.getAbsolutePath() + "/" + encounterNumber);
+            //File thisSharkDir = new File(thisEncounterDir.getAbsolutePath() + "/" + encounterNumber);
 
 
             //eliminate the previous JPG version of this file if it existed      										//eliminate the previous JPG if it existed
@@ -122,7 +122,7 @@ public class EncounterAddSpotFile extends HttpServlet {
                 fileName = "LEFT" + fileName;
               }
 
-              File jpegVersion = new File(thisSharkDir, ("extract" + sideAddition + encounterNumber + ".jpg"));
+              File jpegVersion = new File(thisEncounterDir, ("extract" + sideAddition + encounterNumber + ".jpg"));
               if (jpegVersion.exists()) {
                 removedJPEG = jpegVersion.delete();
               }
@@ -134,7 +134,7 @@ public class EncounterAddSpotFile extends HttpServlet {
             }
 
             long file_size = filePart.writeTo(
-              new File(thisSharkDir, fileName)
+              new File(thisEncounterDir, fileName)
             );
 
 
