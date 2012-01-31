@@ -93,7 +93,7 @@ public class DeleteAdoption extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully removed adoption " + number + ". However, a saved copy an still be restored.");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/" + CommonConfiguration.getAdoptionDirectory() + "/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
         out.println(ServletUtilities.getFooter());
       } 
       else {
@@ -101,7 +101,7 @@ public class DeleteAdoption extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> I failed to delete this adoption. Check the logs for more details.");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/" + CommonConfiguration.getAdoptionDirectory() + "/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
         out.println(ServletUtilities.getFooter());
 
       }

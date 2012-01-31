@@ -115,21 +115,24 @@ public class CommonConfiguration {
     return props.getProperty("mailHost").trim();
   }
 
+/**
   public static String getImageDirectory() {
     initialize();
     return props.getProperty("imageLocation").trim();
   }
-
+*/
+  /**
   public static String getMarkedIndividualDirectory() {
     initialize();
     return props.getProperty("markedIndividualDirectoryLocation").trim();
   }
-
+  */
+/*
   public static String getAdoptionDirectory() {
     initialize();
     return props.getProperty("adoptionLocation").trim();
   }
-
+*/
   public static String getWikiLocation() {
     initialize();
     if(props.getProperty("wikiLocation")!=null){return props.getProperty("wikiLocation").trim();}
@@ -429,5 +432,11 @@ public class CommonConfiguration {
     return !Boolean.FALSE.toString().equals(showMeasurements);
   }
   
-
+  public static String getDataDirectoryName() {
+    initialize();
+    String dataDirectoryName="shepherd_data_dir";
+    if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
+    return dataDirectoryName;
+  }
+  
 }

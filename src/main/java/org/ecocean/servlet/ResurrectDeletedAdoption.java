@@ -102,7 +102,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success!</strong> I have successfully restored adoption " + request.getParameter("number") + " from accidental deletion.</p>");
 
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/" + CommonConfiguration.getAdoptionDirectory() + "/adoption.jsp?number=" + encounterNumber + "\">Return to adoption " + encounterNumber + "</a></p>\n");
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp?number=" + encounterNumber + "\">Return to adoption " + encounterNumber + "</a></p>\n");
           out.println(ServletUtilities.getFooter());
           //String message="The matched by type for encounter "+encounterNumber+" was changed from "+prevMatchedBy+" to "+matchedBy+".";
           //informInterestedParties(encounterNumber, message);
