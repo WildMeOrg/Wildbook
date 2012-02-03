@@ -40,7 +40,7 @@
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, "shepherd_data_dir");
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
   //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -360,7 +360,7 @@
 <p>
   <%
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
-    String baseURL = "/shepherd_data_dir/encounters/";
+    String baseURL = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/";
 
 
 //myShepherd.rollbackDBTransaction();
@@ -394,7 +394,7 @@
     <PARAM NAME="scale" VALUE="exactfit">
     <PARAM NAME="bgcolor" VALUE="#ddddff">
     <EMBED
-      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=/shepherd_data_dir&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
+      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=/<%=CommonConfiguration.getDataDirectoryName() %>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
       quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
       WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
       TYPE="application/x-shockwave-flash"

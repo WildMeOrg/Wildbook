@@ -31,7 +31,7 @@
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, "shepherd_data_dir");
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
   //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
   File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
   //if(!encountersDir.exists()){encountersDir.mkdir();}

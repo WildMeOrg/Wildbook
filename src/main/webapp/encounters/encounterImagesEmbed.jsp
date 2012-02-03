@@ -36,7 +36,7 @@ boolean haveRendered = false;
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
 File webappsDir = new File(rootWebappPath).getParentFile();
-File shepherdDataDir = new File(webappsDir, "shepherd_data_dir");
+File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File thisEncounterDir = new File(encountersDir, imageEncNum);
 
@@ -247,12 +247,12 @@ int imageCount = 0;
       }
       if (request.getParameter("isOwner").equals("true") && (!isBMP) && (!isVideo)) {
     %>
-    <a href="/shepherd_data_dir/encounters/<%=imageEncNum%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)"
+    <a href="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=imageEncNum%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)"
        title="Click to enlarge">
       <%
       } else if (request.getParameter("isOwner").equals("true")||(request.getParameter("loggedIn").equals("true"))) {
       %>
-      <a href="/shepherd_data_dir/encounters/<%=addText%>" 
+      <a href="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=addText%>" 
         <%
         if(!isVideo){
         %>
@@ -332,7 +332,7 @@ String srcurl=encountersDir.getAbsolutePath()+"/"+addText;
         </di:text>
       </di:img>
       <img width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
-           src="/shepherd_data_dir/encounters/<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
+           src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
       if (request.getParameter("isOwner").equals("true")) {
     %>
     </a>
@@ -351,7 +351,7 @@ String srcurl=encountersDir.getAbsolutePath()+"/"+addText;
     %> <%
   } else {
   %> <img id="img<%=images.get(myImage).getDataCollectionEventID()%> " width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
-          src="/shepherd_data_dir/encounters/<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
+          src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
           valign="left"> <%
 	if (session.getAttribute("logged")!=null) {
 				%></a>
@@ -684,8 +684,8 @@ catch (Exception e) {
 								}
 								
 								
-								String fileloc="/shepherd_data_dir/encounters/"+(imageEncNum+"/"+imageEnc.getSpotImageFileName());
-								String filelocR="/shepherd_data_dir/encounters/"+(imageEncNum+"/"+imageEnc.getRightSpotImageFileName());
+								String fileloc="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(imageEncNum+"/"+imageEnc.getSpotImageFileName());
+								String filelocR="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(imageEncNum+"/"+imageEnc.getRightSpotImageFileName());
 					%>
 
 <p class="para"><strong>Spot data image files used for

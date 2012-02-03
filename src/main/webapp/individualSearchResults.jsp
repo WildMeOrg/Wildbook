@@ -262,7 +262,7 @@ String qString=dateParams+sexParam+numResightsParam+locCodeParam+lengthParams+ex
   %>
   <tr class="lineitem">
     <td class="lineitem" width="102" bgcolor="#000000"><img
-      src="<%=("/shepherd_data_dir/encounters/"+tempEnc.getEncounterNumber()+"/thumb.jpg")%>"></td>
+      src="<%=("/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+tempEnc.getEncounterNumber()+"/thumb.jpg")%>"></td>
     <td class="lineitem"><a
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
     </a>

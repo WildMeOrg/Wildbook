@@ -53,7 +53,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, "shepherd_data_dir");
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //if(!encountersDir.exists()){encountersDir.mkdir();}

@@ -71,14 +71,16 @@ public class CommonConfiguration {
           }
         }
       }
-      loadOverrideProps();
+      String shepherdDataDir="shepherd_data_dir";
+      if((props.getProperty("dataDirectoryName")!=null)&&(!props.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=props.getProperty("dataDirectoryName");}
+      loadOverrideProps(shepherdDataDir);
       propsSize = props.size();
     }
     return true;
   }
   
-  private static void loadOverrideProps() {
-    File configDir = new File("webapps/shepherd_data_dir/WEB-INF/classes/bundles");
+  private static void loadOverrideProps(String shepherdDataDir) {
+    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
     if (configFile.exists()) {

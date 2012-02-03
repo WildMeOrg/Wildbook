@@ -93,7 +93,7 @@
   <tr>
     <td class="image" style="padding-top: 0px;">
       <center><img width="188px"
-                   src="/shepherd_data_dir/adoptions/<%=ad.getID()%>/thumb.jpg"/></center>
+                   src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=ad.getID()%>/thumb.jpg"/></center>
     </td>
   </tr>
   <%

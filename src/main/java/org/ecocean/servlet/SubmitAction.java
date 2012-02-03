@@ -313,7 +313,7 @@ public class SubmitAction extends Action {
      
       String rootWebappPath = getServlet().getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, "shepherd_data_dir");
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
       if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
       
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");

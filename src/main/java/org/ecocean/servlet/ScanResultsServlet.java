@@ -24,6 +24,7 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.grid.MatchComparator;
 import org.ecocean.grid.MatchObject;
 import org.ecocean.grid.VertexPointMatch;
@@ -138,7 +139,7 @@ public class ScanResultsServlet extends HttpServlet {
       //setup data dir
       String rootWebappPath = getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, "shepherd_data_dir");
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
       //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       //if(!encountersDir.exists()){encountersDir.mkdir();}

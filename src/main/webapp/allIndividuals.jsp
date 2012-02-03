@@ -235,7 +235,7 @@
                                 //if ((countMe>=lowCount)&&(countMe<=highCount)) {
                                 myShepherd.getPM().getFetchPlan().setGroup(FetchPlan.DEFAULT);
                                 Encounter enc = (Encounter) sharky.getEncounter(0);
-                                String imgName = "/shepherd_data_dir/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
+                                String imgName = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
                         %>
                         <tr>
                             <td width="101" height="60" class="lineitem"><a

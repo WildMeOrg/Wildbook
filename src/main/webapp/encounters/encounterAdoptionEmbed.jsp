@@ -42,7 +42,7 @@
 <table class="adopter" width="250px">
   <tr>
     <td class="image"><img
-      src="/shepherd_data_dir/adoptions/<%=ad.getID()%>/thumb.jpg" width="250px"></td>
+      src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=ad.getID()%>/thumb.jpg" width="250px"></td>
   </tr>
 
   <tr>
