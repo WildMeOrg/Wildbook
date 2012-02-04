@@ -163,6 +163,8 @@ if (myShepherd.isEncounter(num)) {
 
 	<%
   }
+  fip.close();
+  fip=null;
 
   if (canDirectMap) {
   	int encImageWidth = (int) imageDimensions.getWidth();
@@ -177,7 +179,7 @@ if (myShepherd.isEncounter(num)) {
   	StringBuffer xmlData = new StringBuffer();
 
   	String thumbLocation = "file-" + encountersDir.getAbsolutePath()+"/"+ num + "/" + side + "SideSpotsMapped.jpg";
-
+	
 	%>
 	<di:img width="<%=encImageWidth%>"
         height="<%=encImageHeight%>"
@@ -186,8 +188,9 @@ if (myShepherd.isEncounter(num)) {
         output="<%=thumbLocation %>">
         <%
         System.out.println(encountersDir.getAbsolutePath()+"/"+fileloc);
+        String src_url=encountersDir.getAbsolutePath()+"/"+fileloc;
         %>
-  	<di:image srcurl="<%=(encountersDir.getAbsolutePath()+"/"+fileloc)%>"/>
+  	<di:image srcurl="<%=src_url%>"/>
   	<%
 
 
@@ -266,6 +269,7 @@ if (myShepherd.isEncounter(num)) {
   <%
       }
     } catch (Exception e) {
+    	e.printStackTrace();
     }
 
     

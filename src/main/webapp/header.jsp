@@ -44,8 +44,7 @@
 %>
 
 <div id="header"><img name="masthead"
-                      src="http://<%=CommonConfiguration.getURLLocation(request) + "/"
-                      + CommonConfiguration.getURLToMastheadGraphic() %>" width="810"
+                      src="<%=CommonConfiguration.getURLToMastheadGraphic() %>" width="810"
                       height="150" border="0" usemap="#m_masthead" alt=""/></div>
 <div>
   <ul id="pmenu">
@@ -284,7 +283,7 @@
           if (CommonConfiguration.allowAdoptions()) {
         %>
         <li class="drop"><a
-          href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp"
+          href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px; z-index: 100;"><strong><%=props.getProperty("adoptions")%>
         </strong>
           <img
@@ -296,13 +295,13 @@
               <td><![endif]-->
           <ul>
             <li><a
-              href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp"
+              href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp"
               class="enclose"
               style="margin: 0px 0 0px 80px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("createEditAdoption")%>
             </a></li>
             <li
               style="margin: 0px 0 0px 80px; position: relative; width: 191px; height: 26px;"><a
-              href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getAdoptionDirectory() %>/allAdoptions.jsp"
+              href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/allAdoptions.jsp"
               class="enclose"
               style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("viewAllAdoptions")%>
             </a></li>

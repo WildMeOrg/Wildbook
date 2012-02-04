@@ -34,7 +34,7 @@ String num = request.getParameter("number").replaceAll("\\+", "").trim();
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
 File webappsDir = new File(rootWebappPath).getParentFile();
-File shepherdDataDir = new File(webappsDir, "CommonConfiguration.getDataDirectoryName());
+File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File thisEncounterDir = new File(encountersDir, num);
 
