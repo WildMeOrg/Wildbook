@@ -299,10 +299,10 @@ z-index:99;
 						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/javadoc/index.html" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Javadoc</a></li>
 						
 						
-						<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px; z-index:100;"><strong>Adoptions</strong> <img src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/white_triangle.gif" border="0" align="absmiddle"><!--[if IE 7]><!--></a><!--<![endif]-->
+						<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px; z-index:100;"><strong>Adoptions</strong> <img src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/white_triangle.gif" border="0" align="absmiddle"><!--[if IE 7]><!--></a><!--<![endif]-->
 		<!--[if lte IE 6]><table><tr><td><![endif]-->
 		<ul>
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp" class="enclose" style="margin:0px 0 0px 80px; position:relative; width:190px; height:25px;z-index:99;">Create/edit adoption</a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp" class="enclose" style="margin:0px 0 0px 80px; position:relative; width:190px; height:25px;z-index:99;">Create/edit adoption</a></li>
 			<li style="margin:0px 0 0px 80px; position:relative; width:191px; height:26px;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/allAdoptions.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">View all adoptions</a></li>
 		
 		</ul>
