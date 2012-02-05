@@ -93,7 +93,7 @@
   </tr>
   <tr>
     <td align="left"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp?number=<%=ad.getID()%>#create">[edit
+      href="/<%=CommonConfiguration.getDataDirectoryName()%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
       this adoption]</a></td>
   </tr>
   <tr>
@@ -111,7 +111,7 @@
   if (request.isUserInRole("admin")) {
 %>
 <p><a
-  href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp?encounter=<%=num%>#create">[+]
+  href="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/adoption.jsp?encounter=<%=num%>#create">[+]
   Add adoption</a></p>
 <%
   }

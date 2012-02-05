@@ -295,7 +295,7 @@ if(ad!=null){
 <table class="adopter" bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="images/adoption-button-top.gif" /></a></td></tr>
 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="images/meet-adopter-frame.gif" /></a></td></tr>
-			 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="adoptions/<%=ad.getID()%>/thumb.jpg" /></a></td></tr>
+			 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=ad.getID()%>/thumb.jpg" /></a></td></tr>
 			 
 			 <tr><td class="name">
 			 	<center><strong><font color="#282460" size="+1"><%=ad.getAdopterName()%></font></strong></center>
