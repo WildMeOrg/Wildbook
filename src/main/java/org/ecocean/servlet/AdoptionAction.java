@@ -283,7 +283,7 @@ public class AdoptionAction extends Action {
       System.out.println("Ending adoption data submission.");
       //if((submitterID!=null)&&(submitterID.equals("deepblue"))) {
       if (adoptionSuccess) {
-        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adopotions/adoptionSuccess.jsp?id=" + id);
+        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
       } else {
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
       }

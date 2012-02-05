@@ -148,7 +148,7 @@
             us.</p>
 
           <p><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/<%=CommonConfiguration.getAdoptionDirectory()%>/adoption.jsp?number=<%=number%>">View
+            href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=number%>">View
             adoption #<%=number%>
           </a>.</p>
 
