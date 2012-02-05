@@ -644,7 +644,7 @@ catch (Exception e) {
 		 					int intHeight=((new Double(height)).intValue());
 		 					int intWidth=((new Double(width)).intValue());
 		 					//System.out.println("Made it here: "+imageEnc.hasSpotImage+" "+imageEnc.hasRightSpotImage);
-		 					System.gc();
+		 					//System.gc();
 		 %>
   <di:img width="<%=intWidth%>" height="<%=intHeight%>"
           imgParams="rendering=speed,quality=low" expAfter="0" border="0"
@@ -682,7 +682,7 @@ catch (Exception e) {
           imgParams="rendering=speed,quality=low" expAfter="0"
           threading="limited" border="0" output="<%=extractRightLocation%>">
           <%
-          String src_ur_value=encountersDir.getAbsolutePath()+"/"+addText;
+          String src_ur_value=encountersDir.getAbsolutePath()+"/"+addTextRight;
           %>
     <di:image srcurl="<%=src_ur_value%>"/>
   </di:img> <%
