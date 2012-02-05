@@ -194,12 +194,12 @@
             %>
             <tr class="lineitems">
               <td width="102" height="60" class="lineitems"><a
-                href="/<%=CommonConfiguration.getDataDirectoryName() %>/<adoptions/adoption.jsp?individual=<%=enc.getID()%>"><img
+                href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?individual=<%=enc.getID()%>"><img
                 src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=(enc.getID()+"/thumb.jpg")%>"
                 width="100" height="75" alt="adopter photo" border="0"/></a></td>
 
               <td class="lineitems"><a
-                href="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/adoption.jsp?number=<%=enc.getID()%>"><%=enc.getID()%>
+                href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?number=<%=enc.getID()%>"><%=enc.getID()%>
               </a></td>
               <td class="lineitems"><%=enc.getAdopterName()%>
               </td>
