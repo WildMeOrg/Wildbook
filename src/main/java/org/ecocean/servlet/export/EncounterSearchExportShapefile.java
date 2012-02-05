@@ -10,6 +10,7 @@ import org.ecocean.servlet.ServletUtilities;
 
 
 import java.util.zip.ZipEntry;
+import java.io.File;
 import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -49,6 +50,13 @@ public class EncounterSearchExportShapefile extends HttpServlet{
     
     //set the response
     
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
     
     Shepherd myShepherd = new Shepherd();
     Vector rEncounters = new Vector();
@@ -129,7 +137,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
         
 
       //write out the shapefile
-        File shapeFile = new File(getServletContext().getRealPath(("/encounters/" + shapeFilename)));
+        File shapeFile = new File(encountersDir.getAbsolutePath()+"/" + shapeFilename);
         ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
         Map<String, Serializable> params = new HashMap<String, Serializable>();
         params.put("url", shapeFile.toURI().toURL());
@@ -212,8 +220,9 @@ public class EncounterSearchExportShapefile extends HttpServlet{
                    response.setContentType("application/zip");
                    response.setHeader("Content-Disposition","attachment;filename="+gisZipFilename);
                    ServletContext ctx = getServletContext();
-                   InputStream is = ctx.getResourceAsStream("/encounters/"+gisZipFilename);
-                  
+                   //InputStream is = ctx.getResourceAsStream("/encounters/"+gisZipFilename);
+                   InputStream is=new FileInputStream(outFilename);
+                   
                    int read=0;
                    byte[] bytes = new byte[BYTES_DOWNLOAD];
                    OutputStream os = response.getOutputStream();

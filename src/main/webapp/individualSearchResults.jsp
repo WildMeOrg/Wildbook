@@ -247,7 +247,7 @@
   %>
   <tr class="lineitem">
     <td class="lineitem" width="102" bgcolor="#000000"><img
-      src="<%=("encounters/"+tempEnc.getEncounterNumber()+"/thumb.jpg")%>"></td>
+      src="<%=("/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+tempEnc.getEncounterNumber()+"/thumb.jpg")%>"></td>
     <td class="lineitem"><a
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
     </a>

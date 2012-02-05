@@ -60,6 +60,15 @@ public class IndividualCreate extends HttpServlet {
     boolean locked = false;
 
     boolean isOwner = true;
+    
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File individualsDir=new File(shepherdDataDir.getAbsolutePath()+"/individuals");
+    if(!individualsDir.exists()){individualsDir.mkdir();}
+
 
 
     //create a new MarkedIndividual from an encounter
@@ -181,7 +190,7 @@ public class IndividualCreate extends HttpServlet {
 
             }
             //set up the directory for this individual
-            File thisSharkDir = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getMarkedIndividualDirectory() + "/" + request.getParameter("individual"))));
+            File thisSharkDir = new File(individualsDir, request.getParameter("individual"));
 
 
             if (!(thisSharkDir.exists())) {

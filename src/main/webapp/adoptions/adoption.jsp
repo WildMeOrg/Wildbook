@@ -237,7 +237,7 @@
       <td><input name="theFile1" type="file" size="30"
                  value="<%=adopterImage%>"></input>&nbsp;&nbsp; <%if ((adopterImage != null) && (!adopterImage.equals(""))) {%>
         <img
-          src="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/<%=id%>/thumb.jpg"
+          src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=id%>/thumb.jpg"
           align="absmiddle"/>&nbsp; <%
           }
         %>

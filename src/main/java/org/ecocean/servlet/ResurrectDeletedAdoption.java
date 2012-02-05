@@ -49,6 +49,14 @@ public class ResurrectDeletedAdoption extends HttpServlet {
     //initialize shepherd
     Shepherd myShepherd = new Shepherd();
 
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -62,12 +70,12 @@ public class ResurrectDeletedAdoption extends HttpServlet {
 
     myShepherd.beginDBTransaction();
 
-    if ((request.getParameter("number") != null) && (!myShepherd.isEncounter(encounterNumber))) {
+    if ((request.getParameter("number") != null) && (!myShepherd.isAdoption(encounterNumber))) {
       myShepherd.rollbackDBTransaction();
       //ok, let's get the encounter object back from the .dat file
       String datFilename = request.getParameter("number") + ".dat";
       //File thisEncounterDat=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getAdoptionDirectory()+File.separator+request.getParameter("number")+File.separator+datFilename);
-      File thisAdoptionDat = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getAdoptionDirectory() + "/" + request.getParameter("number") + "/" + datFilename)));
+      File thisAdoptionDat = new File(adoptionsDir.getAbsolutePath() + "/" + request.getParameter("number") + "/" + datFilename);
 
 
       if (thisAdoptionDat.exists()) {
@@ -94,7 +102,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success!</strong> I have successfully restored adoption " + request.getParameter("number") + " from accidental deletion.</p>");
 
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/" + CommonConfiguration.getAdoptionDirectory() + "/adoption.jsp?number=" + encounterNumber + "\">Return to adoption " + encounterNumber + "</a></p>\n");
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp?number=" + encounterNumber + "\">Return to adoption " + encounterNumber + "</a></p>\n");
           out.println(ServletUtilities.getFooter());
           //String message="The matched by type for encounter "+encounterNumber+" was changed from "+prevMatchedBy+" to "+matchedBy+".";
           //informInterestedParties(encounterNumber, message);

@@ -27,6 +27,15 @@
 
 
   <%
+  
+  //setup data dir
+  String rootWebappPath = getServletContext().getRealPath("/");
+  File webappsDir = new File(rootWebappPath).getParentFile();
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+  //if(!encountersDir.exists()){encountersDir.mkdir();}
+  
     int startNum = 1;
     int endNum = 45;
 
@@ -333,14 +342,14 @@
 									String thumbLink="";
 									boolean video=true;
 									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
+										thumbLink="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
 										video=false;
 									}
 									else{
 										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
 										
 									}
-									String link="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
+									String link="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
 						
 							%>
 
@@ -457,23 +466,10 @@
                         <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-                        //int numKeywords=myShepherd.getNumKeywords();
-										      //while (allKeywords2.hasNext()) {
-					                          //Keyword word = (Keyword) allKeywords2.next();
-					                          
-					                          
-					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-					                        	  
-					                            //String renderMe = word.getReadableName();
-												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+                      						List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
 												int myWordsSize=myWords.size();
 					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                              //String kwParam = keywords[kwIter];
-					                              //if (kwParam.equals(word.getIndexname())) {
-					                              //  renderMe = "<strong>" + renderMe + "</strong>";
-					                              //}
-					                      		 	%>
+					                              %>
 					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
 					 								<%
 					                            }
@@ -481,8 +477,6 @@
 
 
 
-					                          //    }
-					                       // } 
 
                           %>
 										</span></td>
@@ -512,7 +506,7 @@
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
-              File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename())));
+              File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
               Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               // iterate through metadata directories
               Iterator directories = metadata.getDirectoryIterator();
@@ -600,22 +594,10 @@
   <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-											   //int numKeywords=myShepherd.getNumKeywords();
-										      //while (allKeywords2.hasNext()) {
-					                          //Keyword word = (Keyword) allKeywords2.next();
-					                          
-					                          
-					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-					                        	  
-					                            //String renderMe = word.getReadableName();
 												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
 												int myWordsSize=myWords.size();
 					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                              //String kwParam = keywords[kwIter];
-					                              //if (kwParam.equals(word.getIndexname())) {
-					                              //  renderMe = "<strong>" + renderMe + "</strong>";
-					                              //}
+					                          
 					                      		 	%>
 					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
 					 								<%
@@ -623,9 +605,6 @@
 
 
 
-
-					                          //    }
-					                       // } 
 
                           %>
 										</span></td>

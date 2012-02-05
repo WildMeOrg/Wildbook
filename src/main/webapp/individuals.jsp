@@ -29,6 +29,14 @@
   response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
+  //setup data dir
+  String rootWebappPath = getServletContext().getRealPath("/");
+  File webappsDir = new File(rootWebappPath).getParentFile();
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+  //if(!encountersDir.exists()){encountersDir.mkdir();}
+  //File thisEncounterDir = new File(encountersDir, number);
 
 //setup our Properties object to hold all properties
   Properties props = new Properties();
@@ -475,7 +483,7 @@ if (isOwner) {
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
         
-          imgName = "encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
+          imgName = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
         
 
 
@@ -598,14 +606,14 @@ if (isOwner) {
 									String thumbLink="";
 									boolean video=true;
 									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
+										thumbLink="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
 										video=false;
 									}
 									else{
 										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
 										
 									}
-									String link="http://"+CommonConfiguration.getURLLocation(request)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
+									String link="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
 						
 							%>
 
@@ -680,7 +688,7 @@ if (isOwner) {
                       </tr>
                       <tr>
                         <td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a
-                          href="<%= CommonConfiguration.getImageDirectory()%>/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
+                          href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
                         </a></span></td>
                       </tr>
                       <%
@@ -742,7 +750,7 @@ if (isOwner) {
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
-              File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename())));
+              File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
               Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               // iterate through metadata directories
               Iterator directories = metadata.getDirectoryIterator();
@@ -807,7 +815,7 @@ if (isOwner) {
 </tr>
 <tr>
   <td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a
-    href="<%=CommonConfiguration.getImageDirectory() %>/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
+    href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
   </a></span></td>
 </tr>
 <tr>
@@ -1023,7 +1031,7 @@ else {
         window.location = "http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>";
       });
       GEvent.addListener(marker<%=t%>, "mouseover", function() {
-        marker<%=t%>.openInfoWindowHtml("<%=markedIndividualTypeCaps%>: <strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=mapEnc.isAssignedToMarkedIndividual()%>\"><%=mapEnc.isAssignedToMarkedIndividual()%></a></strong><br><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=mapEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=mapEnc.getDate()%><br>Sex: <%=mapEnc.getSex()%><br><br><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
+        marker<%=t%>.openInfoWindowHtml("<%=markedIndividualTypeCaps%>: <strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=mapEnc.isAssignedToMarkedIndividual()%>\"><%=mapEnc.isAssignedToMarkedIndividual()%></a></strong><br><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=mapEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=mapEnc.getDate()%><br>Sex: <%=mapEnc.getSex()%><br><br><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
       });
 
 
@@ -1062,7 +1070,7 @@ else {
   %>
 
   <tr>
-    <td><a href="individuals/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%>
+    <td><a href="/<%=CommonConfiguration.getDataDirectoryName() %>/individuals/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%>
     </a></td>
     <td>&nbsp;&nbsp;&nbsp;[<a
       href="IndividualRemoveDataFile?individual=<%=name%>&filename=<%=file_name%>"><%=delete %>

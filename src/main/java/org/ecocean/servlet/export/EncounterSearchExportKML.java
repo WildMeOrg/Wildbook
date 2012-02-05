@@ -32,16 +32,21 @@ public class EncounterSearchExportKML extends HttpServlet{
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-    
-    //set the response
-    
+
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
     
     Shepherd myShepherd = new Shepherd();
     Vector rEncounters = new Vector();
     
     //set up the files
     String gisFilename = "exportKML_" + request.getRemoteUser() + ".kml";
-    File gisFile = new File(getServletContext().getRealPath(("/encounters/" + gisFilename)));
+    File gisFile = new File(encountersDir.getAbsolutePath()+"/" + gisFilename);
 
     //setup the KML output file
     //String kmlFilename = "KMLExport_" + request.getRemoteUser() + ".kml";
@@ -183,9 +188,11 @@ public class EncounterSearchExportKML extends HttpServlet{
         //now write out the file
         response.setContentType("application/vnd.google-earth.kml+xml");
         response.setHeader("Content-Disposition","attachment;filename="+gisFilename);
-        ServletContext ctx = getServletContext();
-        InputStream is = ctx.getResourceAsStream("/encounters/"+gisFilename);
-       
+        //ServletContext ctx = getServletContext();
+        //InputStream is = ctx.getResourceAsStream("/encounters/"+gisFilename);
+       InputStream is=new FileInputStream(gisFile);
+        
+        
         int read=0;
         byte[] bytes = new byte[BYTES_DOWNLOAD];
         OutputStream os = response.getOutputStream();

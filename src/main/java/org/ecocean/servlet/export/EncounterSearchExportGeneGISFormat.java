@@ -40,10 +40,17 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
     
     Vector rEncounters = new Vector();
     
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
     
     //set up the files
     String gisFilename = "geneGIS_export_" + request.getRemoteUser() + ".csv";
-    File gisFile = new File(getServletContext().getRealPath(("/encounters/" + gisFilename)));
+    File gisFile = new File(encountersDir.getAbsolutePath()+"/" + gisFilename);
 
 
     myShepherd.beginDBTransaction();
@@ -159,8 +166,10 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition","attachment;filename="+gisFilename);
         ServletContext ctx = getServletContext();
-        InputStream is = ctx.getResourceAsStream("/encounters/"+gisFilename);
-       
+        //InputStream is = ctx.getResourceAsStream("/encounters/"+gisFilename);
+       InputStream is=new FileInputStream(gisFile);
+        
+        
         int read=0;
         byte[] bytes = new byte[BYTES_DOWNLOAD];
         OutputStream os = response.getOutputStream();
