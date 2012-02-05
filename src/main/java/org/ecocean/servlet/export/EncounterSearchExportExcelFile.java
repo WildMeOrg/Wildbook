@@ -45,7 +45,16 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
     
     //set up the files
     String filename = "encounterSearchResults_export_" + request.getRemoteUser() + ".xls";
-    File excelFile = new File(getServletContext().getRealPath(("/encounters/" + filename)));
+    
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    
+    File excelFile = new File(encountersDir.getAbsolutePath()+"/"+ filename);
 
 
     myShepherd.beginDBTransaction();
@@ -326,8 +335,9 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
       response.setContentType("application/msexcel");
       response.setHeader("Content-Disposition","attachment;filename="+filename);
       ServletContext ctx = getServletContext();
-      InputStream is = ctx.getResourceAsStream("/encounters/"+filename);
-     
+      //InputStream is = ctx.getResourceAsStream("/encounters/"+filename);
+     InputStream is=new FileInputStream(excelFile);
+      
       int read=0;
       byte[] bytes = new byte[BYTES_DOWNLOAD];
       OutputStream os = response.getOutputStream();

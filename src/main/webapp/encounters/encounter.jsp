@@ -28,6 +28,17 @@
 
 <%
 
+//get encounter number
+String num = request.getParameter("number").replaceAll("\\+", "").trim();
+
+//let's set up references to our file system components
+String rootWebappPath = getServletContext().getRealPath("/");
+File webappsDir = new File(rootWebappPath).getParentFile();
+File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+File thisEncounterDir = new File(encountersDir, num);
+
+
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
 
@@ -55,7 +66,7 @@
   encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
 
-  String num = request.getParameter("number").replaceAll("\\+", "").trim();
+
   pageContext.setAttribute("num", num);
 
 
@@ -930,11 +941,10 @@ if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals("
     right spots</a>]</font> <%
 	  	}
 
-    	File leftScanResults = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/lastFullScan.xml")));
-    	File rightScanResults = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/lastFullRightScan.xml")));
-    	File I3SScanResults = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/lastFullI3SScan.xml")));
-
-    	File rightI3SScanResults = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + num + "/lastFullRightI3SScan.xml")));
+    	File leftScanResults = new File(thisEncounterDir.getAbsolutePath() + "/lastFullScan.xml");
+    	File rightScanResults = new File(thisEncounterDir.getAbsolutePath() + "/lastFullRightScan.xml");
+    	File I3SScanResults = new File(thisEncounterDir.getAbsolutePath() + "/lastFullI3SScan.xml");
+    	File rightI3SScanResults = new File(thisEncounterDir.getAbsolutePath() + "/lastFullRightI3SScan.xml");
 
     	
 	  	if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
@@ -1160,7 +1170,7 @@ else {
         window.location = "http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>";
       });
       GEvent.addListener(marker1, "mouseover", function() {
-        marker1.openInfoWindowHtml("<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>\"><%=enc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=enc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=enc.getDate()%><br />Sex: <%=enc.getSex()%><%if(enc.getSizeAsDouble()!=null){%><br />Size: <%=enc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
+        marker1.openInfoWindowHtml("<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>\"><%=enc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=enc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=enc.getDate()%><br />Sex: <%=enc.getSex()%><%if(enc.getSizeAsDouble()!=null){%><br />Size: <%=enc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
       });
       map.addOverlay(marker1);
 

@@ -59,6 +59,14 @@ public class EncounterDelete extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    
     boolean isOwner = true;
 
 
@@ -77,7 +85,7 @@ public class EncounterDelete extends HttpServlet {
           Encounter backUpEnc = myShepherd.getEncounterDeepCopy(enc2trash.getEncounterNumber());
 
           String savedFilename = request.getParameter("number") + ".dat";
-          File thisEncounterDir = new File(getServletContext().getRealPath(("/encounters/" + request.getParameter("number"))));
+          File thisEncounterDir = new File(encountersDir.getAbsolutePath()+"/" + request.getParameter("number"));
 
 
           File serializedBackup = new File(thisEncounterDir, savedFilename);

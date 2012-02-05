@@ -24,10 +24,22 @@
 
 try {
 
+//get the encounter number
+String imageEncNum = request.getParameter("encounterNumber");
+	
+//set up the JDO pieces and Shepherd
 Shepherd imageShepherd = new Shepherd();
 Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
 Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
 boolean haveRendered = false;
+
+//let's set up references to our file system components
+String rootWebappPath = getServletContext().getRealPath("/");
+File webappsDir = new File(rootWebappPath).getParentFile();
+File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+File thisEncounterDir = new File(encountersDir, imageEncNum);
+
 
 //handle translation
 String langCode = "en";
@@ -41,7 +53,7 @@ if (session.getAttribute("langCode") != null) {
 Properties encprops = new Properties();
 encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
-String imageEncNum = request.getParameter("encounterNumber");
+
 
 Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
 
@@ -235,12 +247,12 @@ int imageCount = 0;
       }
       if (request.getParameter("isOwner").equals("true") && (!isBMP) && (!isVideo)) {
     %>
-    <a href="<%=imageEncNum%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)"
+    <a href="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=imageEncNum%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)"
        title="Click to enlarge">
       <%
       } else if (request.getParameter("isOwner").equals("true")||(request.getParameter("loggedIn").equals("true"))) {
       %>
-      <a href="<%=addText%>" 
+      <a href="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=addText%>" 
         <%
         if(!isVideo){
         %>
@@ -255,8 +267,8 @@ int imageCount = 0;
          <%
         }
 
-        String thumbLocation = "file-" + imageEncNum + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg";
-        File processedImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + imageEncNum + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg")));
+        String thumbLocation = "file-" + thisEncounterDir.getAbsolutePath() + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg";
+        File processedImage = new File(thisEncounterDir.getAbsolutePath() + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg");
 
 
         int intWidth = 250;
@@ -266,7 +278,7 @@ int imageCount = 0;
 
 
         if(!isVideo){
-        	File file2process = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + addText)));
+        	File file2process = new File(encountersDir.getAbsolutePath()+"/"+ addText);
         	Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
         	String width = Double.toString(imageDimensions.getWidth());
         	String height = Double.toString(imageDimensions.getHeight());
@@ -302,8 +314,8 @@ int imageCount = 0;
         haveRendered = true;
         //System.out.println("Using DynamicImage to render thumbnail: "+imageEncNum);
         //System.gc();
-
-
+String srcurl=encountersDir.getAbsolutePath()+"/"+addText;
+//System.out.println("srcurl="+srcurl);
       %>
       <di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>"
               imgParams="rendering=speed,quality=low" border="0"
@@ -311,7 +323,7 @@ int imageCount = 0;
               fillPaint="#FFFFFF" align="left" valign="left">
         <di:image width="<%=Integer.toString(thumbnailWidth) %>"
                   height="<%=Integer.toString(thumbnailHeight) %>" composite="70"
-                  srcurl="<%=addText%>"/>
+                  srcurl="<%=srcurl %>" />
         <di:rectangle x="0" y="<%=copyrightTextPosition %>" width="<%=thumbnailWidth %>"
                       composite="30" height="13" fillPaint="#99CCFF"></di:rectangle>
 
@@ -320,7 +332,7 @@ int imageCount = 0;
         </di:text>
       </di:img>
       <img width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
-           src="<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
+           src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
       if (request.getParameter("isOwner").equals("true")) {
     %>
     </a>
@@ -339,7 +351,7 @@ int imageCount = 0;
     %> <%
   } else {
   %> <img id="img<%=images.get(myImage).getDataCollectionEventID()%> " width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
-          src="<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
+          src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
           valign="left"> <%
 	if (session.getAttribute("logged")!=null) {
 				%></a>
@@ -436,7 +448,7 @@ int imageCount = 0;
 					<%
             if ((addTextFile.toLowerCase().endsWith("jpg")) || (addTextFile.toLowerCase().endsWith("jpeg"))) {
               try{
-              	File exifImage = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + imageEncNum + "/" + addTextFile)));
+              	File exifImage = new File(thisEncounterDir.getAbsolutePath() + "/"+addTextFile);
               	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               	// iterate through metadata directories
               	Iterator directories = metadata.getDirectoryIterator();
@@ -540,8 +552,7 @@ catch (Exception e) {
         name="action" type="hidden" value="imageadder" id="action">
         <input name="number" type="hidden" value="<%=imageEncNum%>" id="shark">
         <strong><img align="absmiddle"
-                     src="../images/upload_small.gif"/> <%=encprops.getProperty("addfile") %>
-          :</strong><br/>
+                     src="../images/upload_small.gif"/> <%=encprops.getProperty("addfile") %>:</strong><br/>
         <input name="file2add" type="file" size="20">
 
         <p><input name="addtlFile" type="submit" id="addtlFile"
@@ -589,22 +600,22 @@ catch (Exception e) {
 
 		 			
 		 			//File extractImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/extract"+imageEncNum+".jpg");
-		 			File extractImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+imageEncNum+"/extract"+imageEncNum+".jpg")));
+		 			File extractImage=new File(thisEncounterDir.getAbsolutePath()+"/extract"+imageEncNum+".jpg");
 
 		 			//File extractRightImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/extractRight"+imageEncNum+".jpg");
-		 			File extractRightImage=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+imageEncNum+"/extractRight"+imageEncNum+".jpg")));
+		 			File extractRightImage=new File(thisEncounterDir.getAbsolutePath()+"/extractRight"+imageEncNum+".jpg");
 
 		 			
 		 			//File uploadedFile=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/"+imageEnc.getSpotImageFileName());
-		 			File uploadedFile=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+imageEncNum+"/"+imageEnc.getSpotImageFileName())));
+		 			File uploadedFile=new File(thisEncounterDir.getAbsolutePath()+"/"+imageEnc.getSpotImageFileName());
 
 		 			
 		 			//File uploadedRightFile=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/"+imageEnc.getRightSpotImageFileName());
-		 			File uploadedRightFile=new File(getServletContext().getRealPath(("/"+CommonConfiguration.getImageDirectory()+"/"+imageEncNum+"/"+imageEnc.getRightSpotImageFileName())));
+		 			File uploadedRightFile=new File(thisEncounterDir.getAbsolutePath()+"/"+imageEnc.getRightSpotImageFileName());
 
 		 			
-		 			String extractLocation="file-"+imageEncNum+"/extract"+imageEncNum+".jpg";
-		 			String extractRightLocation="file-"+imageEncNum+"/extractRight"+imageEncNum+".jpg";
+		 			String extractLocation="file-"+thisEncounterDir.getAbsolutePath()+"/extract"+imageEncNum+".jpg";
+		 			String extractRightLocation="file-"+thisEncounterDir.getAbsolutePath()+"/extractRight"+imageEncNum+".jpg";
 		 			String addText=imageEncNum+"/"+imageEnc.getSpotImageFileName();
 		 			String addTextRight=imageEncNum+"/"+imageEnc.getRightSpotImageFileName();
 		 			//System.out.println(addText);
@@ -638,7 +649,10 @@ catch (Exception e) {
   <di:img width="<%=intWidth%>" height="<%=intHeight%>"
           imgParams="rendering=speed,quality=low" expAfter="0" border="0"
           threading="limited" output="<%=extractLocation%>">
-    <di:image srcurl="<%=addText%>"/>
+          <%
+          String src_ur_value=encountersDir.getAbsolutePath()+"/"+addText;
+          %>
+    <di:image srcurl="<%=src_ur_value%>"/>
   </di:img> <%
 							}
 										}
@@ -667,14 +681,17 @@ catch (Exception e) {
   <di:img width="<%=intWidthR%>" height="<%=intHeightR%>"
           imgParams="rendering=speed,quality=low" expAfter="0"
           threading="limited" border="0" output="<%=extractRightLocation%>">
-    <di:image srcurl="<%=addTextRight%>"/>
+          <%
+          String src_ur_value=encountersDir.getAbsolutePath()+"/"+addText;
+          %>
+    <di:image srcurl="<%=src_ur_value%>"/>
   </di:img> <%
 						}
 								}
 								
 								
-								String fileloc=(imageEncNum+"/"+imageEnc.getSpotImageFileName());
-								String filelocR=(imageEncNum+"/"+imageEnc.getRightSpotImageFileName());
+								String fileloc="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(imageEncNum+"/"+imageEnc.getSpotImageFileName());
+								String filelocR="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(imageEncNum+"/"+imageEnc.getRightSpotImageFileName());
 					%>
 
 <p class="para"><strong>Spot data image files used for

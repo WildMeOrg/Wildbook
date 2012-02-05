@@ -40,7 +40,16 @@ public class EncounterSearchExportEmailAddresses extends HttpServlet{
     
   //Let's setup our email export file options
     String emailFilename = "emailResults_" + request.getRemoteUser() + ".txt";
-    File emailFile = new File(getServletContext().getRealPath(("/encounters/" + emailFilename)));
+    
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    
+    File emailFile = new File(encountersDir.getAbsolutePath()+"/"+ emailFilename);
 
     myShepherd.beginDBTransaction();
     
@@ -65,9 +74,11 @@ public class EncounterSearchExportEmailAddresses extends HttpServlet{
         //now write out the file
         response.setContentType("text/plain");
         response.setHeader("Content-Disposition","attachment;filename="+emailFilename);
-        ServletContext ctx = getServletContext();
-        InputStream is = ctx.getResourceAsStream("/encounters/"+emailFilename);
-       
+        //ServletContext ctx = getServletContext();
+        //InputStream is = ctx.getResourceAsStream("/encounters/"+emailFilename);
+       InputStream is=new FileInputStream(emailFile);
+        
+        
         int read=0;
         byte[] bytes = new byte[BYTES_DOWNLOAD];
         OutputStream os = response.getOutputStream();

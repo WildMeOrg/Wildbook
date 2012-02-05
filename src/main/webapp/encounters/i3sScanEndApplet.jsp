@@ -36,7 +36,16 @@
   File file = new File("foo");
   String scanDate = "";
   String side2 = "";
-
+  
+  //setup data dir
+  String rootWebappPath = getServletContext().getRealPath("/");
+  File webappsDir = new File(rootWebappPath).getParentFile();
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+  //if(!encountersDir.exists()){encountersDir.mkdir();}
+  File thisEncounterDir = new File(encountersDir, num);
+ 
 %>
 
 <head>
@@ -115,12 +124,12 @@
     String fileSider = "";
     File finalXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      finalXMLFile = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFullRightScan.xml")));
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullRightScan.xml");
 
       side2 = "right";
       fileSider = "&rightSide=true";
     } else {
-      finalXMLFile = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFullScan.xml")));
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullScan.xml");
 
     }
     if (finalXMLFile.exists()) {
@@ -154,12 +163,12 @@
     try {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
-        file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFullRightI3SScan.xml")));
+        file = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullRightI3SScan.xml");
 
         side = "right";
       } else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
-        file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFullI3SScan.xml")));
+        file = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullI3SScan.xml");
       }
       doc = xmlReader.read(file);
       root = doc.getRootElement();
@@ -351,7 +360,7 @@
 <p>
   <%
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
-    String baseURL = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/";
+    String baseURL = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/";
 
 
 //myShepherd.rollbackDBTransaction();
@@ -376,7 +385,7 @@
     }
     System.out.println("I made it to the Flash without exception.");
   %>
-  <OBJECT id=sharkflash
+  <OBJECT id="sharkflash"
           codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
           height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
     <PARAM NAME="movie"
@@ -385,7 +394,7 @@
     <PARAM NAME="scale" VALUE="exactfit">
     <PARAM NAME="bgcolor" VALUE="#ddddff">
     <EMBED
-      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
+      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=/<%=CommonConfiguration.getDataDirectoryName() %>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
       quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
       WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
       TYPE="application/x-shockwave-flash"
