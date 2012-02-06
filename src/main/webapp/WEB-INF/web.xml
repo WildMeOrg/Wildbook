@@ -303,6 +303,11 @@
       <servlet-class>org.ecocean.servlet.export.EncounterSearchExportGeneGISFormat</servlet-class>
   </servlet>
   
+      <servlet>
+        <servlet-name>IndividualSearchExportCapture</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.IndividualSearchExportCapture</servlet-class>
+  </servlet>
+  
   
       <servlet>
         <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
@@ -727,6 +732,14 @@
       <servlet-name>EncounterSearchExportGeneGISFormat</servlet-name>
       <url-pattern>/EncounterSearchExportGeneGISFormat</url-pattern>
   </servlet-mapping>
+  
+  
+  
+      <servlet-mapping>
+        <servlet-name>IndividualSearchExportCapture</servlet-name>
+        <url-pattern>/IndividualSearchExportCapture</url-pattern>
+  </servlet-mapping>
+  
   
       <servlet-mapping>
         <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
