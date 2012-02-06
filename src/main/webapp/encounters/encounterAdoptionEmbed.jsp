@@ -40,10 +40,16 @@
     Adoption ad = (Adoption) adoptions.get(ia);
 %>
 <table class="adopter" width="250px">
+  <%
+    if ((ad.getAdopterImage() != null) && (!ad.getAdopterImage().trim().equals(""))) {
+  %>
   <tr>
     <td class="image"><img
       src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=ad.getID()%>/thumb.jpg" width="250px"></td>
   </tr>
+  <%
+    }
+  %>
 
   <tr>
     <td class="name">
@@ -56,7 +62,7 @@
     </td>
   </tr>
   <%
-    if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().equals(""))) {
+    if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
   %>
 
   <tr>
