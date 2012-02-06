@@ -88,7 +88,7 @@
   </tr>
 
   <%
-    if ((ad.getAdopterImage() != null) && (!ad.getAdopterImage().equals(""))) {
+    if ((ad.getAdopterImage() != null) && (!ad.getAdopterImage().trim().equals(""))) {
   %>
   <tr>
     <td class="image" style="padding-top: 0px;">
@@ -111,7 +111,7 @@
     <td>&nbsp;</td>
   </tr>
   <%
-    if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().equals(""))) {
+    if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
   %>
 
   <tr>
