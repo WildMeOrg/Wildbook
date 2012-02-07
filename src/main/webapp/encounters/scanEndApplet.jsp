@@ -23,6 +23,15 @@
          import="org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.CommonConfiguration, org.ecocean.Shepherd, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 <html>
 <%
+
+//let's set up references to our file system components
+String rootWebappPath = getServletContext().getRealPath("/");
+File webappsDir = new File(rootWebappPath).getParentFile();
+File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+
+
+
   session.setMaxInactiveInterval(6000);
   String num = request.getParameter("number");
   Shepherd myShepherd = new Shepherd();
@@ -130,14 +139,14 @@
     File finalXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
-      finalXMLFile = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFullRightI3SScan.xml")));
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ num + "/lastFullRightI3SScan.xml");
 
 
       side2 = "right";
       fileSider = "&rightSide=true";
     } else {
       //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
-      finalXMLFile = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFullI3SScan.xml")));
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullI3SScan.xml");
     }
     if (finalXMLFile.exists()) {
   %>
@@ -170,13 +179,13 @@
     try {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml");
-        file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFullRightScan.xml")));
+        file = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullRightScan.xml");
 
 
         side = "right";
       } else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml");
-        file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFullScan.xml")));
+        file = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullScan.xml");
 
       }
       doc = xmlReader.read(file);
@@ -443,7 +452,7 @@
 <p>
   <%
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
-    String baseURL = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/";
+    String baseURL = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/";
 
 
 //myShepherd.rollbackDBTransaction();
@@ -472,7 +481,7 @@
           codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
           height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
     <PARAM NAME="movie"
-           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
+           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=/<%=CommonConfiguration.getDataDirectoryName() %>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
     <PARAM NAME="qualidty" VALUE="high">
     <PARAM NAME="scale" VALUE="exactfit">
     <PARAM NAME="bgcolor" VALUE="#ddddff">

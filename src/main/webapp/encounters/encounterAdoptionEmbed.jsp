@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList,java.io.File" %>
+         import="org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -41,19 +41,16 @@
 %>
 <table class="adopter" width="250px">
   <%
-  File adopterImage = new File(getServletContext().getRealPath(("/adoptions/" + ad.getID() + "/thumb.jpg")));
-
-    if ((ad.getAdopterImage() != null) && (adopterImage.exists())) {
+    if ((ad.getAdopterImage() != null) && (!ad.getAdopterImage().trim().equals(""))) {
   %>
   <tr>
-    <td class="image" style="padding-top: 0px;">
-      <center><img width="188px"
-                   src="../adoptions/<%=ad.getID()%>/thumb.jpg"/></center>
-    </td>
+    <td class="image"><img
+      src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=ad.getID()%>/thumb.jpg" width="250px"></td>
   </tr>
   <%
     }
   %>
+
   <tr>
     <td class="name">
       <table>
@@ -64,18 +61,20 @@
       </table>
     </td>
   </tr>
-   <%
-     if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
-   %>
- 
-   <tr>
-     <td>Why are research and conservation for this species important?</td>
-   </tr>
-   <tr>
-     <td><em>"<%=ad.getAdopterQuote()%>"</em></td>
-   </tr>
- 
-   <%
+  <%
+    if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
+  %>
+
+  <tr>
+    <td>Why are research and conservation important for this
+      species?
+    </td>
+  </tr>
+  <tr>
+    <td width="250px"><em>"<%=ad.getAdopterQuote()%>"</em></td>
+  </tr>
+
+  <%
     }
 
     if (request.isUserInRole("admin")) {
@@ -100,7 +99,7 @@
   </tr>
   <tr>
     <td align="left"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp?number=<%=ad.getID()%>#create">[edit
+      href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
       this adoption]</a></td>
   </tr>
   <tr>
@@ -118,7 +117,7 @@
   if (request.isUserInRole("admin")) {
 %>
 <p><a
-  href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp?encounter=<%=num%>#create">[+]
+  href="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/adoption.jsp?encounter=<%=num%>#create">[+]
   Add adoption</a></p>
 <%
   }

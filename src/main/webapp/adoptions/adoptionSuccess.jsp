@@ -28,6 +28,14 @@
 
   String langCode = "en";
 
+  //setup data dir
+  String rootWebappPath = getServletContext().getRealPath("/");
+  File webappsDir = new File(rootWebappPath).getParentFile();
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
+  //if(!encountersDir.exists()){encountersDir.mkdir();}
+  //File thisEncounterDir = new File(encountersDir, number);
 
 %>
 
@@ -85,7 +93,7 @@
             myShepherd.closeDBTransaction();
 
 			if(!addText.equals("")){
-            	File file2process = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getAdoptionDirectory() + "/" + number + "/" + addText)));
+            	File file2process = new File(adoptionsDir.getAbsolutePath()+"/" + number + "/" + addText);
 
             	int intWidth = 190;
             	int intHeight = 190;
@@ -115,8 +123,8 @@
            		 }
 
 
-            	String thumbLocation = "file-" + number + "/thumb.jpg";
-            	addText = "http://" + CommonConfiguration.getURLLocation(request) + "/" + CommonConfiguration.getAdoptionDirectory() + "/" + number + "/" + addText;
+            	String thumbLocation = "file-" +adoptionsDir.getAbsolutePath()+"/"+ number + "/thumb.jpg";
+            	addText =  adoptionsDir.getAbsolutePath()+"/" + number + "/" + addText;
 
           		%>
           <di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>" border="0"
@@ -124,6 +132,7 @@
                   align="left" valign="left">
             <di:image width="<%=Integer.toString(intWidth) %>"
                       height="<%=Integer.toString(intHeight) %>" srcurl="<%=addText%>"/>
+       
           </di:img>
 		<%
 		}
@@ -139,7 +148,7 @@
             us.</p>
 
           <p><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/<%=CommonConfiguration.getAdoptionDirectory()%>/adoption.jsp?number=<%=number%>">View
+            href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=number%>">View
             adoption #<%=number%>
           </a>.</p>
 

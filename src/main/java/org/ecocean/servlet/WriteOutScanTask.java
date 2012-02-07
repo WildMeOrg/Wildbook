@@ -667,9 +667,20 @@ public class WriteOutScanTask extends HttpServlet {
       if (rightSide) {
         fileAddition = "Right";
       }
+      
+      //setup data dir
+      String rootWebappPath = getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+      //if(!encountersDir.exists()){encountersDir.mkdir();}
+      
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"Scan.xml");
-      File file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFull" + fileAddition + "Scan.xml")));
+      File file = new File(encountersDir.getAbsolutePath()+"/"+ num + "/lastFull" + fileAddition + "Scan.xml");
 
+      
+      
       FileWriter mywriter = new FileWriter(file);
       org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
       format.setLineSeparator(System.getProperty("line.separator"));
@@ -776,8 +787,17 @@ public class WriteOutScanTask extends HttpServlet {
       if (rightSide) {
         fileAddition = "Right";
       }
+      
+      //setup data dir
+      String rootWebappPath = getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+      //if(!encountersDir.exists()){encountersDir.mkdir();}
+      
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"I3SScan.xml");
-      File file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFull" + fileAddition + "I3SScan.xml")));
+      File file = new File(encountersDir.getAbsolutePath()+"/"+ num + "/lastFull" + fileAddition + "I3SScan.xml");
 
 
       FileWriter mywriter = new FileWriter(file);

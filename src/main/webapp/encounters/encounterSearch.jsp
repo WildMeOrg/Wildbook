@@ -151,7 +151,7 @@
 <input name="referenceImageName" type="hidden"
        value="<%=request.getParameter("referenceImageName") %>"/>
 
-<p><img width="810px" src="<%=request.getParameter("referenceImageName") %>"/></p>
+<p><img width="810px" src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=request.getParameter("referenceImageName") %>"/></p>
 <table>
 											<tr>
 												<td align="left" valign="top">

@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -72,14 +71,17 @@ public class CommonConfiguration {
           }
         }
       }
-      loadOverrideProps();
+      String shepherdDataDir="shepherd_data_dir";
+      if((props.getProperty("dataDirectoryName")!=null)&&(!props.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=props.getProperty("dataDirectoryName");}
+      loadOverrideProps(shepherdDataDir);
       propsSize = props.size();
     }
     return true;
   }
   
-  private static void loadOverrideProps() {
-    File configDir = new File("config");
+  private static void loadOverrideProps(String shepherdDataDir) {
+    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
+    if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
     if (configFile.exists()) {
       System.out.println("Overriding default properties with " + configFile.getAbsolutePath());
@@ -115,21 +117,24 @@ public class CommonConfiguration {
     return props.getProperty("mailHost").trim();
   }
 
+/**
   public static String getImageDirectory() {
     initialize();
     return props.getProperty("imageLocation").trim();
   }
-
+*/
+  /**
   public static String getMarkedIndividualDirectory() {
     initialize();
     return props.getProperty("markedIndividualDirectoryLocation").trim();
   }
-
+  */
+/*
   public static String getAdoptionDirectory() {
     initialize();
     return props.getProperty("adoptionLocation").trim();
   }
-
+*/
   public static String getWikiLocation() {
     initialize();
     if(props.getProperty("wikiLocation")!=null){return props.getProperty("wikiLocation").trim();}
@@ -429,10 +434,11 @@ public class CommonConfiguration {
     return !Boolean.FALSE.toString().equals(showMeasurements);
   }
   
-  public static Set<Object> getPropertyNames() {
+  public static String getDataDirectoryName() {
     initialize();
-    return props.keySet();
+    String dataDirectoryName="shepherd_data_dir";
+    if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
+    return dataDirectoryName;
   }
   
-
 }

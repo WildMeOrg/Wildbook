@@ -309,7 +309,15 @@ public class SubmitAction extends Action {
       }
       String data = null;
 
-      File encountersDir = new File(getServlet().getServletContext().getRealPath("/encounters"));
+      //File encountersDir = new File(getServlet().getServletContext().getRealPath("/encounters"));
+     
+      String rootWebappPath = getServlet().getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      
+      File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+      if(!encountersDir.exists()){encountersDir.mkdir();}
       File thisEncounterDir = new File(encountersDir, uniqueID);
 
       boolean created = false;

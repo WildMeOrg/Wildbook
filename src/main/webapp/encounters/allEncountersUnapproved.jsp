@@ -343,9 +343,9 @@
     try {
 %>
 <tr class="lineitems">
-  <td width="102" height="60" class="lineitems"><a
-    href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><img
-    src="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"
+  <td width="102" height="60" class="lineitems">
+  <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
+    <img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"
     alt="encounter photo" border="0"/></a></td>
   <%
     int encNumLast = enc.getEncounterNumber().length();

@@ -45,6 +45,15 @@
 
   //link path to submit page with appropriate language
   String submitPath = "submit.jsp";
+  
+  //let's set up references to our file system components
+  String rootWebappPath = getServletContext().getRealPath("/");
+  File webappsDir = new File(rootWebappPath).getParentFile();
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+  if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+  if(!encountersDir.exists()){encountersDir.mkdir();}
+  File thisEncounterDir = new File(encountersDir, number);
 
 
 %>
@@ -100,7 +109,7 @@
     try {
       Encounter enc = myShepherd.getEncounter(number);
       if ((enc.getAdditionalImageNames() != null) && (enc.getAdditionalImageNames().size() > 0)) {
-        addText = (String) enc.getAdditionalImageNames().get(0);
+        addText = (String)enc.getAdditionalImageNames().get(0);
       }
       if ((enc.getLocationCode() != null) && (!enc.getLocationCode().equals("None"))) {
         informMe = email_props.getProperty(enc.getLocationCode());
@@ -133,20 +142,22 @@
     myShepherd.closeDBTransaction();
   }
 
-  String thumbLocation = "file-encounters/" + number + "/thumb.jpg";
+  String thumbLocation = "file-"+thisEncounterDir.getAbsolutePath() + "/thumb.jpg";
   if (myShepherd.isAcceptableVideoFile(addText)) {
-    addText = "images/video_thumb.jpg";
+    addText = rootWebappPath+"/images/video_thumb.jpg";
   } 
   else if(myShepherd.isAcceptableImageFile(addText)){
-    addText = "encounters/" + number + "/" + addText;
+    addText = thisEncounterDir.getAbsolutePath() + "/" + addText;
   }
-  else{
-	  addText = "images/no_images.jpg";
+  else if(addText.equals("")){
+	  addText = rootWebappPath+"/images/no_images.jpg";
   }
 
 
-  File file2process = new File(getServletContext().getRealPath(("/" + addText)));
+  //File file2process = new File(getServletContext().getRealPath(("/" + addText)));
 
+  File file2process = new File(addText);
+  
   if(myShepherd.isAcceptableImageFile(file2process.getName())){
   	int intWidth = 100;
   	int intHeight = 75;

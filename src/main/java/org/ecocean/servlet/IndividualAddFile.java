@@ -58,7 +58,18 @@ public class IndividualAddFile extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    
+    //set up our Shepherd
     Shepherd myShepherd = new Shepherd();
+    
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File individualsDir=new File(shepherdDataDir.getAbsolutePath()+"/individuals");
+    if(!individualsDir.exists()){individualsDir.mkdir();}
+
 
     //set up for response
     response.setContentType("text/html");
@@ -96,13 +107,13 @@ public class IndividualAddFile extends HttpServlet {
           if (fileName != null) {
 
 
-            File individualsDir = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getMarkedIndividualDirectory())));
-            if (!individualsDir.exists()) {
+            //File individualsDir = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getMarkedIndividualDirectory())));
+            /*if (!individualsDir.exists()) {
               individualsDir.mkdir();
-            }
+            }*/
 
 
-            File thisSharkDir = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getMarkedIndividualDirectory() + "/" + individualName)));
+            File thisSharkDir = new File(individualsDir.getAbsolutePath()+"/"+individualName);
 
 
             if (!(thisSharkDir.exists())) {

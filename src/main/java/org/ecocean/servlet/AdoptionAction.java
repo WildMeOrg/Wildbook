@@ -73,6 +73,14 @@ public class AdoptionAction extends Action {
     myShepherd = new Shepherd();
     System.out.println("Starting adoptionAction...");
     if (form instanceof AdoptionForm) {
+      
+      //setup data dir
+      String rootWebappPath = getServlet().getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
+      if(!adoptionsDir.exists()){adoptionsDir.mkdir();}  
 
       //get the form to read data from
       AdoptionForm theForm = (AdoptionForm) form;
@@ -151,7 +159,7 @@ public class AdoptionAction extends Action {
       String data = null;
 
       //File thisAdoptionDir=new File(CommonConfiguration.getAdoptionDirectory()+File.separator+id);
-      File thisAdoptionDir = new File(getServlet().getServletContext().getRealPath(("/" + CommonConfiguration.getAdoptionDirectory() + "/" + id)));
+      File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath() + "/" + id);
       //File thisAdoptionDir=new File(getServlet().getServletContext().getRealPath("/encounters"));
 
 
@@ -273,9 +281,9 @@ public class AdoptionAction extends Action {
       System.out.println("Ending adoption data submission.");
       //if((submitterID!=null)&&(submitterID.equals("deepblue"))) {
       if (adoptionSuccess) {
-        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/" + CommonConfiguration.getAdoptionDirectory() + "/adoptionSuccess.jsp?id=" + id);
+        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
       } else {
-        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/" + CommonConfiguration.getAdoptionDirectory() + "/adoptionFailure.jsp?message=" + failureMessage);
+        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
       }
 
     }
