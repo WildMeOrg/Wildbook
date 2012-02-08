@@ -394,7 +394,7 @@
     <PARAM NAME="scale" VALUE="exactfit">
     <PARAM NAME="bgcolor" VALUE="#ddddff">
     <EMBED
-      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=/<%=CommonConfiguration.getDataDirectoryName() %>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
+      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
       quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
       WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
       TYPE="application/x-shockwave-flash"
