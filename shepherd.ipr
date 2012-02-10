@@ -6,12 +6,12 @@
   <component name="ArtifactManager">
     <artifact type="war" name="shepherd:war">
       <output-path>$PROJECT_DIR$/target</output-path>
-      <root id="archive" name="shepherd-1.0.6-EXPERIMENTAL.war">
+      <root id="archive" name="shepherd-2.0.0-RELEASE.war">
         <element id="artifact" artifact-name="shepherd:war exploded" />
       </root>
     </artifact>
     <artifact type="exploded-war" name="shepherd:war exploded">
-      <output-path>$PROJECT_DIR$/target/shepherd-1.0.6-EXPERIMENTAL</output-path>
+      <output-path>$PROJECT_DIR$/target/shepherd-2.0.0-RELEASE</output-path>
       <root id="root">
         <element id="javaee-facet-resources" facet="shepherd/web/Web" />
         <element id="directory" name="WEB-INF">
@@ -43,35 +43,40 @@
             <element id="library" level="project" name="Maven: servlets.com:cos:05Nov2002" />
             <element id="library" level="project" name="Maven: rome:rome:0.9" />
             <element id="library" level="project" name="Maven: jdom:jdom:1.0" />
-            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-enhancer:2.1.0-release" />
+            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-enhancer:3.0.1" />
             <element id="library" level="project" name="Maven: asm:asm:3.1" />
-            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-core:2.1.0-release" />
-            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-rest:2.0.0-release" />
-            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-rdbms:2.1.0-release" />
-            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-jpa:2.1.0-release" />
-            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-spatial:2.1.0-release" />
-            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-jodatime:2.1.0-release" />
+            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-core:3.0.4" />
+            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-api-rest:3.0.1" />
+            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-api-json:3.0.2" />
+            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-rdbms:3.0.4" />
+            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-jpa:2.1.8" />
+            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-api-jdo:3.0.4" />
+            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-spatial:3.0.1" />
+            <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-jodatime:3.0.1" />
             <element id="library" level="project" name="Maven: org.apache.derby:derby:10.6.1.0" />
+            <element id="library" level="project" name="Maven: org.xerial:sqlite-jdbc:3.6.16" />
+            <element id="library" level="project" name="Maven: org.xerial.thirdparty:nestedvm:1.0" />
             <element id="library" level="project" name="Maven: org.apache.sanselan:sanselan:0.97-incubator" />
             <element id="library" level="project" name="Maven: com.drewnoakes:metadata-extractor:2.4.0-beta-1" />
-            <element id="library" level="project" name="Maven: org.mortbay.jetty:jetty-runner:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-plus:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-webapp:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-xml:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-util:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-servlet:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-security:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-server:8.1.0.RC2" />
+            <element id="library" level="project" name="Maven: org.mortbay.jetty:jetty-runner:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-plus:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-webapp:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-xml:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-util:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-servlet:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-security:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-server:8.1.0.RC4" />
             <element id="library" level="project" name="Maven: org.mortbay.jetty:servlet-api:3.0.20100224" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-continuation:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-http:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-io:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-jndi:8.1.0.RC2" />
-            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-annotations:8.1.0.RC2" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-continuation:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-http:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-io:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-jndi:8.1.0.RC4" />
+            <element id="library" level="project" name="Maven: org.eclipse.jetty:jetty-annotations:8.1.0.RC4" />
             <element id="library" level="project" name="Maven: org.apache.geronimo.specs:geronimo-annotation_1.0_spec:1.1.1" />
             <element id="library" level="project" name="Maven: asm:asm-commons:3.1" />
             <element id="library" level="project" name="Maven: asm:asm-tree:3.1" />
             <element id="library" level="project" name="Maven: xerces:xercesImpl:2.4.0" />
+            <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.6.1" />
             <element id="library" level="project" name="Maven: dilib:dilib:1.0" />
             <element id="library" level="project" name="Maven: org.geotools:gt-main:2.7.0" />
             <element id="library" level="project" name="Maven: org.geotools:gt-api:2.7.0" />
@@ -86,10 +91,107 @@
             <element id="library" level="project" name="Maven: org.geotools:gt-data:2.7.0" />
             <element id="library" level="project" name="Maven: org.geotools:gt-epsg-hsql:2.7.0" />
             <element id="library" level="project" name="Maven: hsqldb:hsqldb:1.8.0.7" />
+            <element id="library" level="project" name="Maven: jstl:jstl:1.2" />
           </element>
         </element>
       </root>
     </artifact>
+  </component>
+  <component name="CodeStyleSettingsManager">
+    <option name="PER_PROJECT_SETTINGS">
+      <value>
+        <ADDITIONAL_INDENT_OPTIONS fileType="css">
+          <option name="INDENT_SIZE" value="4" />
+          <option name="CONTINUATION_INDENT_SIZE" value="8" />
+          <option name="TAB_SIZE" value="4" />
+          <option name="USE_TAB_CHARACTER" value="false" />
+          <option name="SMART_TABS" value="false" />
+          <option name="LABEL_INDENT_SIZE" value="0" />
+          <option name="LABEL_INDENT_ABSOLUTE" value="false" />
+          <option name="USE_RELATIVE_INDENTS" value="false" />
+        </ADDITIONAL_INDENT_OPTIONS>
+        <ADDITIONAL_INDENT_OPTIONS fileType="java">
+          <option name="INDENT_SIZE" value="4" />
+          <option name="CONTINUATION_INDENT_SIZE" value="8" />
+          <option name="TAB_SIZE" value="4" />
+          <option name="USE_TAB_CHARACTER" value="false" />
+          <option name="SMART_TABS" value="false" />
+          <option name="LABEL_INDENT_SIZE" value="0" />
+          <option name="LABEL_INDENT_ABSOLUTE" value="false" />
+          <option name="USE_RELATIVE_INDENTS" value="false" />
+        </ADDITIONAL_INDENT_OPTIONS>
+        <ADDITIONAL_INDENT_OPTIONS fileType="js">
+          <option name="INDENT_SIZE" value="4" />
+          <option name="CONTINUATION_INDENT_SIZE" value="4" />
+          <option name="TAB_SIZE" value="4" />
+          <option name="USE_TAB_CHARACTER" value="false" />
+          <option name="SMART_TABS" value="false" />
+          <option name="LABEL_INDENT_SIZE" value="0" />
+          <option name="LABEL_INDENT_ABSOLUTE" value="false" />
+          <option name="USE_RELATIVE_INDENTS" value="false" />
+        </ADDITIONAL_INDENT_OPTIONS>
+        <ADDITIONAL_INDENT_OPTIONS fileType="jsp">
+          <option name="INDENT_SIZE" value="4" />
+          <option name="CONTINUATION_INDENT_SIZE" value="8" />
+          <option name="TAB_SIZE" value="4" />
+          <option name="USE_TAB_CHARACTER" value="false" />
+          <option name="SMART_TABS" value="false" />
+          <option name="LABEL_INDENT_SIZE" value="0" />
+          <option name="LABEL_INDENT_ABSOLUTE" value="false" />
+          <option name="USE_RELATIVE_INDENTS" value="false" />
+        </ADDITIONAL_INDENT_OPTIONS>
+        <ADDITIONAL_INDENT_OPTIONS fileType="py">
+          <option name="INDENT_SIZE" value="4" />
+          <option name="CONTINUATION_INDENT_SIZE" value="8" />
+          <option name="TAB_SIZE" value="4" />
+          <option name="USE_TAB_CHARACTER" value="false" />
+          <option name="SMART_TABS" value="false" />
+          <option name="LABEL_INDENT_SIZE" value="0" />
+          <option name="LABEL_INDENT_ABSOLUTE" value="false" />
+          <option name="USE_RELATIVE_INDENTS" value="false" />
+        </ADDITIONAL_INDENT_OPTIONS>
+        <ADDITIONAL_INDENT_OPTIONS fileType="scala">
+          <option name="INDENT_SIZE" value="2" />
+          <option name="CONTINUATION_INDENT_SIZE" value="2" />
+          <option name="TAB_SIZE" value="2" />
+          <option name="USE_TAB_CHARACTER" value="false" />
+          <option name="SMART_TABS" value="false" />
+          <option name="LABEL_INDENT_SIZE" value="0" />
+          <option name="LABEL_INDENT_ABSOLUTE" value="false" />
+          <option name="USE_RELATIVE_INDENTS" value="false" />
+        </ADDITIONAL_INDENT_OPTIONS>
+        <ADDITIONAL_INDENT_OPTIONS fileType="sql">
+          <option name="INDENT_SIZE" value="2" />
+          <option name="CONTINUATION_INDENT_SIZE" value="8" />
+          <option name="TAB_SIZE" value="4" />
+          <option name="USE_TAB_CHARACTER" value="false" />
+          <option name="SMART_TABS" value="false" />
+          <option name="LABEL_INDENT_SIZE" value="0" />
+          <option name="LABEL_INDENT_ABSOLUTE" value="false" />
+          <option name="USE_RELATIVE_INDENTS" value="false" />
+        </ADDITIONAL_INDENT_OPTIONS>
+        <ADDITIONAL_INDENT_OPTIONS fileType="xml">
+          <option name="INDENT_SIZE" value="4" />
+          <option name="CONTINUATION_INDENT_SIZE" value="8" />
+          <option name="TAB_SIZE" value="4" />
+          <option name="USE_TAB_CHARACTER" value="false" />
+          <option name="SMART_TABS" value="false" />
+          <option name="LABEL_INDENT_SIZE" value="0" />
+          <option name="LABEL_INDENT_ABSOLUTE" value="false" />
+          <option name="USE_RELATIVE_INDENTS" value="false" />
+        </ADDITIONAL_INDENT_OPTIONS>
+        <ADDITIONAL_INDENT_OPTIONS fileType="yml">
+          <option name="INDENT_SIZE" value="2" />
+          <option name="CONTINUATION_INDENT_SIZE" value="8" />
+          <option name="TAB_SIZE" value="4" />
+          <option name="USE_TAB_CHARACTER" value="false" />
+          <option name="SMART_TABS" value="false" />
+          <option name="LABEL_INDENT_SIZE" value="0" />
+          <option name="LABEL_INDENT_ABSOLUTE" value="false" />
+          <option name="USE_RELATIVE_INDENTS" value="false" />
+        </ADDITIONAL_INDENT_OPTIONS>
+      </value>
+    </option>
   </component>
   <component name="CompilerConfiguration">
     <option name="DEFAULT_COMPILER" value="Javac" />
@@ -485,6 +587,17 @@
         <root url="jar://$MAVEN_REPOSITORY$/joda-time/joda-time/1.6.1/joda-time-1.6.1-sources.jar!/" />
       </SOURCES>
     </library>
+    <library name="Maven: jstl:jstl:1.2">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/jstl/jstl/1.2/jstl-1.2.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/jstl/jstl/1.2/jstl-1.2-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/jstl/jstl/1.2/jstl-1.2-sources.jar!/" />
+      </SOURCES>
+    </library>
     <library name="Maven: junit:junit:4.8.2">
       <CLASSES>
         <root url="jar://$MAVEN_REPOSITORY$/junit/junit/4.8.2/junit-4.8.2.jar!/" />
@@ -661,213 +774,235 @@
         <root url="jar://$MAVEN_REPOSITORY$/org/apache/sanselan/sanselan/0.97-incubator/sanselan-0.97-incubator-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.datanucleus:datanucleus-core:2.1.0-release">
+    <library name="Maven: org.datanucleus:datanucleus-api-jdo:3.0.4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-core/2.1.0-release/datanucleus-core-2.1.0-release.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-api-jdo/3.0.4/datanucleus-api-jdo-3.0.4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-core/2.1.0-release/datanucleus-core-2.1.0-release-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-api-jdo/3.0.4/datanucleus-api-jdo-3.0.4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-core/2.1.0-release/datanucleus-core-2.1.0-release-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-api-jdo/3.0.4/datanucleus-api-jdo-3.0.4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.datanucleus:datanucleus-enhancer:2.1.0-release">
+    <library name="Maven: org.datanucleus:datanucleus-api-json:3.0.2">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-enhancer/2.1.0-release/datanucleus-enhancer-2.1.0-release.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-api-json/3.0.2/datanucleus-api-json-3.0.2.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-enhancer/2.1.0-release/datanucleus-enhancer-2.1.0-release-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-api-json/3.0.2/datanucleus-api-json-3.0.2-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-enhancer/2.1.0-release/datanucleus-enhancer-2.1.0-release-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-api-json/3.0.2/datanucleus-api-json-3.0.2-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.datanucleus:datanucleus-jodatime:2.1.0-release">
+    <library name="Maven: org.datanucleus:datanucleus-api-rest:3.0.1">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jodatime/2.1.0-release/datanucleus-jodatime-2.1.0-release.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-api-rest/3.0.1/datanucleus-api-rest-3.0.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jodatime/2.1.0-release/datanucleus-jodatime-2.1.0-release-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-api-rest/3.0.1/datanucleus-api-rest-3.0.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jodatime/2.1.0-release/datanucleus-jodatime-2.1.0-release-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-api-rest/3.0.1/datanucleus-api-rest-3.0.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.datanucleus:datanucleus-jpa:2.1.0-release">
+    <library name="Maven: org.datanucleus:datanucleus-core:3.0.4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jpa/2.1.0-release/datanucleus-jpa-2.1.0-release.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-core/3.0.4/datanucleus-core-3.0.4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jpa/2.1.0-release/datanucleus-jpa-2.1.0-release-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-core/3.0.4/datanucleus-core-3.0.4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jpa/2.1.0-release/datanucleus-jpa-2.1.0-release-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-core/3.0.4/datanucleus-core-3.0.4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.datanucleus:datanucleus-rdbms:2.1.0-release">
+    <library name="Maven: org.datanucleus:datanucleus-enhancer:3.0.1">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-rdbms/2.1.0-release/datanucleus-rdbms-2.1.0-release.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-enhancer/3.0.1/datanucleus-enhancer-3.0.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-rdbms/2.1.0-release/datanucleus-rdbms-2.1.0-release-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-enhancer/3.0.1/datanucleus-enhancer-3.0.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-rdbms/2.1.0-release/datanucleus-rdbms-2.1.0-release-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-enhancer/3.0.1/datanucleus-enhancer-3.0.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.datanucleus:datanucleus-rest:2.0.0-release">
+    <library name="Maven: org.datanucleus:datanucleus-jodatime:3.0.1">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-rest/2.0.0-release/datanucleus-rest-2.0.0-release.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jodatime/3.0.1/datanucleus-jodatime-3.0.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-rest/2.0.0-release/datanucleus-rest-2.0.0-release-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jodatime/3.0.1/datanucleus-jodatime-3.0.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-rest/2.0.0-release/datanucleus-rest-2.0.0-release-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jodatime/3.0.1/datanucleus-jodatime-3.0.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.datanucleus:datanucleus-spatial:2.1.0-release">
+    <library name="Maven: org.datanucleus:datanucleus-jpa:2.1.8">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-spatial/2.1.0-release/datanucleus-spatial-2.1.0-release.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jpa/2.1.8/datanucleus-jpa-2.1.8.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-spatial/2.1.0-release/datanucleus-spatial-2.1.0-release-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jpa/2.1.8/datanucleus-jpa-2.1.8-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-spatial/2.1.0-release/datanucleus-spatial-2.1.0-release-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-jpa/2.1.8/datanucleus-jpa-2.1.8-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-annotations:8.1.0.RC2">
+    <library name="Maven: org.datanucleus:datanucleus-rdbms:3.0.4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-annotations/8.1.0.RC2/jetty-annotations-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-rdbms/3.0.4/datanucleus-rdbms-3.0.4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-annotations/8.1.0.RC2/jetty-annotations-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-rdbms/3.0.4/datanucleus-rdbms-3.0.4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-annotations/8.1.0.RC2/jetty-annotations-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-rdbms/3.0.4/datanucleus-rdbms-3.0.4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-continuation:8.1.0.RC2">
+    <library name="Maven: org.datanucleus:datanucleus-spatial:3.0.1">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-continuation/8.1.0.RC2/jetty-continuation-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-spatial/3.0.1/datanucleus-spatial-3.0.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-continuation/8.1.0.RC2/jetty-continuation-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-spatial/3.0.1/datanucleus-spatial-3.0.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-continuation/8.1.0.RC2/jetty-continuation-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/datanucleus/datanucleus-spatial/3.0.1/datanucleus-spatial-3.0.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-http:8.1.0.RC2">
+    <library name="Maven: org.eclipse.jetty:jetty-annotations:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-http/8.1.0.RC2/jetty-http-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-annotations/8.1.0.RC4/jetty-annotations-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-http/8.1.0.RC2/jetty-http-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-annotations/8.1.0.RC4/jetty-annotations-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-http/8.1.0.RC2/jetty-http-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-annotations/8.1.0.RC4/jetty-annotations-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-io:8.1.0.RC2">
+    <library name="Maven: org.eclipse.jetty:jetty-continuation:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-io/8.1.0.RC2/jetty-io-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-continuation/8.1.0.RC4/jetty-continuation-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-io/8.1.0.RC2/jetty-io-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-continuation/8.1.0.RC4/jetty-continuation-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-io/8.1.0.RC2/jetty-io-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-continuation/8.1.0.RC4/jetty-continuation-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-jndi:8.1.0.RC2">
+    <library name="Maven: org.eclipse.jetty:jetty-http:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-jndi/8.1.0.RC2/jetty-jndi-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-http/8.1.0.RC4/jetty-http-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-jndi/8.1.0.RC2/jetty-jndi-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-http/8.1.0.RC4/jetty-http-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-jndi/8.1.0.RC2/jetty-jndi-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-http/8.1.0.RC4/jetty-http-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-plus:8.1.0.RC2">
+    <library name="Maven: org.eclipse.jetty:jetty-io:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-plus/8.1.0.RC2/jetty-plus-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-io/8.1.0.RC4/jetty-io-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-plus/8.1.0.RC2/jetty-plus-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-io/8.1.0.RC4/jetty-io-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-plus/8.1.0.RC2/jetty-plus-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-io/8.1.0.RC4/jetty-io-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-security:8.1.0.RC2">
+    <library name="Maven: org.eclipse.jetty:jetty-jndi:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-security/8.1.0.RC2/jetty-security-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-jndi/8.1.0.RC4/jetty-jndi-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-security/8.1.0.RC2/jetty-security-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-jndi/8.1.0.RC4/jetty-jndi-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-security/8.1.0.RC2/jetty-security-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-jndi/8.1.0.RC4/jetty-jndi-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-server:8.1.0.RC2">
+    <library name="Maven: org.eclipse.jetty:jetty-plus:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-server/8.1.0.RC2/jetty-server-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-plus/8.1.0.RC4/jetty-plus-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-server/8.1.0.RC2/jetty-server-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-plus/8.1.0.RC4/jetty-plus-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-server/8.1.0.RC2/jetty-server-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-plus/8.1.0.RC4/jetty-plus-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-servlet:8.1.0.RC2">
+    <library name="Maven: org.eclipse.jetty:jetty-security:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-servlet/8.1.0.RC2/jetty-servlet-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-security/8.1.0.RC4/jetty-security-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-servlet/8.1.0.RC2/jetty-servlet-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-security/8.1.0.RC4/jetty-security-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-servlet/8.1.0.RC2/jetty-servlet-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-security/8.1.0.RC4/jetty-security-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-util:8.1.0.RC2">
+    <library name="Maven: org.eclipse.jetty:jetty-server:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-util/8.1.0.RC2/jetty-util-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-server/8.1.0.RC4/jetty-server-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-util/8.1.0.RC2/jetty-util-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-server/8.1.0.RC4/jetty-server-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-util/8.1.0.RC2/jetty-util-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-server/8.1.0.RC4/jetty-server-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-webapp:8.1.0.RC2">
+    <library name="Maven: org.eclipse.jetty:jetty-servlet:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-webapp/8.1.0.RC2/jetty-webapp-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-servlet/8.1.0.RC4/jetty-servlet-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-webapp/8.1.0.RC2/jetty-webapp-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-servlet/8.1.0.RC4/jetty-servlet-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-webapp/8.1.0.RC2/jetty-webapp-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-servlet/8.1.0.RC4/jetty-servlet-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.eclipse.jetty:jetty-xml:8.1.0.RC2">
+    <library name="Maven: org.eclipse.jetty:jetty-util:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-xml/8.1.0.RC2/jetty-xml-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-util/8.1.0.RC4/jetty-util-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-xml/8.1.0.RC2/jetty-xml-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-util/8.1.0.RC4/jetty-util-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-xml/8.1.0.RC2/jetty-xml-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-util/8.1.0.RC4/jetty-util-8.1.0.RC4-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: org.eclipse.jetty:jetty-webapp:8.1.0.RC4">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-webapp/8.1.0.RC4/jetty-webapp-8.1.0.RC4.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-webapp/8.1.0.RC4/jetty-webapp-8.1.0.RC4-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-webapp/8.1.0.RC4/jetty-webapp-8.1.0.RC4-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: org.eclipse.jetty:jetty-xml:8.1.0.RC4">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-xml/8.1.0.RC4/jetty-xml-8.1.0.RC4.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-xml/8.1.0.RC4/jetty-xml-8.1.0.RC4-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-xml/8.1.0.RC4/jetty-xml-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: org.geotools:gt-api:2.7.0">
@@ -958,15 +1093,15 @@
         <root url="jar://$MAVEN_REPOSITORY$/org/geotools/gt-shapefile/2.7.0/gt-shapefile-2.7.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.mortbay.jetty:jetty-runner:8.1.0.RC2">
+    <library name="Maven: org.mortbay.jetty:jetty-runner:8.1.0.RC4">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/mortbay/jetty/jetty-runner/8.1.0.RC2/jetty-runner-8.1.0.RC2.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/mortbay/jetty/jetty-runner/8.1.0.RC4/jetty-runner-8.1.0.RC4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/mortbay/jetty/jetty-runner/8.1.0.RC2/jetty-runner-8.1.0.RC2-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/mortbay/jetty/jetty-runner/8.1.0.RC4/jetty-runner-8.1.0.RC4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/mortbay/jetty/jetty-runner/8.1.0.RC2/jetty-runner-8.1.0.RC2-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/mortbay/jetty/jetty-runner/8.1.0.RC4/jetty-runner-8.1.0.RC4-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: org.mortbay.jetty:servlet-api:3.0.20100224">
@@ -1011,6 +1146,28 @@
       </JAVADOC>
       <SOURCES>
         <root url="jar://$MAVEN_REPOSITORY$/org/w3c/css/sac/1.3/sac-1.3-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: org.xerial.thirdparty:nestedvm:1.0">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/xerial/thirdparty/nestedvm/1.0/nestedvm-1.0.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/org/xerial/thirdparty/nestedvm/1.0/nestedvm-1.0-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/xerial/thirdparty/nestedvm/1.0/nestedvm-1.0-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: org.xerial:sqlite-jdbc:3.6.16">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3.6.16/sqlite-jdbc-3.6.16.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3.6.16/sqlite-jdbc-3.6.16-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3.6.16/sqlite-jdbc-3.6.16-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: oro:oro:2.0.7">

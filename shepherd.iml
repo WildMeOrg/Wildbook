@@ -15,6 +15,14 @@
         </sourceRoots>
       </configuration>
     </facet>
+    <facet type="jpa" name="JPA">
+      <configuration>
+        <setting name="validation-enabled" value="true" />
+        <setting name="provider-name" value="" />
+        <datasource-mapping />
+        <deploymentDescriptor name="persistence.xml" url="file://$MODULE_DIR$/src/main/resources/META-INF/persistence.xml" />
+      </configuration>
+    </facet>
   </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_5" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/target/classes" />
@@ -52,32 +60,36 @@
     <orderEntry type="library" name="Maven: servlets.com:cos:05Nov2002" level="project" />
     <orderEntry type="library" name="Maven: rome:rome:0.9" level="project" />
     <orderEntry type="library" name="Maven: jdom:jdom:1.0" level="project" />
-    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-enhancer:2.1.0-release" level="project" />
+    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-enhancer:3.0.1" level="project" />
     <orderEntry type="library" name="Maven: asm:asm:3.1" level="project" />
-    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-core:2.1.0-release" level="project" />
-    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-rest:2.0.0-release" level="project" />
-    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-rdbms:2.1.0-release" level="project" />
-    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-jpa:2.1.0-release" level="project" />
-    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-spatial:2.1.0-release" level="project" />
-    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-jodatime:2.1.0-release" level="project" />
+    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-core:3.0.4" level="project" />
+    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-api-rest:3.0.1" level="project" />
+    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-api-json:3.0.2" level="project" />
+    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-rdbms:3.0.4" level="project" />
+    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-jpa:2.1.8" level="project" />
+    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-api-jdo:3.0.4" level="project" />
+    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-spatial:3.0.1" level="project" />
+    <orderEntry type="library" name="Maven: org.datanucleus:datanucleus-jodatime:3.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.derby:derby:10.6.1.0" level="project" />
+    <orderEntry type="library" name="Maven: org.xerial:sqlite-jdbc:3.6.16" level="project" />
+    <orderEntry type="library" name="Maven: org.xerial.thirdparty:nestedvm:1.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.sanselan:sanselan:0.97-incubator" level="project" />
     <orderEntry type="library" name="Maven: com.drewnoakes:metadata-extractor:2.4.0-beta-1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.8.2" level="project" />
-    <orderEntry type="library" name="Maven: org.mortbay.jetty:jetty-runner:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-plus:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-webapp:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-xml:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-util:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-servlet:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-security:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-server:8.1.0.RC2" level="project" />
+    <orderEntry type="library" name="Maven: org.mortbay.jetty:jetty-runner:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-plus:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-webapp:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-xml:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-util:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-servlet:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-security:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-server:8.1.0.RC4" level="project" />
     <orderEntry type="library" name="Maven: org.mortbay.jetty:servlet-api:3.0.20100224" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-continuation:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-http:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-io:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-jndi:8.1.0.RC2" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-annotations:8.1.0.RC2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-continuation:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-http:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-io:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-jndi:8.1.0.RC4" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-annotations:8.1.0.RC4" level="project" />
     <orderEntry type="library" name="Maven: org.apache.geronimo.specs:geronimo-annotation_1.0_spec:1.1.1" level="project" />
     <orderEntry type="library" name="Maven: asm:asm-commons:3.1" level="project" />
     <orderEntry type="library" name="Maven: asm:asm-tree:3.1" level="project" />
@@ -97,7 +109,7 @@
     <orderEntry type="library" scope="TEST" name="Maven: commons-io:commons-io:1.4" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: net.sourceforge.jwebunit:jwebunit-core:2.5" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: regexp:regexp:1.3" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.slf4j:slf4j-api:1.6.1" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.6.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.slf4j:jcl-over-slf4j:1.6.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: ch.qos.logback:logback-classic:0.9.24" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: ch.qos.logback:logback-core:0.9.24" level="project" />
@@ -115,6 +127,7 @@
     <orderEntry type="library" name="Maven: org.geotools:gt-data:2.7.0" level="project" />
     <orderEntry type="library" name="Maven: org.geotools:gt-epsg-hsql:2.7.0" level="project" />
     <orderEntry type="library" name="Maven: hsqldb:hsqldb:1.8.0.7" level="project" />
+    <orderEntry type="library" name="Maven: jstl:jstl:1.2" level="project" />
   </component>
 </module>
 

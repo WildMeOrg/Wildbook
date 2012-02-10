@@ -19,6 +19,8 @@
 
 package org.ecocean;
 
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
@@ -42,19 +44,15 @@ public class ShepherdPMF {
         dnProperties.setProperty("datanucleus.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.PersistenceManagerFactoryImpl");
 
         //class setup
-        
-
-        Set<Object> propNames = CommonConfiguration.getPropertyNames();
-        for (Object propName : propNames) {
-          String name = (String) propName;
+        Enumeration<?> e = CommonConfiguration.getPropertyNames();
+        while(e.hasMoreElements()) {
+          String name = (String) e.nextElement();
           if (name.startsWith("datanucleus") || name.startsWith("javax.jdo")) {
             dnProperties.setProperty(name, CommonConfiguration.getProperty(name).trim());
           }
         }
 
         pmf = JDOHelper.getPersistenceManagerFactory(dnProperties);
-
-
       }
       return pmf;
     } catch (JDOException jdo) {
