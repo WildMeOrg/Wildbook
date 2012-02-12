@@ -100,6 +100,16 @@
         return results[1];
     }
   </script>
+  
+   <script type="text/javascript" src="../javascript/data.json"></script>
+      <script type="text/javascript">
+        var script = '<script type="text/javascript" src="../javascript/markerclusterer';
+        if (document.location.search.indexOf('compiled') !== -1) {
+          script += '_compiled';
+        }
+        script += '.js"><' + '/script>';
+        document.write(script);
+    </script>
 
 
 </head>
@@ -260,14 +270,14 @@ if(numberResultsToMap>-1){
 %>
 
 <p><%=encprops.getProperty("mapNote")%></p>
-<script src="http://maps.google.com/maps?file=api&amp;v=3.2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>" type="text/javascript"></script> <script type="text/javascript">
+<script src="http://maps.google.com/maps?file=api&amp;v=3.7&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>" type="text/javascript"></script> <script type="text/javascript">
     function initialize() {
       if (GBrowserIsCompatible()) {
           
 
         var map = new GMap2(document.getElementById("map_canvas"));
         var bounds = new GLatLngBounds();
-		
+	var markers = [];
         
   		var ne_lat = parseFloat(getQueryParameter("ne_lat"));
 		var ne_long = parseFloat(getQueryParameter('ne_long'));
@@ -315,7 +325,8 @@ if(numberResultsToMap>-1){
 						  });
 
 						  
-						  map.addOverlay(marker<%=t%>);
+						  //map.addOverlay(marker<%=t%>);
+						  markers.push(marker<%=t%>);
 			
 		<%	
 			}	
@@ -328,6 +339,9 @@ if(numberResultsToMap>-1){
 		else{
 			map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
 		}
+		//var mcOptions = {gridSize: 50, maxZoom: 15};
+		var mc = new MarkerClusterer(map, markers);
+		alert("some text!");
       }
     }
     </script>
