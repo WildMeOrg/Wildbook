@@ -40,6 +40,10 @@
     Properties encprops = new Properties();
     encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
 
+    Properties haploprops = new Properties();
+    haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+
+    
     //get our Shepherd
     Shepherd myShepherd = new Shepherd();
 
@@ -88,32 +92,24 @@
   <link href="<%=CommonConfiguration.getCSSURLLocation(request)%>" rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon()%>"/>
 
-  <script>
-    function getQueryParameter(name) {
-      name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-      var regexS = "[\\?&]" + name + "=([^&#]*)";
-      var regex = new RegExp(regexS);
-      var results = regex.exec(window.location.href);
-      if (results == null)
-        return "";
-      else
-        return results[1];
-    }
-  </script>
+
+    <style type="text/css">
+      body {
+        margin: 0;
+        padding: 10px 20px 20px;
+        font-family: Arial;
+        font-size: 16px;
+      }
+
+
+
+      #map {
+        width: 600px;
+        height: 400px;
+      }
+
+    </style>
   
-   <script type="text/javascript" src="../javascript/data.json"></script>
-      <script type="text/javascript">
-        var script = '<script type="text/javascript" src="../javascript/markerclusterer';
-        if (document.location.search.indexOf('compiled') !== -1) {
-          script += '_compiled';
-        }
-        script += '.js"><' + '/script>';
-        document.write(script);
-    </script>
-
-
-</head>
-
 
 <style type="text/css">
   #tabmenu {
@@ -162,251 +158,215 @@
     color: #DEDECF;
     border-bottom: 2px solid #000000;
   }
+  
+  
 </style>
+  
+      <script>
+        function getQueryParameter(name) {
+          name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+          var regexS = "[\\?&]" + name + "=([^&#]*)";
+          var regex = new RegExp(regexS);
+          var results = regex.exec(window.location.href);
+          if (results == null)
+            return "";
+          else
+            return results[1];
+        }
+  </script>
+  
+  
+
+    <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+
+<script type="text/javascript" src="StyledMarker.js"></script>
 
 
-<body onload="initialize()" onunload="GUnload()">
-<div id="wrapper">
-<div id="page">
-<jsp:include page="../header.jsp" flush="true">
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-<div id="main">
+    <script type="text/javascript">
+      function initialize() {
+        var center = new google.maps.LatLng(37.4419, -122.1419);
 
-<ul id="tabmenu">
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 1,
+          center: center,
+          mapTypeId: google.maps.MapTypeId.HYBRID
+        });
 
-  <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
-  </a></li>
-  <li><a
-    href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>
-  </a></li>
-  <li><a class="active"><%=encprops.getProperty("mappedResults") %>
-  </a></li>
-  <li><a
-    href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
-  </a></li>
-
-</ul>
-<table width="810px" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td>
-      <br/>
-
-      <h1 class="intro"><%=encprops.getProperty("title")%>
-      </h1>
-    </td>
-  </tr>
-</table>
-
-
-
-
-<%
-  Vector haveGPSData = new Vector();
-  int count = 0;
-
-  for (int f = 0; f < rEncounters.size(); f++) {
-
-    Encounter enc = (Encounter) rEncounters.get(f);
-    count++;
-    numResults++;
-    if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
-      haveGPSData.add(enc);
+        var markers = [];
+ 
+ 
+        
+        <%
+        Vector haveGPSData = new Vector();
+        int rEncountersSize=rEncounters.size();
+        int count = 0;
       
-     
+        for (int f = 0; f < rEncountersSize; f++) {
       
-    }
-  }
-    
-
-  myShepherd.rollbackDBTransaction();
-
-  startNum = startNum + 10;
-  endNum = endNum + 10;
-
-  if (endNum > numResults) {
-    endNum = numResults;
-  }
-  String numberResights = "";
-  if (request.getParameter("numResights") != null) {
-    numberResights = "&numResights=" + request.getParameter("numResights");
-  }
-  String qString = request.getQueryString();
-  int startNumIndex = qString.indexOf("&startNum");
-  if (startNumIndex > -1) {
-    qString = qString.substring(0, startNumIndex);
-  }
-
-
-%>
-
-
-<br />
-
-
-
-
-<p><strong>
-	<img src="../images/2globe_128.gif" width="64" height="64" align="absmiddle"/> <%=encprops.getProperty("mappedResults")%>
-</strong>
-<%
-
-//read from the encprops property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
-int numberResultsToMap = -1;
-try{numberResultsToMap=Integer.parseInt(encprops.getProperty("numberResultsToMap"));}
-catch(Exception e){}
-
-if(numberResultsToMap>-1){
-%>
-<%=encprops.getProperty("mappedMatchResults").replaceAll("%numberResultsToMap%",encprops.getProperty("numberResultsToMap"))%>
-<%
-}
-%>
-</p>
-<%
-  if (haveGPSData.size() > 0) {
-    myShepherd.beginDBTransaction();
-    try {
-%>
-
-<p><%=encprops.getProperty("mapNote")%></p>
-<script src="http://maps.google.com/maps?file=api&amp;v=3.7&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>" type="text/javascript"></script> <script type="text/javascript">
-    function initialize() {
-      if (GBrowserIsCompatible()) {
+          Encounter enc = (Encounter) rEncounters.get(f);
+          count++;
+          numResults++;
+          if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
+            haveGPSData.add(enc);
+            
+           
+            
+          }
+        }
           
+      
+        
+      
+if(haveGPSData.size()>0){
+	int havegpsSize=haveGPSData.size();
+ for(int y=0;y<havegpsSize;y++){
+	 Encounter thisEnc=(Encounter)haveGPSData.get(y);
+	 
 
-        var map = new GMap2(document.getElementById("map_canvas"));
-        var bounds = new GLatLngBounds();
-	var markers = [];
-        
-  		var ne_lat = parseFloat(getQueryParameter("ne_lat"));
-		var ne_long = parseFloat(getQueryParameter('ne_long'));
-		var sw_lat = parseFloat(getQueryParameter('sw_lat'));
-		var sw_long = parseFloat(getQueryParameter('sw_long'));
-        
-		
-		<%
-			double centroidX=0;
-			int countPoints=0;
-			double centroidY=0;
-			for(int c=0;c<haveGPSData.size();c++) {
-				Encounter mapEnc=(Encounter)haveGPSData.get(c);
-				countPoints++;
-				centroidX=centroidX+Double.parseDouble(mapEnc.getDWCDecimalLatitude());
-				centroidY=centroidY+Double.parseDouble(mapEnc.getDWCDecimalLongitude());
-			}
-			centroidX=centroidX/countPoints;
-			centroidY=centroidY/countPoints;
-		%>
-			
-			//map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
-			map.addControl(new GSmallMapControl());
-        	map.addControl(new GMapTypeControl());
-			map.setMapType(G_HYBRID_MAP);
+ %>
+          
+          var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
+          
+          //var marker = new google.maps.Marker({position: latLng, map: map});
+          //var styleIcon = new StyledIcon(StyledIconTypes.BUBBLE,{color:"#ff0000",text:"Stop"});
+           //var marker = new StyledMarker({position: latLng, map: map});
+           
+           <%
+           String haploColor="FF0000";
+           String markerText="";
+           if((thisEnc.getHaplotype()!=null)&&(haploprops.getProperty(thisEnc.getHaplotype())!=null)){
+        	   haploColor = haploprops.getProperty(thisEnc.getHaplotype());
+           }
+           if(thisEnc.getHaplotype()!=null){
+        	   markerText=thisEnc.getHaplotype();
+           }
+           
+           //added my comment here
+           
+           %>
+           var marker;
 			<%
+			if(thisEnc.getHaplotype()==null){
+			%>
+			marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
+	        <%
+			}
+			else {
+			%>			
+			marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.BUBBLE,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
 			
-			
-			
-			for(int t=0;t<haveGPSData.size();t++) {
-				if((numberResultsToMap==-1) || (t<numberResultsToMap)){
-					Encounter mapEnc=(Encounter)haveGPSData.get(t);
-					double myLat=(new Double(mapEnc.getDWCDecimalLatitude())).doubleValue();
-					double myLong=(new Double(mapEnc.getDWCDecimalLongitude())).doubleValue();
-					%>
-				          var point<%=t%> = new GLatLng(<%=myLat%>,<%=myLong%>, false);
-				          bounds.extend(point<%=t%>);
-				          
-						  var marker<%=t%> = new GMarker(point<%=t%>);
-						  GEvent.addListener(marker<%=t%>, "click", function(){
-						  	window.location="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>";
-						  });
-						  GEvent.addListener(marker<%=t%>, "mouseover", function(){
-						  	marker<%=t%>.openInfoWindowHtml("<%=encprops.getProperty("markedIndividual")%>: <strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=mapEnc.isAssignedToMarkedIndividual()%>\"><%=mapEnc.isAssignedToMarkedIndividual()%></a></strong><br><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=mapEnc.getEncounterNumber()%>/thumb.jpg\"></td><td><%=encprops.getProperty("date")%>: <%=mapEnc.getDate()%><br><%=encprops.getProperty("sex")%>: <%=mapEnc.getSex()%><br><br><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>\" ><%=encprops.getProperty("go2encounter")%></a></td></tr></table>");
-						  });
+			<%
+			}
+			%>
 
-						  
-						  //map.addOverlay(marker<%=t%>);
-						  markers.push(marker<%=t%>);
-			
-		<%	
-			}	
-		}
-		%>		
-		if(!bounds.isEmpty()){	
-			//map.setZoom();
-			map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
-		}
-		else{
-			map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
-		}
-		//var mcOptions = {gridSize: 50, maxZoom: 15};
-		var mc = new MarkerClusterer(map, markers);
-		alert("some text!");
+            google.maps.event.addListener(marker,'click', function() {
+                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+             });
+ 
+	
+          markers.push(marker);
+        
+ 
+ <%
+ 
+	 }
+} 
+
+myShepherd.rollbackDBTransaction();
+ %>
+ 
+ //markerClusterer = new MarkerClusterer(map, markers, {gridSize: 10});
+
       }
-    }
+      google.maps.event.addDomListener(window, 'load', initialize);
     </script>
+  </head>
+ <body onunload="GUnload()">
+ <div id="wrapper">
+ <div id="page">
 
-
-
-<div id="map_canvas" style="width: 510px; height: 340px"></div>
-
-<p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
-<p><%=encprops.getProperty("exportedKML")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>"><%=encprops.getProperty("clickHere")%></a><br />
-  <%=encprops.getProperty("exportedKMLTimeline")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>&addTimeStamp=true"><%=encprops.getProperty("clickHere")%></a>
-</p>
-
-<p><%=encprops.getProperty("exportedShapefile")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportShapefile?<%=request.getQueryString() %>"><%=encprops.getProperty("clickHere")%></a>
-</p>
-
-<%
-
-    } 
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-
-  }
-else {
-%>
-<p><%=encprops.getProperty("noGPS")%></p>
-<%
-}  
-%>
-
-<table>
-  <tr>
-    <td align="left">
-
-      <p><strong><%=encprops.getProperty("queryDetails")%>
-      </strong></p>
-
-      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
-      </p>
-
-      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
-      </strong><br/>
-        <%=queryResult.getJDOQLRepresentation()%>
-      </p>
-
-    </td>
-  </tr>
+ <div id="main">
+ 
+ <ul id="tabmenu">
+ 
+   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
+   </a></li>
+   <li><a
+     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>
+   </a></li>
+   <li><a class="active"><%=encprops.getProperty("mappedResults") %>
+   </a></li>
+   <li><a
+     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
+   </a></li>
+ 
+ </ul>
+ <table width="810px" border="0" cellspacing="0" cellpadding="0">
+   <tr>
+     <td>
+       <br/>
+ 
+       <h1 class="intro"><%=encprops.getProperty("title")%>
+       </h1>
+     </td>
+   </tr>
 </table>
+ 
+ 
+ 
+ 
+ <br />
+ 
+ 
+ 
+ 
+ <p><strong>
+ 	<img src="../images/2globe_128.gif" width="64" height="64" align="absmiddle"/> <%=encprops.getProperty("mappedResults")%>
+ </strong>
+ <%
+ 
+ //read from the encprops property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
+ int numberResultsToMap = -1;
 
-<%
+ %>
+ </p>
+ <%
+   if (haveGPSData.size() > 0) {
+     myShepherd.beginDBTransaction();
+     try {
+ %>
+ 
+<p><%=encprops.getProperty("mapNote")%></p>
+ 
+ <div id="map-container"><div id="map"></div></div>
+ 
 
+ 
+ <%
+ 
+     } 
+     catch (Exception e) {
+       e.printStackTrace();
+     }
+ 
+   }
+ else {
+ %>
+ <p><%=encprops.getProperty("noGPS")%></p>
+ <%
+ }  
 
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-  rEncounters = null;
-  haveGPSData = null;
-
+ 
+ 
+   myShepherd.rollbackDBTransaction();
+   myShepherd.closeDBTransaction();
+   rEncounters = null;
+   haveGPSData = null;
+ 
 %>
-<jsp:include page="../footer.jsp" flush="true"/>
+ 
+ 
+ <jsp:include page="../footer.jsp" flush="true"/>
 </div>
 </div>
 <!-- end page --></div>
@@ -414,7 +374,3 @@ else {
 
 </body>
 </html>
-
-
-
-
