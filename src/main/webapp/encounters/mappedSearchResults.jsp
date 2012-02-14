@@ -232,32 +232,18 @@ if(haveGPSData.size()>0){
            //var marker = new StyledMarker({position: latLng, map: map});
            
            <%
-           String haploColor="FF0000";
+           String haploColor="C8C8C8";
            String markerText="";
            if((thisEnc.getHaplotype()!=null)&&(haploprops.getProperty(thisEnc.getHaplotype())!=null)){
-        	   haploColor = haploprops.getProperty(thisEnc.getHaplotype());
+        	  if(!haploprops.getProperty(thisEnc.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(thisEnc.getHaplotype());}
            }
-           if(thisEnc.getHaplotype()!=null){
-        	   markerText=thisEnc.getHaplotype();
-           }
+
            
            //added my comment here
            
            %>
-           var marker;
-			<%
-			if(thisEnc.getHaplotype()==null){
-			%>
-			marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
-	        <%
-			}
-			else {
-			%>			
-			marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.BUBBLE,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
-			
-			<%
-			}
-			%>
+           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
+	    
 
             google.maps.event.addListener(marker,'click', function() {
                  (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
@@ -284,7 +270,10 @@ myShepherd.rollbackDBTransaction();
  <body onunload="GUnload()">
  <div id="wrapper">
  <div id="page">
+<jsp:include page="../header.jsp" flush="true">
 
+  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+</jsp:include>
  <div id="main">
  
  <ul id="tabmenu">
@@ -364,7 +353,26 @@ myShepherd.rollbackDBTransaction();
    haveGPSData = null;
  
 %>
- 
+ <table>
+  <tr>
+    <td align="left">
+
+      <p><strong><%=encprops.getProperty("queryDetails")%>
+      </strong></p>
+
+      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
+      </strong><br/>
+        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
+      </p>
+
+      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
+      </strong><br/>
+        <%=queryResult.getJDOQLRepresentation()%>
+      </p>
+
+    </td>
+  </tr>
+</table>
  
  <jsp:include page="../footer.jsp" flush="true"/>
 </div>
