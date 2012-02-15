@@ -232,14 +232,20 @@ if(haveGPSData.size()>0){
            //var marker = new StyledMarker({position: latLng, map: map});
            
            <%
-           String haploColor="C8C8C8";
+           
+           //currently unused programatically
            String markerText="";
+           
+           String haploColor="CC0000";
+           if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+        	   haploColor=encprops.getProperty("defaultMarkerColor");
+           }
+           
+           
            if((thisEnc.getHaplotype()!=null)&&(haploprops.getProperty(thisEnc.getHaplotype())!=null)){
         	  if(!haploprops.getProperty(thisEnc.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(thisEnc.getHaplotype());}
            }
 
-           
-           //added my comment here
            
            %>
            var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
