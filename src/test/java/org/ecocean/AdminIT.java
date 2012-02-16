@@ -31,7 +31,7 @@ import net.sourceforge.jwebunit.junit.WebTestCase;
 public class AdminIT extends WebTestCase {
   public void setUp() throws Exception {
     super.setUp();
-    setBaseUrl("http://localhost:9090/shepherd");
+    setBaseUrl("http://localhost:9090");
   }
 
   public void testResourcesAreProtected() {
@@ -49,13 +49,13 @@ public class AdminIT extends WebTestCase {
 
   public void testKeywordAdmin() {
     login();
-    gotoPage("appadmin/kwAdmin.jsp");
+    gotoPage("/appadmin/kwAdmin.jsp");
     assertResponseCode(200);
   }
 
   protected void login() {
     beginAt("/index.jsp");
-    clickLinkWithExactText("Login");
+    clickLinkWithExactText("Log in");
     setTextField("j_username", "admin");
     setTextField("j_password", "password");
     submit();

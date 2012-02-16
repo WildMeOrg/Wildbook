@@ -111,8 +111,9 @@
           <h1 class="intro">Contact us </h1>
         </div>
 
-        <p>The team at Manta Matcher welcome your comments and questions.</p>
-        <p>Please email us at info at mantamatcher dot org, and one of us will respond as quickly as possible.</p>
+        <p>We welcome your comments and questions.</p>
+
+        <p>Provide more info here about how to contact your organization... </p>
       </div>
       <!-- end maintext -->
 

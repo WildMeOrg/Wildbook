@@ -27,13 +27,13 @@ public class IndexIT extends WebTestCase {
     setBaseUrl("http://localhost:9090");
   }
   public void testHome() throws Exception {
-    beginAt("/shepherd/");
+    beginAt("/");
     assertResponseCode(200);
     assertTextPresent("Encounter");
   }
 
   public void testIndex() throws Exception {
-    beginAt("/shepherd/index.jsp");
+    beginAt("/index.jsp");
     assertResponseCode(200);
     assertTextPresent("Encounter");
   }
