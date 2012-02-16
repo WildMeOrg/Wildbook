@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>shepherd</artifactId>
-  <version>2.1.0-RELEASE</version>
+  <version>2.2.0-EXPERIMENTAL</version>
   <packaging>war</packaging>
 
   <properties>
@@ -51,7 +51,7 @@
     <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
-        <version>0.9.18</version>
+        <version>1.0.0</version>
     </dependency>
 
     <dependency>
@@ -223,6 +223,11 @@
       	<artifactId>jstl</artifactId>
       	<version>1.2</version>
       </dependency>
+              <dependency>
+                  <groupId>org.slf4j</groupId>
+                  <artifactId>slf4j-api</artifactId>
+                  <version>1.6.1</version>
+        </dependency>
     
     
   </dependencies>

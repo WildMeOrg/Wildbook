@@ -24,16 +24,16 @@ import net.sourceforge.jwebunit.junit.WebTestCase;
 public class IndexIT extends WebTestCase {
   public void setUp() throws Exception {
     super.setUp();
-    setBaseUrl("http://localhost:9090");
+    setBaseUrl("http://localhost:9090/shepherd");
   }
   public void testHome() throws Exception {
-    beginAt("/shepherd/");
+    beginAt("/");
     assertResponseCode(200);
     assertTextPresent("Encounter");
   }
 
   public void testIndex() throws Exception {
-    beginAt("/shepherd/index.jsp");
+    beginAt("/index.jsp");
     assertResponseCode(200);
     assertTextPresent("Encounter");
   }
