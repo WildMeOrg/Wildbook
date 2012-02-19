@@ -40,6 +40,9 @@
     Properties encprops = new Properties();
     encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
 
+    Properties map_props = new Properties();
+    map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+
 
     
     //get our Shepherd
@@ -59,6 +62,7 @@
 
     //start the query and get the results
     String order = "";
+    request.setAttribute("gpsOnly", "yes");
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
     
@@ -188,27 +192,18 @@
  
         
         <%
-        Vector haveGPSData = new Vector();
+        //Vector haveGPSData = new Vector();
         int rEncountersSize=rEncounters.size();
         int count = 0;
-      
-        for (int f = 0; f < rEncountersSize; f++) {
-      
-          Encounter enc = (Encounter) rEncounters.get(f);
-          count++;
-          numResults++;
-          if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
-            haveGPSData.add(enc);
-          }
-        }
+
           
       
         
       
-if(haveGPSData.size()>0){
-	int havegpsSize=haveGPSData.size();
+if(rEncounters.size()>0){
+	int havegpsSize=rEncounters.size();
  for(int y=0;y<havegpsSize;y++){
-	 Encounter thisEnc=(Encounter)haveGPSData.get(y);
+	 Encounter thisEnc=(Encounter)rEncounters.get(y);
 	 
 
  %>
@@ -311,10 +306,24 @@ myShepherd.rollbackDBTransaction();
 
  %>
  </p>
-  <p><a href="mappedSearchResults.jsp?<%=request.getQueryString()%>">Position-only</a>&nbsp;&nbsp;&nbsp;<a href="mappedSearchResultsHaplotype.jsp?<%=request.getQueryString()%>">Haplotype</a>&nbsp;&nbsp;&nbsp;<a href="mappedSearchResultsSex.jsp?<%=request.getQueryString()%>">Sex</a></p>
- 
+ <p><%=map_props.getProperty("aspects") %>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <%
+  boolean hasMoreProps=true;
+  int propsNum=0;
+  while(hasMoreProps){
+	if((map_props.getProperty("displayAspectName"+propsNum)!=null)&&(map_props.getProperty("displayAspectFile"+propsNum)!=null)){
+		%>
+		<a href="<%=map_props.getProperty("displayAspectFile"+propsNum)%>?<%=request.getQueryString()%>"><%=map_props.getProperty("displayAspectName"+propsNum) %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		
+		<%
+		propsNum++;
+	}
+	else{hasMoreProps=false;}
+  }
+  %>
+</p>
  <%
-   if (haveGPSData.size() > 0) {
+   if (rEncounters.size() > 0) {
      myShepherd.beginDBTransaction();
      try {
  %>
@@ -373,7 +382,7 @@ if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("d
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
    rEncounters = null;
-   haveGPSData = null;
+   //haveGPSData = null;
  
 %>
  <table>

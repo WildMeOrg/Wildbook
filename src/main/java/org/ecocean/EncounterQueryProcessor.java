@@ -650,7 +650,19 @@ public class EncounterQueryProcessor {
       prettyPrint.append("identificationRemarks starts with \""+idRemarks+"\".<br />");
 
     }
-
+    //end identification remarks filter
+    
+    
+    //filter gpsOnly - return only Encounters with a defined location. This is mostly used for mapping JSP pages
+    if(request.getAttribute("gpsOnly")!=null){
+      
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="decimalLatitude != null && decimalLongitude != null";}
+      else{filter+=" && decimalLatitude != null && decimalLongitude != null ";}
+      prettyPrint.append("Has GPS coordinates.<br />");
+      
+    }
+    //end filter gpsOnly
+    
     /**
     //filter for behavior------------------------------------------
     if((request.getParameter("behaviorField")!=null)&&(!request.getParameter("behaviorField").equals(""))) {

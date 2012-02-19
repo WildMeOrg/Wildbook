@@ -78,18 +78,14 @@
 
     //start the query and get the results
     String order = "";
+    request.setAttribute("gpsOnly", "yes");
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
     
     //let's prep the HashTable for the pie chart
     ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
     int numHaplos2 = allHaplos2.size();
-    Hashtable<String,Integer> pieHashtable = new Hashtable<String,Integer>();
- 	for(int gg=0;gg<numHaplos2;gg++){
- 		String thisHaplo=allHaplos2.get(gg);
- 		pieHashtable.put(thisHaplo, new Integer(0));
- 	}
-    		
+	
     		
   %>
 
@@ -207,27 +203,19 @@
  
         
         <%
-        Vector haveGPSData = new Vector();
+        //Vector haveGPSData = new Vector();
         int rEncountersSize=rEncounters.size();
         int count = 0;
       
-        for (int f = 0; f < rEncountersSize; f++) {
-      
-          Encounter enc = (Encounter) rEncounters.get(f);
-          count++;
-          numResults++;
-          if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
-            haveGPSData.add(enc);
-          }
-        }
+
           
       
         
       
-if(haveGPSData.size()>0){
-	int havegpsSize=haveGPSData.size();
+if(rEncounters.size()>0){
+	int havegpsSize=rEncounters.size();
  for(int y=0;y<havegpsSize;y++){
-	 Encounter thisEnc=(Encounter)haveGPSData.get(y);
+	 Encounter thisEnc=(Encounter)rEncounters.get(y);
 	 
 
  %>
@@ -236,14 +224,7 @@ if(haveGPSData.size()>0){
 
            <%
            
-           //logic for related haplotype pie chart
-           if(thisEnc.getHaplotype()!=null){
-        	   if(pieHashtable.containsKey(thisEnc.getHaplotype().trim())){
-        		   Integer thisInt = pieHashtable.get(thisEnc.getHaplotype().trim())+1;
-        		   //System.out.println("about to hit npe");
-        		   pieHashtable.put(thisEnc.getHaplotype().trim(), thisInt);
-        	   }
-           }
+
            
            //currently unused programatically
            String markerText="";
@@ -285,61 +266,7 @@ myShepherd.rollbackDBTransaction();
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
     
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
-<script type="text/javascript">
-      google.load("visualization", "1", {packages:["corechart"]});
-      google.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('string', 'Haplotype');
-        data.addColumn('number', 'No. Recorded');
-        data.addRows([
-          <%
-          ArrayList<String> allHaplos=myShepherd.getAllHaplotypes(); 
-          int numHaplos = allHaplos.size();
-          
-
-          
-          for(int hh=0;hh<numHaplos;hh++){
-          %>
-          ['<%=allHaplos.get(hh)%>',    <%=pieHashtable.get(allHaplos.get(hh))%>],
-		  <%
-          }
-		  %>
-          
-        ]);
-
-        var options = {
-          width: 450, height: 300,
-          title: 'Haplotypes in Matched Encounters',
-          colors: [
-                   <%
-                   String haploColor="CC0000";
-                   if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
-                	   haploColor=encprops.getProperty("defaultMarkerColor");
-                   }   
-
-                   
-                   for(int yy=0;yy<numHaplos;yy++){
-                       String haplo=allHaplos.get(yy);
-                       if((haploprops.getProperty(haplo)!=null)&&(!haploprops.getProperty(haplo).trim().equals(""))){
-                     	  haploColor = haploprops.getProperty(haplo);
-                        }
-					%>
-					'#<%=haploColor%>',
-					<%
-                   }
-                   %>
-                   
-                   
-          ]
-        };
-
-        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
-        chart.draw(data, options);
-      }
-</script>
 
     
   </head>
@@ -393,15 +320,32 @@ myShepherd.rollbackDBTransaction();
  </strong>
  <%
  
+ Properties map_props = new Properties();
+ map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+
  //read from the encprops property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
  int numberResultsToMap = -1;
 
  %>
  </p>
-  <p><a href="mappedSearchResults.jsp?<%=request.getQueryString()%>">Position-only</a>&nbsp;&nbsp;&nbsp;<a href="mappedSearchResultsHaplotype.jsp?<%=request.getQueryString()%>">Haplotype</a>&nbsp;&nbsp;&nbsp;<a href="mappedSearchResultsSex.jsp?<%=request.getQueryString()%>">Sex</a></p>
- 
+ <p><%=map_props.getProperty("aspects") %>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <%
+  boolean hasMoreProps=true;
+  int propsNum=0;
+  while(hasMoreProps){
+	if((map_props.getProperty("displayAspectName"+propsNum)!=null)&&(map_props.getProperty("displayAspectFile"+propsNum)!=null)){
+		%>
+		<a href="<%=map_props.getProperty("displayAspectFile"+propsNum)%>?<%=request.getQueryString()%>"><%=map_props.getProperty("displayAspectName"+propsNum) %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		
+		<%
+		propsNum++;
+	}
+	else{hasMoreProps=false;}
+  }
+  %>
+</p>
  <%
-   if (haveGPSData.size() > 0) {
+   if (rEncounters.size() > 0) {
      myShepherd.beginDBTransaction();
      try {
  %>
@@ -420,11 +364,12 @@ myShepherd.rollbackDBTransaction();
  <table>
  <tr><th>Haplotype Color Key</th></tr>
                     <%
+                    String haploColor="CC0000";
                    if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
                 	   haploColor=encprops.getProperty("defaultMarkerColor");
                    }   
-                   for(int yy=0;yy<numHaplos;yy++){
-                       String haplo=allHaplos.get(yy);
+                   for(int yy=0;yy<numHaplos2;yy++){
+                       String haplo=allHaplos2.get(yy);
                        if((haploprops.getProperty(haplo)!=null)&&(!haploprops.getProperty(haplo).trim().equals(""))){
                      	  haploColor = haploprops.getProperty(haplo);
                         }
@@ -442,10 +387,6 @@ myShepherd.rollbackDBTransaction();
  </td>
  </tr>
  </table>
-
- 
-
- <div id="chart_div"></div>
 
  </div>
  
@@ -470,7 +411,7 @@ myShepherd.rollbackDBTransaction();
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
    rEncounters = null;
-   haveGPSData = null;
+   //haveGPSData = null;
  
 %>
  <table>
