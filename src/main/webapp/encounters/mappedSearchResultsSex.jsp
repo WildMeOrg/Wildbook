@@ -40,8 +40,6 @@
     Properties encprops = new Properties();
     encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
 
-    Properties haploprops = new Properties();
-    haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
 
     
     //get our Shepherd
@@ -51,23 +49,6 @@
 
 
 
-    //set up paging of results
-    int startNum = 1;
-    int endNum = 10;
-    try {
-
-      if (request.getParameter("startNum") != null) {
-        startNum = (new Integer(request.getParameter("startNum"))).intValue();
-      }
-      if (request.getParameter("endNum") != null) {
-      
-        endNum = (new Integer(request.getParameter("endNum"))).intValue();
-      }
-
-    } catch (NumberFormatException nfe) {
-      startNum = 1;
-      endNum = 10;
-    }
     int numResults = 0;
 
     //set up the vector for matching encounters
@@ -81,7 +62,14 @@
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
     
-
+    //let's prep the HashTable for the pie chart
+    ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
+    int numHaplos2 = allHaplos2.size();
+    Hashtable<String,Integer> pieHashtable = new Hashtable<String,Integer>();
+ 	for(int gg=0;gg<numHaplos2;gg++){
+ 		String thisHaplo=allHaplos2.get(gg);
+ 		pieHashtable.put(thisHaplo, new Integer(0));
+ 	}
     		
     		
   %>
@@ -226,13 +214,9 @@ if(haveGPSData.size()>0){
  %>
           
           var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
-          
-          //var marker = new google.maps.Marker({position: latLng, map: map});
-          //var styleIcon = new StyledIcon(StyledIconTypes.BUBBLE,{color:"#ff0000",text:"Stop"});
-           //var marker = new StyledMarker({position: latLng, map: map});
-           
+
            <%
-           
+
            
            //currently unused programatically
            String markerText="";
@@ -241,6 +225,10 @@ if(haveGPSData.size()>0){
            if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
         	   haploColor=encprops.getProperty("defaultMarkerColor");
            }
+		   
+           //map by sex
+           if(thisEnc.getSex().equals("male")){haploColor="0000FF";}
+           else if(thisEnc.getSex().equals("female")){haploColor="FF00FF";}
 
            
            %>
@@ -268,8 +256,6 @@ myShepherd.rollbackDBTransaction();
       }
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
-    
-
 
     
   </head>
@@ -286,16 +272,13 @@ myShepherd.rollbackDBTransaction();
  
    <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
    </a></li>
-   <li><a
-     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>
+   <li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>
    </a></li>
    <li><a class="active"><%=encprops.getProperty("mappedResults") %>
    </a></li>
-   <li><a
-     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
+   <li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
    </a></li>
-      <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+         <li><a href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
    </a></li>
  
  </ul>
@@ -321,9 +304,6 @@ myShepherd.rollbackDBTransaction();
  <p><strong>
  	<img src="../images/2globe_128.gif" width="64" height="64" align="absmiddle"/> <%=encprops.getProperty("mappedResults")%>
  </strong>
- 
- 
- 
  <%
  
  //read from the encprops property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
@@ -331,9 +311,7 @@ myShepherd.rollbackDBTransaction();
 
  %>
  </p>
- 
   <p><a href="mappedSearchResults.jsp?<%=request.getQueryString()%>">Position-only</a>&nbsp;&nbsp;&nbsp;<a href="mappedSearchResultsHaplotype.jsp?<%=request.getQueryString()%>">Haplotype</a>&nbsp;&nbsp;&nbsp;<a href="mappedSearchResultsSex.jsp?<%=request.getQueryString()%>">Sex</a></p>
- 
  
  <%
    if (haveGPSData.size() > 0) {
@@ -343,8 +321,34 @@ myShepherd.rollbackDBTransaction();
  
 <p><%=encprops.getProperty("mapNote")%></p>
  
- <div id="map-container"><div id="map"></div>
+ <div id="map-container">
  
+ 
+ <table cellpadding="3">
+ <tr>
+ <td valign="top">
+  <div id="map"></div>
+ </td>
+ <td valign="top">
+ <table>
+ <tr><th>Color Key</th></tr>
+<%
+String haploColor="CC0000";
+if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+	   haploColor=encprops.getProperty("defaultMarkerColor");
+}
+%>
+	<tr bgcolor="#0000FF"><td><strong>Male</strong></td></tr>
+	<tr bgcolor="#FF00FF"><td><strong>Female</strong></td></tr>
+	<tr bgcolor="#<%=haploColor%>"><td><strong>Unknown</strong></td></tr>
+ </table>
+ </td>
+ </tr>
+ </table>
+
+ 
+
+ <div id="chart_div"></div>
 
  </div>
  

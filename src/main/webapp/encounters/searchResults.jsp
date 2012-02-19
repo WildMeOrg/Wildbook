@@ -47,14 +47,6 @@
   int endNum = 10;
 
 
-
-//let's set up our Excel spreasheeting operations
-  //String filenameOBIS = "searchResults_OBIS_" + request.getRemoteUser() + ".xls";
-  //String filenameExport = "searchResults_" + request.getRemoteUser() + ".xls";
-  //String kmlFilename = "KMLExport_" + request.getRemoteUser() + ".kml";
-  //File fileOBIS = new File(getServletContext().getRealPath(("/encounters/" + filenameOBIS)));
-  //File fileExport = new File(getServletContext().getRealPath(("/encounters/" + filenameExport)));
-
   try {
 
     if (request.getParameter("startNum") != null) {
@@ -191,6 +183,9 @@
   <li><a
     href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
+        <li><a
+     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+   </a></li>
 
 </ul>
 

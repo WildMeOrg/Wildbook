@@ -211,6 +211,9 @@
         </a></li>
         <li><a class="active"><%=calprops.getProperty("resultsCalendar")%>
         </a></li>
+              <li><a
+     href="../encounters/searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("analysis")%>
+   </a></li>
 
       </ul>
 

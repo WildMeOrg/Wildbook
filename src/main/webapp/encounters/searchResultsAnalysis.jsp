@@ -38,7 +38,7 @@
       langCode = (String) session.getAttribute("langCode");
     }
     Properties encprops = new Properties();
-    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
 
     Properties haploprops = new Properties();
     haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
@@ -51,23 +51,7 @@
 
 
 
-    //set up paging of results
-    int startNum = 1;
-    int endNum = 10;
-    try {
 
-      if (request.getParameter("startNum") != null) {
-        startNum = (new Integer(request.getParameter("startNum"))).intValue();
-      }
-      if (request.getParameter("endNum") != null) {
-      
-        endNum = (new Integer(request.getParameter("endNum"))).intValue();
-      }
-
-    } catch (NumberFormatException nfe) {
-      startNum = 1;
-      endNum = 10;
-    }
     int numResults = 0;
 
     //set up the vector for matching encounters
@@ -81,9 +65,49 @@
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
     
-
-    		
-    		
+    //let's prep the HashTable for the haplo pie chart
+    ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
+    int numHaplos2 = allHaplos2.size();
+    Hashtable<String,Integer> pieHashtable = new Hashtable<String,Integer>();
+ 	for(int gg=0;gg<numHaplos2;gg++){
+ 		String thisHaplo=allHaplos2.get(gg);
+ 		pieHashtable.put(thisHaplo, new Integer(0));
+ 	}
+    
+ 	//let's prep the HashTable for the sex pie chart
+ 	Hashtable<String,Integer> sexHashtable = new Hashtable<String,Integer>();
+ 	sexHashtable.put("male", new Integer(0));
+ 	sexHashtable.put("female", new Integer(0));
+ 	sexHashtable.put("unknown", new Integer(0));
+ 	
+ 	
+ 	int resultSize=rEncounters.size();
+ 	 for(int y=0;y<resultSize;y++){
+ 		 Encounter thisEnc=(Encounter)rEncounters.get(y);
+ 		 
+ 		 //haplotype ie chart prep
+ 		 if(thisEnc.getHaplotype()!=null){
+      	   if(pieHashtable.containsKey(thisEnc.getHaplotype().trim())){
+      		   Integer thisInt = pieHashtable.get(thisEnc.getHaplotype().trim())+1;
+      		   pieHashtable.put(thisEnc.getHaplotype().trim(), thisInt);
+      	   }
+ 	 	}
+ 		 
+ 	    //sex pie chart 	 
+ 		if(thisEnc.getSex().equals("male")){
+ 		   Integer thisInt = sexHashtable.get("male")+1;
+  		   sexHashtable.put("male", thisInt);
+ 		}
+ 		else if(thisEnc.getSex().equals("female")){
+  		   Integer thisInt = sexHashtable.get("female")+1;
+  		   sexHashtable.put("female", thisInt);
+ 		}
+ 	    else{
+ 	    	Integer thisInt = sexHashtable.get("unknown")+1;
+   		    sexHashtable.put("unknown", thisInt);
+ 	    }
+ 		 
+ 	 }	
   %>
 
   <title><%=CommonConfiguration.getHTMLTitle()%>
@@ -178,98 +202,97 @@
         }
   </script>
   
-  
-
-    <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-
-<script type="text/javascript" src="StyledMarker.js"></script>
 
 
-    <script type="text/javascript">
-      function initialize() {
-        var center = new google.maps.LatLng(37.4419, -122.1419);
 
-        var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 1,
-          center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID
-        });
-
-        var markers = [];
- 
- 
-        
-        <%
-        Vector haveGPSData = new Vector();
-        int rEncountersSize=rEncounters.size();
-        int count = 0;
-      
-        for (int f = 0; f < rEncountersSize; f++) {
-      
-          Encounter enc = (Encounter) rEncounters.get(f);
-          count++;
-          numResults++;
-          if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
-            haveGPSData.add(enc);
-          }
-        }
-          
-      
-        
-      
-if(haveGPSData.size()>0){
-	int havegpsSize=haveGPSData.size();
- for(int y=0;y<havegpsSize;y++){
-	 Encounter thisEnc=(Encounter)haveGPSData.get(y);
-	 
-
- %>
-          
-          var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
-          
-          //var marker = new google.maps.Marker({position: latLng, map: map});
-          //var styleIcon = new StyledIcon(StyledIconTypes.BUBBLE,{color:"#ff0000",text:"Stop"});
-           //var marker = new StyledMarker({position: latLng, map: map});
-           
-           <%
-           
-           
-           //currently unused programatically
-           String markerText="";
-           
-           String haploColor="CC0000";
-           if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   haploColor=encprops.getProperty("defaultMarkerColor");
-           }
-
-           
-           %>
-           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
-	    
-
-            google.maps.event.addListener(marker,'click', function() {
-                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
-             });
- 
-	
-          markers.push(marker);
-        
- 
- <%
- 
-	 }
-} 
-
-myShepherd.rollbackDBTransaction();
- %>
- 
- //markerClusterer = new MarkerClusterer(map, markers, {gridSize: 10});
-
-      }
-      google.maps.event.addDomListener(window, 'load', initialize);
-    </script>
     
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
+<script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawHaploChart);
+      function drawHaploChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Haplotype');
+        data.addColumn('number', 'No. Recorded');
+        data.addRows([
+          <%
+          ArrayList<String> allHaplos=myShepherd.getAllHaplotypes(); 
+          int numHaplos = allHaplos.size();
+          
+
+          
+          for(int hh=0;hh<numHaplos;hh++){
+          %>
+          ['<%=allHaplos.get(hh)%>',    <%=pieHashtable.get(allHaplos.get(hh))%>],
+		  <%
+          }
+		  %>
+          
+        ]);
+
+        var options = {
+          width: 450, height: 300,
+          title: 'Haplotypes in Matched Encounters',
+          colors: [
+                   <%
+                   String haploColor="CC0000";
+                   if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+                	   haploColor=encprops.getProperty("defaultMarkerColor");
+                   }   
+
+                   
+                   for(int yy=0;yy<numHaplos;yy++){
+                       String haplo=allHaplos.get(yy);
+                       if((haploprops.getProperty(haplo)!=null)&&(!haploprops.getProperty(haplo).trim().equals(""))){
+                     	  haploColor = haploprops.getProperty(haplo);
+                        }
+					%>
+					'#<%=haploColor%>',
+					<%
+                   }
+                   %>
+                   
+                   
+          ]
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+      
+      google.setOnLoadCallback(drawSexChart);
+      function drawSexChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Sex');
+        data.addColumn('number', 'No. Recorded');
+        data.addRows([
+
+          ['male',    <%=sexHashtable.get("male")%>],
+           ['female',    <%=sexHashtable.get("female")%>],
+           ['unknown',    <%=sexHashtable.get("unknown")%>],
+          
+        ]);
+
+        <%
+        haploColor="CC0000";
+        if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+     	   haploColor=encprops.getProperty("defaultMarkerColor");
+        }
+        
+        %>
+        var options = {
+          width: 450, height: 300,
+          title: 'Sex Distribution in Matched Encounters',
+          colors: ['#0000FF','#FF00FF','<%=haploColor%>']
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('sexchart_div'));
+        chart.draw(data, options);
+      }
+      
+      
+</script>
 
     
   </head>
@@ -289,13 +312,13 @@ myShepherd.rollbackDBTransaction();
    <li><a
      href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>
    </a></li>
-   <li><a class="active"><%=encprops.getProperty("mappedResults") %>
+   <li><a
+     href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults") %>
    </a></li>
    <li><a
      href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
    </a></li>
-      <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+   <li><a class="active">Analysis
    </a></li>
  
  </ul>
@@ -312,43 +335,19 @@ myShepherd.rollbackDBTransaction();
  
  
  
- 
- <br />
- 
- 
- 
- 
- <p><strong>
- 	<img src="../images/2globe_128.gif" width="64" height="64" align="absmiddle"/> <%=encprops.getProperty("mappedResults")%>
- </strong>
- 
- 
- 
- <%
- 
- //read from the encprops property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
- int numberResultsToMap = -1;
 
- %>
  </p>
- 
-  <p><a href="mappedSearchResults.jsp?<%=request.getQueryString()%>">Position-only</a>&nbsp;&nbsp;&nbsp;<a href="mappedSearchResultsHaplotype.jsp?<%=request.getQueryString()%>">Haplotype</a>&nbsp;&nbsp;&nbsp;<a href="mappedSearchResultsSex.jsp?<%=request.getQueryString()%>">Sex</a></p>
- 
- 
+
  <%
-   if (haveGPSData.size() > 0) {
-     myShepherd.beginDBTransaction();
+
      try {
  %>
  
-<p><%=encprops.getProperty("mapNote")%></p>
- 
- <div id="map-container"><div id="map"></div>
- 
 
- </div>
- 
 
+ <div id="chart_div"></div>
+
+<div id="sexchart_div"></div>
  
  <%
  
@@ -357,19 +356,14 @@ myShepherd.rollbackDBTransaction();
        e.printStackTrace();
      }
  
-   }
- else {
- %>
- <p><%=encprops.getProperty("noGPS")%></p>
- <%
- }  
+
+
 
  
  
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
    rEncounters = null;
-   haveGPSData = null;
  
 %>
  <table>
