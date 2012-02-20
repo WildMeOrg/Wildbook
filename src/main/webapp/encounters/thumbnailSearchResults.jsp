@@ -69,7 +69,7 @@
     ArrayList<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
 
     myShepherd.beginDBTransaction();
-    //EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
+    EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
 	
   	StringBuffer prettyPrint=new StringBuffer("");
   	Map<String,Object> paramMap = new HashMap<String, Object>();
@@ -90,41 +90,17 @@
     if (keywords == null) {
       keywords = new String[0];
     }
-    
-   // String localFilter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap).replaceFirst("WHERE", "WHERE !images.isEmpty() && ");
-   // Query query = myShepherd.getPM().newQuery(localFilter);
-    //if(myNewFilter.indexOf("VARIABLES")!=-1){myNewFilter=myNewFilter.substring(0,myNewFilter.indexOf("VARIABLES"));}
-    //query.setFilter(myNewFilter);
-    //query.setResult("DISTINCT images");
-    //String conString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
-    //query.declareVariables(EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap).substring(conString.indexOf("VARIABLES")+10));
-	//Iterator it=((Collection)query.execute()).iterator();
-    
-	  EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+
+    if (request.getParameter("noQuery") == null) {
+	  queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
 	
     rEncounters=myShepherd.getThumbnails(request, queryResult.getResult().iterator(), startNum, endNum, keywords);
-	
-    
-    /**
-	Query query2=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo WHERE floobar.contains(dataCollectionEventID)");
-	query2.setRange((startNum-1), endNum);
-	query2.addSubquery(query, "Collection floobar", null);
-    */
-	
-	//rEncounters=myShepherd.getAllSinglePhotoVideo(query2);
-	
+    }
+    else{
+    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo");
+    	rEncounters=new ArrayList<SinglePhotoVideo>((Collection<SinglePhotoVideo>)allQuery.execute());
+   }
 
-
-
-    //int numThumbnails = myShepherd.getNumThumbnails(rEncounters.iterator(), keywords);
-	//int numThumbnails=0;
-    //String countFilter=filter.replaceFirst("SELECT from","SELECT count(this) from");
-	//Query countQuery=myShepherd.getPM().newQuery(countFilter);
-	//List results = (List)countQuery.execute();
-	//int numThumbnails=((Long)countQuery.execute()).intValue();
-	//more commenting yo
-	//int numThumbnails=450;
-	//System.out.println("");
 
   %>
   <title><%=CommonConfiguration.getHTMLTitle() %>

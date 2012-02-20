@@ -190,7 +190,16 @@
 </p>
  
   <p><strong><%=map_props.getProperty("gisExportOptions")%></strong></p>
- 
+
+<p><%=map_props.getProperty("exportedKML")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>"><%=map_props.getProperty("clickHere")%></a><br />
+  <%=map_props.getProperty("exportedKMLTimeline")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>&addTimeStamp=true"><%=map_props.getProperty("clickHere")%></a>
+</p>
+
+<p><%=map_props.getProperty("exportedShapefile")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportShapefile?<%=request.getQueryString() %>"><%=map_props.getProperty("clickHere")%></a>
+</p>
  <table>
   <tr>
     <td align="left">
