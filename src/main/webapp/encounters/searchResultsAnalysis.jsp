@@ -82,9 +82,10 @@
  	
  	
  	int resultSize=rEncounters.size();
+ 	ArrayList<String> markedIndividuals=new ArrayList<String>();
  	 for(int y=0;y<resultSize;y++){
  		 Encounter thisEnc=(Encounter)rEncounters.get(y);
- 		 
+ 		 if((!thisEnc.equals("Unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){markedIndividuals.add(thisEnc.getIndividualID().trim());}
  		 //haplotype ie chart prep
  		 if(thisEnc.getHaplotype()!=null){
       	   if(pieHashtable.containsKey(thisEnc.getHaplotype().trim())){
@@ -108,6 +109,20 @@
  	    }
  		 
  	 }	
+ 	 
+ 	 //let's do some iteration through MarkedIndividuals
+ 	 int individualsSize=markedIndividuals.size();
+ 	 Float maxTravelDistance=new Float(0);
+ 	 String farthestTravelingIndividual="";
+ 	 for(int k=0;k<individualsSize;k++){
+ 		 MarkedIndividual indie=myShepherd.getMarkedIndividual(markedIndividuals.get(k));
+ 		 if (indie.getMaxDistanceBetweenTwoSightings()>maxTravelDistance){
+ 			 maxTravelDistance=indie.getMaxDistanceBetweenTwoSightings();
+ 			 farthestTravelingIndividual=indie.getIndividualID();
+ 		 }
+ 	 }
+ 	 
+ 	 
   %>
 
   <title><%=CommonConfiguration.getHTMLTitle()%>
@@ -336,12 +351,20 @@
    </tr>
 </table>
  
- 
- 
-
+ <p>
+ Number matching encounters: <%=resultSize %>
  </p>
-
+<p>
+Number matching marked individuals: <a href="../individualSearchResults.jsp?<%=request.getQueryString()%>"><%=individualsSize %></a>
+</p>
+<%
+if(maxTravelDistance>0){
+%>
+<p>Marked individual with largest distance between resights: <a href="../individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividual %></a> (<%=(maxTravelDistance/1000) %> km)</p>
  <%
+}
+ 
+ //test comment
 
      try {
  %>
