@@ -318,7 +318,10 @@
    <li><a
      href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
    </a></li>
-   <li><a class="active">Analysis
+   <li><a class="active"><%=encprops.getProperty("analysis")%>
+   </a></li>
+      <li><a
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
    </a></li>
  
  </ul>

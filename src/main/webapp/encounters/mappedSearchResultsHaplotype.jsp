@@ -294,7 +294,9 @@ myShepherd.rollbackDBTransaction();
          <li><a
      href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
    </a></li>
- 
+    <li><a
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+   </a></li>
  </ul>
  <table width="810px" border="0" cellspacing="0" cellpadding="0">
    <tr>

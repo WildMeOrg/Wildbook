@@ -186,6 +186,9 @@
         <li><a
      href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
    </a></li>
+      <li><a
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+   </a></li>
 
 </ul>
 
@@ -374,19 +377,7 @@
   </tr>
 </table>
 
-<p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
-<p><%=encprops.getProperty("exportedOBIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=encprops.getProperty("clickHere")%></a><br />
-<%=encprops.getProperty("exportedOBISLocales")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=encprops.getProperty("clickHere")%></a>
-</p>
 
-<p><%=encprops.getProperty("exportedEmail")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportEmailAddresses?<%=request.getQueryString()%>"><%=encprops.getProperty("clickHere")%>
-</a>
-</p>
-
-<p><%=encprops.getProperty("exportedGeneGIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportGeneGISFormat?<%=request.getQueryString()%>">
-<%=encprops.getProperty("clickHere")%></a>
-</p>
 
 
 <p>

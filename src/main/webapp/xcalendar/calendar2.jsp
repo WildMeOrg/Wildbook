@@ -214,6 +214,9 @@
               <li><a
      href="../encounters/searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("analysis")%>
    </a></li>
+        <li><a
+     href="../encounters/exportSearchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("export")%>
+   </a></li>
 
       </ul>
 

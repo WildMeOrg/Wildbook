@@ -1152,6 +1152,7 @@
       <url-pattern>/encounters/mappedSearchResults.jsp</url-pattern>
       <url-pattern>/encounters/mappedSearchResultsSex.jsp</url-pattern>
       <url-pattern>/encounters/mappedSearchResultsHaplotype.jsp</url-pattern>
+       <url-pattern>/encounters/exportSearchResults.jsp</url-pattern>
       <url-pattern>/googleSearch.jsp</url-pattern>
       <url-pattern>/googleSearchResults.jsp</url-pattern>
       <url-pattern>/encounters/imageViewer.jsp</url-pattern>
