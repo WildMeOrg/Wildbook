@@ -38,7 +38,7 @@
       langCode = (String) session.getAttribute("langCode");
     }
     Properties encprops = new Properties();
-    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
+    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsAnalysis.properties"));
 
     Properties haploprops = new Properties();
     haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
@@ -55,15 +55,18 @@
     int numResults = 0;
 
     //set up the vector for matching encounters
-    Vector rEncounters = new Vector();
+    //Vector rEncounters = new Vector();
 
     //kick off the transaction
     myShepherd.beginDBTransaction();
 
     //start the query and get the results
     String order = "";
-    EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
-    rEncounters = queryResult.getResult();
+    Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
+    myShepherd.beginDBTransaction();
+
+    MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+    rIndividuals = result.getResult();
     
     //let's prep the HashTable for the haplo pie chart
     ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
@@ -81,11 +84,9 @@
  	sexHashtable.put("unknown", new Integer(0));
  	
  	
- 	int resultSize=rEncounters.size();
- 	ArrayList<String> markedIndividuals=new ArrayList<String>();
+ 	int resultSize=rIndividuals.size();
  	 for(int y=0;y<resultSize;y++){
- 		 Encounter thisEnc=(Encounter)rEncounters.get(y);
- 		 if((!thisEnc.equals("Unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){markedIndividuals.add(thisEnc.getIndividualID().trim());}
+ 		MarkedIndividual thisEnc=(MarkedIndividual)rIndividuals.get(y);
  		 //haplotype ie chart prep
  		 if(thisEnc.getHaplotype()!=null){
       	   if(pieHashtable.containsKey(thisEnc.getHaplotype().trim())){
@@ -109,6 +110,29 @@
  	    }
  		 
  	 }	
+ 	 
+ 	 //let's do some iteration through MarkedIndividuals
+ 	 int individualsSize=rIndividuals.size();
+ 	 Float maxTravelDistance=new Float(0);
+ 	 double maxTimeBetweenResights=0;
+ 	 String longestResightedIndividual="";
+ 	 String farthestTravelingIndividual="";
+ 	 for(int k=0;k<individualsSize;k++){
+ 		 MarkedIndividual indie=(MarkedIndividual)(rIndividuals.get(k));
+ 		 
+ 		 //max distance calc
+ 		 if (indie.getMaxDistanceBetweenTwoSightings()>maxTravelDistance){
+ 			 maxTravelDistance=indie.getMaxDistanceBetweenTwoSightings();
+ 			 farthestTravelingIndividual=indie.getIndividualID();
+ 		 }
+ 		 
+ 		 //max years between resights
+ 		 if(indie.getMaxNumYearsBetweenSightings()>maxTimeBetweenResights){
+ 			maxTimeBetweenResights=indie.getMaxNumYearsBetweenSightings();
+ 			longestResightedIndividual=indie.getIndividualID();
+ 		 }
+ 		 
+ 	 }
  	 
  	 
   %>
@@ -302,7 +326,7 @@
  <body onunload="GUnload()">
  <div id="wrapper">
  <div id="page">
-<jsp:include page="../header.jsp" flush="true">
+<jsp:include page="header.jsp" flush="true">
 
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
@@ -310,22 +334,12 @@
  
  <ul id="tabmenu">
  
-   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
-   </a></li>
-   <li><a
-     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>
-   </a></li>
-   <li><a
-     href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults") %>
-   </a></li>
-   <li><a
-     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
-   </a></li>
-   <li><a class="active"><%=encprops.getProperty("analysis")%>
-   </a></li>
-      <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
-   </a></li>
+  <li><a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
+  </a></li>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+  </a></li>
+  <li><a class="active"><%=encprops.getProperty("analysis")%>
+  </a></li>
  
  </ul>
  <table width="810px" border="0" cellspacing="0" cellpadding="0">
@@ -338,13 +352,16 @@
      </td>
    </tr>
 </table>
- 
- <p>
- Number matching encounters: <%=resultSize %>
- </p>
 
+<p>
+Number matching marked individuals: <%=individualsSize %>
+</p>
 <%
-
+if(maxTravelDistance>0){
+%>
+<p>Marked individual with largest distance between resights: <a href="../individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividual %></a> (<%=(maxTravelDistance/1000) %> km)</p>
+ <%
+}
 
  //test comment
 
@@ -371,7 +388,7 @@
  
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
-   rEncounters = null;
+   rIndividuals = null;
  
 %>
  <table>
@@ -383,19 +400,19 @@
 
       <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
+        <%=result.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
       </p>
 
       <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
       </strong><br/>
-        <%=queryResult.getJDOQLRepresentation()%>
+        <%=result.getJDOQLRepresentation()%>
       </p>
 
     </td>
   </tr>
 </table>
  
- <jsp:include page="../footer.jsp" flush="true"/>
+ <jsp:include page="footer.jsp" flush="true"/>
 </div>
 </div>
 <!-- end page --></div>
