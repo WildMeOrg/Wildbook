@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="javax.jdo.*,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
 
 
@@ -76,6 +76,19 @@
  		String thisHaplo=allHaplos2.get(gg);
  		pieHashtable.put(thisHaplo, new Integer(0));
  	}
+ 	
+ 	//let's prep the max years between sightings column chart
+	Query yearsCoverageQuery=myShepherd.getPM().newQuery("SELECT max(maxYearsBetweenResightings) FROM org.ecocean.MarkedIndividual");
+ 	int numYearsCoverage=0;
+ 	try{numYearsCoverage=((Integer)yearsCoverageQuery.execute()).intValue();yearsCoverageQuery.closeAll();}
+ 	catch(Exception e){
+ 		e.printStackTrace();
+ 		yearsCoverageQuery.closeAll();
+ 	}
+ 	int[] resightingYearsArray=new int[numYearsCoverage];
+ 	for(int t=0;t<numYearsCoverage;t++){
+ 		resightingYearsArray[t]=0;
+ 	}
     
  	//let's prep the HashTable for the sex pie chart
  	Hashtable<String,Integer> sexHashtable = new Hashtable<String,Integer>();
@@ -83,7 +96,12 @@
  	sexHashtable.put("female", new Integer(0));
  	sexHashtable.put("unknown", new Integer(0));
  	
- 	
+
+	 Float maxTravelDistance=new Float(0);
+	 double maxTimeBetweenResights=0;
+	 String longestResightedIndividual="";
+	 String farthestTravelingIndividual="";
+	 
  	int resultSize=rIndividuals.size();
  	 for(int y=0;y<resultSize;y++){
  		MarkedIndividual thisEnc=(MarkedIndividual)rIndividuals.get(y);
@@ -108,31 +126,20 @@
  	    	Integer thisInt = sexHashtable.get("unknown")+1;
    		    sexHashtable.put("unknown", thisInt);
  	    }
+ 	    
+		 //max distance calc
+		 if (thisEnc.getMaxDistanceBetweenTwoSightings()>maxTravelDistance){
+			 maxTravelDistance=thisEnc.getMaxDistanceBetweenTwoSightings();
+			 farthestTravelingIndividual=thisEnc.getIndividualID();
+		 }
+		 
+		 //maxYearsBetweenSightings calc
+		 resightingYearsArray[thisEnc.getMaxNumYearsBetweenSightings()]++;
  		 
  	 }	
  	 
- 	 //let's do some iteration through MarkedIndividuals
- 	 int individualsSize=rIndividuals.size();
- 	 Float maxTravelDistance=new Float(0);
- 	 double maxTimeBetweenResights=0;
- 	 String longestResightedIndividual="";
- 	 String farthestTravelingIndividual="";
- 	 for(int k=0;k<individualsSize;k++){
- 		 MarkedIndividual indie=(MarkedIndividual)(rIndividuals.get(k));
- 		 
- 		 //max distance calc
- 		 if (indie.getMaxDistanceBetweenTwoSightings()>maxTravelDistance){
- 			 maxTravelDistance=indie.getMaxDistanceBetweenTwoSightings();
- 			 farthestTravelingIndividual=indie.getIndividualID();
- 		 }
- 		 
- 		 //max years between resights
- 		 if(indie.getMaxNumYearsBetweenSightings()>maxTimeBetweenResights){
- 			maxTimeBetweenResights=indie.getMaxNumYearsBetweenSightings();
- 			longestResightedIndividual=indie.getIndividualID();
- 		 }
- 		 
- 	 }
+
+
  	 
  	 
   %>
@@ -318,6 +325,38 @@
         chart.draw(data, options);
       }
       
+      <%
+      if(numYearsCoverage>0){
+      %>
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawColumnChart);
+      function drawColumnChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Years between resights');
+        data.addColumn('number', 'No. marked individuals');
+        data.addRows([
+        <%              
+        for(int p=0;p<numYearsCoverage;p++){
+        %>
+          ['<%=p%>', <%=resightingYearsArray[p]%>],
+		<%
+        }
+		%>
+        ]);
+
+        var options = {
+          width: 400, height: 240,
+          title: 'Years between resightings for marked individuals',
+          hAxis: {title: 'Distribution: Number of Years Between Resightings', titleTextStyle: {color: 'red'}}
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('columnchart_div'));
+        chart.draw(data, options);
+      }
+      <%
+      }
+      %>
+      
       
 </script>
 
@@ -354,7 +393,7 @@
 </table>
 
 <p>
-Number matching marked individuals: <%=individualsSize %>
+Number matching marked individuals: <%=resultSize %>
 </p>
 <%
 if(maxTravelDistance>0){
@@ -362,8 +401,6 @@ if(maxTravelDistance>0){
 <p>Marked individual with largest distance between resights: <a href="individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividual %></a> (<%=(maxTravelDistance/1000) %> km)</p>
  <%
 }
-
- //test comment
 
      try {
  %>
@@ -373,9 +410,12 @@ if(maxTravelDistance>0){
  <div id="chart_div"></div>
 
 <div id="sexchart_div"></div>
- 
+<%
+if(numYearsCoverage>0){
+%>
+ <div id="columnchart_div"></div>
  <%
- 
+}
      } 
      catch (Exception e) {
        e.printStackTrace();
