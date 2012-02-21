@@ -359,7 +359,7 @@ Number matching marked individuals: <%=individualsSize %>
 <%
 if(maxTravelDistance>0){
 %>
-<p>Marked individual with largest distance between resights: <a href="../individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividual %></a> (<%=(maxTravelDistance/1000) %> km)</p>
+<p>Marked individual with largest distance between resights: <a href="individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividual %></a> (<%=(maxTravelDistance/1000) %> km)</p>
  <%
 }
 
