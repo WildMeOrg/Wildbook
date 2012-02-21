@@ -80,7 +80,7 @@
  	//let's prep the max years between sightings column chart
 	Query yearsCoverageQuery=myShepherd.getPM().newQuery("SELECT max(maxYearsBetweenResightings) FROM org.ecocean.MarkedIndividual");
  	int numYearsCoverage=0;
- 	try{numYearsCoverage=((Integer)yearsCoverageQuery.execute()).intValue();yearsCoverageQuery.closeAll();}
+ 	try{numYearsCoverage=1+((Integer)yearsCoverageQuery.execute()).intValue();yearsCoverageQuery.closeAll();}
  	catch(Exception e){
  		e.printStackTrace();
  		yearsCoverageQuery.closeAll();
