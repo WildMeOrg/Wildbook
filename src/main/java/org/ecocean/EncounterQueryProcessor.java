@@ -407,6 +407,7 @@ public class EncounterQueryProcessor {
     
     //------------------------------------------------------------------
     //keyword filters-------------------------------------------------
+    myShepherd.beginDBTransaction();
     String[] keywords=request.getParameterValues("keyword");
     if((keywords!=null)&&(!keywords[0].equals("None"))){
           prettyPrint.append("Photo/video keyword is one of the following: ");
@@ -422,7 +423,8 @@ public class EncounterQueryProcessor {
                 else{
                   locIDFilter+=" || word.indexname == \""+kwParam+"\" ";
                 }
-                prettyPrint.append(kwParam+" ");
+                Keyword kw=myShepherd.getKeyword(kwParam.trim());
+                prettyPrint.append(kw.getReadableName()+" ");
               }
             }
             locIDFilter+=" )";
@@ -442,6 +444,8 @@ public class EncounterQueryProcessor {
             }
          
       }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
   
     //end photo keyword filters-----------------------------------------------
 
