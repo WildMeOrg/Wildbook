@@ -345,6 +345,9 @@ table.tissueSample td {
 <!-- Facebook LIKE button -->
 <div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
 
+<br />
+<br />
+
      <%
     if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
   %>
