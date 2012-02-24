@@ -293,12 +293,25 @@ table.tissueSample td {
       boolean hasAuthority = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
 
 %>
+<table><tr>
+<td>
+<span class="para"><img src="images/tag_big.gif" width="75px" height="*" align="absmiddle"/></span>
+</td>
+<td valign="middle">
+ <h1><strong> <%=markedIndividualTypeCaps %>
+</strong>: <%=sharky.getIndividualID()%></h1>
 
-<h1><strong><span class="para"><img src="images/tag_big.gif" width="50px" height="*"
-                                    align="absmiddle"/></span>
-  <%=markedIndividualTypeCaps %>
-</strong>: <%=sharky.getName()%>
+<!-- Google PLUS-ONE button -->
+<g:plusone size="small" annotation="none"></g:plusone>
+
+<!--  Twitter TWEET THIS button -->
+<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+<!-- Facebook LIKE button -->
+<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
 </h1>
+</td></tr></table>
 <a name="alternateid"></a>
 
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
@@ -425,15 +438,6 @@ table.tissueSample td {
 
 </p>
 
-<!-- Google PLUS-ONE button -->
-<g:plusone size="small" annotation="none"></g:plusone>
-
-<!--  Twitter TWEET THIS button -->
-<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
-<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-
-<!-- Facebook LIKE button -->
-<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
 
 
 
