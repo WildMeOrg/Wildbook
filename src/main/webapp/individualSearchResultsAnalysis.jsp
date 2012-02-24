@@ -47,15 +47,8 @@
     //get our Shepherd
     Shepherd myShepherd = new Shepherd();
 
-
-
-
-
-
     int numResults = 0;
 
-    //set up the vector for matching encounters
-    //Vector rEncounters = new Vector();
 
     //kick off the transaction
     myShepherd.beginDBTransaction();
@@ -98,7 +91,7 @@
  	
 
 	 Float maxTravelDistance=new Float(0);
-	 double maxTimeBetweenResights=0;
+	 long maxTimeBetweenResights=0;
 	 String longestResightedIndividual="";
 	 String farthestTravelingIndividual="";
 	 
@@ -131,6 +124,12 @@
 		 if (thisEnc.getMaxDistanceBetweenTwoSightings()>maxTravelDistance){
 			 maxTravelDistance=thisEnc.getMaxDistanceBetweenTwoSightings();
 			 farthestTravelingIndividual=thisEnc.getIndividualID();
+		 }
+		 
+		 //max time calc
+		 if (thisEnc.getMaxTimeBetweenTwoSightings()>maxTimeBetweenResights){
+			 maxTimeBetweenResights=thisEnc.getMaxTimeBetweenTwoSightings();
+			 longestResightedIndividual=thisEnc.getIndividualID();
 		 }
 		 
 		 //maxYearsBetweenSightings calc
@@ -399,6 +398,14 @@ Number matching marked individuals: <%=resultSize %>
 if(maxTravelDistance>0){
 %>
 <p>Marked individual with largest distance between resights: <a href="individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividual %></a> (<%=(maxTravelDistance/1000) %> km)</p>
+ <%
+}
+if(maxTimeBetweenResights>0){
+	 //long maxTimeBetweenResights=0;
+	 //String longestResightedIndividual="";
+	 double bigTime=((double)maxTimeBetweenResights/1000/60/60/24/365);
+%>
+<p>Marked individual with longest time between resights: <a href="individuals.jsp?number=<%=longestResightedIndividual %>"><%=longestResightedIndividual %></a> (<%=bigTime %> years)</p>
  <%
 }
 

@@ -1178,5 +1178,21 @@ public Float getMaxDistanceBetweenTwoSightings(){
   return maxDistance;
 }
 
+public long getMaxTimeBetweenTwoSightings(){
+  int numEncs=encounters.size();
+  long maxTime=0;
+  if(numEncs>1){
+  for(int y=0;y<numEncs;y++){
+    Encounter thisEnc=(Encounter)encounters.get(y);
+    for(int z=(y+1);z<numEncs;z++){
+      Encounter nextEnc=(Encounter)encounters.get(z);
+      long tempMaxTime=Math.abs(thisEnc.getDateInMilliseconds()-nextEnc.getDateInMilliseconds());
+      if(tempMaxTime>maxTime){maxTime=tempMaxTime;}
+    }
+  }
+  }
+  return maxTime;
+}
+
 
 }
