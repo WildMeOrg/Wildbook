@@ -37,8 +37,8 @@
     if (session.getAttribute("langCode") != null) {
       langCode = (String) session.getAttribute("langCode");
     }
-    Properties map_props = new Properties();
-    map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+    Properties encprops = new Properties();
+    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
 
     Properties haploprops = new Properties();
     haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
@@ -82,8 +82,10 @@
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
     
-
-    		
+    //let's prep the HashTable for the pie chart
+    ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
+    int numHaplos2 = allHaplos2.size();
+	
     		
   %>
 
@@ -201,9 +203,12 @@
  
         
         <%
-int rEncountersSize=rEncounters.size();
+        //Vector haveGPSData = new Vector();
+        int rEncountersSize=rEncounters.size();
         int count = 0;
+      
 
+          
       
         
       
@@ -219,13 +224,19 @@ if(rEncounters.size()>0){
 
            <%
            
+
            
            //currently unused programatically
            String markerText="";
            
            String haploColor="CC0000";
-           if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   haploColor=map_props.getProperty("defaultMarkerColor");
+           if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+        	   haploColor=encprops.getProperty("defaultMarkerColor");
+           }
+           
+           
+           if((thisEnc.getHaplotype()!=null)&&(haploprops.getProperty(thisEnc.getHaplotype())!=null)){
+        	  if(!haploprops.getProperty(thisEnc.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(thisEnc.getHaplotype());}
            }
 
            
@@ -270,30 +281,29 @@ myShepherd.rollbackDBTransaction();
  
  <ul id="tabmenu">
  
-   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
    </a></li>
    <li><a
-     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("matchingImages")%>
+     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>
    </a></li>
-   <li><a class="active"><%=map_props.getProperty("mappedResults") %>
+   <li><a class="active"><%=encprops.getProperty("mappedResults") %>
    </a></li>
    <li><a
-     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
-   </a></li>
-      <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("analysis")%>
+     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
    </a></li>
          <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("export")%>
+     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
    </a></li>
- 
+    <li><a
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+   </a></li>
  </ul>
  <table width="810px" border="0" cellspacing="0" cellpadding="0">
    <tr>
      <td>
        <br/>
  
-       <h1 class="intro"><%=map_props.getProperty("title")%>
+       <h1 class="intro"><%=encprops.getProperty("title")%>
        </h1>
      </td>
    </tr>
@@ -308,20 +318,19 @@ myShepherd.rollbackDBTransaction();
  
  
  <p><strong>
- 	<img src="../images/2globe_128.gif" width="64" height="64" align="absmiddle"/> <%=map_props.getProperty("mappedResults")%>
+ 	<img src="../images/2globe_128.gif" width="64" height="64" align="absmiddle"/> <%=encprops.getProperty("mappedResults")%>
  </strong>
- 
- 
- 
  <%
  
- //read from the map_props property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
+ Properties map_props = new Properties();
+ map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+
+ //read from the encprops property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
  int numberResultsToMap = -1;
 
  %>
  </p>
- 
-  <p><%=map_props.getProperty("aspects") %>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ <p><%=map_props.getProperty("aspects") %>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <%
   boolean hasMoreProps=true;
   int propsNum=0;
@@ -337,17 +346,49 @@ myShepherd.rollbackDBTransaction();
   }
   %>
 </p>
- 
  <%
    if (rEncounters.size() > 0) {
      myShepherd.beginDBTransaction();
      try {
  %>
  
-<p><%=map_props.getProperty("mapNote")%></p>
+<p><%=encprops.getProperty("mapNote")%></p>
  
- <div id="map-container"><div id="map"></div>
+ <div id="map-container">
  
+ 
+ <table cellpadding="3">
+ <tr>
+ <td valign="top">
+  <div id="map"></div>
+ </td>
+ <td valign="top">
+ <table>
+ <tr><th>Haplotype Color Key</th></tr>
+                    <%
+                    String haploColor="CC0000";
+                   if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+                	   haploColor=encprops.getProperty("defaultMarkerColor");
+                   }   
+                   for(int yy=0;yy<numHaplos2;yy++){
+                       String haplo=allHaplos2.get(yy);
+                       if((haploprops.getProperty(haplo)!=null)&&(!haploprops.getProperty(haplo).trim().equals(""))){
+                     	  haploColor = haploprops.getProperty(haplo);
+                        }
+					%>
+					<tr bgcolor="#<%=haploColor%>"><td><strong><%=haplo %></strong></td></tr>
+					<%
+                   }
+                   if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+                	   haploColor=encprops.getProperty("defaultMarkerColor");
+                   }  
+                   
+                   %>
+
+ </table>
+ </td>
+ </tr>
+ </table>
 
  </div>
  
@@ -363,7 +404,7 @@ myShepherd.rollbackDBTransaction();
    }
  else {
  %>
- <p><%=map_props.getProperty("noGPS")%></p>
+ <p><%=encprops.getProperty("noGPS")%></p>
  <%
  }  
 
@@ -379,15 +420,15 @@ myShepherd.rollbackDBTransaction();
   <tr>
     <td align="left">
 
-      <p><strong><%=map_props.getProperty("queryDetails")%>
+      <p><strong><%=encprops.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=map_props.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", map_props.getProperty("location")).replaceAll("locationCodeField", map_props.getProperty("locationID")).replaceAll("verbatimEventDateField", map_props.getProperty("verbatimEventDate")).replaceAll("alternateIDField", map_props.getProperty("alternateID")).replaceAll("behaviorField", map_props.getProperty("behavior")).replaceAll("Sex", map_props.getProperty("sex")).replaceAll("nameField", map_props.getProperty("nameField")).replaceAll("selectLength", map_props.getProperty("selectLength")).replaceAll("numResights", map_props.getProperty("numResights")).replaceAll("vesselField", map_props.getProperty("vesselField"))%>
+        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
       </p>
 
-      <p class="caption"><strong><%=map_props.getProperty("jdoql")%>
+      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
       </strong><br/>
         <%=queryResult.getJDOQLRepresentation()%>
       </p>

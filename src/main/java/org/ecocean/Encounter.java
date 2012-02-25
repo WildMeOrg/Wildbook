@@ -1672,6 +1672,8 @@ public class Encounter implements java.io.Serializable {
     
     public Vector getOldAdditionalImageNames(){return additionalImageNames;}
     
+    public Double getLatitudeAsDouble(){return decimalLatitude;}
+    public Double getLongitudeAsDouble(){return decimalLongitude;}
     
 }
 

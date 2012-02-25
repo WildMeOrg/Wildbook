@@ -32,7 +32,7 @@
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-rdbms/3.0.4/datanucleus-rdbms-3.0.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-rest/2.0.1/datanucleus-rest-2.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-spatial/3.0.1/datanucleus-spatial-3.0.1.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/derby/derby/10.6.1.0/derby-10.6.1.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/derby/derby/10.8.2.2/derby-10.8.2.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/dilib/dilib/1.0/dilib-1.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/dom4j/dom4j/1.6.1/dom4j-1.6.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/geotools/gt-api/2.7.0/gt-api-2.7.0.jar"/>
