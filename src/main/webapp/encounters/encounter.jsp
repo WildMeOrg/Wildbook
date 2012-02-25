@@ -659,7 +659,7 @@ table.tissueSample td {
 </c:if>
 <table>
 <tr>
-<th class="measurement"><%=encprops.getProperty("type") %></th><th class="measurement"><%=encprops.getProperty("value") %></th><th class="measurement"><%=encprops.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th class="measurement"><%=encprops.getProperty("samplingProtocol") %></th></c:if>
+<th class="measurement"><%=encprops.getProperty("type") %></th><th class="measurement"><%=encprops.getProperty("value") %></th><th class="measurement"><%=encprops.getProperty("units") %></th><th class="measurement"><%=encprops.getProperty("samplingProtocol") %></th>
 </tr>
 <c:forEach var="item" items="${measurements}">
  <% 
