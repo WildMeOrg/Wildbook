@@ -262,15 +262,9 @@ if (highCount<totalCount) {%> <a
 	<tr class="lineitem">
 		<td bgcolor="#99CCFF" class="lineitem">&nbsp;</td>
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=number %></strong>
-		 <br />
-		<%if(request.getRemoteUser()!=null){%><a
-			href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/allEncounters.jsp?sort=numberup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="../images/arrow_up.gif" width="11" height="6" border="0" alt="up" />
-		</a><a
-			href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/allEncounters.jsp?sort=numberdown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="../images/arrow_down.gif" width="11" height="6" border="0"
-			alt="down" /> </a>
-		<%}%>
+		 <br/>
+    (<%=last %> 4) <br/>
+
 		</td>
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=date %></strong><br />
 		<%if(request.getRemoteUser()!=null){%><a
@@ -296,17 +290,7 @@ if (highCount<totalCount) {%> <a
 			src="../images/arrow_down.gif" width="11" height="6" border="0"
 			alt="down" /></a></td>
 	
-		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=size %>
-		</strong><br />
-		<%if(request.getRemoteUser()!=null){%><a
-			href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/allEncounters.jsp?sort=sizeup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="../images/arrow_up.gif" width="11" height="6" border="0" alt="up" /></a>
-		<a
-			href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/allEncounters.jsp?sort=sizedown<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-			src="../images/arrow_down.gif" width="11" height="6" border="0"
-			alt="down" /></a>
-		<%}%>
-		</td>
+
 		<td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=sex %></strong><br />
 		<%if(request.getRemoteUser()!=null){%><a
 			href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/allEncounters.jsp?sort=sexup<%=rejectsLink%><%=unapprovedLink%><%=userLink%>&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
@@ -349,13 +333,7 @@ if (highCount<totalCount) {%> <a
 					query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 					
 
-				if (request.getParameter("sort").equals("sizeup")) {
-					allEncounters=myShepherd.getAllUnidentifiableEncounters(query, "size ascending");
-					}
-				else if (request.getParameter("sort").equals("sizedown")) {
-					allEncounters=myShepherd.getAllUnidentifiableEncounters(query, "size descending");
-					}
-				else if (request.getParameter("sort").equals("locationCodeup")) {
+				 if (request.getParameter("sort").equals("locationCodeup")) {
 					allEncounters=myShepherd.getAllUnidentifiableEncounters(query, "locationID ascending");
 					}
 				else if (request.getParameter("sort").equals("locationCodedown")) {
@@ -403,13 +381,7 @@ if (highCount<totalCount) {%> <a
 						
 						ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 		
-				if (request.getParameter("sort").equals("sizeup")) {
-					allEncounters=myShepherd.getSortedUserEncounters(query, "size ascending");
-					}
-				else if (request.getParameter("sort").equals("sizedown")) {
-					allEncounters=myShepherd.getSortedUserEncounters(query, "size descending");
-					}
-				else if (request.getParameter("sort").equals("locationCodeup")) {
+				 if (request.getParameter("sort").equals("locationCodeup")) {
 					allEncounters=myShepherd.getSortedUserEncounters(query, "locationID ascending");
 					}
 				else if (request.getParameter("sort").equals("locationCodedown")) {
@@ -459,15 +431,7 @@ if (highCount<totalCount) {%> <a
 						query=ServletUtilities.setRange(query,iterTotal,highCount,lowCount);
 			
 
-				if (request.getParameter("sort").equals("sizeup")) {
-					query.setFilter("this.state == \"approved\"");
-					allEncounters=myShepherd.getAllEncounters(query, "size ascending");
-					}
-				else if (request.getParameter("sort").equals("sizedown")) {
-					query.setFilter("this.state == \"approved\"");
-					allEncounters=myShepherd.getAllEncounters(query, "size descending");
-					}
-				else if (request.getParameter("sort").equals("sexup")) {
+				if (request.getParameter("sort").equals("sexup")) {
 					query.setFilter("this.state == \"approved\"");
 					allEncounters=myShepherd.getAllEncounters(query, "sex ascending");
 					}
@@ -538,8 +502,19 @@ if (highCount<totalCount) {%> <a
 			<img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"
 			 alt="encounter photo" border="0" /></a></td>
 
-		<td class="lineitems"><a
-			href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=enc.getEncounterNumber()%></a></td>
+		  <%
+    int encNumLast = enc.getEncounterNumber().length();
+    String encNumShort = enc.getEncounterNumber();
+    if (encNumLast > 4) {
+      encNumShort = enc.getEncounterNumber().substring((encNumLast - 4), encNumLast);
+    }
+
+  %>
+  <td class="lineitems"><a
+    href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><%=encNumShort%>
+  </a></td>
+		
+		
 		<td class="lineitems">
 		<a
 			href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
@@ -552,12 +527,7 @@ if (highCount<totalCount) {%> <a
 	
 		<td class="lineitems"><%=enc.getLocationCode()%></td>
 		<%
-	if(enc.getSizeAsDouble()!=null) {
-	%>
-		<td class="lineitems"><%=enc.getSize()%></td>
-		<%} else {%>
-		<td class="lineitems">-</td>
-		<%}
+
 	String theSex=enc.getSex();
 	if(theSex.equals("male")) {theSex="M";}
 	else if (theSex.equals("female")) {theSex="F";}
