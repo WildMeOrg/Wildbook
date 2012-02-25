@@ -94,60 +94,19 @@ File thisEncounterDir = new File(encountersDir, num);
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
         href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        
   <style type="text/css">
-    <!--
 
-    .style2 {
-      color: #000000;
-      font-size: small;
-    }
+th.measurement{
+	 font-size: 0.9em;
+	 font-weight: normal;
+	 font-style:italic;
+}
 
-    .style3 {
-      font-weight: bold
-    }
-
-    .style4 {
-      color: #000000
-    }
-
-    table.adopter {
-      border-width: 1px 1px 1px 1px;
-      border-spacing: 0px;
-      border-style: solid solid solid solid;
-      border-color: black black black black;
-      border-collapse: separate;
-      background-color: white;
-    }
-
-    table.adopter td {
-      border-width: 1px 1px 1px 1px;
-      padding: 3px 3px 3px 3px;
-      border-style: none none none none;
-      border-color: gray gray gray gray;
-      background-color: white;
-      -moz-border-radius: 0px 0px 0px 0px;
-      font-size: 12px;
-      color: #330099;
-    }
-
-    table.adopter td.name {
-      font-size: 12px;
-      text-align: center;
-    }
-
-    table.adopter td.image {
-      padding: 0px 0px 0px 0px;
-    }
-
-    div.scroll {
-      height: 200px;
-      overflow: auto;
-      border: 1px solid #666;
-      background-color: #ccc;
-      padding: 8px;
-    }
-
-    -->
+td.measurement{
+	 font-size: 0.9em;
+	 font-weight: normal;
+}
 
 table.tissueSample {
     border-width: 1px;
@@ -700,7 +659,7 @@ table.tissueSample td {
 </c:if>
 <table>
 <tr>
-<th>Type</th><th>Size</th><th>Units</th><c:if test="${!empty samplingProtocols}"><th>Sampling Protocol</th></c:if>
+<th class="measurement">Type</th><th class="measurement">Size</th><th class="measurement">Units</th><c:if test="${!empty samplingProtocols}"><th class="measurement">Sampling Protocol</th></c:if>
 </tr>
 <c:forEach var="item" items="${measurements}">
  <% 
@@ -712,7 +671,7 @@ table.tissueSample td {
     }
  %>
 <tr>
-    <td><c:out value="${item.label}"/></td><td><c:out value="${measurementValue}"/></td><td><c:out value="${item.unitsLabel}"/></td><td><c:out value="${samplingProtocol}"/></td>
+    <td class="measurement"><c:out value="${item.label}"/></td><td class="measurement"><c:out value="${measurementValue}"/></td><td class="measurement"><c:out value="${item.unitsLabel}"/></td><td class="measurement"><c:out value="${samplingProtocol}"/></td>
 </tr>
 </c:forEach>
 </table>

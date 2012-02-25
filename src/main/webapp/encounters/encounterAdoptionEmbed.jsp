@@ -28,7 +28,61 @@
 
 
 %>
+  <style type="text/css">
+<!--
 
+.style2 {
+  color: #000000;
+  font-size: small;
+}
+
+.style3 {
+  font-weight: bold
+}
+
+.style4 {
+  color: #000000
+}
+
+table.adopter {
+  border-width: 1px 1px 1px 1px;
+  border-spacing: 0px;
+  border-style: solid solid solid solid;
+  border-color: black black black black;
+  border-collapse: separate;
+  background-color: white;
+}
+
+table.adopter td {
+  border-width: 1px 1px 1px 1px;
+  padding: 3px 3px 3px 3px;
+  border-style: none none none none;
+  border-color: gray gray gray gray;
+  background-color: white;
+  -moz-border-radius: 0px 0px 0px 0px;
+  font-size: 12px;
+  color: #330099;
+}
+
+table.adopter td.name {
+  font-size: 12px;
+  text-align: center;
+}
+
+table.adopter td.image {
+  padding: 0px 0px 0px 0px;
+}
+
+div.scroll {
+  height: 200px;
+  overflow: auto;
+  border: 1px solid #666;
+  background-color: #ccc;
+  padding: 8px;
+}
+
+-->
+</style>
 
 <h3 style="width: 250px">Adopters</h3>
 
