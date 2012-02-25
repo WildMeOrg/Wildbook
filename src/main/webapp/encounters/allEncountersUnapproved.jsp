@@ -211,14 +211,7 @@
   <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=number %>
   </strong><br/>
     (<%=last %> 4) <br/>
-    <%if (request.getRemoteUser() != null) {%><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/allEncountersUnapproved.jsp?sort=numberup&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-      src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up"/>
-    </a><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/allEncountersUnapproved.jsp?sort=numberdown&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-      src="/images/arrow_down.gif" width="11" height="6" border="0"
-      alt="down"/> </a>
-    <%}%>
+ 
   </td>
   <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=date %>
   </strong><br/>
@@ -246,17 +239,7 @@
       src="/images/arrow_down.gif" width="11" height="6" border="0"
       alt="down"/></a></td>
 
-  <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=size %>
-  </strong><br/>
-    <%if (request.getRemoteUser() != null) {%><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/allEncountersUnapproved.jsp?sort=sizeup&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-      src="/images/arrow_up.gif" width="11" height="6" border="0" alt="up"/></a>
-    <a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/allEncountersUnapproved.jsp?sort=sizedown&amp;start=<%=(lowCount)%>&amp;end=<%=(highCount)%>"><img
-      src="/images/arrow_down.gif" width="11" height="6" border="0"
-      alt="down"/></a>
-    <%}%>
-  </td>
+
   <td align="left" valign="top" bgcolor="#99CCFF" class="lineitem"><strong><%=sex %>
   </strong><br/>
     <%if (request.getRemoteUser() != null) {%><a
@@ -299,11 +282,7 @@
 
   if (request.getParameter("sort") != null) {
 
-    if (request.getParameter("sort").equals("sizeup")) {
-      allEncounters = myShepherd.getUnapprovedEncounters(query, "size ascending");
-    } else if (request.getParameter("sort").equals("sizedown")) {
-      allEncounters = myShepherd.getUnapprovedEncounters(query, "size descending");
-    } else if (request.getParameter("sort").equals("locationCodeup")) {
+    if (request.getParameter("sort").equals("locationCodeup")) {
       allEncounters = myShepherd.getUnapprovedEncounters(query, "locationID ascending");
     } else if (request.getParameter("sort").equals("locationCodedown")) {
       allEncounters = myShepherd.getUnapprovedEncounters(query, "locationID descending");
@@ -372,14 +351,7 @@
   <td class="lineitems"><%=enc.getLocationCode()%>
   </td>
   <%
-    if (enc.getSizeAsDouble() != null) {
-  %>
-  <td class="lineitems"><%=enc.getSize()%>
-  </td>
-  <%} else {%>
-  <td class="lineitems">-</td>
-  <%
-    }
+   
     String theSex = enc.getSex();
     if (theSex.equals("male")) {
       theSex = "M";
