@@ -38,37 +38,11 @@
       langCode = (String) session.getAttribute("langCode");
     }
     Properties map_props = new Properties();
-    map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
-
-    Properties haploprops = new Properties();
-    haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+    map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/exportSearchResults.properties"));
 
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd();
-
-
-
-
-
-    //set up paging of results
-    int startNum = 1;
-    int endNum = 10;
-    try {
-
-      if (request.getParameter("startNum") != null) {
-        startNum = (new Integer(request.getParameter("startNum"))).intValue();
-      }
-      if (request.getParameter("endNum") != null) {
-      
-        endNum = (new Integer(request.getParameter("endNum"))).intValue();
-      }
-
-    } catch (NumberFormatException nfe) {
-      startNum = 1;
-      endNum = 10;
-    }
-    int numResults = 0;
 
     //set up the vector for matching encounters
     Vector rEncounters = new Vector();
@@ -166,95 +140,6 @@
   
 </style>
   
-      <script>
-        function getQueryParameter(name) {
-          name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-          var regexS = "[\\?&]" + name + "=([^&#]*)";
-          var regex = new RegExp(regexS);
-          var results = regex.exec(window.location.href);
-          if (results == null)
-            return "";
-          else
-            return results[1];
-        }
-  </script>
-  
-  
-
-    <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-
-<script type="text/javascript" src="StyledMarker.js"></script>
-
-
-    <script type="text/javascript">
-      function initialize() {
-        var center = new google.maps.LatLng(37.4419, -122.1419);
-
-        var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 1,
-          center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID
-        });
-
-        var markers = [];
- 
- 
-        
-        <%
-int rEncountersSize=rEncounters.size();
-        int count = 0;
-
-      
-        
-      
-if(rEncounters.size()>0){
-	int havegpsSize=rEncounters.size();
- for(int y=0;y<havegpsSize;y++){
-	 Encounter thisEnc=(Encounter)rEncounters.get(y);
-	 
-
- %>
-          
-          var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
-
-           <%
-           
-           
-           //currently unused programatically
-           String markerText="";
-           
-           String haploColor="CC0000";
-           if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   haploColor=map_props.getProperty("defaultMarkerColor");
-           }
-
-           
-           %>
-           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
-	    
-
-            google.maps.event.addListener(marker,'click', function() {
-                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
-             });
- 
-	
-          markers.push(marker);
-        
- 
- <%
- 
-	 }
-} 
-
-myShepherd.rollbackDBTransaction();
- %>
- 
- //markerClusterer = new MarkerClusterer(map, markers, {gridSize: 10});
-
-      }
-      google.maps.event.addDomListener(window, 'load', initialize);
-    </script>
-    
 
 
     
@@ -275,106 +160,46 @@ myShepherd.rollbackDBTransaction();
    <li><a
      href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("matchingImages")%>
    </a></li>
-   <li><a class="active"><%=map_props.getProperty("mappedResults") %>
-   </a></li>
+  <li><a
+    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("mappedResults")%>
+  </a></li>
    <li><a
      href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
    </a></li>
       <li><a
      href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("analysis")%>
    </a></li>
-         <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("export")%>
+    <li><a class="active"><%=map_props.getProperty("export")%>
    </a></li>
  
  </ul>
- <table width="810px" border="0" cellspacing="0" cellpadding="0">
-   <tr>
-     <td>
-       <br/>
- 
-       <h1 class="intro"><%=map_props.getProperty("title")%>
-       </h1>
-     </td>
-   </tr>
-</table>
  
  
- 
- 
- <br />
- 
- 
- 
- 
- <p><strong>
- 	<img src="../images/2globe_128.gif" width="64" height="64" align="absmiddle"/> <%=map_props.getProperty("mappedResults")%>
- </strong>
- 
- 
- 
- <%
- 
- //read from the map_props property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
- int numberResultsToMap = -1;
+ <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
+<p><%=map_props.getProperty("exportedOBIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a><br />
+<%=map_props.getProperty("exportedOBISLocales")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=map_props.getProperty("clickHere")%></a>
+</p>
 
- %>
- </p>
- 
-  <p><%=map_props.getProperty("aspects") %>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <%
-  boolean hasMoreProps=true;
-  int propsNum=0;
-  while(hasMoreProps){
-	if((map_props.getProperty("displayAspectName"+propsNum)!=null)&&(map_props.getProperty("displayAspectFile"+propsNum)!=null)){
-		%>
-		<a href="<%=map_props.getProperty("displayAspectFile"+propsNum)%>?<%=request.getQueryString()%>"><%=map_props.getProperty("displayAspectName"+propsNum) %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		
-		<%
-		propsNum++;
-	}
-	else{hasMoreProps=false;}
-  }
-  %>
+<p><%=map_props.getProperty("exportedEmail")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportEmailAddresses?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%>
+</a>
+</p>
+
+<p><%=map_props.getProperty("exportedGeneGIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportGeneGISFormat?<%=request.getQueryString()%>">
+<%=map_props.getProperty("clickHere")%></a>
 </p>
  
- <%
-   if (rEncounters.size() > 0) {
-     myShepherd.beginDBTransaction();
-     try {
- %>
- 
-<p><%=map_props.getProperty("mapNote")%></p>
- 
- <div id="map-container"><div id="map"></div>
- 
+  <p><strong><%=map_props.getProperty("gisExportOptions")%></strong></p>
 
- </div>
- 
+<p><%=map_props.getProperty("exportedKML")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>"><%=map_props.getProperty("clickHere")%></a><br />
+  <%=map_props.getProperty("exportedKMLTimeline")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>&addTimeStamp=true"><%=map_props.getProperty("clickHere")%></a>
+</p>
 
- 
- <%
- 
-     } 
-     catch (Exception e) {
-       e.printStackTrace();
-     }
- 
-   }
- else {
- %>
- <p><%=map_props.getProperty("noGPS")%></p>
- <%
- }  
-
- 
- 
-   myShepherd.rollbackDBTransaction();
-   myShepherd.closeDBTransaction();
-   rEncounters = null;
-   //haveGPSData = null;
- 
-%>
+<p><%=map_props.getProperty("exportedShapefile")%>: <a
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportShapefile?<%=request.getQueryString() %>"><%=map_props.getProperty("clickHere")%></a>
+</p>
  <table>
   <tr>
     <td align="left">
