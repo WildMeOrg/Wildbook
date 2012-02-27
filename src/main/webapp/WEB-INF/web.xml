@@ -320,6 +320,11 @@
       <servlet-class>org.ecocean.servlet.export.EncounterSearchExportGeneGISFormat</servlet-class>
   </servlet>
   
+      <servlet>
+        <servlet-name>IndividualSearchExportCapture</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.IndividualSearchExportCapture</servlet-class>
+  </servlet>
+  
   
       <servlet>
         <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
@@ -777,6 +782,14 @@
       <servlet-name>EncounterSearchExportGeneGISFormat</servlet-name>
       <url-pattern>/EncounterSearchExportGeneGISFormat</url-pattern>
   </servlet-mapping>
+  
+  
+  
+      <servlet-mapping>
+        <servlet-name>IndividualSearchExportCapture</servlet-name>
+        <url-pattern>/IndividualSearchExportCapture</url-pattern>
+  </servlet-mapping>
+  
   
       <servlet-mapping>
         <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
@@ -1318,6 +1331,11 @@
       <url-pattern>/encounters/thumbnailSearchResults.jsp</url-pattern>
       <url-pattern>/encounters/encounterSearch.jsp</url-pattern>
       <url-pattern>/encounters/searchResults.jsp</url-pattern>
+      <url-pattern>/encounters/searchResultsAnalysis.jsp</url-pattern>
+      <url-pattern>/encounters/mappedSearchResults.jsp</url-pattern>
+      <url-pattern>/encounters/mappedSearchResultsSex.jsp</url-pattern>
+      <url-pattern>/encounters/mappedSearchResultsHaplotype.jsp</url-pattern>
+       <url-pattern>/encounters/exportSearchResults.jsp</url-pattern>
       <url-pattern>/googleSearch.jsp</url-pattern>
       <url-pattern>/googleSearchResults.jsp</url-pattern>
       <url-pattern>/encounters/imageViewer.jsp</url-pattern>

@@ -29,7 +29,8 @@ public class IndividualQueryProcessor {
     
     String parameterDeclaration = "";
     
-
+    Shepherd myShepherd=new Shepherd();
+    
     int day1=1, day2=31, month1=1, month2=12, year1=0, year2=3000;
     try{month1=(new Integer(request.getParameter("month1"))).intValue();} catch(NumberFormatException nfe) {}
     try{month2=(new Integer(request.getParameter("month2"))).intValue();} catch(NumberFormatException nfe) {}
@@ -382,6 +383,7 @@ public class IndividualQueryProcessor {
     
     //------------------------------------------------------------------
     //keyword filters-------------------------------------------------
+    myShepherd.beginDBTransaction();
     String[] keywords=request.getParameterValues("keyword");
     if((keywords!=null)&&(!keywords[0].equals("None"))){
           prettyPrint.append("Photo/video keyword is one of the following: ");
@@ -397,7 +399,8 @@ public class IndividualQueryProcessor {
                 else{
                   locIDFilter+=" || word.indexname == \""+kwParam+"\" ";
                 }
-                prettyPrint.append(kwParam+" ");
+                Keyword kw=myShepherd.getKeyword(kwParam.trim());
+                prettyPrint.append(kw.getReadableName()+" ");
               }
             }
             locIDFilter+=" )";
@@ -417,8 +420,9 @@ public class IndividualQueryProcessor {
               if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo photo")){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo photo";}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word")){jdoqlVariableDeclaration+=";org.ecocean.Keyword word";}
             
-         
       }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
   
     //end photo keyword filters-----------------------------------------------
 
@@ -426,7 +430,7 @@ public class IndividualQueryProcessor {
     
     //------------------------------------------------------------------
     //ms markers filters-------------------------------------------------
-    Shepherd myShepherd=new Shepherd();  
+ 
     myShepherd.beginDBTransaction();  
       ArrayList<String> markers=myShepherd.getAllLoci();
         int numMarkers=markers.size();
@@ -867,7 +871,7 @@ public class IndividualQueryProcessor {
 
     filter+=jdoqlVariableDeclaration;
     filter += parameterDeclaration;
-    
+    myShepherd=null;
     System.out.println("IndividualQueryProcessor filter: "+filter);
     return filter;
     

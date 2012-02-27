@@ -1164,9 +1164,9 @@ public class Shepherd {
 
   public Iterator getAllMarkedIndividuals(Query sharks) {
     Collection c = (Collection) (sharks.execute());
-    ArrayList list = new ArrayList(c);
+    //ArrayList list = new ArrayList(c);
     //Collections.reverse(list);
-    Iterator it = list.iterator();
+    Iterator it = c.iterator();
     return it;
   }
 

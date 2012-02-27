@@ -173,8 +173,9 @@
 
   <li><a class="active"><%=props.getProperty("table")%>
   </a></li>
-  <li><a
-    href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
+  </a></li>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
   </a></li>
 
 </ul>
@@ -448,7 +449,11 @@
   }
 %>
 </p>
-<br>
+<br />
+<p>CAPTURE output (annual seasons): <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=request.getQueryString()%>">
+Click here</a>
+</p>
+
 
 <p></p>
 <jsp:include page="footer.jsp" flush="true"/>

@@ -1145,4 +1145,56 @@ public ArrayList getAllEmailsToUpdate(){
 
 public void removeLogEncounter(Encounter enc){if(unidentifiableEncounters.contains(enc)){unidentifiableEncounters.remove(enc);}}
 
+public float distFrom(float lat1, float lng1, float lat2, float lng2) {
+  double earthRadius = 3958.75;
+  double dLat = Math.toRadians(lat2-lat1);
+  double dLng = Math.toRadians(lng2-lng1);
+  double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+             Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+             Math.sin(dLng/2) * Math.sin(dLng/2);
+  double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  double dist = earthRadius * c;
+
+  int meterConversion = 1609;
+
+  return new Float(dist * meterConversion).floatValue();
+}
+
+public Float getMaxDistanceBetweenTwoSightings(){
+  int numEncs=encounters.size();
+  Float maxDistance=new Float(0);
+  if(numEncs>1){
+  for(int y=0;y<numEncs;y++){
+    Encounter thisEnc=(Encounter)encounters.get(y);
+    if((thisEnc.getLatitudeAsDouble()!=null)&&(thisEnc.getLongitudeAsDouble()!=null)){
+    for(int z=(y+1);z<numEncs;z++){
+      Encounter nextEnc=(Encounter)encounters.get(z);
+      if((nextEnc.getLatitudeAsDouble()!=null)&&(thisEnc.getLongitudeAsDouble()!=null)){
+        Float tempMaxDistance=distFrom(new Float(thisEnc.getLatitudeAsDouble()), new Float(thisEnc.getLongitudeAsDouble()), new Float(nextEnc.getLatitudeAsDouble()), new Float(nextEnc.getLongitudeAsDouble()));
+        if(tempMaxDistance>maxDistance){maxDistance=tempMaxDistance;}
+      }
+    }
+  }
+  }
+  }
+  return maxDistance;
+}
+
+public long getMaxTimeBetweenTwoSightings(){
+  int numEncs=encounters.size();
+  long maxTime=0;
+  if(numEncs>1){
+  for(int y=0;y<numEncs;y++){
+    Encounter thisEnc=(Encounter)encounters.get(y);
+    for(int z=(y+1);z<numEncs;z++){
+      Encounter nextEnc=(Encounter)encounters.get(z);
+      long tempMaxTime=Math.abs(thisEnc.getDateInMilliseconds()-nextEnc.getDateInMilliseconds());
+      if(tempMaxTime>maxTime){maxTime=tempMaxTime;}
+    }
+  }
+  }
+  return maxTime;
+}
+
+
 }
