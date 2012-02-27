@@ -669,6 +669,10 @@ table.tissueSample td {
         pageContext.setAttribute("measurementValue", event.getValue());
         pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode));
     }
+    else {
+        pageContext.setAttribute("measurementValue", null);
+        pageContext.setAttribute("samplingProtocol", null);
+   }
  %>
 <tr>
     <td class="measurement"><c:out value="${item.label}"/></td><td class="measurement"><c:out value="${measurementValue}"/></td><td class="measurement"><c:out value="${item.unitsLabel}"/></td><td class="measurement"><c:out value="${samplingProtocol}"/></td>
