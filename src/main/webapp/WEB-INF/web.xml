@@ -320,10 +320,7 @@
       <servlet-class>org.ecocean.servlet.export.EncounterSearchExportGeneGISFormat</servlet-class>
   </servlet>
   
-      <servlet>
-        <servlet-name>IndividualSearchExportCapture</servlet-name>
-        <servlet-class>org.ecocean.servlet.export.IndividualSearchExportCapture</servlet-class>
-  </servlet>
+  
   
   
       <servlet>
@@ -785,10 +782,7 @@
   
   
   
-      <servlet-mapping>
-        <servlet-name>IndividualSearchExportCapture</servlet-name>
-        <url-pattern>/IndividualSearchExportCapture</url-pattern>
-  </servlet-mapping>
+
   
   
       <servlet-mapping>
