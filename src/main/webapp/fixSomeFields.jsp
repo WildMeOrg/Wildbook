@@ -121,6 +121,7 @@ while(allSharks.hasNext()){
 	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
 	
 	//populate max years between resightings
+	/*
 	if(sharky.totalLogEncounters()>0){
 		//int numLogEncounters=);
 		for(int i=0;i<sharky.totalLogEncounters();i++){
@@ -132,7 +133,8 @@ while(allSharks.hasNext()){
 			numLogEncounters++;
 			
 		}
-	}
+	}*/
+	sharky.resetMaxNumYearsBetweenSightings();
 	
 }
 

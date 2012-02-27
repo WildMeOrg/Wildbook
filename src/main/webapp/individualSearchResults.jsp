@@ -449,10 +449,7 @@
   }
 %>
 </p>
-<br />
-<p>CAPTURE output (annual seasons): <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=request.getQueryString()%>">
-Click here</a>
-</p>
+
 
 
 <p></p>
