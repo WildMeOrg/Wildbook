@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.*,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
 
 
@@ -89,6 +89,10 @@
  	sexHashtable.put("female", new Integer(0));
  	sexHashtable.put("unknown", new Integer(0));
  	
+ 	//let's prep for the firstSightings table
+ 	Hashtable<String,Integer> firstSightingsHashtable = new Hashtable<String,Integer>();
+ 	firstSightingsHashtable.put("First sighting", new Integer(0));
+ 	firstSightingsHashtable.put("Previously sighted", new Integer(0));
 
 	 Float maxTravelDistance=new Float(0);
 	 long maxTimeBetweenResights=0;
@@ -134,6 +138,18 @@
 		 
 		 //maxYearsBetweenSightings calc
 		 resightingYearsArray[thisEnc.getMaxNumYearsBetweenSightings()]++;
+		 
+		 //firstSightings distribution
+		 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+	 		   Integer thisInt = firstSightingsHashtable.get("Previously sighted")+1;
+	  		   firstSightingsHashtable.put("Previously sighted", thisInt);
+	 		   
+		 }
+		 else{
+			 Integer thisInt = firstSightingsHashtable.get("First sighting")+1;
+	  		   firstSightingsHashtable.put("First sighting", thisInt);
+		 }
+		 
  		 
  	 }	
  	 
@@ -324,14 +340,43 @@
         chart.draw(data, options);
       }
       
+      
+      google.setOnLoadCallback(drawFirstSightingChart);
+      function drawFirstSightingChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Status');
+        data.addColumn('number', 'No. Recorded');
+        data.addRows([
+
+          ['First sighting',    <%=firstSightingsHashtable.get("First sighting")%>],
+           ['Previously sighted',    <%=firstSightingsHashtable.get("Previously sighted")%>],
+           
+
+        ]);
+
+
+        var options = {
+          width: 450, height: 300,
+          title: 'New/Previously Sighted Distribution in Matched Individuals',
+          colors: ['#336600','#CC9900']
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('firstSighting_div'));
+        chart.draw(data, options);
+      }
+      
+      
+      
+      
       <%
       if(numYearsCoverage>0){
       %>
+      //num years analysis
       google.load("visualization", "1", {packages:["corechart"]});
       google.setOnLoadCallback(drawColumnChart);
       function drawColumnChart() {
         var data = new google.visualization.DataTable();
-        data.addColumn('string', 'Years between resights');
+        data.addColumn('string', 'Calendar years between resights');
         data.addColumn('number', 'No. marked individuals');
         data.addRows([
         <%              
@@ -345,7 +390,7 @@
 
         var options = {
           width: 400, height: 240,
-          title: 'Years between resightings for marked individuals',
+          title: 'Calendar Years Between Resights for Matched Individuals',
           hAxis: {title: 'Distribution: Number of Years Between Resightings', titleTextStyle: {color: 'red'}}
         };
 
@@ -417,6 +462,9 @@ if(maxTimeBetweenResights>0){
  <div id="chart_div"></div>
 
 <div id="sexchart_div"></div>
+
+<div id="firstSighting_div"></div>
+
 <%
 if(numYearsCoverage>0){
 %>

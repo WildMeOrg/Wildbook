@@ -628,6 +628,15 @@ public class MarkedIndividual {
     }
     return lowestYear;
   }
+  
+  public long getEarliestSightingTime() {
+    long lowestTime = GregorianCalendar.getInstance().getTimeInMillis();
+    for (int c = 0; c < encounters.size(); c++) {
+      Encounter temp = (Encounter) encounters.get(c);
+      if (temp.getDateInMilliseconds() < lowestTime) lowestTime = temp.getDateInMilliseconds();
+    }
+    return lowestTime;
+  }
 
   public String getSeriesCode() {
     return seriesCode;
