@@ -66,6 +66,10 @@
   </script>
   <!-- /STEP2 Place inside the head section -->
 
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="visual_files/keydragzoom.js" type="text/javascript"></script>
+<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
+<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
 
 </head>
 
@@ -88,7 +92,7 @@
   }
 </script>
 
-<body onload="initialize();resetMap()" onunload="resetMap()">
+<body onload="resetMap()" onunload="resetMap()">
 
 <%
   GregorianCalendar cal = new GregorianCalendar();
@@ -221,14 +225,11 @@
       <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
         color="#000000">Location filter (map)</font></a></h4>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
- <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
 
-    
     
 <script type="text/javascript">
-
-var center = new google.maps.LatLng(37.4419, -122.1419);
+//alert("Prepping map functions.");
+var center = new google.maps.LatLng(0, 0);
 
 var map;
 
@@ -236,8 +237,16 @@ var markers = [];
 var overlays = [];
 
 
+var overlaysSet=false;
+ 
+var geoXml = null;
+var geoXmlDoc = null;
+var kml = null;
+var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
+ 
+ 
   function initialize() {
-
+//alert("initializing map!");
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: 1,
 		  center: center,
@@ -249,7 +258,7 @@ var overlays = [];
    map.enableKeyDragZoom({
           visualEnabled: true,
           visualPosition: google.maps.ControlPosition.LEFT,
-          visualPositionOffset: new google.maps.Size(13, 0),
+          visualPositionOffset: new google.maps.Size(35, 0),
           visualPositionIndex: null,
           visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
           visualSize: new google.maps.Size(20, 20),
@@ -259,7 +268,7 @@ var overlays = [];
           }
         });
 
-   //reset JSP file
+  //comment here
 
         var dz = map.getDragZoomObject();
         google.maps.event.addListener(dz, 'dragend', function (bnds) {
@@ -274,12 +283,67 @@ var overlays = [];
           sw_long_element.value = bnds.getSouthWest().lng();
         });
 
-        
+        //alert("Finished initialize method!");
 
           
  }
+  
+ 
+  function setOverlays() {
+	  //alert("In setOverlays!");
+	  if(!overlaysSet){
+		//read in the KML
+		 geoXml = new geoXML3.parser({
+                    map: map,
+                    markerOptions: {flat:true,clickable:false},
+                    //afterParse:useData
+		 			//createMarker: function(placemark){
+		 				//var pos = new google.maps.LatLng(parseDouble(placemark.lat),parseDouble(placemark.lng));
+		 					//			var marker=new google.maps.Marker({position:pos,map:map,flat:true,clickable:false});
+		 			//	alert(placemark.point.lat);
+		 			//}
+         });
+
+		
+	
+        geoXml.parse(filename);
+        
+    	var iw = new google.maps.InfoWindow({
+    		content:'Loading and rendering map data...',
+    		position:center});
+    iw.open(map);
+    	
+    setTimeout(function(){iw.close();}, '20000');
+
+        	   
+		
+		  overlaysSet=true;
+      }
+	    
+   }
+ 
+function useData(doc){
+	
+	
+
+	
+	geoXmlDoc = doc;
+	
+	kml = geoXmlDoc[0];
+	
+
+    if (kml.markers) {
+	 for (var i = 0; i < kml.markers.length; i++) {
+	     //if(i==0){alert(kml.markers[i].getVisible());}
+	  
+	 }
+   } 
+	
+}
  
   google.maps.event.addDomListener(window, 'load', initialize);
+  
+  
     </script>
 
     <div id="map">
@@ -288,11 +352,11 @@ var overlays = [];
         specific search boundaries. You can also use the text boxes below the map to specify exact
         boundaries.</p>
 
-      <div id="map_canvas" style="width: 510px; height: 340px; "></div>
+      <div id="map_canvas" style="width: 770px; height: 510px; "></div>
       <div id="map_overlay_buttons">
  
-          <input type="button" value="Load Markers" onclick="setOverlays()" />&nbsp;
-          <input type="button" value="Remove Markers" onclick="clearOverlays()" />
+          <input type="button" value="Load Markers" onclick="setOverlays();" />&nbsp;
+ 
 
       </div>
       <p>Northeast corner latitude: <input type="text" id="ne_lat" name="ne_lat"></input> longitude:
@@ -1152,77 +1216,9 @@ else {
 
 <%
 //let's access the cached coordinates that we will render in the map
-ArrayList<Point2D> coords = Util.getCachedGPSCoordinates(false);	
+//ArrayList<Point2D> coords = Util.getCachedGPSCoordinates(false);	
 %>
-<script type="text/javascript">
- 
-//adding progress bar
-//var progressbarOptions = {loadstring: 'Loading...'};
-//var pb = progressBar();
 
-//testing this placement here
-//map.controls[google.maps.ControlPosition.RIGHT].push(pb.getDiv());
- 
-  function setOverlays() {
-	  
-	  
-	  if (markers) {
-		  <%
-		  int numCoords=coords.size();
-		  for(int q=0;q<numCoords;q++){
-		  %> 
-		  //comment useless
-		    
-		            var latLng = new google.maps.LatLng(<%=coords.get(q).getX()%>, <%=coords.get(q).getY()%>);
-		                var marker = new google.maps.Marker({
-			          	      position: latLng,
-			          	      flat: true
-			          	  });
-		  	markers.push(marker);
-		            
-		           
-		   
-		            <%
-		        		}
-		            %>
-		    
-
-
-		  //test comment
-		  
-		  //pb.start(100);
-		  //alert(markers.length);
-		  //pb.updateBar(1);
-		  //var currentNum=0;
-		  for (var i = 0; i < markers.length; i++ ) {
-	      	
-			  markers[i].setMap(map);
-	      	
-	      	
-	      	//var position=parseInt(i/markers.length*100);
-	      	
-	      	//if(position>currentNum){
-	      	//	currentNum=currentNum+1;
-	      	//	pb.updateBar(1);
-	      		//alert(position);
-	       //}
-	      }
-		  
-		  //overlays.push(new com.redfin.FastMarkerOverlay(map, markers));
-		  
-	    
-	  }
-  }
-  
-  function clearOverlays() {
-	  if (markers) {
-	    for (var i = 0; i < markers.length; i++ ) {
-	      markers[i].setMap(null);
-	    }
-	  }
-  }
-  
-  </script>
 </body>
 </html>
 

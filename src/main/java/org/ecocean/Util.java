@@ -1,19 +1,35 @@
 package org.ecocean;
 
+//import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+//import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
+//import java.util.Properties;
 import java.util.ResourceBundle;
+
+//import javax.jdo.JDOException;
+//import javax.jdo.JDOHelper;
+import javax.jdo.Query;
+//import javax.jdo.PersistenceManagerFactory;
 
 import org.ecocean.tag.MetalTag;
 
+//use Point2D to represent cached GPS coordinates
+import com.reijns.I3S.Point2D;
+
 public class Util {
   
+  //Measurement static values
   private static final String MEASUREMENT = "measurement";
   private static final String UNITS = MEASUREMENT + "Units";
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
+  
+  //GPS coordinate caching for Encounter Search and Individual Search
+  private static ArrayList<Point2D> coords;
   
   public static List<MeasurementDesc> findMeasurementDescs(String langCode) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
@@ -175,6 +191,39 @@ public class Util {
       return locationLabel;
     }
     
+  }
+  
+  public synchronized static ArrayList<Point2D> getCachedGPSCoordinates(boolean refresh) {
+    try {
+      if ((coords == null)||(refresh)) {
+
+        //execute the JDOQL
+        Shepherd myShepherd=new Shepherd();
+        Query query=myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null");
+        Collection<Encounter> c = (Collection<Encounter>) (query.execute());
+        ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
+        int encsSize=encs.size();
+        
+        //populate coords
+        coords=new ArrayList<Point2D>(encsSize);
+        for(int i=0;i<encsSize;i++){
+          Encounter e=encs.get(i);
+          int lat=(int)e.getDecimalLatitudeAsDouble();
+          int longie=(int)e.getDecimalLongitudeAsDouble();
+          Point2D myPoint=new Point2D(lat,longie);
+          if(!coords.contains(myPoint)){
+            coords.add(myPoint);
+          }
+        }
+
+
+      }
+      return coords;
+    } catch (Exception jdo) {
+      jdo.printStackTrace();
+      System.out.println("I hit an error trying to populate the cached GPS coordinates in Util.java.");
+      return new ArrayList<Point2D>();
+    }
   }
 
 }
