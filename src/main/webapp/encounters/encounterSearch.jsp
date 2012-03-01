@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList" %>
+         import="org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Properties" %>
@@ -42,8 +42,7 @@
         href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
 
   <!-- Sliding div content: STEP1 Place inside the head section -->
-  <script type="text/javascript"
-          src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
   <script type="text/javascript" src="../javascript/animatedcollapse.js"></script>
   <!-- /STEP1 Place inside the head section -->
   <!-- STEP2 Place inside the head section -->
@@ -89,7 +88,7 @@
   }
 </script>
 
-<body onload="initialize();resetMap()" onunload="GUnload();resetMap()">
+<body onload="initialize();resetMap()" onunload="resetMap()">
 
 <%
   GregorianCalendar cal = new GregorianCalendar();
@@ -117,6 +116,7 @@
   encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
 
 
+  
 %>
 
 
@@ -221,53 +221,65 @@
       <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
         color="#000000">Location filter (map)</font></a></h4>
 
-    <script
-      src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
-      type="text/javascript">
-    </script>
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+ <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
 
-    <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
+    
+    
+<script type="text/javascript">
 
-    <script type="text/javascript">
-      function initialize() {
-        if (GBrowserIsCompatible()) {
-          var map = new GMap2(document.getElementById("map_canvas"));
-          map.setMapType(G_HYBRID_MAP);
-          map.addControl(new GSmallMapControl());
-          map.setCenter(new GLatLng(0, 180), 1);
+var center = new google.maps.LatLng(37.4419, -122.1419);
 
+var map;
 
-          map.enableKeyDragZoom({
-            visualEnabled: true,
-            visualPosition: new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(16, 103)),
-            visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
-            visualSize: new google.maps.Size(20, 20),
-            visualTips: {
-              off: "Turn on",
-              on: "Turn off"
-            }
-          });
-
-          var dz = map.getDragZoomObject();
-          GEvent.addListener(dz, 'dragend', function (bnds) {
-            var ne_lat_element = document.getElementById('ne_lat');
-            var ne_long_element = document.getElementById('ne_long');
-            var sw_lat_element = document.getElementById('sw_lat');
-            var sw_long_element = document.getElementById('sw_long');
-
-            //GLog.write('KeyDragZoom Ended: ' + bnds.getNorthEast().lat());
-
-            ne_lat_element.value = bnds.getNorthEast().lat();
-            ne_long_element.value = bnds.getNorthEast().lng();
-            sw_lat_element.value = bnds.getSouthWest().lat();
-            sw_long_element.value = bnds.getSouthWest().lng();
-          });
-
-          //map.addControl(new GMapTypeControl());
+var markers = [];
+var overlays = [];
 
 
-        }
-      }
+  function initialize() {
+
+	  map = new google.maps.Map(document.getElementById('map_canvas'), {
+		  zoom: 1,
+		  center: center,
+		  mapTypeId: google.maps.MapTypeId.HYBRID
+		});
+
+
+
+   map.enableKeyDragZoom({
+          visualEnabled: true,
+          visualPosition: google.maps.ControlPosition.LEFT,
+          visualPositionOffset: new google.maps.Size(13, 0),
+          visualPositionIndex: null,
+          visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
+          visualSize: new google.maps.Size(20, 20),
+          visualTips: {
+            off: "Turn on",
+            on: "Turn off"
+          }
+        });
+
+   //reset JSP file
+
+        var dz = map.getDragZoomObject();
+        google.maps.event.addListener(dz, 'dragend', function (bnds) {
+          var ne_lat_element = document.getElementById('ne_lat');
+          var ne_long_element = document.getElementById('ne_long');
+          var sw_lat_element = document.getElementById('sw_lat');
+          var sw_long_element = document.getElementById('sw_long');
+
+          ne_lat_element.value = bnds.getNorthEast().lat();
+          ne_long_element.value = bnds.getNorthEast().lng();
+          sw_lat_element.value = bnds.getSouthWest().lat();
+          sw_long_element.value = bnds.getSouthWest().lng();
+        });
+
+        
+
+          
+ }
+ 
+  google.maps.event.addDomListener(window, 'load', initialize);
     </script>
 
     <div id="map">
@@ -277,6 +289,12 @@
         boundaries.</p>
 
       <div id="map_canvas" style="width: 510px; height: 340px; "></div>
+      <div id="map_overlay_buttons">
+ 
+          <input type="button" value="Load Markers" onclick="setOverlays()" />&nbsp;
+          <input type="button" value="Remove Markers" onclick="clearOverlays()" />
+
+      </div>
       <p>Northeast corner latitude: <input type="text" id="ne_lat" name="ne_lat"></input> longitude:
         <input type="text" id="ne_long" name="ne_long"></input><br/><br/>
         Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input> longitude:
@@ -1132,6 +1150,79 @@ else {
 <!-- end page --></div>
 <!--end wrapper -->
 
+<%
+//let's access the cached coordinates that we will render in the map
+ArrayList<Point2D> coords = Util.getCachedGPSCoordinates(false);	
+%>
+<script type="text/javascript">
+ 
+//adding progress bar
+//var progressbarOptions = {loadstring: 'Loading...'};
+//var pb = progressBar();
+
+//testing this placement here
+//map.controls[google.maps.ControlPosition.RIGHT].push(pb.getDiv());
+ 
+  function setOverlays() {
+	  
+	  
+	  if (markers) {
+		  <%
+		  int numCoords=coords.size();
+		  for(int q=0;q<numCoords;q++){
+		  %> 
+		  //comment useless
+		    
+		            var latLng = new google.maps.LatLng(<%=coords.get(q).getX()%>, <%=coords.get(q).getY()%>);
+		                var marker = new google.maps.Marker({
+			          	      position: latLng,
+			          	      flat: true
+			          	  });
+		  	markers.push(marker);
+		            
+		           
+		   
+		            <%
+		        		}
+		            %>
+		    
+
+
+		  //test comment
+		  
+		  //pb.start(100);
+		  //alert(markers.length);
+		  //pb.updateBar(1);
+		  //var currentNum=0;
+		  for (var i = 0; i < markers.length; i++ ) {
+	      	
+			  markers[i].setMap(map);
+	      	
+	      	
+	      	//var position=parseInt(i/markers.length*100);
+	      	
+	      	//if(position>currentNum){
+	      	//	currentNum=currentNum+1;
+	      	//	pb.updateBar(1);
+	      		//alert(position);
+	       //}
+	      }
+		  
+		  //overlays.push(new com.redfin.FastMarkerOverlay(map, markers));
+		  
+	    
+	  }
+  }
+  
+  function clearOverlays() {
+	  if (markers) {
+	    for (var i = 0; i < markers.length; i++ ) {
+	      markers[i].setMap(null);
+	    }
+	  }
+  }
+  
+  </script>
 </body>
 </html>
 
