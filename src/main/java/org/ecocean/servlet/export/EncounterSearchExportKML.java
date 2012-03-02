@@ -126,11 +126,11 @@ public class EncounterSearchExportKML extends HttpServlet{
                 descHTML += "<p> <strong>Comments:</strong> " + enc.getComments() + "</p>";
               }
 
-              descHTML += "<strong>Images</strong><br>";
-              Vector imgs = enc.getAdditionalImageNames();
-              int imgsNum = enc.getAdditionalImageNames().size();
+              descHTML += "<strong>Images</strong><br />";
+              List<SinglePhotoVideo> imgs = enc.getImages();
+              int imgsNum = imgs.size();
               for (int imgNum = 0; imgNum < imgsNum; imgNum++) {
-                descHTML += ("<br>" + "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\"><img src=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/" + enc.getEncounterNumber() + "/" + (imgNum + 1) + ".jpg\"></a>");
+                descHTML += ("<br />" + "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\"><img src=\"http://" + request.getServerName() +"/"+CommonConfiguration.getDataDirectoryName() + "/encounters/" + enc.getEncounterNumber() + "/" + imgs.get(imgNum).getDataCollectionEventID() + ".jpg\" /></a>");
               }
 
               description.addCDATA(descHTML);
