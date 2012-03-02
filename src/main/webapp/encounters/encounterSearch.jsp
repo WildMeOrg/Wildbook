@@ -42,7 +42,7 @@
         href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
 
   <!-- Sliding div content: STEP1 Place inside the head section -->
-  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
   <script type="text/javascript" src="../javascript/animatedcollapse.js"></script>
   <!-- /STEP1 Place inside the head section -->
   <!-- STEP2 Place inside the head section -->
@@ -75,7 +75,20 @@
 
 <style type="text/css">v\:* {
   behavior: url(#default#VML);
+  
 }</style>
+
+<style type="text/css">
+.full_screen_map {
+position: absolute !important;
+top: 0px !important;
+left: 0px !important;
+z-index: 1 !imporant;
+width: 100% !important;
+height: 100% !important;
+margin-top: 0px !important;
+margin-bottom: 8px !important;
+</style>
 
 <script>
   function resetMap() {
@@ -244,14 +257,25 @@ var geoXmlDoc = null;
 var kml = null;
 var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
  
- 
+
   function initialize() {
-//alert("initializing map!");
+	//alert("initializing map!");
+	//overlaysSet=false;
+	var mapZoom = 1;
+	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
-		  zoom: 1,
+		  zoom: mapZoom,
 		  center: center,
 		  mapTypeId: google.maps.MapTypeId.HYBRID
 		});
+
+	  //adding the fullscreen control to exit fullscreen
+	  var fsControlDiv = document.createElement('DIV');
+	  var fsControl = new FSControl(fsControlDiv, map);
+	  fsControlDiv.index = 1;
+	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+
 
 
 
@@ -268,7 +292,6 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
           }
         });
 
-  //comment here
 
         var dz = map.getDragZoomObject();
         google.maps.event.addListener(dz, 'dragend', function (bnds) {
@@ -296,12 +319,7 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
 		 geoXml = new geoXML3.parser({
                     map: map,
                     markerOptions: {flat:true,clickable:false},
-                    //afterParse:useData
-		 			//createMarker: function(placemark){
-		 				//var pos = new google.maps.LatLng(parseDouble(placemark.lat),parseDouble(placemark.lng));
-		 					//			var marker=new google.maps.Marker({position:pos,map:map,flat:true,clickable:false});
-		 			//	alert(placemark.point.lat);
-		 			//}
+
          });
 
 		
@@ -311,36 +329,102 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
     	var iw = new google.maps.InfoWindow({
     		content:'Loading and rendering map data...',
     		position:center});
-    iw.open(map);
+         
+    	iw.open(map);
     	
-    setTimeout(function(){iw.close();}, '20000');
-
-        	   
-		
+    	google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
+         
+         
+         
 		  overlaysSet=true;
       }
 	    
    }
  
-function useData(doc){
-	
-	
-
-	
+function useData(doc){	
 	geoXmlDoc = doc;
-	
 	kml = geoXmlDoc[0];
-	
-
     if (kml.markers) {
 	 for (var i = 0; i < kml.markers.length; i++) {
-	     //if(i==0){alert(kml.markers[i].getVisible());}
-	  
+	     //if(i==0){alert(kml.markers[i].getVisible());
 	 }
    } 
-	
 }
- 
+
+function fullScreen(){
+	$("#map_canvas").addClass('full_screen_map');
+	$('html, body').animate({scrollTop:0}, 'slow');
+	initialize();
+	
+	//hide header
+	$("#header_menu").hide();
+	
+	if(overlaysSet){overlaysSet=false;setOverlays();}
+	//alert("Trying to execute fullscreen!");
+}
+
+
+function exitFullScreen() {
+	$("#header_menu").show();
+	$("#map_canvas").removeClass('full_screen_map');
+
+	initialize();
+	if(overlaysSet){overlaysSet=false;setOverlays();}
+	//alert("Trying to execute exitFullScreen!");
+}
+
+
+//making the exit fullscreen button
+function FSControl(controlDiv, map) {
+
+  // Set CSS styles for the DIV containing the control
+  // Setting padding to 5 px will offset the control
+  // from the edge of the map
+  controlDiv.style.padding = '5px';
+
+  // Set CSS for the control border
+  var controlUI = document.createElement('DIV');
+  controlUI.style.backgroundColor = '#f8f8f8';
+  controlUI.style.borderStyle = 'solid';
+  controlUI.style.borderWidth = '1px';
+  controlUI.style.borderColor = '#a9bbdf';;
+  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
+  controlUI.style.cursor = 'pointer';
+  controlUI.style.textAlign = 'center';
+  controlUI.title = 'Toggle the fullscreen mode';
+  controlDiv.appendChild(controlUI);
+
+  // Set CSS for the control interior
+  var controlText = document.createElement('DIV');
+  controlText.style.fontSize = '12px';
+  controlText.style.fontWeight = 'bold';
+  controlText.style.color = '#000000';
+  controlText.style.paddingLeft = '4px';
+  controlText.style.paddingRight = '4px';
+  controlText.style.paddingTop = '3px';
+  controlText.style.paddingBottom = '2px';
+  controlUI.appendChild(controlText);
+  //toggle the text of the button
+   if($("#map_canvas").hasClass("full_screen_map")){
+      controlText.innerHTML = 'Exit Fullscreen';
+    } else {
+      controlText.innerHTML = 'Fullscreen';
+    }
+
+  // Setup the click event listeners: toggle the full screen
+
+  google.maps.event.addDomListener(controlUI, 'click', function() {
+
+   if($("#map_canvas").hasClass("full_screen_map")){
+    exitFullScreen();
+    } else {
+    fullScreen();
+    }
+  });
+
+}
+
+
   google.maps.event.addDomListener(window, 'load', initialize);
   
   
@@ -352,7 +436,12 @@ function useData(doc){
         specific search boundaries. You can also use the text boxes below the map to specify exact
         boundaries.</p>
 
-      <div id="map_canvas" style="width: 770px; height: 510px; "></div>
+      <div id="map_canvas" style="width: 770px; height: 510px; ">
+      		<div style="padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px; z-index: 0; position: absolute; right: 95px; top: 0px; " >
+      		     
+      		</div>
+      </div>
+      
       <div id="map_overlay_buttons">
  
           <input type="button" value="Load Markers" onclick="setOverlays();" />&nbsp;
