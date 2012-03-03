@@ -1303,10 +1303,7 @@ else {
 <!-- end page --></div>
 <!--end wrapper -->
 
-<%
-//let's access the cached coordinates that we will render in the map
-//ArrayList<Point2D> coords = Util.getCachedGPSCoordinates(false);	
-%>
+
 
 </body>
 </html>
