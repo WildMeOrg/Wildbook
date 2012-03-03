@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList" %>
+         import="org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Properties" %>
@@ -42,8 +42,7 @@
         href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
 
   <!-- Sliding div content: STEP1 Place inside the head section -->
-  <script type="text/javascript"
-          src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
   <script type="text/javascript" src="../javascript/animatedcollapse.js"></script>
   <!-- /STEP1 Place inside the head section -->
   <!-- STEP2 Place inside the head section -->
@@ -67,12 +66,29 @@
   </script>
   <!-- /STEP2 Place inside the head section -->
 
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="visual_files/keydragzoom.js" type="text/javascript"></script>
+<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
+<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
 
 </head>
 
 <style type="text/css">v\:* {
   behavior: url(#default#VML);
+  
 }</style>
+
+<style type="text/css">
+.full_screen_map {
+position: absolute !important;
+top: 0px !important;
+left: 0px !important;
+z-index: 1 !imporant;
+width: 100% !important;
+height: 100% !important;
+margin-top: 0px !important;
+margin-bottom: 8px !important;
+</style>
 
 <script>
   function resetMap() {
@@ -89,7 +105,7 @@
   }
 </script>
 
-<body onload="initialize();resetMap()" onunload="GUnload();resetMap()">
+<body onload="resetMap()" onunload="resetMap()">
 
 <%
   GregorianCalendar cal = new GregorianCalendar();
@@ -117,6 +133,7 @@
   encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
 
 
+  
 %>
 
 
@@ -221,53 +238,196 @@
       <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
         color="#000000">Location filter (map)</font></a></h4>
 
-    <script
-      src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
-      type="text/javascript">
-    </script>
 
-    <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
+    
+<script type="text/javascript">
+//alert("Prepping map functions.");
+var center = new google.maps.LatLng(0, 0);
 
-    <script type="text/javascript">
-      function initialize() {
-        if (GBrowserIsCompatible()) {
-          var map = new GMap2(document.getElementById("map_canvas"));
-          map.setMapType(G_HYBRID_MAP);
-          map.addControl(new GSmallMapControl());
-          map.setCenter(new GLatLng(0, 180), 1);
+var map;
+
+var markers = [];
+var overlays = [];
 
 
-          map.enableKeyDragZoom({
-            visualEnabled: true,
-            visualPosition: new GControlPosition(G_ANCHOR_TOP_LEFT, new GSize(16, 103)),
-            visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
-            visualSize: new google.maps.Size(20, 20),
-            visualTips: {
-              off: "Turn on",
-              on: "Turn off"
-            }
-          });
+var overlaysSet=false;
+ 
+var geoXml = null;
+var geoXmlDoc = null;
+var kml = null;
+var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
+ 
 
-          var dz = map.getDragZoomObject();
-          GEvent.addListener(dz, 'dragend', function (bnds) {
-            var ne_lat_element = document.getElementById('ne_lat');
-            var ne_long_element = document.getElementById('ne_long');
-            var sw_lat_element = document.getElementById('sw_lat');
-            var sw_long_element = document.getElementById('sw_long');
+  function initialize() {
+	//alert("initializing map!");
+	//overlaysSet=false;
+	var mapZoom = 1;
+	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
-            //GLog.write('KeyDragZoom Ended: ' + bnds.getNorthEast().lat());
+	  map = new google.maps.Map(document.getElementById('map_canvas'), {
+		  zoom: mapZoom,
+		  center: center,
+		  mapTypeId: google.maps.MapTypeId.HYBRID
+		});
 
-            ne_lat_element.value = bnds.getNorthEast().lat();
-            ne_long_element.value = bnds.getNorthEast().lng();
-            sw_lat_element.value = bnds.getSouthWest().lat();
-            sw_long_element.value = bnds.getSouthWest().lng();
-          });
-
-          //map.addControl(new GMapTypeControl());
+	  //adding the fullscreen control to exit fullscreen
+	  var fsControlDiv = document.createElement('DIV');
+	  var fsControl = new FSControl(fsControlDiv, map);
+	  fsControlDiv.index = 1;
+	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
 
-        }
+
+
+   map.enableKeyDragZoom({
+          visualEnabled: true,
+          visualPosition: google.maps.ControlPosition.LEFT,
+          visualPositionOffset: new google.maps.Size(35, 0),
+          visualPositionIndex: null,
+          visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
+          visualSize: new google.maps.Size(20, 20),
+          visualTips: {
+            off: "Turn on",
+            on: "Turn off"
+          }
+        });
+
+
+        var dz = map.getDragZoomObject();
+        google.maps.event.addListener(dz, 'dragend', function (bnds) {
+          var ne_lat_element = document.getElementById('ne_lat');
+          var ne_long_element = document.getElementById('ne_long');
+          var sw_lat_element = document.getElementById('sw_lat');
+          var sw_long_element = document.getElementById('sw_long');
+
+          ne_lat_element.value = bnds.getNorthEast().lat();
+          ne_long_element.value = bnds.getNorthEast().lng();
+          sw_lat_element.value = bnds.getSouthWest().lat();
+          sw_long_element.value = bnds.getSouthWest().lng();
+        });
+
+        //alert("Finished initialize method!");
+
+          
+ }
+  
+ 
+  function setOverlays() {
+	  //alert("In setOverlays!");
+	  if(!overlaysSet){
+		//read in the KML
+		 geoXml = new geoXML3.parser({
+                    map: map,
+                    markerOptions: {flat:true,clickable:false},
+
+         });
+
+		
+	
+        geoXml.parse(filename);
+        
+    	var iw = new google.maps.InfoWindow({
+    		content:'Loading and rendering map data...',
+    		position:center});
+         
+    	iw.open(map);
+    	
+    	google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
+         
+         
+         
+		  overlaysSet=true;
       }
+	    
+   }
+ 
+function useData(doc){	
+	geoXmlDoc = doc;
+	kml = geoXmlDoc[0];
+    if (kml.markers) {
+	 for (var i = 0; i < kml.markers.length; i++) {
+	     //if(i==0){alert(kml.markers[i].getVisible());
+	 }
+   } 
+}
+
+function fullScreen(){
+	$("#map_canvas").addClass('full_screen_map');
+	$('html, body').animate({scrollTop:0}, 'slow');
+	initialize();
+	
+	//hide header
+	$("#header_menu").hide();
+	
+	if(overlaysSet){overlaysSet=false;setOverlays();}
+	//alert("Trying to execute fullscreen!");
+}
+
+
+function exitFullScreen() {
+	$("#header_menu").show();
+	$("#map_canvas").removeClass('full_screen_map');
+
+	initialize();
+	if(overlaysSet){overlaysSet=false;setOverlays();}
+	//alert("Trying to execute exitFullScreen!");
+}
+
+
+//making the exit fullscreen button
+function FSControl(controlDiv, map) {
+
+  // Set CSS styles for the DIV containing the control
+  // Setting padding to 5 px will offset the control
+  // from the edge of the map
+  controlDiv.style.padding = '5px';
+
+  // Set CSS for the control border
+  var controlUI = document.createElement('DIV');
+  controlUI.style.backgroundColor = '#f8f8f8';
+  controlUI.style.borderStyle = 'solid';
+  controlUI.style.borderWidth = '1px';
+  controlUI.style.borderColor = '#a9bbdf';;
+  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
+  controlUI.style.cursor = 'pointer';
+  controlUI.style.textAlign = 'center';
+  controlUI.title = 'Toggle the fullscreen mode';
+  controlDiv.appendChild(controlUI);
+
+  // Set CSS for the control interior
+  var controlText = document.createElement('DIV');
+  controlText.style.fontSize = '12px';
+  controlText.style.fontWeight = 'bold';
+  controlText.style.color = '#000000';
+  controlText.style.paddingLeft = '4px';
+  controlText.style.paddingRight = '4px';
+  controlText.style.paddingTop = '3px';
+  controlText.style.paddingBottom = '2px';
+  controlUI.appendChild(controlText);
+  //toggle the text of the button
+   if($("#map_canvas").hasClass("full_screen_map")){
+      controlText.innerHTML = 'Exit Fullscreen';
+    } else {
+      controlText.innerHTML = 'Fullscreen';
+    }
+
+  // Setup the click event listeners: toggle the full screen
+
+  google.maps.event.addDomListener(controlUI, 'click', function() {
+
+   if($("#map_canvas").hasClass("full_screen_map")){
+    exitFullScreen();
+    } else {
+    fullScreen();
+    }
+  });
+
+}
+
+
+  google.maps.event.addDomListener(window, 'load', initialize);
+  
+  
     </script>
 
     <div id="map">
@@ -276,7 +436,18 @@
         specific search boundaries. You can also use the text boxes below the map to specify exact
         boundaries.</p>
 
-      <div id="map_canvas" style="width: 510px; height: 340px; "></div>
+      <div id="map_canvas" style="width: 770px; height: 510px; ">
+      		<div style="padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px; z-index: 0; position: absolute; right: 95px; top: 0px; " >
+      		     
+      		</div>
+      </div>
+      
+      <div id="map_overlay_buttons">
+ 
+          <input type="button" value="Load Markers" onclick="setOverlays();" />&nbsp;
+ 
+
+      </div>
       <p>Northeast corner latitude: <input type="text" id="ne_lat" name="ne_lat"></input> longitude:
         <input type="text" id="ne_long" name="ne_long"></input><br/><br/>
         Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input> longitude:
@@ -1131,6 +1302,8 @@ else {
 </div>
 <!-- end page --></div>
 <!--end wrapper -->
+
+
 
 </body>
 </html>
