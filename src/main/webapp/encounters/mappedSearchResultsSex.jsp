@@ -95,6 +95,17 @@
         font-family: Arial;
         font-size: 16px;
       }
+      
+      .full_screen_map {
+position: absolute !important;
+top: 0px !important;
+left: 0px !important;
+z-index: 1 !imporant;
+width: 100% !important;
+height: 100% !important;
+margin-top: 0px !important;
+margin-bottom: 8px !important;
+}
 
 
     </style>
