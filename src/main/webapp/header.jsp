@@ -35,6 +35,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 	//set up the file input stream
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/overview.properties"));
 	
+	//test comment
 	
 	//load our variables for the overview page
 	String title=props.getProperty("overview_title");
