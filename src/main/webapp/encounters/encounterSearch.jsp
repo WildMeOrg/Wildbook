@@ -341,6 +341,7 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
 	    
    }
  
+//not using this function right now. kept because it might be useful later  
 function useData(doc){	
 	geoXmlDoc = doc;
 	kml = geoXmlDoc[0];
@@ -436,11 +437,7 @@ function FSControl(controlDiv, map) {
         specific search boundaries. You can also use the text boxes below the map to specify exact
         boundaries.</p>
 
-      <div id="map_canvas" style="width: 770px; height: 510px; ">
-      		<div style="padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px; z-index: 0; position: absolute; right: 95px; top: 0px; " >
-      		     
-      		</div>
-      </div>
+      <div id="map_canvas" style="width: 770px; height: 510px; "></div>
       
       <div id="map_overlay_buttons">
  
