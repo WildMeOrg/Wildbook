@@ -111,7 +111,23 @@
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
         href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        
+<style type="text/css">
+.full_screen_map {
+position: absolute !important;
+top: 0px !important;
+left: 0px !important;
+z-index: 1 !imporant;
+width: 100% !important;
+height: 100% !important;
+margin-top: 0px !important;
+margin-bottom: 8px !important;
+</style>
 
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+  <script type="text/javascript" src="encounters/StyledMarker.js"></script>
+  
   <style type="text/css">
     <!--
     .style1 {
@@ -235,25 +251,12 @@ table.tissueSample td {
     });
 
   </script>
-	
-	<!--  FACEBOOK LIKE BUTTON -->
-	<div id="fb-root"></div>
-	<script>(function(d, s, id) {
-	  var js, fjs = d.getElementsByTagName(s)[0];
-	  if (d.getElementById(id)) return;
-	  js = d.createElement(s); js.id = id;
-	  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-	  fjs.parentNode.insertBefore(js, fjs);
-	}(document, 'script', 'facebook-jssdk'));</script>
-	
-	<!-- GOOGLE PLUS-ONE BUTTON -->
-	<script type="text/javascript">
-	  (function() {
-	    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-	    po.src = 'https://apis.google.com/js/plusone.js';
-	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-	  })();
-	</script>
+
+
+
+
+
+
 </head>
 
 <body <%if (request.getParameter("noscript") == null) {%>
@@ -293,25 +296,12 @@ table.tissueSample td {
       boolean hasAuthority = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
 
 %>
-<table><tr>
-<td>
-<span class="para"><img src="images/tag_big.gif" width="75px" height="*" align="absmiddle"/></span>
-</td>
-<td valign="middle">
- <h1><strong> <%=markedIndividualTypeCaps %>
-</strong>: <%=sharky.getIndividualID()%></h1>
 
-<!-- Google PLUS-ONE button -->
-<g:plusone size="small" annotation="none"></g:plusone>
-
-<!--  Twitter TWEET THIS button -->
-<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
-<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-
-<!-- Facebook LIKE button -->
-<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
+<h1><strong><span class="para"><img src="images/tag_big.gif" width="50px" height="*"
+                                    align="absmiddle"/></span>
+  <%=markedIndividualTypeCaps %>
+</strong>: <%=sharky.getName()%>
 </h1>
-</td></tr></table>
 <a name="alternateid"></a>
 
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
@@ -437,9 +427,6 @@ table.tissueSample td {
   </a><br> <%}%>
 
 </p>
-
-
-
 
 <%
 
@@ -1015,71 +1002,173 @@ else {
   Vector haveGPSData = new Vector();
   haveGPSData = sharky.returnEncountersWithGPSData();
   if (haveGPSData.size() > 0) {
-
-
 %>
+
+
+    <script type="text/javascript">
+      function initialize() {
+        var center = new google.maps.LatLng(0,0);
+        var mapZoom = 1;
+    	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+    	var bounds = new google.maps.LatLngBounds();
+        
+        var map = new google.maps.Map(document.getElementById('map_canvas'), {
+          zoom: mapZoom,
+          center: center,
+          mapTypeId: google.maps.MapTypeId.HYBRID
+        });
+
+    	  //adding the fullscreen control to exit fullscreen
+    	  var fsControlDiv = document.createElement('DIV');
+    	  var fsControl = new FSControl(fsControlDiv, map);
+    	  fsControlDiv.index = 1;
+    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+
+        
+        var markers = [];
+ 
+ 
+        
+        <%
+        //Vector haveGPSData = new Vector();
+        
+        Vector rEncounters=sharky.returnEncountersWithGPSData();
+        int rEncountersSize=rEncounters.size();
+        int count = 0;
+
+          
+      
+        
+      
+if(rEncountersSize>0){
+	int havegpsSize=rEncounters.size();
+ for(int y=0;y<havegpsSize;y++){
+	 Encounter thisEnc=(Encounter)rEncounters.get(y);
+	 
+
+ %>
+          
+          var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
+          bounds.extend(latLng);
+           <%
+
+           
+           //currently unused programatically
+           String markerText="";
+           
+           String haploColor="CC0000";
+           if((props.getProperty("defaultMarkerColor")!=null)&&(!props.getProperty("defaultMarkerColor").trim().equals(""))){
+        	   haploColor=props.getProperty("defaultMarkerColor");
+           }
+		   
+           
+           %>
+           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
+	    
+
+            google.maps.event.addListener(marker,'click', function() {
+                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+             });
+ 
+	
+          markers.push(marker);
+          map.fitBounds(bounds); 
+ 
+ <%
+ 
+	 }
+} 
+
+ %>
+ 
+
+      }
+      
+      
+
+      function fullScreen(){
+    		$("#map_canvas").addClass('full_screen_map');
+    		$('html, body').animate({scrollTop:0}, 'slow');
+    		initialize();
+    		
+    		//hide header
+    		$("#header_menu").hide();
+    		
+    		if(overlaysSet){overlaysSet=false;setOverlays();}
+    		//alert("Trying to execute fullscreen!");
+    	}
+
+
+    	function exitFullScreen() {
+    		$("#header_menu").show();
+    		$("#map_canvas").removeClass('full_screen_map');
+
+    		initialize();
+    		if(overlaysSet){overlaysSet=false;setOverlays();}
+    		//alert("Trying to execute exitFullScreen!");
+    	}
+
+
+    	//making the exit fullscreen button
+    	function FSControl(controlDiv, map) {
+
+    	  // Set CSS styles for the DIV containing the control
+    	  // Setting padding to 5 px will offset the control
+    	  // from the edge of the map
+    	  controlDiv.style.padding = '5px';
+
+    	  // Set CSS for the control border
+    	  var controlUI = document.createElement('DIV');
+    	  controlUI.style.backgroundColor = '#f8f8f8';
+    	  controlUI.style.borderStyle = 'solid';
+    	  controlUI.style.borderWidth = '1px';
+    	  controlUI.style.borderColor = '#a9bbdf';;
+    	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
+    	  controlUI.style.cursor = 'pointer';
+    	  controlUI.style.textAlign = 'center';
+    	  controlUI.title = 'Toggle the fullscreen mode';
+    	  controlDiv.appendChild(controlUI);
+
+    	  // Set CSS for the control interior
+    	  var controlText = document.createElement('DIV');
+    	  controlText.style.fontSize = '12px';
+    	  controlText.style.fontWeight = 'bold';
+    	  controlText.style.color = '#000000';
+    	  controlText.style.paddingLeft = '4px';
+    	  controlText.style.paddingRight = '4px';
+    	  controlText.style.paddingTop = '3px';
+    	  controlText.style.paddingBottom = '2px';
+    	  controlUI.appendChild(controlText);
+    	  //toggle the text of the button
+    	   if($("#map_canvas").hasClass("full_screen_map")){
+    	      controlText.innerHTML = 'Exit Fullscreen';
+    	    } else {
+    	      controlText.innerHTML = 'Fullscreen';
+    	    }
+
+    	  // Setup the click event listeners: toggle the full screen
+
+    	  google.maps.event.addDomListener(controlUI, 'click', function() {
+
+    	   if($("#map_canvas").hasClass("full_screen_map")){
+    	    exitFullScreen();
+    	    } else {
+    	    fullScreen();
+    	    }
+    	  });
+
+    	}
+
+      
+      
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+
+
 <p><%=mappingnote %>
 </p>
 
-
-<script
-  src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<%=CommonConfiguration.getGoogleMapsKey() %>"
-  type="text/javascript"></script>
-<script type="text/javascript">
-  function initialize() {
-    if (GBrowserIsCompatible()) {
-      var map = new GMap2(document.getElementById("map_canvas"));
-
-
-    <%
-        double centroidX=0;
-        int countPoints=0;
-        double centroidY=0;
-        for(int c=0;c<haveGPSData.size();c++) {
-          Encounter mapEnc=(Encounter)haveGPSData.get(c);
-          countPoints++;
-          centroidX+=mapEnc.getDecimalLatitudeAsDouble();
-          centroidY+=mapEnc.getDecimalLongitudeAsDouble();
-        }
-        centroidX=centroidX/countPoints;
-        centroidY=centroidY/countPoints;
-
-        %>
-      map.setCenter(new GLatLng(<%=centroidX%>, <%=centroidY%>), 1);
-      map.addControl(new GSmallMapControl());
-      map.addControl(new GMapTypeControl());
-      map.setMapType(G_HYBRID_MAP);
-    <%
-        for(int t=0;t<haveGPSData.size();t++) {
-
-          Encounter mapEnc=(Encounter)haveGPSData.get(t);
-
-          double myLat=mapEnc.getDecimalLatitudeAsDouble();
-          double myLong=mapEnc.getDecimalLongitudeAsDouble();
-
-
-      %>
-      var point<%=t%> = new GLatLng(<%=myLat%>, <%=myLong%>, false);
-      var marker<%=t%> = new GMarker(point<%=t%>);
-      GEvent.addListener(marker<%=t%>, "click", function() {
-        window.location = "http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>";
-      });
-      GEvent.addListener(marker<%=t%>, "mouseover", function() {
-        marker<%=t%>.openInfoWindowHtml("<%=markedIndividualTypeCaps%>: <strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=mapEnc.isAssignedToMarkedIndividual()%>\"><%=mapEnc.isAssignedToMarkedIndividual()%></a></strong><br><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=mapEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=mapEnc.getDate()%><br>Sex: <%=mapEnc.getSex()%><br><br><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=mapEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>");
-      });
-
-
-      map.addOverlay(marker<%=t%>);
-
-    <%
-        }
-      %>
-
-
-    }
-  }
-</script>
-<div id="map_canvas" style="width: 510px; height: 350px"></div>
+ <div id="map_canvas" style="width: 770px; height: 510px; "></div>
 
 <%} else {%>
 <p><%=noGPS %>
