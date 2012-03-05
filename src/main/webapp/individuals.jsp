@@ -999,9 +999,9 @@ else {
 <br />
 <p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>
 <%
-  Vector haveGPSData = new Vector();
-  haveGPSData = sharky.returnEncountersWithGPSData();
-  if (haveGPSData.size() > 0) {
+  Vector haveGPSData = sharky.returnEncountersWithGPSData();
+  int havegpsSize=haveGPSData.size();
+  if (havegpsSize > 0) {
 %>
 
 
@@ -1030,20 +1030,10 @@ else {
  
         
         <%
-        //Vector haveGPSData = new Vector();
-        
-        Vector rEncounters=sharky.returnEncountersWithGPSData();
-        int rEncountersSize=rEncounters.size();
-        int count = 0;
 
-          
-      
-        
-      
-if(rEncountersSize>0){
-	int havegpsSize=rEncounters.size();
+
  for(int y=0;y<havegpsSize;y++){
-	 Encounter thisEnc=(Encounter)rEncounters.get(y);
+	 Encounter thisEnc=(Encounter)haveGPSData.get(y);
 	 
 
  %>
@@ -1076,7 +1066,7 @@ if(rEncountersSize>0){
  
  <%
  
-	 }
+
 } 
 
  %>
