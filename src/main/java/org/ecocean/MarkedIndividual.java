@@ -163,14 +163,7 @@ public class MarkedIndividual {
         }
 
       }
-    for(int d=0;d<numUnidentifiableEncounters;d++) {
-      Encounter temp=(Encounter)unidentifiableEncounters.get(d);
-      if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
 
-        haveData.add(temp);
-        }
-
-      }
     return haveData;
 
   }
