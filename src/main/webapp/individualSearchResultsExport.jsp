@@ -34,7 +34,7 @@
     if (session.getAttribute("langCode") != null) {
       langCode = (String) session.getAttribute("langCode");
     }
-    props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
+    props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsExport.properties"));
 
 
     int startNum = 1;
@@ -167,13 +167,13 @@
 <ul id="tabmenu">
 
 
-  <li><a class="active"><%=props.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("table")%>
   </a></li>
   <li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
   </a></li>
   <li><a href="individualSearchResultsAnalysis.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
   </a></li>
-    <li><a href="individualSearchResultsExport.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("export")%>
+    <li><a class="active"><%=props.getProperty("export")%>
   </a></li>
 
 </ul>
@@ -182,175 +182,18 @@
     <td>
       <br/>
 
-      <h1 class="intro"><span class="para"><img src="images/tag_big.gif" width="35"
-                                                align="absmiddle"/>
+      <h1 class="intro">
         <%=props.getProperty("title")%>
       </h1>
 
-      <p><%=props.getProperty("instructions")%>
-      </p>
     </td>
   </tr>
 </table>
 
 
-<table width="810" id="results">
-  <tr class="lineitem">
-    <td class="lineitem" bgcolor="#99CCFF"></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-      <strong><%=props.getProperty("markedIndividual")%>
-      </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-      <strong><%=props.getProperty("numEncounters")%>
-      </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-      <strong><%=props.getProperty("maxYearsBetweenResights")%>
-      </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-      <strong><%=props.getProperty("sex")%>
-      </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-      <strong><%=props.getProperty("numLocationsSighted")%>
-      </strong></td>
-
-  </tr>
-
-  <%
-
-    //set up the statistics counters
-    int count = 0;
-    int numNewlyMarked = 0;
-
-    Vector histories = new Vector();
-    for (int f = 0; f < rIndividuals.size(); f++) {
-      MarkedIndividual indie = (MarkedIndividual) rIndividuals.get(f);
-      count++;
-
-      //check if this individual was newly marked in this period
-      Encounter[] dateSortedEncs = indie.getDateSortedEncounters(true);
-      int sortedLength = dateSortedEncs.length - 1;
-      Encounter temp = dateSortedEncs[sortedLength];
-
-
-      if ((temp.getYear() == year1) && (temp.getYear() < year2) && (temp.getMonth() >= month1)) {
-        numNewlyMarked++;
-      } else if ((temp.getYear() > year1) && (temp.getYear() == year2) && (temp.getMonth() <= month2)) {
-        numNewlyMarked++;
-      } else if ((temp.getYear() >= year1) && (temp.getYear() <= year2) && (temp.getMonth() >= month1) && (temp.getMonth() <= month2)) {
-        numNewlyMarked++;
-      }
-
-
-      if ((count >= startNum) && (count <= endNum)) {
-        Encounter tempEnc = indie.getEncounter(0);
-  %>
-  <tr class="lineitem">
-    <td class="lineitem" width="102" bgcolor="#000000"><img
-      src="<%=("/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+tempEnc.getEncounterNumber()+"/thumb.jpg")%>"></td>
-    <td class="lineitem"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
-    </a>
-      <%
-        if ((indie.getAlternateID() != null) && (!indie.getAlternateID().equals("None"))) {
-      %> <br /><font size="-1"><%=props.getProperty("alternateID")%>: <%=indie.getAlternateID()%>
-      </font> <%
-        }
-      %>
-      <br /><font size="-1"><%=props.getProperty("firstIdentified")%>: <%=temp.getMonth() %>
-        /<%=temp.getYear() %>
-      </font>
-      <%
-      if(CommonConfiguration.showProperty("showTaxonomy")){
-      	if(indie.getGenusSpecies()!=null){
-      %>
-      	<br /><em><font size="-1"><%=indie.getGenusSpecies()%></font></em>
-      <%
-      	}
-      }
-      %>
-
-    </td>
-    <td class="lineitem"><%=indie.totalEncounters()%>
-    </td>
-
-    <td class="lineitem"><%=indie.getMaxNumYearsBetweenSightings()%>
-    </td>
-
-    <td class="lineitem"><%=indie.getSex()%>
-    </td>
-
-    <td class="lineitem"><%=indie.participatesInTheseLocationIDs().size()%>
-    </td>
-  </tr>
-  <%
-      } //end if to control number displayed
-      if (((request.getParameter("export") != null) || (request.getParameter("capture") != null)) && (request.getParameter("startNum") == null)) {
-        //let's generate a programMarkEntry for this shark or check for an existing one
-        //first generate a history
-        int startYear = 3000;
-        int endYear = 3000;
-        int startMonth = 3000;
-        int endMonth = 3000;
-        String history = "";
-        if (year1 > year2) {
-          startYear = year2;
-          endYear = year1;
-          startMonth = month2;
-          endMonth = year1;
-        } else {
-          startYear = year1;
-          endYear = year2;
-          startMonth = month1;
-          endMonth = month2;
-        }
-        int NumHistoryYears = (endYear - startYear) + 1;
-
-        //there will be yearDiffs histories
-        while (startYear <= endYear) {
-          if (request.getParameter("subsampleMonths") != null) {
-            int monthIter = startMonth;
-            while (monthIter <= endMonth) {
-              if (indie.wasSightedInMonth(startYear, monthIter)) {
-                history = history + "1";
-              } else {
-                history = history + "0";
-              }
-              monthIter++;
-            } //end while
-          } else {
-            if (indie.wasSightedInYear(startYear)) {
-              history = history + "1";
-            } else {
-              history = history + "0";
-            }
-          }
-          startYear++;
-        }
-
-        boolean foundIdenticalHistory = false;
-        for (int h = 0; h < histories.size(); h++) {
-
-        }
-        if (!foundIdenticalHistory) {
-
-          if (history.indexOf("1") != -1) {
-
-          }
-        }
-
-
-      } //end if export
-
-    } //end for
-    boolean includeZeroYears = true;
-
-    boolean subsampleMonths = false;
-    if (request.getParameter("subsampleMonths") != null) {
-      subsampleMonths = true;
-    }
-    numResults = count;
-  %>
-</table>
+<p>Example output: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=request.getQueryString()%>">
+CAPTURE with annual seasons</a>
+</p>
 
 
 <%
@@ -401,26 +244,12 @@
 </table>
 
 <p>
-<table width="810" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td align="left">
-      <p><strong><%=props.getProperty("matchingMarkedIndividuals")%>
-      </strong>: <%=count%><br/>
-        <%=props.getProperty("numFirstSighted")%>: <%=numNewlyMarked %>
-      </p>
-      <%myShepherd.beginDBTransaction();%>
-      <p><strong><%=props.getProperty("totalMarkedIndividuals")%>
-      </strong>: <%=(myShepherd.getNumMarkedIndividuals())%>
-      </p>
-    </td>
+
     <%
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
 
-    %>
-  </tr>
-</table>
-<%
+
   if (request.getParameter("noQuery") == null) {
 %>
 <table>

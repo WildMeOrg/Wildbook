@@ -423,6 +423,8 @@
   </a></li>
   <li><a class="active"><%=encprops.getProperty("analysis")%>
   </a></li>
+    <li><a href="individualSearchResultsExport.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("export")%>
+  </a></li>
  
  </ul>
  <table width="810px" border="0" cellspacing="0" cellpadding="0">
