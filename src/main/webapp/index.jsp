@@ -61,7 +61,7 @@
   <link rel="shortcut icon"
         href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
 
-  <link rel="shortcut icon" href="images/favicon.ico"/>
+
   <style type="text/css">
     <!--
 
