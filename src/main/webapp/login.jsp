@@ -65,8 +65,6 @@
     <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
     <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
           rel="stylesheet" type="text/css"/>
-    <link rel="shortcut icon"
-          href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
 
     <style type="text/css">
       <!--
