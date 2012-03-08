@@ -679,7 +679,7 @@ margin-bottom: 8px !important;
 </c:if>
 <table>
 <tr>
-<th>Type</th><th>Size</th><th>Units</th><c:if test="${!empty samplingProtocols}"><th>Sampling Protocol</th></c:if>
+<th class="measurement">Type</th><th class="measurement">Size</th><th class="measurement">Units</th><c:if test="${!empty samplingProtocols}"><th class="measurement">Sampling Protocol</th></c:if>
 </tr>
 <c:forEach var="item" items="${measurements}">
  <% 
