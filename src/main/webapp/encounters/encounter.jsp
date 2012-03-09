@@ -173,6 +173,19 @@ table.tissueSample td {
     background-color: white;
     -moz-border-radius: ;
 }
+
+
+th.measurement{
+	 font-size: 0.9em;
+	 font-weight: normal;
+	 font-style:italic;
+}
+
+td.measurement{
+	 font-size: 0.9em;
+	 font-weight: normal;
+}
+
 </style>
 
 
