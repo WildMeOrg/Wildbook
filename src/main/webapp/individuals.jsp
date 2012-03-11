@@ -23,6 +23,8 @@
 
 <%
 
+  //test comment
+
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -252,7 +254,24 @@ table.tissueSample td {
 
   </script>
 
+<!--  FACEBOOK LIKE BUTTON -->
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
 
+<!-- GOOGLE PLUS-ONE BUTTON -->
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
 
 
 
@@ -297,17 +316,37 @@ table.tissueSample td {
 
 %>
 
-<h1><strong><span class="para"><img src="images/tag_big.gif" width="50px" height="*"
-                                    align="absmiddle"/></span>
-  <%=markedIndividualTypeCaps %>
-</strong>: <%=sharky.getName()%>
-</h1>
+<table><tr>
+<td>
+<span class="para"><img src="images/tag_big.gif" width="75px" height="*" align="absmiddle"/></span>
+</td>
+<td valign="middle">
+ <h1><strong> <%=markedIndividualTypeCaps %>
+</strong>: <%=sharky.getIndividualID()%></h1>
+
+ <table><tr valign="middle">  
+  <td>
+    <!-- Google PLUS-ONE button -->
+<g:plusone size="small" annotation="none"></g:plusone>
+</td>
+<td>
+<!--  Twitter TWEET THIS button -->
+<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+</td>
+<td>
+<!-- Facebook LIKE button -->
+<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
+</td>
+</tr></table> </td></tr></table>
 <a name="alternateid"></a>
 
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
   <%=sharky.getAlternateID()%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
     href="individuals.jsp?number=<%=name%>&edit=alternateid#alternateid"><%=edit%>
   </a>]<%}%>
+
+  
 </p>
 <%
   if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("alternateid"))) {%>
