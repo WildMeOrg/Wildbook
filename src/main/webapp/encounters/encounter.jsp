@@ -744,7 +744,7 @@ margin-bottom: 8px !important;
    }
  %>
 <tr>
-    <td><c:out value="${item.label}"/></td><td><c:out value="${measurementValue}"/></td><td><c:out value="${item.unitsLabel}"/></td><td><c:out value="${samplingProtocol}"/></td>
+    <td class="measurement"><c:out value="${item.label}"/></td><td class="measurement"><c:out value="${measurementValue}"/></td><td class="measurement"><c:out value="${item.unitsLabel}"/></td><td class="measurement"><c:out value="${samplingProtocol}"/></td>
 </tr>
 </c:forEach>
 </table>
