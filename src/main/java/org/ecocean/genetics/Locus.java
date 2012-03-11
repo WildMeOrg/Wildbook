@@ -24,7 +24,7 @@ public class Locus implements java.io.Serializable{
    * @param allelle0
    * @param allelle1
    */
-  public Locus(String name, Integer allelle0, Integer allelle1){
+  public Locus(String name, Integer allele0, Integer allele1){
 
     this.allele0=allele0;
     this.allele1=allele1;
