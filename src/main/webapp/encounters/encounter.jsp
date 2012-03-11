@@ -255,7 +255,24 @@ margin-bottom: 8px !important;
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
   <script type="text/javascript" src="StyledMarker.js"></script>
 
+<!--  FACEBOOK LIKE BUTTON -->
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
 
+<!-- GOOGLE PLUS-ONE BUTTON -->
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
 </head>
 
 <body <%if (request.getParameter("noscript") == null) {%>
@@ -341,7 +358,26 @@ margin-bottom: 8px !important;
     <%
       }
     %>
-    <%}%> <%
+    <%}%> 
+    
+ <table><tr valign="middle">  
+  <td>
+    <!-- Google PLUS-ONE button -->
+<g:plusone size="small" annotation="none"></g:plusone>
+</td>
+<td>
+<!--  Twitter TWEET THIS button -->
+<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+</td>
+<td>
+<!-- Facebook LIKE button -->
+<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
+</td>
+</tr></table> 
+<br />
+<br />
+    <%
     if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
   %>
     <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
