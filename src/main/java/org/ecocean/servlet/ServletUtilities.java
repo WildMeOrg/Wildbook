@@ -335,18 +335,18 @@ public class ServletUtilities {
     boolean isOwner = false;
     if (request.isUserInRole("admin")) {
       isOwner = true;
-    } else if (request.isUserInRole("admin")) {
+    } 
+    else if ((enc.getLocationCode()!=null)&&request.isUserInRole(enc.getLocationCode())) {
       isOwner = true;
-    } else if ((request.isUserInRole(enc.getLocationCode())) && (request.isUserInRole("admin"))) {
-      isOwner = true;
-    } else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser())) && (request.isUserInRole("admin"))))) {
+    } 
+    else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser())) ))) {
       isOwner = true;
     }
     return isOwner;
   }
 
   public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request) {
-    if (request.isUserInRole("admin")) {
+    if (request.isUserInRole("admin") || request.isUserInRole("manager")) {
       return true;
     }
 
