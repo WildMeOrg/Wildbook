@@ -129,6 +129,21 @@ public class Shepherd {
     }
     return (uniqueID);
   }
+  
+  public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
+    
+    beginDBTransaction();
+    try {
+      pm.makePersistent(indie);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new MarkedIndividual in Shepherd.storeNewMarkedIndividual().");
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
 
   /**
    * Persists a new adoption in the database.
@@ -707,32 +722,7 @@ public class Shepherd {
    * @see MarkedIndividual
    */
   public boolean addMarkedIndividual(MarkedIndividual newShark) {
-    if(newShark.getIndividualID().trim().equals("")){
-      System.out.println("Returning false because newShark.getIndividualID() equals: "+newShark.getIndividualID());
-      return false;
-     }
-    Extent sharkClass = pm.getExtent(MarkedIndividual.class, true);
-    Query query = pm.newQuery(sharkClass);
-    Iterator allsharks = getAllMarkedIndividuals(query);
-    while (allsharks.hasNext()) {
-      MarkedIndividual tempShark = (MarkedIndividual) allsharks.next();
-      System.out.println(tempShark.getName()+" vs "+newShark.getIndividualID());
-      if (tempShark.getName().equals(newShark.getName())) {
-        System.out.println("failed in addMarkedIndividual");
-        query.closeAll();
-        query = null;
-        sharkClass = null;
-        return false;
-      }
-    }
-
-      pm.makePersistent(newShark);
-
-      query.closeAll();
-      query = null;
-      sharkClass = null;
-      return true;
-
+    return storeNewMarkedIndividual(newShark);
   }
 
 
