@@ -90,7 +90,7 @@
 <div id="maintext">
 <%
   StringBuffer new_message = new StringBuffer();
-  new_message.append("The library has received a new whale shark encounter submission. You can " +
+  new_message.append("The "+CommonConfiguration.getProperty("htmlTitle")+" library has received a new encounter submission. You can " +
     "view it at:\nhttp://" + CommonConfiguration.getURLLocation(request) +
     "/encounters/encounter" +
     ".jsp?number="+ number);
