@@ -31,7 +31,7 @@ import net.sourceforge.jwebunit.junit.WebTestCase;
 public class ContactIT extends WebTestCase {
   public void setUp() throws Exception {
     super.setUp();
-    setBaseUrl("http://localhost:9090");
+    setBaseUrl("http://localhost:9090/shepherd");
   }
 
   public void testContactUs() {

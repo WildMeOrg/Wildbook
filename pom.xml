@@ -290,6 +290,9 @@
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>8.1.0.RC4</version>
                 <configuration>
+                  <webApp>
+                    <contextPath>/shepherd</contextPath>
+                  </webApp>
                     <!--jettyConfig>src/test/resources/jetty/jetty.xml</jettyConfig-->
                     <loginServices>
                         <loginService implementation="org.eclipse.jetty.security.HashLoginService">
@@ -314,6 +317,9 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
+                            <webApp>
+                              <contextPath>/shepherd</contextPath>
+                            </webApp>
                             <connectors>
                                 <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
                                     <port>9090</port>
@@ -332,6 +338,9 @@
                             <goal>stop</goal>
                         </goals>
                         <configuration>
+                            <webApp>
+                              <contextPath>/shepherd</contextPath>
+                            </webApp>
                             <connectors>
                                 <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
                                     <port>9090</port>

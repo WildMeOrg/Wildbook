@@ -6,12 +6,12 @@
   <component name="ArtifactManager">
     <artifact type="war" name="shepherd:war">
       <output-path>$PROJECT_DIR$/target</output-path>
-      <root id="archive" name="shepherd-2.0.0-RELEASE.war">
+      <root id="archive" name="shepherd-3.0.0-EXPERIMENTAL.war">
         <element id="artifact" artifact-name="shepherd:war exploded" />
       </root>
     </artifact>
     <artifact type="exploded-war" name="shepherd:war exploded">
-      <output-path>$PROJECT_DIR$/target/shepherd-2.0.0-RELEASE</output-path>
+      <output-path>$PROJECT_DIR$/target/shepherd-3.0.0-EXPERIMENTAL</output-path>
       <root id="root">
         <element id="javaee-facet-resources" facet="shepherd/web/Web" />
         <element id="directory" name="WEB-INF">
@@ -20,6 +20,9 @@
           </element>
           <element id="directory" name="lib">
             <element id="library" level="project" name="Maven: javax.servlet:servlet-api:2.5" />
+            <element id="library" level="project" name="Maven: ch.qos.logback:logback-classic:1.0.0" />
+            <element id="library" level="project" name="Maven: ch.qos.logback:logback-core:1.0.0" />
+            <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.6.1" />
             <element id="library" level="project" name="Maven: commons-codec:commons-codec:1.4" />
             <element id="library" level="project" name="Maven: commons-logging:commons-logging:1.0.4" />
             <element id="library" level="project" name="Maven: javax.mail:mail:1.4.1" />
@@ -53,7 +56,7 @@
             <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-api-jdo:3.0.4" />
             <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-spatial:3.0.1" />
             <element id="library" level="project" name="Maven: org.datanucleus:datanucleus-jodatime:3.0.1" />
-            <element id="library" level="project" name="Maven: org.apache.derby:derby:10.6.1.0" />
+            <element id="library" level="project" name="Maven: org.apache.derby:derby:10.8.2.2" />
             <element id="library" level="project" name="Maven: org.xerial:sqlite-jdbc:3.6.16" />
             <element id="library" level="project" name="Maven: org.xerial.thirdparty:nestedvm:1.0" />
             <element id="library" level="project" name="Maven: org.apache.sanselan:sanselan:0.97-incubator" />
@@ -76,7 +79,6 @@
             <element id="library" level="project" name="Maven: asm:asm-commons:3.1" />
             <element id="library" level="project" name="Maven: asm:asm-tree:3.1" />
             <element id="library" level="project" name="Maven: xerces:xercesImpl:2.4.0" />
-            <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.6.1" />
             <element id="library" level="project" name="Maven: dilib:dilib:1.0" />
             <element id="library" level="project" name="Maven: org.geotools:gt-main:2.7.0" />
             <element id="library" level="project" name="Maven: org.geotools:gt-api:2.7.0" />
@@ -301,26 +303,26 @@
         <root url="jar://$MAVEN_REPOSITORY$/asm/asm/3.1/asm-3.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: ch.qos.logback:logback-classic:0.9.24">
+    <library name="Maven: ch.qos.logback:logback-classic:1.0.0">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-classic/0.9.24/logback-classic-0.9.24.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-classic/1.0.0/logback-classic-1.0.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-classic/0.9.24/logback-classic-0.9.24-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-classic/1.0.0/logback-classic-1.0.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-classic/0.9.24/logback-classic-0.9.24-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-classic/1.0.0/logback-classic-1.0.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: ch.qos.logback:logback-core:0.9.24">
+    <library name="Maven: ch.qos.logback:logback-core:1.0.0">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-core/0.9.24/logback-core-0.9.24.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-core/1.0.0/logback-core-1.0.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-core/0.9.24/logback-core-0.9.24-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-core/1.0.0/logback-core-1.0.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-core/0.9.24/logback-core-0.9.24-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/ch/qos/logback/logback-core/1.0.0/logback-core-1.0.0-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: com.drewnoakes:metadata-extractor:2.4.0-beta-1">
@@ -697,15 +699,15 @@
         <root url="jar://$MAVEN_REPOSITORY$/net/sourceforge/nekohtml/nekohtml/1.9.14/nekohtml-1.9.14-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="Maven: org.apache.derby:derby:10.6.1.0">
+    <library name="Maven: org.apache.derby:derby:10.8.2.2">
       <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/apache/derby/derby/10.6.1.0/derby-10.6.1.0.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/apache/derby/derby/10.8.2.2/derby-10.8.2.2.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/apache/derby/derby/10.6.1.0/derby-10.6.1.0-javadoc.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/apache/derby/derby/10.8.2.2/derby-10.8.2.2-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/apache/derby/derby/10.6.1.0/derby-10.6.1.0-sources.jar!/" />
+        <root url="jar://$MAVEN_REPOSITORY$/org/apache/derby/derby/10.8.2.2/derby-10.8.2.2-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: org.apache.geronimo.specs:geronimo-annotation_1.0_spec:1.1.1">

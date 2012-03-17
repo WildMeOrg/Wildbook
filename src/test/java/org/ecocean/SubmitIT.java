@@ -27,7 +27,7 @@ import net.sourceforge.jwebunit.junit.WebTestCase;
 public class SubmitIT extends WebTestCase {
   public void setUp() throws Exception {
     super.setUp();
-    setBaseUrl("http://localhost:9090");
+    setBaseUrl("http://localhost:9090/shepherd");
   }
   public void testSubmit() {
     beginAt("/index.jsp");
