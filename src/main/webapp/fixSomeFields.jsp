@@ -62,6 +62,21 @@ while(allEncs.hasNext()){
 	
 	//change state
 	Encounter sharky=(Encounter)allEncs.next();
+	
+	if((sharky.getSizeGuess()!=null)&&(!sharky.getSizeGuess().equals(""))){
+		if((sharky.getMeasurements()!=null)&&(sharky.getMeasurements().size()>0)){
+			
+			Measurement m=sharky.getMeasurements().get(0);
+			//if((m.getSamplingProtocol()==null)||(m.getSamplingProtocol().equals(""))){
+			%>
+			<p>Swapping <%=sharky.getCatalogNumber() %> which has sampling protocol: <%=m.getSamplingProtocol() %> which will be replaced with: <%=sharky.getSizeGuess() %></p>
+			<%
+				m.setSamplingProtocol(sharky.getSizeGuess());
+			//}
+		}
+		
+	}
+	
 	//if(sharky.getApproved()){sharky.setState("approved");}
 	//else if(sharky.getUnidentifiable()){sharky.setState("unidentifiable");}
 	//else{sharky.setState("unapproved");}
@@ -116,9 +131,9 @@ while(allEncs.hasNext()){
 }
 
 
-while(allSharks.hasNext()){
+//while(allSharks.hasNext()){
 
-	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	//MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
 	
 	//populate max years between resightings
 	/*
@@ -134,9 +149,9 @@ while(allSharks.hasNext()){
 			
 		}
 	}*/
-	sharky.resetMaxNumYearsBetweenSightings();
+	//sharky.resetMaxNumYearsBetweenSightings();
 	
-}
+//}
 
 
 myShepherd.commitDBTransaction();
