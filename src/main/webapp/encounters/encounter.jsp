@@ -728,7 +728,7 @@ margin-bottom: 8px !important;
 </c:if>
 <table>
 <tr>
-<th class="measurement">Type</th><th class="measurement">Size</th><th class="measurement">Units</th><c:if test="${!empty samplingProtocols}"><th class="measurement">Sampling Protocol</th></c:if>
+<th class="measurement">Type</th><th class="measurement">Size</th><th class="measurement">Units</th><th class="measurement">Sampling Protocol</th>
 </tr>
 <c:forEach var="item" items="${measurements}">
  <% 
@@ -744,7 +744,7 @@ margin-bottom: 8px !important;
    }
  %>
 <tr>
-    <td><c:out value="${item.label}"/></td><td><c:out value="${measurementValue}"/></td><td><c:out value="${item.unitsLabel}"/></td><td><c:out value="${samplingProtocol}"/></td>
+    <td><c:out value="${item.label}"/></td><td><c:out value="${measurementValue}"/></td><td><c:out value="${item.unitsLabel}"/></td><td><%=event.getSamplingProtocol() %></td>
 </tr>
 </c:forEach>
 </table>
