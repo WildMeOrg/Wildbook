@@ -734,6 +734,7 @@ margin-bottom: 8px !important;
  <% 
     MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
     Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
+    if(event!=null){
     if (event != null) {
         pageContext.setAttribute("measurementValue", event.getValue());
         pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode));
@@ -744,8 +745,19 @@ margin-bottom: 8px !important;
    }
  %>
 <tr>
-    <td><c:out value="${item.label}"/></td><td><c:out value="${measurementValue}"/></td><td><c:out value="${item.unitsLabel}"/></td><td><%=event.getSamplingProtocol() %></td>
+    <td><c:out value="${item.label}"/></td><td><c:out value="${measurementValue}"/></td><td><c:out value="${item.unitsLabel}"/></td><td>
+    <%
+    if(event.getSamplingProtocol()!=null) {
+    %>
+    	<%=event.getSamplingProtocol() %>
+    <%
+    } 
+    %>
+    </td>
 </tr>
+<%
+    }
+%>
 </c:forEach>
 </table>
 </p>
