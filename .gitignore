@@ -2,6 +2,9 @@ target
 bin
 out
 .idea*
+*.ipr
+*.iml
+*.iws
 *.log
 shepherd_derby_database
 /mvnCleanInstallOutput
