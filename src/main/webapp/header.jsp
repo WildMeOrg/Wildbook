@@ -164,8 +164,7 @@
       </ul>
       <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
     <li class="drop">
-      <a
-        href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp"
+      <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp"
         style="margin: 0px 0 0px 0px; position: relative; width: 85px; height: 25px; z-index: 100;"><strong><%=props.getProperty("search")%>
       </strong></a>
 
@@ -179,18 +178,26 @@
         <li>
           <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp"
              class="enclose"
-             style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;">
+             style="margin: 0px 0 0px 0px; position: relative; width: 150px; height: 25px;">
             <%=props.getProperty("encounterSearch")%>
           </a></li>
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearch.jsp"
           class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;"><%=props.getProperty("individualSearch")%>
+          style="margin: 0px 0 0px 0px; position: relative; width: 150px; height: 25px;"><%=props.getProperty("individualSearch")%>
         </a></li>
+        
+        <li>
+	          <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/locationSearch.jsp"
+	             class="enclose"
+	             style="margin: 0px 0 0px 0px; position: relative; width: 150px; height: 25px;">
+	            <%=props.getProperty("locationSearch")%>
+        </a></li>
+        
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/googleSearch.jsp"
           class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;"><%=props.getProperty("googleSearch")%>
+          style="margin: 0px 0 0px 0px; position: relative; width: 150px; height: 25px;"><%=props.getProperty("googleSearch")%>
         </a></li>
 
       </ul>
