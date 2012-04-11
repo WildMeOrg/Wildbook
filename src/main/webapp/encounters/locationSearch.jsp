@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
+         import="org.springframework.mock.web.MockHttpServletRequest,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Properties" %>
@@ -141,8 +141,12 @@ margin-bottom: 8px !important;
 	  //this is then part 2
 	  part="2";
 	  
+	  MockHttpServletRequest mrew=new MockHttpServletRequest();
+	  mrew.setRequestURI(request.getRequestURI());
+	  mrew.setQueryString(request.getQueryString());
+	  
 	  //we also need to store the part 1 parameter
-	  session.setAttribute("locationSearch1",request.getQueryString());
+	  session.setAttribute("locationSearch1", mrew);
   
   }
   
