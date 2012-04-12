@@ -141,9 +141,10 @@ margin-bottom: 8px !important;
 	  //this is then part 2
 	  part="2";
 	  
-	  MockHttpServletRequest mrew=new MockHttpServletRequest();
-	  mrew.setRequestURI(request.getRequestURI());
+	  MockHttpServletRequest mrew=new MockHttpServletRequest(getServletContext(), request.getRequestURI(), request.getMethod());
+	  //mrew.setRequestURI(request.getRequestURI());
 	  mrew.setQueryString(request.getQueryString());
+	  mrew.setParameters(request.getParameterMap());
 	  
 	  //we also need to store the part 1 parameter
 	  session.setAttribute("locationSearch1", mrew);

@@ -65,10 +65,10 @@
     String order = "";
     //EncounterQueryResult queryResult1 = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     EncounterQueryResult queryResult1 = EncounterQueryProcessor.processQuery(myShepherd, (MockHttpServletRequest)session.getAttribute("locationSearch1"), order);
-    
+    //System.out.println(((MockHttpServletRequest)session.getAttribute("locationSearch1")).getQueryString());
     rEncounters1 = queryResult1.getResult();
     EncounterQueryResult queryResult2 = EncounterQueryProcessor.processQuery(myShepherd, request, order);
-    rEncounters2 = queryResult1.getResult();
+    rEncounters2 = queryResult2.getResult();
     
     //let's prep the HashTable for the haplo pie chart
     ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
@@ -260,8 +260,7 @@
 
         var chart1 = new google.visualization.PieChart(document.getElementById('chart_div1'));
         chart1.draw(data, options);
-        var chart2 = new google.visualization.PieChart(document.getElementById('chart_div2'));
-        chart2.draw(data, options);
+
       }
       
       google.setOnLoadCallback(drawSexChart);
@@ -307,13 +306,13 @@
         data.addRows([
           <%
           ArrayList<String> allHaplos2a=myShepherd.getAllHaplotypes(); 
-          int numHaplos2a = allHaplos2.size();
+          int numHaplos2a = allHaplos2a.size();
           
 
           
-          for(int hh=0;hh<numHaplos2;hh++){
+          for(int hh=0;hh<numHaplos2a;hh++){
           %>
-          ['<%=allHaplos2a.get(hh)%>',    <%=pieHashtable1.get(allHaplos2a.get(hh))%>],
+          ['<%=allHaplos2a.get(hh)%>',    <%=pieHashtable2.get(allHaplos2a.get(hh))%>],
 		  <%
           }
 		  %>
@@ -346,8 +345,8 @@
           ]
         };
 
-        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
-        chart.draw(data, options);
+        var chart2 = new google.visualization.PieChart(document.getElementById('chart_div2'));
+        chart2.draw(data, options);
       }
       
       google.setOnLoadCallback(drawSexChart);
@@ -406,10 +405,7 @@
      </td>
    </tr>
 </table>
- 
- <p>
- Number matching encounters: <%=resultSize2 %>
- </p>
+
 
 <%
 
@@ -419,15 +415,50 @@
      try {
  %>
  
-
-
+<table>
+<tr><th><%=encprops.getProperty("search1Results") %></th><th><%=encprops.getProperty("search2Results") %></th></tr>
+<tr>
+<td>
  <div id="chart_div1"></div>
-
 <div id="sexchart_div1"></div>
+<div>
+      <p><strong><%=encprops.getProperty("queryDetails")%>
+      </strong></p>
 
+      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
+      </strong><br/>
+        <%=queryResult1.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
+      </p>
+
+      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
+      </strong><br/>
+        <%=queryResult1.getJDOQLRepresentation()%>
+      </p>
+</div>
+</td>
+
+<td>
  <div id="chart_div2"></div>
-
 <div id="sexchart_div2"></div>
+<div>
+
+      <p><strong><%=encprops.getProperty("queryDetails")%>
+      </strong></p>
+
+      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
+      </strong><br/>
+        <%=queryResult2.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
+      </p>
+
+      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
+      </strong><br/>
+        <%=queryResult2.getJDOQLRepresentation()%>
+      </p>
+</div>
+ </td>
+ </tr>
+ 
+ </table>
  
  <%
  
@@ -447,42 +478,7 @@
    rEncounters2 = null;
  
 %>
- <table>
-  <tr>
-    <td align="left">
 
-      <p><strong><%=encprops.getProperty("queryDetails")%>
-      </strong></p>
-
-      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=queryResult1.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
-      </p>
-
-      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
-      </strong><br/>
-        <%=queryResult1.getJDOQLRepresentation()%>
-      </p>
-
-    </td>
-        <td align="left">
-
-      <p><strong><%=encprops.getProperty("queryDetails")%>
-      </strong></p>
-
-      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=queryResult2.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
-      </p>
-
-      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
-      </strong><br/>
-        <%=queryResult2.getJDOQLRepresentation()%>
-      </p>
-
-    </td>
-  </tr>
-</table>
  
  <jsp:include page="../footer.jsp" flush="true"/>
 </div>
