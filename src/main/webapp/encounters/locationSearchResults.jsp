@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.springframework.mock.web.MockHttpServletRequest,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="javax.jdo.Query,org.springframework.mock.web.MockHttpServletRequest,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
 
 
@@ -69,6 +69,22 @@
     rEncounters1 = queryResult1.getResult();
     EncounterQueryResult queryResult2 = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters2 = queryResult2.getResult();
+    
+    //let's also get lists of marked individuals
+     Query query1=myShepherd.getPM().newQuery(queryResult1.getJDOQLRepresentation().replaceFirst("SELECT FROM", "SELECT DISTINCT individualID FROM") + " && (individualID != \"Unassigned\")");
+     List query1Results = (List)query1.execute();
+    
+    Query query2=myShepherd.getPM().newQuery(queryResult2.getJDOQLRepresentation().replaceFirst("SELECT FROM", "SELECT DISTINCT individualID FROM") + " && (individualID != \"Unassigned\")");
+    List query2Results = (List)query2.execute(); 
+    
+    ArrayList<String> matchedIndividuals = new ArrayList<String>();
+    int query1Size=query1Results.size();
+    for(int y=0;y<query1Size;y++){
+    	matchedIndividuals.add((String)query1Results.get(y));
+    }
+    
+    matchedIndividuals.retainAll(query2Results);
+    int numMatchedIndividuals=matchedIndividuals.size();
     
     //let's prep the HashTable for the haplo pie chart
     ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
@@ -405,12 +421,10 @@
      </td>
    </tr>
 </table>
-
+<p><strong>Comparison Overview</strong></p>
+<p>No. matched marked individuals: <%=numMatchedIndividuals%></p>
 
 <%
-
-
- //test comment
 
      try {
  %>
@@ -419,6 +433,8 @@
 <tr><th><%=encprops.getProperty("search1Results") %></th><th><%=encprops.getProperty("search2Results") %></th></tr>
 <tr>
 <td>
+<p>No. matching encounters: <%=rEncounters1.size() %></p>
+<p>No. matching marked individuals: <%=query1Results.size() %></p>
  <div id="chart_div1"></div>
 <div id="sexchart_div1"></div>
 <div>
@@ -438,6 +454,9 @@
 </td>
 
 <td>
+<p>No. matching encounters: <%=rEncounters2.size() %></p>
+<p>No. matching marked individuals: <%=query2Results.size() %></p>
+ 
  <div id="chart_div2"></div>
 <div id="sexchart_div2"></div>
 <div>
