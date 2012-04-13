@@ -102,6 +102,7 @@ margin-bottom: 8px !important;
     ne_long_element.value = "";
     sw_lat_element.value = "";
     sw_long_element.value = "";
+    selectedRectangle.setVisible(false);
 
   }
 </script>
@@ -270,6 +271,8 @@ var markers = [];
 var overlays = [];
 
 
+var selectedRectangle;
+
 var overlaysSet=false;
  
 var geoXml = null;
@@ -296,7 +299,13 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
 	  fsControlDiv.index = 1;
 	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
-
+	//create the selection response rectangle
+	  selectedRectangle = new google.maps.Rectangle({
+	  	map: map,
+	  	visible: false,
+	      strokeColor: "#0000FF",
+	      fillColor: "#0000FF"
+	  });
 
 
    map.enableKeyDragZoom({
@@ -324,6 +333,16 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
           ne_long_element.value = bnds.getNorthEast().lng();
           sw_lat_element.value = bnds.getSouthWest().lat();
           sw_long_element.value = bnds.getSouthWest().lng();
+          
+      	  var neRecBound=new google.maps.LatLng(bnds.getNorthEast().lat(),bnds.getNorthEast().lng());
+    	  var swRecBound=new google.maps.LatLng(bnds.getSouthWest().lat(),bnds.getSouthWest().lng());
+    	  var selectedBounds = new google.maps.LatLngBounds(
+    		swRecBound,
+    		neRecBound
+    	  );
+    	  selectedRectangle.setBounds(selectedBounds);
+          selectedRectangle.setVisible(true);
+          
         });
         
 		<%

@@ -422,7 +422,7 @@
    </tr>
 </table>
 <p><strong>Comparison Overview</strong></p>
-<p>No. matched marked individuals: <%=numMatchedIndividuals%></p>
+<p>No.shared marked individuals: <%=numMatchedIndividuals%></p>
 
 <%
 
