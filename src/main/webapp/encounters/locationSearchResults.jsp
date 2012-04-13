@@ -64,7 +64,8 @@
     //start the query and get the results
     String order = "";
     //EncounterQueryResult queryResult1 = EncounterQueryProcessor.processQuery(myShepherd, request, order);
-    EncounterQueryResult queryResult1 = EncounterQueryProcessor.processQuery(myShepherd, (MockHttpServletRequest)session.getAttribute("locationSearch1"), order);
+    HttpServletRequest request1=(MockHttpServletRequest)session.getAttribute("locationSearch1");
+    EncounterQueryResult queryResult1 = EncounterQueryProcessor.processQuery(myShepherd, request1, order);
     //System.out.println(((MockHttpServletRequest)session.getAttribute("locationSearch1")).getQueryString());
     rEncounters1 = queryResult1.getResult();
     EncounterQueryResult queryResult2 = EncounterQueryProcessor.processQuery(myShepherd, request, order);
@@ -221,10 +222,113 @@
   
 
 
-
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
     
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
+<script type="text/javascript">
+
+
+var center = new google.maps.LatLng(0, 0);
+var map1;
+var map2;
+
+var selectedRectangle1;
+var selectedRectangle2;
+
+  function initialize() {
+	//alert("initializing map!");
+	//overlaysSet=false;
+	var mapZoom = 1;
+
+
+	  map1 = new google.maps.Map(document.getElementById('map_canvas1'), {
+		  zoom: mapZoom,
+		  center: center,
+		  mapTypeId: google.maps.MapTypeId.HYBRID
+		});
+	  
+	  map2 = new google.maps.Map(document.getElementById('map_canvas2'), {
+		  zoom: mapZoom,
+		  center: center,
+		  mapTypeId: google.maps.MapTypeId.HYBRID
+		});
+
+
+	//create the selection response rectangle
+	  selectedRectangle1 = new google.maps.Rectangle({
+	  	map: map1,
+	  	visible: true,
+	      strokeColor: "#0000FF",
+	      fillColor: "#0000FF"
+	  });
+	
+		//create the selection response rectangle
+	  selectedRectangle2 = new google.maps.Rectangle({
+	  	map: map2,
+	  	visible: true,
+	      strokeColor: "#0000FF",
+	      fillColor: "#0000FF"
+	  });
+
+
+		
+		<%
+        //set the previous maps search box if set
+        if((request1.getParameter("ne_lat")!=null) && (request1.getParameter("ne_long")!=null) && (request1.getParameter("sw_lat")!=null) && (request1.getParameter("ne_long")!=null) && (!request1.getParameter("ne_lat").trim().equals("")) && (!request1.getParameter("ne_long").trim().equals("")) && (!request1.getParameter("sw_lat").trim().equals("")) && (!request1.getParameter("sw_long").trim().equals(""))){
+        %>    
+        	
+        	//create the coordinates
+        	var neCoord=new google.maps.LatLng(<%=request1.getParameter("ne_lat")%>,<%=request1.getParameter("ne_long")%>);
+        	var swCoord=new google.maps.LatLng(<%=request1.getParameter("sw_lat")%>,<%=request1.getParameter("sw_long")%>);
+        	var search1Bounds = new google.maps.LatLngBounds(
+        		swCoord,
+        		neCoord
+        	);
+
+        	//create the rectangle
+        	var search1Rectangle = new google.maps.Rectangle({
+        		bounds:search1Bounds,
+        		map: map1,
+        	    strokeColor: "#ff0000",
+        	    fillColor: "#ff0000"
+        	});
+        	map1.fitBounds(search1Bounds);
+	
+        <%    
+        }		
+		%>
+		
+		<%
+        //set the previous maps search box if set
+        if((request.getParameter("ne_lat")!=null) && (request.getParameter("ne_long")!=null) && (request.getParameter("sw_lat")!=null) && (request.getParameter("ne_long")!=null)&&(!request.getParameter("ne_lat").trim().equals("")) &&(!request.getParameter("ne_long").trim().equals("")) && (!request.getParameter("sw_lat").trim().equals("")) && (!request.getParameter("sw_long").trim().equals(""))){
+        %>    
+        	
+        	//create the coordinates
+        	var neCoord2=new google.maps.LatLng(<%=request.getParameter("ne_lat")%>,<%=request.getParameter("ne_long")%>);
+        	var swCoord2=new google.maps.LatLng(<%=request.getParameter("sw_lat")%>,<%=request.getParameter("sw_long")%>);
+        	var search2Bounds = new google.maps.LatLngBounds(
+        		swCoord2,
+        		neCoord2
+        	);
+
+        	//create the rectangle 2
+        	var search2Rectangle = new google.maps.Rectangle({
+        		bounds:search2Bounds,
+        		map: map2,
+        	    strokeColor: "#ff0000",
+        	    fillColor: "#ff0000"
+        	});
+	        map2.fitBounds(search2Bounds);
+        <%    
+        }		
+		%>
+
+          
+ }
+  
+  google.maps.event.addDomListener(window, 'load', initialize);
+</script>
 <script type="text/javascript">
       google.load("visualization", "1", {packages:["corechart"]});
       google.setOnLoadCallback(drawHaploChart1);
@@ -437,6 +541,14 @@
 <p>No. matching marked individuals: <%=query1Results.size() %></p>
  <div id="chart_div1"></div>
 <div id="sexchart_div1"></div>
+		<%
+        //set the previous maps search box if set
+        if((request1.getParameter("ne_lat")!=null) && (request1.getParameter("ne_long")!=null) && (request1.getParameter("sw_lat")!=null) && (request1.getParameter("ne_long")!=null)&&(!request1.getParameter("ne_lat").trim().equals("")) &&(!request1.getParameter("ne_long").trim().equals("")) && (!request1.getParameter("sw_lat").trim().equals("")) && (!request1.getParameter("sw_long").trim().equals(""))){
+        %>   
+			<div id="map_canvas1" style="width: 300px; height: 200px; "></div>
+		<%
+        }
+		%>	
 <div>
       <p><strong><%=encprops.getProperty("queryDetails")%>
       </strong></p>
@@ -459,6 +571,14 @@
  
  <div id="chart_div2"></div>
 <div id="sexchart_div2"></div>
+		<%
+        //set the previous maps search box if set
+        if((request.getParameter("ne_lat")!=null) && (request.getParameter("ne_long")!=null) && (request.getParameter("sw_lat")!=null) && (request.getParameter("ne_long")!=null)&&(!request.getParameter("ne_lat").trim().equals("")) &&(!request.getParameter("ne_long").trim().equals("")) && (!request.getParameter("sw_lat").trim().equals("")) && (!request.getParameter("sw_long").trim().equals(""))){
+        %>   
+			<div id="map_canvas2" style="width: 300px; height: 200px; "></div>
+		<%
+        }
+		%>
 <div>
 
       <p><strong><%=encprops.getProperty("queryDetails")%>
