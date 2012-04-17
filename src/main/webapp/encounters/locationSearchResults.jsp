@@ -27,6 +27,25 @@
 <html>
 <head>
 
+<%!
+public double getHaplotypeFrequencyForSubpopulation(List rIndividuals, String haplotype, Shepherd myShepherd){
+	System.out.println("Starting getHaplotypeFreq...");
+	double numMatches=0;
+	int numIndies=rIndividuals.size();
+	int numIndiesWithHaplotypes=0;
+	for(int p=0;p<numIndies;p++){
+		String indie=(String)rIndividuals.get(p);
+		MarkedIndividual mi= myShepherd.getMarkedIndividual(indie);
+		if(mi.getHaplotype()!=null){numIndiesWithHaplotypes++;}
+		if((mi.getHaplotype()!=null)&&(mi.getHaplotype().trim().equals(haplotype.trim()))){
+			numMatches++;
+		}
+	}
+	//System.out.println("Haplotype freq for "+haplotype+": "+(numMatches/numIndies));
+	return (numMatches/numIndiesWithHaplotypes);
+}
+%>
+
 
 
   <%
@@ -78,11 +97,15 @@
     Query query2=myShepherd.getPM().newQuery(queryResult2.getJDOQLRepresentation().replaceFirst("SELECT FROM", "SELECT DISTINCT individualID FROM") + " && (individualID != \"Unassigned\")");
     List query2Results = (List)query2.execute(); 
     
-    ArrayList<String> matchedIndividuals = new ArrayList<String>();
+    List matchedIndividuals = new ArrayList();
     int query1Size=query1Results.size();
     for(int y=0;y<query1Size;y++){
-    	matchedIndividuals.add((String)query1Results.get(y));
+    	matchedIndividuals.add(query1Results.get(y));
     }
+    
+   //for(int y=0;y<matchedIndividuals.size();y++){
+   // 	if(!query2Results.contains(matchedIndividuals.get(y))){matchedIndividuals.remove(y);y--;}
+   //}
     
     matchedIndividuals.retainAll(query2Results);
     int numMatchedIndividuals=matchedIndividuals.size();
@@ -201,24 +224,19 @@
         width: 600px;
         height: 400px;
       }
+      
+      table.comparison tr td{
+      	vertical-align: top;
+      }
+      
+      table.comparison tr{
+      	vertical-align: top;
+      }
 
     </style>
   
 
 
-  
-      <script>
-        function getQueryParameter(name) {
-          name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-          var regexS = "[\\?&]" + name + "=([^&#]*)";
-          var regex = new RegExp(regexS);
-          var results = regex.exec(window.location.href);
-          if (results == null)
-            return "";
-          else
-            return results[1];
-        }
-  </script>
   
 
 
@@ -228,6 +246,7 @@
 
 <script type="text/javascript">
 
+//let's build some maps
 
 var center = new google.maps.LatLng(0, 0);
 var map1;
@@ -242,68 +261,72 @@ var selectedRectangle2;
 	var mapZoom = 1;
 
 
-	  map1 = new google.maps.Map(document.getElementById('map_canvas1'), {
-		  zoom: mapZoom,
-		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID
-		});
+
 	  
-	  map2 = new google.maps.Map(document.getElementById('map_canvas2'), {
-		  zoom: mapZoom,
-		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID
-		});
 
-
-	//create the selection response rectangle
-	  selectedRectangle1 = new google.maps.Rectangle({
-	  	map: map1,
-	  	visible: true,
-	      strokeColor: "#0000FF",
-	      fillColor: "#0000FF"
-	  });
-	
-		//create the selection response rectangle
-	  selectedRectangle2 = new google.maps.Rectangle({
-	  	map: map2,
-	  	visible: true,
-	      strokeColor: "#0000FF",
-	      fillColor: "#0000FF"
-	  });
 
 
 		
 		<%
-        //set the previous maps search box if set
-        if((request1.getParameter("ne_lat")!=null) && (request1.getParameter("ne_long")!=null) && (request1.getParameter("sw_lat")!=null) && (request1.getParameter("ne_long")!=null) && (!request1.getParameter("ne_lat").trim().equals("")) && (!request1.getParameter("ne_long").trim().equals("")) && (!request1.getParameter("sw_lat").trim().equals("")) && (!request1.getParameter("sw_long").trim().equals(""))){
-        %>    
-        	
-        	//create the coordinates
-        	var neCoord=new google.maps.LatLng(<%=request1.getParameter("ne_lat")%>,<%=request1.getParameter("ne_long")%>);
-        	var swCoord=new google.maps.LatLng(<%=request1.getParameter("sw_lat")%>,<%=request1.getParameter("sw_long")%>);
-        	var search1Bounds = new google.maps.LatLngBounds(
-        		swCoord,
-        		neCoord
-        	);
-
-        	//create the rectangle
-        	var search1Rectangle = new google.maps.Rectangle({
-        		bounds:search1Bounds,
-        		map: map1,
-        	    strokeColor: "#ff0000",
-        	    fillColor: "#ff0000"
-        	});
-        	map1.fitBounds(search1Bounds);
-	
-        <%    
-        }		
-		%>
 		
-		<%
         //set the previous maps search box if set
-        if((request.getParameter("ne_lat")!=null) && (request.getParameter("ne_long")!=null) && (request.getParameter("sw_lat")!=null) && (request.getParameter("ne_long")!=null)&&(!request.getParameter("ne_lat").trim().equals("")) &&(!request.getParameter("ne_long").trim().equals("")) && (!request.getParameter("sw_lat").trim().equals("")) && (!request.getParameter("sw_long").trim().equals(""))){
+        if((request1.getParameter("ne_lat")!=null) && (request1.getParameter("ne_long")!=null) && (request1.getParameter("sw_lat")!=null) && (request1.getParameter("ne_long")!=null)&&(!request1.getParameter("ne_lat").trim().equals("")) &&(!request1.getParameter("ne_long").trim().equals("")) && (!request1.getParameter("sw_lat").trim().equals("")) && (!request1.getParameter("sw_long").trim().equals(""))){
         %>    
+        
+    	  map1 = new google.maps.Map(document.getElementById('map_canvas1'), {
+    		  zoom: mapZoom,
+    		  center: center,
+    		  mapTypeId: google.maps.MapTypeId.HYBRID
+    		});
+      	  
+      	  
+        	//create the selection response rectangle
+      	  selectedRectangle1 = new google.maps.Rectangle({
+      	  	map: map1,
+      	  	visible: true,
+      	      strokeColor: "#0000FF",
+      	      fillColor: "#0000FF"
+      	  });
         	
+            	//create the coordinates
+            	var neCoord=new google.maps.LatLng(<%=request1.getParameter("ne_lat")%>,<%=request1.getParameter("ne_long")%>);
+            	var swCoord=new google.maps.LatLng(<%=request1.getParameter("sw_lat")%>,<%=request1.getParameter("sw_long")%>);
+            	var search1Bounds = new google.maps.LatLngBounds(
+            		swCoord,
+            		neCoord
+            	);
+
+            	//create the rectangle
+            	var search1Rectangle = new google.maps.Rectangle({
+            		bounds:search1Bounds,
+            		map: map1,
+            	    strokeColor: "#ff0000",
+            	    fillColor: "#ff0000"
+            	});
+            	map1.fitBounds(search1Bounds);
+            	
+            <%
+        	}
+			if((request.getParameter("ne_lat")!=null) && (request.getParameter("ne_long")!=null) && (request.getParameter("sw_lat")!=null) && (request.getParameter("ne_long")!=null)&&(!request.getParameter("ne_lat").trim().equals("")) &&(!request.getParameter("ne_long").trim().equals("")) && (!request.getParameter("sw_lat").trim().equals("")) && (!request.getParameter("sw_long").trim().equals(""))){
+		       
+            %>
+      	  map2 = new google.maps.Map(document.getElementById('map_canvas2'), {
+    		  zoom: mapZoom,
+    		  center: center,
+    		  mapTypeId: google.maps.MapTypeId.HYBRID
+    		});
+
+
+
+    	
+    		//create the selection response rectangle
+    	  selectedRectangle2 = new google.maps.Rectangle({
+    	  	map: map2,
+    	  	visible: true,
+    	      strokeColor: "#0000FF",
+    	      fillColor: "#0000FF"
+    	  });
+    		
         	//create the coordinates
         	var neCoord2=new google.maps.LatLng(<%=request.getParameter("ne_lat")%>,<%=request.getParameter("ne_long")%>);
         	var swCoord2=new google.maps.LatLng(<%=request.getParameter("sw_lat")%>,<%=request.getParameter("sw_long")%>);
@@ -324,10 +347,11 @@ var selectedRectangle2;
         }		
 		%>
 
-          
- }
+  }   //end initialize function          
   
   google.maps.event.addDomListener(window, 'load', initialize);
+  
+
 </script>
 <script type="text/javascript">
       google.load("visualization", "1", {packages:["corechart"]});
@@ -525,62 +549,204 @@ var selectedRectangle2;
      </td>
    </tr>
 </table>
-<p><strong>Comparison Overview</strong></p>
-<p>No.shared marked individuals: <%=numMatchedIndividuals%></p>
+<table width="810px">
+	<tr>
+		<td bgcolor="#EEEEFF">
+			<p><strong>Comparison Overview</strong></p>
+			<p>Shared marked individuals: <%=numMatchedIndividuals%></p>
+			
+			 <%
+ 			//now we need to calculate some inbreeding statistics using haplotypes
+ 			
+ 			//first get all haplotypes
+ 			ArrayList<String> allHaplos=myShepherd.getAllHaplotypes();
+			 int numHaplosHere=allHaplos.size();
+ 			
+			//next we need to calculate the combined population size, since there are overlapping individuals
+			//first, let's get the combined ist of marked individuals
+			ArrayList<String> totalPopulation = new ArrayList<String>();
+    		for(int y=0;y<query1Size;y++){
+    			totalPopulation.add((String)query1Results.get(y));
+    		}
+    		int query2Size=query2Results.size();
+    		for(int y=0;y<query2Size;y++){
+    			if(!totalPopulation.contains((String)query2Results.get(y))){totalPopulation.add((String)query2Results.get(y));}
+    		}
+			int totalPopulationSize=totalPopulation.size();
+			
+			double HT=0;
+			double HeSearch1=0;
+			double HeSearch2=0;
+			double pTotalT=0;
+			double pTotal1=0;
+			double pTotal2=0;
+			
+			for(int y=0;y<numHaplosHere;y++){
+				
+				if(!allHaplos.get(y).equals("HET")){
+				
+					double freqTotal=getHaplotypeFrequencyForSubpopulation(totalPopulation, allHaplos.get(y), myShepherd);
+					double qTotal=1-freqTotal;
+					HT+=(freqTotal*freqTotal);
+					pTotalT+=freqTotal;
+				
+				
+					double freq1=getHaplotypeFrequencyForSubpopulation(query1Results, allHaplos.get(y), myShepherd);
+					double q1=1-freq1;
+					HeSearch1+=(freq1*freq1);
+					pTotal1+=freq1;
+				
+				
+					double freq2=getHaplotypeFrequencyForSubpopulation(query2Results, allHaplos.get(y), myShepherd);
+					double q2=1-freq2;
+					HeSearch2+=(freq2*freq2);
+					pTotal2+=freq2;
+				}
+				
+				
+
+			}
+ 			
+			HT=1-HT;
+			HeSearch1=1-HeSearch1;
+			HeSearch2=1-HeSearch2;
+			//double HeAvg = (HeSearch1*query1Size+HeSearch2*query2Size)/totalPopulationSize;
+			double HeAvg = HeSearch1/2+HeSearch2/2;
+			
+			double Fst = (HT-HeAvg)/HT;
+			%>
+			
+			<p>F<sub>st</sub> (Haplotype)= <%=Fst %><br />
+			H<sub>T</sub>: <%=HT %> <br />H<sub>S</sub>: <%=HeAvg %><br />
+			H<sub>expSearch1</sub>: <%=HeSearch1 %><br />
+			H<sub>expSearch2</sub>: <%=HeSearch2 %> <br />
+			p<sub>Total</sub>: <%=pTotalT %> <br />
+			p<sub>1</sub>: <%=pTotal1 %> <br />
+			p<sub>2</sub>: <%=pTotal2 %> <br />
+			</p>
+
+		<%
+			
+			
+
+			
+
+ 			%>
+			</td>
+	</tr>
+</table>
+
 
 <%
 
      try {
  %>
  
-<table>
+<table class="comparison">
 <tr><th><%=encprops.getProperty("search1Results") %></th><th><%=encprops.getProperty("search2Results") %></th></tr>
 <tr>
-<td>
-<p>No. matching encounters: <%=rEncounters1.size() %></p>
-<p>No. matching marked individuals: <%=query1Results.size() %></p>
- <div id="chart_div1"></div>
-<div id="sexchart_div1"></div>
+	<td>
+		<p>No. matching encounters: <%=rEncounters1.size() %></p>
+		<p>No. matching marked individuals: <%=query1Results.size() %></p>
+	</td>
+	<td>
+		<p>No. matching encounters: <%=rEncounters2.size() %></p>
+		<p>No. matching marked individuals: <%=query2Results.size() %></p>
+	</td>
+</tr>
+<tr>
+	<td>
+	<table class="comparison"><tr><td>
+	
+ 			<div id="chart_div1"></div>
+ 		
+
+ 		
+ 		</td></tr></table>
+ 	</td>
+ 	<td>
+ 	<table class="comparison"><tr><td>
+ 		 <div id="chart_div2"></div>
+ 		 </td></tr></table>
+ 	</td>
+ </tr>		
+<tr>
+	<td>
+	<table class="comparison"><tr><td>
+		<div id="sexchart_div1"></div>
+		</td></tr></table>
+	</td>
+	<td>
+	<table class="comparison"><tr><td>
+		<div id="sexchart_div2"></div>
+		</td></tr></table>
+	</td>
+</tr>
+<tr>
+	<td>
 		<%
         //set the previous maps search box if set
         if((request1.getParameter("ne_lat")!=null) && (request1.getParameter("ne_long")!=null) && (request1.getParameter("sw_lat")!=null) && (request1.getParameter("ne_long")!=null)&&(!request1.getParameter("ne_lat").trim().equals("")) &&(!request1.getParameter("ne_long").trim().equals("")) && (!request1.getParameter("sw_lat").trim().equals("")) && (!request1.getParameter("sw_long").trim().equals(""))){
         %>   
+        <table class="comparison"><tr><td>
 			<div id="map_canvas1" style="width: 300px; height: 200px; "></div>
+			</td></tr></table>
 		<%
         }
-		%>	
-<div>
-      <p><strong><%=encprops.getProperty("queryDetails")%>
-      </strong></p>
-
-      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=queryResult1.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
-      </p>
-
-      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
-      </strong><br/>
-        <%=queryResult1.getJDOQLRepresentation()%>
-      </p>
-</div>
-</td>
-
-<td>
-<p>No. matching encounters: <%=rEncounters2.size() %></p>
-<p>No. matching marked individuals: <%=query2Results.size() %></p>
- 
- <div id="chart_div2"></div>
-<div id="sexchart_div2"></div>
+        else{
+		%>
+		<table class="comparison"><tr><td>
+			<p><%=encprops.getProperty("noGPS") %></p>
+			</td></tr></table>
+		<%
+        }
+		%>
+	</td>
+	<td>
 		<%
         //set the previous maps search box if set
         if((request.getParameter("ne_lat")!=null) && (request.getParameter("ne_long")!=null) && (request.getParameter("sw_lat")!=null) && (request.getParameter("ne_long")!=null)&&(!request.getParameter("ne_lat").trim().equals("")) &&(!request.getParameter("ne_long").trim().equals("")) && (!request.getParameter("sw_lat").trim().equals("")) && (!request.getParameter("sw_long").trim().equals(""))){
         %>   
+        <table class="comparison"><tr><td>
 			<div id="map_canvas2" style="width: 300px; height: 200px; "></div>
+			</td></tr></table>
+		<%
+        }
+        else{
+		%>
+			<table class="comparison"><tr><td>
+				<p><%=encprops.getProperty("noGPS") %></p>
+			</td></tr></table>
 		<%
         }
 		%>
-<div>
+	</td>		
+</tr>
+<tr>
+	<td>	
+	<table class="comparison"><tr><td>		
+		<div>
+      		<p><strong><%=encprops.getProperty("queryDetails")%></strong></p>
 
+      		<p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %></strong><br/>
+        		<%=queryResult1.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
+      		</p>
+
+      		<p class="caption"><strong><%=encprops.getProperty("jdoql")%>
+      </strong><br/>
+        <%=queryResult1.getJDOQLRepresentation()%>
+      </p>
+      </td></tr></table>
+</div>
+</td>
+
+<td>
+
+ 
+
+
+<div>
+		<table class="comparison"><tr><td>
       <p><strong><%=encprops.getProperty("queryDetails")%>
       </strong></p>
 
@@ -593,6 +759,7 @@ var selectedRectangle2;
       </strong><br/>
         <%=queryResult2.getJDOQLRepresentation()%>
       </p>
+      </td></tr></table>
 </div>
  </td>
  </tr>
@@ -604,6 +771,12 @@ var selectedRectangle2;
      } 
      catch (Exception e) {
        e.printStackTrace();
+       %>
+       <script type="text\jvascript">
+       		alert("I hit an exception!");
+       </script>
+       <%
+       
      }
  
 
