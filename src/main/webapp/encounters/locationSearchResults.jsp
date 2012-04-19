@@ -34,8 +34,8 @@ public double getHaplotypeFrequencyForSubpopulation(List rIndividuals, String ha
 	int numIndies=rIndividuals.size();
 	int numIndiesWithHaplotypes=0;
 	for(int p=0;p<numIndies;p++){
-		String indie=(String)rIndividuals.get(p);
-		MarkedIndividual mi= myShepherd.getMarkedIndividual(indie);
+		//String indie=(String)rIndividuals.get(p);
+		MarkedIndividual mi= (MarkedIndividual)rIndividuals.get(p);
 		if(mi.getHaplotype()!=null){numIndiesWithHaplotypes++;}
 		if((mi.getHaplotype()!=null)&&(mi.getHaplotype().trim().equals(haplotype.trim()))){
 			numMatches++;
@@ -74,8 +74,8 @@ public double getHaplotypeFrequencyForSubpopulation(List rIndividuals, String ha
     int numResults = 0;
 
     //set up the vector for matching encounters
-    Vector rEncounters1 = new Vector();
-    Vector rEncounters2 = new Vector();
+    Vector rEncounters3 = new Vector();
+    Vector rEncounters4 = new Vector();
 
     //kick off the transaction
     myShepherd.beginDBTransaction();
@@ -84,30 +84,30 @@ public double getHaplotypeFrequencyForSubpopulation(List rIndividuals, String ha
     String order = "";
     //EncounterQueryResult queryResult1 = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     HttpServletRequest request1=(MockHttpServletRequest)session.getAttribute("locationSearch1");
-    EncounterQueryResult queryResult1 = EncounterQueryProcessor.processQuery(myShepherd, request1, order);
+    MarkedIndividualQueryResult queryResult1 = IndividualQueryProcessor.processQuery(myShepherd, request1, order);
     //System.out.println(((MockHttpServletRequest)session.getAttribute("locationSearch1")).getQueryString());
-    rEncounters1 = queryResult1.getResult();
-    EncounterQueryResult queryResult2 = EncounterQueryProcessor.processQuery(myShepherd, request, order);
-    rEncounters2 = queryResult2.getResult();
+    rEncounters3 = queryResult1.getResult();
+    MarkedIndividualQueryResult queryResult2 = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+    rEncounters4 = queryResult2.getResult();
     
     //let's also get lists of marked individuals
-     Query query1=myShepherd.getPM().newQuery(queryResult1.getJDOQLRepresentation().replaceFirst("SELECT FROM", "SELECT DISTINCT individualID FROM") + " && (individualID != \"Unassigned\")");
-     List query1Results = (List)query1.execute();
+    // Query query1=myShepherd.getPM().newQuery(queryResult1.getJDOQLRepresentation().replaceFirst("SELECT FROM", "SELECT DISTINCT individualID FROM") + " && (individualID != \"Unassigned\")");
+    // List query1Results = (List)query1.execute();
     
-    Query query2=myShepherd.getPM().newQuery(queryResult2.getJDOQLRepresentation().replaceFirst("SELECT FROM", "SELECT DISTINCT individualID FROM") + " && (individualID != \"Unassigned\")");
-    List query2Results = (List)query2.execute(); 
+    //Query query2=myShepherd.getPM().newQuery(queryResult2.getJDOQLRepresentation().replaceFirst("SELECT FROM", "SELECT DISTINCT individualID FROM") + " && (individualID != \"Unassigned\")");
+    //List query2Results = (List)query2.execute(); 
     
     List matchedIndividuals = new ArrayList();
-    int query1Size=query1Results.size();
+    int query1Size=rEncounters3.size();
     for(int y=0;y<query1Size;y++){
-    	matchedIndividuals.add(query1Results.get(y));
+    	matchedIndividuals.add(rEncounters3.get(y));
     }
     
    //for(int y=0;y<matchedIndividuals.size();y++){
    // 	if(!query2Results.contains(matchedIndividuals.get(y))){matchedIndividuals.remove(y);y--;}
    //}
     
-    matchedIndividuals.retainAll(query2Results);
+    matchedIndividuals.retainAll(rEncounters4);
     int numMatchedIndividuals=matchedIndividuals.size();
     
     //let's prep the HashTable for the haplo pie chart
@@ -133,14 +133,14 @@ public double getHaplotypeFrequencyForSubpopulation(List rIndividuals, String ha
  	sexHashtable2.put("unknown", new Integer(0));
  	
  	
- 	int resultSize1=rEncounters1.size();
- 	int resultSize2=rEncounters2.size();
+ 	int resultSize1=rEncounters3.size();
+ 	int resultSize2=rEncounters4.size();
  	
 	//more results1 analysis 	
  	 ArrayList<String> markedIndividuals1=new ArrayList<String>();
  	 for(int y=0;y<resultSize1;y++){
- 		 Encounter thisEnc=(Encounter)rEncounters1.get(y);
- 		 if((!thisEnc.equals("Unassigned"))&&(!markedIndividuals1.contains(thisEnc.getIndividualID().trim()))){markedIndividuals1.add(thisEnc.getIndividualID().trim());}
+ 		 MarkedIndividual thisEnc=(MarkedIndividual)rEncounters3.get(y);
+ 		 if((!markedIndividuals1.contains(thisEnc.getIndividualID()))){markedIndividuals1.add(thisEnc.getIndividualID());}
  		 //haplotype ie chart prep
  		 if(thisEnc.getHaplotype()!=null){
       	   if(pieHashtable1.containsKey(thisEnc.getHaplotype().trim())){
@@ -169,8 +169,8 @@ public double getHaplotypeFrequencyForSubpopulation(List rIndividuals, String ha
  	 //more results2 analysis 	
  	 ArrayList<String> markedIndividuals2=new ArrayList<String>();
  	 for(int y=0;y<resultSize2;y++){
- 		 Encounter thisEnc=(Encounter)rEncounters2.get(y);
- 		 if((!thisEnc.equals("Unassigned"))&&(!markedIndividuals2.contains(thisEnc.getIndividualID().trim()))){markedIndividuals2.add(thisEnc.getIndividualID().trim());}
+ 		 MarkedIndividual thisEnc=(MarkedIndividual)rEncounters4.get(y);
+ 		 if((!markedIndividuals2.contains(thisEnc.getIndividualID()))){markedIndividuals2.add(thisEnc.getIndividualID());}
  		 //haplotype ie chart prep
  		 if(thisEnc.getHaplotype()!=null){
       	   if(pieHashtable2.containsKey(thisEnc.getHaplotype().trim())){
@@ -378,7 +378,7 @@ var selectedRectangle2;
 
         var options = {
           width: 450, height: 300,
-          title: 'Haplotypes in Matched Encounters',
+          title: 'Haplotype Distribution in Marked Individuals',
           colors: [
                    <%
                    String haploColor="CC0000";
@@ -429,7 +429,7 @@ var selectedRectangle2;
         %>
         var options = {
           width: 450, height: 300,
-          title: 'Sex Distribution in Matched Encounters',
+          title: 'Sex Distribution in Marked Individuals',
           colors: ['#0000FF','#FF00FF','<%=haploColor%>']
         };
 
@@ -465,7 +465,7 @@ var selectedRectangle2;
 
         var options = {
           width: 450, height: 300,
-          title: 'Haplotypes in Matched Encounters',
+          title: 'Haplotype Distribution in Marked Individuals',
           colors: [
                    <%
                    haploColor="CC0000";
@@ -515,7 +515,7 @@ var selectedRectangle2;
         %>
         var options = {
           width: 450, height: 300,
-          title: 'Sex Distribution in Matched Encounters',
+          title: 'Sex Distribution in Marked Individuals',
           colors: ['#0000FF','#FF00FF','<%=haploColor%>']
         };
 
@@ -564,13 +564,13 @@ var selectedRectangle2;
  			
 			//next we need to calculate the combined population size, since there are overlapping individuals
 			//first, let's get the combined ist of marked individuals
-			ArrayList<String> totalPopulation = new ArrayList<String>();
+			ArrayList<MarkedIndividual> totalPopulation = new ArrayList<MarkedIndividual>();
     		for(int y=0;y<query1Size;y++){
-    			totalPopulation.add((String)query1Results.get(y));
+    			totalPopulation.add(((MarkedIndividual)rEncounters3.get(y)));
     		}
-    		int query2Size=query2Results.size();
+    		int query2Size=rEncounters4.size();
     		for(int y=0;y<query2Size;y++){
-    			if(!totalPopulation.contains((String)query2Results.get(y))){totalPopulation.add((String)query2Results.get(y));}
+    			if(!totalPopulation.contains(((MarkedIndividual)rEncounters4.get(y)))){totalPopulation.add(((MarkedIndividual)rEncounters4.get(y)));}
     		}
 			int totalPopulationSize=totalPopulation.size();
 			
@@ -591,13 +591,13 @@ var selectedRectangle2;
 					pTotalT+=freqTotal;
 				
 				
-					double freq1=getHaplotypeFrequencyForSubpopulation(query1Results, allHaplos.get(y), myShepherd);
+					double freq1=getHaplotypeFrequencyForSubpopulation(rEncounters3, allHaplos.get(y), myShepherd);
 					double q1=1-freq1;
 					HeSearch1+=(freq1*freq1);
 					pTotal1+=freq1;
 				
 				
-					double freq2=getHaplotypeFrequencyForSubpopulation(query2Results, allHaplos.get(y), myShepherd);
+					double freq2=getHaplotypeFrequencyForSubpopulation(rEncounters4, allHaplos.get(y), myShepherd);
 					double q2=1-freq2;
 					HeSearch2+=(freq2*freq2);
 					pTotal2+=freq2;
@@ -646,12 +646,10 @@ var selectedRectangle2;
 <tr><th><%=encprops.getProperty("search1Results") %></th><th><%=encprops.getProperty("search2Results") %></th></tr>
 <tr>
 	<td>
-		<p>No. matching encounters: <%=rEncounters1.size() %></p>
-		<p>No. matching marked individuals: <%=query1Results.size() %></p>
+		<p>No. matching marked individuals: <%=rEncounters3.size() %></p>
 	</td>
 	<td>
-		<p>No. matching encounters: <%=rEncounters2.size() %></p>
-		<p>No. matching marked individuals: <%=query2Results.size() %></p>
+		<p>No. matching marked individuals: <%=rEncounters4.size() %></p>
 	</td>
 </tr>
 <tr>
@@ -786,8 +784,8 @@ var selectedRectangle2;
  
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
-   rEncounters1 = null;
-   rEncounters2 = null;
+   rEncounters3 = null;
+   rEncounters4 = null;
  
 %>
 
