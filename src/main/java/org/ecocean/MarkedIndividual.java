@@ -20,7 +20,7 @@
 package org.ecocean;
 
 import java.util.*;
-import java.util.GregorianCalendar;
+
 import org.ecocean.genetics.*;
 
 /**
@@ -1050,6 +1050,50 @@ public String getHaplotype(){
     return null;
 
 }
+
+public boolean hasLocusAndAllele(String locus, Integer alleleValue){
+  ArrayList<TissueSample> samples=getAllTissueSamples();
+  int numSamples=samples.size();
+  for(int i=0;i<numSamples;i++){
+      TissueSample sample=samples.get(i);
+      if(sample.getGeneticAnalyses()!=null){
+        List<GeneticAnalysis> analyses=sample.getGeneticAnalyses();
+        int numAnalyses=analyses.size();
+        for(int e=0;e<numAnalyses;e++){
+          GeneticAnalysis ga=analyses.get(e);
+          if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+            MicrosatelliteMarkersAnalysis msa=(MicrosatelliteMarkersAnalysis)ga;
+            if(msa.getLocus(locus)!=null){
+               Locus l=msa.getLocus(locus);
+               if(l.hasAllele(alleleValue)){return true;}
+            }
+          }
+        }
+      }
+  }
+  return false;
+}
+
+
+public boolean hasMsMarkers(){
+  ArrayList<TissueSample> samples=getAllTissueSamples();
+  int numSamples=samples.size();
+  for(int i=0;i<numSamples;i++){
+      TissueSample sample=samples.get(i);
+      if(sample.getGeneticAnalyses()!=null){
+        List<GeneticAnalysis> analyses=sample.getGeneticAnalyses();
+        int numAnalyses=analyses.size();
+        for(int e=0;e<numAnalyses;e++){
+          GeneticAnalysis ga=analyses.get(e);
+          if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+            return true;
+          }
+        }
+      }
+  }
+  return false;
+}
+
 
 /**
 *Obtains the email addresses of all submitters, photographs, and others to notify.

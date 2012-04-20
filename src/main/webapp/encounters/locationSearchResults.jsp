@@ -29,7 +29,7 @@
 
 <%!
 public double getHaplotypeFrequencyForSubpopulation(List rIndividuals, String haplotype, Shepherd myShepherd){
-	System.out.println("Starting getHaplotypeFreq...");
+	//System.out.println("Starting getHaplotypeFreq...");
 	double numMatches=0;
 	int numIndies=rIndividuals.size();
 	int numIndiesWithHaplotypes=0;
@@ -43,6 +43,21 @@ public double getHaplotypeFrequencyForSubpopulation(List rIndividuals, String ha
 	}
 	//System.out.println("Haplotype freq for "+haplotype+": "+(numMatches/numIndies));
 	return (numMatches/numIndiesWithHaplotypes);
+}
+
+public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus, Integer allele, Shepherd myShepherd){
+	//System.out.println("Starting getAlleleFrequencyForSubpopulation...");
+	double numMatches=0;
+	int numIndies=rIndividuals.size();
+	int numIndiesWithAllele=0;
+	for(int p=0;p<numIndies;p++){
+		//String indie=(String)rIndividuals.get(p);
+		MarkedIndividual mi= (MarkedIndividual)rIndividuals.get(p);
+		if(mi.hasMsMarkers()){numIndiesWithAllele++;}
+		if(mi.hasLocusAndAllele(locus, allele)){numMatches++;}
+	}
+	//System.out.println("Haplotype freq for "+haplotype+": "+(numMatches/numIndies));
+	return (numMatches/numIndiesWithAllele);
 }
 %>
 
@@ -616,19 +631,21 @@ var selectedRectangle2;
 			double Fst = (HT-HeAvg)/HT;
 			%>
 			
-			<p>F<sub>st</sub> (Haplotype)= <%=Fst %><br />
-			H<sub>T</sub>: <%=HT %> <br />H<sub>S</sub>: <%=HeAvg %><br />
-			H<sub>expSearch1</sub>: <%=HeSearch1 %><br />
-			H<sub>expSearch2</sub>: <%=HeSearch2 %> <br />
-			p<sub>Total</sub>: <%=pTotalT %> <br />
-			p<sub>1</sub>: <%=pTotal1 %> <br />
-			p<sub>2</sub>: <%=pTotal2 %> <br />
-			</p>
+			<p>F<sub>st</sub> (Haplotype)= <%=Fst %></p>
 
 		<%
 			
+		//let's calculate Fst for each of the loci
+		//iterate through the loci
+		ArrayList<String> loci=myShepherd.getAllLoci();
+		int numLoci=loci.size();
+		for(int r=0;r<numLoci;r++){
+			String locus=loci.get(r);
 			
-
+			//continue here
+			
+		}
+		
 			
 
  			%>
