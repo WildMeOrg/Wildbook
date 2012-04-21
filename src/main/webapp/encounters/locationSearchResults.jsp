@@ -53,7 +53,7 @@ public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus
 	for(int p=0;p<numIndies;p++){
 		//String indie=(String)rIndividuals.get(p);
 		MarkedIndividual mi= (MarkedIndividual)rIndividuals.get(p);
-		if(mi.hasMsMarkers()){numIndiesWithAllele++;}
+		if(mi.hasLocus(locus)){numIndiesWithAllele++;}
 		if(mi.hasLocusAndAllele(locus, allele)){numMatches++;}
 	}
 	//System.out.println("Haplotype freq for "+haplotype+": "+(numMatches/numIndies));
@@ -641,9 +641,57 @@ var selectedRectangle2;
 		int numLoci=loci.size();
 		for(int r=0;r<numLoci;r++){
 			String locus=loci.get(r);
-			
-			//continue here
-			
+			if(request.getParameter(locus)!=null){
+				
+				//ok, now we need all possible allele values for this locus
+				
+				ArrayList<Integer> matchingValues=new ArrayList<Integer>();
+				for(int k=0;k<totalPopulationSize;k++){
+					MarkedIndividual indie=totalPopulation.get(k);
+					ArrayList<Integer> localValues=indie.getAlleleValuesForLocus(locus);
+					int localValuesSize=localValues.size();
+					for(int u=0;u<localValuesSize;u++){
+						Integer val=localValues.get(u);
+						if(!matchingValues.contains(val)){matchingValues.add(val);}
+					}
+					
+				}
+				int numMatchingValues=matchingValues.size();
+				
+				double HTa=0;
+				double HeSearch1a=0;
+				double HeSearch2a=0;
+				ArrayList<Double> he4alleles=new ArrayList<Double>(numMatchingValues);
+				for(int r1=0;r1<numMatchingValues;r1++){
+					
+					//continue our HT calcs
+					double freqTotal=getAlleleFrequencyForSubpopulation(totalPopulation, locus, matchingValues.get(r1), myShepherd);
+					double qTotal=1-freqTotal;
+					HTa+=(freqTotal*freqTotal);
+					
+					double freq1=getAlleleFrequencyForSubpopulation(rEncounters3, locus, matchingValues.get(r1), myShepherd);
+					double q1=1-freq1;
+					HeSearch1a+=(freq1*freq1);
+					
+					double freq2=getAlleleFrequencyForSubpopulation(rEncounters4, locus, matchingValues.get(r1), myShepherd);
+					double q2=1-freq2;
+					HeSearch2+=(freq2*freq2);
+					
+					
+				}
+				HTa=1-HTa;
+				HeSearch1a=1-HeSearch1a;
+				HeSearch2a=1-HeSearch2a;
+				double HeAvga = HeSearch1a/2+HeSearch2a/2;
+				
+				double Fsta = (HTa-HeAvga)/HTa;
+				%>
+				
+				<p>F<sub>st</sub> (<%=locus %>)= <%=Fsta %></p>
+
+			<%
+				
+			}
 		}
 		
 			
