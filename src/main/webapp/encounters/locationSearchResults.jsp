@@ -571,77 +571,90 @@ var selectedRectangle2;
 			<p>Shared marked individuals: <%=numMatchedIndividuals%></p>
 			
 			 <%
- 			//now we need to calculate some inbreeding statistics using haplotypes
+			 
+				//next we need to calculate the combined population size, since there are overlapping individuals
+				//first, let's get the combined ist of marked individuals
+				ArrayList<MarkedIndividual> totalPopulation = new ArrayList<MarkedIndividual>();
+ 			for(int y=0;y<query1Size;y++){
+ 				totalPopulation.add(((MarkedIndividual)rEncounters3.get(y)));
+ 			}
+ 			int query2Size=rEncounters4.size();
+ 			for(int y=0;y<query2Size;y++){
+ 				if(!totalPopulation.contains(((MarkedIndividual)rEncounters4.get(y)))){totalPopulation.add(((MarkedIndividual)rEncounters4.get(y)));}
+ 			}
+ 			int totalPopulationSize=totalPopulation.size();
  			
- 			//first get all haplotypes
- 			ArrayList<String> allHaplos=myShepherd.getAllHaplotypes();
-			 int numHaplosHere=allHaplos.size();
+			 if((request.getParameter("haplotypeField")!=null)&&(request1.getParameter("haplotypeField")!=null)&&(rEncounters3.size()>0)&&(rEncounters4.size()>0)){
+				 //now we need to calculate some inbreeding statistics using haplotypes
  			
-			//next we need to calculate the combined population size, since there are overlapping individuals
-			//first, let's get the combined ist of marked individuals
-			ArrayList<MarkedIndividual> totalPopulation = new ArrayList<MarkedIndividual>();
-    		for(int y=0;y<query1Size;y++){
-    			totalPopulation.add(((MarkedIndividual)rEncounters3.get(y)));
-    		}
-    		int query2Size=rEncounters4.size();
-    		for(int y=0;y<query2Size;y++){
-    			if(!totalPopulation.contains(((MarkedIndividual)rEncounters4.get(y)))){totalPopulation.add(((MarkedIndividual)rEncounters4.get(y)));}
-    		}
-			int totalPopulationSize=totalPopulation.size();
+ 				//first get all haplotypes
+ 				ArrayList<String> allHaplos=myShepherd.getAllHaplotypes();
+			 	int numHaplosHere=allHaplos.size();
+ 			
+
 			
-			double HT=0;
-			double HeSearch1=0;
-			double HeSearch2=0;
-			double pTotalT=0;
-			double pTotal1=0;
-			double pTotal2=0;
+				double HT=0;
+				double HeSearch1=0;
+				double HeSearch2=0;
+				double pTotalT=0;
+				double pTotal1=0;
+				double pTotal2=0;
 			
-			for(int y=0;y<numHaplosHere;y++){
+				for(int y=0;y<numHaplosHere;y++){
 				
-				if(!allHaplos.get(y).equals("HET")){
+					if(!allHaplos.get(y).equals("HET")){
 				
-					double freqTotal=getHaplotypeFrequencyForSubpopulation(totalPopulation, allHaplos.get(y), myShepherd);
-					double qTotal=1-freqTotal;
-					HT+=(freqTotal*freqTotal);
-					pTotalT+=freqTotal;
-				
-				
-					double freq1=getHaplotypeFrequencyForSubpopulation(rEncounters3, allHaplos.get(y), myShepherd);
-					double q1=1-freq1;
-					HeSearch1+=(freq1*freq1);
-					pTotal1+=freq1;
+						double freqTotal=getHaplotypeFrequencyForSubpopulation(totalPopulation, allHaplos.get(y), myShepherd);
+						double qTotal=1-freqTotal;
+						HT+=(freqTotal*freqTotal);
+						pTotalT+=freqTotal;
 				
 				
-					double freq2=getHaplotypeFrequencyForSubpopulation(rEncounters4, allHaplos.get(y), myShepherd);
-					double q2=1-freq2;
-					HeSearch2+=(freq2*freq2);
-					pTotal2+=freq2;
+						double freq1=getHaplotypeFrequencyForSubpopulation(rEncounters3, allHaplos.get(y), myShepherd);
+						double q1=1-freq1;
+						HeSearch1+=(freq1*freq1);
+						pTotal1+=freq1;
+				
+				
+						double freq2=getHaplotypeFrequencyForSubpopulation(rEncounters4, allHaplos.get(y), myShepherd);
+						double q2=1-freq2;
+						HeSearch2+=(freq2*freq2);
+						pTotal2+=freq2;
+					}
+				
+				
+
 				}
-				
-				
-
-			}
  			
-			HT=1-HT;
-			HeSearch1=1-HeSearch1;
-			HeSearch2=1-HeSearch2;
-			//double HeAvg = (HeSearch1*query1Size+HeSearch2*query2Size)/totalPopulationSize;
-			double HeAvg = HeSearch1/2+HeSearch2/2;
+				HT=1-HT;
+				HeSearch1=1-HeSearch1;
+				HeSearch2=1-HeSearch2;
+				//double HeAvg = (HeSearch1*query1Size+HeSearch2*query2Size)/totalPopulationSize;
+				double HeAvg = HeSearch1/2+HeSearch2/2;
 			
-			double Fst = (HT-HeAvg)/HT;
-			%>
+				double Fst = (HT-HeAvg)/HT;
+				%>
 			
-			<p>F<sub>st</sub> (Haplotype)= <%=Fst %></p>
+				<p>F<sub>st</sub> (Haplotype)= <%=Fst %></p>
 
-		<%
+				<%
 			
+			}
+		
 		//let's calculate Fst for each of the loci
 		//iterate through the loci
 		ArrayList<String> loci=myShepherd.getAllLoci();
 		int numLoci=loci.size();
 		for(int r=0;r<numLoci;r++){
 			String locus=loci.get(r);
-			if(request.getParameter(locus)!=null){
+			if((request.getParameter(locus)!=null)&&(request1.getParameter(locus)!=null)&&(rEncounters3.size()>0)&&(rEncounters4.size()>0)){
+				
+				double HT=0;
+				double HeSearch1=0;
+				double HeSearch2=0;
+				double pTotalT=0;
+				double pTotal1=0;
+				double pTotal2=0;
 				
 				//ok, now we need all possible allele values for this locus
 				
