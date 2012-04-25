@@ -68,10 +68,10 @@ public class Locus implements java.io.Serializable{
   public Integer getAllele3(){return allele3;}
   
   public boolean hasAllele(Integer value){
-    if((allele0!=null)&&(allele0==value)){return true;}
-    if((allele1!=null)&&(allele1==value)){return true;}
-    if((allele2!=null)&&(allele2==value)){return true;}
-    if((allele3!=null)&&(allele3==value)){return true;}
+    if((allele0!=null)&&(allele0.intValue()==value.intValue())){return true;}
+    if((allele1!=null)&&(allele1.intValue()==value.intValue())){return true;}
+    if((allele2!=null)&&(allele2.intValue()==value.intValue())){return true;}
+    if((allele3!=null)&&(allele3.intValue()==value.intValue())){return true;}
     return false;
   }
   

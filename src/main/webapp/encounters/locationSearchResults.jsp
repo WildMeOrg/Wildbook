@@ -53,10 +53,26 @@ public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus
 	for(int p=0;p<numIndies;p++){
 		//String indie=(String)rIndividuals.get(p);
 		MarkedIndividual mi= (MarkedIndividual)rIndividuals.get(p);
-		if(mi.hasLocus(locus)){numIndiesWithAllele++;}
-		if(mi.hasLocusAndAllele(locus, allele)){numMatches++;}
+		//check for heterozygosity
+		//refactor later if more than four alleles present
+		System.out.println("Inspecting "+mi.getIndividualID()+" for locus "+locus+" and allele "+allele+"...");
+		System.out.println("     it has thes allele values at this locus: "+mi.getAlleleValuesForLocus(locus).toString());
+				//we're really calculating number of alleles, so we double add for each matching marked individual
+		if(mi.hasLocus(locus)){numIndiesWithAllele++;numIndiesWithAllele++;System.out.println("     it has the locus");}
+		
+		if(mi.hasLocusAndAllele(locus, allele)){
+			System.out.println("       it has the allele");
+			numMatches++;
+			int numPossibleValues=mi.getAlleleValuesForLocus(locus).size();
+			
+			//System.out.println("     "+mi.getIndividualID()+": "+numPossibleValues);
+			
+			//if this is homozygous, give it an additional plus for frequency
+			if(numPossibleValues==1){numMatches++;System.out.println("       it is homozygous");}
+		}
+		System.out.println("     Frequency is currently: "+(numMatches/numIndiesWithAllele));
 	}
-	//System.out.println("Haplotype freq for "+haplotype+": "+(numMatches/numIndies));
+	//System.out.println("     end inspection");
 	return (numMatches/numIndiesWithAllele);
 }
 %>
@@ -89,8 +105,8 @@ public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus
     int numResults = 0;
 
     //set up the vector for matching encounters
-    Vector rEncounters3 = new Vector();
-    Vector rEncounters4 = new Vector();
+    Vector query1Individuals = new Vector();
+    Vector query2Individuals = new Vector();
 
     //kick off the transaction
     myShepherd.beginDBTransaction();
@@ -101,9 +117,9 @@ public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus
     HttpServletRequest request1=(MockHttpServletRequest)session.getAttribute("locationSearch1");
     MarkedIndividualQueryResult queryResult1 = IndividualQueryProcessor.processQuery(myShepherd, request1, order);
     //System.out.println(((MockHttpServletRequest)session.getAttribute("locationSearch1")).getQueryString());
-    rEncounters3 = queryResult1.getResult();
+    query1Individuals = queryResult1.getResult();
     MarkedIndividualQueryResult queryResult2 = IndividualQueryProcessor.processQuery(myShepherd, request, order);
-    rEncounters4 = queryResult2.getResult();
+    query2Individuals = queryResult2.getResult();
     
     //let's also get lists of marked individuals
     // Query query1=myShepherd.getPM().newQuery(queryResult1.getJDOQLRepresentation().replaceFirst("SELECT FROM", "SELECT DISTINCT individualID FROM") + " && (individualID != \"Unassigned\")");
@@ -113,16 +129,16 @@ public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus
     //List query2Results = (List)query2.execute(); 
     
     List matchedIndividuals = new ArrayList();
-    int query1Size=rEncounters3.size();
+    int query1Size=query1Individuals.size();
     for(int y=0;y<query1Size;y++){
-    	matchedIndividuals.add(rEncounters3.get(y));
+    	matchedIndividuals.add(query1Individuals.get(y));
     }
     
    //for(int y=0;y<matchedIndividuals.size();y++){
    // 	if(!query2Results.contains(matchedIndividuals.get(y))){matchedIndividuals.remove(y);y--;}
    //}
     
-    matchedIndividuals.retainAll(rEncounters4);
+    matchedIndividuals.retainAll(query2Individuals);
     int numMatchedIndividuals=matchedIndividuals.size();
     
     //let's prep the HashTable for the haplo pie chart
@@ -148,13 +164,13 @@ public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus
  	sexHashtable2.put("unknown", new Integer(0));
  	
  	
- 	int resultSize1=rEncounters3.size();
- 	int resultSize2=rEncounters4.size();
+ 	int resultSize1=query1Individuals.size();
+ 	int resultSize2=query2Individuals.size();
  	
 	//more results1 analysis 	
  	 ArrayList<String> markedIndividuals1=new ArrayList<String>();
  	 for(int y=0;y<resultSize1;y++){
- 		 MarkedIndividual thisEnc=(MarkedIndividual)rEncounters3.get(y);
+ 		 MarkedIndividual thisEnc=(MarkedIndividual)query1Individuals.get(y);
  		 if((!markedIndividuals1.contains(thisEnc.getIndividualID()))){markedIndividuals1.add(thisEnc.getIndividualID());}
  		 //haplotype ie chart prep
  		 if(thisEnc.getHaplotype()!=null){
@@ -184,7 +200,7 @@ public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus
  	 //more results2 analysis 	
  	 ArrayList<String> markedIndividuals2=new ArrayList<String>();
  	 for(int y=0;y<resultSize2;y++){
- 		 MarkedIndividual thisEnc=(MarkedIndividual)rEncounters4.get(y);
+ 		 MarkedIndividual thisEnc=(MarkedIndividual)query2Individuals.get(y);
  		 if((!markedIndividuals2.contains(thisEnc.getIndividualID()))){markedIndividuals2.add(thisEnc.getIndividualID());}
  		 //haplotype ie chart prep
  		 if(thisEnc.getHaplotype()!=null){
@@ -576,15 +592,15 @@ var selectedRectangle2;
 				//first, let's get the combined ist of marked individuals
 				ArrayList<MarkedIndividual> totalPopulation = new ArrayList<MarkedIndividual>();
  			for(int y=0;y<query1Size;y++){
- 				totalPopulation.add(((MarkedIndividual)rEncounters3.get(y)));
+ 				totalPopulation.add(((MarkedIndividual)query1Individuals.get(y)));
  			}
- 			int query2Size=rEncounters4.size();
+ 			int query2Size=query2Individuals.size();
  			for(int y=0;y<query2Size;y++){
- 				if(!totalPopulation.contains(((MarkedIndividual)rEncounters4.get(y)))){totalPopulation.add(((MarkedIndividual)rEncounters4.get(y)));}
+ 				if(!totalPopulation.contains(((MarkedIndividual)query2Individuals.get(y)))){totalPopulation.add(((MarkedIndividual)query2Individuals.get(y)));}
  			}
  			int totalPopulationSize=totalPopulation.size();
  			
-			 if((request.getParameter("haplotypeField")!=null)&&(request1.getParameter("haplotypeField")!=null)&&(rEncounters3.size()>0)&&(rEncounters4.size()>0)){
+			 if((request.getParameter("haplotypeField")!=null)&&(request1.getParameter("haplotypeField")!=null)&&(query1Individuals.size()>0)&&(query2Individuals.size()>0)){
 				 //now we need to calculate some inbreeding statistics using haplotypes
  			
  				//first get all haplotypes
@@ -610,13 +626,13 @@ var selectedRectangle2;
 						pTotalT+=freqTotal;
 				
 				
-						double freq1=getHaplotypeFrequencyForSubpopulation(rEncounters3, allHaplos.get(y), myShepherd);
+						double freq1=getHaplotypeFrequencyForSubpopulation(query1Individuals, allHaplos.get(y), myShepherd);
 						double q1=1-freq1;
 						HeSearch1+=(freq1*freq1);
 						pTotal1+=freq1;
 				
 				
-						double freq2=getHaplotypeFrequencyForSubpopulation(rEncounters4, allHaplos.get(y), myShepherd);
+						double freq2=getHaplotypeFrequencyForSubpopulation(query2Individuals, allHaplos.get(y), myShepherd);
 						double q2=1-freq2;
 						HeSearch2+=(freq2*freq2);
 						pTotal2+=freq2;
@@ -629,16 +645,23 @@ var selectedRectangle2;
 				HT=1-HT;
 				HeSearch1=1-HeSearch1;
 				HeSearch2=1-HeSearch2;
-				//double HeAvg = (HeSearch1*query1Size+HeSearch2*query2Size)/totalPopulationSize;
 				double HeAvg = HeSearch1/2+HeSearch2/2;
 			
 				double Fst = (HT-HeAvg)/HT;
 				%>
 			
 				<p>F<sub>st</sub> (Haplotype)= <%=Fst %></p>
-
 				<%
-			
+				if(request.getParameter("debug")!=null){
+				%>
+					<code>
+					HeSearch1: <%=HeSearch1 %>
+					HeSearch2: <%=HeSearch2 %>
+					HT: <%=HT %>
+					HeAvg: <%=HeAvg %>
+					</code>
+				<%
+			    }			
 			}
 		
 		//let's calculate Fst for each of the loci
@@ -647,7 +670,7 @@ var selectedRectangle2;
 		int numLoci=loci.size();
 		for(int r=0;r<numLoci;r++){
 			String locus=loci.get(r);
-			if((request.getParameter(locus)!=null)&&(request1.getParameter(locus)!=null)&&(rEncounters3.size()>0)&&(rEncounters4.size()>0)){
+			if((request.getParameter(locus)!=null)&&(request1.getParameter(locus)!=null)&&(query1Individuals.size()>0)&&(query2Individuals.size()>0)){
 				
 				double HT=0;
 				double HeSearch1=0;
@@ -674,21 +697,27 @@ var selectedRectangle2;
 				double HTa=0;
 				double HeSearch1a=0;
 				double HeSearch2a=0;
+				double freqTotalCheck=0;
+				double freq1Check=0;
+				double freq2Check=0;
 				ArrayList<Double> he4alleles=new ArrayList<Double>(numMatchingValues);
 				for(int r1=0;r1<numMatchingValues;r1++){
 					
 					//continue our HT calcs
 					double freqTotal=getAlleleFrequencyForSubpopulation(totalPopulation, locus, matchingValues.get(r1), myShepherd);
 					double qTotal=1-freqTotal;
+					freqTotalCheck+=freqTotal;
 					HTa+=(freqTotal*freqTotal);
 					
-					double freq1=getAlleleFrequencyForSubpopulation(rEncounters3, locus, matchingValues.get(r1), myShepherd);
+					double freq1=getAlleleFrequencyForSubpopulation(query1Individuals, locus, matchingValues.get(r1), myShepherd);
 					double q1=1-freq1;
+					freq1Check+=freq1;
 					HeSearch1a+=(freq1*freq1);
 					
-					double freq2=getAlleleFrequencyForSubpopulation(rEncounters4, locus, matchingValues.get(r1), myShepherd);
+					double freq2=getAlleleFrequencyForSubpopulation(query2Individuals, locus, matchingValues.get(r1), myShepherd);
 					double q2=1-freq2;
-					HeSearch2+=(freq2*freq2);
+					freq2Check+=freq2;
+					HeSearch2a+=(freq2*freq2);
 					
 					
 				}
@@ -701,8 +730,30 @@ var selectedRectangle2;
 				%>
 				
 				<p>F<sub>st</sub> (<%=locus %>)= <%=Fsta %></p>
-
-			<%
+				<%
+				if(request.getParameter("debug")!=null){
+				%>
+					<code>
+					HeSearch1: <%=HeSearch1a %><br />
+					HeSearch2: <%=HeSearch2a %><br />
+					HT: <%=HTa %><br />
+					HeAvg: <%=HeAvga %><br />
+					freq1Check: <%=freq1Check %><br />
+					freq2Check: <%=freq2Check %><br />
+					freqTotalCheck: <%=freqTotalCheck %><br />
+					Allele values found: 
+					<%
+					for(int r3=0;r3<numMatchingValues;r3++){
+					%>
+						<%=matchingValues.get(r3) %>
+					<%
+					}
+					%>
+					</code>
+				<%
+			    }
+				
+			
 				
 			}
 		}
@@ -724,10 +775,10 @@ var selectedRectangle2;
 <tr><th><%=encprops.getProperty("search1Results") %></th><th><%=encprops.getProperty("search2Results") %></th></tr>
 <tr>
 	<td>
-		<p>No. matching marked individuals: <%=rEncounters3.size() %></p>
+		<p>No. matching marked individuals: <%=query1Individuals.size() %></p>
 	</td>
 	<td>
-		<p>No. matching marked individuals: <%=rEncounters4.size() %></p>
+		<p>No. matching marked individuals: <%=query2Individuals.size() %></p>
 	</td>
 </tr>
 <tr>
@@ -862,8 +913,8 @@ var selectedRectangle2;
  
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
-   rEncounters3 = null;
-   rEncounters4 = null;
+   query1Individuals = null;
+   query2Individuals = null;
  
 %>
 
