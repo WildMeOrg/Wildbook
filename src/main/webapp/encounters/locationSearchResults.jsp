@@ -115,18 +115,16 @@ public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus
     String order = "";
     //EncounterQueryResult queryResult1 = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     HttpServletRequest request1=(MockHttpServletRequest)session.getAttribute("locationSearch1");
+    
+    if(request1!=null){
+    
     MarkedIndividualQueryResult queryResult1 = IndividualQueryProcessor.processQuery(myShepherd, request1, order);
     //System.out.println(((MockHttpServletRequest)session.getAttribute("locationSearch1")).getQueryString());
     query1Individuals = queryResult1.getResult();
     MarkedIndividualQueryResult queryResult2 = IndividualQueryProcessor.processQuery(myShepherd, request, order);
     query2Individuals = queryResult2.getResult();
     
-    //let's also get lists of marked individuals
-    // Query query1=myShepherd.getPM().newQuery(queryResult1.getJDOQLRepresentation().replaceFirst("SELECT FROM", "SELECT DISTINCT individualID FROM") + " && (individualID != \"Unassigned\")");
-    // List query1Results = (List)query1.execute();
-    
-    //Query query2=myShepherd.getPM().newQuery(queryResult2.getJDOQLRepresentation().replaceFirst("SELECT FROM", "SELECT DISTINCT individualID FROM") + " && (individualID != \"Unassigned\")");
-    //List query2Results = (List)query2.execute(); 
+
     
     List matchedIndividuals = new ArrayList();
     int query1Size=query1Individuals.size();
@@ -915,7 +913,6 @@ var selectedRectangle2;
    myShepherd.closeDBTransaction();
    query1Individuals = null;
    query2Individuals = null;
- 
 %>
 
  
@@ -927,3 +924,23 @@ var selectedRectangle2;
 
 </body>
 </html>
+<%
+    }
+    else{
+    %>
+    
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html>
+    <head>
+    <meta http-equiv="REFRESH" content="0;url=locationSearch.jsp" />
+    </head>
+    <body>
+    </body>
+    </html>
+    	
+    
+    	
+    <%	
+    }
+ 
+%>
