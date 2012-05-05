@@ -653,10 +653,13 @@ var selectedRectangle2;
 				if(request.getParameter("debug")!=null){
 				%>
 					<code>
-					HeSearch1: <%=HeSearch1 %>
-					HeSearch2: <%=HeSearch2 %>
-					HT: <%=HT %>
-					HeAvg: <%=HeAvg %>
+					HeSearch1: <%=HeSearch1 %><br />
+					HeSearch2: <%=HeSearch2 %><br />
+					HT: <%=HT %><br />
+					HeAvg: <%=HeAvg %><br />
+					pTotalT:<%=pTotalT %><br />
+					pTotal1:<%=pTotal1 %><br />
+					pTotal2:<%=pTotal2 %>
 					</code>
 				<%
 			    }			
