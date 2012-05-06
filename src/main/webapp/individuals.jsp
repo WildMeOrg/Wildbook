@@ -61,6 +61,7 @@
   String setsex = props.getProperty("setsex");
   String numencounters = props.getProperty("numencounters");
   String encnumber = props.getProperty("number");
+  String dataTypes = props.getProperty("dataTypes");
   String date = props.getProperty("date");
   String size = props.getProperty("size");
   String spots = props.getProperty("spots");
@@ -500,41 +501,41 @@ table.tissueSample td {
 <tr>
 
 <td align="left" valign="top">
-  <%
-boolean showLogEncs=false;
-if (isOwner) {
-	showLogEncs=true;
-}%>
-<p><strong><%=(sharky.totalEncounters() + sharky.totalLogEncounters())%>
+
+<p><strong><%=sharky.totalEncounters()%>
 </strong>
   <%=numencounters %>
 </p>
 
 <table id="results" width="100%">
   <tr class="lineitem">
-    <td class="lineitem" bgcolor="#99CCFF"></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %>
+    </strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %>
+    </strong></td>
+    <td class="lineitem" bgcolor="#99CCFF"><strong><%=dataTypes %></strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encnumber %>
     </strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=alternateID %>
     </strong></td>
 
 
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %>
-    </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %>
-    </strong></td>
+
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %>
     </strong></td>
     <%
       if (isOwner && CommonConfiguration.useSpotPatternRecognition()) {
     %>
 
-    <td align="left" valign="top" bgcolor="#99CCFF"><strong><%=spots %>
-    </strong></td>
-    <%}%>
+    	<td align="left" valign="top" bgcolor="#99CCFF">
+    		<strong><%=spots %></strong>
+    	</td>
+    <%
+    }
+    %>
   </tr>
   <%
-    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(showLogEncs);
+    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(true);
 
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
@@ -549,9 +550,31 @@ if (isOwner) {
 
   %>
   <tr>
-    <td width="100" class="lineitem"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><img
-      src="<%=imgName%>" alt="encounter" border="0"/></a></td>
+      <td class="lineitem"><%=enc.getDate()%>
+    </td>
+    <td class="lineitem"><%=enc.getLocation()%>
+    </td>
+    <td width="100" height="32px" class="lineitem">
+    	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
+    		
+    		<%
+    		//if the encounter has photos, show photo folder icon
+    		if((enc.getImages()!=null) && (enc.getImages().size()>0)){
+    		%>
+    			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="*" />
+    		<%
+    		}
+    		
+    		//if the encounter has a tissue sample, show an icon
+    		if((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)){
+    		%>
+    			<img src="images/microscope.gif" height="32px" width="*" />
+    		<%
+    		}
+    		%>
+    		
+    	</a>
+    </td>
     <td class="lineitem"><a
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%>
     </a></td>
@@ -571,10 +594,7 @@ if (isOwner) {
     %>
 
 
-    <td class="lineitem"><%=enc.getDate()%>
-    </td>
-    <td class="lineitem"><%=enc.getLocation()%>
-    </td>
+
     <td class="lineitem"><%=enc.getSex()%>
     </td>
 
@@ -972,12 +992,20 @@ int numTissueSamples=tissueSamples.size();
 if(numTissueSamples>0){
 %>
 <table width="100%" class="tissueSample">
-<tr><th><strong><%=props.getProperty("sampleID") %></strong></th><th><strong><%=props.getProperty("values") %></strong></th><th><strong><%=props.getProperty("analyses") %></strong></th></tr>
+<tr>
+	<th><strong><%=props.getProperty("sampleID") %></strong></th>
+	<th><strong><%=props.getProperty("correspondingEncounterNumber") %></strong></th>
+	<th><strong><%=props.getProperty("values") %></strong></th>
+	<th><strong><%=props.getProperty("analyses") %></strong></th></tr>
 <%
 for(int j=0;j<numTissueSamples;j++){
 	TissueSample thisSample=tissueSamples.get(j);
 	%>
-	<tr><td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td>
+	<tr>
+		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td>
+		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getCorrespondingEncounterNumber()%></a></span></td>
+		<td><span class="caption"><%=thisSample.getHTMLString() %></span>
+		</td>
 	
 	<td><table>
 		<%
