@@ -454,13 +454,13 @@ public class MarkedIndividual {
 
   //sorted with the most recent first
   public Encounter[] getDateSortedEncounters(boolean includeLogEncounters) {
-    //System.out.println("Starting getDateSortedEncounters");
     Vector final_encs = new Vector();
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
       final_encs.add(temp);
     }
-    //System.out.println(".....added encounters...");
+    /**
+    //unidentifiableEncounters is no longer used
     if (includeLogEncounters) {
       int numLogs = unidentifiableEncounters.size();
       for (int c = 0; c < numLogs; c++) {
@@ -469,17 +469,14 @@ public class MarkedIndividual {
       }
       //System.out.println(".....added log encounters...");
     }
+    */
     int finalNum = final_encs.size();
     Encounter[] encs2 = new Encounter[finalNum];
-    //System.out.println(".....allocated array");
     for (int q = 0; q < finalNum; q++) {
       encs2[q] = (Encounter) final_encs.get(q);
     }
-    //System.out.println(".....assigned values to array...");
-
     EncounterDateComparator dc = new EncounterDateComparator();
     Arrays.sort(encs2, dc);
-    //System.out.println(".....done sort...");
     return encs2;
   }
 
