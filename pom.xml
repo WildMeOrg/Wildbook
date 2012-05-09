@@ -10,7 +10,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <datanucleus.version>3.0.4</datanucleus.version>
+    <datanucleus.version>3.0.9</datanucleus.version>
+    <datanucleus.jdo.api.version>3.0.8</datanucleus.jdo.api.version>
     <datanucleus.enhancer.version>3.0.1</datanucleus.enhancer.version>
     <datanucleus.spatial.version>3.0.1</datanucleus.spatial.version>
     <datanucleus.rest.version>2.0.1</datanucleus.rest.version>
@@ -153,7 +154,7 @@
         <dependency>
           <groupId>org.datanucleus</groupId>
           <artifactId>datanucleus-api-jdo</artifactId>
-          <version>${datanucleus.version}</version>
+          <version>${datanucleus.jdo.api.version}</version>
           <scope>${datanucleus.lib.scope}</scope>
     </dependency>
     <dependency>
