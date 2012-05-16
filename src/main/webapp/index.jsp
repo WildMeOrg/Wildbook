@@ -30,6 +30,7 @@ Shepherd myShepherd=new Shepherd();
 	Properties props=new Properties();
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/overview.properties"));
 	
+	//adding a comment here
 	
 	//load our variables for the overview page
 	String title=props.getProperty("overview_title");
@@ -241,13 +242,13 @@ table.adopter td.image {
 		 </div>
 	    <div id="maintext"><%=overview_maintext%>
 				 
-		 
+		 <!-- empty comment-->
 		 		 <p>
-		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />35000+ photos collected<br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />15000+  sighting reports</strong><br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3100+ whale sharks collaboratively tagged</strong><br />
+		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />41000+ photos collected<br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />18000+  sighting reports</strong><br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3600+ whale sharks collaboratively tagged</strong><br />
 			   
-			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />2900+ data contributors</strong></strong></span><br />
+			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3300+ data contributors</strong></strong></span><br />
 		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />365 research days/year</strong><br />
 		       
 			   <p align="center"><strong><a href="adoptashark.jsp">Please consider adopting a shark to support our mission!</a></strong></p>
@@ -257,7 +258,7 @@ table.adopter td.image {
 		 
 		 <div id="1000tagged">
 		   <h1 class="intro">Growing Success </h1>
-		   <p align="center"><img src="images/usablereportsgif.gif" width="390" height="352" /></p>
+		   <p align="center"><img src="images/usablereportsgif.gif" /></p>
 
 		 </div>
 
