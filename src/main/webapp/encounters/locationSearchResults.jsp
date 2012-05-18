@@ -960,7 +960,7 @@ else{
  <tr>
  <td>
  <p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
- <p><%=encprops.getProperty("genepopExport")%>: <a href="/GenePopExport?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
+ <p><%=encprops.getProperty("genepopExport")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GenePopExport?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
  </td>
  
  </tr>
