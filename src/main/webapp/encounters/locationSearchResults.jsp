@@ -891,6 +891,8 @@ else{
 		%>
 	</td>		
 </tr>
+
+
 <tr>
 	<td>	
 	<table class="comparison"><tr><td>		
@@ -901,10 +903,22 @@ else{
         		<%=queryResult1.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
       		</p>
 
-      		<p class="caption"><strong><%=encprops.getProperty("jdoql")%>
-      </strong><br/>
-        <%=queryResult1.getJDOQLRepresentation()%>
-      </p>
+      		
+      
+		<%
+		if(request.getParameter("debug")!=null){ 
+			
+			//another test  comment
+			
+		%>   
+			<p class="caption"><strong><%=encprops.getProperty("jdoql")%></strong>   
+      		<br/>
+        	<%=queryResult1.getJDOQLRepresentation()%></p>
+      	<%
+     	}
+      	%>
+      
+      
       </td></tr></table>
 </div>
 </td>
@@ -924,19 +938,34 @@ else{
         <%=queryResult2.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
       </p>
 
-      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
-      </strong><br/>
-        <%=queryResult2.getJDOQLRepresentation()%>
-      </p>
+      	<%
+      	if(request.getParameter("debug")!=null){ 
+      		%>   
+			<p class="caption"><strong><%=encprops.getProperty("jdoql")%></strong>   
+      		<br/>
+        	<%=queryResult2.getJDOQLRepresentation()%></p>
+      	<%
+     	}
+      	
+      	//test comment
+      	
+      	//another test comment
+      	
+      	%>
       </td></tr></table>
 </div>
  </td>
  </tr>
  
+ <tr>
+ <td>
+ <p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
+ <p><%=encprops.getProperty("genepopExport")%>: <a href="/GenePopExport?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
+ </td>
+ 
+ </tr>
  </table>
- 
  <%
- 
      } 
      catch (Exception e) {
        e.printStackTrace();
