@@ -77,7 +77,7 @@ public class GenePopExport extends HttpServlet{
           additionalSearchString=": "+request1.getParameter("searchNameField")+" vs. "+request.getParameter("searchNameField");
           
         }
-        out.println("Search Comparison GenePop Export"+additionalSearchString);
+        out.println("Search Comparison GenePop Export"+additionalSearchString+"<br />");
         
         //Lines 2+: write the loci
         //let's calculate Fst for each of the loci
@@ -86,12 +86,12 @@ public class GenePopExport extends HttpServlet{
         int numLoci=loci.size();
         for(int r=0;r<numLoci;r++){
           String locus=loci.get(r);
-          out.println(locus);
+          out.println(locus+"<br />");
         }
 
         
         //now write out POP1 for search1
-        out.println("POP");
+        out.println("POP"+"<br />");
         for(int i=0;i<numSearch1Individuals;i++){
           MarkedIndividual indie=(MarkedIndividual)query1Individuals.get(i);
           
@@ -100,22 +100,24 @@ public class GenePopExport extends HttpServlet{
             String locus=loci.get(r);
             ArrayList<Integer> values=indie.getAlleleValuesForLocus(locus);
             if(indie.getAlleleValuesForLocus(locus).size()==2){
-              lociString+=values.get(0)+values.get(1)+" ";
+              lociString+=values.get(0).toString();
+              lociString+=values.get(1).toString()+" ";
             }
             else if(indie.getAlleleValuesForLocus(locus).size()==1){
-              lociString+=values.get(0)+values.get(0)+" ";
+              lociString+=values.get(0).toString();
+              lociString+=values.get(0).toString()+" ";
             }
             else{lociString+="000000 ";}
             
           }
           
-          out.println(indie.getIndividualID()+","+" "+lociString);
+          out.println(indie.getIndividualID()+","+" "+lociString+"<br />");
           
         }
         
         
         //now write out POP2 for search2
-        out.println("POP");
+        out.println("POP"+"<br />");
         for(int i=0;i<numSearch2Individuals;i++){
           MarkedIndividual indie=(MarkedIndividual)query2Individuals.get(i);
           
@@ -124,16 +126,18 @@ public class GenePopExport extends HttpServlet{
             String locus=loci.get(r);
             ArrayList<Integer> values=indie.getAlleleValuesForLocus(locus);
             if(indie.getAlleleValuesForLocus(locus).size()==2){
-              lociString+=values.get(0)+values.get(1)+" ";
+              lociString+=values.get(0).toString();
+              lociString+=values.get(1).toString()+" ";
             }
             else if(indie.getAlleleValuesForLocus(locus).size()==1){
-              lociString+=values.get(0)+values.get(0)+" ";
+              lociString+=values.get(0).toString();
+              lociString+=values.get(0).toString()+" ";
             }
             else{lociString+="000000 ";}
             
           }
           
-          out.println(indie.getIndividualID()+","+" "+lociString);
+          out.println(indie.getIndividualID()+","+" "+lociString+"<br />");
           
         }
 
