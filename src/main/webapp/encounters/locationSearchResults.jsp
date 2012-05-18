@@ -55,8 +55,8 @@ public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus
 		MarkedIndividual mi= (MarkedIndividual)rIndividuals.get(p);
 		//check for heterozygosity
 		//refactor later if more than four alleles present
-		System.out.println("Inspecting "+mi.getIndividualID()+" for locus "+locus+" and allele "+allele+"...");
-		System.out.println("     it has thes allele values at this locus: "+mi.getAlleleValuesForLocus(locus).toString());
+		//System.out.println("Inspecting "+mi.getIndividualID()+" for locus "+locus+" and allele "+allele+"...");
+		//System.out.println("     it has thes allele values at this locus: "+mi.getAlleleValuesForLocus(locus).toString());
 				//we're really calculating number of alleles, so we double add for each matching marked individual
 		if(mi.hasLocus(locus)){numIndiesWithAllele++;numIndiesWithAllele++;System.out.println("     it has the locus");}
 		
@@ -70,7 +70,7 @@ public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus
 			//if this is homozygous, give it an additional plus for frequency
 			if(numPossibleValues==1){numMatches++;System.out.println("       it is homozygous");}
 		}
-		System.out.println("     Frequency is currently: "+(numMatches/numIndiesWithAllele));
+		//System.out.println("     Frequency is currently: "+(numMatches/numIndiesWithAllele));
 	}
 	//System.out.println("     end inspection");
 	return (numMatches/numIndiesWithAllele);
@@ -613,7 +613,8 @@ var selectedRectangle2;
 				double pTotalT=0;
 				double pTotal1=0;
 				double pTotal2=0;
-			
+				StringBuffer freqValues1=new StringBuffer();
+				StringBuffer freqValues2=new StringBuffer();
 				for(int y=0;y<numHaplosHere;y++){
 				
 					if(!allHaplos.get(y).equals("HET")){
@@ -634,6 +635,10 @@ var selectedRectangle2;
 						double q2=1-freq2;
 						HeSearch2+=(freq2*freq2);
 						pTotal2+=freq2;
+						
+						//let's tabulate the frequencies
+						freqValues1.append("<br />freq1_"+allHaplos.get(y)+"="+freq1+"     ");
+						freqValues2.append("<br />freq2_"+allHaplos.get(y)+"="+freq2+"     ");
 					}
 				
 				
@@ -659,7 +664,9 @@ var selectedRectangle2;
 					HeAvg: <%=HeAvg %><br />
 					pTotalT:<%=pTotalT %><br />
 					pTotal1:<%=pTotal1 %><br />
-					pTotal2:<%=pTotal2 %>
+					pTotal2:<%=pTotal2 %><br />
+					<br />Haplotype frequencies for search1: <%=freqValues1.toString() %><br />
+					<br />Haplotype frequencies for search2: <%=freqValues2.toString() %>
 					</code>
 				<%
 			    }			
@@ -702,7 +709,11 @@ var selectedRectangle2;
 				double freq1Check=0;
 				double freq2Check=0;
 				ArrayList<Double> he4alleles=new ArrayList<Double>(numMatchingValues);
+				StringBuffer freqValues1=new StringBuffer();
+				StringBuffer freqValues2=new StringBuffer();
 				for(int r1=0;r1<numMatchingValues;r1++){
+					
+					
 					
 					//continue our HT calcs
 					double freqTotal=getAlleleFrequencyForSubpopulation(totalPopulation, locus, matchingValues.get(r1), myShepherd);
@@ -720,6 +731,9 @@ var selectedRectangle2;
 					freq2Check+=freq2;
 					HeSearch2a+=(freq2*freq2);
 					
+					//let's tabulate the frequencies
+					freqValues1.append("<br />freq1_"+matchingValues.get(r1)+"="+freq1+"     ");
+					freqValues2.append("<br />freq2_"+matchingValues.get(r1)+"="+freq2+"     ");
 					
 				}
 				HTa=1-HTa;
@@ -750,6 +764,9 @@ var selectedRectangle2;
 					<%
 					}
 					%>
+					<br />
+					<br />Allele frequencies for search1: <%=freqValues1.toString() %><br />
+					<br />Allele frequencies for search2: <%=freqValues2.toString() %>
 					</code>
 				<%
 			    }
@@ -773,7 +790,31 @@ var selectedRectangle2;
  %>
  
 <table class="comparison">
-<tr><th><%=encprops.getProperty("search1Results") %></th><th><%=encprops.getProperty("search2Results") %></th></tr>
+<tr>
+<th>
+<%if((request1.getParameter("searchNameField")!=null)&&(!request1.getParameter("searchNameField").equals(""))){ %>
+<%=request1.getParameter("searchNameField") %>
+<%
+}
+else{
+%>
+<%=encprops.getProperty("search1Results") %>
+<%
+}
+%>
+</th>
+<th>
+<%if((request.getParameter("searchNameField")!=null)&&(!request.getParameter("searchNameField").equals(""))){ %>
+<%=request.getParameter("searchNameField") %>
+<%
+}
+else{
+%>
+<%=encprops.getProperty("search2Results") %>
+<%
+}
+%>
+</th>
 <tr>
 	<td>
 		<p>No. matching marked individuals: <%=query1Individuals.size() %></p>

@@ -180,73 +180,7 @@ if(request.getParameter("day1")==null){gotoPage="locationSearch.jsp";}
 %>
 <form action="<%=gotoPage %>" method="get" name="search" id="search">
 
-  <%
-		if(request.getParameter("referenceImageName")!=null){
-		%>
-<p><strong>Reference Image</strong></p>
-
-<p>You have selected this image as a reference for comparison with the results of this search</p>
-<input name="referenceImageName" type="hidden"
-       value="<%=request.getParameter("referenceImageName") %>"/>
-
-<p><img width="810px" src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=request.getParameter("referenceImageName") %>"/></p>
-<table>
-											<tr>
-												<td align="left" valign="top">
-										
-												<table>
-										<%
-										int slashPosition=request.getParameter("referenceImageName").indexOf("/");
-										String encNum=request.getParameter("referenceImageName").substring(0,slashPosition);
-										Encounter thisEnc = myShepherd.getEncounter(encNum);
-										%>
-								
-										<tr><td><span class="caption">Location: <%=thisEnc.getLocation() %></span></td></tr>
-										<tr><td><span class="caption">Location ID: <%=thisEnc.getLocationID() %></span></td></tr>
-										<tr><td><span class="caption">Date: <%=thisEnc.getDate() %></span></td></tr>
-										<%
-										if(thisEnc.getIndividualID()!=null){
-										%>
-											<tr><td><span class="caption">Identified as: 
-											<%
-											if(!thisEnc.getIndividualID().equals("Unassigned")){
-											%>
-												<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank">
-											<%
-											}
-											%>
-											<%=thisEnc.getIndividualID() %>
-											<%
-											if(!thisEnc.getIndividualID().equals("Unassigned")){
-											%>
-												</a>
-											<%
-											}
-											%>
-											</span></td></tr>
-										<%
-										}
-										%>
-										<tr><td><span class="caption">Encounter: <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
-										
-
-										
-										
-<%
-										if(thisEnc.getVerbatimEventDate()!=null){
-										%>
-											<tr>
-											
-											<td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
-										<%
-										}
-										%>
-
-
-										</table>
-  <%
-		}
-		%>
+<p>Name this search: <input name="searchNameField" type="text" size="60" /></p>
 
 <table>
 
@@ -538,7 +472,7 @@ function FSControl(controlDiv, map) {
         specific, pre-defined location identifier.</p>
 
       <p><strong><%=encprops.getProperty("locationNameContains")%>:</strong>
-        <input name="locationField" type="text" size="60"> <br>
+        <input name="locationField" type="text" size="60"> <br />
         <em><%=encprops.getProperty("leaveBlank")%>
         </em>
       </p>
@@ -546,7 +480,7 @@ function FSControl(controlDiv, map) {
       <p><strong><%=encprops.getProperty("locationID")%>:</strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation()%>locationID"
         target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br>
+                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
         (<em><%=encprops.getProperty("locationIDExample")%>
         </em>)</p>
 
