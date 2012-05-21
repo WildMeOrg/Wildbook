@@ -16,23 +16,25 @@ package org.ecocean.genetics;
     
 */
 
-
+import java.util.*;
 
 public class FStatistics{
 
+  int numPopulations=0;
+  
   boolean d_flag;
   Integer  d_reserved;
   Integer  d_numberOfGenotypes;
-  Integer[] d_genotypes;
-  Integer[] d_populationLabels;
+  ArrayList<Integer> d_genotypes;
+  ArrayList<Integer> d_populationLabels;
 
   boolean s_flag;
   Integer    s_numberOfAlleles;
-  Integer[]   s_alleleValueMapping;
+  ArrayList<Integer>   s_alleleValueMapping;
   Integer    s_numberOfPopulations;
-  Integer[]   s_populationLabelMapping;
-  Integer[]   s_populationFrequencies;
-  Integer[]   s_alleleFrequenciesTotal;
+  ArrayList<Integer> s_populationLabelMapping;
+  ArrayList<Integer> s_populationFrequencies;
+  ArrayList<Integer>  s_alleleFrequenciesTotal;
   Integer[][]  s_alleleFrequenciesPerPopulation;
   Integer[][]  s_genotypeFrequenciesTotal;
   Integer[][][] s_genotypeFrequenciesPerPopulation;
@@ -60,30 +62,25 @@ public class FStatistics{
         d_reserved = 0;
         d_flag = false;
         d_numberOfGenotypes = 0;
-        d_genotypes = null;
-        d_populationLabels = null;
+        d_genotypes = new ArrayList<Integer>();
+        d_populationLabels = new ArrayList<Integer>();
+
     }
     
-    
-    void d_clear() {
-        if (d_genotypes!=null) d_genotypes=null;
-        if (d_populationLabels!=null) d_populationLabels=null;
-        d_init();
-    }
 
 
     void s_init() {
         s_flag = false;
         s_numberOfAlleles = 0;
-        s_alleleValueMapping = null;
+        s_alleleValueMapping = new ArrayList<Integer>();
         s_numberOfPopulations = 0;
-        s_populationLabelMapping = null;
+        s_populationLabelMapping = new ArrayList<Integer>();
         
-        s_populationFrequencies = null;
-        s_alleleFrequenciesTotal = null;
-        s_alleleFrequenciesPerPopulation = null;
-        s_genotypeFrequenciesTotal = null;
-        s_genotypeFrequenciesPerPopulation = null;
+        s_populationFrequencies = new ArrayList<Integer>();
+        s_alleleFrequenciesTotal = new ArrayList<Integer>();
+        s_alleleFrequenciesPerPopulation = new Integer[numPopulations][30];
+        s_genotypeFrequenciesTotal = new Integer[30][50];
+        s_genotypeFrequenciesPerPopulation = new Integer[numPopulations][30][50];
     }
 
 
@@ -125,14 +122,14 @@ public class FStatistics{
         w_F = 0.;
         w_T = 0.;
         w_f = 0.;
-        w_a = null;
-        w_b = null;
-        w_c = null;
+        w_a = new Double[99];
+        w_b = new Double[99];
+        w_c = new Double[99];
         w_nbar = 0.;
         w_nc = 0.;
-        w_pbar = null;
-        w_ssquare = null;
-        w_hbar = null;
+        w_pbar = new Double[99];
+        w_ssquare = new Double[99];
+        w_hbar = new Double[99];
         w_sum_a = 0.;
         w_sum_b = 0.;
         w_sum_c = 0.;
@@ -154,7 +151,8 @@ public class FStatistics{
 
 /* ****************************************************************** */
 
-    public FStatistics() {
+    public FStatistics(int numPopulations) {
+        this.numPopulations=numPopulations;
         d_init();
         s_init();
         w_init();
@@ -206,9 +204,10 @@ public class FStatistics{
         }
          */
         // loads data
-        d_genotypes[2*(d_numberOfGenotypes-1)] = genotype1;
-        d_genotypes[2*(d_numberOfGenotypes-1) + 1] = genotype2;
-        d_populationLabels[d_numberOfGenotypes-1] = populationLabel;
+        d_genotypes.add(2*(d_numberOfGenotypes-1), genotype1);
+        d_genotypes.add((2*(d_numberOfGenotypes-1) + 1), genotype2);
+
+        d_populationLabels.add((d_numberOfGenotypes-1),populationLabel);
 
     }
 
@@ -251,7 +250,7 @@ public class FStatistics{
     
     void processPopulations() {
         for (int genotype=0; genotype<d_numberOfGenotypes; genotype++) {
-            int populationLabel = d_populationLabels[genotype];
+            int populationLabel = d_populationLabels.get(genotype);
             int populationIndex = getPopulationIndex(populationLabel);
             
             // new population
@@ -273,13 +272,13 @@ public class FStatistics{
                 }
                 */
                 // data
-                s_populationLabelMapping[populationIndex] = populationLabel;
-                s_populationFrequencies[populationIndex] = 1;
+                s_populationLabelMapping.add(populationIndex,populationLabel);
+                s_populationFrequencies.add(populationIndex,1);
             }
             
             // one of previous populations
             else {
-                s_populationFrequencies[populationIndex]++;
+                s_populationFrequencies.set(populationIndex,s_populationFrequencies.get(populationIndex)+1);
             }
         }
     }
@@ -288,7 +287,7 @@ public class FStatistics{
     void processAlleles() {
         for (int genotype=0; genotype<d_numberOfGenotypes; genotype++) {
 
-            int populationIndex = getPopulationIndex(d_populationLabels[genotype]);
+            int populationIndex = getPopulationIndex(d_populationLabels.get(genotype));
 
             // both allele (for genotype indexing)
             int alleleIndex1 = 0;
@@ -296,7 +295,7 @@ public class FStatistics{
             
             for (int offset=0; offset<2; offset++) {
 
-                int alleleValue = d_genotypes[2*genotype+offset];
+                int alleleValue = d_genotypes.get(2*genotype+offset);
                 int alleleIndex = getAlleleIndex(alleleValue);
 
                 // stores both alleles (works also if alleleIndex==s_numberOfAlleles)
@@ -312,7 +311,7 @@ public class FStatistics{
                     // adds the allele
                     //s_alleleValueMapping = (int) realloc(s_alleleValueMapping, s_numberOfAlleles*sizeof(int));
                     //if (!s_alleleValueMapping) throw EggMemoryError();
-                    s_alleleValueMapping[alleleIndex] = alleleValue;
+                    s_alleleValueMapping.add(alleleIndex,alleleValue);
                     
                     // adds the frequency
 
@@ -326,7 +325,7 @@ public class FStatistics{
                         throw EggMemoryError();
                     }
                     */
-                    s_alleleFrequenciesTotal[alleleIndex] = 0;
+                    s_alleleFrequenciesTotal.add(alleleIndex,0);
                     
                     for (int i=0; i<s_numberOfPopulations; i++) {
                         /*
@@ -352,7 +351,7 @@ public class FStatistics{
                         throw EggMemoryError();
                     }
                     */
-                    s_genotypeFrequenciesTotal[alleleIndex] = null;
+                    //s_genotypeFrequenciesTotal[alleleIndex] = null;
                     
                     // new column
                     for (int i=0; i<s_numberOfAlleles; i++) {
@@ -383,7 +382,7 @@ public class FStatistics{
                             throw EggMemoryError();
                         }
                         */
-                        s_genotypeFrequenciesPerPopulation[i][alleleIndex] = null;
+                        //s_genotypeFrequenciesPerPopulation[i][alleleIndex] = null;
 
                         // adds the new column (one cell per row, incl. new)
                         for (int j=0; j<s_numberOfAlleles; j++) {
@@ -406,7 +405,7 @@ public class FStatistics{
                 }
                 
                 // increments allele frequencies (even if new)
-                s_alleleFrequenciesTotal[alleleIndex]++;
+                s_alleleFrequenciesTotal.set(alleleIndex,s_alleleFrequenciesTotal.get(alleleIndex)+1);
                 s_alleleFrequenciesPerPopulation[populationIndex][alleleIndex]++;
             }
             
@@ -419,7 +418,7 @@ public class FStatistics{
 
     int getAlleleIndex(int alleleValue) {
         for (int allele=0; allele<s_numberOfAlleles; allele++) {
-            if (s_alleleValueMapping[allele] == alleleValue) {
+            if (s_alleleValueMapping.get(allele).intValue() == alleleValue) {
                 return allele;
             }
         }
@@ -429,7 +428,7 @@ public class FStatistics{
     
     int getPopulationIndex(int populationLabel) {
         for (int population=0; population<s_numberOfPopulations; population++) {
-            if (s_populationLabelMapping[population] == populationLabel) {
+            if (s_populationLabelMapping.get(population).intValue() == populationLabel) {
                 return population;
             }
         }
@@ -451,8 +450,8 @@ public class FStatistics{
         w_nbar = 0.;
         int sum_nisquare = 0;
         for (int i=0; i<s_numberOfPopulations; i++) {
-            sum_nisquare += s_populationFrequencies[i] * s_populationFrequencies[i];
-            w_nbar += s_populationFrequencies[i];
+            sum_nisquare += s_populationFrequencies.get(i) *  s_populationFrequencies.get(i);
+            w_nbar +=  s_populationFrequencies.get(i);
         }
         w_nbar /= s_numberOfPopulations;
         
@@ -494,9 +493,9 @@ public class FStatistics{
         for (int allele=0; allele<s_numberOfAlleles; allele++) {
             w_ssquare[allele] = 0.;
             for (int population=0; population<s_numberOfPopulations; population++) {
-                w_ssquare[allele] += ( s_populationFrequencies[population] *
-        (0.5* s_alleleFrequenciesPerPopulation[population][allele] / s_populationFrequencies[population] - w_pbar[allele]) *
-        (0.5* s_alleleFrequenciesPerPopulation[population][allele] / s_populationFrequencies[population] - w_pbar[allele]) );
+                w_ssquare[allele] += ( s_populationFrequencies.get(population) *
+        (0.5* s_alleleFrequenciesPerPopulation[population][allele] /  s_populationFrequencies.get(population) - w_pbar[allele]) *
+        (0.5* s_alleleFrequenciesPerPopulation[population][allele] /  s_populationFrequencies.get(population) - w_pbar[allele]) );
             }
             w_ssquare[allele] /= ( (s_numberOfPopulations - 1.) * w_nbar );
         }
@@ -604,15 +603,15 @@ public class FStatistics{
     }
 
     int firstAllele(int individualIndex) {
-        return d_genotypes[2*individualIndex];
+        return d_genotypes.get(2*individualIndex);
     }
 
     int secondAllele(int individualIndex) {
-        return d_genotypes[2*individualIndex+1];
+        return d_genotypes.get(2*individualIndex+1);
     }
 
     int individualLabel(int individualIndex) {
-        return d_populationLabels[individualIndex];
+        return d_populationLabels.get(individualIndex);
     }
 
 
@@ -636,19 +635,19 @@ public class FStatistics{
     
     public int populationLabel(int i) {
         if (!s_flag) s_compute();
-        return s_populationLabelMapping[i];
+        return s_populationLabelMapping.get(i).intValue();
     }
 
 
     public int alleleValue(int i) {
         if (!s_flag) s_compute();
-        return s_alleleValueMapping[i];
+        return s_alleleValueMapping.get(i).intValue();
     }
 
 
     public int alleleFrequencyTotal(int alleleIndex) {
         if (!s_flag) s_compute();
-        return s_alleleFrequenciesTotal[alleleIndex];
+        return s_alleleFrequenciesTotal.get(alleleIndex);
     }
 
     
@@ -671,7 +670,7 @@ public class FStatistics{
 
     public int populationFrequency(int populationIndex) {
         if (!s_flag) s_compute();
-        return s_populationFrequencies[populationIndex];
+        return  s_populationFrequencies.get(populationIndex);
     }
 
 

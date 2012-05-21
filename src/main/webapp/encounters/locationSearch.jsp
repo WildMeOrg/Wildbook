@@ -1308,11 +1308,12 @@ else {
 </td>
 </tr>
 </table>
-<br>
+<br />
 <jsp:include page="../footer.jsp" flush="true"/>
 </div>
 </div>
-<!-- end page --></div>
+<!-- end page -->
+</div>
 <!--end wrapper -->
 
 

@@ -27,57 +27,6 @@
 <html>
 <head>
 
-<%!
-public double getHaplotypeFrequencyForSubpopulation(List rIndividuals, String haplotype, Shepherd myShepherd){
-	//System.out.println("Starting getHaplotypeFreq...");
-	double numMatches=0;
-	int numIndies=rIndividuals.size();
-	int numIndiesWithHaplotypes=0;
-	for(int p=0;p<numIndies;p++){
-		//String indie=(String)rIndividuals.get(p);
-		MarkedIndividual mi= (MarkedIndividual)rIndividuals.get(p);
-		if(mi.getHaplotype()!=null){numIndiesWithHaplotypes++;}
-		if((mi.getHaplotype()!=null)&&(mi.getHaplotype().trim().equals(haplotype.trim()))){
-			numMatches++;
-		}
-	}
-	//System.out.println("Haplotype freq for "+haplotype+": "+(numMatches/numIndies));
-	return (numMatches/numIndiesWithHaplotypes);
-}
-
-public double getAlleleFrequencyForSubpopulation(List rIndividuals, String locus, Integer allele, Shepherd myShepherd){
-	//System.out.println("Starting getAlleleFrequencyForSubpopulation...");
-	double numMatches=0;
-	int numIndies=rIndividuals.size();
-	int numIndiesWithAllele=0;
-	for(int p=0;p<numIndies;p++){
-		//String indie=(String)rIndividuals.get(p);
-		MarkedIndividual mi= (MarkedIndividual)rIndividuals.get(p);
-		//check for heterozygosity
-		//refactor later if more than four alleles present
-		//System.out.println("Inspecting "+mi.getIndividualID()+" for locus "+locus+" and allele "+allele+"...");
-		//System.out.println("     it has thes allele values at this locus: "+mi.getAlleleValuesForLocus(locus).toString());
-				//we're really calculating number of alleles, so we double add for each matching marked individual
-		if(mi.hasLocus(locus)){numIndiesWithAllele++;numIndiesWithAllele++;System.out.println("     it has the locus");}
-		
-		if(mi.hasLocusAndAllele(locus, allele)){
-			System.out.println("       it has the allele");
-			numMatches++;
-			int numPossibleValues=mi.getAlleleValuesForLocus(locus).size();
-			
-			//System.out.println("     "+mi.getIndividualID()+": "+numPossibleValues);
-			
-			//if this is homozygous, give it an additional plus for frequency
-			if(numPossibleValues==1){numMatches++;System.out.println("       it is homozygous");}
-		}
-		//System.out.println("     Frequency is currently: "+(numMatches/numIndiesWithAllele));
-	}
-	//System.out.println("     end inspection");
-	return (numMatches/numIndiesWithAllele);
-}
-%>
-
-
 
   <%
 
@@ -563,7 +512,6 @@ var selectedRectangle2;
  <div id="wrapper">
  <div id="page">
 <jsp:include page="../header.jsp" flush="true">
-
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
  <div id="main">
@@ -605,71 +553,37 @@ var selectedRectangle2;
  				ArrayList<String> allHaplos=myShepherd.getAllHaplotypes();
 			 	int numHaplosHere=allHaplos.size();
  			
-
-			
-				double HT=0;
-				double HeSearch1=0;
-				double HeSearch2=0;
-				double pTotalT=0;
-				double pTotal1=0;
-				double pTotal2=0;
-				StringBuffer freqValues1=new StringBuffer();
-				StringBuffer freqValues2=new StringBuffer();
+				HashMap<String,Integer> haploMap=new HashMap<String,Integer>(numHaplosHere);
+				int mapNum=0;
 				for(int y=0;y<numHaplosHere;y++){
-				
 					if(!allHaplos.get(y).equals("HET")){
-				
-						double freqTotal=getHaplotypeFrequencyForSubpopulation(totalPopulation, allHaplos.get(y), myShepherd);
-						double qTotal=1-freqTotal;
-						HT+=(freqTotal*freqTotal);
-						pTotalT+=freqTotal;
-				
-				
-						double freq1=getHaplotypeFrequencyForSubpopulation(query1Individuals, allHaplos.get(y), myShepherd);
-						double q1=1-freq1;
-						HeSearch1+=(freq1*freq1);
-						pTotal1+=freq1;
-				
-				
-						double freq2=getHaplotypeFrequencyForSubpopulation(query2Individuals, allHaplos.get(y), myShepherd);
-						double q2=1-freq2;
-						HeSearch2+=(freq2*freq2);
-						pTotal2+=freq2;
-						
-						//let's tabulate the frequencies
-						freqValues1.append("<br />freq1_"+allHaplos.get(y)+"="+freq1+"     ");
-						freqValues2.append("<br />freq2_"+allHaplos.get(y)+"="+freq2+"     ");
+						haploMap.put(allHaplos.get(y), new Integer(mapNum));
 					}
-				
-				
-
+					mapNum++;
 				}
- 			
-				HT=1-HT;
-				HeSearch1=1-HeSearch1;
-				HeSearch2=1-HeSearch2;
-				double HeAvg = HeSearch1/2+HeSearch2/2;
-			
-				double Fst = (HT-HeAvg)/HT;
+				FStatistics fstats=new FStatistics(2);
+				for(int k=0;k<query1Size;k++){
+					MarkedIndividual indie=(MarkedIndividual)query1Individuals.get(k);
+					int myHaploIntRep=haploMap.get(indie.getHaplotype());
+					fstats.loadIndividual(myHaploIntRep, myHaploIntRep, 1);
+				}
+				
+				for(int k=0;k<query2Size;k++){
+					MarkedIndividual indie=(MarkedIndividual)query2Individuals.get(k);
+					int myHaploIntRep=haploMap.get(indie.getHaplotype());
+					fstats.loadIndividual(myHaploIntRep, myHaploIntRep, 2);
+				}
+			%>
+			<p><strong>Haplotypes</strong><br />
+			<%
+				try {
 				%>
-			
-				<p>F<sub>st</sub> (Haplotype)= <%=Fst %></p>
+					F<sub>st</sub> = <%=fstats.getTheta() %><br />
+					(Weir and Cockerham 1984 method)</p>
 				<%
-				if(request.getParameter("debug")!=null){
-				%>
-					<code>
-					HeSearch1: <%=HeSearch1 %><br />
-					HeSearch2: <%=HeSearch2 %><br />
-					HT: <%=HT %><br />
-					HeAvg: <%=HeAvg %><br />
-					pTotalT:<%=pTotalT %><br />
-					pTotal1:<%=pTotal1 %><br />
-					pTotal2:<%=pTotal2 %><br />
-					<br />Haplotype frequencies for search1: <%=freqValues1.toString() %><br />
-					<br />Haplotype frequencies for search2: <%=freqValues2.toString() %>
-					</code>
-				<%
-			    }			
+				}
+				catch(Exception e){e.printStackTrace();}
+					
 			}
 		
 		//let's calculate Fst for each of the loci
@@ -680,98 +594,55 @@ var selectedRectangle2;
 			String locus=loci.get(r);
 			if((request.getParameter(locus)!=null)&&(request1.getParameter(locus)!=null)&&(query1Individuals.size()>0)&&(query2Individuals.size()>0)){
 				
-				double HT=0;
-				double HeSearch1=0;
-				double HeSearch2=0;
-				double pTotalT=0;
-				double pTotal1=0;
-				double pTotal2=0;
+
 				
 				//ok, now we need all possible allele values for this locus
 				
 				ArrayList<Integer> matchingValues=new ArrayList<Integer>();
-				for(int k=0;k<totalPopulationSize;k++){
-					MarkedIndividual indie=totalPopulation.get(k);
+				FStatistics fstats=new FStatistics(2);
+				
+				for(int k=0;k<query1Size;k++){
+					MarkedIndividual indie=(MarkedIndividual)query1Individuals.get(k);
 					ArrayList<Integer> localValues=indie.getAlleleValuesForLocus(locus);
 					int localValuesSize=localValues.size();
-					for(int u=0;u<localValuesSize;u++){
-						Integer val=localValues.get(u);
-						if(!matchingValues.contains(val)){matchingValues.add(val);}
+
+					if(localValuesSize==1){
+						fstats.loadIndividual(localValues.get(0).intValue(), localValues.get(0).intValue(), 1);
+					}
+					else if(localValuesSize==2){
+						fstats.loadIndividual(localValues.get(0).intValue(), localValues.get(1).intValue(), 1);
 					}
 					
-				}
-				int numMatchingValues=matchingValues.size();
-				
-				double HTa=0;
-				double HeSearch1a=0;
-				double HeSearch2a=0;
-				double freqTotalCheck=0;
-				double freq1Check=0;
-				double freq2Check=0;
-				ArrayList<Double> he4alleles=new ArrayList<Double>(numMatchingValues);
-				StringBuffer freqValues1=new StringBuffer();
-				StringBuffer freqValues2=new StringBuffer();
-				for(int r1=0;r1<numMatchingValues;r1++){
-					
-					
-					
-					//continue our HT calcs
-					double freqTotal=getAlleleFrequencyForSubpopulation(totalPopulation, locus, matchingValues.get(r1), myShepherd);
-					double qTotal=1-freqTotal;
-					freqTotalCheck+=freqTotal;
-					HTa+=(freqTotal*freqTotal);
-					
-					double freq1=getAlleleFrequencyForSubpopulation(query1Individuals, locus, matchingValues.get(r1), myShepherd);
-					double q1=1-freq1;
-					freq1Check+=freq1;
-					HeSearch1a+=(freq1*freq1);
-					
-					double freq2=getAlleleFrequencyForSubpopulation(query2Individuals, locus, matchingValues.get(r1), myShepherd);
-					double q2=1-freq2;
-					freq2Check+=freq2;
-					HeSearch2a+=(freq2*freq2);
-					
-					//let's tabulate the frequencies
-					freqValues1.append("<br />freq1_"+matchingValues.get(r1)+"="+freq1+"     ");
-					freqValues2.append("<br />freq2_"+matchingValues.get(r1)+"="+freq2+"     ");
 					
 				}
-				HTa=1-HTa;
-				HeSearch1a=1-HeSearch1a;
-				HeSearch2a=1-HeSearch2a;
-				double HeAvga = HeSearch1a/2+HeSearch2a/2;
 				
-				double Fsta = (HTa-HeAvga)/HTa;
-				%>
-				
-				<p>F<sub>st</sub> (<%=locus %>)= <%=Fsta %></p>
-				<%
-				if(request.getParameter("debug")!=null){
-				%>
-					<code>
-					HeSearch1: <%=HeSearch1a %><br />
-					HeSearch2: <%=HeSearch2a %><br />
-					HT: <%=HTa %><br />
-					HeAvg: <%=HeAvga %><br />
-					freq1Check: <%=freq1Check %><br />
-					freq2Check: <%=freq2Check %><br />
-					freqTotalCheck: <%=freqTotalCheck %><br />
-					Allele values found: 
-					<%
-					for(int r3=0;r3<numMatchingValues;r3++){
-					%>
-						<%=matchingValues.get(r3) %>
-					<%
+				for(int k=0;k<query2Size;k++){
+					MarkedIndividual indie=(MarkedIndividual)query2Individuals.get(k);
+					ArrayList<Integer> localValues=indie.getAlleleValuesForLocus(locus);
+					int localValuesSize=localValues.size();
+
+					if(localValuesSize==1){
+						fstats.loadIndividual(localValues.get(0).intValue(), localValues.get(0).intValue(), 2);
 					}
-					%>
-					<br />
-					<br />Allele frequencies for search1: <%=freqValues1.toString() %><br />
-					<br />Allele frequencies for search2: <%=freqValues2.toString() %>
-					</code>
-				<%
-			    }
-				
+					else if(localValuesSize==2){
+						fstats.loadIndividual(localValues.get(0).intValue(), localValues.get(1).intValue(), 2);
+					}
+					
+					
+				}
 			
+				%>
+				
+				<p><strong><%=locus %></strong><br />
+				<%
+				try {
+				%>
+					F<sub>st</sub> = <%=fstats.getTheta() %><br />
+					(Weir and Cockerham 1984 method)</p>
+				<%
+				}
+				catch(Exception e){e.printStackTrace();}
+				
 				
 			}
 		}
@@ -989,7 +860,7 @@ else{
 %>
 
  
- <jsp:include page="../footer.jsp" flush="true"/>
+<jsp:include page="../footer.jsp" flush="true"/>
 </div>
 </div>
 <!-- end page --></div>
