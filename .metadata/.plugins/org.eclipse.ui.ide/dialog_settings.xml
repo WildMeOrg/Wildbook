@@ -8,6 +8,10 @@
 		<list key="ENABLED_TRANSFERS">
 		</list>
 	</section>
+	<section name="ExternalProjectImportWizard">
+		<item value="false" key="WizardProjectsImportPage.STORE_ARCHIVE_SELECTED"/>
+		<item value="false" key="WizardProjectsImportPage.STORE_COPY_PROJECT_ID"/>
+	</section>
 	<section name="org.eclipse.ui.views.problem">
 	</section>
 </section>
