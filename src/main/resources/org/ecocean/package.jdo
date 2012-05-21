@@ -6,8 +6,25 @@
 <jdo>
     <package name="org.ecocean">
 
-
-
+		<class name="PatterningPassport" identity-type="datastore">
+            <field name="passportDataXml" persistence-modifier="persistent">
+                <column jdbc-type="LONGVARCHAR" />
+            </field>
+			<field name="encounterUrl" persistence-modifier="persistent">
+                <column jdbc-type="LONGVARCHAR" />
+            </field>
+			<field name="mediaUrl" persistence-modifier="persistent">
+                <column jdbc-type="LONGVARCHAR" /> 
+            </field>
+			<field name="timestampOfLastUpdate" persistence-modifier="persistent">
+                 <column length="100" />
+            </field>
+			<field name="patterningPassportXmlUrl" persistence-modifier="persistent">
+                <column jdbc-type="LONGVARCHAR" />
+            </field>
+			
+		</class>
+		
         <class name="Adoption" identity-type="application">
             <field name="adopterName" persistence-modifier="persistent">
                 <column jdbc-type="LONGVARCHAR" />

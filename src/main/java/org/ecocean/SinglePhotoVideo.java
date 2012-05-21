@@ -9,8 +9,8 @@ import org.ecocean.genetics.TissueSample;
 
 public class SinglePhotoVideo extends DataCollectionEvent {
 
-
   private static final long serialVersionUID = 7999349137348568641L;
+  private PatterningPassport patterningPassport;
   private String filename;
   private String fullFileSystemPath;
   
@@ -19,11 +19,11 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   private String thumbnailFullFileSystemPath;
   */
   
-  private static String type="SinglePhotoVideo";
+  private static String type = "SinglePhotoVideo";
   private String copyrightOwner;
   private String copyrightStatement;
   private List<Keyword> keywords;
-
+  
   /**
    * Empty constructor required for JDO persistence
    */
@@ -56,6 +56,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
     else{return null;}
   }
   
+  
   /*
   public File getThumbnailFile(){
     if(thumbnailFullFileSystemPath!=null){
@@ -77,8 +78,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   public String getCopyrightStatement(){return copyrightStatement;}
   public void setCopyrightStatement(String statement){copyrightStatement=statement;}
   
-  
-  //public String getThumbnailFilename(){return (this.getDataCollectionEventID()+".jpg");}
+   //public String getThumbnailFilename(){return (this.getDataCollectionEventID()+".jpg");}
   
   /*
   public void setThumbnailFilename(String newName){this.thumbnailFilename=newName;}
@@ -94,6 +94,24 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   public void removeKeyword(int num){keywords.remove(num);}
   public List<Keyword> getKeywords(){return keywords;}
   public void removeKeyword(Keyword num){keywords.remove(num);}
+
+  /**
+   * @return the patterningPassport
+   */
+  public PatterningPassport getPatterningPassport() {
+    if (this.patterningPassport == null) {
+      this.patterningPassport = new PatterningPassport();
+      this.patterningPassport.setPassportDataXml("");
+    }
+    return patterningPassport;
+  }
+
+  /**
+   * @param patterningPassport the patterningPassport to set
+   */
+  public void setPatterningPassport(PatterningPassport patterningPassport) {
+    this.patterningPassport = patterningPassport;
+  }
   
   
   

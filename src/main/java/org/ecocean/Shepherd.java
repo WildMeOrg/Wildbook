@@ -763,6 +763,20 @@ public class Shepherd {
       return null;
     }
   }
+  
+  public ArrayList<PatterningPassport> getAllPatterningPassports(Query acceptedPassports) {
+    Collection c;
+    try {
+      c = (Collection) (acceptedPassports.execute());
+      ArrayList<PatterningPassport> list = new ArrayList<PatterningPassport>(c);
+      return list;
+    } 
+    catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllPatterningPassports(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
 
   public Iterator getAvailableScanWorkItems(int pageSize, long timeout) {
