@@ -928,9 +928,11 @@ public class MarkedIndividual {
     int numEncounters = encounters.size();
     for (int i = 0; i < numEncounters; i++) {
       Encounter enc = (Encounter) encounters.get(i);
-      List<TissueSample> list = enc.getTissueSamples();
-      if((list!=null)&&(list.size()>0)){
-        al.addAll(list);
+      if(enc.getTissueSamples()!=null){
+        List<TissueSample> list = enc.getTissueSamples();
+        if(list.size()>0){
+          al.addAll(list);
+        }
       }
     }
     return al;

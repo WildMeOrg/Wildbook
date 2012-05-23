@@ -9,6 +9,7 @@ import javax.jdo.Query;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.ecocean.genetics.*;
 import java.net.URI;
+import java.text.NumberFormat;;
 
 
 
@@ -55,7 +56,6 @@ public class GenePopExport extends HttpServlet{
 
       //start the query and get the results
       String order = "";
-      //EncounterQueryResult queryResult1 = EncounterQueryProcessor.processQuery(myShepherd, request, order);
       HttpServletRequest request1=(MockHttpServletRequest)request.getSession().getAttribute("locationSearch1");
     
       if((request!=null)&&(request1!=null)){
@@ -88,27 +88,44 @@ public class GenePopExport extends HttpServlet{
           String locus=loci.get(r);
           out.println(locus+"<br />");
         }
-
+        ArrayList<String> haplos=myShepherd.getAllHaplotypes();
+        int numHaplos=haplos.size();
+        if(numHaplos>0){
+          out.println("mtDNA<br/>");
+        }
         
         //now write out POP1 for search1
+        
         out.println("POP"+"<br />");
         for(int i=0;i<numSearch1Individuals;i++){
           MarkedIndividual indie=(MarkedIndividual)query1Individuals.get(i);
           
           String lociString="";
+          NumberFormat myFormat = NumberFormat.getInstance();
+          myFormat.setMinimumIntegerDigits(3);
           for(int r=0;r<numLoci;r++){
             String locus=loci.get(r);
             ArrayList<Integer> values=indie.getAlleleValuesForLocus(locus);
             if(indie.getAlleleValuesForLocus(locus).size()==2){
-              lociString+=values.get(0).toString();
-              lociString+=values.get(1).toString()+" ";
+              lociString+=myFormat.format(values.get(0));
+              lociString+=myFormat.format(values.get(1))+" ";
             }
             else if(indie.getAlleleValuesForLocus(locus).size()==1){
-              lociString+=values.get(0).toString();
-              lociString+=values.get(0).toString()+" ";
+              lociString+=myFormat.format(values.get(0));
+              lociString+=myFormat.format(values.get(0))+" ";
             }
             else{lociString+="000000 ";}
             
+          }
+          
+          if(numHaplos>0){
+          //now add the haplotype
+            if(indie.getHaplotype()!=null){
+              String haplo=indie.getHaplotype();
+              Integer haploNum = new Integer(haplos.indexOf(haplo));
+              lociString+=(myFormat.format(haploNum)+" ");
+            }
+            else{lociString+="000 ";}
           }
           
           out.println(indie.getIndividualID()+","+" "+lociString+"<br />");
@@ -122,19 +139,31 @@ public class GenePopExport extends HttpServlet{
           MarkedIndividual indie=(MarkedIndividual)query2Individuals.get(i);
           
           String lociString="";
+          NumberFormat myFormat = NumberFormat.getInstance();
+          myFormat.setMinimumIntegerDigits(3);
           for(int r=0;r<numLoci;r++){
             String locus=loci.get(r);
             ArrayList<Integer> values=indie.getAlleleValuesForLocus(locus);
             if(indie.getAlleleValuesForLocus(locus).size()==2){
-              lociString+=values.get(0).toString();
-              lociString+=values.get(1).toString()+" ";
+              lociString+=myFormat.format(values.get(0));
+              lociString+=myFormat.format(values.get(1))+" ";
             }
             else if(indie.getAlleleValuesForLocus(locus).size()==1){
-              lociString+=values.get(0).toString();
-              lociString+=values.get(0).toString()+" ";
+              lociString+=myFormat.format(values.get(0));
+              lociString+=myFormat.format(values.get(0))+" ";
             }
             else{lociString+="000000 ";}
             
+          }
+          
+          if(numHaplos>0){
+          //now add the haplotype
+            if(indie.getHaplotype()!=null){
+              String haplo=indie.getHaplotype();
+              Integer haploNum = new Integer(haplos.indexOf(haplo));
+              lociString+=(myFormat.format(haploNum)+" ");
+            }
+            else{lociString+="000 ";}
           }
           
           out.println(indie.getIndividualID()+","+" "+lociString+"<br />");
