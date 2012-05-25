@@ -556,22 +556,22 @@ var selectedRectangle2;
 				HashMap<String,Integer> haploMap=new HashMap<String,Integer>(numHaplosHere);
 				int mapNum=0;
 				for(int y=0;y<numHaplosHere;y++){
-					if(!allHaplos.get(y).equals("HET")){
+					//if(!allHaplos.get(y).equals("HET")){
 						haploMap.put(allHaplos.get(y), new Integer(mapNum));
-					}
+					//}
 					mapNum++;
 				}
-				FStatistics fstats=new FStatistics(2);
+				HFStatistics fstats=new HFStatistics(2);
 				for(int k=0;k<query1Size;k++){
 					MarkedIndividual indie=(MarkedIndividual)query1Individuals.get(k);
 					int myHaploIntRep=haploMap.get(indie.getHaplotype());
-					fstats.loadIndividual(myHaploIntRep, myHaploIntRep, 1);
+					fstats.loadIndividual(myHaploIntRep, 1);
 				}
 				
 				for(int k=0;k<query2Size;k++){
 					MarkedIndividual indie=(MarkedIndividual)query2Individuals.get(k);
 					int myHaploIntRep=haploMap.get(indie.getHaplotype());
-					fstats.loadIndividual(myHaploIntRep, myHaploIntRep, 2);
+					fstats.loadIndividual(myHaploIntRep, 2);
 				}
 			%>
 			<p><strong>Haplotypes</strong><br />

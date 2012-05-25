@@ -183,8 +183,7 @@ public class FStatistics{
     }
     */
 
-    public void loadIndividual(int genotype1,
-                    int genotype2, int populationLabel) {
+    public void loadIndividual(int genotype1,int genotype2, int populationLabel) {
     
     
         // clears statistics if already computed
