@@ -132,7 +132,7 @@ margin-bottom: 8px !important;
   }
 
   Properties encprops = new Properties();
-  encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/locationSearch.properties"));
+  encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchComparison.properties"));
 
   //let's determine if this is location 1 or 2
   
@@ -175,8 +175,8 @@ margin-bottom: 8px !important;
 <p><em><%=encprops.getProperty("instructions")%>
 </em></p>
 <%
-String gotoPage="locationSearchResults.jsp";
-if(request.getParameter("day1")==null){gotoPage="locationSearch.jsp";}
+String gotoPage="searchComparisonResults.jsp";
+if(request.getParameter("day1")==null){gotoPage="searchComparison.jsp";}
 %>
 <form action="<%=gotoPage %>" method="get" name="search" id="search">
 

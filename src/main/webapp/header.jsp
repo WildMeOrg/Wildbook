@@ -188,7 +188,7 @@
         </a></li>
         
         <li>
-	          <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/locationSearch.jsp"
+	          <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchComparison.jsp"
 	             class="enclose"
 	             style="margin: 0px 0 0px 0px; position: relative; width: 150px; height: 25px;">
 	            <%=props.getProperty("locationSearch")%>
