@@ -122,13 +122,20 @@ public class GenePopExport extends HttpServlet{
           //now add the haplotype
             if(indie.getHaplotype()!=null){
               String haplo=indie.getHaplotype();
-              Integer haploNum = new Integer(haplos.indexOf(haplo));
+              Integer haploNum = new Integer(haplos.indexOf(haplo)+1);
               lociString+=(myFormat.format(haploNum)+" ");
             }
             else{lociString+="000 ";}
           }
           
-          out.println(indie.getIndividualID()+","+" "+lociString+"<br />");
+          String indieID=indie.getIndividualID();
+          if(i==(numSearch1Individuals-1)){
+            
+            if((request.getParameter("searchNameField")!=null)&&(!request.getParameter("searchNameField").equals(""))){indieID=request.getParameter("searchNameField");}
+            else{indieID="Search1";}
+            
+          }
+          out.println(indieID+","+" "+lociString+"<br />");
           
         }
         
@@ -160,13 +167,20 @@ public class GenePopExport extends HttpServlet{
           //now add the haplotype
             if(indie.getHaplotype()!=null){
               String haplo=indie.getHaplotype();
-              Integer haploNum = new Integer(haplos.indexOf(haplo));
+              Integer haploNum = new Integer(haplos.indexOf(haplo)+1);
               lociString+=(myFormat.format(haploNum)+" ");
             }
             else{lociString+="000 ";}
           }
           
-          out.println(indie.getIndividualID()+","+" "+lociString+"<br />");
+          String indieID=indie.getIndividualID();
+          if(i==(numSearch2Individuals-1)){
+            
+            if((request1.getParameter("searchNameField")!=null)&&(!request1.getParameter("searchNameField").trim().equals(""))){indieID=request1.getParameter("searchNameField");}
+            else{indieID="Search2";}
+            
+          }
+          out.println(indieID+","+" "+lociString+"<br />");
           
         }
 

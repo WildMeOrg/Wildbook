@@ -103,12 +103,12 @@ public class HFStatistics{
     private void w_init() {
         w_flag = false;
         w_T = 0.;
-        w_T1 = new Double[99];
-        w_T2 = new Double[99];
+        w_T1 = new Double[90];
+        w_T2 = new Double[90];
         w_nbar = 0;
         w_nc = 0;
-        w_pbar = new Double[99];
-        w_ssquare = new Double[99];
+        w_pbar = new Double[90];
+        w_ssquare = new Double[90];
         w_sum_T1 = 0;
         w_sum_T2 = 0;
     }
