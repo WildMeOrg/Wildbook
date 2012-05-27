@@ -303,7 +303,7 @@ public class HFStatistics{
             //s_alleleFrequenciesTotal[alleleIndex]++;
             s_alleleFrequenciesTotal.set(alleleIndex,s_alleleFrequenciesTotal.get(alleleIndex)+1);
             s_alleleFrequenciesPerPopulation[populationIndex][alleleIndex]++;
-            s_alleleFrequenciesPerPopulation[populationIndex][alleleIndex]++;
+            //s_alleleFrequenciesPerPopulation[populationIndex][alleleIndex]++;
             
         }
     }
@@ -455,47 +455,47 @@ public class HFStatistics{
 
 /* ****************************************************************** */
 
-    private int numberOfGenotypes() {
+    public int numberOfGenotypes() {
         return d_numberOfGenotypes;
     }
 
-    private int numberOfPopulations() {
+    public int numberOfPopulations() {
         if (!s_flag) s_compute();
         return s_numberOfPopulations;
     }
     
     
-    private int numberOfAlleles() {
+    public int numberOfAlleles() {
         if (!s_flag) s_compute();
         return s_numberOfAlleles;
     }
     
     
-    private int populationLabel(int i) {
+    public int populationLabel(int i) {
         if (!s_flag) s_compute();
         return s_populationLabelMapping.get(i).intValue();
     }
 
 
-    private int alleleValue(int i) {
+    public int alleleValue(int i) {
         if (!s_flag) s_compute();
         return s_alleleValueMapping.get(i).intValue();
     }
 
 
-    private int alleleFrequencyTotal(int alleleIndex) {
+    public int alleleFrequencyTotal(int alleleIndex) {
         if (!s_flag) s_compute();
         return s_alleleFrequenciesTotal.get(alleleIndex);
     }
 
     
-    private int alleleFrequencyPerPopulation(int populationIndex, int alleleIndex) {
+    public int alleleFrequencyPerPopulation(int populationIndex, int alleleIndex) {
         if (!s_flag) s_compute();
         return s_alleleFrequenciesPerPopulation[populationIndex][alleleIndex];
     }
 
     
-    private int populationFrequency(int populationIndex) {
+    public int populationFrequency(int populationIndex) {
         if (!s_flag) s_compute();
         return s_populationFrequencies.get(populationIndex).intValue();
     }

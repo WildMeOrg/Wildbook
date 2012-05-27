@@ -23,41 +23,7 @@
          import="javax.jdo.Query,org.springframework.mock.web.MockHttpServletRequest,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
 
- 	
-<%!
-	  	
-public double getHaplotypeFrequencyForSubpopulation(List rIndividuals, String haplotype, Shepherd myShepherd){
-	  	
-  //System.out.println("Starting getHaplotypeFreq...");
-	  	
-  double numMatches=0;
-	  	
-  int numIndies=rIndividuals.size();
-	  	
-  int numIndiesWithHaplotypes=0;
-	  	
-  for(int p=0;p<numIndies;p++){
-	  	
-    //String indie=(String)rIndividuals.get(p);
-	  	
-    MarkedIndividual mi= (MarkedIndividual)rIndividuals.get(p);
-	  	
-    if(mi.getHaplotype()!=null){numIndiesWithHaplotypes++;}
-	  	
-    if((mi.getHaplotype()!=null)&&(mi.getHaplotype().trim().equals(haplotype.trim()))){
-	  	
-      numMatches++;
-	  	
-    }
-	  	
-  }
-	  	
-  //System.out.println("Haplotype freq for "+haplotype+": "+(numMatches/numIndies));
-	  	
-  return (numMatches/numIndiesWithHaplotypes);	  	
-}
 
-%>
 
 <html>
 <head>
@@ -612,43 +578,7 @@ var selectedRectangle2;
 				/** End HFStatistics approach **/
 				
   	
-				/** Start my method **/
-        		double HT=0;
-        		double HeSearch1=0;
-        		double HeSearch2=0;
-        		double pTotalT=0;
-        		double pTotal1=0;
-        		double pTotal2=0;
-        		StringBuffer freqValues1=new StringBuffer();	  	
-        		 StringBuffer freqValues2=new StringBuffer();
-        		 for(int y=0;y<numHaplosHere;y++){
-        				
-        	            double freqTotal=getHaplotypeFrequencyForSubpopulation(totalPopulation, allHaplos.get(y), myShepherd);
-        	            double qTotal=1-freqTotal;
-        	            HT+=(freqTotal*freqTotal);
-        	            pTotalT+=freqTotal;
-        	            double freq1=getHaplotypeFrequencyForSubpopulation(query1Individuals, allHaplos.get(y), myShepherd);
-        	            double q1=1-freq1;
-        	            HeSearch1+=(freq1*freq1);
-        	            pTotal1+=freq1;
-        	            double freq2=getHaplotypeFrequencyForSubpopulation(query2Individuals, allHaplos.get(y), myShepherd);
-        	            double q2=1-freq2;
-        	            HeSearch2+=(freq2*freq2);
-        	            pTotal2+=freq2;
-
-        	            //let's tabulate the frequencies
-        	            freqValues1.append("<br />freq1_"+allHaplos.get(y)+"="+freq1+"     ");
-        	            freqValues2.append("<br />freq2_"+allHaplos.get(y)+"="+freq2+"     ");
-        	            
-        	            
-        		}
-        		 HT=1-HT;
- 	            HeSearch1=1-HeSearch1;
- 	            HeSearch2=1-HeSearch2;
- 	            double HeAvg = HeSearch1/2+HeSearch2/2;
- 	            double myFst = (HT-HeAvg)/HT;
-        		
-        		/** end my method **/
+	
         		
 			%>
 			<p><strong>Haplotypes</strong><br />
@@ -656,24 +586,6 @@ var selectedRectangle2;
 				try {
 				%>
 					F<sub>st</sub> = <%=fstats.getTheta() %> (Weir and Cockerham 1984 method)<br />
-					T1 = <%=fstats.getT1() %><br />
-					T2 = <%=fstats.getT2() %>
-					</p>
-					<p>
-					myFst try= <%=myFst %> (basic Wright calculation)<br />
-					
-					
-<code>
- HeSearch1: <%=HeSearch1 %><br />
-HeSearch2: <%=HeSearch2 %><br />
-HT: <%=HT %><br />
-HeAvg: <%=HeAvg %><br />
-pTotalT:<%=pTotalT %><br />
-pTotal1:<%=pTotal1 %><br />
-pTotal2:<%=pTotal2 %><br />
-<br />Haplotype frequencies for search1: <%=freqValues1.toString() %><br />
-<br />Haplotype frequencies for search2: <%=freqValues2.toString() %>
-</code>
 
 				<%
 				}
