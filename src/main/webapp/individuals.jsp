@@ -1262,8 +1262,9 @@ else {
   myShepherd.closeDBTransaction();
 
 %>
-<jsp:include page="footer.jsp" flush="true"/>
+
 </div>
+<jsp:include page="footer.jsp" flush="true"/>
 <!-- end page --></div>
 <!--end wrapper -->
 </body>
