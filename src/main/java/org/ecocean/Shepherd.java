@@ -27,6 +27,7 @@ import org.ecocean.genetics.*;
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.io.File;
 
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
@@ -648,6 +649,18 @@ public class Shepherd {
       return null;
     }
   }
+  
+  public Iterator getAllSinglePhotoVideosNoQuery() {
+    try {
+      Extent spvClass = pm.getExtent(SinglePhotoVideo.class, true);
+      Iterator it = spvClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSinglePhotoVideosNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
   public Iterator getAllAdoptionsNoQuery() {
     try {
@@ -764,20 +777,27 @@ public class Shepherd {
     }
   }
   
-  public ArrayList<PatterningPassport> getAllPatterningPassports(Query acceptedPassports) {
-    Collection c;
-    try {
-      c = (Collection) (acceptedPassports.execute());
-      ArrayList<PatterningPassport> list = new ArrayList<PatterningPassport>(c);
-      return list;
-    } 
-    catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllPatterningPassports(Query). Returning a null collection.");
-      npe.printStackTrace();
-      return null;
-    }
+  public ArrayList<PatterningPassport> getPatterningPassports() {
+    ArrayList c = new ArrayList();
+    ArrayList<PatterningPassport> ppList = new ArrayList<PatterningPassport>(c);
+    
+    return ppList;
   }
-
+  /*
+  public ArrayList<File> getAllPatterningPassportFiles() {
+    Iterator all_spv = getAllSinglePhotoVideosNoQuery();
+    Collection c = new ArrayList();
+    while(all_spv.hasNext())
+    {
+      SinglePhotoVideo spv = (SinglePhotoVideo)all_spv.next();
+      File ppFile = spv.getPatterningPassportFile();
+      c.add(ppFile);
+    }
+    ArrayList<File> list = new ArrayList<File>(c);
+    return list;
+    
+  }
+  */
 
   public Iterator getAvailableScanWorkItems(int pageSize, long timeout) {
     Collection c;

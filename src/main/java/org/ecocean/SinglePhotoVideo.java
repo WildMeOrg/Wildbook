@@ -34,14 +34,14 @@ public class SinglePhotoVideo extends DataCollectionEvent {
    */
   public SinglePhotoVideo(String correspondingEncounterNumber, String filename, String fullFileSystemPath) {
     super(correspondingEncounterNumber, type);
-    this.filename=filename;
-    this.fullFileSystemPath=fullFileSystemPath;
+    this.filename = filename;
+    this.fullFileSystemPath = fullFileSystemPath;
   }
   
   public SinglePhotoVideo(String correspondingEncounterNumber, File file) {
     super(correspondingEncounterNumber, type);
-    this.filename=file.getName();
-    this.fullFileSystemPath=file.getAbsolutePath();
+    this.filename = file.getName();
+    this.fullFileSystemPath = file.getAbsolutePath();
   }
   
   /**
@@ -95,15 +95,24 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   public List<Keyword> getKeywords(){return keywords;}
   public void removeKeyword(Keyword num){keywords.remove(num);}
 
-  /**
-   * @return the patterningPassport
-   */
-  public PatterningPassport getPatterningPassport() {
-    if (this.patterningPassport == null) {
-      this.patterningPassport = new PatterningPassport();
-      this.patterningPassport.setPassportDataXml("");
+ 
+  public File getPatterningPassportFile() {
+    File f = this.getFile();
+    String xmlPath;
+    String dirPath;
+    if (f != null) {
+      dirPath = f.getParent();
+      xmlPath = dirPath + "/" + this.filename.substring(0,this.filename.indexOf(".")) + "_pp.xml";
+    } else {
+      return null; // no xml if no image!
     }
-    return patterningPassport;
+    
+    File xmlFile = new File(xmlPath);
+    if (xmlFile.isFile() == Boolean.FALSE) {
+      return null; 
+    } 
+   
+    return xmlFile;
   }
 
   /**
@@ -112,7 +121,6 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   public void setPatterningPassport(PatterningPassport patterningPassport) {
     this.patterningPassport = patterningPassport;
   }
-  
   
   
 }
