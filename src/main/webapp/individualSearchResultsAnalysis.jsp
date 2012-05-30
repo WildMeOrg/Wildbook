@@ -273,8 +273,13 @@
           
           for(int hh=0;hh<numHaplos;hh++){
           %>
-          ['<%=allHaplos.get(hh)%>',    <%=pieHashtable.get(allHaplos.get(hh))%>],
+          ['<%=allHaplos.get(hh)%>',    <%=pieHashtable.get(allHaplos.get(hh))%>]
 		  <%
+		  if(hh<(numHaplos-1)){
+		  %>
+		  ,
+		  <%
+		  }
           }
 		  %>
           
@@ -319,7 +324,7 @@
 
           ['male',    <%=sexHashtable.get("male")%>],
            ['female',    <%=sexHashtable.get("female")%>],
-           ['unknown',    <%=sexHashtable.get("unknown")%>],
+           ['unknown',    <%=sexHashtable.get("unknown")%>]
           
         ]);
 
@@ -349,7 +354,7 @@
         data.addRows([
 
           ['First sighting',    <%=firstSightingsHashtable.get("First sighting")%>],
-           ['Previously sighted',    <%=firstSightingsHashtable.get("Previously sighted")%>],
+           ['Previously sighted',    <%=firstSightingsHashtable.get("Previously sighted")%>]
            
 
         ]);
@@ -382,8 +387,13 @@
         <%              
         for(int p=0;p<numYearsCoverage;p++){
         %>
-          ['<%=p%>', <%=resightingYearsArray[p]%>],
+          ['<%=p%>', <%=resightingYearsArray[p]%>]
 		<%
+		if(p<(numYearsCoverage-1)){
+		%>
+		,
+		<%
+		}
         }
 		%>
         ]);

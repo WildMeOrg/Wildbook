@@ -348,8 +348,14 @@ var selectedRectangle2;
           
           for(int hh=0;hh<numHaplos1;hh++){
           %>
-          ['<%=allHaplos1.get(hh)%>',    <%=pieHashtable1.get(allHaplos1.get(hh))%>],
+          ['<%=allHaplos1.get(hh)%>',    <%=pieHashtable1.get(allHaplos1.get(hh))%>]
 		  <%
+		  if(hh<(numHaplos1-1)){
+		  %>
+		  ,
+		  <%
+		  }
+		  
           }
 		  %>
           
@@ -395,7 +401,7 @@ var selectedRectangle2;
 
           ['male',    <%=sexHashtable1.get("male")%>],
            ['female',    <%=sexHashtable1.get("female")%>],
-           ['unknown',    <%=sexHashtable1.get("unknown")%>],
+           ['unknown',    <%=sexHashtable1.get("unknown")%>]
           
         ]);
 
@@ -435,8 +441,14 @@ var selectedRectangle2;
           
           for(int hh=0;hh<numHaplos2a;hh++){
           %>
-          ['<%=allHaplos2a.get(hh)%>',    <%=pieHashtable2.get(allHaplos2a.get(hh))%>],
+          ['<%=allHaplos2a.get(hh)%>',    <%=pieHashtable2.get(allHaplos2a.get(hh))%>]
 		  <%
+		  //test comment
+		  if(hh<(numHaplos2a-1)){
+		  %>
+		  ,
+		  <%
+		  }
           }
 		  %>
           
@@ -481,7 +493,7 @@ var selectedRectangle2;
 
           ['male',    <%=sexHashtable2.get("male")%>],
            ['female',    <%=sexHashtable2.get("female")%>],
-           ['unknown',    <%=sexHashtable2.get("unknown")%>],
+           ['unknown',    <%=sexHashtable2.get("unknown")%>]
           
         ]);
 
