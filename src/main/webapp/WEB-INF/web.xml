@@ -1297,6 +1297,8 @@
         <url-pattern>/EncounterSetTissueSample</url-pattern>
         <url-pattern>/TissueSampleSetHaplotype</url-pattern>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+        <url-pattern>/interconnectSubmitSpots</url-pattern>
+        <url-pattern>/InterconnectSubmitSpots</url-pattern>
         
                 <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
         <url-pattern>/TissueSampleRemoveSexAnalysis</url-pattern>
