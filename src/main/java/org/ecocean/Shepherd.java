@@ -778,10 +778,23 @@ public class Shepherd {
   }
   
   public ArrayList<PatterningPassport> getPatterningPassports() {
-    ArrayList c = new ArrayList();
-    ArrayList<PatterningPassport> ppList = new ArrayList<PatterningPassport>(c);
+    //ArrayList c = new ArrayList();
+    Collection c;
+    Extent encClass = this.getPM().getExtent(PatterningPassport.class, true);
+    Query query = this.getPM().newQuery(encClass);
     
-    return ppList;
+    
+    try {
+      c = (Collection) (query.execute());
+      ArrayList list = new ArrayList(c);
+      ArrayList al = new ArrayList<PatterningPassport>(c);
+      return al;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a transaction to use.");
+      npe.printStackTrace();
+      return null;
+    }
+   
   }
   /*
   public ArrayList<File> getAllPatterningPassportFiles() {
