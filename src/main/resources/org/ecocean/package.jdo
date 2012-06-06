@@ -355,9 +355,7 @@
                 <join />
             </field>
 			
-			 <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"> 
-			 <test/>
-              </field>
+			 <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
 
         </class>
 
