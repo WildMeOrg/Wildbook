@@ -356,7 +356,7 @@
             </field>
 			
 			 <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"> 
-			 <test/>
+			 
               </field>
 
         </class>
@@ -372,9 +372,10 @@
         </class>
 		
 		<class name="PatterningPassport" identity-type="datastore">
-			<field name="timestampOfLastUpdate">
-				<column jdbc-type="LONGVARCHAR" />
-			</field>
+		            <field name="timestampOfLastUpdate" persistence-modifier="persistent">
+		                <column jdbc-type="BIGINT" allows-null="true" />
+		            </field>
+
 			<field name="encounterUrl">
 				<column jdbc-type="LONGVARCHAR" />
 			</field>
