@@ -156,7 +156,7 @@ public class SideFeed extends HttpServlet{
 
        if((sb.indexOf("1")!=-1)||(sb.indexOf("2")!=-1)||(sb.indexOf("3")!=-1)){
 
-              if((sb.indexOf("1")!=-1)&&(sb.indexOf("2")!=-1)&&(sb.indexOf("3")==-1)){
+              if((((sb.indexOf("1")!=-1)&&(sb.indexOf("2")!=-1))||(sb.indexOf("4")!=-1))&&(sb.indexOf("3")==-1)){
 
                 //we need to break this into two encounters then
                 //one is for all left-sides
@@ -168,7 +168,7 @@ public class SideFeed extends HttpServlet{
                   leftLink="/* Spawned left-side only from http://www.whaleshark.org/individuals.jsp?number="+s.getName()+" */";
                 }
                 StringBuffer sbLeft=new StringBuffer(sb.toString());
-                out.println(sbLeft.toString().replaceAll("2", "0")+" 1;  "+leftLink+"<br />");
+                out.println(sbLeft.toString().replaceAll("2", "0").replaceAll("4", "1")+" 1;  "+leftLink+"<br />");
                 numSharks++;
 
                 //rights
@@ -177,7 +177,7 @@ public class SideFeed extends HttpServlet{
                   rightLink="/* Spawned right-side only from http://www.whaleshark.org/individuals.jsp?number="+s.getName()+" */";
                 }
                 StringBuffer sbRight=new StringBuffer(sb.toString());
-                out.println(sbRight.toString().replaceAll("1", "0")+" 1;  "+rightLink+"<br />");
+                out.println(sbRight.toString().replaceAll("1", "0").replaceAll("4", "2")+" 1;  "+rightLink+"<br />");
                 numSharks++;
 
               }
