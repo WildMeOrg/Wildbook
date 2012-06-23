@@ -912,11 +912,16 @@ public class Shepherd {
   }
 
   public ArrayList getAllAdoptionsForMarkedIndividual(String ind) {
-    String filter = "this.individual == '" + ind + "'";
-    Extent encClass = pm.getExtent(Adoption.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
-    Collection c = (Collection) (acceptedEncounters.execute());
-    return (new ArrayList(c));
+    if(CommonConfiguration.allowAdoptions()){
+      String filter = "this.individual == '" + ind + "'";
+      Extent encClass = pm.getExtent(Adoption.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      return (new ArrayList(c));
+    }
+    else{
+      return (new ArrayList());
+    }
   }
 
   public ArrayList getAllAdoptionsForEncounter(String shark) {
