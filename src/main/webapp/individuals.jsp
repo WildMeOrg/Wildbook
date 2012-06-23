@@ -1144,8 +1144,8 @@ else {
   if (CommonConfiguration.allowAdoptions()) {
 %>
 
-<div id="rightcol">
-  <div id="menu">
+<div id="rightcol" style="vertical-align: top;">
+  <div id="menu" style="vertical-align: top;">
 
 
     <div class="module">
@@ -1161,6 +1161,7 @@ else {
   <%
    }
 %>
+
 <br />
 <table>
 <tr>
@@ -1263,9 +1264,11 @@ else {
   myShepherd.closeDBTransaction();
 
 %>
-
-</div>
 <jsp:include page="footer.jsp" flush="true"/>
+</div>
+
+
+
 <!-- end page --></div>
 <!--end wrapper -->
 </body>
