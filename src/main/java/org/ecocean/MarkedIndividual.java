@@ -1006,6 +1006,7 @@ public class MarkedIndividual {
 
     boolean left=false;
     boolean right=false;
+    boolean leftRightTogether=false;
 
 
     for (int c = 0; c < encounters.size(); c++) {
@@ -1016,10 +1017,12 @@ public class MarkedIndividual {
         if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
           if(temp.getNumRightSpots()>0){right=true;}
           if(temp.getNumSpots()>0){left=true;}
+          if(left&&right){leftRightTogether=true;}
         }
       }
     }
-    if(left&&right){return "3";}
+    if(leftRightTogether){return "3";}
+    else if(left&&right){return "4";}
     else if(left){return "1";}
     else if(right){return "2";}
     else{
