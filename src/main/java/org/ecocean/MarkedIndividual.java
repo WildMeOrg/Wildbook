@@ -1001,8 +1001,8 @@ public class MarkedIndividual {
     int startMonth = m_startMonth;
     int startDay = m_startDay;
 
-    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, startDay);
-    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, endDay);
+    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth-1, startDay);
+    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth-1, endDay);
 
     boolean left=false;
     boolean right=false;
@@ -1017,7 +1017,7 @@ public class MarkedIndividual {
         if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
           if(temp.getNumRightSpots()>0){right=true;}
           if(temp.getNumSpots()>0){left=true;}
-          if(left&&right){leftRightTogether=true;}
+          if((temp.getNumRightSpots()>0)&&(temp.getNumSpots()>0)){leftRightTogether=true;}
         }
       }
     }
