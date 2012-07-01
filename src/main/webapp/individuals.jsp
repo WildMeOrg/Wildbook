@@ -19,11 +19,10 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, 	   
+		 com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
 
 <%
-
-  //test comment
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -61,6 +60,7 @@
   String setsex = props.getProperty("setsex");
   String numencounters = props.getProperty("numencounters");
   String encnumber = props.getProperty("number");
+  String dataTypes = props.getProperty("dataTypes");
   String date = props.getProperty("date");
   String size = props.getProperty("size");
   String spots = props.getProperty("spots");
@@ -91,6 +91,7 @@
   Shepherd myShepherd = new Shepherd();
 
 
+
   boolean isOwner = false;
   if (request.isUserInRole("admin")) {
     isOwner = true;
@@ -114,21 +115,9 @@
   <link rel="shortcut icon"
         href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
         
-<style type="text/css">
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-</style>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
-  <script type="text/javascript" src="encounters/StyledMarker.js"></script>
+
+ 
   
   <style type="text/css">
     <!--
@@ -500,41 +489,41 @@ table.tissueSample td {
 <tr>
 
 <td align="left" valign="top">
-  <%
-boolean showLogEncs=false;
-if (isOwner) {
-	showLogEncs=true;
-}%>
-<p><strong><%=(sharky.totalEncounters() + sharky.totalLogEncounters())%>
+
+<p><strong><%=sharky.totalEncounters()%>
 </strong>
   <%=numencounters %>
 </p>
 
 <table id="results" width="100%">
   <tr class="lineitem">
-    <td class="lineitem" bgcolor="#99CCFF"></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %>
+    </strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %>
+    </strong></td>
+    <td class="lineitem" bgcolor="#99CCFF"><strong><%=dataTypes %></strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encnumber %>
     </strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=alternateID %>
     </strong></td>
 
 
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %>
-    </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %>
-    </strong></td>
+
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %>
     </strong></td>
     <%
       if (isOwner && CommonConfiguration.useSpotPatternRecognition()) {
     %>
 
-    <td align="left" valign="top" bgcolor="#99CCFF"><strong><%=spots %>
-    </strong></td>
-    <%}%>
+    	<td align="left" valign="top" bgcolor="#99CCFF">
+    		<strong><%=spots %></strong>
+    	</td>
+    <%
+    }
+    %>
   </tr>
   <%
-    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(showLogEncs);
+    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(true);
 
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
@@ -549,9 +538,37 @@ if (isOwner) {
 
   %>
   <tr>
-    <td width="100" class="lineitem"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>"><img
-      src="<%=imgName%>" alt="encounter" border="0"/></a></td>
+      <td class="lineitem"><%=enc.getDate()%>
+    </td>
+    <td class="lineitem"><%=enc.getLocation()%>
+    </td>
+    <td width="100" height="32px" class="lineitem">
+    	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
+    		
+    		<%
+    		//if the encounter has photos, show photo folder icon
+    		if((enc.getImages()!=null) && (enc.getImages().size()>0)){
+    		%>
+    			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="*" />
+    		<%
+    		}
+    		
+    		//if the encounter has a tissue sample, show an icon
+    		if((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)){
+    		%>
+    			<img src="images/microscope.gif" height="32px" width="*" />
+    		<%
+    		}
+    		//if the encounter has a measurement, show the measurement icon
+    		if(enc.hasMeasurements()){
+    		%>	
+    			<img src="images/ruler.png" height="32px" width="*" />
+        	<%	
+    		}
+    		%>
+    		
+    	</a>
+    </td>
     <td class="lineitem"><a
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%>
     </a></td>
@@ -571,10 +588,7 @@ if (isOwner) {
     %>
 
 
-    <td class="lineitem"><%=enc.getDate()%>
-    </td>
-    <td class="lineitem"><%=enc.getLocation()%>
-    </td>
+
     <td class="lineitem"><%=enc.getSex()%>
     </td>
 
@@ -972,12 +986,20 @@ int numTissueSamples=tissueSamples.size();
 if(numTissueSamples>0){
 %>
 <table width="100%" class="tissueSample">
-<tr><th><strong><%=props.getProperty("sampleID") %></strong></th><th><strong><%=props.getProperty("values") %></strong></th><th><strong><%=props.getProperty("analyses") %></strong></th></tr>
+<tr>
+	<th><strong><%=props.getProperty("sampleID") %></strong></th>
+	<th><strong><%=props.getProperty("correspondingEncounterNumber") %></strong></th>
+	<th><strong><%=props.getProperty("values") %></strong></th>
+	<th><strong><%=props.getProperty("analyses") %></strong></th></tr>
 <%
 for(int j=0;j<numTissueSamples;j++){
 	TissueSample thisSample=tissueSamples.get(j);
 	%>
-	<tr><td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td>
+	<tr>
+		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td>
+		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getCorrespondingEncounterNumber()%></a></span></td>
+		<td><span class="caption"><%=thisSample.getHTMLString() %></span>
+		</td>
 	
 	<td><table>
 		<%
@@ -1033,179 +1055,7 @@ else {
 
 %>
 <!-- End genetics -->
-
-<!-- Start mapping -->
-<br />
-<p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>
 <%
-  Vector haveGPSData = sharky.returnEncountersWithGPSData();
-  int havegpsSize=haveGPSData.size();
-  if (havegpsSize > 0) {
-%>
-
-
-    <script type="text/javascript">
-      function initialize() {
-        var center = new google.maps.LatLng(0,0);
-        var mapZoom = 1;
-    	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-    	var bounds = new google.maps.LatLngBounds();
-        
-        var map = new google.maps.Map(document.getElementById('map_canvas'), {
-          zoom: mapZoom,
-          center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID
-        });
-
-    	  //adding the fullscreen control to exit fullscreen
-    	  var fsControlDiv = document.createElement('DIV');
-    	  var fsControl = new FSControl(fsControlDiv, map);
-    	  fsControlDiv.index = 1;
-    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
-        
-        var markers = [];
- 
- 
-        
-        <%
-
-
- for(int y=0;y<havegpsSize;y++){
-	 Encounter thisEnc=(Encounter)haveGPSData.get(y);
-	 
-
- %>
-          
-          var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
-          bounds.extend(latLng);
-           <%
-
-           
-           //currently unused programatically
-           String markerText="";
-           
-           String haploColor="CC0000";
-           if((props.getProperty("defaultMarkerColor")!=null)&&(!props.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   haploColor=props.getProperty("defaultMarkerColor");
-           }
-		   
-           
-           %>
-           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
-	    
-
-            google.maps.event.addListener(marker,'click', function() {
-                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
-             });
- 
-	
-          markers.push(marker);
-          map.fitBounds(bounds); 
- 
- <%
- 
-
-} 
-
- %>
- 
-
-      }
-      
-      
-
-      function fullScreen(){
-    		$("#map_canvas").addClass('full_screen_map');
-    		$('html, body').animate({scrollTop:0}, 'slow');
-    		initialize();
-    		
-    		//hide header
-    		$("#header_menu").hide();
-    		
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute fullscreen!");
-    	}
-
-
-    	function exitFullScreen() {
-    		$("#header_menu").show();
-    		$("#map_canvas").removeClass('full_screen_map');
-
-    		initialize();
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute exitFullScreen!");
-    	}
-
-
-    	//making the exit fullscreen button
-    	function FSControl(controlDiv, map) {
-
-    	  // Set CSS styles for the DIV containing the control
-    	  // Setting padding to 5 px will offset the control
-    	  // from the edge of the map
-    	  controlDiv.style.padding = '5px';
-
-    	  // Set CSS for the control border
-    	  var controlUI = document.createElement('DIV');
-    	  controlUI.style.backgroundColor = '#f8f8f8';
-    	  controlUI.style.borderStyle = 'solid';
-    	  controlUI.style.borderWidth = '1px';
-    	  controlUI.style.borderColor = '#a9bbdf';;
-    	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-    	  controlUI.style.cursor = 'pointer';
-    	  controlUI.style.textAlign = 'center';
-    	  controlUI.title = 'Toggle the fullscreen mode';
-    	  controlDiv.appendChild(controlUI);
-
-    	  // Set CSS for the control interior
-    	  var controlText = document.createElement('DIV');
-    	  controlText.style.fontSize = '12px';
-    	  controlText.style.fontWeight = 'bold';
-    	  controlText.style.color = '#000000';
-    	  controlText.style.paddingLeft = '4px';
-    	  controlText.style.paddingRight = '4px';
-    	  controlText.style.paddingTop = '3px';
-    	  controlText.style.paddingBottom = '2px';
-    	  controlUI.appendChild(controlText);
-    	  //toggle the text of the button
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = 'Exit Fullscreen';
-    	    } else {
-    	      controlText.innerHTML = 'Fullscreen';
-    	    }
-
-    	  // Setup the click event listeners: toggle the full screen
-
-    	  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	    exitFullScreen();
-    	    } else {
-    	    fullScreen();
-    	    }
-    	  });
-
-    	}
-
-      
-      
-      google.maps.event.addDomListener(window, 'load', initialize);
-    </script>
-
-
-<p><%=mappingnote %>
-</p>
-
- <div id="map_canvas" style="width: 770px; height: 510px; "></div>
-
-<%} else {%>
-<p><%=noGPS %>
-</p>
-<br>
-<%
-  }
-
 
   if (isOwner) {
 %>
@@ -1287,11 +1137,54 @@ else {
 
 </td>
 </tr>
+
+
 </table>
 
+</td>
+</tr>
+</table>
+</div><!-- end maintext -->
+</div><!-- end main-wide -->
+<%
+  if (CommonConfiguration.allowAdoptions()) {
+%>
+
+<div id="rightcol" style="vertical-align: top;">
+  <div id="menu" style="vertical-align: top;">
+
+
+    <div class="module">
+      <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
+        <jsp:param name="name" value="<%=name%>"/>
+      </jsp:include>
+    </div>
+
+
+  </div><!-- end menu -->
+  </div><!-- end rightcol -->
+
+  <%
+   }
+%>
+
+<br />
+<table>
+<tr>
+<td>
+
+      <jsp:include page="individualMapEmbed.jsp" flush="true">
+        <jsp:param name="name" value="<%=name%>"/>
+      </jsp:include>
+</td>
+</tr>
+</table>
 <%
 
-} else {
+} 
+
+//could not find the specified individual!
+else {
 
   //let's check if the entered name is actually an alternate ID
   ArrayList al = myShepherd.getMarkedIndividualsByAlternateID(name);
@@ -1357,6 +1250,14 @@ else {
 </a></font></p>
 <%
       }
+	  %>
+      </td>
+</tr>
+</table>
+</div><!-- end maintext -->
+</div><!-- end main-wide -->
+      
+      <%
     }
   } catch (Exception eSharks_jsp) {
     System.out.println("Caught and handled an exception in individuals.jsp!");
@@ -1364,41 +1265,16 @@ else {
   }
 
 
-%>
-</td>
-</tr>
-</table>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
 
-<%
-  if (CommonConfiguration.allowAdoptions()) {
-%>
-
-<div id="rightcol">
-  <div id="menu">
-
-
-    <div class="module">
-      <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-        <jsp:param name="name" value="<%=name%>"/>
-      </jsp:include>
-    </div>
-
-
-  </div><!-- end menu -->
- </div><!-- end rightcol -->
-<%
-  }
-%>
-
-<%
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
 %>
 <jsp:include page="footer.jsp" flush="true"/>
 </div>
+
+
+
 <!-- end page --></div>
 <!--end wrapper -->
 </body>

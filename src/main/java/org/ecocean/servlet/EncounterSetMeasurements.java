@@ -57,11 +57,29 @@ public class EncounterSetMeasurements extends HttpServlet {
             // New Event -- the user didn't enter any values the first time.
             measurement = new Measurement(encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
             enc.addMeasurement(measurement);
+            //log the new measurement addition
+            enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Added measurement:<br><i>" + requestEventValues.type + " "+requestEventValues.value+" "+requestEventValues.units+" ("+requestEventValues.samplingProtocol+")</i></p>");
+            
           }
           else {
+            
+            
+              
             measurement  = myShepherd.findDataCollectionEvent(Measurement.class, requestEventValues.id);
+            
+            String oldValue="null";
+            if(measurement.getValue()!=null){oldValue=measurement.getValue().toString();}
+            String oldSamplingProtocol="null";
+            if(measurement.getSamplingProtocol()!=null){oldSamplingProtocol=measurement.getSamplingProtocol();}
+            
+            //now set the new values
             measurement.setValue(requestEventValues.value);
             measurement.setSamplingProtocol(requestEventValues.samplingProtocol);
+            
+            
+            //log the measurement change -- TBD
+            enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed measurement " + requestEventValues.type + " from "+oldValue+" ("+oldSamplingProtocol+") to "+requestEventValues.value+" "+requestEventValues.units+" ("+requestEventValues.samplingProtocol+")</i></p>");
+            
           }
 
           requestEventValues = findRequestEventValues(request, index++);

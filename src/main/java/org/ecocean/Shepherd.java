@@ -109,6 +109,21 @@ public class Shepherd {
     }
     return (uniqueID);
   }
+  
+  public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
+    
+    beginDBTransaction();
+    try {
+      pm.makePersistent(indie);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new MarkedIndividual in Shepherd.storeNewMarkedIndividual().");
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
 
   public String storeNewAdoption(Adoption ad, String uniqueID) {
     beginDBTransaction();
@@ -559,32 +574,7 @@ public class Shepherd {
    * @see MarkedIndividual
    */
   public boolean addMarkedIndividual(MarkedIndividual newShark) {
-    if(newShark.getIndividualID().trim().equals("")){
-      System.out.println("Returning false because newShark.getIndividualID() equals: "+newShark.getIndividualID());
-      return false;
-     }
-    Extent sharkClass = pm.getExtent(MarkedIndividual.class, true);
-    Query query = pm.newQuery(sharkClass);
-    Iterator allsharks = getAllMarkedIndividuals(query);
-    while (allsharks.hasNext()) {
-      MarkedIndividual tempShark = (MarkedIndividual) allsharks.next();
-      System.out.println(tempShark.getName()+" vs "+newShark.getIndividualID());
-      if (tempShark.getName().equals(newShark.getName())) {
-        System.out.println("failed in addMarkedIndividual");
-        query.closeAll();
-        query = null;
-        sharkClass = null;
-        return false;
-      }
-    }
-
-      pm.makePersistent(newShark);
-
-      query.closeAll();
-      query = null;
-      sharkClass = null;
-      return true;
-
+    return storeNewMarkedIndividual(newShark);
   }
 
 
@@ -919,11 +909,16 @@ public class Shepherd {
   }
 
   public ArrayList getAllAdoptionsForMarkedIndividual(String ind) {
-    String filter = "this.individual == '" + ind + "'";
-    Extent encClass = pm.getExtent(Adoption.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
-    Collection c = (Collection) (acceptedEncounters.execute());
-    return (new ArrayList(c));
+    if(CommonConfiguration.allowAdoptions()){
+      String filter = "this.individual == '" + ind + "'";
+      Extent encClass = pm.getExtent(Adoption.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      return (new ArrayList(c));
+    }
+    else{
+      return (new ArrayList());
+    }
   }
 
   public ArrayList getAllAdoptionsForEncounter(String shark) {

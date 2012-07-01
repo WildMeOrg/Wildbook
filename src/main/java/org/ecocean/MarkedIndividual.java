@@ -20,7 +20,7 @@
 package org.ecocean;
 
 import java.util.*;
-import java.util.GregorianCalendar;
+
 import org.ecocean.genetics.*;
 
 /**
@@ -454,13 +454,13 @@ public class MarkedIndividual {
 
   //sorted with the most recent first
   public Encounter[] getDateSortedEncounters(boolean includeLogEncounters) {
-    //System.out.println("Starting getDateSortedEncounters");
     Vector final_encs = new Vector();
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
       final_encs.add(temp);
     }
-    //System.out.println(".....added encounters...");
+    /**
+    //unidentifiableEncounters is no longer used
     if (includeLogEncounters) {
       int numLogs = unidentifiableEncounters.size();
       for (int c = 0; c < numLogs; c++) {
@@ -469,17 +469,14 @@ public class MarkedIndividual {
       }
       //System.out.println(".....added log encounters...");
     }
+    */
     int finalNum = final_encs.size();
     Encounter[] encs2 = new Encounter[finalNum];
-    //System.out.println(".....allocated array");
     for (int q = 0; q < finalNum; q++) {
       encs2[q] = (Encounter) final_encs.get(q);
     }
-    //System.out.println(".....assigned values to array...");
-
     EncounterDateComparator dc = new EncounterDateComparator();
     Arrays.sort(encs2, dc);
-    //System.out.println(".....done sort...");
     return encs2;
   }
 
@@ -933,9 +930,11 @@ public class MarkedIndividual {
     int numEncounters = encounters.size();
     for (int i = 0; i < numEncounters; i++) {
       Encounter enc = (Encounter) encounters.get(i);
-      List<TissueSample> list = enc.getTissueSamples();
-      if((list!=null)&&(list.size()>0)){
-        al.addAll(list);
+      if(enc.getTissueSamples()!=null){
+        List<TissueSample> list = enc.getTissueSamples();
+        if(list.size()>0){
+          al.addAll(list);
+        }
       }
     }
     return al;
@@ -1055,6 +1054,102 @@ public String getHaplotype(){
     return null;
 
 }
+
+public boolean hasLocusAndAllele(String locus, Integer alleleValue){
+  ArrayList<TissueSample> samples=getAllTissueSamples();
+  int numSamples=samples.size();
+  for(int i=0;i<numSamples;i++){
+      TissueSample sample=samples.get(i);
+      if(sample.getGeneticAnalyses()!=null){
+        List<GeneticAnalysis> analyses=sample.getGeneticAnalyses();
+        int numAnalyses=analyses.size();
+        for(int e=0;e<numAnalyses;e++){
+          GeneticAnalysis ga=analyses.get(e);
+          if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+            MicrosatelliteMarkersAnalysis msa=(MicrosatelliteMarkersAnalysis)ga;
+            if(msa.getLocus(locus)!=null){
+               Locus l=msa.getLocus(locus);
+               if(l.hasAllele(alleleValue)){return true;}
+            }
+          }
+        }
+      }
+  }
+  return false;
+}
+
+public ArrayList<Integer> getAlleleValuesForLocus(String locus){
+  ArrayList<Integer> matchingValues=new ArrayList<Integer>();
+  ArrayList<TissueSample> samples=getAllTissueSamples();
+  int numSamples=samples.size();
+  for(int i=0;i<numSamples;i++){
+      TissueSample sample=samples.get(i);
+      if(sample.getGeneticAnalyses()!=null){
+        List<GeneticAnalysis> analyses=sample.getGeneticAnalyses();
+        int numAnalyses=analyses.size();
+        for(int e=0;e<numAnalyses;e++){
+          GeneticAnalysis ga=analyses.get(e);
+          if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+            MicrosatelliteMarkersAnalysis msa=(MicrosatelliteMarkersAnalysis)ga;
+            if(msa.getLocus(locus)!=null){
+               Locus l=msa.getLocus(locus);
+               if((l.getAllele0()!=null)&&(!matchingValues.contains(l.getAllele0()))){matchingValues.add(l.getAllele0());}
+               if((l.getAllele1()!=null)&&(!matchingValues.contains(l.getAllele1()))){matchingValues.add(l.getAllele1());}
+               if((l.getAllele2()!=null)&&(!matchingValues.contains(l.getAllele2()))){matchingValues.add(l.getAllele2());}
+               if((l.getAllele3()!=null)&&(!matchingValues.contains(l.getAllele3()))){matchingValues.add(l.getAllele3());}
+            }
+          }
+        }
+      }
+  }
+  return matchingValues;
+}
+
+public boolean hasLocus(String locus){
+  ArrayList<TissueSample> samples=getAllTissueSamples();
+  int numSamples=samples.size();
+  for(int i=0;i<numSamples;i++){
+      TissueSample sample=samples.get(i);
+      if(sample.getGeneticAnalyses()!=null){
+        List<GeneticAnalysis> analyses=sample.getGeneticAnalyses();
+        int numAnalyses=analyses.size();
+        for(int e=0;e<numAnalyses;e++){
+          GeneticAnalysis ga=analyses.get(e);
+          if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+            MicrosatelliteMarkersAnalysis msa=(MicrosatelliteMarkersAnalysis)ga;
+            if(msa.getLocus(locus)!=null){
+               return true;
+            }
+          }
+        }
+      }
+  }
+  return false;
+}
+
+
+
+
+
+public boolean hasMsMarkers(){
+  ArrayList<TissueSample> samples=getAllTissueSamples();
+  int numSamples=samples.size();
+  for(int i=0;i<numSamples;i++){
+      TissueSample sample=samples.get(i);
+      if(sample.getGeneticAnalyses()!=null){
+        List<GeneticAnalysis> analyses=sample.getGeneticAnalyses();
+        int numAnalyses=analyses.size();
+        for(int e=0;e<numAnalyses;e++){
+          GeneticAnalysis ga=analyses.get(e);
+          if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+            return true;
+          }
+        }
+      }
+  }
+  return false;
+}
+
 
 /**
 *Obtains the email addresses of all submitters, photographs, and others to notify.

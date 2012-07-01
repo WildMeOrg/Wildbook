@@ -24,15 +24,15 @@
   <classpathentry kind="var" path="M2_REPO/commons-validator/commons-validator/1.1.4/commons-validator-1.1.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/servlets/com/cos/05Nov2002/cos-05Nov2002.jar"/>
   <classpathentry kind="var" path="M2_REPO/net/sourceforge/cssparser/cssparser/0.9.5/cssparser-0.9.5.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-jdo/3.0.4/datanucleus-api-jdo-3.0.4.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-core/3.0.4/datanucleus-core-3.0.4.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-jdo/3.0.8/datanucleus-api-jdo-3.0.8.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-core/3.0.9/datanucleus-core-3.0.9.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-enhancer/3.0.1/datanucleus-enhancer-3.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-jodatime/3.0.1/datanucleus-jodatime-3.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-jpa/2.1.8/datanucleus-jpa-2.1.8.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-rdbms/3.0.4/datanucleus-rdbms-3.0.4.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-rdbms/3.0.9/datanucleus-rdbms-3.0.9.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-rest/2.0.1/datanucleus-rest-2.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-spatial/3.0.1/datanucleus-spatial-3.0.1.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/apache/derby/derby/10.6.1.0/derby-10.6.1.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/derby/derby/10.8.2.2/derby-10.8.2.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/dilib/dilib/1.0/dilib-1.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/dom4j/dom4j/1.6.1/dom4j-1.6.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/ch/ethz/ganymed/ganymed-ssh2/build210/ganymed-ssh2-build210.jar"/>
@@ -60,8 +60,8 @@
   <classpathentry kind="var" path="M2_REPO/net/sourceforge/jwebunit/jwebunit-core/2.5/jwebunit-core-2.5.jar"/>
   <classpathentry kind="var" path="M2_REPO/net/sourceforge/jwebunit/jwebunit-htmlunit-plugin/2.5/jwebunit-htmlunit-plugin-2.5.jar"/>
   <classpathentry kind="var" path="M2_REPO/net/sourceforge/jexcelapi/jxl/2.6/jxl-2.6.jar"/>
-  <classpathentry kind="var" path="M2_REPO/ch/qos/logback/logback-classic/0.9.18/logback-classic-0.9.18.jar"/>
-  <classpathentry kind="var" path="M2_REPO/ch/qos/logback/logback-core/0.9.18/logback-core-0.9.18.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ch/qos/logback/logback-classic/1.0.0/logback-classic-1.0.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ch/qos/logback/logback-core/1.0.0/logback-core-1.0.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/drewnoakes/metadata-extractor/2.4.0-beta-1/metadata-extractor-2.4.0-beta-1.jar"/>
   <classpathentry kind="var" path="M2_REPO/net/sourceforge/nekohtml/nekohtml/1.9.14/nekohtml-1.9.14.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/xerial/thirdparty/nestedvm/1.0/nestedvm-1.0.jar"/>
@@ -71,7 +71,10 @@
   <classpathentry kind="var" path="M2_REPO/org/w3c/css/sac/1.3/sac-1.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/sanselan/sanselan/0.97-incubator/sanselan-0.97-incubator.jar"/>
   <classpathentry kind="var" path="M2_REPO/xalan/serializer/2.7.1/serializer-2.7.1.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.5.10/slf4j-api-1.5.10.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.6.1/slf4j-api-1.6.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring-asm/3.1.1.RELEASE/spring-asm-3.1.1.RELEASE.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring-core/3.1.1.RELEASE/spring-core-3.1.1.RELEASE.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/springframework/spring-test/3.1.1.RELEASE/spring-test-3.1.1.RELEASE.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/xerial/sqlite-jdbc/3.6.16/sqlite-jdbc-3.6.16.jar"/>
   <classpathentry kind="var" path="M2_REPO/struts/struts/1.1/struts-1.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/struts/struts-legacy/1.1/struts-legacy-1.1.jar"/>
