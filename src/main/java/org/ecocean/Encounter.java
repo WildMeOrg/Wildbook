@@ -1675,5 +1675,16 @@ public class Encounter implements java.io.Serializable {
     public Double getLatitudeAsDouble(){return decimalLatitude;}
     public Double getLongitudeAsDouble(){return decimalLongitude;}
     
+    public boolean hasMeasurements(){
+      if((measurements!=null)&&(measurements.size()>0)){
+        int numMeasurements=measurements.size();
+        for(int i=0;i<numMeasurements;i++){
+          Measurement m=measurements.get(i);
+          if(m.getValue()!=null){return true;}
+        }
+      }
+      return false;
+    }
+    
 }
 

@@ -44,20 +44,20 @@ public class LoginIT extends WebTestCase {
   }
   public void testLogin() {
     beginAt("/index.jsp");
-    clickLinkWithExactText("Login");
+    clickLinkWithExactText("Log in");
     setTextField("j_username", "admin");
     setTextField("j_password", "password");
     submit();
     assertTextPresent("Login success!");
     clickLinkWithExactText("Home");
-    assertLinkPresentWithExactText("Logout");
-    clickLinkWithExactText("Logout");
+    assertLinkPresentWithExactText("Log out");
+    clickLinkWithExactText("Log out");
     assertTextPresent("You are now safely logged out");
   }
 
   public void testUnsuccessfulLogin() {
     beginAt("/index.jsp");
-    clickLinkWithExactText("Login");
+    clickLinkWithExactText("Log in");
     setTextField("j_username", "foo");
     setTextField("j_password", "bar");
     submit();

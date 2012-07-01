@@ -24,7 +24,7 @@ public class Locus implements java.io.Serializable{
    * @param allelle0
    * @param allelle1
    */
-  public Locus(String name, Integer allelle0, Integer allelle1){
+  public Locus(String name, Integer allele0, Integer allele1){
 
     this.allele0=allele0;
     this.allele1=allele1;
@@ -67,6 +67,13 @@ public class Locus implements java.io.Serializable{
   public Integer getAllele2(){return allele2;}
   public Integer getAllele3(){return allele3;}
   
+  public boolean hasAllele(Integer value){
+    if((allele0!=null)&&(allele0.intValue()==value.intValue())){return true;}
+    if((allele1!=null)&&(allele1.intValue()==value.intValue())){return true;}
+    if((allele2!=null)&&(allele2.intValue()==value.intValue())){return true;}
+    if((allele3!=null)&&(allele3.intValue()==value.intValue())){return true;}
+    return false;
+  }
   
   
 }

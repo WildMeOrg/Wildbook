@@ -324,6 +324,17 @@
   
   
       <servlet>
+        <servlet-name>GenePopExport</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.GenePopExport</servlet-class>
+  </servlet>
+  
+      <servlet>
+        <servlet-name>IndividualSearchExportCapture</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.IndividualSearchExportCapture</servlet-class>
+  </servlet>
+  
+  
+      <servlet>
         <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportEmailAddresses</servlet-class>
   </servlet>
@@ -652,6 +663,12 @@
   </servlet-mapping>
 
 
+  <servlet-mapping>
+    <servlet-name>InterconnectSubmitSpots</servlet-name>
+    <url-pattern>/InterconnectSubmitSpots</url-pattern>
+    <url-pattern>/interconnectSubmitSpots</url-pattern>
+  </servlet-mapping>
+
   
     <servlet-mapping>
       <servlet-name>TissueSampleSetHaplotype</servlet-name>
@@ -782,6 +799,16 @@
   
   
   
+
+      <servlet-mapping>
+        <servlet-name>IndividualSearchExportCapture</servlet-name>
+        <url-pattern>/IndividualSearchExportCapture</url-pattern>
+  </servlet-mapping>
+  
+        <servlet-mapping>
+          <servlet-name>GenePopExport</servlet-name>
+          <url-pattern>/GenePopExport</url-pattern>
+  </servlet-mapping>
 
   
   
@@ -1316,6 +1343,11 @@
       <url-pattern>/software.jsp</url-pattern>
       <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>
       <url-pattern>/xcalendar/*</url-pattern>
+
+
+      <url-pattern>/InterconnectSubmitSpots</url-pattern>
+      <url-pattern>/interconnectSubmitSpots</url-pattern>
+      <url-pattern>/GenePopExport</url-pattern>
 
 
       <url-pattern>/appadmin/kwSearch.jsp</url-pattern>

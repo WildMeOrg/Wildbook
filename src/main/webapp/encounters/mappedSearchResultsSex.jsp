@@ -95,8 +95,8 @@
         font-family: Arial;
         font-size: 16px;
       }
-
-.full_screen_map {
+      
+      .full_screen_map {
 position: absolute !important;
 top: 0px !important;
 left: 0px !important;
@@ -106,6 +106,8 @@ height: 100% !important;
 margin-top: 0px !important;
 margin-bottom: 8px !important;
 }
+
+
     </style>
   
 
@@ -431,7 +433,7 @@ myShepherd.rollbackDBTransaction();
  <table cellpadding="3">
  <tr>
  <td valign="top">
-  <div id="map_canvas" style="width: 770px; height: 510px; "></div>
+  <<div id="map_canvas" style="width: 770px; height: 510px; "></div>
  </td>
  <td valign="top">
  <table>

@@ -336,9 +336,10 @@ public class ServletUtilities {
     if (request.isUserInRole("admin")) {
       isOwner = true;
     } 
-    else if ((request.isUserInRole(enc.getLocationCode()))) {
+    else if (request.isUserInRole(enc.getLocationCode())) {
       isOwner = true;
-    } else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
+    } 
+    else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
       isOwner = true;
     }
     return isOwner;

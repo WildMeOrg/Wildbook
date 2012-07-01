@@ -29,7 +29,7 @@
 
 %>
 <div id="footer">
-  <div id="credits">
+ 
 
   </div>
   <p class="credit">All ECOCEAN Whale Shark Photo-identification Library contents copyright ECOCEAN, ECOCEAN USA, and respective individual contributors. Unauthorized usage of any material for any purpose is strictly prohibited. Java and the Java Get Powered logo are trademarks or registered trademarks of Sun Microsystems, Inc. in the United States and other countries. Sun Microsystems, Java, Java Coffee Cup Logo, and Duke Logo are trademarks of Sun Microsystems, Inc. used under permission.</p>
