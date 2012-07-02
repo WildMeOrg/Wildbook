@@ -1358,6 +1358,8 @@
       <url-pattern>/encounters/thumbnailSearch.jsp</url-pattern>
       <url-pattern>/encounters/thumbnailSearchResults.jsp</url-pattern>
       <url-pattern>/encounters/encounterSearch.jsp</url-pattern>
+      <url-pattern>/encounters/searchComparison.jsp</url-pattern>
+      <url-pattern>/encounters/searchComparisonResults.jsp</url-pattern>
       <url-pattern>/encounters/searchResults.jsp</url-pattern>
       <url-pattern>/encounters/searchResultsAnalysis.jsp</url-pattern>
       <url-pattern>/encounters/mappedSearchResults.jsp</url-pattern>
