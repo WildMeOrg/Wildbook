@@ -135,7 +135,7 @@ public class PatterningPassport implements java.io.Serializable {
           doc.getDocumentElement().appendChild(imported);
         } catch (Exception e) {
 			e.printStackTrace();
-          System.out.println("-----\nFAILURE! PatterningPassport data not saved.");
+          System.out.println("-----\nFAILURE***! PatterningPassport data not saved.");
           return Boolean.FALSE;
         }
       }

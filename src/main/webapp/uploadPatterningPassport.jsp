@@ -74,7 +74,7 @@ Encounter ID
 Photo/Media ID
 <input type="text" name="mediaId" value="<%=mediaId%>">
 <p/>
-Patterning Passport XML File 
+Patterning Passport XML File ***
 <input type="file" name="patterningPassportData">
 <p/>
 <input type="submit">

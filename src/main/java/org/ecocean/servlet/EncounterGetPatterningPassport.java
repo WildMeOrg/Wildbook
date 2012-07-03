@@ -50,7 +50,7 @@ public class EncounterGetPatterningPassport extends HttpServlet {
     ArrayList<PatterningPassport> ppArr = getAll();
     responseMsg += "getAll() " + ppArr.size() + "<p/>";
     
-    Iterator ppIt = ppArr.iterator();
+    Iterator ppIt = ppArr.iterator(); 
     while (ppIt.hasNext()) {
       File ppFile = (File)ppIt.next();
       if (ppFile != null && ppFile.isFile())
