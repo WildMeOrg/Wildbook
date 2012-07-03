@@ -381,6 +381,9 @@
 			<field name="patterningPassportXmlUrl">
 				<column jdbc-type="LONGVARCHAR" />
 			</field>
+			<field name="passportDataXml">
+				<column jdbc-type="LONGVARCHAR" />
+			</field>
 		</class>
 		
     </package>
