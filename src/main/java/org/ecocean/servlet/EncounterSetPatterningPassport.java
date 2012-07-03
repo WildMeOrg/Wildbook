@@ -164,7 +164,6 @@ public class EncounterSetPatterningPassport extends HttpServlet {
         .getDataDirectoryName());
 
     Shepherd myShepherd = new Shepherd();
-    myShepherd.beginDBTransaction();
     // Get the Encounter object for this
     Encounter enc = null;
     if (myShepherd.isEncounter(encounterId)) {
@@ -186,7 +185,7 @@ public class EncounterSetPatterningPassport extends HttpServlet {
       return ("Failure: no media object match for mediaId:" + mediaId);
     } 
 
-    
+    myShepherd.beginDBTransaction();
     // Get the PatterningPassport from that media object
     PatterningPassport pp = new PatterningPassport();
     // following vars need setting from this servlet context
@@ -196,12 +195,10 @@ public class EncounterSetPatterningPassport extends HttpServlet {
 
     // apply the data (node of pattern matching xml) to the patterningPassport
     Boolean setSuccess = pp.setPassportDataXml(xmlString);
-    mediaObject.setPatterningPassport(pp);
     if (setSuccess.equals(Boolean.TRUE)) {
       returnString += "PatterningPassport successfully attached!<br/>";
       myShepherd.commitDBTransaction();
-    } 
-    else {
+    } else {
       returnString += "PatterningPassport attach failed.  Are you sure it's valid XML?<br/>";
       myShepherd.rollbackDBTransaction();
     }
