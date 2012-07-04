@@ -95,7 +95,13 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   public List<Keyword> getKeywords(){return keywords;}
   public void removeKeyword(Keyword num){keywords.remove(num);}
 
- 
+  public PatterningPassport getPatterningPassport() {
+    if (patterningPassport == null) {
+      patterningPassport = new PatterningPassport();
+    }
+    return patterningPassport;
+  }
+  
   public File getPatterningPassportFile() {
     File f = this.getFile();
     String xmlPath;

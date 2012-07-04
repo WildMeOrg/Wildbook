@@ -126,7 +126,6 @@ public class PatterningPassport implements java.io.Serializable {
                 passportElement.removeChild(nextChild); // remove this node if it is ID data
               }
 
-              //
               childNode = nextChild;
             }
           }
@@ -134,8 +133,8 @@ public class PatterningPassport implements java.io.Serializable {
           Element imported = (Element)doc.importNode(passportElement, Boolean.TRUE); // need to import to get node from different doc
           doc.getDocumentElement().appendChild(imported);
         } catch (Exception e) {
-			e.printStackTrace();
-          System.out.println("-----\nFAILURE***! PatterningPassport data not saved.");
+          e.printStackTrace();
+          System.out.println("-----\nFAILURE! PatterningPassport data not saved.");
           return Boolean.FALSE;
         }
       }

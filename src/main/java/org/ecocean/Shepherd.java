@@ -778,7 +778,28 @@ public class Shepherd {
   }
   
   public ArrayList<PatterningPassport> getPatterningPassports() {
-    //ArrayList c = new ArrayList();
+    int num = 0;
+    ArrayList al = new ArrayList<PatterningPassport>();
+    try {
+      //pm.getFetchPlan().setGroup("count");
+      Query q = pm.newQuery(PatterningPassport.class); // no filter, so all instances match
+      Collection results = (Collection) q.execute();
+      num = results.size();
+      al = new ArrayList<PatterningPassport>(results);
+      q.closeAll();
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      //return num;
+      System.out.println("getPatterningPassports EXCEPTION! " + num);
+      return al;
+    }
+    //return num;
+    System.out.println("getPatterningPassports. Returning a collection of length " + al.size() + ". " + num);
+    return al;
+    
+    
+    
+    /*
     Collection c;
     Extent encClass = this.getPM().getExtent(PatterningPassport.class, true);
     Query query = this.getPM().newQuery(encClass);
@@ -788,12 +809,15 @@ public class Shepherd {
       c = (Collection) (query.execute());
       ArrayList list = new ArrayList(c);
       ArrayList al = new ArrayList<PatterningPassport>(c);
+      System.out.println("getPatterningPassports. Returning a collection of length " + al.size() + ".");
+      System.out.println("... list.size() is " + list.size() + ".");
       return al;
     } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a transaction to use.");
+      System.out.println("Error encountered when trying to execute getPatterningPassports. Returning a null collection because I didn't have a transaction to use.");
       npe.printStackTrace();
       return null;
     }
+    */
    
   }
   /*
