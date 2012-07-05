@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.ecocean.CommonConfiguration;
 import org.ecocean.PatterningPassport;
 import org.ecocean.Shepherd;
 import org.ecocean.MarkedIndividual;
@@ -28,7 +29,7 @@ import java.util.Iterator;
 import java.util.Properties;
 
 public class EncounterGetPatterningPassport extends HttpServlet {
-  Shepherd myShepherd = new Shepherd();
+  
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -45,21 +46,37 @@ public class EncounterGetPatterningPassport extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     String responseMsg = "";
+    
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir = new File(shepherdDataDir.getAbsolutePath() + "/encounters");
+    
+    Shepherd myShepherd = new Shepherd();
+    myShepherd.beginDBTransaction();
 
     responseMsg += "GetPatterningPassport<p/>";
-    ArrayList<PatterningPassport> ppArr = getAll();
+    ArrayList<PatterningPassport> ppArr = getAll(myShepherd);
     responseMsg += "getAll() " + ppArr.size() + "<p/>";
     
     Iterator ppIt = ppArr.iterator(); 
     while (ppIt.hasNext()) {
-      File ppFile = (File)ppIt.next();
-      if (ppFile != null && ppFile.isFile())
+      PatterningPassport ppFile = (PatterningPassport)ppIt.next();
+      if ((ppFile != null) && (ppFile.getEncounterId()!=null))
       {
-        responseMsg += "::: " + ppFile.getName() + "<br/>";
+        File thisEncounterDir = new File(encountersDir, ppFile.getEncounterId());
+        File thisPPFileObject = new File(thisEncounterDir, (ppFile.getMediaId()+"_pp.xml"));
+        if(thisPPFileObject.exists()){responseMsg += "::: The PP file also exists!<br/>";}
+        
       } else {
         responseMsg += ">>> LOOKS LIKE IT ISN'T A FILE! " + ppFile + "<br/>";
       }
     }
+    
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
 
     // response
     out.println(ServletUtilities.getHeader(request));
@@ -67,10 +84,10 @@ public class EncounterGetPatterningPassport extends HttpServlet {
     out.println(ServletUtilities.getFooter());
     out.close();
 
-    return;
+    //return;
   }
 
-  public ArrayList<PatterningPassport> getAll() {
+  public ArrayList<PatterningPassport> getAll(Shepherd myShepherd) {
     ArrayList<PatterningPassport> ppList;
     ppList = myShepherd.getPatterningPassports();
     
