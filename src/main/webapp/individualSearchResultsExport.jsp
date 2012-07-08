@@ -171,6 +171,8 @@
   </a></li>
   <li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
   </a></li>
+   <li><a href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
+  </a></li>
   <li><a href="individualSearchResultsAnalysis.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
   </a></li>
     <li><a class="active"><%=props.getProperty("export")%>
