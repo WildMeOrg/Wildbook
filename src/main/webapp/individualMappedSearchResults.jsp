@@ -19,8 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
 
 
@@ -42,6 +41,9 @@
 
     Properties haploprops = new Properties();
     haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+    
+    Properties localeprops = new Properties();
+   localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
 
     
     //get our Shepherd
@@ -232,10 +234,35 @@ if(rIndividualsSize>0){
 	 int numEncs=rEncounters.size();
 	for(int yh=0;yh<numEncs;yh++){
 		Encounter thisEnc=(Encounter)rEncounters.get(yh);
-		if((thisEnc.getDecimalLatitude()!=null)&&(thisEnc.getDecimalLongitude()!=null)){
+		Double thisEncLat=null;
+		Double thisEncLong=null;
+		
+		//first check if the Encounter object has lat and long values
+		if((thisEnc.getLatitudeAsDouble()!=null)&&(thisEnc.getLongitudeAsDouble()!=null)){
+			thisEncLat=thisEnc.getLatitudeAsDouble();
+			thisEncLong=thisEnc.getLongitudeAsDouble();
+		}
+		//let's see if locales.properties has a location we can use
+		else{
+	           try {
+	                String lc = thisEnc.getLocationCode();
+	                if (localeprops.getProperty(lc) != null) {
+	                  String gps = localeprops.getProperty(lc);
+	                  StringTokenizer st = new StringTokenizer(gps, ",");
+	                  thisEncLat=new Double(st.nextToken());
+	                  thisEncLong=new Double(st.nextToken());
+
+	                }
+	              } catch (Exception e) {
+	                e.printStackTrace();
+	                System.out.println("     I hit an error getting locales in individualMappedSearchResults.jsp.");
+	              }
+		}
+		
+		if((thisEncLat!=null)&&(thisEncLong!=null)){
  %>
           
-          var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
+          var latLng = new google.maps.LatLng(<%=thisEncLat.toString()%>, <%=thisEncLong.toString()%>);
           bounds.extend(latLng);
            <%
            
@@ -270,8 +297,6 @@ if(rIndividualsSize>0){
 
 myShepherd.rollbackDBTransaction();
  %>
- 
- //markerClusterer = new MarkerClusterer(map, markers, {gridSize: 10});
 
       }
       
