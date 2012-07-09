@@ -419,28 +419,16 @@ myShepherd.rollbackDBTransaction();
      </td>
    </tr>
 </table>
- 
- 
- 
- 
+
  <br />
- 
- 
- 
- 
- <p><strong>
- 	<img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/> <%=map_props.getProperty("mappedResults")%>
- </strong>
- 
- 
- 
+
  <%
  
  //read from the map_props property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
  int numberResultsToMap = -1;
 
  %>
- </p>
+
  
  
  <%
@@ -448,7 +436,7 @@ myShepherd.rollbackDBTransaction();
      myShepherd.beginDBTransaction();
      try {
  %>
- 
+ <p><%=map_props.getProperty("resultsNote")%></p>
 <p><%=map_props.getProperty("mapNote")%></p>
  
  <div id="map-container">
