@@ -1157,6 +1157,7 @@
       <url-pattern>/appadmin/kwResults.jsp</url-pattern>
       <url-pattern>/individualSearch.jsp</url-pattern>
       <url-pattern>/individualSearchResults.jsp</url-pattern>
+      <url-pattern>/individualMappedSearchResults.jsp</url-pattern>
       <url-pattern>/individualThumbnailSearchResults.jsp</url-pattern>
       <url-pattern>/encounters/thumbnailSearch.jsp</url-pattern>
       <url-pattern>/encounters/thumbnailSearchResults.jsp</url-pattern>
