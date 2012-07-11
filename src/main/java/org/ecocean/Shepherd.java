@@ -957,6 +957,43 @@ public class Shepherd {
     Iterator it = c.iterator();
     return it;
   }
+  
+  
+  public Iterator getAllOccurrencesForMarkedIndividual(String indie) {
+    //Query acceptedEncounters = pm.newQuery(encClass, filter2use);
+    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    return it;
+  }
+  
+  public TreeMap<MarkedIndividual, Integer> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
+      TreeMap<MarkedIndividual, Integer> map=new TreeMap<MarkedIndividual, Integer>();
+      Iterator it=getAllOccurrencesForMarkedIndividual(indie);
+      while(it.hasNext()){
+         Occurrence oc=(Occurrence)it.next();
+         ArrayList<Encounter> encounters=oc.getEncounters();
+         int numEncounters=encounters.size();
+         for(int i=0;i<numEncounters;i++){
+           Encounter enc=encounters.get(i);
+           if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))&&(!enc.getIndividualID().equals(indie))){
+             MarkedIndividual indieEnc=this.getMarkedIndividual(enc.getIndividualID());
+             //check if we already have this Indie
+             if(!map.containsKey(enc.getIndividualID())){
+               map.put(indieEnc, (new Integer(1)));
+             }
+             else{
+               Integer oldValue=map.get(indieEnc);
+               map.put(indieEnc, (oldValue+1));
+             }
+      
+           }
+         }
+      }
+      return map;
+  }
+  
 
   public ArrayList<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
