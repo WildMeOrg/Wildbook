@@ -19,6 +19,7 @@
 
 package org.ecocean;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.ecocean.genetics.*;
@@ -153,14 +154,32 @@ public class MarkedIndividual {
     return unidentifiableEncounters.size();
   }
 
-  public Vector returnEncountersWithGPSData() {
-    if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
+  public Vector returnEncountersWithGPSData(){
+    return returnEncountersWithGPSData(false);
+  }
+  public Vector returnEncountersWithGPSData(boolean useLocales) {
+    //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
     Vector haveData=new Vector();
-    for(int c=0;c<encounters.size();c++) {
-      Encounter temp=(Encounter)encounters.get(c);
+    Encounter[] myEncs=getDateSortedEncounters(false);
+    
+    Properties localesProps = new Properties();
+    if(useLocales){
+      try {
+        localesProps.load(ShepherdPMF.class.getResourceAsStream("/bundles/locales.properties"));
+      } 
+      catch (Exception ioe) {
+        ioe.printStackTrace();
+      }
+    }
+    
+    for(int c=0;c<myEncs.length;c++) {
+      Encounter temp=myEncs[c];
       if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
         haveData.add(temp);
-        }
+      }
+      else if(useLocales && (temp.getLocationID()!=null) && (localesProps.getProperty(temp.getLocationID())!=null)){
+        haveData.add(temp); 
+      }
 
       }
 
