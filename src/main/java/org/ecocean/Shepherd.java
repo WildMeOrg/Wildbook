@@ -219,6 +219,10 @@ public class Shepherd {
     String indexname = word.getIndexname();
     pm.deletePersistent(word);
   }
+  
+  public void throwAwayOccurrence(Occurrence word) {
+    pm.deletePersistent(word);
+  }
 
 
   public void throwAwaySuperSpotArray(SuperSpot[] spots) {
@@ -1112,6 +1116,17 @@ public class Shepherd {
     }
     return tempShark;
   }
+  
+  public Occurrence getOccurrence(String id) {
+    Occurrence tempShark = null;
+    try {
+      tempShark = ((org.ecocean.Occurrence) (pm.getObjectById(pm.newObjectIdInstance(Occurrence.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return tempShark;
+  }
 
 
   /**
@@ -1606,6 +1621,21 @@ public class Shepherd {
       Query acceptedKeywords = pm.newQuery(allKeywords);
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
+      it = c.iterator();
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return null;
+    }
+    return it;
+  }
+  
+  public Iterator getAllOccurrences() {
+    Extent allOccurs = null;
+    Iterator it = null;
+    try {
+      allOccurs = pm.getExtent(Occurrence.class, true);
+      Query acceptedOccurs = pm.newQuery(allOccurs);
+      Collection c = (Collection) (acceptedOccurs.execute());
       it = c.iterator();
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
