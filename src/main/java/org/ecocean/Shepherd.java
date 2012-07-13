@@ -109,9 +109,24 @@ public class Shepherd {
     }
     return (uniqueID);
   }
-  
+
+    public void storeNewOccurrence(Occurrence enc) {
+      //enc.setOccurrenceID(uniqueID);
+      beginDBTransaction();
+      try {
+        pm.makePersistent(enc);
+        commitDBTransaction();
+      } catch (Exception e) {
+        rollbackDBTransaction();
+        System.out.println("I failed to create a new Occurrence in shepherd.storeNewOccurrence().");
+        e.printStackTrace();
+
+      }
+
+  }
+
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
-    
+
     beginDBTransaction();
     try {
       pm.makePersistent(indie);
@@ -219,7 +234,7 @@ public class Shepherd {
     String indexname = word.getIndexname();
     pm.deletePersistent(word);
   }
-  
+
   public void throwAwayOccurrence(Occurrence word) {
     pm.deletePersistent(word);
   }
@@ -417,9 +432,9 @@ public class Shepherd {
   return null;
 
   }
-  
-  
-  
+
+
+
 
   public ArrayList<String> getKeywordsInCommon(String encounterNumber1, String encounterNumber2) {
     ArrayList<String> inCommon = new ArrayList<String>();
@@ -728,14 +743,14 @@ public class Shepherd {
       return null;
     }
   }
-  
+
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideo(Query acceptedEncounters) {
     Collection c;
     try {
       c = (Collection) (acceptedEncounters.execute());
       ArrayList<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>(c);
       return list;
-    } 
+    }
     catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
       npe.printStackTrace();
@@ -961,8 +976,8 @@ public class Shepherd {
     Iterator it = c.iterator();
     return it;
   }
-  
-  
+
+
   public Iterator getAllOccurrencesForMarkedIndividual(String indie) {
     //Query acceptedEncounters = pm.newQuery(encClass, filter2use);
     String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
@@ -971,7 +986,7 @@ public class Shepherd {
     Iterator it = c.iterator();
     return it;
   }
-  
+
   public TreeMap<MarkedIndividual, Integer> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
       TreeMap<MarkedIndividual, Integer> map=new TreeMap<MarkedIndividual, Integer>();
       Iterator it=getAllOccurrencesForMarkedIndividual(indie);
@@ -991,13 +1006,13 @@ public class Shepherd {
                Integer oldValue=map.get(indieEnc);
                map.put(indieEnc, (oldValue+1));
              }
-      
+
            }
          }
       }
       return map;
   }
-  
+
 
   public ArrayList<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
@@ -1116,7 +1131,7 @@ public class Shepherd {
     }
     return tempShark;
   }
-  
+
   public Occurrence getOccurrence(String id) {
     Occurrence tempShark = null;
     try {
@@ -1628,7 +1643,7 @@ public class Shepherd {
     }
     return it;
   }
-  
+
   public Iterator getAllOccurrences() {
     Extent allOccurs = null;
     Iterator it = null;
@@ -1814,7 +1829,7 @@ public class Shepherd {
         else {
                 count--;
         }
-            } 
+            }
             else if (count > endNum) {
               stopMe = true;
               return thumbs;
