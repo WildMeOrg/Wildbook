@@ -100,7 +100,7 @@ margin-bottom: 8px !important;
 
 <p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>
 <%
-  Vector haveGPSData = sharky.returnEncountersWithGPSData(true);
+  Vector haveGPSData = sharky.returnEncountersWithGPSData(true, true);
   int havegpsSize=haveGPSData.size();
   if (havegpsSize > 0) {
 %>

@@ -34,7 +34,7 @@ import org.ecocean.genetics.*;
  * @version 2.0
  * @see Encounter, Shepherd
  */
-public class MarkedIndividual {
+public class MarkedIndividual implements java.io.Serializable {
 
   //unique name of the MarkedIndividual, such as 'A-109'
   private String individualID = "";
@@ -155,12 +155,12 @@ public class MarkedIndividual {
   }
 
   public Vector returnEncountersWithGPSData(){
-    return returnEncountersWithGPSData(false);
+    return returnEncountersWithGPSData(false,false);
   }
-  public Vector returnEncountersWithGPSData(boolean useLocales) {
+  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder) {
     //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
     Vector haveData=new Vector();
-    Encounter[] myEncs=getDateSortedEncounters(false);
+    Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
     
     Properties localesProps = new Properties();
     if(useLocales){
@@ -471,33 +471,33 @@ public class MarkedIndividual {
     return encounters;
   }
 
-  //sorted with the most recent first
-  public Encounter[] getDateSortedEncounters(boolean includeLogEncounters) {
+    //you can choose the order of the EncounterDateComparator
+    public Encounter[] getDateSortedEncounters(boolean reverse) {
     Vector final_encs = new Vector();
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
       final_encs.add(temp);
     }
-    /**
-    //unidentifiableEncounters is no longer used
-    if (includeLogEncounters) {
-      int numLogs = unidentifiableEncounters.size();
-      for (int c = 0; c < numLogs; c++) {
-        Encounter temp = (Encounter) unidentifiableEncounters.get(c);
-        final_encs.add(temp);
-      }
-      //System.out.println(".....added log encounters...");
-    }
-    */
+
     int finalNum = final_encs.size();
     Encounter[] encs2 = new Encounter[finalNum];
     for (int q = 0; q < finalNum; q++) {
       encs2[q] = (Encounter) final_encs.get(q);
     }
-    EncounterDateComparator dc = new EncounterDateComparator();
+    EncounterDateComparator dc = new EncounterDateComparator(reverse);
     Arrays.sort(encs2, dc);
     return encs2;
   }
+  
+  //sorted with the most recent first
+  public Encounter[] getDateSortedEncounters() {return getDateSortedEncounters(false);}
+  
+  
+  //preserved for legacy purposes
+ /** public Encounter[] getDateSortedEncounters(boolean includeLogEncounters) {
+    return getDateSortedEncounters();
+  }
+  */
 
   public Vector getUnidentifiableEncounters() {
     if (unidentifiableEncounters == null) {

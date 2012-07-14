@@ -229,7 +229,7 @@
       count++;
 
       //check if this individual was newly marked in this period
-      Encounter[] dateSortedEncs = indie.getDateSortedEncounters(true);
+      Encounter[] dateSortedEncs = indie.getDateSortedEncounters();
       int sortedLength = dateSortedEncs.length - 1;
       Encounter temp = dateSortedEncs[sortedLength];
 

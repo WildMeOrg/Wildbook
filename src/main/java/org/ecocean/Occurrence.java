@@ -11,8 +11,14 @@ import java.util.ArrayList;
  * @author Jason Holmberg
  *
  */
-public class Occurrence {
+public class Occurrence implements java.io.Serializable{
   
+  
+  
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -7545783883959073726L;
   private ArrayList<Encounter> encounters;
   private String occurrenceID;
   

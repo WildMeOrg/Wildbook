@@ -523,7 +523,7 @@ table.tissueSample td {
     %>
   </tr>
   <%
-    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(true);
+    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters();
 
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {

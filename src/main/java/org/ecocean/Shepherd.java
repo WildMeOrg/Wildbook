@@ -986,6 +986,17 @@ public class Shepherd {
     Iterator it = c.iterator();
     return it;
   }
+  
+  public Occurrence getOccurrenceForEncounter(String encounterID){
+    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+"\"  VARIABLES org.ecocean.Encounter enc";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    while(it.hasNext()){
+      return ((Occurrence)it.next());
+    }
+    return null;
+  }
 
   public TreeMap<MarkedIndividual, Integer> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
       TreeMap<MarkedIndividual, Integer> map=new TreeMap<MarkedIndividual, Integer>();

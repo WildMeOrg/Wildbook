@@ -349,16 +349,8 @@ margin-bottom: 8px !important;
     <p><font size="4"><strong><%=encprops.getProperty("title") %>
     </strong>: <%=num%><%=livingStatus %>
     </font></p>
-    <%
-      if (enc.getEventID() != null) {
-    %>
-    <p class="para"><%=encprops.getProperty("eventID") %>:
-      <%=enc.getEventID() %>
-    </p>
-    <%
-      }
-    %>
-    <%}%> 
+
+     
     
  <table><tr valign="middle">  
   <td>
@@ -415,8 +407,34 @@ margin-bottom: 8px !important;
     </p>
     <%
       } //end else
-
-
+	
+    
+    if (enc.getEventID() != null) {
+  %>
+  <p class="para"><%=encprops.getProperty("eventID") %>:
+    <%=enc.getEventID() %>
+  </p>
+  <%
+    }
+  }
+  %>
+	<p class="para">
+	Occurrence ID:
+	<%
+	if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+	%>
+		<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>	
+	<% 	
+	}
+	else{
+	%>
+	<%=encprops.getProperty("none_assigned") %>
+	<%
+	}
+	%>
+	</p>
+  
+<%
     if(CommonConfiguration.showProperty("showTaxonomy")){
     
     String genusSpeciesFound=encprops.getProperty("notAvailable");
