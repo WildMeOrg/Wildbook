@@ -998,8 +998,10 @@ public class Shepherd {
     return null;
   }
 
-  public TreeMap<MarkedIndividual, Integer> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
-      TreeMap<MarkedIndividual, Integer> map=new TreeMap<MarkedIndividual, Integer>();
+  public TreeMap<String, Integer> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
+    HashMap<String,Integer> hmap = new HashMap<String,Integer>();
+    TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
+    TreeMap<String, Integer> map=new TreeMap<String, Integer>(cmp);
       Iterator it=getAllOccurrencesForMarkedIndividual(indie);
       while(it.hasNext()){
          Occurrence oc=(Occurrence)it.next();
@@ -1010,17 +1012,18 @@ public class Shepherd {
            if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))&&(!enc.getIndividualID().equals(indie))){
              MarkedIndividual indieEnc=this.getMarkedIndividual(enc.getIndividualID());
              //check if we already have this Indie
-             if(!map.containsKey(enc.getIndividualID())){
-               map.put(indieEnc, (new Integer(1)));
+             if(!hmap.containsKey(indieEnc.getIndividualID())){
+               hmap.put(indieEnc.getIndividualID(), (new Integer(1)));
              }
              else{
-               Integer oldValue=map.get(indieEnc);
-               map.put(indieEnc, (oldValue+1));
+               Integer oldValue=hmap.get(indieEnc.getIndividualID());
+               hmap.put(indieEnc.getIndividualID(), (oldValue+1));
              }
 
            }
          }
       }
+      map.putAll(hmap);
       return map;
   }
 

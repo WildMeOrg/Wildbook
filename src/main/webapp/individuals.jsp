@@ -1055,6 +1055,23 @@ else {
 
 %>
 <!-- End genetics -->
+
+<p><strong>Co-Occurrences</strong></p>
+<table width="100%" class="tissueSample">
+<th><strong>Individual</strong></th><th><strong># Co-sightings</strong></th></tr>
+<%
+TreeMap<String, Integer> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
+
+Set<String> otherIndiesSet=otherIndies.keySet();
+Iterator<String> othersIterator=otherIndiesSet.iterator();
+while(othersIterator.hasNext()){
+	String indy=othersIterator.next();
+	%>
+	<tr><td><a target="_blank" href="individuals.jsp?number=<%=indy%>"><%=indy %></a></td><td><%=otherIndies.get(indy) %></td></tr>
+	<%
+}
+%>
+</table>
 <%
 
   if (isOwner) {
