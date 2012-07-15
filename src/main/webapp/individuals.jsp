@@ -634,7 +634,7 @@ table.tissueSample td {
 
 <!-- Start thumbnail gallery -->
 
-
+<br />
 <p>
   <strong><%=props.getProperty("imageGallery") %>
   </strong></p>
@@ -991,7 +991,7 @@ table.tissueSample td {
 <!-- Start genetics -->
 <br />
 <a name="tissueSamples"></a>
-<p class="para"><img align="absmiddle" src="images/microscope.gif" /><strong><%=props.getProperty("tissueSamples") %></strong></p>
+<p><img align="absmiddle" src="images/microscope.gif" /><strong><%=props.getProperty("tissueSamples") %></strong></p>
 <p>
 <%
 List<TissueSample> tissueSamples=sharky.getAllTissueSamples();
@@ -1069,22 +1069,23 @@ else {
 
 %>
 <!-- End genetics -->
-
-<p><strong>Co-Occurrences</strong></p>
+<br/>
+<a name="socialRelationships"></a>
+<p><strong><%=props.getProperty("social")%></strong></p>
 <table width="100%" class="tissueSample">
-<th><strong>Individual</strong></th><th><strong># Co-sightings</strong></th></tr>
+<th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("numSightingsTogether") %></strong></th></tr>
 <%
-TreeMap<String, Integer> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
+ArrayList<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
 
-Set<String> otherIndiesSet=otherIndies.keySet();
 
-Iterator<String> othersIterator=otherIndiesSet.iterator();
+
+Iterator<Map.Entry> othersIterator=otherIndies.iterator();
 while(othersIterator.hasNext()){
-	String indy=othersIterator.next();
-	MarkedIndividual occurIndy=myShepherd.getMarkedIndividual(indy);
+	Map.Entry indy=othersIterator.next();
+	MarkedIndividual occurIndy=myShepherd.getMarkedIndividual((String)indy.getKey());
 	%>
 	<tr><td>
-	<a target="_blank" href="individuals.jsp?number=<%=indy%>"><%=indy %></a>
+	<a target="_blank" href="individuals.jsp?number=<%=occurIndy.getIndividualID()%>"><%=occurIndy.getIndividualID() %></a>
 		<%
 		if(occurIndy.getSex()!=null){
 		%>
@@ -1099,7 +1100,7 @@ while(othersIterator.hasNext()){
 		}
 		%>
 	</td>
-	<td><%=otherIndies.get(indy) %></td></tr>
+	<td><%=((Integer)indy.getValue()).toString() %></td></tr>
 	<%
 }
 %>

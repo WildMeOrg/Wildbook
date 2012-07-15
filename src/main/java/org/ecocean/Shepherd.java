@@ -999,9 +999,11 @@ public class Shepherd {
     return null;
   }
 
-  public TreeMap<String, Integer> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
+  public ArrayList<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
     HashMap<String,Integer> hmap = new HashMap<String,Integer>();
-    TreeMap<String, Integer> map=new TreeMap<String, Integer>();
+    //TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
+   //TreeMap<String, Integer> map=new TreeMap<String, Integer>(cmp);
+   TreeMap<String, Integer> map=new TreeMap<String, Integer>();
       Iterator it=getAllOccurrencesForMarkedIndividual(indie);
       while(it.hasNext()){
          Occurrence oc=(Occurrence)it.next();
@@ -1025,7 +1027,7 @@ public class Shepherd {
            }
          }
       }
-      map.putAll(hmap);
+      //map.putAll(hmap);
       //System.out.println("hmap size is: "+hmap.size());
       //System.out.println("Let's copy hmap to map...");
       //Iterator jit=hmap.keySet().iterator();
@@ -1036,7 +1038,21 @@ public class Shepherd {
         //System.out.println("     map now size is: "+map.size());
       //}
       //System.out.println("Final map size is: "+map.size());
-      return map;
+      
+      ArrayList<Map.Entry> as = new ArrayList<Map.Entry>( hmap.entrySet() );  
+      
+      Collections.sort( as , new Comparator() {  
+          public int compare( Object o1 , Object o2 )  
+          {  
+              Map.Entry e1 = (Map.Entry)o1 ;  
+              Map.Entry e2 = (Map.Entry)o2 ;  
+              Integer first = (Integer)e1.getValue();  
+              Integer second = (Integer)e2.getValue();  
+              return first.compareTo( second );  
+          }  
+      });  
+      Collections.reverse(as);
+      return as;
   }
 
 
@@ -2197,6 +2213,8 @@ public class Shepherd {
     Collection results = (Collection)q.execute ();
     return (new ArrayList(results));
   }
+  
+
 
 } //end Shepherd class
 
