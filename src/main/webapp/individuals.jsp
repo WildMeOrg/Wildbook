@@ -613,8 +613,9 @@ table.tissueSample td {
     	String thisName=otherOccurs.get(j);
     	if(!thisName.equals(sharky.getIndividualID())){
     %>
-    	<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a><br />
+    	<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
     <%	
+    //test comment
     	}
     }
     %>
