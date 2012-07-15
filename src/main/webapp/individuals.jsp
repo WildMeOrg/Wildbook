@@ -497,20 +497,15 @@ table.tissueSample td {
 
 <table id="results" width="100%">
   <tr class="lineitem">
-      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %>
-    </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %>
-    </strong></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %></strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %></strong></td>
     <td class="lineitem" bgcolor="#99CCFF"><strong><%=dataTypes %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encnumber %>
-    </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=alternateID %>
-    </strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encnumber %></strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=alternateID %></strong></td>
 
 
 
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %>
-    </strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %></strong></td>
     <%
       if (isOwner && CommonConfiguration.useSpotPatternRecognition()) {
     %>
@@ -521,6 +516,7 @@ table.tissueSample td {
     <%
     }
     %>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong>Sighted With</td>
   </tr>
   <%
     Encounter[] dateSortedEncs = sharky.getDateSortedEncounters();
@@ -607,6 +603,21 @@ table.tissueSample td {
         }
       }
     %>
+    
+    <td class="lineitem">
+    <%
+    Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+    ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
+    int numOtherOccurs=otherOccurs.size();
+    for(int j=0;j<numOtherOccurs;j++){
+    	String thisName=otherOccurs.get(j);
+    %>
+    	<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a><br />
+    <%	
+    }
+    %>
+    
+    </td>
   </tr>
   <%
       
@@ -1063,11 +1074,29 @@ else {
 TreeMap<String, Integer> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
 
 Set<String> otherIndiesSet=otherIndies.keySet();
+
 Iterator<String> othersIterator=otherIndiesSet.iterator();
 while(othersIterator.hasNext()){
 	String indy=othersIterator.next();
+	MarkedIndividual occurIndy=myShepherd.getMarkedIndividual(indy);
 	%>
-	<tr><td><a target="_blank" href="individuals.jsp?number=<%=indy%>"><%=indy %></a></td><td><%=otherIndies.get(indy) %></td></tr>
+	<tr><td>
+	<a target="_blank" href="individuals.jsp?number=<%=indy%>"><%=indy %></a>
+		<%
+		if(occurIndy.getSex()!=null){
+		%>
+			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=occurIndy.getSex() %></span>
+		<%
+		}
+		
+		if(occurIndy.getHaplotype()!=null){
+		%>
+			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=occurIndy.getHaplotype() %></span>
+		<%
+		}
+		%>
+	</td>
+	<td><%=otherIndies.get(indy) %></td></tr>
 	<%
 }
 %>

@@ -62,19 +62,6 @@ public class EncounterDateComparator implements Comparator {
       
     }
 
-    /**
-     if (a1.get(Calendar.YEAR)>b1.get(Calendar.YEAR)) {return -1;}
-     if (a1.get(Calendar.YEAR)==b1.get(Calendar.YEAR)) {
-     if (a1.get(Calendar.MONTH)>b1.get(Calendar.MONTH)) {return -1;}
-     if(a1.get(Calendar.MONTH)==b1.get(Calendar.MONTH)) {
-     if (a1.get(Calendar.DAY_OF_MONTH)>b1.get(Calendar.DAY_OF_MONTH)) {return -1;}
-     if (a1.get(Calendar.DAY_OF_MONTH)<b1.get(Calendar.DAY_OF_MONTH)) {return 1;}
-     return 0;
-     }
-     return 1;
-     }
-     return 1;
-     */
   }
 
 

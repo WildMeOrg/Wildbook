@@ -983,6 +983,7 @@ public class Shepherd {
     String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
+    System.out.println("getAllOccurrencesForMarkedIndividual size: "+c.size());
     Iterator it = c.iterator();
     return it;
   }
@@ -1000,8 +1001,7 @@ public class Shepherd {
 
   public TreeMap<String, Integer> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
     HashMap<String,Integer> hmap = new HashMap<String,Integer>();
-    TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
-    TreeMap<String, Integer> map=new TreeMap<String, Integer>(cmp);
+    TreeMap<String, Integer> map=new TreeMap<String, Integer>();
       Iterator it=getAllOccurrencesForMarkedIndividual(indie);
       while(it.hasNext()){
          Occurrence oc=(Occurrence)it.next();
@@ -1014,16 +1014,28 @@ public class Shepherd {
              //check if we already have this Indie
              if(!hmap.containsKey(indieEnc.getIndividualID())){
                hmap.put(indieEnc.getIndividualID(), (new Integer(1)));
+               //System.out.println("Putting: "+indieEnc.getIndividualID());
              }
              else{
                Integer oldValue=hmap.get(indieEnc.getIndividualID());
                hmap.put(indieEnc.getIndividualID(), (oldValue+1));
+               //System.out.println("Iterating: "+indieEnc.getIndividualID());
              }
 
            }
          }
       }
       map.putAll(hmap);
+      //System.out.println("hmap size is: "+hmap.size());
+      //System.out.println("Let's copy hmap to map...");
+      //Iterator jit=hmap.keySet().iterator();
+      //while(jit.hasNext()){
+        //System.out.println("     hmap now size is: "+hmap.size());
+        //String lString=(String)jit.next();
+        //map.put(lString, hmap.get(lString));
+        //System.out.println("     map now size is: "+map.size());
+      //}
+      //System.out.println("Final map size is: "+map.size());
       return map;
   }
 
