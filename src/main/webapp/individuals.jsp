@@ -1064,20 +1064,28 @@ for(int j=0;j<numTissueSamples;j++){
 else {
 %>
 	<p class="para"><%=props.getProperty("noTissueSamples") %></p>
+	<!-- End genetics -->
 <%
 }
-
 %>
-<!-- End genetics -->
+
+
 <br/>
 <a name="socialRelationships"></a>
 <p><strong><%=props.getProperty("social")%></strong></p>
-<table width="100%" class="tissueSample">
-<th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("numSightingsTogether") %></strong></th></tr>
+
 <%
 ArrayList<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
 
+if(otherIndies.size()>0){
+	
+//ok, let's iterate the social relationships
+%>
 
+
+<table width="100%" class="tissueSample">
+<th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("numSightingsTogether") %></strong></th></tr>
+<%
 
 Iterator<Map.Entry> othersIterator=otherIndies.iterator();
 while(othersIterator.hasNext()){
@@ -1103,6 +1111,14 @@ while(othersIterator.hasNext()){
 	<td><%=((Integer)indy.getValue()).toString() %></td></tr>
 	<%
 }
+}
+else {
+%>
+	<p class="para"><%=props.getProperty("noSocial") %></p><br />
+<%
+}
+//
+
 %>
 </table>
 <%
