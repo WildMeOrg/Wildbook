@@ -82,6 +82,16 @@ public class Occurrence implements java.io.Serializable{
   public String getGroupBehavior(){return groupBehavior;}
   public void setGroupBehavior(String behavior){this.groupBehavior=behavior;}
 
-  
+  public ArrayList<SinglePhotoVideo> getAllRelatedMedia(){
+    int numEncounters=encounters.size();
+    ArrayList<SinglePhotoVideo> returnList=new ArrayList<SinglePhotoVideo>();
+    for(int i=0;i<numEncounters;i++){
+     Encounter enc=encounters.get(i);
+     if(enc.getSinglePhotoVideo()!=null){
+       returnList.addAll(enc.getSinglePhotoVideo());
+     }
+    }
+    return returnList;
+  }
   
 }
