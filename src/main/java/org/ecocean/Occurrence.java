@@ -21,6 +21,9 @@ public class Occurrence implements java.io.Serializable{
   private static final long serialVersionUID = -7545783883959073726L;
   private ArrayList<Encounter> encounters;
   private String occurrenceID;
+  private int individualCount;
+  private String groupBehavior;
+  
   
   //empty constructor used by the JDO enhancer
   public Occurrence(){}
@@ -73,5 +76,12 @@ public class Occurrence implements java.io.Serializable{
   public String getOccurrenceID(){return occurrenceID;}
   
 
+  public int getIndividualCount(){return individualCount;}
+  public void setIndividualCount(int count){this.individualCount=count;}
+  
+  public String getGroupBehavior(){return groupBehavior;}
+  public void setGroupBehavior(String behavior){this.groupBehavior=behavior;}
 
+  
+  
 }

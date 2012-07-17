@@ -102,6 +102,15 @@
 						<join/>
 		            		</field>
 		            		
+		            		<field name="groupBehavior" persistence-modifier="persistent">
+					                <column length="1024" allows-null="true" />
+					            </field>
+					            
+					            <field name="individualCount" persistence-modifier="persistent">
+						    				<column jdbc-type="INTEGER" allows-null="true" />
+			</field>
+
+		            		
 				            	
 					<fetch-group name="count" />
 		
