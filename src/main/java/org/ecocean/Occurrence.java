@@ -68,7 +68,7 @@ public class Occurrence implements java.io.Serializable{
     ArrayList<String> names=new ArrayList<String>();
     for(int i=0;i<size;i++){
       Encounter enc=encounters.get(i);
-      if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){names.add(enc.getIndividualID());}
+      if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))&&(!names.contains(enc.getIndividualID()))){names.add(enc.getIndividualID());}
     }
     return names;
   }

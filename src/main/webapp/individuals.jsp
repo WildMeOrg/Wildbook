@@ -516,7 +516,9 @@ table.tissueSample td {
     <%
     }
     %>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong>Sighted With</td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sightedWith") %></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
+ 
   </tr>
   <%
     Encounter[] dateSortedEncs = sharky.getDateSortedEncounters();
@@ -530,8 +532,6 @@ table.tissueSample td {
         
           imgName = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
         
-
-
   %>
   <tr>
       <td class="lineitem"><%=enc.getDate()%>
@@ -620,6 +620,20 @@ table.tissueSample td {
     }
     %>
     
+    </td>
+    <td class="lineitem">
+    <%
+    if(enc.getBehavior()!=null){
+    %>
+    <%=enc.getBehavior() %>
+    <%	
+    }
+    if(thisOccur.getGroupBehavior()!=null){
+    %>
+    <br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
+    <%	
+    }
+    %>
     </td>
   </tr>
   <%
