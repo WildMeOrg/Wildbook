@@ -615,7 +615,7 @@ table.tissueSample td {
     %>
     	<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
     <%	
-    //test comment
+    
     	}
     }
     %>
@@ -630,7 +630,7 @@ table.tissueSample td {
     }
     if(thisOccur.getGroupBehavior()!=null){
     %>
-    <br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
+    <br /><br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
     <%	
     }
     %>

@@ -1089,13 +1089,24 @@ if(CommonConfiguration.showProperty("showLifestage")){
   <td>
     <div id="genetics" style="display:none; ">
       <p>Use the fields below to limit your search to encounters with available genetic data.</p>
-      
+      <br /><p><em><%=encprops.getProperty("fastOptions") %></em></p>
       <p><strong><%=encprops.getProperty("hasTissueSample")%>: </strong>
             <label> 
             	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
             </label>
       </p>
-
+            <p><strong><%=encprops.getProperty("hasHaplotype")%>: </strong>
+            <label> 
+            	<input name="hasHaplotype" type="checkbox" id="hasHaplotype" value="hasHaplotype" />
+            </label>
+      </p>
+            </p>
+            <p><strong><%=encprops.getProperty("hasMSMarkers")%>: </strong>
+            <label> 
+            	<input name="hasMSMarkers" type="checkbox" id="hasMSMarkers" value="hasMSMarkers" />
+            </label>
+      </p>
+<br /><p><em><%=encprops.getProperty("slowOptions") %></em></p>
       <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para">
       <a href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
         target="_blank"><img src="../images/information_icon_svg.gif"

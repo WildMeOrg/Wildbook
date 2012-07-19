@@ -133,12 +133,15 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
         int locusColumn=2;
         for(int r=0;r<numLoci;r++){
           String locus=loci.get(r);
-          Label lociLabel = new Label(locusColumn, 2, locus);
-          sheet.addCell(lociLabel);
-          locusColumn++;
-          Label lociLabel2 = new Label(locusColumn, 2, locus);
-          sheet.addCell(lociLabel2);
-          locusColumn++;
+          if((request.getParameter(locus)!=null)&&(!request.getParameter(locus).equals(""))&&(request1.getParameter(locus)!=null)&&(!request1.getParameter(locus).equals(""))){
+          
+            Label lociLabel = new Label(locusColumn, 2, locus);
+            sheet.addCell(lociLabel);
+            locusColumn++;
+            Label lociLabel2 = new Label(locusColumn, 2, locus);
+            sheet.addCell(lociLabel2);
+            locusColumn++;
+          }
         }
         
         //later, we might ant to add columns for Lat and Long
@@ -166,6 +169,9 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
               locusColumn=2;
               for(int r=0;r<numLoci;r++){
                 String locus=loci.get(r);
+                if((request.getParameter(locus)!=null)&&(!request.getParameter(locus).equals(""))&&(request1.getParameter(locus)!=null)&&(!request1.getParameter(locus).equals(""))){
+                  
+                
                 if(indy.hasLocus(locus)){
                   ArrayList<Integer> vals=indy.getAlleleValuesForLocus(locus);
                   if(vals.size()>0){
@@ -178,6 +184,10 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
                     Label lociLabel2 = new Label(locusColumn, count, vals.get(1).toString());
                     sheet.addCell(lociLabel2);
                   }
+                  else{
+                    Label lociLabel2 = new Label(locusColumn, count, vals.get(0).toString());
+                    sheet.addCell(lociLabel2);
+                  }
                   locusColumn++;
                 }
                 else{
@@ -186,7 +196,7 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
                 }
                 
                 
-                
+              }
 
                 
               }
