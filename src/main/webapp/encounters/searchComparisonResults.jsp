@@ -852,6 +852,7 @@ else{
  <p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
  <p><%=encprops.getProperty("genepopExport")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GenePopExport?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
  <p><%=encprops.getProperty("genalexExportMS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GenalexExportCodominantMSDataBySize?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
+ <p><%=encprops.getProperty("genalexExportHaplotypes")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GenalexExportCodominantMSDataBySize?<%=request.getQueryString() %>&exportHaplos=true"><%=encprops.getProperty("link")%></a></p>
  
  </td>
  
