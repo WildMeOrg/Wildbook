@@ -37,7 +37,9 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
     
     Shepherd myShepherd = new Shepherd();
     
-
+    //in case we're doing haplotype export
+    ArrayList<String> haplos=myShepherd.getAllHaplotypes();
+    int numHaplos=haplos.size();
  
     
     //set up the files
@@ -95,7 +97,7 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
         try {
           props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
         } catch (Exception e) {
-          System.out.println("     Could not load locales.properties EncounterSearchExportExcelFile.");
+          System.out.println("     Could not load locales.properties in class GenalexExportCodominantMSDataBySize.");
           e.printStackTrace();
         }
         
@@ -106,8 +108,14 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
       //let's write out headers for the OBIS export file
         WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile);
         WritableSheet sheet = workbookOBIS.createSheet("Shepherd Project GenAlEx Export Microsatellite Data", 0);
-        Label label0 = new Label(0, 0, (new Integer(myShepherd.getAllLoci().size())).toString());
-        sheet.addCell(label0);
+        if(request.getParameter("exportHaplos")!=null){
+          Label label0 = new Label(0, 0, "1");
+          sheet.addCell(label0);
+        }
+        else{
+          Label label0 = new Label(0, 0, (new Integer(myShepherd.getAllLoci().size())).toString());
+          sheet.addCell(label0);
+        }
         Label label1 = new Label(1, 0, (new Integer((numSearch1Individuals+numSearch2Individuals))).toString());
         sheet.addCell(label1);
         Label label2 = new Label(2, 0, (new Integer(numPopulations)).toString());
@@ -131,16 +139,26 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
         ArrayList<String> loci=myShepherd.getAllLoci();
         int numLoci=loci.size();
         int locusColumn=2;
-        for(int r=0;r<numLoci;r++){
-          String locus=loci.get(r);
-          if((request.getParameter(locus)!=null)&&(!request.getParameter(locus).equals(""))&&(request1.getParameter(locus)!=null)&&(!request1.getParameter(locus).equals(""))){
+        if(request.getParameter("exportHaplos")!=null){
           
-            Label lociLabel = new Label(locusColumn, 2, locus);
-            sheet.addCell(lociLabel);
-            locusColumn++;
-            Label lociLabel2 = new Label(locusColumn, 2, locus);
-            sheet.addCell(lociLabel2);
-            locusColumn++;
+          Label haploLabel = new Label(locusColumn, 2, "mtDNA");
+          sheet.addCell(haploLabel);
+          
+        }
+        else{
+          for(int r=0;r<numLoci;r++){
+            String locus=loci.get(r);
+            if((request.getParameter("hasMSMarkers")!=null)||((request.getParameter(locus)!=null)&&(!request.getParameter(locus).equals(""))&&(request1.getParameter(locus)!=null)&&(!request1.getParameter(locus).equals("")))){
+          
+              Label lociLabel = new Label(locusColumn, 2, locus);
+              sheet.addCell(lociLabel);
+              locusColumn++;
+            
+              //Genalex 2010 fails if the second column label is added
+              //Label lociLabel2 = new Label(locusColumn, 2, locus);
+              //sheet.addCell(lociLabel2);
+              locusColumn++;
+            }
           }
         }
         
@@ -151,13 +169,20 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
          for(int i=0;i<numPopulations;i++){
            
             Vector iterateMe=new Vector();
-            if(i==0){iterateMe=query1Individuals;}
-            else{iterateMe=query2Individuals;}
+            if(i==0){
+              iterateMe=query1Individuals;
+              System.out.println("     Iterating population 1...");
+            }
+            else{
+              iterateMe=query2Individuals;
+              System.out.println("     Iterating population 2...");
+            }
             
             for(int k=0;k<iterateMe.size();k++){
               
               MarkedIndividual indy=(MarkedIndividual)iterateMe.get(k);
-              if(indy.hasMsMarkers()){
+              //System.out.println("          Individual: "+indy.getIndividualID());
+              
               count++;
               
               Label lNumber = new Label(0, count, indy.getIndividualID()+"_"+(i+1));
@@ -167,31 +192,66 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
               sheet.addCell(popNumber);
               
               locusColumn=2;
+              
+              if(request.getParameter("exportHaplos")!=null){
+                
+                
+                if(numHaplos>0){
+                  //now add the haplotype
+                    if(indy.getHaplotype()!=null){
+                      String haplo=indy.getHaplotype();
+                      Integer haploNum = new Integer(haplos.indexOf(haplo)+1);
+                      Label lociLabel = new Label(locusColumn, count, haploNum.toString());
+                      sheet.addCell(lociLabel);
+                    }
+                    else{
+                      Label lociLabel = new Label(locusColumn, count, "0");
+                      sheet.addCell(lociLabel);
+                    }
+                  }
+                
+              }
+              else{
               for(int r=0;r<numLoci;r++){
                 String locus=loci.get(r);
-                if((request.getParameter(locus)!=null)&&(!request.getParameter(locus).equals(""))&&(request1.getParameter(locus)!=null)&&(!request1.getParameter(locus).equals(""))){
+                if((request.getParameter("hasMSMarkers")!=null)||((request.getParameter(locus)!=null)&&(!request.getParameter(locus).equals(""))&&(request1.getParameter(locus)!=null)&&(!request1.getParameter(locus).equals("")))){
                   
                 
                 if(indy.hasLocus(locus)){
                   ArrayList<Integer> vals=indy.getAlleleValuesForLocus(locus);
-                  if(vals.size()>0){
+                  if(vals.size()==1){
                     Label lociLabel = new Label(locusColumn, count, vals.get(0).toString());
                     sheet.addCell(lociLabel);
-                  }
-                  locusColumn++;
-                  
-                  if(vals.size()>1){
-                    Label lociLabel2 = new Label(locusColumn, count, vals.get(1).toString());
-                    sheet.addCell(lociLabel2);
-                  }
-                  else{
+                    locusColumn++;
                     Label lociLabel2 = new Label(locusColumn, count, vals.get(0).toString());
                     sheet.addCell(lociLabel2);
+                    locusColumn++;
                   }
-                  locusColumn++;
+                  
+                  else if(vals.size()==2){
+                    Label lociLabel = new Label(locusColumn, count, vals.get(0).toString());
+                    sheet.addCell(lociLabel);
+                    locusColumn++;
+                    Label lociLabel2 = new Label(locusColumn, count, vals.get(1).toString());
+                    sheet.addCell(lociLabel2);
+                    locusColumn++;
+                  }
+                  else{
+                    Label lociLabel = new Label(locusColumn, count, "0");
+                    sheet.addCell(lociLabel);
+                    locusColumn++;
+                    Label lociLabel2 = new Label(locusColumn, count, "0");
+                    sheet.addCell(lociLabel2);
+                    locusColumn++;
+                  }
+                  
                 }
                 else{
+                  Label lociLabel = new Label(locusColumn, count, "0");
+                  sheet.addCell(lociLabel);
                   locusColumn++;
+                  Label lociLabel2 = new Label(locusColumn, count, "0");
+                  sheet.addCell(lociLabel2);
                   locusColumn++;
                 }
                 
@@ -201,6 +261,8 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
                 
               }
             }
+           
+             
             }
             
             
