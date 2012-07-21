@@ -115,21 +115,14 @@ int imageCount = 0;
 
 <tr>
   <td class="para">
-    <%
-      if (request.getParameter("isOwner").equals("true") && CommonConfiguration.isCatalogEditable()) {
-    %>
-    <img align="absmiddle" src="../images/cancel.gif">
-    <strong><%=encprops.getProperty("remove_keyword") %>
+
+    
+    <br />
+    <strong><img align="absmiddle" src="../images/keyword_icon_small.gif" /> <%=encprops.getProperty("matchingKeywords") %>
     </strong>
-    <%
-    } else {
-    %>
-    <strong><%=encprops.getProperty("matchingKeywords") %>
-    </strong>
-    <%
-      }
-    %>
-    <br/>
+
+  
+    
     <%
       Iterator indexes = imageShepherd.getAllKeywords();
       if (totalKeywords > 0) {
@@ -138,28 +131,33 @@ int imageCount = 0;
           Keyword word = (Keyword) indexes.next();
           if (images.get(myImage).getKeywords().contains(word)) {
             haveAddedKeyword = true;
-
+%>
+<p>
+<%
             if (CommonConfiguration.isCatalogEditable()) {
     %>
     <a href="../SinglePhotoVideoRemoveKeyword?number=<%=imageEncNum%>&photoName=<%=images.get(myImage).getDataCollectionEventID()%>&keyword=<%=word.getReadableName()%>">
-      <%
+         <%
         }
       %>
-      "<%=word.getReadableName()%>"
-      <%
-        if (CommonConfiguration.isCatalogEditable()) {
-      %>
+<img src="../images/cancel.gif" width="16px" height="16px" align="left" />
+ <%
+  if (CommonConfiguration.isCatalogEditable()) {
+    %> 
     </a>
-    <%
-      }
-    %>
-    &nbsp;
+          <%
+        }
+      %>
+
+      <em>&nbsp;<%=word.getReadableName()%></em></p>
+
+
     <%
         } //end if
       } //end for
       if (!haveAddedKeyword) {%>
 
-    <%=encprops.getProperty("none_assigned")%>
+    <p><%=encprops.getProperty("none_assigned")%></p>
 
     <% }
     } //end if
@@ -179,8 +177,7 @@ int imageCount = 0;
 
     <table>
       <tr>
-        <td class="para"><img align="absmiddle"
-                              src="../images/keyword_icon_small.gif">
+        <td class="para">
           <strong><%=encprops.getProperty("add_keyword") %> <a
             href="<%=CommonConfiguration.getWikiLocation()%>photo_keywords" target="_blank">
             <img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a></strong>
