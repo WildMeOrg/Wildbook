@@ -516,7 +516,7 @@ public class IndividualQueryProcessor {
                     if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.MicrosatelliteMarkersAnalysis msanalysis")){jdoqlVariableDeclaration+=";org.ecocean.genetics.MicrosatelliteMarkersAnalysis msanalysis";}
                   
             
-              prettyPrint.append("Has microsatellite marker.");
+              prettyPrint.append("Has microsatellite markers.");
               theseMarkers+="<br />";
               prettyPrint.append(theseMarkers);
             }
