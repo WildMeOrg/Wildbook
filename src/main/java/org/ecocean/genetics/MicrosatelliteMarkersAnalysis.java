@@ -36,6 +36,29 @@ public class MicrosatelliteMarkersAnalysis extends GeneticAnalysis{
     if(loci.size()>i){loci.remove(i);}
   }
   
+  public boolean hasLocus(String locus){
+    if((loci!=null)&&(loci.size()>0)){
+      int numLoci=loci.size();
+      for(int i=0;i<numLoci;i++){
+        Locus l=loci.get(i);
+        if(l.getName().equals(locus)){return true;}
+      }
+    }
+    return false;
+  }
+  
+  
+  public Locus getLocus(String locus){
+    if((loci!=null)&&(loci.size()>0)){
+      int numLoci=loci.size();
+      for(int i=0;i<numLoci;i++){
+        Locus l=loci.get(i);
+        if(l.getName().equals(locus)){return l;}
+      }
+    }
+    return null;
+  }
+  
   public void setLoci(ArrayList<Locus> loci){this.loci=loci;}
   
   public String getHTMLString(){

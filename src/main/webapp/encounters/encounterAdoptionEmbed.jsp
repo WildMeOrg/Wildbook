@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList,java.io.File" %>
+         import="org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -28,7 +28,61 @@
 
 
 %>
+  <style type="text/css">
+<!--
 
+.style2 {
+  color: #000000;
+  font-size: small;
+}
+
+.style3 {
+  font-weight: bold
+}
+
+.style4 {
+  color: #000000
+}
+
+table.adopter {
+  border-width: 1px 1px 1px 1px;
+  border-spacing: 0px;
+  border-style: solid solid solid solid;
+  border-color: black black black black;
+  border-collapse: separate;
+  background-color: white;
+}
+
+table.adopter td {
+  border-width: 1px 1px 1px 1px;
+  padding: 3px 3px 3px 3px;
+  border-style: none none none none;
+  border-color: gray gray gray gray;
+  background-color: white;
+  -moz-border-radius: 0px 0px 0px 0px;
+  font-size: 12px;
+  color: #330099;
+}
+
+table.adopter td.name {
+  font-size: 12px;
+  text-align: center;
+}
+
+table.adopter td.image {
+  padding: 0px 0px 0px 0px;
+}
+
+div.scroll {
+  height: 200px;
+  overflow: auto;
+  border: 1px solid #666;
+  background-color: #ccc;
+  padding: 8px;
+}
+
+-->
+</style>
 
 <h3 style="width: 250px">Adopters</h3>
 
@@ -41,19 +95,16 @@
 %>
 <table class="adopter" width="250px">
   <%
-  File adopterImage = new File(getServletContext().getRealPath(("/adoptions/" + ad.getID() + "/thumb.jpg")));
-
-    if ((ad.getAdopterImage() != null) && (adopterImage.exists())) {
+    if ((ad.getAdopterImage() != null) && (!ad.getAdopterImage().trim().equals(""))) {
   %>
   <tr>
-    <td class="image" style="padding-top: 0px;">
-      <center><img width="188px"
-                   src="../adoptions/<%=ad.getID()%>/thumb.jpg"/></center>
-    </td>
+    <td class="image"><img
+      src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=ad.getID()%>/thumb.jpg" width="250px"></td>
   </tr>
   <%
     }
   %>
+
   <tr>
     <td class="name">
       <table>
@@ -64,18 +115,20 @@
       </table>
     </td>
   </tr>
-   <%
-     if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
-   %>
- 
-   <tr>
-     <td>Why are research and conservation for this species important?</td>
-   </tr>
-   <tr>
-     <td><em>"<%=ad.getAdopterQuote()%>"</em></td>
-   </tr>
- 
-   <%
+  <%
+    if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
+  %>
+
+  <tr>
+    <td>Why are research and conservation important for this
+      species?
+    </td>
+  </tr>
+  <tr>
+    <td width="250px"><em>"<%=ad.getAdopterQuote()%>"</em></td>
+  </tr>
+
+  <%
     }
 
     if (request.isUserInRole("admin")) {
@@ -100,7 +153,7 @@
   </tr>
   <tr>
     <td align="left"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp?number=<%=ad.getID()%>#create">[edit
+      href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
       this adoption]</a></td>
   </tr>
   <tr>
@@ -118,7 +171,7 @@
   if (request.isUserInRole("admin")) {
 %>
 <p><a
-  href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getAdoptionDirectory() %>/adoption.jsp?encounter=<%=num%>#create">[+]
+  href="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/adoption.jsp?encounter=<%=num%>#create">[+]
   Add adoption</a></p>
 <%
   }

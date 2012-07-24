@@ -309,7 +309,15 @@ public class SubmitAction extends Action {
       }
       String data = null;
 
-      File encountersDir = new File(getServlet().getServletContext().getRealPath("/encounters"));
+      //File encountersDir = new File(getServlet().getServletContext().getRealPath("/encounters"));
+     
+      String rootWebappPath = getServlet().getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      
+      File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+      if(!encountersDir.exists()){encountersDir.mkdir();}
       File thisEncounterDir = new File(encountersDir, uniqueID);
 
       boolean created = false;
@@ -559,13 +567,14 @@ public class SubmitAction extends Action {
 
 
       //let's handle the GPS
-      if (!(lat.equals(""))) {
-        enc.setGPSLatitude(lat + "&deg; " + gpsLatitudeMinutes + "\' " + gpsLatitudeSeconds + "\" " + latDirection);
+      if (!lat.equals("") && !longitude.equals("")) {
+        //enc.setGPSLatitude(lat + "&deg; " + gpsLatitudeMinutes + "\' " + gpsLatitudeSeconds + "\" " + latDirection);
 
 
         try {
           double degrees = (new Double(lat)).doubleValue();
           double position = degrees;
+          /*
           if (!gpsLatitudeMinutes.equals("")) {
             double minutes2 = ((new Double(gpsLatitudeMinutes)).doubleValue()) / 60;
             position += minutes2;
@@ -576,23 +585,28 @@ public class SubmitAction extends Action {
           }
           if (latDirection.toLowerCase().equals("south")) {
             position = position * -1;
-          }
+          }*/
           enc.setDWCDecimalLatitude(position);
+          
+          double degrees2 = (new Double(longitude)).doubleValue();
+          double position2 = degrees2;
+          enc.setDWCDecimalLongitude(position2);
 
 
         } catch (Exception e) {
-          System.out.println("EncounterSetGPS: problem setting decimal latitude!");
+          System.out.println("EncounterSetGPS: problem!");
           e.printStackTrace();
         }
 
 
       }
-      if (!(longitude.equals(""))) {
-        enc.setGPSLongitude(longitude + "&deg; " + gpsLongitudeMinutes + "\' " + gpsLongitudeSeconds + "\" " + longDirection);
+      //if (!(longitude.equals(""))) {
+        //enc.setGPSLongitude(longitude + "&deg; " + gpsLongitudeMinutes + "\' " + gpsLongitudeSeconds + "\" " + longDirection);
 
-        try {
-          double degrees = (new Double(longitude)).doubleValue();
-          double position = degrees;
+        //try {
+          
+          
+          /*
           if (!gpsLongitudeMinutes.equals("")) {
             double minutes2 = ((new Double(gpsLongitudeMinutes)).doubleValue()) / 60;
             position += minutes2;
@@ -604,16 +618,18 @@ public class SubmitAction extends Action {
           if (longDirection.toLowerCase().equals("west")) {
             position = position * -1;
           }
-          enc.setDWCDecimalLongitude(position);
+          */
+          
 
 
-        } catch (Exception e) {
-          System.out.println("EncounterSetGPS: problem setting decimal longitude!");
-          e.printStackTrace();
-        }
-      }
+        //} catch (Exception e) {
+        //  System.out.println("EncounterSetGPS: problem setting decimal longitude!");
+         // e.printStackTrace();
+        //}
+      //}
 
       //if one is not set, set all to null
+      /*
       if ((longitude.equals("")) || (lat.equals(""))) {
         enc.setGPSLongitude("");
         enc.setGPSLongitude("");
@@ -644,10 +660,11 @@ public class SubmitAction extends Action {
         enc.setDWCDecimalLatitude(-9999.0);
         enc.setDWCDecimalLongitude(-9999.0);
       }
+      */
       //finish the GPS
 
 
-      enc.setMeasureUnits("Meters");
+      //enc.setMeasureUnits("Meters");
       enc.setSubmitterPhone(submitterPhone);
       enc.setSubmitterAddress(submitterAddress);
       enc.setSubmitterOrganization(submitterOrganization);

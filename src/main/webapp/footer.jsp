@@ -29,11 +29,8 @@
 
 %>
 <div id="footer">
-  <div id="credits">
+ 
 
-  </div>
-    <p class="credit">All ECOCEAN MantaMatcher contents copyright ECOCEAN USA and respective individual contributors. Unauthorized usage of any material for any purpose is strictly prohibited. For more information about intellectual property protection and our terms of usage, please read our <a href="http://www.mantamatcher.org/wiki/doku.php?id=visitor_agreement" target="_blank">Visitor Agreement</a>.</p>
-		
   
   <p class="credit">This software is distributed under the <a
     href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank">GPL v2 license</a> and is

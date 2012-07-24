@@ -63,6 +63,14 @@ public class ResurrectDeletedEncounter extends HttpServlet {
 
     //setup variables
     String encounterNumber = "None";
+    
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
 
 
     encounterNumber = request.getParameter("number");
@@ -74,7 +82,7 @@ public class ResurrectDeletedEncounter extends HttpServlet {
       //ok, let's get the encounter object back from the .dat file
       String datFilename = request.getParameter("number") + ".dat";
       //File thisEncounterDat=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+request.getParameter("number")+File.separator+datFilename);
-      File thisEncounterDat = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getImageDirectory() + "/" + request.getParameter("number") + "/" + datFilename)));
+      File thisEncounterDat = new File(encountersDir.getAbsolutePath() + "/" + request.getParameter("number") + "/" + datFilename);
 
 
       if (thisEncounterDat.exists()) {

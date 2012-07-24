@@ -32,16 +32,25 @@ public class EncounterSearchExportKML extends HttpServlet{
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
     
-    //set the response
-    
+    //determine if placemarks should be decorated
+    boolean bareBonesPlacemarks=false;
+    if(request.getParameter("barebones")!=null){bareBonesPlacemarks=true;}
     
     Shepherd myShepherd = new Shepherd();
     Vector rEncounters = new Vector();
     
     //set up the files
     String gisFilename = "exportKML_" + request.getRemoteUser() + ".kml";
-    File gisFile = new File(getServletContext().getRealPath(("/encounters/" + gisFilename)));
+    File gisFile = new File(encountersDir.getAbsolutePath()+"/" + gisFilename);
 
     //setup the KML output file
     //String kmlFilename = "KMLExport_" + request.getRemoteUser() + ".kml";
@@ -61,10 +70,14 @@ public class EncounterSearchExportKML extends HttpServlet{
       
       try{
       
-      
+      if(request.getParameter("encounterSearchUse")!=null){
+        Collection c=(Collection)myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null").execute();
+        rEncounters=new Vector(c);
+      }
+      else{
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
         rEncounters = queryResult.getResult();
-      
+      }
         int numMatchingEncounters=rEncounters.size();
       
 
@@ -92,36 +105,38 @@ public class EncounterSearchExportKML extends HttpServlet{
             viz.setText("1");
 
             //add the descriptive HTML
-            Element description = placeMark.addElement("description");
+            if(!bareBonesPlacemarks){
+              Element description = placeMark.addElement("description");
 
-            String descHTML = "<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\">Direct Link</a></p>";
-            descHTML += "<p> <strong>Date:</strong> " + enc.getDate() + "</p>";
-            descHTML += "<p> <strong>Location:</strong><br>" + enc.getLocation() + "</p>";
+              String descHTML = "<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\">Direct Link</a></p>";
+              descHTML += "<p> <strong>Date:</strong> " + enc.getDate() + "</p>";
+              descHTML += "<p> <strong>Location:</strong><br>" + enc.getLocation() + "</p>";
             
-            //trying to find problematic sizes...
-            try{
-              if (enc.getSizeAsDouble() != null) {
-                descHTML += "<p> <strong>Size:</strong> " + enc.getSize() + " meters</p>";
+              //trying to find problematic sizes...
+              try{
+                if (enc.getSizeAsDouble() != null) {
+                  descHTML += "<p> <strong>Size:</strong> " + enc.getSize() + " meters</p>";
+                }
               }
-            }
-            catch(Exception npe){npe.printStackTrace();System.out.println("NPE on size for encounter: "+enc.getCatalogNumber());}
+              catch(Exception npe){npe.printStackTrace();System.out.println("NPE on size for encounter: "+enc.getCatalogNumber());}
             
             
-            descHTML += "<p> <strong>Sex:</strong> " + enc.getSex() + "</p>";
-            if ((enc.getComments()!=null)&&(!enc.getComments().equals(""))) {
-              descHTML += "<p> <strong>Comments:</strong> " + enc.getComments() + "</p>";
+              descHTML += "<p> <strong>Sex:</strong> " + enc.getSex() + "</p>";
+              if ((enc.getComments()!=null)&&(!enc.getComments().equals(""))) {
+                descHTML += "<p> <strong>Comments:</strong> " + enc.getComments() + "</p>";
+              }
+
+              descHTML += "<strong>Images</strong><br />";
+              List<SinglePhotoVideo> imgs = enc.getImages();
+              int imgsNum = imgs.size();
+              for (int imgNum = 0; imgNum < imgsNum; imgNum++) {
+                descHTML += ("<br />" + "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\"><img src=\"http://" + request.getServerName() +"/"+CommonConfiguration.getDataDirectoryName() + "/encounters/" + enc.getEncounterNumber() + "/" + imgs.get(imgNum).getDataCollectionEventID() + ".jpg\" /></a>");
+              }
+
+              description.addCDATA(descHTML);
             }
 
-            descHTML += "<strong>Images</strong><br>";
-            Vector imgs = enc.getAdditionalImageNames();
-            int imgsNum = enc.getAdditionalImageNames().size();
-            for (int imgNum = 0; imgNum < imgsNum; imgNum++) {
-              descHTML += ("<br>" + "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\"><img src=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/" + enc.getEncounterNumber() + "/" + (imgNum + 1) + ".jpg\"></a>");
-            }
-
-            description.addCDATA(descHTML);
-
-            if (addTimeStamp) {
+            if (addTimeStamp && !bareBonesPlacemarks) {
               //add the timestamp
               String stampString = "";
               if (enc.getYear() != -1) {
@@ -183,9 +198,11 @@ public class EncounterSearchExportKML extends HttpServlet{
         //now write out the file
         response.setContentType("application/vnd.google-earth.kml+xml");
         response.setHeader("Content-Disposition","attachment;filename="+gisFilename);
-        ServletContext ctx = getServletContext();
-        InputStream is = ctx.getResourceAsStream("/encounters/"+gisFilename);
-       
+        //ServletContext ctx = getServletContext();
+        //InputStream is = ctx.getResourceAsStream("/encounters/"+gisFilename);
+       InputStream is=new FileInputStream(gisFile);
+        
+        
         int read=0;
         byte[] bytes = new byte[BYTES_DOWNLOAD];
         OutputStream os = response.getOutputStream();
