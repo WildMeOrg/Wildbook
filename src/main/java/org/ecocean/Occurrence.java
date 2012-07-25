@@ -64,12 +64,16 @@ public class Occurrence implements java.io.Serializable{
   public void setEncounters(ArrayList<Encounter> encounters){this.encounters=encounters;}
   
   public ArrayList<String> getMarkedIndividualNamesForThisOccurrence(){
-    int size=getNumberEncounters();
     ArrayList<String> names=new ArrayList<String>();
-    for(int i=0;i<size;i++){
-      Encounter enc=encounters.get(i);
-      if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))&&(!names.contains(enc.getIndividualID()))){names.add(enc.getIndividualID());}
+    try{
+      int size=getNumberEncounters();
+    
+      for(int i=0;i<size;i++){
+        Encounter enc=encounters.get(i);
+        if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))&&(!names.contains(enc.getIndividualID()))){names.add(enc.getIndividualID());}
+      }
     }
+    catch(Exception e){e.printStackTrace();}
     return names;
   }
   

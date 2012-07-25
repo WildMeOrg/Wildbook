@@ -606,17 +606,27 @@ table.tissueSample td {
     
     <td class="lineitem">
     <%
-    Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-    ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
-    int numOtherOccurs=otherOccurs.size();
-    for(int j=0;j<numOtherOccurs;j++){
-    	String thisName=otherOccurs.get(j);
-    	if(!thisName.equals(sharky.getIndividualID())){
-    %>
-    	<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
-    <%	
+    if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+    	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+    	ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
+    	if(otherOccurs!=null){
+    		int numOtherOccurs=otherOccurs.size();
+    		for(int j=0;j<numOtherOccurs;j++){
+    			String thisName=otherOccurs.get(j);
+    			if(!thisName.equals(sharky.getIndividualID())){
+    			%>
+    				<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
+    			<%	
     
+    			}
+    		}
     	}
+    }
+    //new comment
+    else{
+    %>	
+    	&nbsp;
+    <%
     }
     %>
     
@@ -628,10 +638,13 @@ table.tissueSample td {
     <%=enc.getBehavior() %>
     <%	
     }
-    if(thisOccur.getGroupBehavior()!=null){
-    %>
-    <br /><br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
-    <%	
+    if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+    	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+    	if((thisOccur!=null)&&(thisOccur.getGroupBehavior()!=null)){
+   		 %>
+    	<br /><br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
+    	<%	
+    	}
     }
     %>
     </td>
