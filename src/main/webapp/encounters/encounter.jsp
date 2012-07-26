@@ -1382,7 +1382,7 @@ if(loggedIn){
 %>
 
 <br/>
-<hr>
+<hr />
 <table>
   <tr>
     <td valign="top">
@@ -1413,9 +1413,29 @@ if(loggedIn){
     </td>
   </tr>
 </table>
+
 <%
       }
     }
+
+//now iterate through the jspImport# declarations in encounter.properties and import those files locally
+int currentImportNum=0;
+while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
+	  String importName=encprops.getProperty(("jspImport"+currentImportNum));
+	//let's set up references to our file system components
+	  
+%>
+	<hr />
+		<jsp:include page="<%=importName %>" flush="true">
+			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+		</jsp:include>
+
+    <%
+
+ currentImportNum++;
+} //end while for jspImports
+
+
   }
 
 %>
@@ -1425,6 +1445,7 @@ if(loggedIn){
 </tr>
 
 </table>
+
 <br/>
 <table>
   <tr>
@@ -1445,7 +1466,9 @@ if(loggedIn){
     </td>
   </tr>
 </table>
-  <%
+
+<%
+
 kwQuery.closeAll();
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
@@ -1484,7 +1507,11 @@ catch(Exception e){
 
 
 </div>
+
+
+
 <jsp:include page="../footer.jsp" flush="true"/>
+
 </div>
 <!-- end page -->
 
