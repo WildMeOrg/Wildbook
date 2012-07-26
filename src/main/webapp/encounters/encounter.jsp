@@ -1428,6 +1428,8 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 	<hr />
 		<jsp:include page="<%=importName %>" flush="true">
 			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+			<jsp:param name="encounterNumber" value="<%=num%>" />
+    		<jsp:param name="isOwner" value="<%=isOwnerValue %>" />
 		</jsp:include>
 
     <%
