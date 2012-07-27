@@ -191,6 +191,11 @@
     <servlet-name>ScanAppletSupport</servlet-name>
     <servlet-class>org.ecocean.servlet.ScanAppletSupport</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>EncounterAddMantaPattern</servlet-name>
+      <servlet-class>org.ecocean.servlet.EncounterAddMantaPattern</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>ScanResultsServlet</servlet-name>
@@ -822,6 +827,11 @@
     <servlet-name>WriteOutScanTask</servlet-name>
     <url-pattern>/WriteOutScanTask</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>EncounterAddMantaPattern</servlet-name>
+      <url-pattern>/EncounterAddMantaPattern</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>ResurrectDeletedEncounter</servlet-name>
@@ -1167,6 +1177,7 @@
       <url-pattern>/xcalendar/*</url-pattern>
 
       <url-pattern>/InterconnectSubmitSpots</url-pattern>
+      <url-pattern>/EncounterAddMantaPattern</url-pattern>
       <url-pattern>/interconnectSubmitSpots</url-pattern>
       <url-pattern>/GenePopExport</url-pattern>
 

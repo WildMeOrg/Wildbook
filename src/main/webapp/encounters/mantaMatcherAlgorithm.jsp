@@ -53,13 +53,39 @@ if(!processedImage.exists()){
 else{
 %>
 <p>A processed image was found.</p>
-<img src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=processedImage%>"/>
+<img src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=processedImage.getName()%>"/>
+
 <%	
 }
+if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
+%>
 
+<br />
+<p><em>Upload or replace the processed, cropped manta patterning image.</em></p>
+      <p><form action="../EncounterAddMantaPattern" method="post"
+            enctype="multipart/form-data" name="EncounterAddMantaPattern"><input
+        name="action" type="hidden" value="imageadd" id="action" />
+        <input name="number" type="hidden" value="<%=encNum%>" id="number" />
+        <strong><img align="absmiddle"
+                     src="../images/upload_small.gif"/> Select file:</strong><br/>
+        <input name="file2add" type="file" size="20" />
 
+        <p><input name="addtlFile" type="submit" id="addtlFile"
+                  value="Upload" /></p>
+     </form></p>
+     <p><em>Remove the processed, cropped manta patterning image.</em></p>
+           <p>
+           <form action="../EncounterAddMantaPattern" method="post"
+            name="EncounterAddMantaPattern"><input
+        name="action" type="hidden" value="imageremove" id="action" />
+        <input name="number" type="hidden" value="<%=encNum%>" id="number" />
+
+        <p><input name="addtlFile" type="submit" id="addtlFile"
+                  value="Remove the file" /></p>
+     </form></p>
+<%
 }
-
+}
 
 catch(Exception e){
 	e.printStackTrace();
