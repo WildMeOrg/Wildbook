@@ -23,16 +23,14 @@ import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
+import java.io.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -71,9 +69,13 @@ public class EncounterAddMantaPattern extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean removedJPEG = false, locked = false;
-    String fileName = "mantaProcessedImage.jpg"; 
+    String fileName = "mantaProcessedImage_CR.jpg"; 
+    String enhancedFileName = "mantaProcessedImage_EH.jpg"; 
     String encounterNumber = "";
     String action="imageadd";
+    
+    StringBuffer resultComment=new StringBuffer();
+    
     if((request.getParameter("action")!=null)&&(request.getParameter("action").equals("imageremove"))){action="imageremove";}
 
     try {
@@ -85,15 +87,22 @@ public class EncounterAddMantaPattern extends HttpServlet {
           File thisEncounterDir = new File(encountersDir, request.getParameter("number"));
 
           File jpegVersion = new File(thisEncounterDir, fileName);
+          File enhancedVersion = new File(thisEncounterDir, enhancedFileName);
           if (jpegVersion.exists()) {
             removedJPEG = jpegVersion.delete();
           }
+          if (enhancedVersion.exists()) {
+            removedJPEG = enhancedVersion.delete();
+          }
+          jpegVersion=null;
+          enhancedVersion=null;
 
         } 
         catch (SecurityException thisE) {
           thisE.printStackTrace();
           System.out.println("Error attempting to delete the old JPEG version of a submitted manta data image!!!!");
           removedJPEG = false;
+          resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
         }
       }
       else{
@@ -132,20 +141,66 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
 
                 File jpegVersion = new File(thisEncounterDir, fileName);
+                File enhancedVersion = new File(thisEncounterDir, enhancedFileName);
                 if (jpegVersion.exists()) {
                   removedJPEG = jpegVersion.delete();
                 }
+                if (enhancedVersion.exists()) {
+                  removedJPEG = enhancedVersion.delete();
+                }
+                jpegVersion=null;
+                enhancedVersion=null;
 
               } 
               catch (SecurityException thisE) {
                 thisE.printStackTrace();
                 System.out.println("Error attempting to delete the old JPEG version of a submitted manta data image!!!!");
                 removedJPEG = false;
+                resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
+                
               }
 
+              File write2me=new File(thisEncounterDir, fileName);
               long file_size = filePart.writeTo(
-              new File(thisEncounterDir, fileName)
-            );
+                  write2me
+              );
+              resultComment.append("Successfully saved the new feature image.<br />");
+              filePart=null;
+              
+
+              
+              //OK, if the file has uploaded successfully, then it's time to get a process from the 
+              //command line to execute it.
+              String execString="/usr/bin/mmprocess "+write2me.getAbsolutePath()+" 4 1 2";
+              resultComment.append("I am trying to execute the command:<br/>"+execString+"<br />");
+              String ls_str;
+              write2me.setWritable(true, false);
+              write2me=null;
+              //Process ls_proc2 = Runtime.getRuntime().exec("chmod 775 "); 
+              Process ls_proc = Runtime.getRuntime().exec(execString); 
+
+              // get its output (your input) stream 
+
+              BufferedReader ls_in= new BufferedReader(new InputStreamReader(ls_proc.getInputStream()));
+     
+              //DataInputStream ls_in = new DataInputStream(ls_proc.getInputStream()); 
+              resultComment.append("mmmatch reported the following when trying to create the enhanced image file:<br />");
+              
+              try { 
+                while ((ls_str = ls_in.readLine()) != null) { 
+                  System.out.println(ls_str); 
+                  resultComment.append(ls_str+"<br />");
+                } 
+              } 
+              catch (IOException e) { 
+                e.printStackTrace();
+                locked=true;
+                resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
+                resultComment.append(e.getStackTrace().toString());
+                
+              } 
+              
+              
 
             }
             else{
@@ -188,6 +243,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
           le.printStackTrace();
         }
 
+        //we're getting to the response phase
+        
 
         if (!locked) {
           myShepherd.commitDBTransaction();
@@ -203,6 +260,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
             
           }
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+          out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
+          
           out.println(ServletUtilities.getFooter());
         } else {
           out.println(ServletUtilities.getHeader(request));
@@ -216,6 +275,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           }
           
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+          out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
           out.println(ServletUtilities.getFooter());
         }
       } 
@@ -224,6 +284,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to execute this action. I cannot find the encounter that you intended it for in the database.");
+        out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
+        
         out.println(ServletUtilities.getFooter());
       }
     } 
@@ -231,6 +293,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
       lEx.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to execute the action.");
+      out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
+      
       out.println(ServletUtilities.getFooter());
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();

@@ -43,19 +43,45 @@ File thisEncounterDir = new File(encountersDir, encNum);
 
 <%
 File matchOutput=new File(thisEncounterDir, "matchOutput.xhtml");
-File processedImage=new File(thisEncounterDir, "mantaProcessedImage.jpg");
+File processedImage=new File(thisEncounterDir, "mantaProcessedImage_CR.jpg");
+File enhancedImage=new File(thisEncounterDir, "mantaProcessedImage_EH.jpg");
 if(!processedImage.exists()){
 
 %>
-<p>No processed image was found.</p>
+<p>No candidate region image was found.</p>
 <%
 }
 else{
 %>
-<p>A processed image was found.</p>
-<img src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=processedImage.getName()%>"/>
+<p>A candidate region image was found.<br />
+<img src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=processedImage.getName()%>"/></p>
 
 <%	
+	if(!enhancedImage.exists()){
+	%>
+		<p>No enhanced image was found.</p>
+	<%
+	}
+	else{
+		%>
+		<p>An enhanced image was found.<br />
+			<img src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=enhancedImage.getName()%>"/></p>
+		
+		<%
+		if(!matchOutput.exists()){
+			%>
+			<p>No match results file was found.</p>
+			<%
+		}
+		else{
+			%>
+			<p>A match results file was found.<br />
+			<img src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=matchOutput.getName()%>"/></p>
+		
+			<%
+		}
+	}
+
 }
 if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
 %>
@@ -73,6 +99,9 @@ if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
         <p><input name="addtlFile" type="submit" id="addtlFile"
                   value="Upload" /></p>
      </form></p>
+     <%
+     if(processedImage.exists()){
+     %>
      <p><em>Remove the processed, cropped manta patterning image.</em></p>
            <p>
            <form action="../EncounterAddMantaPattern" method="post"
@@ -84,6 +113,7 @@ if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
                   value="Remove the file" /></p>
      </form></p>
 <%
+     }
 }
 }
 
