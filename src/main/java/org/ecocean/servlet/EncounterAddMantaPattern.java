@@ -56,6 +56,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     Shepherd myShepherd = new Shepherd();
+    myShepherd.beginDBTransaction();
     
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -138,7 +139,12 @@ public class EncounterAddMantaPattern extends HttpServlet {
               //eliminate the previous JPG version of this file if it existed                         //eliminate the previous JPG if it existed
               try {
 
-
+                //let's detect our filename
+                if(request.getParameter("photoNumber")!=null){
+                  
+                  SinglePhotoVideo spv=myShepherd.getSinglePhotoVideo(request.getParameter("photoNumber"));
+                  fileName=spv.getFilename().replaceAll(".jpg", "_CR.jpg").replaceAll(".JPG", "_CR.JPG");
+                }
 
                 File jpegVersion = new File(thisEncounterDir, fileName);
                 File enhancedVersion = new File(thisEncounterDir, enhancedFileName);
@@ -171,24 +177,32 @@ public class EncounterAddMantaPattern extends HttpServlet {
               
               //OK, if the file has uploaded successfully, then it's time to get a process from the 
               //command line to execute it.
-              String execString="/usr/bin/mmprocess "+write2me.getAbsolutePath()+" 4 1 2";
-              resultComment.append("I am trying to execute the command:<br/>"+execString+"<br />");
+              //String[] execArray=new String[5];
+              //execArray[0]="/usr/bin/mmprocess";
+              //execArray[1]=write2me.getAbsolutePath().replaceAll("_CR", "");
+              //execArray[2]="4";
+              //execArray[3]="1";
+              //execArray[4]="2";
+              
+              ProcessBuilder pb = new ProcessBuilder("/usr/bin/mmprocess", write2me.getAbsolutePath().replaceAll("_CR", ""), "4","1","2");
+                  
+              resultComment.append("I am trying to execute the command:<br/>"+pb.toString().toString()+"<br />");
               String ls_str;
               write2me.setWritable(true, false);
-              write2me=null;
-              //Process ls_proc2 = Runtime.getRuntime().exec("chmod 775 "); 
-              Process ls_proc = Runtime.getRuntime().exec(execString); 
+              //Process ls_proc = Runtime.getRuntime().exec(execArray); 
+              Process ls_proc=pb.start();
+             
 
               // get its output (your input) stream 
 
               BufferedReader ls_in= new BufferedReader(new InputStreamReader(ls_proc.getInputStream()));
      
               //DataInputStream ls_in = new DataInputStream(ls_proc.getInputStream()); 
-              resultComment.append("mmmatch reported the following when trying to create the enhanced image file:<br />");
+              resultComment.append("mmprocess reported the following when trying to create the enhanced image file:<br />");
               
               try { 
                 while ((ls_str = ls_in.readLine()) != null) { 
-                  System.out.println(ls_str); 
+                  //System.out.println(ls_str); 
                   resultComment.append(ls_str+"<br />");
                 } 
               } 
@@ -200,6 +214,22 @@ public class EncounterAddMantaPattern extends HttpServlet {
                 
               } 
               
+              if(!locked){
+                //if we've made it here, we have an enhanced image and can kick off a scan.
+                
+                String execString2="/usr/bin/mmatch "+encountersDir.getAbsolutePath()+" "+winQuote(write2me.getAbsolutePath().replaceAll("_CR", ""))+" 0 0 1 0 -o "+thisEncounterDir.getAbsolutePath()+"/matchOutput.xhtml";
+                
+                ProcessBuilder pb2 = new ProcessBuilder("/usr/bin/mmatch", encountersDir.getAbsolutePath(), write2me.getAbsolutePath().replaceAll("_CR", ""),"0","0","1","0","-o","matchOutput.xhtml");
+                pb2.directory(thisEncounterDir);
+                
+                //./mmatch _tst "_tst/2nd Go/2nd Go 2010.JPG" 0 0 1 0 -o tst.xhtml
+                
+                resultComment.append("<br /><br />I am trying to execute the matching command:<br/>"+pb2.toString()+"<br />");
+                String ls_str2;
+                 //Process ls_proc2 = Runtime.getRuntime().exec(execString2); 
+                pb2.start();
+                
+              }
               
 
             }
@@ -300,8 +330,31 @@ public class EncounterAddMantaPattern extends HttpServlet {
       myShepherd.closeDBTransaction();
     }
     out.close();
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
   }
 
+  
+  static boolean needsQuoting(String s) {
+    int len = s.length();
+    if (len == 0) // empty string have to be quoted
+        return true;
+for (int i = 0; i < len; i++) {
+  switch (s.charAt(i)) {
+  case ' ': case '\t': case '\\': case '"':
+return true;
+  }
+}
+return false;
+}
+
+static String winQuote(String s) {
+if (! needsQuoting(s))
+  return s;
+s = s.replaceAll("([\\\\]*)\"", "$1$1\\\\\"");
+s = s.replaceAll("([\\\\]*)\\z", "$1$1");
+return "\"" + s + "\"";
+}
 
 }
   

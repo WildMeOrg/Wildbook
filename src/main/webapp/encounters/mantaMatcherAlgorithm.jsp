@@ -20,15 +20,18 @@
   --%>
 
 <%
-
+Shepherd myShepherd = new Shepherd();
 try {
 
 //get the encounter number
 String encNum = request.getParameter("encounterNumber");
 	
 //set up the JDO pieces and Shepherd
-Shepherd myShepherd = new Shepherd();
 
+myShepherd.beginDBTransaction();
+Encounter enc=myShepherd.getEncounter(encNum);
+boolean hasPhotos=false;
+if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){hasPhotos=true;}
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
@@ -42,6 +45,7 @@ File thisEncounterDir = new File(encountersDir, encNum);
 <p><strong>Matching Algorithm (under development)</strong></p>
 
 <%
+if(hasPhotos){
 File matchOutput=new File(thisEncounterDir, "matchOutput.xhtml");
 File processedImage=new File(thisEncounterDir, "mantaProcessedImage_CR.jpg");
 File enhancedImage=new File(thisEncounterDir, "mantaProcessedImage_EH.jpg");
@@ -75,8 +79,7 @@ else{
 		}
 		else{
 			%>
-			<p>A match results file was found.<br />
-			<img src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=matchOutput.getName()%>"/></p>
+			<p>A match results file was found: <a href="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=matchOutput.getName()%>">Click here.</a></p>
 		
 			<%
 		}
@@ -92,9 +95,36 @@ if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
             enctype="multipart/form-data" name="EncounterAddMantaPattern"><input
         name="action" type="hidden" value="imageadd" id="action" />
         <input name="number" type="hidden" value="<%=encNum%>" id="number" />
-        <strong><img align="absmiddle"
-                     src="../images/upload_small.gif"/> Select file:</strong><br/>
+        <strong><img align="absmiddle" src="../images/upload_small.gif"/> Select file:</strong><br/>
         <input name="file2add" type="file" size="20" />
+        <%
+        
+        //we now need to figure out which photo is the source of the uploaded image
+        //TBD
+        if(enc.getSinglePhotoVideo().size()==1){
+        	//here we have only one photo and don't need to ask the user
+        	%>
+        	<input name="photoNumber" type="hidden" value="<%=enc.getImages().get(0).getDataCollectionEventID()%>" id="photoNumber" />
+        	<%
+        }
+        else{
+        	//in this case, we need to ask the user to tell us which photo is the source image
+        %>
+        
+        <p><select name="photoNumber">
+          <%
+            for (int rmi = 0; rmi < enc.getSinglePhotoVideo().size(); rmi++) {
+          %>
+          <option value="<%=enc.getImages().get(rmi).getDataCollectionEventID()%>"><%=(rmi+1)%></option>
+          <%
+            }
+          %>
+        </select><p/>
+        
+        <%	
+        }
+        %>
+        
 
         <p><input name="addtlFile" type="submit" id="addtlFile"
                   value="Upload" /></p>
@@ -115,10 +145,21 @@ if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
 <%
      }
 }
+
+} //end if
+else{
+	%>
+	<p>No photos found for encounter.</p>
+	<%
+}
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
 }
 
 catch(Exception e){
 	e.printStackTrace();
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 }
 %>
 
