@@ -31,8 +31,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.*;
 
 
 /**
@@ -83,20 +82,57 @@ public class EncounterAddMantaPattern extends HttpServlet {
       if(action.equals("imageremove")){
         //eliminate the previous JPG version of this file if it existed                         //eliminate the previous JPG if it existed
         encounterNumber = request.getParameter("number");
+        
+        
         try {
 
+          Encounter enc=myShepherd.getEncounter(encounterNumber);
+          List<SinglePhotoVideo> myphots=enc.getSinglePhotoVideo();
+          int myPhotsSize=myphots.size();
           File thisEncounterDir = new File(encountersDir, request.getParameter("number"));
+          for(int t=0;t<myPhotsSize;t++){
+            SinglePhotoVideo spv=myphots.get(t);
+            String spvName=spv.getFilename().replaceAll(".jpg", "_CR.jpg").replaceAll(".JPG","_CR.JPG");
 
-          File jpegVersion = new File(thisEncounterDir, fileName);
-          File enhancedVersion = new File(thisEncounterDir, enhancedFileName);
-          if (jpegVersion.exists()) {
-            removedJPEG = jpegVersion.delete();
+            File spvCRFile=new File(thisEncounterDir,spvName);
+            if(spvCRFile.exists()){
+              //test comment
+              File jpegVersion = new File(thisEncounterDir, spvName);
+              File enhancedVersion = new File(thisEncounterDir, spvName.replaceAll("_CR", "_EH"));
+              File matchFile= new File(thisEncounterDir, "matchOutput.xhtml");
+              File FEATFile = new File(thisEncounterDir, spv.getFilename().replaceAll(".jpg", ".FEAT"));
+              File FTFile = new File(thisEncounterDir, spvName.replaceAll("_CR", "_FT"));
+              if (jpegVersion.exists()) {
+                removedJPEG = jpegVersion.delete();
+              }
+              if (enhancedVersion.exists()) {
+                removedJPEG = enhancedVersion.delete();
+              }
+              if (matchFile.exists()) {
+                removedJPEG = matchFile.delete();
+              }
+              if (FEATFile.exists()) {
+                removedJPEG = FEATFile.delete();
+              }
+              if (FTFile.exists()) {
+                removedJPEG = FTFile.delete();
+              }
+              jpegVersion=null;
+              enhancedVersion=null;
+            }
           }
-          if (enhancedVersion.exists()) {
-            removedJPEG = enhancedVersion.delete();
-          }
-          jpegVersion=null;
-          enhancedVersion=null;
+          
+          
+          
+          
+          
+          
+
+
+          
+          
+          
+          
 
         } 
         catch (SecurityException thisE) {
@@ -106,7 +142,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
         }
       }
-      else{
+      else if(action.equals("imageadd")){
         
         MultipartParser mp = new MultipartParser(request, 10 * 1024 * 1024); // 2MB
         Part part;
@@ -124,6 +160,16 @@ public class EncounterAddMantaPattern extends HttpServlet {
               encounterNumber = value;
               System.out.println("Setting encounterNumber to: "+encounterNumber);
             } 
+            
+            //let's detect our filename
+            if(name.equals("photoNumber")){
+              //test comment
+              //Integer photoNumber=new Integer(value);
+              //Encounter enc=myShepherd.getEncounter(encounterNumber);
+              
+              SinglePhotoVideo spv=myShepherd.getSinglePhotoVideo(value);
+              fileName=spv.getFilename().replaceAll(".jpg", "_CR.jpg").replaceAll(".JPG", "_CR.JPG").replaceAll(".jpeg", "_CR.jpeg").replaceAll(".JPEG", "_CR.JPEG");
+            }
 
           }
 
@@ -139,12 +185,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
               //eliminate the previous JPG version of this file if it existed                         //eliminate the previous JPG if it existed
               try {
 
-                //let's detect our filename
-                if(request.getParameter("photoNumber")!=null){
-                  
-                  SinglePhotoVideo spv=myShepherd.getSinglePhotoVideo(request.getParameter("photoNumber"));
-                  fileName=spv.getFilename().replaceAll(".jpg", "_CR.jpg").replaceAll(".JPG", "_CR.JPG");
-                }
+
 
                 File jpegVersion = new File(thisEncounterDir, fileName);
                 File enhancedVersion = new File(thisEncounterDir, enhancedFileName);
@@ -163,7 +204,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
                 System.out.println("Error attempting to delete the old JPEG version of a submitted manta data image!!!!");
                 removedJPEG = false;
                 resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
-                
+                locked=true;
               }
 
               File write2me=new File(thisEncounterDir, fileName);
@@ -217,12 +258,11 @@ public class EncounterAddMantaPattern extends HttpServlet {
               if(!locked){
                 //if we've made it here, we have an enhanced image and can kick off a scan.
                 
-                String execString2="/usr/bin/mmatch "+encountersDir.getAbsolutePath()+" "+winQuote(write2me.getAbsolutePath().replaceAll("_CR", ""))+" 0 0 1 0 -o "+thisEncounterDir.getAbsolutePath()+"/matchOutput.xhtml";
+                //String execString2="/usr/bin/mmatch "+encountersDir.getAbsolutePath()+" "+winQuote(write2me.getAbsolutePath().replaceAll("_CR", ""))+" 0 0 1 0 -o "+thisEncounterDir.getAbsolutePath()+"/matchOutput.xhtml";
                 
                 ProcessBuilder pb2 = new ProcessBuilder("/usr/bin/mmatch", encountersDir.getAbsolutePath(), write2me.getAbsolutePath().replaceAll("_CR", ""),"0","0","1","0","-o","matchOutput.xhtml");
                 pb2.directory(thisEncounterDir);
                 
-                //./mmatch _tst "_tst/2nd Go/2nd Go 2010.JPG" 0 0 1 0 -o tst.xhtml
                 
                 resultComment.append("<br /><br />I am trying to execute the matching command:<br/>"+pb2.toString()+"<br />");
                 String ls_str2;
@@ -279,20 +319,28 @@ public class EncounterAddMantaPattern extends HttpServlet {
         if (!locked) {
           myShepherd.commitDBTransaction();
           myShepherd.closeDBTransaction();
+          
+
    
-          out.println(ServletUtilities.getHeader(request));
+          
           if(action.equals("imageadd")){
             
-            out.println("<strong>Confirmed:</strong> I have successfully uploaded your mantamatcher data image file.");
-          }
-          else {
-            out.println("<strong>Confirmed:</strong> I have successfully removed your mantamatcher data image file.");
+            String resultsURL = ("/" + CommonConfiguration.getDataDirectoryName() + "/encounters/"+encounterNumber+"/matchOutput.xhtml");
+            response.sendRedirect(resultsURL);
+            
+            //out.println("<strong>Confirmed:</strong> I have successfully uploaded your mantamatcher data image file.");
             
           }
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-          out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
+          else {
+            out.println(ServletUtilities.getHeader(request));
+            out.println("<strong>Confirmed:</strong> I have successfully removed your mantamatcher data image file.");
+            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+            out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
+            
+            out.println(ServletUtilities.getFooter());
+            
+          }
           
-          out.println(ServletUtilities.getFooter());
         } else {
           out.println(ServletUtilities.getHeader(request));
           
@@ -335,26 +383,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
   }
 
   
-  static boolean needsQuoting(String s) {
-    int len = s.length();
-    if (len == 0) // empty string have to be quoted
-        return true;
-for (int i = 0; i < len; i++) {
-  switch (s.charAt(i)) {
-  case ' ': case '\t': case '\\': case '"':
-return true;
-  }
-}
-return false;
-}
 
-static String winQuote(String s) {
-if (! needsQuoting(s))
-  return s;
-s = s.replaceAll("([\\\\]*)\"", "$1$1\\\\\"");
-s = s.replaceAll("([\\\\]*)\\z", "$1$1");
-return "\"" + s + "\"";
-}
 
 }
   

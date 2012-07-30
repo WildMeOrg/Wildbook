@@ -41,15 +41,34 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File thisEncounterDir = new File(encountersDir, encNum);
 
 
+
 %>
 <p><strong>Matching Algorithm (under development)</strong></p>
 
 <%
 if(hasPhotos){
-File matchOutput=new File(thisEncounterDir, "matchOutput.xhtml");
-File processedImage=new File(thisEncounterDir, "mantaProcessedImage_CR.jpg");
-File enhancedImage=new File(thisEncounterDir, "mantaProcessedImage_EH.jpg");
-if(!processedImage.exists()){
+	File matchOutput=new File(thisEncounterDir, "matchOutput.xhtml");
+	File processedImage=new File("/foo/bar");
+	File enhancedImage=new File("/foo/bar");
+	
+	boolean hasProcessedImage=false;
+	String matchingImageName="";
+	List<SinglePhotoVideo> myphots=enc.getSinglePhotoVideo();
+	int myPhotsSize=myphots.size();
+	for(int t=0;t<myPhotsSize;t++){
+		SinglePhotoVideo spv=myphots.get(t);
+		String spvName=spv.getFilename().replaceAll(".jpg", "_CR.jpg").replaceAll(".JPG","_CR.JPG");
+
+		File spvCRFile=new File(thisEncounterDir,spvName);
+		if(spvCRFile.exists()){
+			hasProcessedImage=true;
+			matchingImageName=spvCRFile.getName();
+			processedImage=spvCRFile;
+			enhancedImage=new File(thisEncounterDir,spvCRFile.getName().replaceAll("_CR", "_EH"));
+		}
+	}
+	
+	if(!hasProcessedImage){
 
 %>
 <p>No candidate region image was found.</p>
@@ -58,7 +77,7 @@ if(!processedImage.exists()){
 else{
 %>
 <p>A candidate region image was found.<br />
-<img src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=processedImage.getName()%>"/></p>
+<img width="300px" height="*" src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=matchingImageName%>"/></p>
 
 <%	
 	if(!enhancedImage.exists()){
@@ -69,7 +88,7 @@ else{
 	else{
 		%>
 		<p>An enhanced image was found.<br />
-			<img src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=enhancedImage.getName()%>"/></p>
+			<img width="300px" height="*" src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=enhancedImage.getName()%>"/></p>
 		
 		<%
 		if(!matchOutput.exists()){
@@ -95,8 +114,7 @@ if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
             enctype="multipart/form-data" name="EncounterAddMantaPattern"><input
         name="action" type="hidden" value="imageadd" id="action" />
         <input name="number" type="hidden" value="<%=encNum%>" id="number" />
-        <strong><img align="absmiddle" src="../images/upload_small.gif"/> Select file:</strong><br/>
-        <input name="file2add" type="file" size="20" />
+        
         <%
         
         //we now need to figure out which photo is the source of the uploaded image
@@ -124,8 +142,8 @@ if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
         <%	
         }
         %>
-        
-
+        <p><strong><img align="absmiddle" src="../images/upload_small.gif"/> Select file:</strong>
+        <input name="file2add" type="file" size="20" /></p>
         <p><input name="addtlFile" type="submit" id="addtlFile"
                   value="Upload" /></p>
      </form></p>
