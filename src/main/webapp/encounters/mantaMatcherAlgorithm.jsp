@@ -44,12 +44,17 @@ File thisEncounterDir = new File(encountersDir, encNum);
 
 %>
 <p><strong>Matching Algorithm (under development)</strong></p>
-
+<br />
+<p style="background-color:#f0f0f0;"><em>Patterning images</em></p>
 <%
+//test comment
 if(hasPhotos){
 	File matchOutput=new File(thisEncounterDir, "matchOutput.xhtml");
 	File processedImage=new File("/foo/bar");
 	File enhancedImage=new File("/foo/bar");
+	File FTFile=new File("/foo/bar");
+
+	
 	
 	boolean hasProcessedImage=false;
 	String matchingImageName="";
@@ -65,6 +70,7 @@ if(hasPhotos){
 			matchingImageName=spvCRFile.getName();
 			processedImage=spvCRFile;
 			enhancedImage=new File(thisEncounterDir,spvCRFile.getName().replaceAll("_CR", "_EH"));
+			FTFile=new File(thisEncounterDir,spvCRFile.getName().replaceAll("_CR", "_FT"));
 		}
 	}
 	
@@ -91,17 +97,35 @@ else{
 			<img width="300px" height="*" src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=enhancedImage.getName()%>"/></p>
 		
 		<%
-		if(!matchOutput.exists()){
-			%>
-			<p>No match results file was found.</p>
-			<%
+		if(!FTFile.exists()){
+		%>
+			<p>No feature file was found.</p>	
+		<%
 		}
 		else{
 			%>
-			<p>A match results file was found: <a href="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=matchOutput.getName()%>">Click here.</a></p>
+			<p>An extracted feature image was found.<br />
+			<img width="300px" height="*" src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=FTFile.getName()%>"/></p>
 		
 			<%
+			if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
+				if(!matchOutput.exists()){
+					%>
+					<p>No match results file was found.</p>
+					<%
+				}
+				else{
+					%>
+					<br />
+					<p style="background-color:#f0f0f0;"><em>Inspect the algorithm results</em></p>
+					<p>A match results file was found: <a href="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=matchOutput.getName()%>">Click here.</a></p>
+			
+					<%
+				}
+			}
 		}
+		
+
 	}
 
 }
@@ -109,7 +133,7 @@ if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
 %>
 
 <br />
-<p><em>Upload or replace the processed, cropped manta patterning image.</em></p>
+<p style="background-color:#f0f0f0;"><em>Upload or replace the processed, cropped manta patterning image.</em></p>
       <p><form action="../EncounterAddMantaPattern" method="post"
             enctype="multipart/form-data" name="EncounterAddMantaPattern"><input
         name="action" type="hidden" value="imageadd" id="action" />
