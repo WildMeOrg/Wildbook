@@ -100,21 +100,21 @@ public class EncounterAddMantaPattern extends HttpServlet {
               File jpegVersion = new File(thisEncounterDir, spvName);
               File enhancedVersion = new File(thisEncounterDir, spvName.replaceAll("_CR", "_EH"));
               File matchFile= new File(thisEncounterDir, "matchOutput.xhtml");
-              File FEATFile = new File(thisEncounterDir, spv.getFilename().replaceAll(".jpg", ".FEAT"));
+              File FEATFile = new File(thisEncounterDir, spv.getFilename().replaceAll(".jpg", ".FEAT").replaceAll(".JPG", ".FEAT").replaceAll(".jpeg", ".FEAT").replaceAll(".JPEG", ".FEAT"));
               File FTFile = new File(thisEncounterDir, spvName.replaceAll("_CR", "_FT"));
-              if (jpegVersion.exists()) {
+           if (jpegVersion.exists() && (!jpegVersion.getName().equals(spv.getFilename()))) {
                 removedJPEG = jpegVersion.delete();
               }
-              if (enhancedVersion.exists()) {
+          if (enhancedVersion.exists()  && (!enhancedVersion.getName().equals(spv.getFilename())) ) {
                 removedJPEG = enhancedVersion.delete();
               }
-              if (matchFile.exists()) {
+              if (matchFile.exists() ) {
                 removedJPEG = matchFile.delete();
               }
-              if (FEATFile.exists()) {
+              if (FEATFile.exists()  && (!FEATFile.getName().equals(spv.getFilename()))) {
                 removedJPEG = FEATFile.delete();
               }
-              if (FTFile.exists()) {
+              if (FTFile.exists()  && (!FTFile.getName().equals(spv.getFilename()))) {
                 removedJPEG = FTFile.delete();
               }
               jpegVersion=null;
@@ -227,7 +227,11 @@ public class EncounterAddMantaPattern extends HttpServlet {
               
               ProcessBuilder pb = new ProcessBuilder("/usr/bin/mmprocess", write2me.getAbsolutePath().replaceAll("_CR", ""), "4","1","2");
                   
-              resultComment.append("I am trying to execute the command:<br/>"+pb.toString().toString()+"<br />");
+              System.out.println("I am trying to execute the command:<br/>"+"/usr/bin/mmprocess "+ write2me.getAbsolutePath().replaceAll("_CR", "")+ " 4"+" 1"+" 2"+"<br />");
+              resultComment.append("I am trying to execute the command:<br/>"+"/usr/bin/mmprocess "+ write2me.getName().replaceAll("_CR", "")+ " 4"+" 1"+" 2"+"<br />");
+              
+              //test comment
+              
               String ls_str;
               write2me.setWritable(true, false);
               //Process ls_proc = Runtime.getRuntime().exec(execArray); 
@@ -265,6 +269,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
                 
                 
                 resultComment.append("<br /><br />I am trying to execute the matching command:<br/>"+pb2.toString()+"<br />");
+                System.out.println("<br /><br />I am trying to execute the matching command:<br/>"+"/usr/bin/mmatch "+ encountersDir.getAbsolutePath()+" "+write2me.getAbsolutePath().replaceAll("_CR", "")+" 0"+" 0"+" 1"+" 0"+" -o" + " matchOutput.xhtml"+"<br />");
+                
                 String ls_str2;
                  //Process ls_proc2 = Runtime.getRuntime().exec(execString2); 
                 pb2.start();
