@@ -88,6 +88,16 @@ try {
 						if(!matchOutput.exists()){
 						%>
 							<p>No match results file was found.</p>
+								<p><em>Scan the manta patterning image.</em></p>
+		               		<p>
+		               			<form action="../EncounterAddMantaPattern" method="post" name="EncounterAddMantaPattern">
+		               				<input name="action" type="hidden" value="rescan" id="action" />
+		            				<input name="number" type="hidden" value="<%=encNum%>" id="number" />
+									<input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
+									
+		            				<p><input name="addtlFile" type="submit" id="addtlFile" value="Scan" /></p>
+		        				</form>
+		        		 	</p> 
 						<%
 						}
 						else{
