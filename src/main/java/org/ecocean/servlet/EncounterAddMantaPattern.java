@@ -411,8 +411,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
       out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
       
       out.println(ServletUtilities.getFooter());
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+      //myShepherd.rollbackDBTransaction();
+      //myShepherd.closeDBTransaction();
     }
     out.close();
     myShepherd.rollbackDBTransaction();
