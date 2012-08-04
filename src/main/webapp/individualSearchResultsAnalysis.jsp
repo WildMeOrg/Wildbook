@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,org.ecocean.Util.MeasurementDesc" %>
+         import="java.text.DecimalFormat,javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics" %>
 
 
 
@@ -46,6 +46,8 @@
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd();
+    
+    DecimalFormat df = new DecimalFormat("#.##");
 
     int numResults = 0;
     int numResultsWithTissueSamples=0;
@@ -56,14 +58,17 @@
 	//prep for measurements summary
 	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
 	int numMeasurementTypes=measurementTypes.size();
-	Double[] measurementValueSum=new Double[numMeasurementTypes];
-	int[] measurementValueCount=new int[numMeasurementTypes];
-	for(int b=0;b<measurementValueSum.length;b++){
-		measurementValueSum[b]=new Double(0);
+	SummaryStatistics[] measurementValues=new SummaryStatistics[numMeasurementTypes];
+	//int[] measurementValueCount=new int[numMeasurementTypes];
+	for(int b=0;b<measurementValues.length;b++){
+		measurementValues[b]=new SummaryStatistics();
 	}
-	for(int b=0;b<measurementValueCount.length;b++){
-		measurementValueCount[b]=0;
-	}
+	//for(int b=0;b<measurementValueCount.length;b++){
+	//	measurementValueCount[b]=0;
+	//}
+	
+	//new comment
+	
 	int year1=(new Integer(request.getParameter("year1"))).intValue();
 	int year2=(new Integer(request.getParameter("year2"))).intValue();
 	int month1=(new Integer(request.getParameter("month1"))).intValue();
@@ -142,8 +147,11 @@
 		//double[] measurementValueCount=new double[numMeasurementTypes];
 		for(int b=0;b<numMeasurementTypes;b++){
 			if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType())!=null){
-				measurementValueSum[b]+=thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType());
-				measurementValueCount[b]++;
+				
+					measurementValues[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+					//measurementValueCount[b]++;
+				
+				//catch(NullPointerException npe){}
 			}
 		}
 		
@@ -500,7 +508,7 @@
 
 if(maxTravelDistance>0){
 %>
-<p>Marked individual with largest distance between resights: <a href="individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividual %></a> (<%=(maxTravelDistance/1000) %> km)</p>
+<p>Marked individual with largest distance between resights: <a href="individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividual %></a> (<%=df.format(maxTravelDistance/1000) %> km)</p>
  <%
 }
 if(maxTimeBetweenResights>0){
@@ -508,27 +516,24 @@ if(maxTimeBetweenResights>0){
 	 //String longestResightedIndividual="";
 	 double bigTime=((double)maxTimeBetweenResights/1000/60/60/24/365);
 %>
-<p>Marked individual with longest time between resights: <a href="individuals.jsp?number=<%=longestResightedIndividual %>"><%=longestResightedIndividual %></a> (<%=bigTime %> years)</p>
+<p>Marked individual with longest time between resights: <a href="individuals.jsp?number=<%=longestResightedIndividual %>"><%=longestResightedIndividual %></a> (<%=df.format(bigTime) %> years)</p>
  <%
 }
 %>
 <p><strong>Measurements</strong></p>
 <%
  		//measurement
- 		//List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
-		//int numMeasurementTypes=measurementTypes.size();
-		//double[] measurementValueSum=new double[numMeasurementTypes];
-		//double[] measurementValueCount=new double[numMeasurementTypes];
+		
 		if(measurementTypes.size()>0){
 			for(int b=0;b<numMeasurementTypes;b++){
 			%>
-				<p>Average <%= measurementTypes.get(b).getType()%>: 
+				<p>Mean <%= measurementTypes.get(b).getType()%>: 
 				<% 
 				
 				//now report averages
-				if(measurementValueCount[b]>0){
+				if(measurementValues[b].getN()>0){
 				%>
-				&nbsp;<%=((new Double(measurementValueSum[b]/measurementValueCount[b])).toString()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %>
+				&nbsp;<%=df.format(measurementValues[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValues[b].getStandardDeviation()) %>)
 				<%
 				}
 				else{
