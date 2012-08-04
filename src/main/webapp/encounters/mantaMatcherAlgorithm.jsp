@@ -75,12 +75,12 @@ try {
 						<p><img width="300px" height="*" src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=FTFile.getName()%>"/></p>
 							<p><em>Remove the processed, cropped manta patterning image.</em></p>
 		               		<p>
-		               			<form action="../EncounterAddMantaPattern" method="post" name="EncounterAddMantaPattern">
-		               				<input name="action" type="hidden" value="imageremove" id="action" />
+		               			<form action="../EncounterAddMantaPattern" method="post" name="EncounterRemoveMantaPattern">
+		               				<input name="action" type="hidden" value="imageremove" id="actionRemove" />
 		            				<input name="number" type="hidden" value="<%=encNum%>" id="number" />
 									<input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
 									
-		            				<p><input name="addtlFile" type="submit" id="addtlFile" value="Remove the file" /></p>
+		            				<p><input name="removeMMPatternFile" type="submit" id="removeMMPatternFile" value="Remove the file" /></p>
 		        				</form>
 		        		 	</p>
 					<%
@@ -90,12 +90,12 @@ try {
 							<p>No match results file was found.</p>
 								<p><em>Scan the manta patterning image.</em></p>
 		               		<p>
-		               			<form action="../EncounterAddMantaPattern" method="post" name="EncounterAddMantaPattern">
-		               				<input name="action" type="hidden" value="rescan" id="action" />
+		               			<form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
+		               				<input name="action" type="hidden" value="rescan" id="actionScan" />
 		            				<input name="number" type="hidden" value="<%=encNum%>" id="number" />
 									<input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
 									
-		            				<p><input name="addtlFile" type="submit" id="addtlFile" value="Scan" /></p>
+		            				<p><input name="scanFile" type="submit" id="scanFile" value="Scan" /></p>
 		        				</form>
 		        		 	</p> 
 						<%
@@ -107,12 +107,12 @@ try {
 							
 							<p><em>Rescan the manta patterning image.</em></p>
 		               		<p>
-		               			<form action="../EncounterAddMantaPattern" method="post" name="EncounterAddMantaPattern">
-		               				<input name="action" type="hidden" value="rescan" id="action" />
+		               			<form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
+		               				<input name="action" type="hidden" value="rescan" id="actionRescan" />
 		            				<input name="number" type="hidden" value="<%=encNum%>" id="number" />
 									<input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
 									
-		            				<p><input name="addtlFile" type="submit" id="addtlFile" value="Rescan" /></p>
+		            				<p><input name="rescanFile" type="submit" id="rescanFile" value="Rescan" /></p>
 		        				</form>
 		        		 	</p>   
 
@@ -139,7 +139,7 @@ if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
 <p style="background-color:#f0f0f0;"><em>Upload or replace a processed, cropped manta patterning image.</em></p>
       <p><form action="../EncounterAddMantaPattern" method="post"
             enctype="multipart/form-data" name="EncounterAddMantaPattern"><input
-        name="action" type="hidden" value="imageadd" id="action" />
+        name="action" type="hidden" value="imageadd" id="actionUpload" />
         <input name="number" type="hidden" value="<%=encNum%>" id="number" />
         
         <%
@@ -172,7 +172,7 @@ if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
         %>
         <p><strong><img align="absmiddle" src="../images/upload_small.gif"/> Select file:</strong>
         <input name="file2add" type="file" size="20" /></p>
-        <p><input name="addtlFile" type="submit" id="addtlFile"
+        <p><input name="addtlMMFile" type="submit" id="addtlMMFile"
                   value="Upload" /></p>
      </form></p>
      <%
