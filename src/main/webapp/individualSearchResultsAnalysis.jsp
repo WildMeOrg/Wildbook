@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,org.ecocean.Util.MeasurementDesc" %>
 
 
 
@@ -48,8 +48,28 @@
     Shepherd myShepherd = new Shepherd();
 
     int numResults = 0;
-
-
+    int numResultsWithTissueSamples=0;
+    int numResultsWithGeneticSex=0;
+    int numResultsWithMsMarkers=0;
+    int numResultsWithHaplotype=0;
+    
+	//prep for measurements summary
+	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
+	int numMeasurementTypes=measurementTypes.size();
+	Double[] measurementValueSum=new Double[numMeasurementTypes];
+	int[] measurementValueCount=new int[numMeasurementTypes];
+	for(int b=0;b<measurementValueSum.length;b++){
+		measurementValueSum[b]=new Double(0);
+	}
+	for(int b=0;b<measurementValueCount.length;b++){
+		measurementValueCount[b]=0;
+	}
+	int year1=(new Integer(request.getParameter("year1"))).intValue();
+	int year2=(new Integer(request.getParameter("year2"))).intValue();
+	int month1=(new Integer(request.getParameter("month1"))).intValue();
+	int month2=(new Integer(request.getParameter("month2"))).intValue();
+	
+	
     //kick off the transaction
     myShepherd.beginDBTransaction();
 
@@ -102,13 +122,32 @@
  	int resultSize=rIndividuals.size();
  	 for(int y=0;y<resultSize;y++){
  		MarkedIndividual thisEnc=(MarkedIndividual)rIndividuals.get(y);
- 		 //haplotype ie chart prep
+ 		 
+ 		//genetic analysis checks
+ 		//and haplotype ie chart prep
  		 if(thisEnc.getHaplotype()!=null){
       	   if(pieHashtable.containsKey(thisEnc.getHaplotype().trim())){
       		   Integer thisInt = pieHashtable.get(thisEnc.getHaplotype().trim())+1;
       		   pieHashtable.put(thisEnc.getHaplotype().trim(), thisInt);
+      		   numResultsWithHaplotype++;
       	   }
- 	 	}
+ 	 	} 
+ 		if(thisEnc.hasMsMarkers()){numResultsWithMsMarkers++;} 
+ 		if(thisEnc.hasGeneticSex()){numResultsWithGeneticSex++;}
+ 		
+ 		//measurement
+ 		//List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
+		//int numMeasurementTypes=measurementTypes.size();
+		//double[] measurementValueSum=new double[numMeasurementTypes];
+		//double[] measurementValueCount=new double[numMeasurementTypes];
+		for(int b=0;b<numMeasurementTypes;b++){
+			if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType())!=null){
+				measurementValueSum[b]+=thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType());
+				measurementValueCount[b]++;
+			}
+		}
+		
+		
  		 
  	    //sex pie chart 	 
  		if(thisEnc.getSex().equals("male")){
@@ -450,10 +489,15 @@
    </tr>
 </table>
 
-<p>
-Number matching marked individuals: <%=resultSize %>
+<p>Number matching marked individuals: <%=resultSize %>
+<ul>
+<li>Number individuals with genotype determination: <%=numResultsWithMsMarkers %>
+<li>Number individuals with haplotype determination: <%=numResultsWithHaplotype %></li>
+<li>Number individuals with genetic sex determination: <%=numResultsWithGeneticSex %></li>
+</ul>
 </p>
 <%
+
 if(maxTravelDistance>0){
 %>
 <p>Marked individual with largest distance between resights: <a href="individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividual %></a> (<%=(maxTravelDistance/1000) %> km)</p>
@@ -467,11 +511,48 @@ if(maxTimeBetweenResights>0){
 <p>Marked individual with longest time between resights: <a href="individuals.jsp?number=<%=longestResightedIndividual %>"><%=longestResightedIndividual %></a> (<%=bigTime %> years)</p>
  <%
 }
+%>
+<p><strong>Measurements</strong></p>
+<%
+ 		//measurement
+ 		//List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
+		//int numMeasurementTypes=measurementTypes.size();
+		//double[] measurementValueSum=new double[numMeasurementTypes];
+		//double[] measurementValueCount=new double[numMeasurementTypes];
+		if(measurementTypes.size()>0){
+			for(int b=0;b<numMeasurementTypes;b++){
+			%>
+				<p>Average <%= measurementTypes.get(b).getType()%>: 
+				<% 
+				
+				//now report averages
+				if(measurementValueCount[b]>0){
+				%>
+				&nbsp;<%=((new Double(measurementValueSum[b]/measurementValueCount[b])).toString()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %>
+				<%
+				}
+				else{
+					%>
+					&nbsp;No measurement values available.
+					<%
+				}
+				
+				%>
+				</p>
+			<%
+			}
+		}
+		else{
+			%>
+			<p>No measurement types defined.</p>
+			<% 
+		}
+
 
      try {
  %>
  
-
+<p><strong>Charting</strong></p>
 
  <div id="chart_div"></div>
 

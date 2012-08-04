@@ -236,6 +236,11 @@ public class MarkedIndividual implements java.io.Serializable {
     return false;
   }
 
+  /**
+   * 
+   * 
+   * @deprecated
+   */
   public double averageLengthInYear(int year) {
     int numLengths = 0;
     double total = 0;
@@ -252,7 +257,13 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     return avg;
   }
-
+  
+  
+  /**
+   * 
+   * 
+   * @deprecated
+   */
   public double averageMeasuredLengthInYear(int year, boolean allowGuideGuess) {
     int numLengths = 0;
     double total = 0;
@@ -755,6 +766,11 @@ public class MarkedIndividual implements java.io.Serializable {
 
 
   //months 1-12, days, 1-31
+  /**
+   * 
+   * 
+   * @deprecated
+   */
   public double avgLengthInPeriod(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth) {
 
     double avgLength = 0;
@@ -808,6 +824,66 @@ public class MarkedIndividual implements java.io.Serializable {
       return (avgLength / numMeasurements);
     } else {
       return 0.0;
+    }
+  }
+  
+  public Double getAverageMeasurementInPeriod(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth, String measurementType) {
+
+    double avgMeasurement = 0;
+    int numMeasurements = 0;
+    int endYear = m_endYear;
+    int endMonth = m_endMonth;
+    int startYear = m_startYear;
+    int startMonth = m_startMonth;
+
+    //test that start and end dates are not reversed
+    if (endYear < startYear) {
+      endYear = m_startYear;
+      endMonth = m_startMonth;
+      startYear = m_endYear;
+      startMonth = m_endMonth;
+    } else if ((endYear == startYear) && (endMonth < startMonth)) {
+      endYear = m_startYear;
+      endMonth = m_startMonth;
+      startYear = m_endYear;
+      startMonth = m_endMonth;
+    }
+
+    for (int c = 0; c < encounters.size(); c++) {
+      Encounter temp = (Encounter) encounters.get(c);
+      if(temp.hasMeasurement(measurementType)){
+        List<Measurement> measures=temp.getMeasurements();
+        if ((temp.getYear() > startYear) && (temp.getYear() < endYear)) {
+          if (temp.getMeasurement(measurementType)!=null) {
+            avgMeasurement += temp.getMeasurement(measurementType).getValue();
+            numMeasurements++;
+          }
+        } 
+        else if ((temp.getYear() == startYear) && (temp.getYear() < endYear) && (temp.getMonth() >= startMonth)) {
+          if (temp.getMeasurement(measurementType)!=null){
+            avgMeasurement += temp.getMeasurement(measurementType).getValue();
+            numMeasurements++;
+          }
+        } 
+        else if ((temp.getYear() > startYear) && (temp.getYear() == endYear) && (temp.getMonth() <= endMonth)) {
+          if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
+            avgMeasurement += temp.getMeasurement(measurementType).getValue();
+            numMeasurements++;
+          }
+        } 
+        else if ((temp.getYear() >= startYear) && (temp.getYear() <= endYear) && (temp.getMonth() >= startMonth) && (temp.getMonth() <= endMonth)) {
+          if (temp.getMeasurement(measurementType)!=null) {
+            avgMeasurement += temp.getMeasurement(measurementType).getValue();
+            numMeasurements++;
+          }
+        } 
+      }
+    }
+    if (numMeasurements > 0) {
+      return (new Double(avgMeasurement / numMeasurements));
+    } 
+    else {
+      return null;
     }
   }
 
@@ -1158,6 +1234,25 @@ public boolean hasMsMarkers(){
         for(int e=0;e<numAnalyses;e++){
           GeneticAnalysis ga=analyses.get(e);
           if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+            return true;
+          }
+        }
+      }
+  }
+  return false;
+}
+
+public boolean hasGeneticSex(){
+  ArrayList<TissueSample> samples=getAllTissueSamples();
+  int numSamples=samples.size();
+  for(int i=0;i<numSamples;i++){
+      TissueSample sample=samples.get(i);
+      if(sample.getGeneticAnalyses()!=null){
+        List<GeneticAnalysis> analyses=sample.getGeneticAnalyses();
+        int numAnalyses=analyses.size();
+        for(int e=0;e<numAnalyses;e++){
+          GeneticAnalysis ga=analyses.get(e);
+          if(ga.getAnalysisType().equals("SexAnalysis")){
             return true;
           }
         }
