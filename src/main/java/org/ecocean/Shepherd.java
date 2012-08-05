@@ -109,9 +109,24 @@ public class Shepherd {
     }
     return (uniqueID);
   }
-  
+
+    public void storeNewOccurrence(Occurrence enc) {
+      //enc.setOccurrenceID(uniqueID);
+      beginDBTransaction();
+      try {
+        pm.makePersistent(enc);
+        commitDBTransaction();
+      } catch (Exception e) {
+        rollbackDBTransaction();
+        System.out.println("I failed to create a new Occurrence in shepherd.storeNewOccurrence().");
+        e.printStackTrace();
+
+      }
+
+  }
+
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
-    
+
     beginDBTransaction();
     try {
       pm.makePersistent(indie);
@@ -217,6 +232,10 @@ public class Shepherd {
 
   public void throwAwayKeyword(Keyword word) {
     String indexname = word.getIndexname();
+    pm.deletePersistent(word);
+  }
+
+  public void throwAwayOccurrence(Occurrence word) {
     pm.deletePersistent(word);
   }
 
@@ -413,6 +432,9 @@ public class Shepherd {
   return null;
 
   }
+
+
+
 
   public ArrayList<String> getKeywordsInCommon(String encounterNumber1, String encounterNumber2) {
     ArrayList<String> inCommon = new ArrayList<String>();
@@ -721,14 +743,14 @@ public class Shepherd {
       return null;
     }
   }
-  
+
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideo(Query acceptedEncounters) {
     Collection c;
     try {
       c = (Collection) (acceptedEncounters.execute());
       ArrayList<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>(c);
       return list;
-    } 
+    }
     catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
       npe.printStackTrace();
@@ -955,6 +977,76 @@ public class Shepherd {
     return it;
   }
 
+
+  public Iterator getAllOccurrencesForMarkedIndividual(String indie) {
+    //Query acceptedEncounters = pm.newQuery(encClass, filter2use);
+    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    System.out.println("getAllOccurrencesForMarkedIndividual size: "+c.size());
+    Iterator it = c.iterator();
+    return it;
+  }
+  
+  public Occurrence getOccurrenceForEncounter(String encounterID){
+    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+"\"  VARIABLES org.ecocean.Encounter enc";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    while(it.hasNext()){
+      return ((Occurrence)it.next());
+    }
+    return null;
+  }
+
+  public ArrayList<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
+    HashMap<String,Integer> hmap = new HashMap<String,Integer>();
+    //TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
+   //TreeMap<String, Integer> map=new TreeMap<String, Integer>(cmp);
+   TreeMap<String, Integer> map=new TreeMap<String, Integer>();
+      Iterator it=getAllOccurrencesForMarkedIndividual(indie);
+      while(it.hasNext()){
+         Occurrence oc=(Occurrence)it.next();
+         ArrayList<Encounter> encounters=oc.getEncounters();
+         int numEncounters=encounters.size();
+         for(int i=0;i<numEncounters;i++){
+           Encounter enc=encounters.get(i);
+           if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))&&(!enc.getIndividualID().equals(indie))){
+             MarkedIndividual indieEnc=this.getMarkedIndividual(enc.getIndividualID());
+             //check if we already have this Indie
+             if(!hmap.containsKey(indieEnc.getIndividualID())){
+               hmap.put(indieEnc.getIndividualID(), (new Integer(1)));
+               //System.out.println("Putting: "+indieEnc.getIndividualID());
+             }
+             else{
+               Integer oldValue=hmap.get(indieEnc.getIndividualID());
+               hmap.put(indieEnc.getIndividualID(), (oldValue+1));
+               //System.out.println("Iterating: "+indieEnc.getIndividualID());
+             }
+
+           }
+         }
+      }
+      //map.putAll(hmap);
+      //System.out.println("hmap size is: "+hmap.size());
+      //System.out.println("Let's copy hmap to map...");
+      //Iterator jit=hmap.keySet().iterator();
+      //while(jit.hasNext()){
+        //System.out.println("     hmap now size is: "+hmap.size());
+        //String lString=(String)jit.next();
+        //map.put(lString, hmap.get(lString));
+        //System.out.println("     map now size is: "+map.size());
+      //}
+      //System.out.println("Final map size is: "+map.size());
+      
+      ArrayList<Map.Entry> as = new ArrayList<Map.Entry>( hmap.entrySet() );  
+      IndividualOccurrenceNumComparator cmp=new IndividualOccurrenceNumComparator();
+      Collections.sort( as , cmp);  
+      Collections.reverse(as);
+      return as;
+  }
+
+
   public ArrayList<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
     Extent encClass = pm.getExtent(TissueSample.class, true);
@@ -1066,6 +1158,17 @@ public class Shepherd {
     MarkedIndividual tempShark = null;
     try {
       tempShark = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, name.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return tempShark;
+  }
+
+  public Occurrence getOccurrence(String id) {
+    Occurrence tempShark = null;
+    try {
+      tempShark = ((org.ecocean.Occurrence) (pm.getObjectById(pm.newObjectIdInstance(Occurrence.class, id.trim()), true)));
     } catch (Exception nsoe) {
       nsoe.printStackTrace();
       return null;
@@ -1574,6 +1677,21 @@ public class Shepherd {
     return it;
   }
 
+  public Iterator getAllOccurrences() {
+    Extent allOccurs = null;
+    Iterator it = null;
+    try {
+      allOccurs = pm.getExtent(Occurrence.class, true);
+      Query acceptedOccurs = pm.newQuery(allOccurs);
+      Collection c = (Collection) (acceptedOccurs.execute());
+      it = c.iterator();
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return null;
+    }
+    return it;
+  }
+
   public Iterator getAllKeywords(Query acceptedKeywords) {
     Extent allKeywords = null;
     Iterator it = null;
@@ -1744,7 +1862,7 @@ public class Shepherd {
         else {
                 count--;
         }
-            } 
+            }
             else if (count > endNum) {
               stopMe = true;
               return thumbs;
@@ -2086,6 +2204,8 @@ public class Shepherd {
     Collection results = (Collection)q.execute ();
     return (new ArrayList(results));
   }
+  
+
 
 } //end Shepherd class
 

@@ -91,6 +91,32 @@
 			<fetch-group name="count" />
 
 		</class>
+		
+		<class name="Occurrence" identity-type="application" table="OCCURRENCE">
+					<field name="occurrenceID" primary-key="true">
+						<column length="100"/>
+					</field>
+				
+		            		<field name="encounters" persistence-modifier="persistent">
+		                		<collection element-type="org.ecocean.Encounter"/>
+						<join/>
+		            		</field>
+		            		
+		            		<field name="groupBehavior" persistence-modifier="persistent">
+					                <column length="1024" allows-null="true" />
+					            </field>
+					            
+					            <field name="individualCount" persistence-modifier="persistent">
+						    				<column jdbc-type="INTEGER" allows-null="true" />
+			</field>
+
+		            		
+				            	
+					<fetch-group name="count" />
+		
+		</class>
+		
+		
 
         <class name="Encounter" identity-type="application" table="ENCOUNTER">
             <field name="catalogNumber" primary-key="true">
