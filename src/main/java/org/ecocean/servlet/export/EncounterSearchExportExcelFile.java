@@ -13,7 +13,6 @@ import jxl.write.*;
 import jxl.Workbook;
 
 
-//adds spots to a new encounter
 public class EncounterSearchExportExcelFile extends HttpServlet{
   
   private static final int BYTES_DOWNLOAD = 1024;

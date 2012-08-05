@@ -33,6 +33,12 @@
   //load our variables for the submit page
 
   props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
+
+  Properties localesProps = new Properties();
+  localesProps.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+		  
+		  
+		  
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
   String nicknamer = props.getProperty("nicknamer");
@@ -94,7 +100,7 @@ margin-bottom: 8px !important;
 
 <p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>
 <%
-  Vector haveGPSData = sharky.returnEncountersWithGPSData();
+  Vector haveGPSData = sharky.returnEncountersWithGPSData(true, true);
   int havegpsSize=haveGPSData.size();
   if (havegpsSize > 0) {
 %>
@@ -121,34 +127,50 @@ margin-bottom: 8px !important;
 
         
         var markers = [];
- 
- 
+ 	    var movePathCoordinates = [];
         
         <%
 
-
+        String haploColor="CC0000";
+        if((props.getProperty("defaultMarkerColor")!=null)&&(!props.getProperty("defaultMarkerColor").trim().equals(""))){
+     	   haploColor=props.getProperty("defaultMarkerColor");
+        }
+		   
+String lastLatLong="";
  for(int y=0;y<havegpsSize;y++){
 	 Encounter thisEnc=(Encounter)haveGPSData.get(y);
 	 
+	 String thisLatLong="999,999";
+	 if(((thisEnc.getDecimalLatitude())!=null)&&(thisEnc.getDecimalLongitude()!=null)){
+		 thisLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
+	 }
+	 //let's try to get this from locales.properties
+	 else{
+		 
+		 if(localesProps.getProperty(thisEnc.getLocationID())!=null){
+			 thisLatLong=localesProps.getProperty(thisEnc.getLocationID());
+		 }
+		 
+	 }
 
  %>
           
-          var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
+          var latLng = new google.maps.LatLng(<%=thisLatLong%>);
           bounds.extend(latLng);
+          movePathCoordinates.push(latLng);
            <%
 
            
            //currently unused programatically
            String markerText="";
            
-           String haploColor="CC0000";
-           if((props.getProperty("defaultMarkerColor")!=null)&&(!props.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   haploColor=props.getProperty("defaultMarkerColor");
-           }
-		   
+           
+           String colorToUseForMarker=haploColor;			
+           if((y==0)&&(havegpsSize>1)){colorToUseForMarker="00FF00";}
+			
            
            %>
-           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
+           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=colorToUseForMarker%>",text:"<%=markerText%>"}),position:latLng,map:map});
 	    
 
             google.maps.event.addListener(marker,'click', function() {
@@ -161,13 +183,33 @@ margin-bottom: 8px !important;
  
  <%
  
-
+ lastLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
 } 
 
  %>
- 
+ var movePath = new google.maps.Polyline({
+     path: movePathCoordinates,
+     geodesic: true,
+     strokeOpacity: 0.0,
+     strokeColor: 'white',
+     icons: [{
+       icon: {
+         path: 'M -1,1 0,0 1,1',
+         strokeOpacity: 1,
+         strokeWeight: 1.5,
+         scale: 6
+         
+       },
+       repeat: '20px'
+       
+     }
+     ],
+     map: map
+   });
 
-      }
+  //movePath.setMap(map);
+
+      } // end initialize function
       
       
 

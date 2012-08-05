@@ -481,10 +481,23 @@
     <servlet-class>org.ecocean.servlet.EncounterRemoveSpots</servlet-class>
   </servlet>
   
+<<<<<<< HEAD
       <servlet>
            <servlet-name>MozPradel</servlet-name>
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet> 
+=======
+    <servlet>
+      <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
+      <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
+  </servlet>
+  
+
+      <servlet>
+        <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.GenalexExportCodominantMSDataBySize</servlet-class>
+  </servlet>
+>>>>>>> 2.x
 
   <servlet>
     <servlet-name>EncounterSetGPS</servlet-name>
@@ -751,6 +764,13 @@
       <servlet-name>EncounterSetGenusSpecies</servlet-name>
       <url-pattern>/EncounterSetGenusSpecies</url-pattern>
   </servlet-mapping>
+  
+
+      <servlet-mapping>
+          <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
+          <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
+  </servlet-mapping>
+    
   
     <servlet-mapping>
       <servlet-name>EncounterSetPatterningCode</servlet-name>
@@ -1339,6 +1359,10 @@
          <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
          <url-pattern>/EncounterSearchExportShapefile</url-pattern>
          <url-pattern>/EncounterSearchExportEmailAddresses</url-pattern>
+         
+        
+             <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
+         
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>
       <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>
@@ -1354,6 +1378,7 @@
       <url-pattern>/appadmin/kwResults.jsp</url-pattern>
       <url-pattern>/individualSearch.jsp</url-pattern>
       <url-pattern>/individualSearchResults.jsp</url-pattern>
+      <url-pattern>/individualMappedSearchResults.jsp</url-pattern>
       <url-pattern>/individualThumbnailSearchResults.jsp</url-pattern>
       <url-pattern>/encounters/thumbnailSearch.jsp</url-pattern>
       <url-pattern>/encounters/thumbnailSearchResults.jsp</url-pattern>
@@ -1369,6 +1394,11 @@
       <url-pattern>/googleSearch.jsp</url-pattern>
       <url-pattern>/googleSearchResults.jsp</url-pattern>
       <url-pattern>/encounters/imageViewer.jsp</url-pattern>
+      
+      <url-pattern>/encounters/searchComparison.jsp</url-pattern>
+      <url-pattern>/encounters/searchComparisonResults.jsp</url-pattern>
+      
+      
       <url-pattern>/encounters/allEncountersUnapproved.jsp</url-pattern>
       <url-pattern>/appadmin/*</url-pattern>
       <url-pattern>/logs/*</url-pattern>

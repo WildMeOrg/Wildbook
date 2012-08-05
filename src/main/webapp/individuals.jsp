@@ -497,20 +497,15 @@ table.tissueSample td {
 
 <table id="results" width="100%">
   <tr class="lineitem">
-      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %>
-    </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %>
-    </strong></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %></strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %></strong></td>
     <td class="lineitem" bgcolor="#99CCFF"><strong><%=dataTypes %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encnumber %>
-    </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=alternateID %>
-    </strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encnumber %></strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=alternateID %></strong></td>
 
 
 
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %>
-    </strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %></strong></td>
     <%
       if (isOwner && CommonConfiguration.useSpotPatternRecognition()) {
     %>
@@ -521,9 +516,12 @@ table.tissueSample td {
     <%
     }
     %>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sightedWith") %></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
+ 
   </tr>
   <%
-    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(true);
+    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters();
 
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
@@ -534,8 +532,6 @@ table.tissueSample td {
         
           imgName = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
         
-
-
   %>
   <tr>
       <td class="lineitem"><%=enc.getDate()%>
@@ -607,6 +603,51 @@ table.tissueSample td {
         }
       }
     %>
+    
+    <td class="lineitem">
+    <%
+    if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+    	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+    	ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
+    	if(otherOccurs!=null){
+    		int numOtherOccurs=otherOccurs.size();
+    		for(int j=0;j<numOtherOccurs;j++){
+    			String thisName=otherOccurs.get(j);
+    			if(!thisName.equals(sharky.getIndividualID())){
+    			%>
+    				<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
+    			<%	
+    
+    			}
+    		}
+    	}
+    }
+    //new comment
+    else{
+    %>	
+    	&nbsp;
+    <%
+    }
+    %>
+    
+    </td>
+    <td class="lineitem">
+    <%
+    if(enc.getBehavior()!=null){
+    %>
+    <%=enc.getBehavior() %>
+    <%	
+    }
+    if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+    	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+    	if((thisOccur!=null)&&(thisOccur.getGroupBehavior()!=null)){
+   		 %>
+    	<br /><br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
+    	<%	
+    	}
+    }
+    %>
+    </td>
   </tr>
   <%
       
@@ -620,7 +661,7 @@ table.tissueSample td {
 
 <!-- Start thumbnail gallery -->
 
-
+<br />
 <p>
   <strong><%=props.getProperty("imageGallery") %>
   </strong></p>
@@ -977,7 +1018,7 @@ table.tissueSample td {
 <!-- Start genetics -->
 <br />
 <a name="tissueSamples"></a>
-<p class="para"><img align="absmiddle" src="images/microscope.gif" /><strong><%=props.getProperty("tissueSamples") %></strong></p>
+<p><img align="absmiddle" src="images/microscope.gif" /><strong><%=props.getProperty("tissueSamples") %></strong></p>
 <p>
 <%
 List<TissueSample> tissueSamples=sharky.getAllTissueSamples();
@@ -1050,11 +1091,63 @@ for(int j=0;j<numTissueSamples;j++){
 else {
 %>
 	<p class="para"><%=props.getProperty("noTissueSamples") %></p>
+	<!-- End genetics -->
 <%
 }
+%>
+
+
+<br/>
+<a name="socialRelationships"></a>
+<p><strong><%=props.getProperty("social")%></strong></p>
+
+<%
+ArrayList<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
+
+if(otherIndies.size()>0){
+	
+//ok, let's iterate the social relationships
+%>
+
+
+<table width="100%" class="tissueSample">
+<th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("numSightingsTogether") %></strong></th></tr>
+<%
+
+Iterator<Map.Entry> othersIterator=otherIndies.iterator();
+while(othersIterator.hasNext()){
+	Map.Entry indy=othersIterator.next();
+	MarkedIndividual occurIndy=myShepherd.getMarkedIndividual((String)indy.getKey());
+	%>
+	<tr><td>
+	<a target="_blank" href="individuals.jsp?number=<%=occurIndy.getIndividualID()%>"><%=occurIndy.getIndividualID() %></a>
+		<%
+		if(occurIndy.getSex()!=null){
+		%>
+			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=occurIndy.getSex() %></span>
+		<%
+		}
+		
+		if(occurIndy.getHaplotype()!=null){
+		%>
+			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=occurIndy.getHaplotype() %></span>
+		<%
+		}
+		%>
+	</td>
+	<td><%=((Integer)indy.getValue()).toString() %></td></tr>
+	<%
+}
+}
+else {
+%>
+	<p class="para"><%=props.getProperty("noSocial") %></p><br />
+<%
+}
+//
 
 %>
-<!-- End genetics -->
+</table>
 <%
 
   if (isOwner) {

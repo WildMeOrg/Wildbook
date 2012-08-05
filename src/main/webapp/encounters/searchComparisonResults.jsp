@@ -559,7 +559,7 @@ var selectedRectangle2;
  			}
  			int totalPopulationSize=totalPopulation.size();
  			
-			 if((request.getParameter("haplotypeField")!=null)&&(request1.getParameter("haplotypeField")!=null)&&(query1Individuals.size()>0)&&(query2Individuals.size()>0)){
+			 if(((request.getParameter("hasHaplotype")!=null) || ((request.getParameter("haplotypeField")!=null)&&(request1.getParameter("haplotypeField")!=null))) &&(query1Individuals.size()>0)&&(query2Individuals.size()>0)){
 				 //now we need to calculate some inbreeding statistics using haplotypes
  			
  				//first get all haplotypes
@@ -611,7 +611,7 @@ var selectedRectangle2;
 		int numLoci=loci.size();
 		for(int r=0;r<numLoci;r++){
 			String locus=loci.get(r);
-			if((request.getParameter(locus)!=null)&&(request1.getParameter(locus)!=null)&&(query1Individuals.size()>0)&&(query2Individuals.size()>0)){
+			if(((request.getParameter("hasMSMarkers")!=null)||((request.getParameter(locus)!=null)&&(request1.getParameter(locus)!=null))) && (query1Individuals.size()>0)&&(query2Individuals.size()>0)){
 				
 
 				
@@ -851,6 +851,9 @@ else{
  <td>
  <p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
  <p><%=encprops.getProperty("genepopExport")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GenePopExport?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
+ <p><%=encprops.getProperty("genalexExportMS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GenalexExportCodominantMSDataBySize?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
+ <p><%=encprops.getProperty("genalexExportHaplotypes")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GenalexExportCodominantMSDataBySize?<%=request.getQueryString() %>&exportHaplos=true"><%=encprops.getProperty("link")%></a></p>
+ 
  </td>
  
  </tr>

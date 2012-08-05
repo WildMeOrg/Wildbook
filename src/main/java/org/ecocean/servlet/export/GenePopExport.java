@@ -73,7 +73,7 @@ public class GenePopExport extends HttpServlet{
         
         //Line 1: write the title
         String additionalSearchString="";
-        if((request.getParameter("searchNameField")!=null)&&(request1.getParameter("searchNameField")!=null)){
+        if((request.getParameter("searchNameField")!=null)&&(!request.getParameter("searchNameField").trim().equals(""))&&(request1.getParameter("searchNameField")!=null)&&(!request1.getParameter("searchNameField").trim().equals(""))){
           additionalSearchString=": "+request1.getParameter("searchNameField")+" vs. "+request.getParameter("searchNameField");
           
         }

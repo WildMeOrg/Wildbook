@@ -349,16 +349,8 @@ margin-bottom: 8px !important;
     <p><font size="4"><strong><%=encprops.getProperty("title") %>
     </strong>: <%=num%><%=livingStatus %>
     </font></p>
-    <%
-      if (enc.getEventID() != null) {
-    %>
-    <p class="para"><%=encprops.getProperty("eventID") %>:
-      <%=enc.getEventID() %>
-    </p>
-    <%
-      }
-    %>
-    <%}%> 
+
+     
     
  <table><tr valign="middle">  
   <td>
@@ -415,8 +407,34 @@ margin-bottom: 8px !important;
     </p>
     <%
       } //end else
-
-
+	
+    
+    if (enc.getEventID() != null) {
+  %>
+  <p class="para"><%=encprops.getProperty("eventID") %>:
+    <%=enc.getEventID() %>
+  </p>
+  <%
+    }
+  }
+  %>
+	<p class="para">
+	Occurrence ID:
+	<%
+	if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+	%>
+		<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>	
+	<% 	
+	}
+	else{
+	%>
+	<%=encprops.getProperty("none_assigned") %>
+	<%
+	}
+	%>
+	</p>
+  
+<%
     if(CommonConfiguration.showProperty("showTaxonomy")){
     
     String genusSpeciesFound=encprops.getProperty("notAvailable");
@@ -1364,7 +1382,7 @@ if(loggedIn){
 %>
 
 <br/>
-<hr>
+<hr />
 <table>
   <tr>
     <td valign="top">
@@ -1395,9 +1413,31 @@ if(loggedIn){
     </td>
   </tr>
 </table>
+
 <%
       }
     }
+
+//now iterate through the jspImport# declarations in encounter.properties and import those files locally
+int currentImportNum=0;
+while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
+	  String importName=encprops.getProperty(("jspImport"+currentImportNum));
+	//let's set up references to our file system components
+	  
+%>
+	<hr />
+		<jsp:include page="<%=importName %>" flush="true">
+			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+			<jsp:param name="encounterNumber" value="<%=num%>" />
+    		<jsp:param name="isOwner" value="<%=isOwnerValue %>" />
+		</jsp:include>
+
+    <%
+
+ currentImportNum++;
+} //end while for jspImports
+
+
   }
 
 %>
@@ -1407,6 +1447,7 @@ if(loggedIn){
 </tr>
 
 </table>
+
 <br/>
 <table>
   <tr>
@@ -1427,7 +1468,9 @@ if(loggedIn){
     </td>
   </tr>
 </table>
-  <%
+
+<%
+
 kwQuery.closeAll();
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
@@ -1466,7 +1509,11 @@ catch(Exception e){
 
 
 </div>
+
+
+
 <jsp:include page="../footer.jsp" flush="true"/>
+
 </div>
 <!-- end page -->
 
