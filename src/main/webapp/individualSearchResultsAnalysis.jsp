@@ -59,16 +59,22 @@
 	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
 	int numMeasurementTypes=measurementTypes.size();
 	SummaryStatistics[] measurementValues=new SummaryStatistics[numMeasurementTypes];
-	//int[] measurementValueCount=new int[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesMales=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesFemales=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesNew=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesResights=new SummaryStatistics[numMeasurementTypes];
+	String[] smallestIndies=new String[numMeasurementTypes];
+	String[] largestIndies=new String[numMeasurementTypes];
 	for(int b=0;b<measurementValues.length;b++){
 		measurementValues[b]=new SummaryStatistics();
+		measurementValuesMales[b]=new SummaryStatistics();
+		measurementValuesFemales[b]=new SummaryStatistics();
+		measurementValuesNew[b]=new SummaryStatistics();
+		measurementValuesResights[b]=new SummaryStatistics();
+		smallestIndies[b]="";
+		largestIndies[b]="";
 	}
-	//for(int b=0;b<measurementValueCount.length;b++){
-	//	measurementValueCount[b]=0;
-	//}
-	
-	//new comment
-	
+
 	int year1=(new Integer(request.getParameter("year1"))).intValue();
 	int year2=(new Integer(request.getParameter("year2"))).intValue();
 	int month1=(new Integer(request.getParameter("month1"))).intValue();
@@ -124,6 +130,8 @@
 	 String longestResightedIndividual="";
 	 String farthestTravelingIndividual="";
 	 
+
+	 
  	int resultSize=rIndividuals.size();
  	 for(int y=0;y<resultSize;y++){
  		MarkedIndividual thisEnc=(MarkedIndividual)rIndividuals.get(y);
@@ -149,9 +157,36 @@
 			if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType())!=null){
 				
 					measurementValues[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
-					//measurementValueCount[b]++;
-				
-				//catch(NullPointerException npe){}
+					
+					//smallest vs largest analysis
+					if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()<=measurementValues[b].getMin()){
+						smallestIndies[b]=thisEnc.getIndividualID();
+					}
+					else if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()>=measurementValues[b].getMax()){
+						largestIndies[b]=thisEnc.getIndividualID();
+					}
+					
+					//males versus females analysis
+					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
+						measurementValuesMales[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+					}
+					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
+						measurementValuesFemales[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+					}
+					
+					//first sights vs resights analysis
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+						 measurementValuesResights[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+							
+				 		   
+					 }
+					 else{
+						 measurementValuesNew[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+							
+					 }
+					
+					
+					
 			}
 		}
 		
@@ -533,7 +568,15 @@ if(maxTimeBetweenResights>0){
 				//now report averages
 				if(measurementValues[b].getN()>0){
 				%>
-				&nbsp;<%=df.format(measurementValues[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValues[b].getStandardDeviation()) %>)
+				&nbsp;<%=df.format(measurementValues[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValues[b].getStandardDeviation()) %>) N=<%=measurementValues[b].getN() %><br />
+				<ul>
+					<li>Largest: <%=df.format(measurementValues[b].getMax()) %> <%=measurementTypes.get(b).getUnits() %> (<a href="individuals.jsp?number=<%=largestIndies[b] %>"><%=largestIndies[b] %></a>)</li>
+					<li>Smallest: <%=df.format(measurementValues[b].getMin()) %> <%=measurementTypes.get(b).getUnits() %> (<a href="individuals.jsp?number=<%=smallestIndies[b] %>"><%=smallestIndies[b] %></a>)</li>
+					<li>Mean for males: <%=df.format(measurementValuesMales[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesMales[b].getStandardDeviation()) %>) N=<%=measurementValuesMales[b].getN() %></li>
+					<li>Mean for females: <%=df.format(measurementValuesFemales[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesFemales[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales[b].getN() %></li>
+					<li>Mean for individuals newly marked in this period: <%=df.format(measurementValuesNew[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesNew[b].getStandardDeviation()) %>) N=<%=measurementValuesNew[b].getN() %></li>
+					<li>Mean for individuals sighted before this period: <%=df.format(measurementValuesResights[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesResights[b].getStandardDeviation()) %>) N=<%=measurementValuesResights[b].getN() %></li>	
+				</ul>
 				<%
 				}
 				else{
