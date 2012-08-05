@@ -1686,5 +1686,33 @@ public class Encounter implements java.io.Serializable {
       return false;
     }
     
+    public boolean hasMeasurement(String type){
+      if((measurements!=null)&&(measurements.size()>0)){
+        int numMeasurements=measurements.size();
+        for(int i=0;i<numMeasurements;i++){
+          Measurement m=measurements.get(i);
+          if((m.getValue()!=null)&&(m.getType().equals(type))){return true;}
+        }
+      }
+      return false;
+    }
+    
+    /**
+     * Returns the first measurement of the specified type
+     * @param type
+     * @return
+     */
+    public Measurement getMeasurement(String type){
+      if((measurements!=null)&&(measurements.size()>0)){
+        int numMeasurements=measurements.size();
+        for(int i=0;i<numMeasurements;i++){
+          Measurement m=measurements.get(i);
+          if((m.getValue()!=null)&&(m.getType().equals(type))){return m;}
+        }
+      }
+      return null;
+    }
+    
+    
 }
 
