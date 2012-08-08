@@ -197,6 +197,9 @@
 CAPTURE with annual seasons</a>
 </p>
 
+<p><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/SOCPROGExport?<%=request.getQueryString()%>">
+SOCPROG Excel export file</a>
+</p>
 
 <%
   myShepherd.rollbackDBTransaction();
