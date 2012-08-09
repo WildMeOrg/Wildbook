@@ -20,6 +20,7 @@
   <classpathentry kind="var" path="M2_REPO/commons-io/commons-io/1.4/commons-io-1.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.1/commons-lang-2.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-math/2.2/commons-math-2.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-pool/commons-pool/1.5.4/commons-pool-1.5.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-validator/commons-validator/1.1.4/commons-validator-1.1.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/servlets/com/cos/05Nov2002/cos-05Nov2002.jar"/>
@@ -66,6 +67,7 @@
   <classpathentry kind="var" path="M2_REPO/net/sourceforge/nekohtml/nekohtml/1.9.14/nekohtml-1.9.14.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/xerial/thirdparty/nestedvm/1.0/nestedvm-1.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/oro/oro/2.0.7/oro-2.0.7.jar"/>
+  <classpathentry kind="var" path="M2_REPO/postgresql/postgresql/9.1-901.jdbc4/postgresql-9.1-901.jdbc4.jar"/>
   <classpathentry kind="var" path="M2_REPO/regexp/regexp/1.3/regexp-1.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/rome/rome/0.9/rome-0.9.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/w3c/css/sac/1.3/sac-1.3.jar"/>

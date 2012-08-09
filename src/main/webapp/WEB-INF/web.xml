@@ -320,6 +320,11 @@
       <servlet-class>org.ecocean.servlet.export.EncounterSearchExportGeneGISFormat</servlet-class>
   </servlet>
   
+      <servlet>
+        <servlet-name>SOCPROGExport</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.SOCPROGExport</servlet-class>
+  </servlet>
+  
   
   
   
@@ -1097,6 +1102,11 @@
     <servlet-name>EncounterAddSpotFile</servlet-name>
     <url-pattern>/EncounterAddSpotFile</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>SOCPROGExport</servlet-name>
+      <url-pattern>/SOCPROGExport</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>ImgServlet</servlet-name>
@@ -1359,6 +1369,7 @@
          
         
              <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
+             <url-pattern>/SOCPROGExport</url-pattern>
          
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>
