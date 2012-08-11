@@ -108,6 +108,9 @@ public class SOCPROGExport extends HttpServlet{
         
         Label indieLabel = new Label(0, 0, "Date");
         sheet.addCell(indieLabel);
+        
+        
+        
         Label popLabel = new Label(1, 0, "Lat");
         sheet.addCell(popLabel);
 
@@ -155,10 +158,13 @@ public class SOCPROGExport extends HttpServlet{
               for(int j=0;j<numEncs;j++){
                   Encounter enc=(Encounter)encs.get(j);
                   if((enc.getLocationID()!=null)||((enc.getLongitudeAsDouble()!=null)&&(enc.getLatitudeAsDouble()!=null))){
+                    
+                    if((enc.getYear()>0)&&(enc.getMonth()>0)&&(enc.getDay()>0)){
+                      
                     count++;
                     
                     
-                    Label encLabel = new Label(0, count, enc.getDate());
+                    Label encLabel = new Label(0, count, enc.getDate().replaceAll("-", "/"));
                     sheet.addCell(encLabel);
                     
                     
@@ -218,7 +224,7 @@ public class SOCPROGExport extends HttpServlet{
                       sheet.addCell(popLabel8a);
                     }
                     
-                    
+                  }
                     
                   }
 
