@@ -103,6 +103,7 @@ public class SOCPROGExport extends HttpServlet{
       //let's write out headers for the OBIS export file
         WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile);
         WritableSheet sheet = workbookOBIS.createSheet("Shepherd Project SOCPROG Data Export", 0);
+        WritableSheet sheet2 = workbookOBIS.createSheet("Additional data", 1);
 
 
         
@@ -123,20 +124,25 @@ public class SOCPROGExport extends HttpServlet{
         Label popLabel3a = new Label(4, 0, "LocationID");
         sheet.addCell(popLabel3a);
 
-        Label popLabel4 = new Label(5, 0, "IndividualID");
+        Label popLabel4 = new Label(5, 0, "ID");
         sheet.addCell(popLabel4);
         
-        Label popLabel7 = new Label(6, 0, "GroupID");
-        sheet.addCell(popLabel7);
         
-        Label popLabel5 = new Label(7, 0, "Sex");
-        sheet.addCell(popLabel5);
+        //sheet 2 entries
+        Label popLabel4a = new Label(0, 0, "ID");
+        sheet2.addCell(popLabel4a);
         
-        Label popLabel6 = new Label(8, 0, "Behavior");
-        sheet.addCell(popLabel6);
+        Label popLabel7 = new Label(1, 0, "GroupID");
+        sheet2.addCell(popLabel7);
         
-        Label popLabel8 = new Label(9, 0, "Haplotype");
-        sheet.addCell(popLabel8);
+        Label popLabel5 = new Label(2, 0, "Sex");
+        sheet2.addCell(popLabel5);
+        
+        Label popLabel6 = new Label(3, 0, "Behavior");
+        sheet2.addCell(popLabel6);
+        
+        Label popLabel8 = new Label(4, 0, "Haplotype");
+        sheet2.addCell(popLabel8);
         
         
         
@@ -194,34 +200,39 @@ public class SOCPROGExport extends HttpServlet{
                       sheet.addCell(popLabel3d);
                     }
                     
-
+                    
+                    //
                     if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){
-                      Label popLabel4a = new Label(5, count, enc.getIndividualID());
-                      sheet.addCell(popLabel4a);
+                      Label popLabel4a1 = new Label(5, count, enc.getIndividualID().replaceAll("[^a-zA-Z0-9]", ""));
+                      sheet.addCell(popLabel4a1);
+                      
+                      Label popLabel4a2 = new Label(0, count, enc.getIndividualID());
+                      sheet2.addCell(popLabel4a2);
+                      
                     }
                     
                     
                     if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
                       Occurrence oc=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-                      Label popLabel7a = new Label(6, count, oc.getOccurrenceID());
-                      sheet.addCell(popLabel7a);
+                      Label popLabel7a = new Label(1, count, oc.getOccurrenceID());
+                      sheet2.addCell(popLabel7a);
                     }
                     
                     if(enc.getSex()!=null){
-                      Label popLabel5a = new Label(7, count, enc.getSex());
-                      sheet.addCell(popLabel5a);
+                      Label popLabel5a = new Label(2, count, enc.getSex());
+                      sheet2.addCell(popLabel5a);
                     }
                     
                     
                     if(enc.getBehavior()!=null){
-                      Label popLabel6a = new Label(8, count, enc.getBehavior());
-                      sheet.addCell(popLabel6a);
+                      Label popLabel6a = new Label(3, count, enc.getBehavior());
+                      sheet2.addCell(popLabel6a);
                     }
                     
                     
                     if(enc.getHaplotype()!=null){
-                      Label popLabel8a = new Label(9, count, enc.getHaplotype());
-                      sheet.addCell(popLabel8a);
+                      Label popLabel8a = new Label(4, count, enc.getHaplotype());
+                      sheet2.addCell(popLabel8a);
                     }
                     
                   }
