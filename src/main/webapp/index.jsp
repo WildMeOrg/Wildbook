@@ -242,13 +242,13 @@ table.adopter td.image {
 		 </div>
 	    <div id="maintext"><%=overview_maintext%>
 				 
-		 <!-- empty comment-->
+		 
 		 		 <p>
-		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />41000+ photos collected<br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />18000+  sighting reports</strong><br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3600+ whale sharks collaboratively tagged</strong><br />
+		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />43000+ photos collected<br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />20000+  sighting reports</strong><br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3800+ whale sharks collaboratively tagged</strong><br />
 			   
-			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3300+ data contributors</strong></strong></span><br />
+			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3400+ data contributors</strong></strong></span><br />
 		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />365 research days/year</strong><br />
 		       
 			   <p align="center"><strong><a href="adoptashark.jsp">Please consider adopting a shark to support our mission!</a></strong></p>
