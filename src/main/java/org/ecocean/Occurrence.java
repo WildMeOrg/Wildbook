@@ -2,6 +2,7 @@ package org.ecocean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
 
@@ -146,6 +147,36 @@ public class Occurrence implements java.io.Serializable{
     } else {
       comments = newComments;
     }
+  }
+  
+  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder) {
+    //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
+    Vector haveData=new Vector();
+    Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
+    
+    Properties localesProps = new Properties();
+    if(useLocales){
+      try {
+        localesProps.load(ShepherdPMF.class.getResourceAsStream("/bundles/locales.properties"));
+      } 
+      catch (Exception ioe) {
+        ioe.printStackTrace();
+      }
+    }
+    
+    for(int c=0;c<myEncs.length;c++) {
+      Encounter temp=myEncs[c];
+      if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
+        haveData.add(temp);
+      }
+      else if(useLocales && (temp.getLocationID()!=null) && (localesProps.getProperty(temp.getLocationID())!=null)){
+        haveData.add(temp); 
+      }
+
+      }
+
+    return haveData;
+
   }
   
 }

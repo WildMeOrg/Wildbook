@@ -241,12 +241,12 @@
 <table id="results" width="100%">
   <tr class="lineitem">
       <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("individualID") %></strong></td>
+    
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("location") %></strong></td>
     <td class="lineitem" bgcolor="#99CCFF"><strong><%=props.getProperty("dataTypes") %></strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("encnum") %></strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("alternateID") %></strong></td>
-
-
 
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex") %></strong></td>
     <%
@@ -259,8 +259,7 @@
     <%
     }
     %>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sightedWith") %></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
+   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
  
   </tr>
   <%
@@ -278,6 +277,8 @@
   %>
   <tr>
       <td class="lineitem"><%=enc.getDate()%>
+    </td>
+    <td class="lineitem"><a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
     </td>
     <td class="lineitem"><%=enc.getLocation()%>
     </td>
@@ -347,33 +348,7 @@
       }
     %>
     
-    <td class="lineitem">
-    <%
-    if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-    	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-    	ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
-    	if(otherOccurs!=null){
-    		int numOtherOccurs=otherOccurs.size();
-    		for(int j=0;j<numOtherOccurs;j++){
-    			String thisName=otherOccurs.get(j);
-    			if(!thisName.equals(sharky.getOccurrenceID())){
-    			%>
-    				<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
-    			<%	
-    
-    			}
-    		}
-    	}
-    }
-    //new comment
-    else{
-    %>	
-    	&nbsp;
-    <%
-    }
-    %>
-    
-    </td>
+  
     <td class="lineitem">
     <%
     if(enc.getBehavior()!=null){
@@ -813,7 +788,7 @@
 <td>
 
       <jsp:include page="individualMapEmbed.jsp" flush="true">
-        <jsp:param name="name" value="<%=name%>"/>
+        <jsp:param name="occurrence_number" value="<%=name%>"/>
       </jsp:include>
 </td>
 </tr>
