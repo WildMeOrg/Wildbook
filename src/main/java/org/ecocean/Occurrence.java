@@ -1,6 +1,9 @@
 package org.ecocean;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Vector;
+import java.util.Arrays;
 
 /**
  * Whereas an Encounter is meant to represent one MarkedIndividual at one point in time and space, an Occurrence
@@ -23,6 +26,8 @@ public class Occurrence implements java.io.Serializable{
   private String occurrenceID;
   private int individualCount;
   private String groupBehavior;
+  //additional comments added by researchers
+  private String comments = "None";
   
   
   //empty constructor used by the JDO enhancer
@@ -96,6 +101,51 @@ public class Occurrence implements java.io.Serializable{
      }
     }
     return returnList;
+  }
+  
+  //you can choose the order of the EncounterDateComparator
+  public Encounter[] getDateSortedEncounters(boolean reverse) {
+  Vector final_encs = new Vector();
+  for (int c = 0; c < encounters.size(); c++) {
+    Encounter temp = (Encounter) encounters.get(c);
+    final_encs.add(temp);
+  }
+
+  int finalNum = final_encs.size();
+  Encounter[] encs2 = new Encounter[finalNum];
+  for (int q = 0; q < finalNum; q++) {
+    encs2[q] = (Encounter) final_encs.get(q);
+  }
+  EncounterDateComparator dc = new EncounterDateComparator(reverse);
+  Arrays.sort(encs2, dc);
+  return encs2;
+}
+  
+  /**
+   * Returns any additional, general comments recorded for this Occurrence as a whole.
+   *
+   * @return a String of comments
+   */
+  public String getComments() {
+    if (comments != null) {
+
+      return comments;
+    } else {
+      return "None";
+    }
+  }
+  
+  /**
+   * Adds any general comments recorded for this Occurrence as a whole.
+   *
+   * @return a String of comments
+   */
+  public void addComments(String newComments) {
+    if ((comments != null) && (!(comments.equals("None")))) {
+      comments += newComments;
+    } else {
+      comments = newComments;
+    }
   }
   
 }

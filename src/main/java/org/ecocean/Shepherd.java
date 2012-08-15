@@ -587,6 +587,15 @@ public class Shepherd {
     }
     return true;
   }
+  
+  public boolean isOccurrence(String name) {
+    try {
+      Occurrence tempShark = ((org.ecocean.Occurrence) (pm.getObjectById(pm.newObjectIdInstance(Occurrence.class, name.trim()), true)));
+    } catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
 
 
   /**
