@@ -339,17 +339,21 @@ margin-bottom: 8px !important;
           <p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unapproved_title") %>
             : <%=num%><%=livingStatus %>
           </font>
+          </p>
         </td>
       </tr>
     </table>
     <%
-    } else {
+    } 
+    else {
     %>
 
     <p><font size="4"><strong><%=encprops.getProperty("title") %>
     </strong>: <%=num%><%=livingStatus %>
     </font></p>
-
+<%
+    }
+%>
      
     
  <table><tr valign="middle">  
@@ -416,7 +420,7 @@ margin-bottom: 8px !important;
   </p>
   <%
     }
-  }
+  
   %>
 	<p class="para">
 	Occurrence ID:
