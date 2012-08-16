@@ -227,6 +227,17 @@
 
 <p><%=props.getProperty("groupBehavior") %>: <%=sharky.getGroupBehavior() %></p>
 
+<p><%=props.getProperty("numMarkedIndividuals") %>: <%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></p>
+
+<p><%=props.getProperty("locationID") %>: 
+<%
+if(sharky.getLocationID()!=null){
+%>
+	<%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %>
+<%
+}
+%>
+</p>
 <table id="encounter_report" width="100%">
 <tr>
 

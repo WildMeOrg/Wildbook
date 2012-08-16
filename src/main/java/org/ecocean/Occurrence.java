@@ -30,6 +30,7 @@ public class Occurrence implements java.io.Serializable{
   //additional comments added by researchers
   private String comments = "None";
   private String modified;
+  private String locationID;
   
   
   //empty constructor used by the JDO enhancer
@@ -46,11 +47,18 @@ public class Occurrence implements java.io.Serializable{
     this.occurrenceID=occurrenceID;
     encounters=new ArrayList<Encounter>();
     encounters.add(enc);
+    
+    if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
+    
   }
   
   public void addEncounter(Encounter enc){
     if(encounters==null){encounters=new ArrayList<Encounter>();}
     encounters.add(enc);
+    
+    if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
+    
+    
   }
   
   public ArrayList<Encounter> getEncounters(){
@@ -188,5 +196,9 @@ public class Occurrence implements java.io.Serializable{
   public void setDWCDateLastModified(String lastModified) {
     modified = lastModified;
   }
+  
+  public String getLocationID(){return locationID;}
+  
+  public void setLocationID(String newLocID){this.locationID=newLocID;}
   
 }
