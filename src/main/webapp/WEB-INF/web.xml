@@ -484,6 +484,11 @@
   </servlet>
   
     <servlet>
+      <servlet-name>OccurrenceAddComment</servlet-name>
+      <servlet-class>org.ecocean.servlet.OccurrenceAddComment</servlet-class>
+  </servlet>
+  
+    <servlet>
       <servlet-name>EncounterSetPatterningCode</servlet-name>
       <servlet-class>org.ecocean.servlet.EncounterSetPatterningCode</servlet-class>
   </servlet>
@@ -746,6 +751,11 @@
   <servlet-mapping>
     <servlet-name>EncounterAddComment</servlet-name>
     <url-pattern>/EncounterAddComment</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>OccurrenceAddComment</servlet-name>
+      <url-pattern>/OccurrenceAddComment</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -1168,6 +1178,9 @@
          <url-pattern>/EncounterSearchExportShapefile</url-pattern>
          <url-pattern>/EncounterSearchExportEmailAddresses</url-pattern>
          
+         <url-pattern>/EncounterAddComment</url-pattern>
+         <url-pattern>/OccurrenceAddComment</url-pattern>
+         <url-pattern>/IndividualAddComment</url-pattern>
         
              <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
              <url-pattern>/SOCPROGExport</url-pattern>

@@ -312,8 +312,9 @@ table.tissueSample td {
 <td valign="middle">
  <h1><strong> <%=markedIndividualTypeCaps %>
 </strong>: <%=sharky.getIndividualID()%></h1>
-
- <table><tr valign="middle">  
+<p><em><%=props.getProperty("description") %></em></p>
+ </td></tr></table>
+ <p> <table><tr valign="middle">  
   <td>
     <!-- Google PLUS-ONE button -->
 <g:plusone size="small" annotation="none"></g:plusone>
@@ -327,7 +328,7 @@ table.tissueSample td {
 <!-- Facebook LIKE button -->
 <div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
 </td>
-</tr></table> </td></tr></table>
+</tr></table></p>
 <a name="alternateid"></a>
 
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:

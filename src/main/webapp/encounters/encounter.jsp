@@ -355,7 +355,7 @@ margin-bottom: 8px !important;
     }
 %>
      
-    
+    <p><em><%=encprops.getProperty("description") %></em></p>
  <table><tr valign="middle">  
   <td>
     <!-- Google PLUS-ONE button -->
@@ -427,7 +427,7 @@ margin-bottom: 8px !important;
 	<%
 	if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
 	%>
-		<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>	
+		<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></a>	
 	<% 	
 	}
 	else{

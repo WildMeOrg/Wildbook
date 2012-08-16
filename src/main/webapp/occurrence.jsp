@@ -207,9 +207,8 @@
 <table><tr>
 
 <td valign="middle">
- <h1><strong> <%=props.getProperty("occurrence") %>
-</strong>: <%=sharky.getOccurrenceID()%></h1>
-
+ <h1><strong><%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
+<p><em><%=props.getProperty("description") %></em></p>
  <table><tr valign="middle">  
   <td>
     <!-- Google PLUS-ONE button -->
@@ -260,6 +259,7 @@
     }
     %>
    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
+ <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></td>
  
   </tr>
   <%
@@ -354,6 +354,26 @@
     if(enc.getBehavior()!=null){
     %>
     <%=enc.getBehavior() %>
+    <%	
+    }
+    else{
+    %>
+    &nbsp;
+    <%	
+    }
+    %>
+    </td>
+    
+  <td class="lineitem">
+    <%
+    if(enc.getHaplotype()!=null){
+    %>
+    <%=enc.getHaplotype() %>
+    <%	
+    }
+    else{
+    %>
+    &nbsp;
     <%	
     }
     %>
@@ -751,7 +771,7 @@
 
 <form action="OccurrenceAddComment" method="post" name="addComments">
   <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-  <input name="occurrence" type="hidden" value="<%=sharky.getOccurrenceID()%>" id="occurrence">
+  <input name="number" type="hidden" value="<%=sharky.getOccurrenceID()%>" id="number">
   <input name="action" type="hidden" value="comments" id="action">
 
   <p><textarea name="comments" cols="60" id="comments"></textarea> <br>
@@ -762,7 +782,7 @@
     } //if isEditable
 
 
-  }
+  } //if isOwner
 %>
 
 

@@ -29,6 +29,7 @@ public class Occurrence implements java.io.Serializable{
   private String groupBehavior;
   //additional comments added by researchers
   private String comments = "None";
+  private String modified;
   
   
   //empty constructor used by the JDO enhancer
@@ -177,6 +178,15 @@ public class Occurrence implements java.io.Serializable{
 
     return haveData;
 
+  }
+  
+  
+  public String getDWCDateLastModified() {
+    return modified;
+  }
+
+  public void setDWCDateLastModified(String lastModified) {
+    modified = lastModified;
   }
   
 }
