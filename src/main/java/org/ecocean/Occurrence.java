@@ -56,7 +56,7 @@ public class Occurrence implements java.io.Serializable{
     if(encounters==null){encounters=new ArrayList<Encounter>();}
     encounters.add(enc);
     
-    if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
+    if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     
     
   }
