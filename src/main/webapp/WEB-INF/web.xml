@@ -366,6 +366,11 @@
     <servlet-name>IndividualRemoveEncounter</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualRemoveEncounter</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>OccurrenceRemoveEncounter</servlet-name>
+      <servlet-class>org.ecocean.servlet.OccurrenceRemoveEncounter</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>IndividualCreate</servlet-name>
@@ -862,6 +867,11 @@
     <servlet-name>IndividualRemoveEncounter</servlet-name>
     <url-pattern>/IndividualRemoveEncounter</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>OccurrenceRemoveEncounter</servlet-name>
+      <url-pattern>/OccurrenceRemoveEncounter</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>IndividualAddEncounter</servlet-name>
@@ -1177,6 +1187,7 @@
         
         <url-pattern>/IndividualCreate</url-pattern>
         <url-pattern>/OccurrenceCreate</url-pattern>
+        <url-pattern>/OccurrenceRemoveEncounter</url-pattern>
         
                 <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
         <url-pattern>/TissueSampleRemoveSexAnalysis</url-pattern>
