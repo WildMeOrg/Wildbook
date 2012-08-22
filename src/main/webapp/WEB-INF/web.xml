@@ -371,6 +371,11 @@
     <servlet-name>IndividualCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualCreate</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>OccurrenceCreate</servlet-name>
+      <servlet-class>org.ecocean.servlet.OccurrenceCreate</servlet-class>
+  </servlet>
 
 
   <servlet>
@@ -689,6 +694,11 @@
   <servlet-mapping>
     <servlet-name>IndividualCreate</servlet-name>
     <url-pattern>/IndividualCreate</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>OccurrenceCreate</servlet-name>
+      <url-pattern>/OccurrenceCreate</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -1164,6 +1174,9 @@
         <url-pattern>/EncounterSetTissueSample</url-pattern>
         <url-pattern>/TissueSampleSetHaplotype</url-pattern>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+        
+        <url-pattern>/IndividualCreate</url-pattern>
+        <url-pattern>/OccurrenceCreate</url-pattern>
         
                 <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
         <url-pattern>/TissueSampleRemoveSexAnalysis</url-pattern>

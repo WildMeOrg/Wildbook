@@ -31,6 +31,7 @@ public class Occurrence implements java.io.Serializable{
   private String comments = "None";
   private String modified;
   private String locationID;
+  private String dateTimeCreated;
   
   
   //empty constructor used by the JDO enhancer
@@ -200,5 +201,16 @@ public class Occurrence implements java.io.Serializable{
   public String getLocationID(){return locationID;}
   
   public void setLocationID(String newLocID){this.locationID=newLocID;}
+  
+  public String getDateTimeCreated() {
+    if (dateTimeCreated != null) {
+      return dateTimeCreated;
+    }
+    return "";
+  }
+
+  public void setDateTimeCreated(String time) {
+    dateTimeCreated = time;
+  }
   
 }
