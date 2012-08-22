@@ -208,7 +208,7 @@
 
 <td valign="middle">
  <h1><strong><%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
-<p><em><%=props.getProperty("description") %></em></p>
+<p class="caption"><em><%=props.getProperty("description") %></em></p>
  <table><tr valign="middle">  
   <td>
     <!-- Google PLUS-ONE button -->
@@ -547,6 +547,11 @@ if(sharky.getLocationID()!=null){
                           href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
                         </a></span></td>
                       </tr>
+                        <tr>
+                        <td><span class="caption"><%=props.getProperty("individualID") %>: <a
+                          href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %>
+                        </a></span></td>
+                      </tr>
                       <%
                         if (thisEnc.getVerbatimEventDate() != null) {
                       %>
@@ -674,6 +679,11 @@ if(sharky.getLocationID()!=null){
     href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
   </a></span></td>
 </tr>
+                        <tr>
+                        <td><span class="caption"><%=props.getProperty("individualID") %>: <a
+                          href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %>
+                        </a></span></td>
+                      </tr>
 <tr>
   <td><span class="caption">
 											<%=props.getProperty("matchingKeywords") %>

@@ -348,14 +348,13 @@ margin-bottom: 8px !important;
     else {
     %>
 
-    <p><font size="4"><strong><%=encprops.getProperty("title") %>
-    </strong>: <%=num%><%=livingStatus %>
+    <p><font size="4"><strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %>
     </font></p>
 <%
     }
 %>
      
-    <p><em><%=encprops.getProperty("description") %></em></p>
+    <p class="caption"><em><%=encprops.getProperty("description") %></em></p>
  <table><tr valign="middle">  
   <td>
     <!-- Google PLUS-ONE button -->

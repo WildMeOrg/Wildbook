@@ -312,7 +312,7 @@ table.tissueSample td {
 <td valign="middle">
  <h1><strong> <%=markedIndividualTypeCaps %>
 </strong>: <%=sharky.getIndividualID()%></h1>
-<p><em><%=props.getProperty("description") %></em></p>
+<p class="caption"><em><%=props.getProperty("description") %></em></p>
  </td></tr></table>
  <p> <table><tr valign="middle">  
   <td>
@@ -615,11 +615,24 @@ table.tissueSample td {
     		for(int j=0;j<numOtherOccurs;j++){
     			String thisName=otherOccurs.get(j);
     			if(!thisName.equals(sharky.getIndividualID())){
-    			%>
-    				<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
-    			<%	
-    
+    				if(j<20){
+    			
+    				%>
+    					<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
+    				<%	
+    				}
+
     			}
+    		}
+    		if(numOtherOccurs>=20){
+			%>
+			    &nbsp;<em><%=props.getProperty("andMore") %></em>
+			<%
+    		}
+    		if(numOtherOccurs>1){
+    		%>
+    		<br /><br /><em><a href="occurrence.jsp?number=<%=thisOccur.getOccurrenceID()%>"><%=props.getProperty("moreOccurrences") %></a></em>
+    		<%
     		}
     	}
     }
