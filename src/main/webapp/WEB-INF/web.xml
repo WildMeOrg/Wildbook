@@ -389,6 +389,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>OccurrenceAddEncounter</servlet-name>
+    <servlet-class>org.ecocean.servlet.OccurrenceAddEncounter</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>TrackerFeed</servlet-name>
     <servlet-class>org.ecocean.servlet.TrackerFeed</servlet-class>
   </servlet>
@@ -877,6 +882,11 @@
     <servlet-name>IndividualAddEncounter</servlet-name>
     <url-pattern>/IndividualAddEncounter</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>OccurrenceAddEncounter</servlet-name>
+      <url-pattern>/OccurrenceAddEncounter</url-pattern>
+  </servlet-mapping>
 
 
   <servlet-mapping>
@@ -1188,6 +1198,9 @@
         <url-pattern>/IndividualCreate</url-pattern>
         <url-pattern>/OccurrenceCreate</url-pattern>
         <url-pattern>/OccurrenceRemoveEncounter</url-pattern>
+        <url-pattern>/IndividualRemoveEncounter</url-pattern>
+                <url-pattern>/OccurrenceAddEncounter</url-pattern>
+        <url-pattern>/IndividualAddEncounter</url-pattern>
         
                 <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
         <url-pattern>/TissueSampleRemoveSexAnalysis</url-pattern>
