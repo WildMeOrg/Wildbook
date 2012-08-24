@@ -104,11 +104,7 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
             out.println("Occurrence <strong>" + name_s + "</strong> was also removed because it contained no encounters.");
           }
           out.println(ServletUtilities.getFooter());
-          String message = "Encounter " + request.getParameter("number") + " was removed from occurrence " + old_name + ".";
-          ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
-          if (!wasRemoved) {
-            ServletUtilities.informInterestedIndividualParties(request, old_name, message);
-          }
+
         } else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT removed from occurrence " + old_name + ". Another user is currently modifying this record entry. Please try again in a few seconds.");

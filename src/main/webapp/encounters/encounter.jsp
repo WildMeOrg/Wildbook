@@ -376,7 +376,8 @@ margin-bottom: 8px !important;
     if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
   %>
     <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
-      <%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> <%
+      <%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> 
+      <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
       <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=manageIdentity">edit</a>]</font>
@@ -422,7 +423,7 @@ margin-bottom: 8px !important;
   
   %>
 	<p class="para">
-	Occurrence ID:
+	<%=encprops.getProperty("occurrenceID") %>:
 	<%
 	if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
 	%>
@@ -434,9 +435,14 @@ margin-bottom: 8px !important;
 	<%=encprops.getProperty("none_assigned") %>
 	<%
 	}
-	%>
-	</p>
-  
+
+        if (isOwner && CommonConfiguration.isCatalogEditable()) {
+      %>
+      <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=manageOccurrence">edit</a>]</font>
+      <%
+        }
+      %>
+  </p>
 <%
     if(CommonConfiguration.showProperty("showTaxonomy")){
     
