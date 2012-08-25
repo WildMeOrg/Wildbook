@@ -102,6 +102,10 @@
 						<join/>
 		            		</field>
 		            		
+		            		<field name="comments" persistence-modifier="persistent" default-fetch-group="false">
+						<column jdbc-type="LONGVARCHAR" />
+					</field>
+		            		
 		            		<field name="groupBehavior" persistence-modifier="persistent">
 					                <column length="1024" allows-null="true" />
 					            </field>

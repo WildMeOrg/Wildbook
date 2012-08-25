@@ -1,6 +1,6 @@
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
+  ~ Copyright (C) 2012 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
   ~ modify it under the terms of the GNU General Public License
@@ -50,42 +50,7 @@
 
   //load our variables for the submit page
 
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
-
-  String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
-  String nickname = props.getProperty("nickname");
-  String nicknamer = props.getProperty("nicknamer");
-  String alternateID = props.getProperty("alternateID");
-  String sex = props.getProperty("sex");
-  String setsex = props.getProperty("setsex");
-  String numencounters = props.getProperty("numencounters");
-  String encnumber = props.getProperty("number");
-  String dataTypes = props.getProperty("dataTypes");
-  String date = props.getProperty("date");
-  String size = props.getProperty("size");
-  String spots = props.getProperty("spots");
-  String location = props.getProperty("location");
-  String mapping = props.getProperty("mapping");
-  String mappingnote = props.getProperty("mappingnote");
-  String setAlternateID = props.getProperty("setAlternateID");
-  String setNickname = props.getProperty("setNickname");
-  String unknown = props.getProperty("unknown");
-  String noGPS = props.getProperty("noGPS");
-  String update = props.getProperty("update");
-  String additionalDataFiles = props.getProperty("additionalDataFiles");
-  String delete = props.getProperty("delete");
-  String none = props.getProperty("none");
-  String addDataFile = props.getProperty("addDataFile");
-  String sendFile = props.getProperty("sendFile");
-  String researcherComments = props.getProperty("researcherComments");
-  String edit = props.getProperty("edit");
-  String matchingRecord = props.getProperty("matchingRecord");
-  String tryAgain = props.getProperty("tryAgain");
-  String addComments = props.getProperty("addComments");
-  String record = props.getProperty("record");
-  String getRecord = props.getProperty("getRecord");
-  String allEncounters = props.getProperty("allEncounters");
-  String allIndividuals = props.getProperty("allIndividuals");
+  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/occurrence.properties"));
 
   String name = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd();
@@ -126,36 +91,7 @@
       font-weight: bold;
     }
 
-    table.adopter {
-      border-width: 1px 1px 1px 1px;
-      border-spacing: 0px;
-      border-style: solid solid solid solid;
-      border-color: black black black black;
-      border-collapse: separate;
-      background-color: white;
-    }
 
-    table.adopter td {
-      border-width: 1px 1px 1px 1px;
-      padding: 3px 3px 3px 3px;
-      border-style: none none none none;
-      border-color: gray gray gray gray;
-      background-color: white;
-      -moz-border-radius: 0px 0px 0px 0px;
-      font-size: 12px;
-      color: #330099;
-    }
-
-    table.adopter td.name {
-      font-size: 12px;
-      text-align: center;
-    }
-
-    table.adopter td.image {
-      padding: 0px 0px 0px 0px;
-      border-width: 0px 0px 0px 0px;
-      margin: 0px;
-    }
 
     div.scroll {
       height: 200px;
@@ -165,29 +101,7 @@
       padding: 8px;
     }
 
-table.tissueSample {
-    border-width: 1px;
-    border-spacing: 2px;
-    border-color: gray;
-    border-collapse: collapse;
-    background-color: white;
-}
-table.tissueSample th {
-    border-width: 1px;
-    padding: 1px;
-    border-style: solid;
-    border-color: gray;
-    background-color: #99CCFF;
-    -moz-border-radius: ;
-}
-table.tissueSample td {
-    border-width: 1px;
-    padding: 2px;
-    border-style: solid;
-    border-color: gray;
-    background-color: white;
-    -moz-border-radius: ;
-}
+
     -->
   </style>
 
@@ -267,8 +181,7 @@ table.tissueSample td {
 
 </head>
 
-<body <%if (request.getParameter("noscript") == null) {%>
-  onload="initialize()" onunload="GUnload()" <%}%>>
+<body <%if (request.getParameter("noscript") == null) {%> onload="initialize()" onunload="GUnload()" <%}%>>
 <div id="wrapper">
 <div id="page">
 <jsp:include page="header.jsp" flush="true">
@@ -277,44 +190,26 @@ table.tissueSample td {
 </jsp:include>
 <div id="main">
 
-<%
-  if (CommonConfiguration.allowAdoptions()) {
-	  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name);
-	  int numAdoptions = adoptions.size();
-	  if(numAdoptions>0){
-%>
-<div id="maincol-wide">
-<%
-}
-  }
-  else {
-%>
+
 <div id="maincol-wide-solo">
-<%
-}
-%>
+
 <div id="maintext">
 <%
   myShepherd.beginDBTransaction();
   try {
-    if (myShepherd.isMarkedIndividual(name)) {
+    if (myShepherd.isOccurrence(name)) {
 
 
-      MarkedIndividual sharky = myShepherd.getMarkedIndividual(name);
-      boolean hasAuthority = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
+      Occurrence sharky = myShepherd.getOccurrence(name);
 
 %>
 
 <table><tr>
-<td>
-<span class="para"><img src="images/tag_big.gif" width="75px" height="*" align="absmiddle"/></span>
-</td>
+
 <td valign="middle">
- <h1><strong> <%=markedIndividualTypeCaps %>
-</strong>: <%=sharky.getIndividualID()%></h1>
+ <h1><strong><%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
- </td></tr></table>
- <p> <table><tr valign="middle">  
+ <table><tr valign="middle">  
   <td>
     <!-- Google PLUS-ONE button -->
 <g:plusone size="small" annotation="none"></g:plusone>
@@ -328,201 +223,58 @@ table.tissueSample td {
 <!-- Facebook LIKE button -->
 <div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
 </td>
-</tr></table></p>
-<a name="alternateid"></a>
+</tr></table> </td></tr></table>
 
-<p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
-  <%=sharky.getAlternateID()%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
-    href="individuals.jsp?number=<%=name%>&edit=alternateid#alternateid"><%=edit%>
-  </a>]<%}%>
+<p><%=props.getProperty("groupBehavior") %>: <%=sharky.getGroupBehavior() %></p>
 
-  
-</p>
+<p><%=props.getProperty("numMarkedIndividuals") %>: <%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></p>
+
+<p><%=props.getProperty("locationID") %>: 
 <%
-  if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("alternateid"))) {%>
-<br>
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-       bgcolor="#99CCFF">
-  <tr>
-    <td align="left" valign="top"><span class="style1"><%=setAlternateID %>:</span></td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form name="set_alternateid" method="post"
-            action="IndividualSetAlternateID"><input name="individual"
-                                                     type="hidden"
-                                                     value="<%=request.getParameter("number")%>"> <%=alternateID %>
-        :
-        <input name="alternateid" type="text" id="alternateid" size="15"
-               maxlength="150"><br> <input name="Name" type="submit"
-                                           id="Name" value="<%=update %>"></form>
-    </td>
-  </tr>
-</table>
-</a><br> <%}%>
-</p>
-<%
-    if(CommonConfiguration.showProperty("showTaxonomy")){
-    
-    String genusSpeciesFound=props.getProperty("notAvailable");
-    if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
-    %>
-    
-        <p class="para"><img align="absmiddle" src="images/taxontree.gif">
-          <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
-       </p>
-
+if(sharky.getLocationID()!=null){
+%>
+	<%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %>
 <%
 }
 %>
-
-<p>
-  <%
-    if (CommonConfiguration.allowNicknames()) {
-
-      String myNickname = "";
-      if (sharky.getNickName() != null) {
-        myNickname = sharky.getNickName();
-      }
-      String myNicknamer = "";
-      if (sharky.getNickNamer() != null) {
-        myNicknamer = sharky.getNickNamer();
-      }
-
-  %>
-  <%=nickname %>: <%=myNickname%>
-  <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
-  href="individuals.jsp?number=<%=name%>&edit=nickname#nickname"><%=edit %>
-</a>]<%}%>
-  <br/>
-  <%=nicknamer %>: <%=myNicknamer%>
-
-  <br/>
-  <%
-    }
-
-
-    if (CommonConfiguration.isCatalogEditable() && isOwner && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("nickname"))) {%>
-  <br/><br/>
-  <a name="nickname">
-    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
-      <tr>
-        <td align="left" valign="top"><span class="style1"><%=setNickname %>:</span></td>
-      </tr>
-      <tr>
-        <td align="left" valign="top">
-          <form name="nameShark" method="post" action="IndividualSetNickName">
-            <input name="individual" type="hidden"
-                   value="<%=request.getParameter("number")%>"> <%=nickname %>:
-            <input name="nickname" type="text" id="nickname" size="15"
-                   maxlength="50"><br> <%=nicknamer %>: <input name="namer"
-                                                               type="text" id="namer" size="15"
-                                                               maxlength="50"><br> <input
-            name="Name" type="submit" id="Name" value="<%=update %>"></form>
-        </td>
-      </tr>
-    </table>
-  </a>
-  <br/> <%}%>
-
 </p>
-<p><%=sex %>: <%=sharky.getSex()%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%>[<a
-  href="individuals.jsp?number=<%=name%>&edit=sex#sex"><%=edit %>
-</a>]<%}%><br>
-  <%
-    //edit sex
-    if (CommonConfiguration.isCatalogEditable() && isOwner && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("sex"))) {%>
-  <br><a name="sex">
-    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-           bgcolor="#99CCFF">
-      <tr>
-        <td align="left" valign="top"><span class="style1"><%=setsex %>:</span></td>
-      </tr>
-      <tr>
-        <td align="left" valign="top">
-          <form name="setxsexshark" action="IndividualSetSex" method="post">
-
-            <select name="selectSex" size="1" id="selectSex">
-              <option value="unknown">unknown</option>
-              <option value="male">male</option>
-              <option value="female">female</option>
-            </select><br> <input name="individual" type="hidden" value="<%=name%>"
-                                 id="individual"> <input name="Add" type="submit" id="Add"
-                                                         value="<%=update %>">
-          </form>
-        </td>
-      </tr>
-    </table>
-  </a><br> <%}%>
-
-</p>
-
-<%
-
-  if (sharky.getDynamicProperties() != null) {
-    //let's create a TreeMap of the properties
-    StringTokenizer st = new StringTokenizer(sharky.getDynamicProperties(), ";");
-    while (st.hasMoreTokens()) {
-      String token = st.nextToken();
-      int equalPlace = token.indexOf("=");
-      String nm = token.substring(0, (equalPlace));
-      String vl = token.substring(equalPlace + 1);
-%>
-<p class="para"><img align="absmiddle" src="images/lightning_dynamic_props.gif"> <strong><%=nm%>
-</strong><br/> <%=vl%>
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %>
-  <font size="-1">[<a
-    href="individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty">edit</a>]</font>
-  <%
-    }
-  %>
-</p>
-
-
-<%
-    }
-
-  }
-%>
 <table id="encounter_report" width="100%">
 <tr>
 
 <td align="left" valign="top">
 
-<p><strong><%=sharky.totalEncounters()%>
+<p><strong><%=sharky.getNumberEncounters()%>
 </strong>
-  <%=numencounters %>
-</p>
+  <%=props.getProperty("numencounters") %>
+</p> 
 
 <table id="results" width="100%">
   <tr class="lineitem">
-      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %></strong></td>
-    <td class="lineitem" bgcolor="#99CCFF"><strong><%=dataTypes %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encnumber %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=alternateID %></strong></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("individualID") %></strong></td>
+    
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("location") %></strong></td>
+    <td class="lineitem" bgcolor="#99CCFF"><strong><%=props.getProperty("dataTypes") %></strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("encnum") %></strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("alternateID") %></strong></td>
 
-
-
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %></strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex") %></strong></td>
     <%
       if (isOwner && CommonConfiguration.useSpotPatternRecognition()) {
     %>
 
     	<td align="left" valign="top" bgcolor="#99CCFF">
-    		<strong><%=spots %></strong>
+    		<strong><%=props.getProperty("spots") %></strong>
     	</td>
     <%
     }
     %>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sightedWith") %></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
+   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
+ <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></td>
  
   </tr>
   <%
-    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters();
+    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(false);
 
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
@@ -536,6 +288,8 @@ table.tissueSample td {
   %>
   <tr>
       <td class="lineitem"><%=enc.getDate()%>
+    </td>
+    <td class="lineitem"><a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
     </td>
     <td class="lineitem"><%=enc.getLocation()%>
     </td>
@@ -578,7 +332,7 @@ table.tissueSample td {
     <%
     } else {
     %>
-    <td class="lineitem"><%=none%>
+    <td class="lineitem"><%=props.getProperty("none")%>
     </td>
     <%
       }
@@ -605,46 +359,7 @@ table.tissueSample td {
       }
     %>
     
-    <td class="lineitem">
-    <%
-    if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-    	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-    	ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
-    	if(otherOccurs!=null){
-    		int numOtherOccurs=otherOccurs.size();
-    		for(int j=0;j<numOtherOccurs;j++){
-    			String thisName=otherOccurs.get(j);
-    			if(!thisName.equals(sharky.getIndividualID())){
-    				if(j<20){
-    			
-    				%>
-    					<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
-    				<%	
-    				}
-
-    			}
-    		}
-    		if(numOtherOccurs>=20){
-			%>
-			    &nbsp;<em><%=props.getProperty("andMore") %></em>
-			<%
-    		}
-    		if(numOtherOccurs>1){
-    		%>
-    		<br /><br /><em><a href="occurrence.jsp?number=<%=thisOccur.getOccurrenceID()%>"><%=props.getProperty("moreOccurrences") %></a></em>
-    		<%
-    		}
-    	}
-    }
-    //new comment
-    else{
-    %>	
-    	&nbsp;
-    <%
-    }
-    %>
-    
-    </td>
+  
     <td class="lineitem">
     <%
     if(enc.getBehavior()!=null){
@@ -652,13 +367,25 @@ table.tissueSample td {
     <%=enc.getBehavior() %>
     <%	
     }
-    if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-    	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-    	if((thisOccur!=null)&&(thisOccur.getGroupBehavior()!=null)){
-   		 %>
-    	<br /><br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
-    	<%	
-    	}
+    else{
+    %>
+    &nbsp;
+    <%	
+    }
+    %>
+    </td>
+    
+  <td class="lineitem">
+    <%
+    if(enc.getHaplotype()!=null){
+    %>
+    <%=enc.getHaplotype() %>
+    <%	
+    }
+    else{
+    %>
+    &nbsp;
+    <%	
     }
     %>
     </td>
@@ -820,6 +547,11 @@ table.tissueSample td {
                           href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
                         </a></span></td>
                       </tr>
+                        <tr>
+                        <td><span class="caption"><%=props.getProperty("individualID") %>: <a
+                          href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %>
+                        </a></span></td>
+                      </tr>
                       <%
                         if (thisEnc.getVerbatimEventDate() != null) {
                       %>
@@ -947,6 +679,11 @@ table.tissueSample td {
     href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
   </a></span></td>
 </tr>
+                        <tr>
+                        <td><span class="caption"><%=props.getProperty("individualID") %>: <a
+                          href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %>
+                        </a></span></td>
+                      </tr>
 <tr>
   <td><span class="caption">
 											<%=props.getProperty("matchingKeywords") %>
@@ -1029,190 +766,21 @@ table.tissueSample td {
 </table>
 <!-- end thumbnail gallery -->
 
-<!-- Start genetics -->
-<br />
-<a name="tissueSamples"></a>
-<p><img align="absmiddle" src="images/microscope.gif" /><strong><%=props.getProperty("tissueSamples") %></strong></p>
-<p>
-<%
-List<TissueSample> tissueSamples=sharky.getAllTissueSamples();
-
-int numTissueSamples=tissueSamples.size();
-if(numTissueSamples>0){
-%>
-<table width="100%" class="tissueSample">
-<tr>
-	<th><strong><%=props.getProperty("sampleID") %></strong></th>
-	<th><strong><%=props.getProperty("correspondingEncounterNumber") %></strong></th>
-	<th><strong><%=props.getProperty("values") %></strong></th>
-	<th><strong><%=props.getProperty("analyses") %></strong></th></tr>
-<%
-for(int j=0;j<numTissueSamples;j++){
-	TissueSample thisSample=tissueSamples.get(j);
-	%>
-	<tr>
-		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td>
-		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getCorrespondingEncounterNumber()%></a></span></td>
-		<td><span class="caption"><%=thisSample.getHTMLString() %></span>
-		</td>
-	
-	<td><table>
-		<%
-		int numAnalyses=thisSample.getNumAnalyses();
-		List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
-		for(int g=0;g<numAnalyses;g++){
-			GeneticAnalysis ga = gAnalyses.get(g);
-			if(ga.getAnalysisType().equals("MitochondrialDNA")){
-				MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
-				%>
-				<tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %></span></td></tr></li>
-			<%
-			}
-			else if(ga.getAnalysisType().equals("SexAnalysis")){
-				SexAnalysis mito=(SexAnalysis)ga;
-				%>
-				<tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %></span></td></tr></li>
-			<%
-			}
-			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
-				MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
-				
-			%>
-			<tr>
-				<td style="border-style: none;">
-					<p><span class="caption"><strong><%=props.getProperty("msMarkers") %></strong></span></p>
-					<span class="caption"><%=mito.getAllelesHTMLString() %></span>
-				</td>
-				</tr></li>
-			
-			<% 
-			}
-		}
-		%>
-		</table>
-
-	</td>
-	
-	
-	</tr>
-	<%
-}
-%>
-</table>
-</p>
-<%
-}
-else {
-%>
-	<p class="para"><%=props.getProperty("noTissueSamples") %></p>
-	<!-- End genetics -->
-<%
-}
-%>
 
 
 <br/>
-<a name="socialRelationships"></a>
-<p><strong><%=props.getProperty("social")%></strong></p>
-
-<%
-ArrayList<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
-
-if(otherIndies.size()>0){
-	
-//ok, let's iterate the social relationships
-%>
 
 
-<table width="100%" class="tissueSample">
-<th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("numSightingsTogether") %></strong></th></tr>
-<%
 
-Iterator<Map.Entry> othersIterator=otherIndies.iterator();
-while(othersIterator.hasNext()){
-	Map.Entry indy=othersIterator.next();
-	MarkedIndividual occurIndy=myShepherd.getMarkedIndividual((String)indy.getKey());
-	%>
-	<tr><td>
-	<a target="_blank" href="individuals.jsp?number=<%=occurIndy.getIndividualID()%>"><%=occurIndy.getIndividualID() %></a>
-		<%
-		if(occurIndy.getSex()!=null){
-		%>
-			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=occurIndy.getSex() %></span>
-		<%
-		}
-		
-		if(occurIndy.getHaplotype()!=null){
-		%>
-			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=occurIndy.getHaplotype() %></span>
-		<%
-		}
-		%>
-	</td>
-	<td><%=((Integer)indy.getValue()).toString() %></td></tr>
-	<%
-}
-}
-else {
-%>
-	<p class="para"><%=props.getProperty("noSocial") %></p><br />
-<%
-}
-//
-
-%>
-</table>
 <%
 
   if (isOwner) {
 %>
 <br />
-<p>
-<strong><img align="absmiddle" src="images/48px-Crystal_Clear_mimetype_binary.png" /> <%=additionalDataFiles %></strong>: 
-<%if (sharky.getDataFiles().size() > 0) {%>
-</p>
-<table>
-  <%
-    Vector addtlFiles = sharky.getDataFiles();
-    for (int pdq = 0; pdq < addtlFiles.size(); pdq++) {
-      String file_name = (String) addtlFiles.get(pdq);
-  %>
 
-  <tr>
-    <td><a href="/<%=CommonConfiguration.getDataDirectoryName() %>/individuals/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%>
-    </a></td>
-    <td>&nbsp;&nbsp;&nbsp;[<a
-      href="IndividualRemoveDataFile?individual=<%=name%>&filename=<%=file_name%>"><%=delete %>
-    </a>]
-    </td>
-  </tr>
-
-  <%}%>
-</table>
-<%} else {%> <%=none %>
-</p>
-<%
-  }
-  if (CommonConfiguration.isCatalogEditable()) {
-%>
-<form action="IndividualAddFile" method="post"
-      enctype="multipart/form-data" name="addDataFiles"><input
-  name="action" type="hidden" value="fileadder" id="action"> <input
-  name="individual" type="hidden" value="<%=sharky.getName()%>"
-  id="individual">
-
-  <p><%=addDataFile %>:</p>
-
-  <p><input name="file2add" type="file" size="50"></p>
-
-  <p><input name="addtlFile" type="submit" id="addtlFile"
-            value="<%=sendFile %>"></p></form>
-<%
-  }
-%>
 
 <br />
-<p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %>
+<p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=props.getProperty("researcherComments") %>
 </strong>: </p>
 
 <p><%=sharky.getComments().replaceAll("\n", "<br>")%>
@@ -1222,20 +790,20 @@ else {
 %>
 <p>
 
-<form action="IndividualAddComment" method="post" name="addComments">
+<form action="OccurrenceAddComment" method="post" name="addComments">
   <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-  <input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
+  <input name="number" type="hidden" value="<%=sharky.getOccurrenceID()%>" id="number">
   <input name="action" type="hidden" value="comments" id="action">
 
   <p><textarea name="comments" cols="60" id="comments"></textarea> <br>
-    <input name="Submit" type="submit" value="<%=addComments %>">
+    <input name="Submit" type="submit" value="<%=props.getProperty("addComments") %>">
 </form>
 </p>
 <%
     } //if isEditable
 
 
-  }
+  } //if isOwner
 %>
 
 
@@ -1253,27 +821,7 @@ else {
 </table>
 </div><!-- end maintext -->
 </div><!-- end main-wide -->
-<%
-  if (CommonConfiguration.allowAdoptions()) {
-%>
 
-<div id="rightcol" style="vertical-align: top;">
-  <div id="menu" style="vertical-align: top;">
-
-
-    <div class="module">
-      <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-        <jsp:param name="name" value="<%=name%>"/>
-      </jsp:include>
-    </div>
-
-
-  </div><!-- end menu -->
-  </div><!-- end rightcol -->
-
-  <%
-   }
-%>
 
 <br />
 <table>
@@ -1281,7 +829,7 @@ else {
 <td>
 
       <jsp:include page="individualMapEmbed.jsp" flush="true">
-        <jsp:param name="name" value="<%=name%>"/>
+        <jsp:param name="occurrence_number" value="<%=name%>"/>
       </jsp:include>
 </td>
 </tr>
@@ -1293,68 +841,18 @@ else {
 //could not find the specified individual!
 else {
 
-  //let's check if the entered name is actually an alternate ID
-  ArrayList al = myShepherd.getMarkedIndividualsByAlternateID(name);
-  ArrayList al2 = myShepherd.getMarkedIndividualsByNickname(name);
-  ArrayList al3 = myShepherd.getEncountersByAlternateID(name);
 
-  if (al.size() > 0) {
-    //just grab the first one
-    MarkedIndividual shr = (MarkedIndividual) al.get(0);
-    String realName = shr.getName();
-%>
 
-<meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
-</HEAD>
-<%
-} else if (al2.size() > 0) {
-  //just grab the first one
-  MarkedIndividual shr = (MarkedIndividual) al2.get(0);
-  String realName = shr.getName();
-%>
-
-<meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
-</HEAD>
-<%
-} else if (al3.size() > 0) {
-  //just grab the first one
-  Encounter shr = (Encounter) al3.get(0);
-  String realName = shr.getEncounterNumber();
-%>
-
-<meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
-</HEAD>
-<%
-} else if (myShepherd.isEncounter(name)) {
-%>
-<meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
-</HEAD>
-<%
-} else {
 %>
 
 
-<p><%=matchingRecord %>: <strong><%=name%>
-</strong><br/>
-  <%=tryAgain %>
+<p><%=props.getProperty("matchingRecord") %>:
+<br /><strong><%=request.getParameter("number")%>
+</strong><br/><br />
+  <%=props.getProperty("tryAgain") %>
 </p>
 
-<p>
 
-<form action="individuals.jsp" method="get" name="sharks"><strong><%=record %>:</strong>
-  <input name="number" type="text" id="number" value=<%=name%>> <input
-    name="sharky_button" type="submit" id="sharky_button"
-    value="<%=getRecord %>"></form>
-</p>
-<p><font color="#990000"><a href="encounters/allEncounters.jsp"><%=allEncounters %>
-</a></font></p>
-
-<p><font color="#990000"><a href="allIndividuals.jsp"><%=allIndividuals %>
-</a></font></p>
 <%
       }
 	  %>
@@ -1362,10 +860,11 @@ else {
 </tr>
 </table>
 </div><!-- end maintext -->
+<jsp:include page="footer.jsp" flush="true"/>
 </div><!-- end main-wide -->
       
       <%
-    }
+    
   } catch (Exception eSharks_jsp) {
     System.out.println("Caught and handled an exception in individuals.jsp!");
     eSharks_jsp.printStackTrace();
@@ -1377,12 +876,12 @@ else {
   myShepherd.closeDBTransaction();
 
 %>
-<jsp:include page="footer.jsp" flush="true"/>
+
 </div>
 
+</div>
 
-
-<!-- end page --></div>
+<!-- end page -->
 <!--end wrapper -->
 </body>
 </html>

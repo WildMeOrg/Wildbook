@@ -326,8 +326,6 @@
   </servlet>
   
   
-  
-  
       <servlet>
         <servlet-name>GenePopExport</servlet-name>
         <servlet-class>org.ecocean.servlet.export.GenePopExport</servlet-class>
@@ -385,16 +383,31 @@
     <servlet-name>IndividualRemoveEncounter</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualRemoveEncounter</servlet-class>
   </servlet>
+  
+    <servlet>
+      <servlet-name>OccurrenceRemoveEncounter</servlet-name>
+      <servlet-class>org.ecocean.servlet.OccurrenceRemoveEncounter</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>IndividualCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualCreate</servlet-class>
+  </servlet>
+  
+    <servlet>
+      <servlet-name>OccurrenceCreate</servlet-name>
+      <servlet-class>org.ecocean.servlet.OccurrenceCreate</servlet-class>
   </servlet>
 
 
   <servlet>
     <servlet-name>IndividualAddEncounter</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualAddEncounter</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>OccurrenceAddEncounter</servlet-name>
+    <servlet-class>org.ecocean.servlet.OccurrenceAddEncounter</servlet-class>
   </servlet>
 
   <servlet>
@@ -520,6 +533,11 @@
   <servlet>
     <servlet-name>EncounterAddComment</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddComment</servlet-class>
+  </servlet>
+  
+    <servlet>
+      <servlet-name>OccurrenceAddComment</servlet-name>
+      <servlet-class>org.ecocean.servlet.OccurrenceAddComment</servlet-class>
   </servlet>
   
     <servlet>
@@ -736,6 +754,11 @@
     <servlet-name>IndividualCreate</servlet-name>
     <url-pattern>/IndividualCreate</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>OccurrenceCreate</servlet-name>
+      <url-pattern>/OccurrenceCreate</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>ScanTaskHandler</servlet-name>
@@ -807,6 +830,11 @@
   <servlet-mapping>
     <servlet-name>EncounterAddComment</servlet-name>
     <url-pattern>/EncounterAddComment</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>OccurrenceAddComment</servlet-name>
+      <url-pattern>/OccurrenceAddComment</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -905,10 +933,20 @@
     <servlet-name>IndividualRemoveEncounter</servlet-name>
     <url-pattern>/IndividualRemoveEncounter</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>OccurrenceRemoveEncounter</servlet-name>
+      <url-pattern>/OccurrenceRemoveEncounter</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>IndividualAddEncounter</servlet-name>
     <url-pattern>/IndividualAddEncounter</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>OccurrenceAddEncounter</servlet-name>
+      <url-pattern>/OccurrenceAddEncounter</url-pattern>
   </servlet-mapping>
 
 
@@ -1354,6 +1392,13 @@
         <url-pattern>/interconnectSubmitSpots</url-pattern>
         <url-pattern>/InterconnectSubmitSpots</url-pattern>
         
+        <url-pattern>/IndividualCreate</url-pattern>
+        <url-pattern>/OccurrenceCreate</url-pattern>
+        <url-pattern>/OccurrenceRemoveEncounter</url-pattern>
+        <url-pattern>/IndividualRemoveEncounter</url-pattern>
+                <url-pattern>/OccurrenceAddEncounter</url-pattern>
+        <url-pattern>/IndividualAddEncounter</url-pattern>
+        
                 <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
         <url-pattern>/TissueSampleRemoveSexAnalysis</url-pattern>
         
@@ -1367,6 +1412,9 @@
          <url-pattern>/EncounterSearchExportShapefile</url-pattern>
          <url-pattern>/EncounterSearchExportEmailAddresses</url-pattern>
          
+         <url-pattern>/EncounterAddComment</url-pattern>
+         <url-pattern>/OccurrenceAddComment</url-pattern>
+         <url-pattern>/IndividualAddComment</url-pattern>
         
              <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
              <url-pattern>/SOCPROGExport</url-pattern>

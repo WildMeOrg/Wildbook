@@ -75,8 +75,24 @@
   String allIndividuals = props.getProperty("allIndividuals");
 
   Shepherd myShepherd = new Shepherd();
-  String name = request.getParameter("name");
-  MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);
+  
+  
+ 
+  
+  Vector haveGPSData = new Vector();
+  
+  if(request.getParameter("name")!=null){
+	  String name = request.getParameter("name");
+	  MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);
+	  haveGPSData = sharky.returnEncountersWithGPSData(true, true);
+  }
+  else if(request.getParameter("occurrence_number")!=null){
+	  String name = request.getParameter("occurrence_number");
+	  Occurrence sharky=myShepherd.getOccurrence(name);
+	  haveGPSData = sharky.returnEncountersWithGPSData(false, false);
+  }
+  
+  
 
   try {
 %>
@@ -100,7 +116,7 @@ margin-bottom: 8px !important;
 
 <p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>
 <%
-  Vector haveGPSData = sharky.returnEncountersWithGPSData(true, true);
+  
   int havegpsSize=haveGPSData.size();
   if (havegpsSize > 0) {
 %>

@@ -1,6 +1,10 @@
 package org.ecocean;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.Vector;
+import java.util.Arrays;
 
 /**
  * Whereas an Encounter is meant to represent one MarkedIndividual at one point in time and space, an Occurrence
@@ -23,6 +27,11 @@ public class Occurrence implements java.io.Serializable{
   private String occurrenceID;
   private int individualCount;
   private String groupBehavior;
+  //additional comments added by researchers
+  private String comments = "None";
+  private String modified;
+  private String locationID;
+  private String dateTimeCreated;
   
   
   //empty constructor used by the JDO enhancer
@@ -39,11 +48,18 @@ public class Occurrence implements java.io.Serializable{
     this.occurrenceID=occurrenceID;
     encounters=new ArrayList<Encounter>();
     encounters.add(enc);
+    
+    if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
+    
   }
   
   public void addEncounter(Encounter enc){
     if(encounters==null){encounters=new ArrayList<Encounter>();}
     encounters.add(enc);
+    
+    if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
+    
+    
   }
   
   public ArrayList<Encounter> getEncounters(){
@@ -96,6 +112,105 @@ public class Occurrence implements java.io.Serializable{
      }
     }
     return returnList;
+  }
+  
+  //you can choose the order of the EncounterDateComparator
+  public Encounter[] getDateSortedEncounters(boolean reverse) {
+  Vector final_encs = new Vector();
+  for (int c = 0; c < encounters.size(); c++) {
+    Encounter temp = (Encounter) encounters.get(c);
+    final_encs.add(temp);
+  }
+
+  int finalNum = final_encs.size();
+  Encounter[] encs2 = new Encounter[finalNum];
+  for (int q = 0; q < finalNum; q++) {
+    encs2[q] = (Encounter) final_encs.get(q);
+  }
+  EncounterDateComparator dc = new EncounterDateComparator(reverse);
+  Arrays.sort(encs2, dc);
+  return encs2;
+}
+  
+  /**
+   * Returns any additional, general comments recorded for this Occurrence as a whole.
+   *
+   * @return a String of comments
+   */
+  public String getComments() {
+    if (comments != null) {
+
+      return comments;
+    } else {
+      return "None";
+    }
+  }
+  
+  /**
+   * Adds any general comments recorded for this Occurrence as a whole.
+   *
+   * @return a String of comments
+   */
+  public void addComments(String newComments) {
+    if ((comments != null) && (!(comments.equals("None")))) {
+      comments += newComments;
+    } else {
+      comments = newComments;
+    }
+  }
+  
+  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder) {
+    //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
+    Vector haveData=new Vector();
+    Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
+    
+    Properties localesProps = new Properties();
+    if(useLocales){
+      try {
+        localesProps.load(ShepherdPMF.class.getResourceAsStream("/bundles/locales.properties"));
+      } 
+      catch (Exception ioe) {
+        ioe.printStackTrace();
+      }
+    }
+    
+    for(int c=0;c<myEncs.length;c++) {
+      Encounter temp=myEncs[c];
+      if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
+        haveData.add(temp);
+      }
+      else if(useLocales && (temp.getLocationID()!=null) && (localesProps.getProperty(temp.getLocationID())!=null)){
+        haveData.add(temp); 
+      }
+
+      }
+
+    return haveData;
+
+  }
+  
+  
+  public String getDWCDateLastModified() {
+    return modified;
+  }
+
+  public void setDWCDateLastModified(String lastModified) {
+    modified = lastModified;
+  }
+  
+  public String getLocationID(){return locationID;}
+  
+  public void setLocationID(String newLocID){this.locationID=newLocID;}
+  
+  public String getDateTimeCreated() {
+    if (dateTimeCreated != null) {
+      return dateTimeCreated;
+    }
+    return "";
+  }
+
+  public void setDateTimeCreated(String time) {
+    dateTimeCreated = time;
   }
   
 }
