@@ -437,6 +437,96 @@ if(!request.getParameter("loggedIn").equals("true")){
   </table>
 <br /> <%
 		  	}
+%>		
+
+
+
+<a name="manageOccurrence"></a>  
+<!-- start Occurrence management section-->			  
+	<%	
+    //Remove from occurrence if assigned
+	if((formShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && CommonConfiguration.isCatalogEditable() && request.getParameter("isOwner").equals("true") && (request.getParameter("edit")!=null) && (request.getParameter("edit").equals("manageOccurrence"))) {
+	%>
+	<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+  	<tr>
+    	<td align="left" valign="top" class="para"><font color="#990000">
+      <table>
+        <tr>
+          <td><font color="#990000"><img align="absmiddle"
+                                         src="../images/cancel.gif"/></font></td>
+          <td><strong><%=encprops.getProperty("removeFromOccurrence")%>
+          </strong></td>
+        </tr>
+      </table>
+    </font></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form action="../OccurrenceRemoveEncounter" method="post" name="removeOccurrence">
+      	<input name="number" type="hidden" value="<%=num%>" /> 
+      	<input name="action" type="hidden" value="remove" /> 
+      	<input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+<br /> <%
+      	}
+      	  //create new Occurrence with name
+      	  if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageOccurrence"))){
+      %>
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+  <tr>
+    <td align="left" valign="top" class="para">
+    	<font color="#990000">
+      		<strong><%=encprops.getProperty("createOccurrence")%>:</strong></font></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form name="createOccurrence" method="post" action="../OccurrenceCreate">
+        <input name="number" type="hidden" value="<%=num%>" /> 
+        <input name="action" type="hidden" value="create" /> 
+        <input name="occurrence" type="text" id="occurrence" size="10" maxlength="50" value="" />
+        <br />
+        <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
+      </form>
+    </td>
+  </tr>
+</table></a>
+<br/>	
+	<%
+      	  }
+		
+	//add this encounter to an Occurrence object
+	if ((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageOccurrence"))) {
+		%> 
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+    <tr>
+      <td align="left" valign="top" class="para"><font color="#990000">
+      
+        <strong><%=encprops.getProperty("add2Occurrence")%>:</strong></font></td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="add2occurrence" action="../OccurrenceAddEncounter" method="post">
+        <%=encprops.getProperty("occurrenceID")%>: <input name="occurrence" type="text" size="10" maxlength="50" /><br /> 
+                                                                            
+            <input name="number" type="hidden" value="<%=num%>" /> 
+            <input name="action" type="hidden" value="add" />
+          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
+          </form>
+      </td>
+    </tr>
+  </table>
+<br /> <%
+		  	}
+	//test comment
+	//another test comment
+%>		
+	
+<!-- end Occurrence management section -->			  
+			  
+<%			  
 		  	  //Remove from MarkedIndividual if not unassigned
 		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned"))&&CommonConfiguration.isCatalogEditable()&&request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))) {
 		  %>
