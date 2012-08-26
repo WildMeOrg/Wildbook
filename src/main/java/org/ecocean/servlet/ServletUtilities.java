@@ -360,6 +360,24 @@ public class ServletUtilities {
     }
     return false;
   }
+  
+  //occurrence
+  public static boolean isUserAuthorizedForOccurrence(Occurrence sharky, HttpServletRequest request) {
+    if (request.isUserInRole("admin")) {
+      return true;
+    }
+
+    ArrayList<Encounter> encounters = sharky.getEncounters();
+    int numEncs = encounters.size();
+    for (int y = 0; y < numEncs; y++) {
+      Encounter enc = (Encounter) encounters.get(y);
+      if (request.isUserInRole(enc.getLocationCode())) {
+        return true;
+      }
+    }
+    return false;
+  }
+  //occurrence
 
   public static Query setRange(Query query, int iterTotal, int highCount, int lowCount) {
 

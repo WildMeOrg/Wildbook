@@ -25,7 +25,7 @@ public class Occurrence implements java.io.Serializable{
   private static final long serialVersionUID = -7545783883959073726L;
   private ArrayList<Encounter> encounters;
   private String occurrenceID;
-  private int individualCount;
+  private Integer individualCount;
   private String groupBehavior;
   //additional comments added by researchers
   private String comments = "None";
@@ -96,8 +96,11 @@ public class Occurrence implements java.io.Serializable{
   public String getOccurrenceID(){return occurrenceID;}
   
 
-  public int getIndividualCount(){return individualCount;}
-  public void setIndividualCount(int count){this.individualCount=count;}
+  public Integer getIndividualCount(){return individualCount;}
+  public void setIndividualCount(Integer count){
+      if(count!=null){individualCount = count;}
+      else{individualCount = null;}
+   }
   
   public String getGroupBehavior(){return groupBehavior;}
   public void setGroupBehavior(String behavior){this.groupBehavior=behavior;}

@@ -201,6 +201,7 @@
 
 
       Occurrence sharky = myShepherd.getOccurrence(name);
+      boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(sharky, request);
 
 %>
 
@@ -225,15 +226,94 @@
 </td>
 </tr></table> </td></tr></table>
 
-<p><%=props.getProperty("groupBehavior") %>: <%=sharky.getGroupBehavior() %></p>
-
+<p><%=props.getProperty("groupBehavior") %>: 
+<%
+if(sharky.getGroupBehavior()!=null){
+%>
+	<%=sharky.getGroupBehavior() %>
+<%
+}
+%>
+&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
+    href="occurrence.jsp?number=<%=name%>&edit=groupBehavior#groupBehavior"><%=props.getProperty("edit")%>
+  </a>]<%}%>
+</p>
+<%
+  if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("groupBehavior"))) {%>
+<br />
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
+  <tr>
+    <td align="left" valign="top"><span class="style1"><%=props.getProperty("setGroupBehavior") %></span></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
+            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
+            <%=props.getProperty("groupBehavior") %>:
+        
+        <%
+        if(CommonConfiguration.getProperty("occurrenceGroupBehavior0")==null){
+        %>
+        <textarea name="behaviorComment" type="text" id="behaviorComment" maxlength="500"></textarea> 
+        <%
+        }
+        else{   
+        %>
+        	
+        	<select name="behaviorComment" id="behaviorComment">
+        		<option value=""></option>
+   
+   				<%
+   				boolean hasMoreStages=true;
+   				int taxNum=0;
+   				while(hasMoreStages){
+   	  				String currentLifeStage = "occurenceGroupBehavior"+taxNum;
+   	  				if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+   	  				%>
+   	  	 
+   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+   	  				<%
+   					taxNum++;
+      				}
+      				else{
+         				hasMoreStages=false;
+      				}
+      
+   				}
+   			%>
+  			</select>
+        
+        
+        <%
+        }
+        %>
+        <input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
+        </form>
+    </td>
+  </tr>
+</table>
+</a><br /> 
+<%}%>
 <p><%=props.getProperty("numMarkedIndividuals") %>: <%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></p>
+
+<p><%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
+<%
+if(sharky.getIndividualCount()!=null){
+%>
+	<%=sharky.getIndividualCount() %>
+<%
+}
+%>
+&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
+    href="occurrence.jsp?number=<%=name%>&edit=individualCount#individualCount"><%=props.getProperty("edit")%>
+  </a>]<%}%>
+</p>
 
 <p><%=props.getProperty("locationID") %>: 
 <%
 if(sharky.getLocationID()!=null){
 %>
-	<%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %>
+	<%=sharky.getLocationID() %>
 <%
 }
 %>
