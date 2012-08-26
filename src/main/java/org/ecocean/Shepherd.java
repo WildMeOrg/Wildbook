@@ -1016,6 +1016,7 @@ public class Shepherd {
       Iterator it=getAllOccurrencesForMarkedIndividual(indie);
       while(it.hasNext()){
          Occurrence oc=(Occurrence)it.next();
+         ArrayList<MarkedIndividual> alreadyCounted=new ArrayList<MarkedIndividual>();
          ArrayList<Encounter> encounters=oc.getEncounters();
          int numEncounters=encounters.size();
          for(int i=0;i<numEncounters;i++){
@@ -1025,9 +1026,9 @@ public class Shepherd {
              //check if we already have this Indie
              if(!hmap.containsKey(indieEnc.getIndividualID())){
                hmap.put(indieEnc.getIndividualID(), (new Integer(1)));
-               //System.out.println("Putting: "+indieEnc.getIndividualID());
+               alreadyCounted.add(indieEnc);
              }
-             else{
+             else if(!alreadyCounted.contains(indieEnc)){
                Integer oldValue=hmap.get(indieEnc.getIndividualID());
                hmap.put(indieEnc.getIndividualID(), (oldValue+1));
                //System.out.println("Iterating: "+indieEnc.getIndividualID());
