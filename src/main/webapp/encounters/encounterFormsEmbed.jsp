@@ -479,7 +479,7 @@ if(!request.getParameter("loggedIn").equals("true")){
   <tr>
     <td align="left" valign="top" class="para">
     	<font color="#990000">
-      		<strong><%=encprops.getProperty("createOccurrence")%>:</strong></font></td>
+      		<strong><%=encprops.getProperty("createOccurrence")%></strong></font></td>
   </tr>
   <tr>
     <td align="left" valign="top">
@@ -498,13 +498,13 @@ if(!request.getParameter("loggedIn").equals("true")){
       	  }
 		
 	//add this encounter to an Occurrence object
-	if ((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageOccurrence"))) {
+	if ((formShepherd.getOccurrenceForEncounter(request.getParameter("number"))==null)&&(request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageOccurrence"))) {
 		%> 
   <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     <tr>
       <td align="left" valign="top" class="para"><font color="#990000">
       
-        <strong><%=encprops.getProperty("add2Occurrence")%>:</strong></font></td>
+        <strong><%=encprops.getProperty("add2Occurrence")%></strong></font></td>
     </tr>
     <tr>
       <td align="left" valign="top">
@@ -521,7 +521,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 <br /> <%
 		  	}
 	//test comment
-	//another test comment
+	
 %>		
 	
 <!-- end Occurrence management section -->			  

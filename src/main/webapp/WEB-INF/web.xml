@@ -246,6 +246,11 @@
     <servlet-class>org.ecocean.servlet.EncounterSetBehavior</servlet-class>
   </servlet>
   
+    <servlet>
+      <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
+      <servlet-class>org.ecocean.servlet.OccurrenceSetGroupBehavior</servlet-class>
+  </servlet>
+  
   <servlet>
     <servlet-name>EncounterSetAsUnidentifiable</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetAsUnidentifiable</servlet-class>
@@ -455,6 +460,11 @@
   <servlet>
     <servlet-name>EncounterSetMaximumDepth</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetMaximumDepth</servlet-class>
+  </servlet>
+  
+    <servlet>
+      <servlet-name>OccurrenceSetIndividualCount</servlet-name>
+      <servlet-class>org.ecocean.servlet.OccurrenceSetIndividualCount</servlet-class>
   </servlet>
 
   <servlet>
@@ -886,6 +896,11 @@
       <servlet-name>EncounterSetBehavior</servlet-name>
       <url-pattern>/EncounterSetBehavior</url-pattern>
   </servlet-mapping>
+  
+      <servlet-mapping>
+        <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
+        <url-pattern>/OccurrenceSetGroupBehavior</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
@@ -963,6 +978,11 @@
   <servlet-mapping>
     <servlet-name>EncounterSetMaximumDepth</servlet-name>
     <url-pattern>/EncounterSetMaximumDepth</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>OccurrenceSetIndividualCount</servlet-name>
+      <url-pattern>/OccurrenceSetIndividualCount</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -1414,10 +1434,14 @@
          
          <url-pattern>/EncounterAddComment</url-pattern>
          <url-pattern>/OccurrenceAddComment</url-pattern>
+          <url-pattern>/OccurrenceSetIndividualCount</url-pattern>
          <url-pattern>/IndividualAddComment</url-pattern>
         
              <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
              <url-pattern>/SOCPROGExport</url-pattern>
+             
+             <url-pattern>/OccurrenceSetGroupBehavior</url-pattern>
+             <url-pattern>/EncounterSetBehavior</url-pattern>
          
       <url-pattern>/CJS</url-pattern>
       <url-pattern>/software.jsp</url-pattern>
