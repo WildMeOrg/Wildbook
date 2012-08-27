@@ -181,12 +181,16 @@ String lastLatLong="";
            String markerText="";
            
            
-           String colorToUseForMarker=haploColor;			
-           if((y==0)&&(havegpsSize>1)){colorToUseForMarker="00FF00";}
+           String colorToUseForMarker=haploColor;
+           String zIndexString="";
+           if((y==0)&&(havegpsSize>0)){
+        	   colorToUseForMarker="00FF00";
+        	   zIndexString=",zIndex: 10000";
+           }
 			
            
            %>
-           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=colorToUseForMarker%>",text:"<%=markerText%>"}),position:latLng,map:map});
+           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=colorToUseForMarker%>",text:"<%=markerText%>"}),position:latLng,map:map<%=zIndexString%>});
 	    
 
             google.maps.event.addListener(marker,'click', function() {
@@ -201,6 +205,65 @@ String lastLatLong="";
  
  lastLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
 } 
+ 
+//for an occurrence, we should also map where else its marked individuals have been spotted 
+ if(request.getParameter("occurrence_number")!=null){
+	 
+	 String name = request.getParameter("occurrence_number");
+	  Occurrence sharky=myShepherd.getOccurrence(name);
+	  ArrayList<String> occurIndies=sharky.getMarkedIndividualNamesForThisOccurrence();
+	  int numParticipatingIndies=occurIndies.size();
+	  for(int g=0;g<numParticipatingIndies;g++){
+		  MarkedIndividual indie=myShepherd.getMarkedIndividual(occurIndies.get(g));
+		  if(indie.returnEncountersWithGPSData(true,false).size()>0){
+			  Vector encsWithGPS=indie.returnEncountersWithGPSData(true,false);
+			  int numEncsWithGPS=encsWithGPS.size();
+			  for(int j=0;j<numEncsWithGPS;j++){
+				  if(!haveGPSData.contains(encsWithGPS.get(j))){
+					  Encounter indieEnc=(Encounter)encsWithGPS.get(j);
+					  
+					  //we now have an Encounter that is external to this occurrence but part of a MarkedIndividual participating in this occurrence
+					  String thisLatLong="999,999";
+					  if(((indieEnc.getDecimalLatitude())!=null)&&(indieEnc.getDecimalLongitude()!=null)){
+							 thisLatLong=indieEnc.getDecimalLatitude()+","+indieEnc.getDecimalLongitude();
+					  }
+					  //let's try to get this from locales.properties
+					  else if(localesProps.getProperty(indieEnc.getLocationID())!=null){
+								 thisLatLong=localesProps.getProperty(indieEnc.getLocationID());
+					  }
+
+						
+					 %>
+					          
+					          var latLng = new google.maps.LatLng(<%=thisLatLong%>);
+					          bounds.extend(latLng);
+					          //movePathCoordinates.push(latLng);
+					           <%
+
+					           
+					           //currently unused programatically
+					           String markerText="";
+					           
+								
+					           
+					           %>
+					           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"C0C0C0",text:"<%=markerText%>"}),position:latLng,map:map});
+						    
+
+					             google.maps.event.addListener(marker,'click', function() {
+					                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indieEnc.isAssignedToMarkedIndividual()%>\"><%=indieEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=indieEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=indieEnc.getDate()%><br />Sex: <%=indieEnc.getSex()%><%if(indieEnc.getSizeAsDouble()!=null){%><br />Size: <%=indieEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=indieEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+					              });
+					 
+						
+					          markers.push(marker);
+					          map.fitBounds(bounds); 
+							<%          
+				  } 
+			  } 
+		  } 
+	  } 
+	 
+ }
 
  %>
  var movePath = new google.maps.Polyline({
@@ -308,8 +371,14 @@ String lastLatLong="";
     </script>
 
 
-<p><%=mappingnote %>
-</p>
+<p><%=mappingnote %></p>
+<%
+if(request.getParameter("occurrence_number")!=null){
+%>
+	<p><%=props.getProperty("occurrenceAdditionalMappingNote") %></p>
+<%
+}
+%>
 
  <div id="map_canvas" style="width: 770px; height: 510px; "></div>
 
