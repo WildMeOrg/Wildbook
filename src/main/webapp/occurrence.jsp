@@ -239,8 +239,10 @@ if(sharky.getGroupBehavior()!=null){
   </a>]<%}%>
 </p>
 <%
-  if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("groupBehavior"))) {%>
+  if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("groupBehavior"))) {
+%>
 <br />
+<a name="setGroupBehavior">
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
   <tr>
     <td align="left" valign="top"><span class="style1"><%=props.getProperty("setGroupBehavior") %></span></td>
@@ -267,7 +269,7 @@ if(sharky.getGroupBehavior()!=null){
    				boolean hasMoreStages=true;
    				int taxNum=0;
    				while(hasMoreStages){
-   	  				String currentLifeStage = "occurenceGroupBehavior"+taxNum;
+   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
    	  				if(CommonConfiguration.getProperty(currentLifeStage)!=null){
    	  				%>
    	  	 
@@ -309,6 +311,34 @@ if(sharky.getIndividualCount()!=null){
   </a>]<%}%>
 </p>
 
+<%
+  if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("individualCount"))) {
+%>
+
+
+<a name="individualCount">
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
+  <tr>
+    <td align="left" valign="top"><span class="style1"><%=props.getProperty("setIndividualCount") %></span></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
+            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
+            <%=props.getProperty("newIndividualCount") %>:
+
+        <input name="count" type="text" id="count" size="5" maxlength="7"></input> 
+        <input name="individualCountButton" type="submit" id="individualCountName" value="<%=props.getProperty("set") %>">
+        </form>
+    </td>
+  </tr>
+</table>
+</a><br />
+
+
+<%
+  }
+%>
 <p><%=props.getProperty("locationID") %>: 
 <%
 if(sharky.getLocationID()!=null){
