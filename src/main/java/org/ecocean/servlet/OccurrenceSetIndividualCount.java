@@ -80,7 +80,7 @@ public class OccurrenceSetIndividualCount extends HttpServlet {
         if((request.getParameter("count") != null)&&(!request.getParameter("count").equals(""))){
           Integer theCount = new Integer(request.getParameter("count"));
           changeMe.setIndividualCount(theCount);
-          newIndieCount = request.getParameter("count")+ " meters";
+          newIndieCount = request.getParameter("count");
         }
         else{
           changeMe.setIndividualCount(null);
