@@ -893,8 +893,11 @@ if(sharky.getLocationID()!=null){
 <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=props.getProperty("researcherComments") %>
 </strong>: </p>
 
+<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+
 <p><%=sharky.getComments().replaceAll("\n", "<br>")%>
 </p>
+</div>
 <%
   if (CommonConfiguration.isCatalogEditable()) {
 %>
