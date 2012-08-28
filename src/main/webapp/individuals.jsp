@@ -1215,8 +1215,11 @@ else {
 <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %>
 </strong>: </p>
 
+<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+
 <p><%=sharky.getComments().replaceAll("\n", "<br>")%>
 </p>
+</div>
 <%
   if (CommonConfiguration.isCatalogEditable()) {
 %>
@@ -1334,7 +1337,15 @@ else {
       content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
 </HEAD>
 <%
-} else {
+} 
+else if(myShepherd.isOccurrence(name)) {
+%>
+<meta http-equiv="REFRESH"
+      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
+</HEAD>
+<%	
+}
+else {
 %>
 
 

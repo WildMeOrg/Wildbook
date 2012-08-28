@@ -30,7 +30,7 @@ public class Occurrence implements java.io.Serializable{
   //additional comments added by researchers
   private String comments = "None";
   private String modified;
-  private String locationID;
+  //private String locationID;
   private String dateTimeCreated;
   
   
@@ -49,7 +49,7 @@ public class Occurrence implements java.io.Serializable{
     encounters=new ArrayList<Encounter>();
     encounters.add(enc);
     
-    if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
+    //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     
   }
   
@@ -57,7 +57,7 @@ public class Occurrence implements java.io.Serializable{
     if(encounters==null){encounters=new ArrayList<Encounter>();}
     encounters.add(enc);
     
-    if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
+    //if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     
     
   }
@@ -103,7 +103,14 @@ public class Occurrence implements java.io.Serializable{
    }
   
   public String getGroupBehavior(){return groupBehavior;}
-  public void setGroupBehavior(String behavior){this.groupBehavior=behavior;}
+  public void setGroupBehavior(String behavior){
+    if((behavior!=null)&&(!behavior.trim().equals(""))){
+      this.groupBehavior=behavior;
+    }
+    else{
+      this.groupBehavior=null;
+    }
+  }
 
   public ArrayList<SinglePhotoVideo> getAllRelatedMedia(){
     int numEncounters=encounters.size();
@@ -201,9 +208,21 @@ public class Occurrence implements java.io.Serializable{
     modified = lastModified;
   }
   
-  public String getLocationID(){return locationID;}
+  /**
+   * This method simply iterates through the encounters for the occurrence and returns the first Encounter.locationID that it finds or returns null.
+   * 
+   * @return
+   */
+  public String getLocationID(){
+    int size=encounters.size();
+    for(int i=0;i<size;i++){
+      Encounter enc=encounters.get(i);
+      if(enc.getLocationID()!=null){return enc.getLocationID();}
+    }
+    return null;
+  }
   
-  public void setLocationID(String newLocID){this.locationID=newLocID;}
+  //public void setLocationID(String newLocID){this.locationID=newLocID;}
   
   public String getDateTimeCreated() {
     if (dateTimeCreated != null) {

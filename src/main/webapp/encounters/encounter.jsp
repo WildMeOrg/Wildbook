@@ -1402,8 +1402,11 @@ if(loggedIn){
       <%
         if (enc.getRComments() != null) {
       %>
+      <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+      
       <p class="para"><%=enc.getRComments().replaceAll("\n", "<br />")%>
       </p>
+      </div>
       <%
         }
         if (CommonConfiguration.isCatalogEditable()) {
