@@ -140,7 +140,7 @@ public class EncounterQueryProcessor {
             else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
     }
-    //end locationID filters-----------------------------------------------
+    //end state filters-----------------------------------------------
 
     
     
