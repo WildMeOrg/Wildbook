@@ -243,6 +243,9 @@
   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
     <strong><%=encprops.getProperty("locationID")%>
     </strong></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
+    <strong><%=encprops.getProperty("occurrenceID")%>
+    </strong></td>
 </tr>
 
 <%
@@ -307,7 +310,22 @@
 
   <td class="lineitem"><%=enc.getLocation()%>
   </td>
-  <td class="lineitem"><%=enc.getLocationCode()%>
+  <td class="lineitem"><%=enc.getLocationID()%>
+  </td>
+    <td class="lineitem">
+    <%
+    if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+    	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+    %>
+    <a href="../occurrence.jsp?number=<%=thisOccur.getOccurrenceID()%>"><%=thisOccur.getOccurrenceID() %></a>
+    <%	
+    }
+    else{
+    %>
+    &nbsp;
+    <%	
+    }
+    %>
   </td>
 </tr>
 <%
