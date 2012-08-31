@@ -186,6 +186,14 @@
 
 
   
+<servlet>
+<servlet-name>EncounterSetPatterningPassport</servlet-name>
+<servlet-class>org.ecocean.servlet.EncounterSetPatterningPassport</servlet-class>
+</servlet>
+<servlet>
+<servlet-name>EncounterGetPatterningPassport</servlet-name>
+<servlet-class>org.ecocean.servlet.EncounterGetPatterningPassport</servlet-class>
+</servlet>
 
   <servlet>
     <servlet-name>ScanAppletSupport</servlet-name>
@@ -903,6 +911,14 @@
       <url-pattern>/OccurrenceAddEncounter</url-pattern>
   </servlet-mapping>
 
+	<servlet-mapping>
+		<servlet-name>EncounterSetPatterningPassport</servlet-name>
+		<url-pattern>/EncounterSetPatterningPassport</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>EncounterGetPatterningPassport</servlet-name>
+		<url-pattern>/EncounterGetPatterningPassport</url-pattern>
+	</servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterSetSex</servlet-name>

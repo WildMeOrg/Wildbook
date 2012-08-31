@@ -168,7 +168,7 @@ public class EncounterRemoveImage extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to remove your image file. I cannot find the encounter that you intended it for in the database.");
+      out.println("<strong>Error:</strong> I was unable to remove your image file. I cannot find the encounter that you intended it for in the database. +++");
       out.println(ServletUtilities.getFooter());
 
     }

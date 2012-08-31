@@ -27,6 +27,7 @@ import org.ecocean.genetics.*;
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.io.File;
 
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
@@ -666,6 +667,18 @@ public class Shepherd {
       return null;
     }
   }
+  
+  public Iterator getAllSinglePhotoVideosNoQuery() {
+    try {
+      Extent spvClass = pm.getExtent(SinglePhotoVideo.class, true);
+      Iterator it = spvClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSinglePhotoVideosNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
   public Iterator getAllAdoptionsNoQuery() {
     try {
@@ -781,7 +794,65 @@ public class Shepherd {
       return null;
     }
   }
-
+  
+  public ArrayList<PatterningPassport> getPatterningPassports() {
+    int num = 0;
+    ArrayList al = new ArrayList<PatterningPassport>();
+    try {
+      //pm.getFetchPlan().setGroup("count");
+      Query q = pm.newQuery(PatterningPassport.class); // no filter, so all instances match
+      Collection results = (Collection) q.execute();
+      num = results.size();
+      al = new ArrayList<PatterningPassport>(results);
+      q.closeAll();
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      //return num;
+      System.out.println("getPatterningPassports EXCEPTION! " + num);
+      return al;
+    }
+    //return num;
+    System.out.println("getPatterningPassports. Returning a collection of length " + al.size() + ". " + num);
+    return al;
+    
+    
+    
+    /*
+    Collection c;
+    Extent encClass = this.getPM().getExtent(PatterningPassport.class, true);
+    Query query = this.getPM().newQuery(encClass);
+    
+    
+    try {
+      c = (Collection) (query.execute());
+      ArrayList list = new ArrayList(c);
+      ArrayList al = new ArrayList<PatterningPassport>(c);
+      System.out.println("getPatterningPassports. Returning a collection of length " + al.size() + ".");
+      System.out.println("... list.size() is " + list.size() + ".");
+      return al;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getPatterningPassports. Returning a null collection because I didn't have a transaction to use.");
+      npe.printStackTrace();
+      return null;
+    }
+    */
+   
+  }
+  /*
+  public ArrayList<File> getAllPatterningPassportFiles() {
+    Iterator all_spv = getAllSinglePhotoVideosNoQuery();
+    Collection c = new ArrayList();
+    while(all_spv.hasNext())
+    {
+      SinglePhotoVideo spv = (SinglePhotoVideo)all_spv.next();
+      File ppFile = spv.getPatterningPassportFile();
+      c.add(ppFile);
+    }
+    ArrayList<File> list = new ArrayList<File>(c);
+    return list;
+    
+  }
+  */
 
   public Iterator getAvailableScanWorkItems(int pageSize, long timeout) {
     Collection c;
