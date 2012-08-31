@@ -36,7 +36,7 @@
       <p class="credit">For more information about intellectual property protection and our terms of usage, please read our <a href="http://www.whaleshark.org/wiki/doku.php?id=visitor_agreement" target="_blank">Visitor Agreement</a>.</p>
 		
   <p class="credit">This software is distributed under the <a
-    href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank">GPL v2 license</a> and is
+    href="http://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPL v3 license</a> and is
     intended to support mark-recapture field studies. Open source and commercially licensed products
     used in this framework are listed <a
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/thirdparty.jsp">here</a>. This is version <%=CommonConfiguration.getVersion()%>.</p>
