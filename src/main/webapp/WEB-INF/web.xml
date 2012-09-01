@@ -285,6 +285,11 @@
         <servlet-class>org.ecocean.servlet.EncounterRemoveTissueSample</servlet-class>
   </servlet>
   
+      <servlet>
+          <servlet-name>EncounterAddMantaPattern</servlet-name>
+          <servlet-class>org.ecocean.servlet.EncounterAddMantaPattern</servlet-class>
+  </servlet>
+  
 
     <servlet>
       <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
@@ -655,6 +660,11 @@
   <servlet-mapping>
     <servlet-name>ImgSyncServlet1</servlet-name>
     <url-pattern>/ImgSyncServlet1</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>EncounterAddMantaPattern</servlet-name>
+      <url-pattern>/EncounterAddMantaPattern</url-pattern>
   </servlet-mapping>
 
 
@@ -1236,6 +1246,9 @@
          <url-pattern>/EncounterSearchExportEmailAddresses</url-pattern>
          
          <url-pattern>/EncounterAddComment</url-pattern>
+         
+         <url-pattern>/EncounterAddMantaPattern</url-pattern>
+         
          <url-pattern>/OccurrenceAddComment</url-pattern>
           <url-pattern>/OccurrenceSetIndividualCount</url-pattern>
          <url-pattern>/IndividualAddComment</url-pattern>
