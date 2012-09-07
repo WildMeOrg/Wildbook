@@ -296,7 +296,7 @@ margin-bottom: 8px !important;
       Encounter enc = myShepherd.getEncounter(num);
       pageContext.setAttribute("enc", enc);
       String livingStatus = "";
-      if (enc.getLivingStatus().equals("dead")) {
+      if ((enc.getLivingStatus()!=null)&&(enc.getLivingStatus().equals("dead"))) {
         livingStatus = " (deceased)";
       }
       //int numImages = enc.getAdditionalImageNames().size();
