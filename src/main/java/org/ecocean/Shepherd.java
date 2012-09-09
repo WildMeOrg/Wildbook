@@ -765,6 +765,21 @@ public class Shepherd {
       return null;
     }
   }
+  
+  public ArrayList getAllOccurrences(Query myQuery) {
+    Collection c;
+    try {
+      c = (Collection) (myQuery.execute());
+      ArrayList list = new ArrayList(c);
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return list;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideo(Query acceptedEncounters) {
     Collection c;
