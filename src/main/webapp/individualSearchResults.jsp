@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, java.util.Properties, java.util.Vector" %>
+         import="org.ecocean.*, java.util.Properties, java.util.Vector,java.util.ArrayList" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -248,11 +248,27 @@
 
 
       if ((count >= startNum) && (count <= endNum)) {
-        Encounter tempEnc = indie.getEncounter(0);
+        ArrayList<SinglePhotoVideo> photos=indie.getAllSinglePhotoVideo();
   %>
   <tr class="lineitem">
-    <td class="lineitem" width="102" bgcolor="#000000"><img
-      src="<%=("/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+tempEnc.getEncounterNumber()+"/thumb.jpg")%>"></td>
+    <td class="lineitem" width="102" bgcolor="#FFFFFF" >
+    
+       							<%
+   								if(photos.size()>0){ 
+   									SinglePhotoVideo myPhoto=photos.get(0);
+   									String imgName = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/" + myPhoto.getCorrespondingEncounterNumber() + "/thumb.jpg";
+   			                       
+   								%>                         
+                            		<a href="individuals.jsp?number=<%=indie.getName()%>"><img src="<%=imgName%>" alt="<%=indie.getName()%>" border="0"/></a>
+                            	<%
+   								}
+   								else{
+   								%>
+   									&nbsp;	
+                            	<%
+   								}
+                            	%>
+      </td>
     <td class="lineitem"><a
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
     </a>

@@ -1034,6 +1034,21 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     return al;
   }
+  
+  public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideo() {
+    ArrayList<SinglePhotoVideo> al = new ArrayList<SinglePhotoVideo>();
+    int numEncounters = encounters.size();
+    for (int i = 0; i < numEncounters; i++) {
+      Encounter enc = (Encounter) encounters.get(i);
+      if(enc.getSinglePhotoVideo()!=null){
+        List<SinglePhotoVideo> list = enc.getSinglePhotoVideo();
+        if(list.size()>0){
+          al.addAll(list);
+        }
+      }
+    }
+    return al;
+  }
 
   public ArrayList<String> getAllValuesForDynamicProperty(String propertyName) {
     ArrayList<String> listPropertyValues = new ArrayList<String>();
