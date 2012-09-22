@@ -47,7 +47,9 @@ public class SOCPROGExport extends HttpServlet{
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    if(!encountersDir.exists()){encountersDir.mkdir();}
     File excelFile = new File(encountersDir.getAbsolutePath()+"/"+ filename);
 
     int numPopulations=2;
