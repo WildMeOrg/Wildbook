@@ -58,9 +58,9 @@ public class EncounterAddImage extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
-    File encountersDir = new File(shepherdDataDir.getAbsolutePath() + "/encounters");
-    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    if(!encountersDir.exists()){encountersDir.mkdir();}
     
     //set up for response
     response.setContentType("text/html");
@@ -69,7 +69,7 @@ public class EncounterAddImage extends HttpServlet {
 
     String fileName = "None";
     String encounterNumber = "None";
-    String fullPathFilename = "";
+    String fullPathFilename="";
 
     try {
       MultipartParser mp = new MultipartParser(request, 10 * 1024 * 1024); // 2MB
@@ -97,15 +97,16 @@ public class EncounterAddImage extends HttpServlet {
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());
           if (fileName != null) {
 
-            File thisSharkDir = new File(encountersDir.getAbsolutePath() + "/" + encounterNumber);
-            File finalFile = new File(thisSharkDir, fileName);
-            fullPathFilename = finalFile.getCanonicalPath();
+            File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ encounterNumber);
+            File finalFile=new File(thisSharkDir, fileName);
+            fullPathFilename=finalFile.getCanonicalPath();
             long file_size = filePart.writeTo(finalFile);
 
           }
         }
       }
       
+
       File thisEncounterDir = new File(encountersDir, encounterNumber);
       
       myShepherd.beginDBTransaction();
@@ -114,8 +115,9 @@ public class EncounterAddImage extends HttpServlet {
         int positionInList = 10000;
 
         Encounter enc = myShepherd.getEncounter(encounterNumber);
-
         try {
+
+
           enc.addSinglePhotoVideo(new SinglePhotoVideo(encounterNumber,(new File(fullPathFilename))));
           enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Submitted new encounter image graphic: " + fileName + ".</p>");
           positionInList = enc.getAdditionalImageNames().size();
@@ -124,6 +126,7 @@ public class EncounterAddImage extends HttpServlet {
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
         }
+
 
         if (!locked) {
           myShepherd.commitDBTransaction();
@@ -138,10 +141,12 @@ public class EncounterAddImage extends HttpServlet {
           String message = "An additional image file has been uploaded for encounter #" + encounterNumber + ".";
           ServletUtilities.informInterestedParties(request, encounterNumber, message);
         } else {
+
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to add this image again.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
           out.println(ServletUtilities.getFooter());
+
         }
       } else {
         myShepherd.rollbackDBTransaction();
