@@ -641,10 +641,10 @@
 
   <servlet>
     <servlet-name>DataNucleus</servlet-name>
-    <servlet-class>org.datanucleus.rest.RestServlet</servlet-class>
+    <servlet-class>org.datanucleus.api.rest.RestServlet</servlet-class>
     <init-param>
       <param-name>persistence-context</param-name>
-      <param-value>ShepherdProject</param-value>
+      <param-value>ShepherdPMF</param-value>
     </init-param>
   </servlet>
 
