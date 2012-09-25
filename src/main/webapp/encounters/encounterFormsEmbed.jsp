@@ -835,7 +835,52 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
           if(thisSample.getTissueType()!=null){tissueType=thisSample.getTissueType();}
           %>
           <%=encprops.getProperty("tissueType")%><br />
-          <input name="tissueType" type="text" size="20" value="<%=tissueType %>" /> 
+          
+          
+          
+                        <%
+              if(CommonConfiguration.getProperty("tissueType0")==null){
+              %>
+              <input name="tissueType" type="text" size="20" maxlength="50"> 
+              <%
+              }
+              else{
+            	  //iterate and find the locationID options
+            	  %>
+            	  <select name="tissueType" id="tissueType">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreLocs=true;
+						       int taxNum=0;
+						       while(hasMoreLocs){
+						       	  String currentLoc = "tissueType"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLoc)!=null){
+						       		  
+						       		  String selected="";
+						       		  if(tissueType.equals(CommonConfiguration.getProperty(currentLoc))){selected="selected=\"selected\"";}
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentLoc)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreLocs=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select>  
+            	  
+            	  
+            <% 	  
+              }
+              %>
+          
+          
           
           <%
           String preservationMethod="";

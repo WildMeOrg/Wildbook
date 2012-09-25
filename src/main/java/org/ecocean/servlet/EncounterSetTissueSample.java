@@ -90,7 +90,7 @@ public class EncounterSetTissueSample extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully set the tissue sample for encounter " + sharky + ".</p>");
+        out.println("<strong>Success!</strong> I have successfully set the biological sample for encounter " + sharky + ".</p>");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
         out.println(ServletUtilities.getFooter());
@@ -107,7 +107,7 @@ public class EncounterSetTissueSample extends HttpServlet {
     } else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to set the tissue sample. I cannot find the encounter that you intended it for in the database.");
+      out.println("<strong>Error:</strong> I was unable to set the biological sample. I cannot find the encounter that you intended it for in the database.");
       out.println(ServletUtilities.getFooter());
 
     }
