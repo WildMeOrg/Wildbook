@@ -650,7 +650,7 @@
 
   <servlet-mapping>
     <servlet-name>DataNucleus</servlet-name>
-    <url-pattern>/dn/*</url-pattern>
+    <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
 
 
