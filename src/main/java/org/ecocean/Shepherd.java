@@ -1078,7 +1078,7 @@ public class Shepherd {
     String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
-    System.out.println("getAllOccurrencesForMarkedIndividual size: "+c.size());
+    //System.out.println("getAllOccurrencesForMarkedIndividual size: "+c.size());
     Iterator it = c.iterator();
     return it;
   }
