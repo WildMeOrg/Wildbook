@@ -6,6 +6,8 @@ import java.util.List;
 
 
 import org.ecocean.DataCollectionEvent;
+import org.ecocean.Measurement;
+
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -22,6 +24,8 @@ public class TissueSample extends DataCollectionEvent {
   private String sampleID;
   private String alternateSampleID;
   private List<GeneticAnalysis> analyses;
+  
+  private List<Measurement> measurements;
 
 
   /**
@@ -83,5 +87,65 @@ public class TissueSample extends DataCollectionEvent {
     if((this.getTissueType()!=null)&&(!this.getTissueType().equals(""))){paramValues+="     Tissue type: "+this.getTissueType()+"<br />";}
     return paramValues; 
   }
+  
+  public void addMeasurement(Measurement measurement){
+    if(measurements==null){measurements=new ArrayList<Measurement>();}
+    if(!measurements.contains(measurement)){measurements.add(measurement);}
+  }
+  public void removeMeasurement(int num){measurements.remove(num);}
+  public List<Measurement> getMeasurements(){return measurements;}
+  public void removeMeasurement(Measurement num){measurements.remove(num);}
+  public Measurement findMeasurementOfType(String type) {
+    List<Measurement> measurements = getMeasurements();
+    if (measurements != null) {
+      for (Measurement measurement : measurements) {
+        if (type.equals(measurement.getType())) {
+          return measurement;
+        }
+      }
+    }
+    return null;
+  }
+  
+  public boolean hasMeasurements(){
+    if((measurements!=null)&&(measurements.size()>0)){
+      int numMeasurements=measurements.size();
+      for(int i=0;i<numMeasurements;i++){
+        Measurement m=measurements.get(i);
+        if(m.getValue()!=null){return true;}
+      }
+    }
+    return false;
+  }
+  
+  
+  public boolean hasMeasurement(String type){
+    if((measurements!=null)&&(measurements.size()>0)){
+      int numMeasurements=measurements.size();
+      for(int i=0;i<numMeasurements;i++){
+        Measurement m=measurements.get(i);
+        if((m.getValue()!=null)&&(m.getType().equals(type))){return true;}
+      }
+    }
+    return false;
+  }
+  
+  /**
+   * Returns the first measurement of the specified type
+   * @param type
+   * @return
+   */
+  public Measurement getMeasurement(String type){
+    if((measurements!=null)&&(measurements.size()>0)){
+      int numMeasurements=measurements.size();
+      for(int i=0;i<numMeasurements;i++){
+        Measurement m=measurements.get(i);
+        if((m.getValue()!=null)&&(m.getType().equals(type))){return m;}
+      }
+    }
+    return null;
+  }
+  
+  
   
 }
