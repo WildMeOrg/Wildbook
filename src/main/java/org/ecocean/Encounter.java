@@ -1472,7 +1472,7 @@ public class Encounter implements java.io.Serializable {
   //public void setDecimalLatitude(String lat){this.decimalLatitude=Double.parseDouble(lat);}
 
   public String getDecimalLongitude(){
-    if(decimalLatitude!=null){return Double.toString(decimalLongitude);}
+    if(decimalLongitude!=null){return Double.toString(decimalLongitude);}
     return null;
   }
 
