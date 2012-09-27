@@ -974,7 +974,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
 
-    System.out.println("Final filter: "+filter);
+    //System.out.println("Final filter: "+filter);
     //allEncounters=myShepherd.getAllEncountersNoQuery();
 
     if(allEncounters!=null){

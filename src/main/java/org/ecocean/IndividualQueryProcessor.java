@@ -920,7 +920,7 @@ public class IndividualQueryProcessor {
     filter+=jdoqlVariableDeclaration;
     filter += parameterDeclaration;
     myShepherd=null;
-    System.out.println("IndividualQueryProcessor filter: "+filter);
+    //System.out.println("IndividualQueryProcessor filter: "+filter);
     return filter;
     
   }
