@@ -20,7 +20,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
-import org.ecocean.genetics.TissueSample;
+import org.ecocean.genetics.*;
 
 public class TissueSampleSetMeasurement extends HttpServlet {
 
@@ -44,6 +44,7 @@ public class TissueSampleSetMeasurement extends HttpServlet {
     String encNum="None";
 
     String sampleID=request.getParameter("sampleID");
+    String analysisID = request.getParameter("analysisID");
     
     encNum=request.getParameter("encounter");
     if(myShepherd.isTissueSample(sampleID, encNum)) {
@@ -55,10 +56,13 @@ public class TissueSampleSetMeasurement extends HttpServlet {
       try {
         while (requestEventValues != null) {
           list.add(requestEventValues);
-          Measurement measurement;
+          BiologicalMeasurement measurement;
           if (requestEventValues.id == null || requestEventValues.id.trim().length() == 0) {
             // New Event -- the user didn't enter any values the first time.
-            measurement = new Measurement(encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
+            //measurement = new BiologicalMeasurement(sampleID, analysisID, encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
+            
+            measurement = new BiologicalMeasurement(sampleID, analysisID, encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
+            
             enc.addMeasurement(measurement);
             //log the new measurement addition
             myEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Added tissue sample "+sampleID+" measurement:<br><i>" + requestEventValues.type + " "+requestEventValues.value+" "+requestEventValues.units+" ("+requestEventValues.samplingProtocol+")</i></p>");
@@ -68,7 +72,7 @@ public class TissueSampleSetMeasurement extends HttpServlet {
             
             
               
-            measurement  = myShepherd.findDataCollectionEvent(Measurement.class, requestEventValues.id);
+            measurement  = myShepherd.findGeneticAnalysis(BiologicalMeasurement.class, requestEventValues.id);
             
             String oldValue="null";
             if(measurement.getValue()!=null){oldValue=measurement.getValue().toString();}

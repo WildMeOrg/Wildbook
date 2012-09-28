@@ -367,6 +367,15 @@ public class Shepherd {
     }
     return dataCollectionEvent;
   }
+  
+  public <T extends GeneticAnalysis> T findGeneticAnalysis(Class<T> clazz, String num) {
+    T dataCollectionEvent = null;
+    try {
+      dataCollectionEvent = (T) pm.getObjectById((pm.newObjectIdInstance(clazz, num.trim())), true);
+    } catch (Exception e) {
+    }
+    return dataCollectionEvent;
+  }
 
 
   public Encounter getEncounterDeepCopy(String num) {
