@@ -25,7 +25,7 @@ public class TissueSample extends DataCollectionEvent {
   private String alternateSampleID;
   private List<GeneticAnalysis> analyses;
   
-  private List<Measurement> measurements;
+  private List<BiologicalMeasurement> measurements;
 
 
   /**
@@ -88,17 +88,17 @@ public class TissueSample extends DataCollectionEvent {
     return paramValues; 
   }
   
-  public void addMeasurement(Measurement measurement){
-    if(measurements==null){measurements=new ArrayList<Measurement>();}
+  public void addMeasurement(BiologicalMeasurement measurement){
+    if(measurements==null){measurements=new ArrayList<BiologicalMeasurement>();}
     if(!measurements.contains(measurement)){measurements.add(measurement);}
   }
   public void removeMeasurement(int num){measurements.remove(num);}
-  public List<Measurement> getMeasurements(){return measurements;}
-  public void removeMeasurement(Measurement num){measurements.remove(num);}
-  public Measurement findMeasurementOfType(String type) {
-    List<Measurement> measurements = getMeasurements();
+  public List<BiologicalMeasurement> getMeasurements(){return measurements;}
+  public void removeMeasurement(BiologicalMeasurement num){measurements.remove(num);}
+  public BiologicalMeasurement findMeasurementOfType(String type) {
+    List<BiologicalMeasurement> measurements = getMeasurements();
     if (measurements != null) {
-      for (Measurement measurement : measurements) {
+      for (BiologicalMeasurement measurement : measurements) {
         if (type.equals(measurement.getType())) {
           return measurement;
         }
@@ -111,7 +111,7 @@ public class TissueSample extends DataCollectionEvent {
     if((measurements!=null)&&(measurements.size()>0)){
       int numMeasurements=measurements.size();
       for(int i=0;i<numMeasurements;i++){
-        Measurement m=measurements.get(i);
+        BiologicalMeasurement m=measurements.get(i);
         if(m.getValue()!=null){return true;}
       }
     }
@@ -123,7 +123,7 @@ public class TissueSample extends DataCollectionEvent {
     if((measurements!=null)&&(measurements.size()>0)){
       int numMeasurements=measurements.size();
       for(int i=0;i<numMeasurements;i++){
-        Measurement m=measurements.get(i);
+        BiologicalMeasurement m=measurements.get(i);
         if((m.getValue()!=null)&&(m.getType().equals(type))){return true;}
       }
     }
@@ -135,11 +135,11 @@ public class TissueSample extends DataCollectionEvent {
    * @param type
    * @return
    */
-  public Measurement getMeasurement(String type){
+  public BiologicalMeasurement getMeasurement(String type){
     if((measurements!=null)&&(measurements.size()>0)){
       int numMeasurements=measurements.size();
       for(int i=0;i<numMeasurements;i++){
-        Measurement m=measurements.get(i);
+        BiologicalMeasurement m=measurements.get(i);
         if((m.getValue()!=null)&&(m.getType().equals(type))){return m;}
       }
     }
