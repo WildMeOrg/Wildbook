@@ -300,6 +300,12 @@
   </servlet>
   
       <servlet>
+        <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
+        <servlet-class>org.ecocean.servlet.TissueSampleRemoveBiologicalMeasurement</servlet-class>
+    </servlet>
+  
+  
+      <servlet>
         <servlet-name>TissueSampleSetMeasurement</servlet-name>
         <servlet-class>org.ecocean.servlet.TissueSampleSetMeasurement</servlet-class>
   </servlet>
@@ -697,6 +703,11 @@
       <servlet-mapping>
         <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+  </servlet-mapping>
+  
+        <servlet-mapping>
+          <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
+          <url-pattern>/TissueSampleRemoveBiologicalMeasurement</url-pattern>
   </servlet-mapping>
   
        <servlet-mapping>
@@ -1241,6 +1252,7 @@
         <url-pattern>/TissueSampleSetHaplotype</url-pattern>
          <url-pattern>/TissueSampleSetMeasurement</url-pattern>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+        <url-pattern>/TissueSampleRemoveBiologicalMeasurement</url-pattern>
         
         <url-pattern>/IndividualCreate</url-pattern>
         <url-pattern>/OccurrenceCreate</url-pattern>
