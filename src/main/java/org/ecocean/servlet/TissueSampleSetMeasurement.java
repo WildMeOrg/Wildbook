@@ -33,8 +33,8 @@ public class TissueSampleSetMeasurement extends HttpServlet {
   }
 
   @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
+  protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    
     Shepherd myShepherd=new Shepherd();
     //set up for response
     response.setContentType("text/html");
@@ -42,11 +42,11 @@ public class TissueSampleSetMeasurement extends HttpServlet {
     boolean locked=false;
 
     String encNum="None";
-
+    encNum=request.getParameter("encounter");
     String sampleID=request.getParameter("sampleID");
     String analysisID = request.getParameter("analysisID");
     
-    encNum=request.getParameter("encounter");
+    
     if(myShepherd.isTissueSample(sampleID, encNum)) {
       TissueSample enc=myShepherd.getTissueSample(sampleID, encNum);
       Encounter myEnc=myShepherd.getEncounter(encNum);

@@ -12,17 +12,20 @@ public class BiologicalMeasurement extends GeneticAnalysis implements java.io.Se
   
   private String samplingProtocol;
   
-  private String type;
+  private String measurementType;
+  
+  
+  private static String type="BiologicalMeasurement";
   
   public BiologicalMeasurement() {
   }
   
-  public BiologicalMeasurement(String sampleID, String analysisID, String correspondingEncounterNumber, String type, Double value, String units, String samplingProtocol) {
+  public BiologicalMeasurement(String sampleID, String analysisID, String correspondingEncounterNumber, String measurementType, Double value, String units, String samplingProtocol) {
     super(analysisID, type, correspondingEncounterNumber, sampleID);
     this.value = value;
     this.units = units;
     this.samplingProtocol=samplingProtocol;
-    this.type=type;
+    this.measurementType=measurementType;
   }
 
   public Double getValue() {
@@ -40,7 +43,9 @@ public class BiologicalMeasurement extends GeneticAnalysis implements java.io.Se
   public String getSamplingProtocol(){return samplingProtocol;}
   public void setSamplingProtocol(String protocol){this.samplingProtocol=protocol;}
   
-  public String getType(){return type;}
-  public void setType(String newType){this.type=newType;}
+  public String getMeasurementType(){return measurementType;}
+  public void setMeasurementType(String newType){this.measurementType=newType;}
+  
+  public static String getType(){return type;}
 
 }

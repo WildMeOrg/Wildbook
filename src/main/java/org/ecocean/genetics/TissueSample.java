@@ -99,7 +99,7 @@ public class TissueSample extends DataCollectionEvent {
     List<BiologicalMeasurement> measurements = getMeasurements();
     if (measurements != null) {
       for (BiologicalMeasurement measurement : measurements) {
-        if (type.equals(measurement.getType())) {
+        if (type.equals(measurement.getMeasurementType())) {
           return measurement;
         }
       }
@@ -124,7 +124,7 @@ public class TissueSample extends DataCollectionEvent {
       int numMeasurements=measurements.size();
       for(int i=0;i<numMeasurements;i++){
         BiologicalMeasurement m=measurements.get(i);
-        if((m.getValue()!=null)&&(m.getType().equals(type))){return true;}
+        if((m.getValue()!=null)&&(m.getMeasurementType().equals(type))){return true;}
       }
     }
     return false;
@@ -140,7 +140,7 @@ public class TissueSample extends DataCollectionEvent {
       int numMeasurements=measurements.size();
       for(int i=0;i<numMeasurements;i++){
         BiologicalMeasurement m=measurements.get(i);
-        if((m.getValue()!=null)&&(m.getType().equals(type))){return m;}
+        if((m.getValue()!=null)&&(m.getMeasurementType().equals(type))){return m;}
       }
     }
     return null;

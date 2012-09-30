@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -1055,6 +1055,98 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
       </form>
     </td>
   </tr>
+</table>
+<br /> 
+<%
+}
+
+
+//reset or create a biological measurement
+if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("addBiologicalMeasurement"))){
+		%> 
+
+<a name="addBiologicalMeasurement"></a>
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+<tr>
+<td align="left" valign="top" class="para"><strong>
+<font color="#990000"><%=encprops.getProperty("setBiologicalMeasurement")%></font></strong></td>
+</tr>
+<tr>
+<td></td>
+</tr>
+<tr>
+<td align="left" valign="top">
+  <form name="setBiologicalMeasurement" action="../TissueSampleSetMeasurement" method="post">
+
+    <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+    <%
+    BiologicalMeasurement mtDNA=new BiologicalMeasurement();
+    String analysisIDString="";
+    if((request.getParameter("analysisID")!=null)&&(formShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"BiologicalMeasurement"))){
+  	    analysisIDString=request.getParameter("analysisID");
+  		mtDNA=formShepherd.getBiologicalMeasurement(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
+    }
+    %>
+    <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+    
+    <%
+    String type="";
+    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
+    %>
+    <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)<br />
+    <input name="type" type="text" size="20" maxlength="100" value="<%=type %>" /> 
+    
+
+	<%
+    String thisValue="";
+    if(mtDNA.getValue()!=null){thisValue=mtDNA.getValue().toString();}
+    %>
+    <%=encprops.getProperty("value")%> (<%=encprops.getProperty("required")%>)<br />
+    <input name="value" type="text" size="20" maxlength="100" value="<%=thisValue %>"></input>
+    
+	<%
+    String thisSamplingProtocol="";
+    if(mtDNA.getSamplingProtocol()!=null){thisValue=mtDNA.getSamplingProtocol();}
+    %>
+    <%=encprops.getProperty("samplingProtocol")%> (<%=encprops.getProperty("required")%>)<br />
+    <input name="samplingProtocol" type="text" size="20" maxlength="100" value="<%=thisSamplingProtocol %>"></input>
+    
+
+	<%
+    String processingLabTaskID="";
+    if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+    %>
+    <%=encprops.getProperty("processingLabTaskID")%><br />
+    <input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+
+		 <%
+    String processingLabName="";
+    if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+    %>
+    <%=encprops.getProperty("processingLabName")%><br />
+    <input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+
+		 <%
+    String processingLabContactName="";
+    if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+    %>
+    <%=encprops.getProperty("processingLabContactName")%><br />
+    <input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+
+		 <%
+    String processingLabContactDetails="";
+    if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+    %>
+    <%=encprops.getProperty("processingLabContactDetails")%><br />
+    <input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+
+		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
+      <input name="number" type="hidden" value="<%=num%>" /> 
+      <input name="action" type="hidden" value="setSexAnalysis" /> 
+      <input name="EditTissueSampleSexAnalysis" type="submit" id="EditTissueSampleSexAnalysis" value="Set" />
+  </form>
+</td>
+</tr>
 </table>
 <br /> 
 <%
