@@ -63,7 +63,7 @@ public class TissueSampleSetMeasurement extends HttpServlet {
             
             measurement = new BiologicalMeasurement(sampleID, analysisID, encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
             
-            enc.addMeasurement(measurement);
+            enc.addGeneticAnalysis(measurement);
             //log the new measurement addition
             myEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Added tissue sample "+sampleID+" measurement:<br><i>" + requestEventValues.type + " "+requestEventValues.value+" "+requestEventValues.units+" ("+requestEventValues.samplingProtocol+")</i></p>");
             

@@ -47,5 +47,16 @@ public class BiologicalMeasurement extends GeneticAnalysis implements java.io.Se
   public void setMeasurementType(String newType){this.measurementType=newType;}
   
   public static String getType(){return type;}
+  
+  public String getSuperHTMLString(){
+    String paramValues=super.getHTMLString();
+    return paramValues; 
+  }
+  
+  public String getHTMLString(){
+    String paramValues=super.getHTMLString();
+    if((this.getMeasurementType()!=null)&&(this.getValue()!=null)&&(this.getUnits()!=null)&& (this.getSamplingProtocol()!=null)){paramValues+="     "+this.getMeasurementType()+" measurement: "+this.getValue().toString()+" "+this.getUnits()+" ("+this.getSampleID()+")<br />";}
+  return paramValues; 
+  }
 
 }

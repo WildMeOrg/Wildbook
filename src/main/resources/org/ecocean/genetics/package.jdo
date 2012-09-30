@@ -87,11 +87,7 @@
 				 	<column jdbc-type="VARCHAR" length="256"/>
 				</field>
 				
-				            <field name="measurements" persistence-modifier="persistent">
-				                <collection element-type="org.ecocean.genetics.BiologicalMeasurement"
-				                    dependent-element="true" />
-				                <join />
-            				</field>
+				        
 
 		</class>
 		

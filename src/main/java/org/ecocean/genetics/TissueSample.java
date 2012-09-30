@@ -88,64 +88,7 @@ public class TissueSample extends DataCollectionEvent {
     return paramValues; 
   }
   
-  public void addMeasurement(BiologicalMeasurement measurement){
-    if(measurements==null){measurements=new ArrayList<BiologicalMeasurement>();}
-    if(!measurements.contains(measurement)){measurements.add(measurement);}
-  }
-  public void removeMeasurement(int num){measurements.remove(num);}
-  public List<BiologicalMeasurement> getMeasurements(){return measurements;}
-  public void removeMeasurement(BiologicalMeasurement num){measurements.remove(num);}
-  public BiologicalMeasurement findMeasurementOfType(String type) {
-    List<BiologicalMeasurement> measurements = getMeasurements();
-    if (measurements != null) {
-      for (BiologicalMeasurement measurement : measurements) {
-        if (type.equals(measurement.getMeasurementType())) {
-          return measurement;
-        }
-      }
-    }
-    return null;
-  }
-  
-  public boolean hasMeasurements(){
-    if((measurements!=null)&&(measurements.size()>0)){
-      int numMeasurements=measurements.size();
-      for(int i=0;i<numMeasurements;i++){
-        BiologicalMeasurement m=measurements.get(i);
-        if(m.getValue()!=null){return true;}
-      }
-    }
-    return false;
-  }
-  
-  
-  public boolean hasMeasurement(String type){
-    if((measurements!=null)&&(measurements.size()>0)){
-      int numMeasurements=measurements.size();
-      for(int i=0;i<numMeasurements;i++){
-        BiologicalMeasurement m=measurements.get(i);
-        if((m.getValue()!=null)&&(m.getMeasurementType().equals(type))){return true;}
-      }
-    }
-    return false;
-  }
-  
-  /**
-   * Returns the first measurement of the specified type
-   * @param type
-   * @return
-   */
-  public BiologicalMeasurement getMeasurement(String type){
-    if((measurements!=null)&&(measurements.size()>0)){
-      int numMeasurements=measurements.size();
-      for(int i=0;i<numMeasurements;i++){
-        BiologicalMeasurement m=measurements.get(i);
-        if((m.getValue()!=null)&&(m.getMeasurementType().equals(type))){return m;}
-      }
-    }
-    return null;
-  }
-  
+   
   
   
 }
