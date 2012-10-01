@@ -429,6 +429,28 @@ public class CommonConfiguration {
     return list;
   }
   
+  public static Integer getIndexNumberForValue(String baseKey, String checkValue){
+    System.out.println("getIndexNumberForValue started for baseKey "+baseKey+" and checkValue "+checkValue);
+    boolean hasMore = true;
+    int index = 0;
+    while (hasMore) {
+      String key = baseKey + index;
+      String value = CommonConfiguration.getProperty(key);
+      System.out.println("     key "+key+" and value "+value);
+      if (value != null) {
+        value = value.trim();
+        System.out.println("CommonConfiguration: "+value);
+        if(value.equals(checkValue)){return (new Integer(index));}
+      }
+      else {
+        hasMore = false;
+      }
+      index++;
+    }
+    return null;
+  }
+  
+  
   private static boolean showCategory(final String category) {
     String showMeasurements = getProperty(category);
     return !Boolean.FALSE.toString().equals(showMeasurements);

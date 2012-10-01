@@ -1089,12 +1089,14 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
     %>
     <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
     
+
+    
     <%
     String type="";
     if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
     %>
     <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)<br />
-    <input name="type" type="text" size="20" maxlength="100" value="<%=type %>" /> 
+    <input name="measurementType" type="text" size="20" maxlength="100" value="<%=type %>" /> 
     
 
 	<%
@@ -1106,9 +1108,9 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
     
 	<%
     String thisSamplingProtocol="";
-    if(mtDNA.getSamplingProtocol()!=null){thisValue=mtDNA.getSamplingProtocol();}
+    if(mtDNA.getSamplingProtocol()!=null){thisSamplingProtocol=mtDNA.getSamplingProtocol();}
     %>
-    <%=encprops.getProperty("samplingProtocol")%> (<%=encprops.getProperty("required")%>)<br />
+    <%=encprops.getProperty("samplingProtocol")%><br />
     <input name="samplingProtocol" type="text" size="20" maxlength="100" value="<%=thisSamplingProtocol %>"></input>
     
 
@@ -1141,9 +1143,9 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
     <input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
 
 		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
-      <input name="number" type="hidden" value="<%=num%>" /> 
-      <input name="action" type="hidden" value="setSexAnalysis" /> 
-      <input name="EditTissueSampleSexAnalysis" type="submit" id="EditTissueSampleSexAnalysis" value="Set" />
+      <input name="encounter" type="hidden" value="<%=num%>" /> 
+      <input name="action" type="hidden" value="setBiologicalMeasurement" /> 
+      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementAnalysis" value="Set" />
   </form>
 </td>
 </tr>

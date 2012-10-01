@@ -26,85 +26,106 @@ public class TissueSampleSetMeasurement extends HttpServlet {
 
   private static final Pattern MEASUREMENT_NAME = Pattern.compile("measurement(\\d+)\\(([^)]*)\\)");
   
-  @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+
+  public void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     doPost(req, resp);
   }
 
-  @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
     Shepherd myShepherd=new Shepherd();
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked=false;
-
-    String encNum="None";
-    encNum=request.getParameter("encounter");
-    String sampleID=request.getParameter("sampleID");
-    String analysisID = request.getParameter("analysisID");
+    
+    myShepherd.beginDBTransaction();
     
     
-    if(myShepherd.isTissueSample(sampleID, encNum)) {
+    
+    if((request.getParameter("encounter")!=null)&&(request.getParameter("sampleID")!=null)&&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("encounter")))) {
+      
+      String encNum=request.getParameter("encounter");
+      String sampleID=request.getParameter("sampleID");
+      String analysisID = request.getParameter("analysisID");
+      
       TissueSample enc=myShepherd.getTissueSample(sampleID, encNum);
       Encounter myEnc=myShepherd.getEncounter(encNum);
-      List<RequestEventValues> list = new ArrayList<RequestEventValues>();
-      int index = 0;
-      RequestEventValues requestEventValues = findRequestEventValues(request, index++);
-      try {
-        while (requestEventValues != null) {
-          list.add(requestEventValues);
-          BiologicalMeasurement measurement;
-          if (requestEventValues.id == null || requestEventValues.id.trim().length() == 0) {
-            // New Event -- the user didn't enter any values the first time.
-            //measurement = new BiologicalMeasurement(sampleID, analysisID, encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
+       try {
+    
+          BiologicalMeasurement measurement=new BiologicalMeasurement();
+          if((request.getParameter("measurementType")!=null)&&(request.getParameter("value")!=null)&&(request.getParameter("samplingProtocol")!=null)){
             
-            measurement = new BiologicalMeasurement(sampleID, analysisID, encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
+            if ((!myShepherd.isGeneticAnalysis(sampleID, encNum, analysisID, "BiologicalMeasurement"))) {
             
-            enc.addGeneticAnalysis(measurement);
-            //log the new measurement addition
-            myEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Added tissue sample "+sampleID+" measurement:<br><i>" + requestEventValues.type + " "+requestEventValues.value+" "+requestEventValues.units+" ("+requestEventValues.samplingProtocol+")</i></p>");
+              //let's determine the units
+              String units="";
+              if((request.getParameter("measurementType")!=null)&&(CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim())!=null)){
+                int index=CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim()).intValue();
+                System.out.println("     TissueSampleSetMeasurement index: "+index);
+                if(CommonConfiguration.getProperty("biologicalMeasurementUnits"+index)!=null){
+                  System.out.println("Found units!");
+                  units=CommonConfiguration.getProperty("biologicalMeasurementUnits"+index);
+                }
+              }
             
-          }
-          else {
+              measurement = new BiologicalMeasurement(sampleID, analysisID, encNum, request.getParameter("measurementType"), (new Double(request.getParameter("value"))), units, request.getParameter("samplingProtocol"));
+            
+              enc.addGeneticAnalysis(measurement);
+              //log the new measurement addition
+              myEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Added tissue sample "+sampleID+" biological\\chemical measurement:<br><i>" + request.getParameter("measurementType") + " "+request.getParameter("value")+" "+units+" ("+request.getParameter("samplingProtocol")+")</i></p>");
+            
+            }
+            else {
             
             
               
-            measurement  = myShepherd.findGeneticAnalysis(BiologicalMeasurement.class, requestEventValues.id);
-            
-            String oldValue="null";
-            if(measurement.getValue()!=null){oldValue=measurement.getValue().toString();}
-            String oldSamplingProtocol="null";
-            if(measurement.getSamplingProtocol()!=null){oldSamplingProtocol=measurement.getSamplingProtocol();}
-            
-            //now set the new values
-            measurement.setValue(requestEventValues.value);
-            measurement.setSamplingProtocol(requestEventValues.samplingProtocol);
+              measurement  = myShepherd.findGeneticAnalysis(BiologicalMeasurement.class, request.getParameter("analysisID"));
             
             
-            //log the measurement change -- TBD
-            myEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed tissue sample "+sampleID+" measurement " + requestEventValues.type + " from "+oldValue+" ("+oldSamplingProtocol+") to "+requestEventValues.value+" "+requestEventValues.units+" ("+requestEventValues.samplingProtocol+")</i></p>");
+              //let's determine the units
+              String units="";
+              if((request.getParameter("measurementType")!=null)&&(CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim())!=null)){
+                int index=CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim()).intValue();
+                System.out.println("     TissueSampleSetMeasurement index: "+index);
+                if(CommonConfiguration.getProperty("biologicalMeasurementUnits"+index)!=null){
+                  System.out.println("Found units!");
+                  units=CommonConfiguration.getProperty("biologicalMeasurementUnits"+index);
+                }
+              }
+              
+              String oldValue="null";
+              if(measurement.getValue()!=null){oldValue=measurement.getValue().toString();}
+              String oldSamplingProtocol="null";
+              if(measurement.getSamplingProtocol()!=null){oldSamplingProtocol=measurement.getSamplingProtocol();}
             
+              //now set the new values
+              measurement.setValue(new Double(request.getParameter("value")));
+              measurement.setSamplingProtocol(request.getParameter("samplingProtocol"));
+            
+            
+              //log the measurement change -- TBD
+              myEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed tissue sample "+sampleID+" biological\\chemical measurement " + request.getParameter("measurementType") + " from "+oldValue+" "+units+" ("+oldSamplingProtocol+") to "+request.getParameter("value")+" "+units+" ("+request.getParameter("samplingProtocol")+")</i></p>");
+            
+            }
+          }
+          else{
+            locked=true;
           }
 
-          requestEventValues = findRequestEventValues(request, index++);
-        }
-      } catch(Exception ex) {
-        ex.printStackTrace();
-        locked = true;
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+       } 
+       catch(Exception ex) {
+         ex.printStackTrace();
+         locked = true;
+         myShepherd.rollbackDBTransaction();
+         myShepherd.closeDBTransaction();
       }
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<p><strong>Success!</strong> I have successfully set the following measurement values for tissue sample "+sampleID+":");
-        for (RequestEventValues requestEventValue : list) {
-          out.println(MessageFormat.format("<br/>{0} set to {1}", requestEventValue.type, requestEventValue.value));
-        }
+        out.println("<p><strong>Success!</strong> I have successfully set a biological\\chemical measurement value for tissue sample "+sampleID+".");
 
         out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
         out.println(ServletUtilities.getFooter());
@@ -121,7 +142,7 @@ public class TissueSampleSetMeasurement extends HttpServlet {
     else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to set the measurements. I cannot find the encounter that you intended in the database.");
+      out.println("<strong>Error:</strong> I was unable to set the measurements. I cannot find the encounter or tissue sample that you intended in the database.");
       out.println(ServletUtilities.getFooter());
 
     }
@@ -129,65 +150,7 @@ public class TissueSampleSetMeasurement extends HttpServlet {
     myShepherd.closeDBTransaction();
   } 
   
-  // The parameter names are of the form "measurement0(id)", "measurement0(type)", "measurement0(value"), "measurement1(id)", "measurement1(type)", "measurement1(value)" etc.
-  // All of same numbered names are part of the same measurement event.
 
-  private RequestEventValues findRequestEventValues(HttpServletRequest request, int index) {
-    String key = "measurement" + index + '(';
-    final int keyLength = key.length();
-    Enumeration enumeration = request.getParameterNames();
-    String id = null;
-    String type = null;
-    Double value = null;
-    String units = null;
-    String samplingProtocol = null;
-    while (enumeration.hasMoreElements()) {
-      String paramName = (String) enumeration.nextElement();
-      if (paramName.startsWith(key)) {
-        String paramValue = request.getParameter(paramName);
-        if (paramValue != null) {
-          paramValue = paramValue.trim();
-        }
-        if (paramName.substring(keyLength).startsWith("id")) {
-          id = paramValue;
-        }
-        else if (paramName.substring(keyLength).startsWith("type")) {
-          type = paramValue;
-        }
-        else if (paramName.substring(keyLength).startsWith("value")) {
-          if (paramValue != null) {
-            try {
-              value = Double.valueOf(paramValue);
-            } catch (NumberFormatException e) {
-            }
-          }
-        }
-        else if (paramName.substring(keyLength).startsWith("units")) {
-          units = paramValue;
-        }
-        else if (paramName.substring(keyLength).startsWith("samplingProtocol")) {
-          samplingProtocol = paramValue;
-        }
-      }
-    }
-    if (id != null || type != null || value != null) {
-      return new RequestEventValues(id, type, value, units, samplingProtocol);
-    }
-    return null;
-  }
 
-  private static class RequestEventValues {
-    private String id;
-    private String type;
-    private Double value;
-    private String units;
-    private String samplingProtocol;
-    public RequestEventValues(String id, String type, Double value, String units, String samplingProtocol) {
-      this.id = id;
-      this.type = type;
-      this.value = value;
-      this.units = units;
-      this.samplingProtocol = samplingProtocol;
-    }
-  }
+
 }
