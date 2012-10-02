@@ -1096,10 +1096,41 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
     if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
     %>
     <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)<br />
-    <input name="measurementType" type="text" size="20" maxlength="100" value="<%=type %>" /> 
     
 
-	<%
+
+     		<%
+     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementType");
+ 			int numProps=values.size();
+ 			ArrayList<String> measurementUnits=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementUnits");
+ 			int numUnitsProps=measurementUnits.size();
+     		
+     		if(numProps>0){
+
+     			%>
+     			<p><select size="<%=(numProps+1) %>" name="measurementType" id="measurementType">
+     			<%
+     		
+     			for(int y=0;y<numProps;y++){
+     				String units="";
+     				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
+     			%>
+     				<option value="<%=values.get(y) %>"><%=values.get(y) %><%=units %></option>
+     			<%
+     			}
+     			%>
+     			</select>
+				</p>
+			<%
+     		}
+     		else{
+			%>
+    			<input name="measurementType" type="text" size="20" maxlength="100" value="<%=type %>" /> 
+    		<%
+     		}
+    		
+     		
+     		
     String thisValue="";
     if(mtDNA.getValue()!=null){thisValue=mtDNA.getValue().toString();}
     %>
@@ -1111,10 +1142,34 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
     if(mtDNA.getSamplingProtocol()!=null){thisSamplingProtocol=mtDNA.getSamplingProtocol();}
     %>
     <%=encprops.getProperty("samplingProtocol")%><br />
-    <input name="samplingProtocol" type="text" size="20" maxlength="100" value="<%=thisSamplingProtocol %>"></input>
     
+    
+     		<%
+     		ArrayList<String> protovalues=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementSamplingProtocols");
+ 			int protonumProps=protovalues.size();
+     		
+     		if(protonumProps>0){
 
-	<%
+     			%>
+     			<p><select size="<%=(protonumProps+1) %>" name="samplingProtocol" id="samplingProtocol">
+     			<%
+     		
+     			for(int y=0;y<numProps;y++){
+     			%>
+     				<option value="<%=protovalues.get(y) %>"><%=protovalues.get(y) %></option>
+     			<%
+     			}
+     			%>
+     			</select>
+				</p>
+			<%
+     		}
+     		else{
+			%>
+    			<input name="samplingProtocol" type="text" size="20" maxlength="100" value="<%=type %>" /> 
+    		<%
+     		}
+
     String processingLabTaskID="";
     if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
     %>
