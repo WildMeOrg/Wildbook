@@ -1114,8 +1114,12 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
      			for(int y=0;y<numProps;y++){
      				String units="";
      				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
+     				String selected="";
+     				if(mtDNA.getMeasurementType().equals(values.get(y))){
+     					selected="selected=\"selected\"";
+     				}
      			%>
-     				<option value="<%=values.get(y) %>"><%=values.get(y) %><%=units %></option>
+     				<option value="<%=values.get(y) %>" <%=selected %>><%=values.get(y) %><%=units %></option>
      			<%
      			}
      			%>
@@ -1154,9 +1158,13 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
      			<p><select size="<%=(protonumProps+1) %>" name="samplingProtocol" id="samplingProtocol">
      			<%
      		
-     			for(int y=0;y<numProps;y++){
+     			for(int y=0;y<protonumProps;y++){
+     				String selected="";
+     				if(mtDNA.getSamplingProtocol().equals(protovalues.get(y))){
+     					selected="selected=\"selected\"";
+     				}
      			%>
-     				<option value="<%=protovalues.get(y) %>"><%=protovalues.get(y) %></option>
+     				<option value="<%=protovalues.get(y) %>" <%=selected %>><%=protovalues.get(y) %></option>
      			<%
      			}
      			%>

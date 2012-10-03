@@ -56,6 +56,10 @@
 		                        <field name="type">
 			                    <column name="TYPE" />
             </field>
+            
+            
+            
+            
         </class>
   		
   		<class name="TissueSample" identity-type="application" table="TISSUESAMPLE">

@@ -104,6 +104,11 @@ public class TissueSampleSetMeasurement extends HttpServlet {
               measurement.setValue(new Double(request.getParameter("value")));
               measurement.setSamplingProtocol(request.getParameter("samplingProtocol"));
             
+              if(request.getParameter("processingLabTaskID")!=null){measurement.setProcessingLabTaskID(request.getParameter("processingLabTaskID"));}
+              if(request.getParameter("processingLabName")!=null){measurement.setProcessingLabName(request.getParameter("processingLabName"));}
+              if(request.getParameter("processingLabContactName")!=null){measurement.setProcessingLabContactName(request.getParameter("processingLabContactName"));}
+              if(request.getParameter("processingLabContactDetails")!=null){measurement.setProcessingLabContactDetails(request.getParameter("processingLabContactDetails"));}
+
             
               //log the measurement change -- TBD
               myEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed tissue sample "+sampleID+" biological\\chemical measurement " + request.getParameter("measurementType") + " from "+oldValue+" "+units+" ("+oldSamplingProtocol+") to "+request.getParameter("value")+" "+units+" ("+request.getParameter("samplingProtocol")+")</i></p>");
