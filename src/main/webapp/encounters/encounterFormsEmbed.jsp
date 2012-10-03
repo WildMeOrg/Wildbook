@@ -1115,7 +1115,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
      				String units="";
      				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
      				String selected="";
-     				if(mtDNA.getMeasurementType().equals(values.get(y))){
+     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
      					selected="selected=\"selected\"";
      				}
      			%>
@@ -1160,7 +1160,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
      		
      			for(int y=0;y<protonumProps;y++){
      				String selected="";
-     				if(mtDNA.getSamplingProtocol().equals(protovalues.get(y))){
+     				if((mtDNA.getSamplingProtocol()!=null)&&(mtDNA.getSamplingProtocol().equals(protovalues.get(y)))){
      					selected="selected=\"selected\"";
      				}
      			%>
@@ -1189,21 +1189,21 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
     if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
     %>
     <%=encprops.getProperty("processingLabName")%><br />
-    <input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+    <input name="processingLabName" type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
 
 		 <%
     String processingLabContactName="";
     if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
     %>
     <%=encprops.getProperty("processingLabContactName")%><br />
-    <input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+    <input name="processingLabContactName" type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
 
 		 <%
     String processingLabContactDetails="";
     if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
     %>
     <%=encprops.getProperty("processingLabContactDetails")%><br />
-    <input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+    <input name="processingLabContactDetails" type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
 
 		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
       <input name="encounter" type="hidden" value="<%=num%>" /> 
