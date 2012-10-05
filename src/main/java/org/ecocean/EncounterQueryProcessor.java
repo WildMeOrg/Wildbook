@@ -381,7 +381,7 @@ public class EncounterQueryProcessor {
               bioMeasurementFilter.append("&&");
             }
             String measurementVar = "biomeasurement" + bioMeasurementsInQuery++;
-            bioMeasurementFilter.append("(dce322.measurements.contains(" + measurementVar + ") && ");
+            bioMeasurementFilter.append("( dce322.measurements.contains(" + measurementVar + ") ) && ");
             bioMeasurementFilter.append( "( "+measurementVar + ".value " + operator + " " + value+" )");
             bioMeasurementFilter.append(" && ( " + measurementVar + ".type == ");
             bioMeasurementFilter.append("\"" + measurementDesc.getType() + "\" )");
