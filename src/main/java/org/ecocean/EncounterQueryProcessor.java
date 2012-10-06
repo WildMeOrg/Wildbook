@@ -347,9 +347,11 @@ public class EncounterQueryProcessor {
     List<MeasurementDesc> bioMeasurementDescs = Util.findBiologicalMeasurementDescs("us");
     String bioMeasurementPrefix = "biomeasurement";
     StringBuilder bioMeasurementFilter = new StringBuilder();
-    bioMeasurementFilter.append("tissueSamples.contains(dce322) && ");
+    bioMeasurementFilter.append("tissueSamples.contains(dce322) ");
     boolean bioAtLeastOneMeasurement = false;
     int bioMeasurementsInQuery = 0;
+    
+    
     for (MeasurementDesc measurementDesc : bioMeasurementDescs) {
       String valueParamName= bioMeasurementPrefix + measurementDesc.getType() + "(value)";
       String value = request.getParameter(valueParamName);
@@ -381,15 +383,17 @@ public class EncounterQueryProcessor {
               bioMeasurementFilter.append("&&");
             }
             String measurementVar = "biomeasurement" + bioMeasurementsInQuery++;
-            bioMeasurementFilter.append("( dce322.measurements.contains(" + measurementVar + ") ) && ");
-            bioMeasurementFilter.append( "( "+measurementVar + ".value " + operator + " " + value+" )");
-            bioMeasurementFilter.append(" && ( " + measurementVar + ".type == ");
+            bioMeasurementFilter.append(" && dce322.analyses.contains(" + measurementVar + ")  ");
+            bioMeasurementFilter.append( " && ( "+measurementVar + ".value " + operator + " " + value+" )");
+            bioMeasurementFilter.append(" && ( " + measurementVar + ".measurementType == ");
             bioMeasurementFilter.append("\"" + measurementDesc.getType() + "\" )");
             bioAtLeastOneMeasurement = true;
           }
         }
       }
     }
+    
+    
     if (bioAtLeastOneMeasurement) {
       if(jdoqlVariableDeclaration.length() > 0){
         jdoqlVariableDeclaration += ";org.ecocean.genetics.TissueSample dce322;";
@@ -403,7 +407,7 @@ public class EncounterQueryProcessor {
         if (i > 0) {
           jdoqlVariableDeclaration += "; ";
         }
-        jdoqlVariableDeclaration += " org.ecocean.genetics.BiologicalMeasurement biomeasurement" + i;
+        jdoqlVariableDeclaration += "org.ecocean.genetics.BiologicalMeasurement biomeasurement" + i;
       }
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
         filter+= bioMeasurementFilter.toString();
