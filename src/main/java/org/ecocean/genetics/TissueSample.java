@@ -25,8 +25,6 @@ public class TissueSample extends DataCollectionEvent {
   private String alternateSampleID;
   private List<GeneticAnalysis> analyses;
   
-  private List<BiologicalMeasurement> measurements;
-
 
   /**
    * Empty constructor required for JDO persistence.
