@@ -227,20 +227,42 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 
 					} else if(myShepherd.isScanTask(taskIdentifier)) {
 
-						System.out.println("scanTaskHandler: This is an existing scanTask...");
+					          System.out.println("scanTaskHandler addTask: This is an existing scanTask...");
+
+					                //check if this is a restart
+					                //if it is, delete the old work items
+					                if(request.getParameter("restart")!=null){
+					                  ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
+					                  ScanTask restartTask=myShepherd.getScanTask(taskIdentifier);
+					                  if(restartTask.getUniqueNumber().startsWith("scanR")){
+					                    isRightScan=true;
+					                    writeThis=restartTask.getWriteThis();
+
+					                  }
+					                  st.setFinished(false);
+					                  es.execute(new ScanTaskCleanupThread(taskIdentifier));
+					                  successfulStore=true;
+					                  System.out.println("I have kicked off the cleanup thread.");
+
+					                }
+					                else{
+					                  locked = true;
+					                }
 
 
-						myShepherd.rollbackDBTransaction();
-						myShepherd.closeDBTransaction();
-						locked=true;
+					                myShepherd.rollbackDBTransaction();
+					                myShepherd.closeDBTransaction();
 
-						String rightFilter="";
-						if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-							rightFilter="&rightSide=true";
-						}
 
-						//if it exists already, advance to the scanTask administration page to await its completion
-						response.sendRedirect("http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp");
+					                String rightFilter = "";
+					                if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+					                  rightFilter = "&rightSide=true";
+					                }
+
+					                //if it exists already, advance to the scanTask administration page to await its completion
+					                if(request.getParameter("restart")==null){
+					                  response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp");
+                }
 					}
 					else{
 						myShepherd.rollbackDBTransaction();
