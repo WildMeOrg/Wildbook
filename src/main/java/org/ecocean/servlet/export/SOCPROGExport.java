@@ -146,6 +146,9 @@ public class SOCPROGExport extends HttpServlet{
         Label popLabel8 = new Label(4, 0, "Haplotype");
         sheet2.addCell(popLabel8);
         
+        Label popLabel9 = new Label(5, 0, "RecaptureStatus");
+        sheet2.addCell(popLabel9);
+        
         
         
         
@@ -236,6 +239,15 @@ public class SOCPROGExport extends HttpServlet{
                       Label popLabel8a = new Label(4, count, enc.getHaplotype());
                       sheet2.addCell(popLabel8a);
                     }
+                    
+                      String cmrStatus="Resight";
+                      if(indy.getDateSortedEncounters(true)[0].getCatalogNumber().equals(enc.getCatalogNumber())){
+                        cmrStatus = "New";
+                      }
+                      Label popLabel9a = new Label(5, count, cmrStatus);
+                      sheet2.addCell(popLabel9a);
+                    
+                    
                     
                   }
                     
