@@ -86,7 +86,61 @@ public class TissueSample extends DataCollectionEvent {
     return paramValues; 
   }
   
-   
+  public boolean hasMeasurements(){
+    if((analyses!=null)&&(analyses.size()>0)){
+      int numMeasurements=analyses.size();
+      for(int i=0;i<numMeasurements;i++){
+        GeneticAnalysis m=analyses.get(i);
+        if(m.getAnalysisType().equals("BiologicalMeasurement")){
+          BiologicalMeasurement f=(BiologicalMeasurement)m;
+          if(f.getValue()!=null){return true;}
+        }
+      }
+    }
+    return false;
+  }
   
+  public boolean hasMeasurement(String measurementType){
+    if((analyses!=null)&&(analyses.size()>0)){
+      int numMeasurements=analyses.size();
+      for(int i=0;i<numMeasurements;i++){
+        GeneticAnalysis m=analyses.get(i);
+        if(m.getAnalysisType().equals("BiologicalMeasurement")){
+          BiologicalMeasurement f=(BiologicalMeasurement)m;
+          if((f.getMeasurementType().equals(measurementType))&&(f.getValue()!=null)){return true;}
+        }
+      }
+    }
+    return false;
+  }
+  
+  public List<BiologicalMeasurement> getBiologicalMeasurements(){
+    ArrayList<BiologicalMeasurement> measures=new ArrayList<BiologicalMeasurement>();
+    if((analyses!=null)&&(analyses.size()>0)){
+      int numMeasurements=analyses.size();
+      for(int i=0;i<numMeasurements;i++){
+        GeneticAnalysis m=analyses.get(i);
+        if(m.getAnalysisType().equals("BiologicalMeasurement")){
+          BiologicalMeasurement f=(BiologicalMeasurement)m;
+          if(f.getValue()!=null){measures.add(f);}
+        }
+      }
+    }
+    return measures;
+  }
+  
+  public BiologicalMeasurement getBiologicalMeasurement(String type){
+    if((analyses!=null)&&(analyses.size()>0)){
+      int numMeasurements=analyses.size();
+      for(int i=0;i<numMeasurements;i++){
+        GeneticAnalysis m=analyses.get(i);
+        if(m.getAnalysisType().equals("BiologicalMeasurement")){
+          BiologicalMeasurement f=(BiologicalMeasurement)m;
+          if(f.getValue()!=null){return f;}
+        }
+      }
+    }
+    return null;
+  }
   
 }
