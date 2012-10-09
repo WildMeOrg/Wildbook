@@ -1715,6 +1715,27 @@ public class Encounter implements java.io.Serializable {
       return null;
     }
     
+    public BiologicalMeasurement getBiologicalMeasurement(String type){
+      
+      if(tissueSamples!=null){int numTissueSamples=tissueSamples.size();
+      for(int y=0;y<numTissueSamples;y++){
+        TissueSample ts=tissueSamples.get(y);
+        if((ts.getGeneticAnalyses()!=null)&&(ts.getGeneticAnalyses().size()>0)){
+          int numMeasurements=ts.getGeneticAnalyses().size();
+          for(int i=0;i<numMeasurements;i++){
+            GeneticAnalysis m=ts.getGeneticAnalyses().get(i);
+            if(m.getAnalysisType().equals("BiologicalMeasurement")){
+              BiologicalMeasurement f=(BiologicalMeasurement)m;
+              if((f.getMeasurementType().equals(type))&&(f.getValue()!=null)){return f;}
+            }
+          }
+        }
+      }
+      }
+
+      return null;
+    }
+    
     
 }
 
