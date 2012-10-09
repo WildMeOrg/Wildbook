@@ -131,7 +131,7 @@ public class GenePopExport extends HttpServlet{
           String indieID=indie.getIndividualID();
           if(i==(numSearch1Individuals-1)){
             
-            if((request.getParameter("searchNameField")!=null)&&(!request.getParameter("searchNameField").equals(""))){indieID=request.getParameter("searchNameField");}
+            if((request1.getParameter("searchNameField")!=null)&&(!request1.getParameter("searchNameField").equals(""))){indieID=request1.getParameter("searchNameField");}
             else{indieID="Search1";}
             
           }
@@ -176,7 +176,7 @@ public class GenePopExport extends HttpServlet{
           String indieID=indie.getIndividualID();
           if(i==(numSearch2Individuals-1)){
             
-            if((request1.getParameter("searchNameField")!=null)&&(!request1.getParameter("searchNameField").trim().equals(""))){indieID=request1.getParameter("searchNameField");}
+            if((request.getParameter("searchNameField")!=null)&&(!request.getParameter("searchNameField").trim().equals(""))){indieID=request.getParameter("searchNameField");}
             else{indieID="Search2";}
             
           }
