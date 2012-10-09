@@ -81,6 +81,16 @@ public class CommonConfiguration {
   
   private static void loadOverrideProps(String shepherdDataDir) {
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
+    
+    //sometimes this ends up being the "bin" directory of the J2EE container
+    //we need to fix that
+    if(configDir.getAbsolutePath().contains("/bin/")){
+      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "");
+      configDir=new File(fixedPath);
+      System.out.println("Fixng the bin issue in CommonCOnfiguration. ");
+      System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+    }
+    
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
     if (configFile.exists()) {
