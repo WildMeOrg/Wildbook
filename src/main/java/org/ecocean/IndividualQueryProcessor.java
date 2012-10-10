@@ -49,7 +49,7 @@ public class IndividualQueryProcessor {
         filter+="(enc.verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";
       }
       else{filter+=" && (enc.verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";}
-      prettyPrint.append("enc.locationField contains \""+locString+"\".<br />");
+      prettyPrint.append("Location contains \""+locString+"\".<br />");
     }
     //end location filter--------------------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ public class IndividualQueryProcessor {
     //locationID filters-------------------------------------------------
     String[] locCodes=request.getParameterValues("locationCodeField");
     if((locCodes!=null)&&(!locCodes[0].equals("None"))){
-          prettyPrint.append("locationCodeField is one of the following: ");
+          prettyPrint.append("Location ID is one of the following: ");
           int kwLength=locCodes.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {

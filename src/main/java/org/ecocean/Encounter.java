@@ -1699,6 +1699,22 @@ public class Encounter implements java.io.Serializable {
       return false;
     }
     
+    public boolean hasBiologicalMeasurement(String type){
+      if((tissueSamples!=null)&&(tissueSamples.size()>0)){  
+        int numTissueSamples=tissueSamples.size();
+        for(int i=0;i<numTissueSamples;i++){
+          TissueSample ts=tissueSamples.get(i);
+          if(ts.getBiologicalMeasurement(type)!=null){
+            BiologicalMeasurement bm=ts.getBiologicalMeasurement(type);
+            if(bm.getValue()!=null){return true;}
+          }
+        }
+      }
+      return false;
+    }
+    
+    
+    
     /**
      * Returns the first measurement of the specified type
      * @param type

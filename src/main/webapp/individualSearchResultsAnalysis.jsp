@@ -95,6 +95,8 @@
 		bioSmallestIndies[b]="";
 		bioLargestIndies[b]="";
 	}
+	
+	//retrieve dates from the URL
 	int year1=(new Integer(request.getParameter("year1"))).intValue();
 	int year2=(new Integer(request.getParameter("year2"))).intValue();
 	int month1=(new Integer(request.getParameter("month1"))).intValue();
