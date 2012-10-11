@@ -204,6 +204,8 @@
  	int year2=(new Integer(request1.getParameter("year2"))).intValue();
  	int month1=(new Integer(request1.getParameter("month1"))).intValue();
  	int month2=(new Integer(request1.getParameter("month2"))).intValue();
+ 	
+ 	
  	 for(int y=0;y<resultSize1;y++){
  		 MarkedIndividual thisEnc=(MarkedIndividual)query1Individuals.get(y);
  		 if((!markedIndividuals1.contains(thisEnc.getIndividualID()))){markedIndividuals1.add(thisEnc.getIndividualID());}
@@ -252,7 +254,7 @@
 					}
 					
 					//first sights vs resights analysis
-					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request1.getParameter("year1")),Integer.parseInt(request1.getParameter("month1")),Integer.parseInt(request1.getParameter("day1")))).getTimeInMillis()){
 						 measurementValuesResights1[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
 							
 				 		   
@@ -290,7 +292,7 @@
 					}
 					
 					//first sights vs resights analysis
-					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request1.getParameter("year1")),Integer.parseInt(request1.getParameter("month1")),Integer.parseInt(request1.getParameter("day1")))).getTimeInMillis()){
 						 bioMeasurementValuesResights1[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
 							
 				 		   
@@ -311,6 +313,10 @@
  	 //end results analysis 1
  	 
  	 //more results2 analysis 	
+ 	  year1=(new Integer(request.getParameter("year1"))).intValue();
+ 	  year2=(new Integer(request.getParameter("year2"))).intValue();
+ 	  month1=(new Integer(request.getParameter("month1"))).intValue();
+ 	 month2=(new Integer(request.getParameter("month2"))).intValue();
  	 ArrayList<String> markedIndividuals2=new ArrayList<String>();
  	 for(int y=0;y<resultSize2;y++){
  		 MarkedIndividual thisEnc=(MarkedIndividual)query2Individuals.get(y);
@@ -336,6 +342,84 @@
  	    	Integer thisInt = sexHashtable2.get("unknown")+1;
    		    sexHashtable2.put("unknown", thisInt);
  	    }
+ 	    
+ 	    
+ 		//measurement
+		for(int b=0;b<numMeasurementTypes;b++){
+			if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType())!=null){
+				
+					measurementValues2[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+					
+					//smallest vs largest analysis
+					if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()<=measurementValues2[b].getMin()){
+						smallestIndies2[b]=thisEnc.getIndividualID();
+					}
+					else if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()>=measurementValues2[b].getMax()){
+						largestIndies2[b]=thisEnc.getIndividualID();
+					}
+					
+					//males versus females analysis
+					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
+						measurementValuesMales2[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+					}
+					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
+						measurementValuesFemales2[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+					}
+					
+					//first sights vs resights analysis
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+						 measurementValuesResights2[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+							
+				 		   
+					 }
+					 else{
+						 measurementValuesNew2[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+							
+					 }
+					
+					
+					
+			}
+		}
+		
+ 		//biomeasurement tabulation
+		for(int b=0;b<numBioMeasurementTypes;b++){
+			if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType())!=null){
+				
+					bioMeasurementValues2[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+					
+					//smallest vs largest analysis
+					if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue()<=bioMeasurementValues2[b].getMin()){
+						bioSmallestIndies2[b]=thisEnc.getIndividualID();
+					}
+					else if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue()>=bioMeasurementValues2[b].getMax()){
+						bioLargestIndies2[b]=thisEnc.getIndividualID();
+					}
+					
+					//males versus females analysis
+					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
+						bioMeasurementValuesMales2[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+					}
+					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
+						bioMeasurementValuesFemales2[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+					}
+					
+					//first sights vs resights analysis
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+						 bioMeasurementValuesResights2[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+							
+				 		   
+					 }
+					 else{
+						 bioMeasurementValuesNew2[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+							
+					 }
+					
+					
+					
+			}
+		}
+ 	    
  		 
  	 }	
  	 //end results analysis 2

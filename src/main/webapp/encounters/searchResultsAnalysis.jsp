@@ -495,7 +495,7 @@
      try {
  %>
  
-
+<p><strong>Charting</strong></p>
 
  <div id="chart_div"></div>
 
