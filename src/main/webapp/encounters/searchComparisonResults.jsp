@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.Query,org.springframework.mock.web.MockHttpServletRequest,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,javax.jdo.Query,org.springframework.mock.web.MockHttpServletRequest,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
 
 
@@ -75,6 +75,89 @@
     query2Individuals = queryResult2.getResult();
     
 
+    //general stats summary setup
+	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
+	int numMeasurementTypes=measurementTypes.size();
+	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en");
+	int numBioMeasurementTypes=bioMeasurementTypes.size();
+	
+	
+    //Search 1 stats summary
+	//prep for measurements summary
+	SummaryStatistics[] measurementValues1=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesMales1=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesFemales1=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesNew1=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesResights1=new SummaryStatistics[numMeasurementTypes];
+	String[] smallestIndies1=new String[numMeasurementTypes];
+	String[] largestIndies1=new String[numMeasurementTypes];
+	for(int b=0;b<measurementValues1.length;b++){
+		measurementValues1[b]=new SummaryStatistics();
+		measurementValuesMales1[b]=new SummaryStatistics();
+		measurementValuesFemales1[b]=new SummaryStatistics();
+		measurementValuesNew1[b]=new SummaryStatistics();
+		measurementValuesResights1[b]=new SummaryStatistics();
+		smallestIndies1[b]="";
+		largestIndies1[b]="";
+	}
+	//prep for biomeasurements summary
+	SummaryStatistics[] bioMeasurementValues1=new SummaryStatistics[numBioMeasurementTypes];
+	SummaryStatistics[] bioMeasurementValuesMales1=new SummaryStatistics[numBioMeasurementTypes];
+	SummaryStatistics[] bioMeasurementValuesFemales1=new SummaryStatistics[numBioMeasurementTypes];
+	SummaryStatistics[] bioMeasurementValuesNew1=new SummaryStatistics[numBioMeasurementTypes];
+	SummaryStatistics[] bioMeasurementValuesResights1=new SummaryStatistics[numBioMeasurementTypes];
+	String[] bioSmallestIndies1=new String[numBioMeasurementTypes];
+	String[] bioLargestIndies1=new String[numBioMeasurementTypes];
+	for(int b=0;b<bioMeasurementValues1.length;b++){
+		bioMeasurementValues1[b]=new SummaryStatistics();
+		bioMeasurementValuesMales1[b]=new SummaryStatistics();
+		bioMeasurementValuesFemales1[b]=new SummaryStatistics();
+		bioMeasurementValuesNew1[b]=new SummaryStatistics();
+		bioMeasurementValuesResights1[b]=new SummaryStatistics();
+		bioSmallestIndies1[b]="";
+		bioLargestIndies1[b]="";
+	}
+	//end search 1 stats summary
+	
+    
+    //Search 2 stats summary
+	//prep for measurements summary
+	SummaryStatistics[] measurementValues2=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesMales2=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesFemales2=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesNew2=new SummaryStatistics[numMeasurementTypes];
+	SummaryStatistics[] measurementValuesResights2=new SummaryStatistics[numMeasurementTypes];
+	String[] smallestIndies2=new String[numMeasurementTypes];
+	String[] largestIndies2=new String[numMeasurementTypes];
+	for(int b=0;b<measurementValues2.length;b++){
+		measurementValues2[b]=new SummaryStatistics();
+		measurementValuesMales2[b]=new SummaryStatistics();
+		measurementValuesFemales2[b]=new SummaryStatistics();
+		measurementValuesNew2[b]=new SummaryStatistics();
+		measurementValuesResights2[b]=new SummaryStatistics();
+		smallestIndies2[b]="";
+		largestIndies2[b]="";
+	}
+	//prep for biomeasurements summary
+	SummaryStatistics[] bioMeasurementValues2=new SummaryStatistics[numBioMeasurementTypes];
+	SummaryStatistics[] bioMeasurementValuesMales2=new SummaryStatistics[numBioMeasurementTypes];
+	SummaryStatistics[] bioMeasurementValuesFemales2=new SummaryStatistics[numBioMeasurementTypes];
+	SummaryStatistics[] bioMeasurementValuesNew2=new SummaryStatistics[numBioMeasurementTypes];
+	SummaryStatistics[] bioMeasurementValuesResights2=new SummaryStatistics[numBioMeasurementTypes];
+	String[] bioSmallestIndies2=new String[numBioMeasurementTypes];
+	String[] bioLargestIndies2=new String[numBioMeasurementTypes];
+	for(int b=0;b<bioMeasurementValues2.length;b++){
+		bioMeasurementValues2[b]=new SummaryStatistics();
+		bioMeasurementValuesMales2[b]=new SummaryStatistics();
+		bioMeasurementValuesFemales2[b]=new SummaryStatistics();
+		bioMeasurementValuesNew2[b]=new SummaryStatistics();
+		bioMeasurementValuesResights2[b]=new SummaryStatistics();
+		bioSmallestIndies2[b]="";
+		bioLargestIndies2[b]="";
+	}
+	//end search 2 stats summary
+	
+    DecimalFormat df = new DecimalFormat("#.##");
     
     List matchedIndividuals = new ArrayList();
     int query1Size=query1Individuals.size();
@@ -117,6 +200,10 @@
  	
 	//more results1 analysis 	
  	 ArrayList<String> markedIndividuals1=new ArrayList<String>();
+ 	int year1=(new Integer(request1.getParameter("year1"))).intValue();
+ 	int year2=(new Integer(request1.getParameter("year2"))).intValue();
+ 	int month1=(new Integer(request1.getParameter("month1"))).intValue();
+ 	int month2=(new Integer(request1.getParameter("month2"))).intValue();
  	 for(int y=0;y<resultSize1;y++){
  		 MarkedIndividual thisEnc=(MarkedIndividual)query1Individuals.get(y);
  		 if((!markedIndividuals1.contains(thisEnc.getIndividualID()))){markedIndividuals1.add(thisEnc.getIndividualID());}
@@ -142,6 +229,84 @@
    		    sexHashtable1.put("unknown", thisInt);
  	    }
  		 
+ 		//measurement
+		for(int b=0;b<numMeasurementTypes;b++){
+			if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType())!=null){
+				
+					measurementValues1[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+					
+					//smallest vs largest analysis
+					if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()<=measurementValues1[b].getMin()){
+						smallestIndies1[b]=thisEnc.getIndividualID();
+					}
+					else if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()>=measurementValues1[b].getMax()){
+						largestIndies1[b]=thisEnc.getIndividualID();
+					}
+					
+					//males versus females analysis
+					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
+						measurementValuesMales1[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+					}
+					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
+						measurementValuesFemales1[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+					}
+					
+					//first sights vs resights analysis
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+						 measurementValuesResights1[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+							
+				 		   
+					 }
+					 else{
+						 measurementValuesNew1[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+							
+					 }
+					
+					
+					
+			}
+		}
+		
+ 		//biomeasurement tabulation
+		for(int b=0;b<numBioMeasurementTypes;b++){
+			if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType())!=null){
+				
+					bioMeasurementValues1[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+					
+					//smallest vs largest analysis
+					if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue()<=bioMeasurementValues1[b].getMin()){
+						bioSmallestIndies1[b]=thisEnc.getIndividualID();
+					}
+					else if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue()>=bioMeasurementValues1[b].getMax()){
+						bioLargestIndies1[b]=thisEnc.getIndividualID();
+					}
+					
+					//males versus females analysis
+					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
+						bioMeasurementValuesMales1[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+					}
+					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
+						bioMeasurementValuesFemales1[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+					}
+					
+					//first sights vs resights analysis
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+						 bioMeasurementValuesResights1[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+							
+				 		   
+					 }
+					 else{
+						 bioMeasurementValuesNew1[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+							
+					 }
+					
+					
+					
+			}
+		}
+		
+ 	    
+ 	    
  	 }	
  	 //end results analysis 1
  	 
@@ -713,6 +878,182 @@ else{
 		<p>No. matching marked individuals: <%=query2Individuals.size() %></p>
 	</td>
 </tr>
+<tr>
+<td>
+<p><strong>Measurements</strong></p>
+<%
+ 		//measurement
+		
+		if(measurementTypes.size()>0){
+			for(int b=0;b<numMeasurementTypes;b++){
+			%>
+				<p>Mean <%= measurementTypes.get(b).getType()%>: 
+				<% 
+				
+				//now report averages
+				if(measurementValues1[b].getN()>0){
+				%>
+				&nbsp;<%=df.format(measurementValues1[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValues1[b].getStandardDeviation()) %>) N=<%=measurementValues1[b].getN() %><br />
+				<ul>
+					<li>Largest: <%=df.format(measurementValues1[b].getMax()) %> <%=measurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=largestIndies1[b] %>"><%=largestIndies1[b] %></a>)</li>
+					<li>Smallest: <%=df.format(measurementValues1[b].getMin()) %> <%=measurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=smallestIndies1[b] %>"><%=smallestIndies1[b] %></a>)</li>
+					<li>Mean for males: <%=df.format(measurementValuesMales1[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesMales1[b].getStandardDeviation()) %>) N=<%=measurementValuesMales1[b].getN() %></li>
+					<li>Mean for females: <%=df.format(measurementValuesFemales1[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesFemales1[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales1[b].getN() %></li>
+					<li>Mean for individuals newly marked in this period: <%=df.format(measurementValuesNew1[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesNew1[b].getStandardDeviation()) %>) N=<%=measurementValuesNew1[b].getN() %></li>
+					<li>Mean for individuals sighted before this period: <%=df.format(measurementValuesResights1[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesResights1[b].getStandardDeviation()) %>) N=<%=measurementValuesResights1[b].getN() %></li>	
+				</ul>
+				<%
+				}
+				else{
+					%>
+					&nbsp;No measurement values available.
+					<%
+				}
+				
+				%>
+				</p>
+			<%
+			}
+		}
+		else{
+			%>
+			<p>No measurement types defined.</p>
+			<% 
+		}
+%>
+
+<p><strong>Biological/Chemical Measurements</strong></p>
+<%
+ 		//measurement
+		
+		if(bioMeasurementTypes.size()>0){
+			for(int b=0;b<numBioMeasurementTypes;b++){
+			%>
+				<p>Mean <%= bioMeasurementTypes.get(b).getType()%>: 
+				<% 
+				
+				//now report averages
+				if(bioMeasurementValues1[b].getN()>0){
+				%>
+				&nbsp;<%=df.format(bioMeasurementValues1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValues1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValues1[b].getN() %><br />
+				<ul>
+					<li>Largest: <%=df.format(bioMeasurementValues1[b].getMax()) %> <%=bioMeasurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=bioLargestIndies1[b] %>"><%=bioLargestIndies1[b] %></a>)</li>
+					<li>Smallest: <%=df.format(bioMeasurementValues1[b].getMin()) %> <%=bioMeasurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=bioSmallestIndies1[b] %>"><%=bioSmallestIndies1[b] %></a>)</li>
+					<li>Mean for males: <%=df.format(bioMeasurementValuesMales1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesMales1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales1[b].getN() %></li>
+					<li>Mean for females: <%=df.format(bioMeasurementValuesFemales1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesFemales1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales1[b].getN() %></li>
+					<li>Mean for individuals newly marked in this period: <%=df.format(bioMeasurementValuesNew1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesNew1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesNew1[b].getN() %></li>
+					<li>Mean for individuals sighted before this period: <%=df.format(bioMeasurementValuesResights1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesResights1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesResights1[b].getN() %></li>	
+				</ul>
+				<%
+				}
+				else{
+					%>
+					&nbsp;No measurement values available.
+					<%
+				}
+				
+				%>
+				</p>
+			<%
+			}
+		}
+		else{
+			%>
+			<p>No measurement types defined.</p>
+			<% 
+		}
+%>
+</td>
+
+<td>
+<p><strong>Measurements</strong></p>
+<%
+ 		//measurement
+		
+		if(measurementTypes.size()>0){
+			for(int b=0;b<numMeasurementTypes;b++){
+			%>
+				<p>Mean <%= measurementTypes.get(b).getType()%>: 
+				<% 
+				
+				//now report averages
+				if(measurementValues2[b].getN()>0){
+				%>
+				&nbsp;<%=df.format(measurementValues2[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValues2[b].getStandardDeviation()) %>) N=<%=measurementValues2[b].getN() %><br />
+				<ul>
+					<li>Largest: <%=df.format(measurementValues2[b].getMax()) %> <%=measurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=largestIndies2[b] %>"><%=largestIndies2[b] %></a>)</li>
+					<li>Smallest: <%=df.format(measurementValues2[b].getMin()) %> <%=measurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=smallestIndies2[b] %>"><%=smallestIndies2[b] %></a>)</li>
+					<li>Mean for males: <%=df.format(measurementValuesMales2[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesMales2[b].getStandardDeviation()) %>) N=<%=measurementValuesMales2[b].getN() %></li>
+					<li>Mean for females: <%=df.format(measurementValuesFemales2[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesFemales2[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales2[b].getN() %></li>
+					<li>Mean for individuals newly marked in this period: <%=df.format(measurementValuesNew2[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesNew2[b].getStandardDeviation()) %>) N=<%=measurementValuesNew2[b].getN() %></li>
+					<li>Mean for individuals sighted before this period: <%=df.format(measurementValuesResights2[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesResights2[b].getStandardDeviation()) %>) N=<%=measurementValuesResights2[b].getN() %></li>	
+				</ul>
+				<%
+				}
+				else{
+					%>
+					&nbsp;No measurement values available.
+					<%
+				}
+				
+				%>
+				</p>
+			<%
+			}
+		}
+		else{
+			%>
+			<p>No measurement types defined.</p>
+			<% 
+		}
+%>
+
+<p><strong>Biological/Chemical Measurements</strong></p>
+<%
+ 		//measurement
+		
+		if(bioMeasurementTypes.size()>0){
+			for(int b=0;b<numBioMeasurementTypes;b++){
+			%>
+				<p>Mean <%= bioMeasurementTypes.get(b).getType()%>: 
+				<% 
+				
+				//now report averages
+				if(bioMeasurementValues2[b].getN()>0){
+				%>
+				&nbsp;<%=df.format(bioMeasurementValues2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValues2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValues2[b].getN() %><br />
+				<ul>
+					<li>Largest: <%=df.format(bioMeasurementValues2[b].getMax()) %> <%=bioMeasurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=bioLargestIndies2[b] %>"><%=bioLargestIndies2[b] %></a>)</li>
+					<li>Smallest: <%=df.format(bioMeasurementValues2[b].getMin()) %> <%=bioMeasurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=bioSmallestIndies2[b] %>"><%=bioSmallestIndies2[b] %></a>)</li>
+					<li>Mean for males: <%=df.format(bioMeasurementValuesMales2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesMales2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales2[b].getN() %></li>
+					<li>Mean for females: <%=df.format(bioMeasurementValuesFemales2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesFemales2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales2[b].getN() %></li>
+					<li>Mean for individuals newly marked in this period: <%=df.format(bioMeasurementValuesNew2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesNew2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesNew2[b].getN() %></li>
+					<li>Mean for individuals sighted before this period: <%=df.format(bioMeasurementValuesResights2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesResights2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesResights2[b].getN() %></li>	
+				</ul>
+				<%
+				}
+				else{
+					%>
+					&nbsp;No measurement values available.
+					<%
+				}
+				
+				%>
+				</p>
+			<%
+			}
+		}
+		else{
+			%>
+			<p>No measurement types defined.</p>
+			<% 
+		}
+%>
+</td>
+
+
+</tr>
+
 <tr>
 	<td>
 	<table class="comparison"><tr><td>

@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
 
 
@@ -31,6 +31,7 @@
 
   <%
 
+  DecimalFormat df = new DecimalFormat("#.##");
 
     //let's load encounterSearch.properties
     String langCode = "en";
@@ -48,7 +49,32 @@
     Shepherd myShepherd = new Shepherd();
 
 
+    
+ 	//prep for measurements summary
+ 	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
+ 	int numMeasurementTypes=measurementTypes.size();
+ 	SummaryStatistics[] measurementValues=new SummaryStatistics[numMeasurementTypes];
+ 	SummaryStatistics[] measurementValuesMales=new SummaryStatistics[numMeasurementTypes];
+ 	SummaryStatistics[] measurementValuesFemales=new SummaryStatistics[numMeasurementTypes];
+ 	for(int b=0;b<measurementValues.length;b++){
+ 		measurementValues[b]=new SummaryStatistics();
+ 		measurementValuesMales[b]=new SummaryStatistics();
+ 		measurementValuesFemales[b]=new SummaryStatistics();
 
+ 	}
+
+ 	
+ 	//prep for biomeasurements summary
+ 	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en");
+ 	int numBioMeasurementTypes=bioMeasurementTypes.size();
+ 	SummaryStatistics[] bioMeasurementValues=new SummaryStatistics[numBioMeasurementTypes];
+ 	SummaryStatistics[] bioMeasurementValuesMales=new SummaryStatistics[numBioMeasurementTypes];
+ 	SummaryStatistics[] bioMeasurementValuesFemales=new SummaryStatistics[numBioMeasurementTypes];
+ 	for(int b=0;b<bioMeasurementValues.length;b++){
+ 		bioMeasurementValues[b]=new SummaryStatistics();
+ 		bioMeasurementValuesMales[b]=new SummaryStatistics();
+ 		bioMeasurementValuesFemales[b]=new SummaryStatistics();
+ 	}
 
 
 
@@ -84,6 +110,8 @@
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
  	 for(int y=0;y<resultSize;y++){
+ 		 
+ 		 
  		 Encounter thisEnc=(Encounter)rEncounters.get(y);
  		 if((!thisEnc.equals("Unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){markedIndividuals.add(thisEnc.getIndividualID().trim());}
  		 //haplotype ie chart prep
@@ -107,8 +135,49 @@
  	    	Integer thisInt = sexHashtable.get("unknown")+1;
    		    sexHashtable.put("unknown", thisInt);
  	    }
+ 	    
+ 		//measurement
+		for(int b=0;b<numMeasurementTypes;b++){
+			if(thisEnc.getMeasurement(measurementTypes.get(b).getType())!=null){
+				
+					measurementValues[b].addValue(thisEnc.getMeasurement(measurementTypes.get(b).getType()).getValue().doubleValue());
+
+					//males versus females analysis
+					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
+						measurementValuesMales[b].addValue(thisEnc.getMeasurement(measurementTypes.get(b).getType()).getValue().doubleValue());
+					}
+					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
+						measurementValuesFemales[b].addValue(thisEnc.getMeasurement(measurementTypes.get(b).getType()).getValue().doubleValue());
+					}
+
+			}
+		}
+		
+ 		//biomeasurement tabulation
+		for(int b=0;b<numBioMeasurementTypes;b++){
+			if(thisEnc.getBiologicalMeasurement(bioMeasurementTypes.get(b).getType())!=null){
+				
+					bioMeasurementValues[b].addValue(thisEnc.getBiologicalMeasurement(bioMeasurementTypes.get(b).getType()).getValue().doubleValue());
+
+					
+					//males versus females analysis
+					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
+						bioMeasurementValuesMales[b].addValue(thisEnc.getBiologicalMeasurement(bioMeasurementTypes.get(b).getType()).getValue().doubleValue());
+					}
+					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
+						bioMeasurementValuesFemales[b].addValue(thisEnc.getBiologicalMeasurement(bioMeasurementTypes.get(b).getType()).getValue().doubleValue());
+					}
+					
+
+					
+			}
+		}
+ 	    
+ 	    
  		 
  	 }	
+ 	 
+ 	 
  	 
  	 
   %>
@@ -348,10 +417,80 @@
  Number matching encounters: <%=resultSize %>
  </p>
 
+<p><strong>Measurements</strong></p>
 <%
+ 		//measurement
+		
+		if(measurementTypes.size()>0){
+			for(int b=0;b<numMeasurementTypes;b++){
+			%>
+				<p>Mean <%= measurementTypes.get(b).getType()%>: 
+				<% 
+				
+				//now report averages
+				if(measurementValues[b].getN()>0){
+				%>
+				&nbsp;<%=df.format(measurementValues[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValues[b].getStandardDeviation()) %>) N=<%=measurementValues[b].getN() %><br />
+				<ul>
+					<li>Mean for males: <%=df.format(measurementValuesMales[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesMales[b].getStandardDeviation()) %>) N=<%=measurementValuesMales[b].getN() %></li>
+					<li>Mean for females: <%=df.format(measurementValuesFemales[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesFemales[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales[b].getN() %></li>
+				</ul>
+				<%
+				}
+				else{
+					%>
+					&nbsp;No measurement values available.
+					<%
+				}
+				
+				%>
+				</p>
+			<%
+			}
+		}
+		else{
+			%>
+			<p>No measurement types defined.</p>
+			<% 
+		}
+%>
+<p><strong>Biological/Chemical Measurements</strong></p>
+<%
+ 		//measurement
+		
+		if(bioMeasurementTypes.size()>0){
+			for(int b=0;b<numBioMeasurementTypes;b++){
+			%>
+				<p>Mean <%= bioMeasurementTypes.get(b).getType()%>: 
+				<% 
+				
+				//now report averages
+				if(bioMeasurementValues[b].getN()>0){
+				%>
+				&nbsp;<%=df.format(bioMeasurementValues[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValues[b].getStandardDeviation()) %>) N=<%=bioMeasurementValues[b].getN() %><br />
+				<ul>
+					<li>Mean for males: <%=df.format(bioMeasurementValuesMales[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesMales[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales[b].getN() %></li>
+					<li>Mean for females: <%=df.format(bioMeasurementValuesFemales[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesFemales[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales[b].getN() %></li>
+					</ul>
+				<%
+				}
+				else{
+					%>
+					&nbsp;No measurement values available.
+					<%
+				}
+				
+				%>
+				</p>
+			<%
+			}
+		}
+		else{
+			%>
+			<p>No measurement types defined.</p>
+			<% 
+		}
 
-
- //test comment
 
      try {
  %>

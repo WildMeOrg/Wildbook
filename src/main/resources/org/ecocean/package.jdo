@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE jdo PUBLIC
     "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN"
     "http://java.sun.com/dtd/jdo_2_0.dtd">
@@ -6,9 +5,7 @@
 <jdo>
     <package name="org.ecocean">
 
-
-
-        <class name="Adoption" identity-type="application">
+		 <class name="Adoption" identity-type="application">
             <field name="adopterName" persistence-modifier="persistent">
                 <column jdbc-type="LONGVARCHAR" />
             </field>
@@ -368,6 +365,7 @@
 
         <class name="SinglePhotoVideo" identity-type="application">
             <inheritance strategy="new-table" />
+			 
             <field name="filename">
                 <column name="FILENAME" />
             </field>
@@ -386,8 +384,8 @@
                 <collection element-type="org.ecocean.Keyword" />
                 <join />
             </field>
-
-
+			
+			 <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
         </class>
 
         <class name="Measurement" identity-type="application">
@@ -399,6 +397,21 @@
                 <column name="UNITS" />
             </field>
         </class>
-
+		
+		<class name="PatterningPassport" identity-type="datastore">
+			<field name="timestampOfLastUpdate">
+				<column jdbc-type="BIGINT" />
+			</field>
+			<field name="encounterUrl">
+				<column jdbc-type="LONGVARCHAR" />
+			</field>
+			<field name="mediaUrl">
+				<column jdbc-type="LONGVARCHAR" />
+			</field>
+			<field name="patterningPassportXmlUrl">
+				<column jdbc-type="LONGVARCHAR" />
+			</field>
+		</class>
+		
     </package>
 </jdo>

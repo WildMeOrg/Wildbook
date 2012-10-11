@@ -6,6 +6,8 @@ import java.util.List;
 
 
 import org.ecocean.DataCollectionEvent;
+import org.ecocean.Measurement;
+
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -22,7 +24,7 @@ public class TissueSample extends DataCollectionEvent {
   private String sampleID;
   private String alternateSampleID;
   private List<GeneticAnalysis> analyses;
-
+  
 
   /**
    * Empty constructor required for JDO persistence.
@@ -82,6 +84,63 @@ public class TissueSample extends DataCollectionEvent {
     if((this.getStorageLabID()!=null)&&(!this.getStorageLabID().equals(""))){paramValues+="     Storage lab ID: "+this.getStorageLabID()+"<br />";}
     if((this.getTissueType()!=null)&&(!this.getTissueType().equals(""))){paramValues+="     Tissue type: "+this.getTissueType()+"<br />";}
     return paramValues; 
+  }
+  
+  public boolean hasMeasurements(){
+    if((analyses!=null)&&(analyses.size()>0)){
+      int numMeasurements=analyses.size();
+      for(int i=0;i<numMeasurements;i++){
+        GeneticAnalysis m=analyses.get(i);
+        if(m.getAnalysisType().equals("BiologicalMeasurement")){
+          BiologicalMeasurement f=(BiologicalMeasurement)m;
+          if(f.getValue()!=null){return true;}
+        }
+      }
+    }
+    return false;
+  }
+  
+  public boolean hasMeasurement(String measurementType){
+    if((analyses!=null)&&(analyses.size()>0)){
+      int numMeasurements=analyses.size();
+      for(int i=0;i<numMeasurements;i++){
+        GeneticAnalysis m=analyses.get(i);
+        if(m.getAnalysisType().equals("BiologicalMeasurement")){
+          BiologicalMeasurement f=(BiologicalMeasurement)m;
+          if((f.getMeasurementType().equals(measurementType))&&(f.getValue()!=null)){return true;}
+        }
+      }
+    }
+    return false;
+  }
+  
+  public List<BiologicalMeasurement> getBiologicalMeasurements(){
+    ArrayList<BiologicalMeasurement> measures=new ArrayList<BiologicalMeasurement>();
+    if((analyses!=null)&&(analyses.size()>0)){
+      int numMeasurements=analyses.size();
+      for(int i=0;i<numMeasurements;i++){
+        GeneticAnalysis m=analyses.get(i);
+        if(m.getAnalysisType().equals("BiologicalMeasurement")){
+          BiologicalMeasurement f=(BiologicalMeasurement)m;
+          if(f.getValue()!=null){measures.add(f);}
+        }
+      }
+    }
+    return measures;
+  }
+  
+  public BiologicalMeasurement getBiologicalMeasurement(String type){
+    if((analyses!=null)&&(analyses.size()>0)){
+      int numMeasurements=analyses.size();
+      for(int i=0;i<numMeasurements;i++){
+        GeneticAnalysis m=analyses.get(i);
+        if(m.getAnalysisType().equals("BiologicalMeasurement")){
+          BiologicalMeasurement f=(BiologicalMeasurement)m;
+          if(f.getValue()!=null){return f;}
+        }
+      }
+    }
+    return null;
   }
   
 }

@@ -39,25 +39,11 @@ public class ShepherdPMF {
         Properties dnProperties = new Properties();
 
 
-        dnProperties.setProperty("javax.jdo.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.JDOPersistenceManagerFactory");
+ 
 
-        //class setup
-        Properties props = new Properties();
-        try {
-          props.load(ShepherdPMF.class.getResourceAsStream("/bundles/commonConfiguration.properties"));
-        } catch (IOException ioe) {
-          ioe.printStackTrace();
-        }
+    
 
-        Enumeration<Object> propsNames = props.keys();
-        while (propsNames.hasMoreElements()) {
-          String name = (String) propsNames.nextElement();
-          if (name.startsWith("datanucleus") || name.startsWith("javax.jdo")) {
-            dnProperties.setProperty(name, props.getProperty(name).trim());
-          }
-        }
-
-        pmf = JDOHelper.getPersistenceManagerFactory(dnProperties);
+        pmf = JDOHelper.getPersistenceManagerFactory("ShepherdPMF");
 
 
       }
