@@ -899,6 +899,33 @@ if(CommonConfiguration.showProperty("showLifestage")){
 </tr>
 </c:forEach>
 </c:if>
+
+
+
+
+<%
+  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements());
+%>
+<c:if test="${showMeasurement}">
+<%
+    pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode));
+%>
+<tr><td><strong><%=encprops.getProperty("biomeasurements") %></strong></td></tr>
+<c:forEach items="${items}" var="item">
+<tr valign="top">
+<td>${item.label}
+<select name="biomeasurement${item.type}(operator)">
+  <option value="gt">&gt;</option>
+  <option value="lt">&lt;</option>
+  <option value="eq">=</option>
+</select>
+<input name="biomeasurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
+</td>
+</tr>
+</c:forEach>
+</c:if>
+
+
       <p><strong><%=encprops.getProperty("hasPhoto")%>: </strong>
             <label> 
             	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />

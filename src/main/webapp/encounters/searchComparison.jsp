@@ -481,6 +481,11 @@ function FSControl(controlDiv, map) {
         href="<%=CommonConfiguration.getWikiLocation()%>locationID"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
+                             
+                              <input name="andLocationIDs" type="checkbox" id="andLocationIDs" value="andLocationIDs" /> <%=encprops.getProperty("andLocationID")%>
+                             
+                             <br />
+                             
         (<em><%=encprops.getProperty("locationIDExample")%>
         </em>)</p>
 

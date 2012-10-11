@@ -197,11 +197,22 @@
 
 
   
+
    <servlet>
       <servlet-name>SinglePhotoVideoAddKeyword</servlet-name>
       <servlet-class>org.ecocean.servlet.SinglePhotoVideoAddKeyword</servlet-class>
   </servlet>
   
+
+<servlet>
+<servlet-name>EncounterSetPatterningPassport</servlet-name>
+<servlet-class>org.ecocean.servlet.EncounterSetPatterningPassport</servlet-class>
+</servlet>
+<servlet>
+<servlet-name>EncounterGetPatterningPassport</servlet-name>
+<servlet-class>org.ecocean.servlet.EncounterGetPatterningPassport</servlet-class>
+</servlet>
+
 
   <servlet>
     <servlet-name>ScanAppletSupport</servlet-name>
@@ -306,6 +317,17 @@
     <servlet>
       <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
       <servlet-class>org.ecocean.servlet.TissueSampleRemoveHaplotype</servlet-class>
+  </servlet>
+  
+      <servlet>
+        <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
+        <servlet-class>org.ecocean.servlet.TissueSampleRemoveBiologicalMeasurement</servlet-class>
+    </servlet>
+  
+  
+      <servlet>
+        <servlet-name>TissueSampleSetMeasurement</servlet-name>
+        <servlet-class>org.ecocean.servlet.TissueSampleSetMeasurement</servlet-class>
   </servlet>
   
       <servlet>
@@ -676,16 +698,16 @@
 
   <servlet>
     <servlet-name>DataNucleus</servlet-name>
-    <servlet-class>org.datanucleus.rest.RestServlet</servlet-class>
+    <servlet-class>org.datanucleus.api.rest.RestServlet</servlet-class>
     <init-param>
       <param-name>persistence-context</param-name>
-      <param-value>ShepherdProject</param-value>
+      <param-value>ShepherdPMF</param-value>
     </init-param>
   </servlet>
 
   <servlet-mapping>
     <servlet-name>DataNucleus</servlet-name>
-    <url-pattern>/dn/*</url-pattern>
+    <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
 
 
@@ -733,6 +755,11 @@
       <servlet-mapping>
         <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+  </servlet-mapping>
+  
+        <servlet-mapping>
+          <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
+          <url-pattern>/TissueSampleRemoveBiologicalMeasurement</url-pattern>
   </servlet-mapping>
   
        <servlet-mapping>
@@ -950,6 +977,11 @@
   </servlet-mapping>
   
     <servlet-mapping>
+      <servlet-name>TissueSampleSetMeasurement</servlet-name>
+      <url-pattern>/TissueSampleSetMeasurement</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
       <servlet-name>OccurrenceRemoveEncounter</servlet-name>
       <url-pattern>/OccurrenceRemoveEncounter</url-pattern>
   </servlet-mapping>
@@ -964,6 +996,14 @@
       <url-pattern>/OccurrenceAddEncounter</url-pattern>
   </servlet-mapping>
 
+	<servlet-mapping>
+		<servlet-name>EncounterSetPatterningPassport</servlet-name>
+		<url-pattern>/EncounterSetPatterningPassport</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>EncounterGetPatterningPassport</servlet-name>
+		<url-pattern>/EncounterGetPatterningPassport</url-pattern>
+	</servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterSetSex</servlet-name>
@@ -1408,9 +1448,9 @@
        <url-pattern>/EncounterSetLifeStage</url-pattern>
         <url-pattern>/EncounterSetTissueSample</url-pattern>
         <url-pattern>/TissueSampleSetHaplotype</url-pattern>
+         <url-pattern>/TissueSampleSetMeasurement</url-pattern>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
-        <url-pattern>/interconnectSubmitSpots</url-pattern>
-        <url-pattern>/InterconnectSubmitSpots</url-pattern>
+        <url-pattern>/TissueSampleRemoveBiologicalMeasurement</url-pattern>
         
         <url-pattern>/IndividualCreate</url-pattern>
         <url-pattern>/OccurrenceCreate</url-pattern>
@@ -1458,6 +1498,8 @@
       <url-pattern>/appadmin/kwResults.jsp</url-pattern>
       <url-pattern>/individualSearch.jsp</url-pattern>
       <url-pattern>/individualSearchResults.jsp</url-pattern>
+      <url-pattern>/individualSearchResultsExport.jsp</url-pattern>
+      <url-pattern>/individualSearchResultsAnalysis.jsp</url-pattern>
       <url-pattern>/individualMappedSearchResults.jsp</url-pattern>
       <url-pattern>/individualThumbnailSearchResults.jsp</url-pattern>
       <url-pattern>/encounters/thumbnailSearch.jsp</url-pattern>

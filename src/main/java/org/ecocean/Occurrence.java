@@ -235,4 +235,32 @@ public class Occurrence implements java.io.Serializable{
     dateTimeCreated = time;
   }
   
+  public ArrayList<String> getCorrespondingHaplotypePairsForMarkedIndividuals(Shepherd myShepherd){
+    ArrayList<String> pairs = new ArrayList<String>();
+    
+    ArrayList<String> names=getMarkedIndividualNamesForThisOccurrence();
+    int numNames=names.size();
+    for(int i=0;i<(numNames-1);i++){
+      for(int j=1;j<numNames;j++){
+        String name1=names.get(i);
+        MarkedIndividual indie1=myShepherd.getMarkedIndividual(name1);
+        String name2=names.get(i);
+        MarkedIndividual indie2=myShepherd.getMarkedIndividual(name2);
+        if((indie1.getHaplotype()!=null)&&(indie2.getHaplotype()!=null)){
+          
+          //we have a haplotype pair,
+          String haplo1=indie1.getHaplotype();
+          String haplo2=indie2.getHaplotype();
+          
+          if(haplo1.compareTo(haplo2)>0){pairs.add((haplo1+":"+haplo2));}
+          else{pairs.add((haplo2+":"+haplo1));}
+        }
+        
+         
+      }
+    }
+    
+    return pairs;
+  }
+  
 }

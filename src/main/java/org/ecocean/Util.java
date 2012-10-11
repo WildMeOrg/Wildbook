@@ -24,7 +24,9 @@ public class Util {
   
   //Measurement static values
   private static final String MEASUREMENT = "measurement";
+  private static final String BIOLOGICALMEASUREMENT = "biologicalMeasurementType";
   private static final String UNITS = MEASUREMENT + "Units";
+  private static final String BIOLOGICALMEASUREMENTUNITS = BIOLOGICALMEASUREMENT.replaceAll("Type", "Units");
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
   
@@ -36,6 +38,22 @@ public class Util {
     List<String> types = CommonConfiguration.getIndexedValues(MEASUREMENT);
     if (types.size() > 0) {
       List<String> units = CommonConfiguration.getIndexedValues(UNITS);
+      for (int i = 0; i < types.size() && i < units.size(); i++) {
+        String type = types.get(i);
+        String unit = units.get(i);
+        String typeLabel = findLabel(type, langCode);
+        String unitsLabel = findLabel(unit, langCode);
+        list.add(new MeasurementDesc(type, typeLabel, unit, unitsLabel));
+      }
+    }
+    return list;
+  }
+  
+  public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode) {
+    List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
+    List<String> types = CommonConfiguration.getIndexedValues(BIOLOGICALMEASUREMENT);
+    if (types.size() > 0) {
+      List<String> units = CommonConfiguration.getIndexedValues(BIOLOGICALMEASUREMENTUNITS);
       for (int i = 0; i < types.size() && i < units.size(); i++) {
         String type = types.get(i);
         String unit = units.get(i);

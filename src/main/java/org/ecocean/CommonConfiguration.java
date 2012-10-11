@@ -81,6 +81,16 @@ public class CommonConfiguration {
   
   private static void loadOverrideProps(String shepherdDataDir) {
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
+    
+    //sometimes this ends up being the "bin" directory of the J2EE container
+    //we need to fix that
+    if(configDir.getAbsolutePath().contains("/bin/")){
+      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "");
+      configDir=new File(fixedPath);
+      System.out.println("Fixng the bin issue in CommonCOnfiguration. ");
+      System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+    }
+    
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
     if (configFile.exists()) {
@@ -428,6 +438,28 @@ public class CommonConfiguration {
     }
     return list;
   }
+  
+  public static Integer getIndexNumberForValue(String baseKey, String checkValue){
+    System.out.println("getIndexNumberForValue started for baseKey "+baseKey+" and checkValue "+checkValue);
+    boolean hasMore = true;
+    int index = 0;
+    while (hasMore) {
+      String key = baseKey + index;
+      String value = CommonConfiguration.getProperty(key);
+      System.out.println("     key "+key+" and value "+value);
+      if (value != null) {
+        value = value.trim();
+        System.out.println("CommonConfiguration: "+value);
+        if(value.equals(checkValue)){return (new Integer(index));}
+      }
+      else {
+        hasMore = false;
+      }
+      index++;
+    }
+    return null;
+  }
+  
   
   private static boolean showCategory(final String category) {
     String showMeasurements = getProperty(category);

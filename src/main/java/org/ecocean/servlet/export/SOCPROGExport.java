@@ -1,4 +1,5 @@
 package org.ecocean.servlet.export;
+
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -6,11 +7,14 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.*;
+import org.ecocean.genetics.BiologicalMeasurement;
 import org.ecocean.servlet.ServletUtilities;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import jxl.write.*;
 import jxl.Workbook;
+
+import org.ecocean.Util.MeasurementDesc;
 
 
 //adds spots to a new encounter
@@ -146,7 +150,24 @@ public class SOCPROGExport extends HttpServlet{
         Label popLabel8 = new Label(4, 0, "Haplotype");
         sheet2.addCell(popLabel8);
         
+        Label popLabel9 = new Label(5, 0, "RecaptureStatus");
+        sheet2.addCell(popLabel9);
         
+        List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
+        int numMeasurementTypes=measurementTypes.size();
+        for(int j=0;j<numMeasurementTypes;j++){
+          String measureName=measurementTypes.get(j).getType();
+          Label popLabelX = new Label((j+6), 0, measureName);
+          sheet2.addCell(popLabelX);
+        }
+         
+        List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en");
+        int numBioMeasurementTypes=bioMeasurementTypes.size();
+        for(int j=0;j<numBioMeasurementTypes;j++){
+          String measureName=bioMeasurementTypes.get(j).getType();
+          Label popLabelX = new Label((j+6+numMeasurementTypes), 0, measureName);
+          sheet2.addCell(popLabelX);
+        }
         
         
         //later, we might ant to add columns for Lat and Long
@@ -236,6 +257,35 @@ public class SOCPROGExport extends HttpServlet{
                       Label popLabel8a = new Label(4, count, enc.getHaplotype());
                       sheet2.addCell(popLabel8a);
                     }
+                    
+                      String cmrStatus="Resight";
+                      if(indy.getDateSortedEncounters(true)[0].getCatalogNumber().equals(enc.getCatalogNumber())){
+                        cmrStatus = "New";
+                      }
+                      Label popLabel9a = new Label(5, count, cmrStatus);
+                      sheet2.addCell(popLabel9a);
+                    
+                      
+                      for(int m=0;m<numMeasurementTypes;m++){
+                        String measureName=measurementTypes.get(m).getType();
+                        if((enc.hasMeasurement(measureName))&&(enc.getMeasurement(measureName)!=null)){
+                          Measurement mmnt=enc.getMeasurement(measureName);
+                          Label popLabelX = new Label((m+6), count, mmnt.getValue().toString());
+                          sheet2.addCell(popLabelX);
+                        }
+                      }
+                       
+                      for(int m=0;m<numBioMeasurementTypes;m++){
+                        String measureName=bioMeasurementTypes.get(m).getType();
+                        if(enc.hasBiologicalMeasurement(measureName)){
+                          BiologicalMeasurement bm=enc.getBiologicalMeasurement(measureName);
+                          if((bm!=null)&&(bm.getValue()!=null)){
+                            Label popLabelX = new Label((m+6+numMeasurementTypes), count, bm.getValue().toString());
+                            sheet2.addCell(popLabelX);
+                          }
+                        }
+                      }
+                    
                     
                   }
                     

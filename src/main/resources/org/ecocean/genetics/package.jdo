@@ -36,7 +36,7 @@
 				    </field>
   		</class>
   		
-  		  		<class name="SexAnalysis" identity-type="application">
+  		 <class name="SexAnalysis" identity-type="application">
 							<inheritance strategy="new-table"/>
 					
 						<field name="sex" persistence-modifier="persistent">
@@ -44,6 +44,23 @@
 									<column jdbc-type="VARCHAR" length="128"/>
 						    </field>
   		</class>
+  		
+  	<class name="BiologicalMeasurement" identity-type="application">
+		            <inheritance strategy="new-table" />
+		            <field name="value">
+		                <column name="VALUE" />
+		            </field>
+		            <field name="units">
+		                <column name="UNITS" />
+		            </field>
+		                        <field name="type">
+			                    <column name="TYPE" />
+            </field>
+            
+            
+            
+            
+        </class>
   		
   		<class name="TissueSample" identity-type="application" table="TISSUESAMPLE">
   				<inheritance strategy="new-table"/>
@@ -73,6 +90,8 @@
 	            		 <field name="storageLabID" persistence-modifier="persistent">
 				 	<column jdbc-type="VARCHAR" length="256"/>
 				</field>
+				
+				        
 
 		</class>
 		
