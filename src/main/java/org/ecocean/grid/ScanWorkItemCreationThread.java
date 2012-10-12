@@ -129,7 +129,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
       }
 
 
-      //System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");
+      System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");
       myShepherd.commitDBTransaction();
       myShepherd.closeDBTransaction();
       finished = true;

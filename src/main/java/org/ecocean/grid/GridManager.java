@@ -478,6 +478,7 @@ public class GridManager {
 
   public int getNumWorkItemsCompleteForTask(String taskID) {
     int num = 0;
+    if(done==null){done = new ArrayList<ScanWorkItemResult>();}
     int iter = done.size();
     for (int i = 0; i < iter; i++) {
       if (done.get(i).getUniqueNumberTask().equals(taskID)) {
@@ -490,6 +491,7 @@ public class GridManager {
   public int getNumWorkItemsIncompleteForTask(String taskID) {
     int num = 0;
     try{
+      if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
     	int iter = toDo.size();
     	for (int i = 0; i < iter; i++) {
       		if (toDo.get(i).getTaskIdentifier().equals(taskID)) {
@@ -503,6 +505,7 @@ public class GridManager {
 
   public ArrayList<ScanWorkItem> getRemainingWorkItemsForTask(String taskID) {
     ArrayList<ScanWorkItem> list = new ArrayList<ScanWorkItem>();
+    if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
     int iter = toDo.size();
     for (int i = 0; i < iter; i++) {
       if (toDo.get(i).getTaskIdentifier().equals(taskID)) {
@@ -536,6 +539,8 @@ public class GridManager {
   }
 
   public int getNumWorkItemsAndResults() {
+    if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
+    if(done==null){done = new ArrayList<ScanWorkItemResult>();}
     return (done.size() + toDo.size());
   }
 

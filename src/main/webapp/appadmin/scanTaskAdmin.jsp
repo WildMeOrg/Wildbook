@@ -237,6 +237,9 @@
                                                                                      value="<%=st.getUniqueNumber()%>"><input
         name="delete" type="submit" id="delete" value="Delete"></form>
         <br />
+        <%
+        if(request.getRemoteUser().equals("admin") ){
+        %>
               <form name="scanNum<%=scanNum%>" method="post" action="../ScanTaskHandler">
               	<input name="action" type="hidden" id="action" value="addTask" />
               	<input name="restart" type="hidden" id="restart" value="true" />
@@ -244,6 +247,9 @@
               	<input name="taskID" type="hidden" id="taskID" value="<%=st.getUniqueNumber()%>" />
               	<input name="restart" type="submit" id="restart" value="Restart" />
               </form>
+        <%
+        }
+        %>
         
       <%
         }

@@ -86,7 +86,7 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 				int myChar=br.read();
 				System.out.print((char)myChar);
 				sb.append((char)myChar);
-				if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser1")!=-1)) {break;}
+				if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser")!=-1)) {break;}
 				//else if ((hostname.equals("xe.ivec.org"))&&(sb.toString().indexOf("jholmberg@xeuser")!=-1)) {break;}
 				//else if ((hostname.equals("cognac.ivec.org"))&&(sb.toString().indexOf("-bash-")!=-1)) {break;}
 
@@ -110,7 +110,7 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 				int myChar=br.read();
 				System.out.print((char)myChar);
 				sb.append((char)myChar);
-				if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser1")!=-1)) {break;}
+				if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser")!=-1)) {break;}
 				//else if ((hostname.equals("xe.ivec.org"))&&(sb.toString().indexOf("jholmberg@xeuser")!=-1)) {break;}
 				//else if ((hostname.equals("cognac.ivec.org"))&&(sb.toString().indexOf("-bash-")!=-1)) {break;}
 
@@ -153,7 +153,7 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 					//System.out.print((char)myChar);
 					sb.append((char)myChar);
 					//if ((hostname.equals("xe.ivec.org"))&&(sb.toString().indexOf("jholmberg@xeuser")!=-1)) {break;}
-					if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser1")!=-1)) {break;}
+					if ((hostname.equals("epic.ivec.org"))&&(sb.toString().indexOf("jholmberg@epicuser")!=-1)) {break;}
 					//else if ((hostname.equals("cognac.ivec.org"))&&(sb.toString().indexOf("-bash-")!=-1)) {break;}
 
 
