@@ -306,7 +306,9 @@
 
 
 
-        <class name="SuperSpot" identity-type="datastore" />
+        <class name="SuperSpot">
+        	 <datastore-identity strategy="increment"/>
+        </class>
 
 
         <class name="DataCollectionEvent" identity-type="application">
