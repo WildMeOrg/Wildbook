@@ -10,9 +10,9 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <datanucleus.version>3.1.1</datanucleus.version>
-    <datanucleus.jdo.api.version>3.1.1</datanucleus.jdo.api.version>
-    <datanucleus.enhancer.version>3.1.0-release</datanucleus.enhancer.version>
+    <datanucleus.version>3.1.2</datanucleus.version>
+    <datanucleus.jdo.api.version>3.1.2</datanucleus.jdo.api.version>
+    <datanucleus.enhancer.version>3.1.1</datanucleus.enhancer.version>
     <datanucleus.spatial.version>3.1.1</datanucleus.spatial.version>
     <datanucleus.rest.version>3.1.0-release</datanucleus.rest.version>
     <datanucleus.jodatime.version>3.1.0-release</datanucleus.jodatime.version>
