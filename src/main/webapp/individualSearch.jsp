@@ -929,14 +929,14 @@ if(CommonConfiguration.showProperty("showLifestage")){
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-      color="#000000">Genetics filters</font></a></h4>
+      color="#000000">Biological samples and analyses filters</font></a></h4>
   </td>
 </tr>
 
 <tr>
   <td>
     <div id="genetics" style="display:none; ">
-      <p>Use the fields below to limit your search to encounters with available genetic data.</p>
+      <p>Use the fields below to limit your search to marked individuals with available biological samples and resulting analyses.</p>
       
   <br /><p><em><%=props.getProperty("fastOptions") %></em></p>
       <p><strong><%=props.getProperty("hasTissueSample")%>: </strong>
