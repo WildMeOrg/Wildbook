@@ -22,6 +22,9 @@ package org.ecocean;
 import javax.jdo.JDOException;
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManagerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -41,13 +44,24 @@ public class ShepherdPMF {
 
         dnProperties.setProperty("javax.jdo.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.JDOPersistenceManagerFactory");
 
-        //class setup
         Properties props = new Properties();
-        try {
-          props.load(ShepherdPMF.class.getResourceAsStream("/bundles/commonConfiguration.properties"));
-        } catch (IOException ioe) {
-          ioe.printStackTrace();
+        String shepherdDataDir="shepherd_data_dir";
+        if((CommonConfiguration.getProperty("dataDirectoryName")!=null)&&(!CommonConfiguration.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=CommonConfiguration.getProperty("dataDirectoryName");}
+        Properties overrideProps=loadOverrideProps(shepherdDataDir);
+        
+        if(overrideProps.size()>0){props=overrideProps;}
+        else {
+          //otherwise load the embedded commonConfig
+          
+          try {
+            props.load(ShepherdPMF.class.getResourceAsStream("/bundles/jdoconfig.properties"));
+          } 
+          catch (IOException ioe) {
+            ioe.printStackTrace();
+          }
         }
+        
+        
 
         Enumeration<Object> propsNames = props.keys();
         while (propsNames.hasMoreElements()) {
@@ -67,6 +81,43 @@ public class ShepherdPMF {
       System.out.println("I couldn't instantiate a PMF.");
       return null;
     }
+  }
+  
+  private static Properties loadOverrideProps(String shepherdDataDir) {
+    Properties myProps=new Properties();
+    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
+    
+    //sometimes this ends up being the "bin" directory of the J2EE container
+    //we need to fix that
+    if(configDir.getAbsolutePath().contains("/bin/")){
+      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "");
+      configDir=new File(fixedPath);
+      System.out.println("Fixng the bin issue in CommonCOnfiguration. ");
+      System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+    }
+    
+    if(!configDir.exists()){configDir.mkdirs();}
+    File configFile = new File(configDir, "jdoconfig.properties");
+    if (configFile.exists()) {
+      System.out.println("Overriding default properties with " + configFile.getAbsolutePath());
+      FileInputStream fileInputStream = null;
+      try {
+        fileInputStream = new FileInputStream(configFile);
+        myProps.load(fileInputStream);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      finally {
+        if (fileInputStream != null) {
+          try {
+            fileInputStream.close();
+          } catch (Exception e2) {
+            e2.printStackTrace();
+          }
+        }
+      }
+    }
+    return myProps;
   }
 
 }
