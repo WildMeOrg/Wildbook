@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jdoconfig xmlns="http://java.sun.com/xml/ns/jdo/jdoconfig"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://java.sun.com/xml/ns/jdo/jdoconfig">
+
+    <!-- Shepherd Project PMF -->
+    <persistence-manager-factory name="ShepherdPMF">
+    
+        <property name="javax.jdo.PersistenceManagerFactoryClass" value="org.datanucleus.api.jdo.JDOPersistenceManagerFactory"/>
+       
+       	<property name="datanucleus.ConnectionDriverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+       
+        <property name="datanucleus.ConnectionURL" value="jdbc:derby:shepherd_derby_database;create=true"/>
+              
+        <property name="datanucleus.ConnectionUserName" value="shepherd"/>       
+           
+        <property name="datanucleus.ConnectionPassword" value="shepherd"/>
+
+       	<property name="datanucleus.autoCreateSchema" value="true"/>
+         
+        <property name="datanucleus.NontransactionalRead" value="true"/>
+        
+        <property name="datanucleus.Multithreaded" value="true"/>
+        
+	<property name="datanucleus.RestoreValues" value="true"/>
+        
+	<property name="datanucleus.storeManagerType" value="rdbms"/>
+
+            
+    </persistence-manager-factory>
+
+
+
+</jdoconfig>

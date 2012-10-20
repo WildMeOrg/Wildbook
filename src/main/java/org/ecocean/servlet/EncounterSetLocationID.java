@@ -87,13 +87,13 @@ public class EncounterSetLocationID extends HttpServlet {
 
       String oldCode = "";
       myShepherd.beginDBTransaction();
-      String encNum = request.getParameter("number");
+      String encNum = request.getParameter("number").trim();
       Encounter changeMe = myShepherd.getEncounter(encNum);
       setDateLastModified(changeMe);
       try {
 
         oldCode = changeMe.getLocationCode();
-        changeMe.setLocationCode(request.getParameter("code"));
+        changeMe.setLocationCode(request.getParameter("code").trim());
         changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed location code from " + oldCode + " to " + request.getParameter("code") + ".</p>");
 
       } catch (Exception le) {

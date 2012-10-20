@@ -9,8 +9,8 @@ import org.ecocean.genetics.TissueSample;
 
 public class SinglePhotoVideo extends DataCollectionEvent {
 
-
   private static final long serialVersionUID = 7999349137348568641L;
+  private PatterningPassport patterningPassport;
   private String filename;
   private String fullFileSystemPath;
   
@@ -19,11 +19,11 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   private String thumbnailFullFileSystemPath;
   */
   
-  private static String type="SinglePhotoVideo";
+  private static String type = "SinglePhotoVideo";
   private String copyrightOwner;
   private String copyrightStatement;
   private List<Keyword> keywords;
-
+  
   /**
    * Empty constructor required for JDO persistence
    */
@@ -34,14 +34,14 @@ public class SinglePhotoVideo extends DataCollectionEvent {
    */
   public SinglePhotoVideo(String correspondingEncounterNumber, String filename, String fullFileSystemPath) {
     super(correspondingEncounterNumber, type);
-    this.filename=filename;
-    this.fullFileSystemPath=fullFileSystemPath;
+    this.filename = filename;
+    this.fullFileSystemPath = fullFileSystemPath;
   }
   
   public SinglePhotoVideo(String correspondingEncounterNumber, File file) {
     super(correspondingEncounterNumber, type);
-    this.filename=file.getName();
-    this.fullFileSystemPath=file.getAbsolutePath();
+    this.filename = file.getName();
+    this.fullFileSystemPath = file.getAbsolutePath();
   }
   
   /**
@@ -55,6 +55,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
     }
     else{return null;}
   }
+  
   
   /*
   public File getThumbnailFile(){
@@ -77,8 +78,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   public String getCopyrightStatement(){return copyrightStatement;}
   public void setCopyrightStatement(String statement){copyrightStatement=statement;}
   
-  
-  //public String getThumbnailFilename(){return (this.getDataCollectionEventID()+".jpg");}
+   //public String getThumbnailFilename(){return (this.getDataCollectionEventID()+".jpg");}
   
   /*
   public void setThumbnailFilename(String newName){this.thumbnailFilename=newName;}
@@ -94,7 +94,39 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   public void removeKeyword(int num){keywords.remove(num);}
   public List<Keyword> getKeywords(){return keywords;}
   public void removeKeyword(Keyword num){keywords.remove(num);}
+
+  public PatterningPassport getPatterningPassport() {
+    if (patterningPassport == null) {
+      patterningPassport = new PatterningPassport();
+    }
+    return patterningPassport;
+  }
   
+  public File getPatterningPassportFile() {
+    File f = this.getFile();
+    String xmlPath;
+    String dirPath;
+    if (f != null) {
+      dirPath = f.getParent();
+      xmlPath = dirPath + "/" + this.filename.substring(0,this.filename.indexOf(".")) + "_pp.xml";
+    } else {
+      return null; // no xml if no image!
+    }
+    
+    File xmlFile = new File(xmlPath);
+    if (xmlFile.isFile() == Boolean.FALSE) {
+      return null; 
+    } 
+   
+    return xmlFile;
+  }
+
+  /**
+   * @param patterningPassport the patterningPassport to set
+   */
+  public void setPatterningPassport(PatterningPassport patterningPassport) {
+    this.patterningPassport = patterningPassport;
+  }
   
   
 }

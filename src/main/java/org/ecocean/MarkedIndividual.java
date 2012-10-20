@@ -866,7 +866,7 @@ public class MarkedIndividual implements java.io.Serializable {
           }
         } 
         else if ((temp.getYear() > startYear) && (temp.getYear() == endYear) && (temp.getMonth() <= endMonth)) {
-          if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
+          if (temp.getMeasurement(measurementType)!=null) {
             avgMeasurement += temp.getMeasurement(measurementType).getValue();
             numMeasurements++;
           }
@@ -877,6 +877,74 @@ public class MarkedIndividual implements java.io.Serializable {
             numMeasurements++;
           }
         } 
+      }
+    }
+    if (numMeasurements > 0) {
+      return (new Double(avgMeasurement / numMeasurements));
+    } 
+    else {
+      return null;
+    }
+  }
+  
+  public Double getAverageBiologicalMeasurementInPeriod(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth, String measurementType) {
+
+    double avgMeasurement = 0;
+    int numMeasurements = 0;
+    int endYear = m_endYear;
+    int endMonth = m_endMonth;
+    int startYear = m_startYear;
+    int startMonth = m_startMonth;
+
+    //test that start and end dates are not reversed
+    if (endYear < startYear) {
+      endYear = m_startYear;
+      endMonth = m_startMonth;
+      startYear = m_endYear;
+      startMonth = m_endMonth;
+    } else if ((endYear == startYear) && (endMonth < startMonth)) {
+      endYear = m_startYear;
+      endMonth = m_startMonth;
+      startYear = m_endYear;
+      startMonth = m_endMonth;
+    }
+
+    for (int c = 0; c < encounters.size(); c++) {
+      Encounter enc = (Encounter) encounters.get(c);
+      if((enc.getTissueSamples()!=null)&&(enc.getTissueSamples().size()>0)){
+        List<TissueSample> samples=enc.getTissueSamples();
+        int numTissueSamples=samples.size();
+        for(int h=0;h<numTissueSamples;h++){
+          TissueSample temp=samples.get(h);
+
+          if(temp.hasMeasurement(measurementType)){
+            List<BiologicalMeasurement> measures=temp.getBiologicalMeasurements();
+            if ((enc.getYear() > startYear) && (enc.getYear() < endYear)) {
+              if (temp.getBiologicalMeasurement(measurementType)!=null) {
+                avgMeasurement += temp.getBiologicalMeasurement(measurementType).getValue();
+                numMeasurements++;
+              }
+            } 
+            else if ((enc.getYear() == startYear) && (enc.getYear() < endYear) && (enc.getMonth() >= startMonth)) {
+              if (temp.getBiologicalMeasurement(measurementType)!=null){
+                avgMeasurement += temp.getBiologicalMeasurement(measurementType).getValue();
+                numMeasurements++;
+              }
+            } 
+            else if ((enc.getYear() > startYear) && (enc.getYear() == endYear) && (enc.getMonth() <= endMonth)) {
+              if (temp.getBiologicalMeasurement(measurementType)!=null) {
+                avgMeasurement += temp.getBiologicalMeasurement(measurementType).getValue();
+                numMeasurements++;
+              }
+            } 
+            else if ((enc.getYear() >= startYear) && (enc.getYear() <= endYear) && (enc.getMonth() >= startMonth) && (enc.getMonth() <= endMonth)) {
+              if (temp.getBiologicalMeasurement(measurementType)!=null) {
+                avgMeasurement += temp.getBiologicalMeasurement(measurementType).getValue();
+                numMeasurements++;
+              }
+            } 
+          }
+        }
       }
     }
     if (numMeasurements > 0) {
@@ -1027,6 +1095,21 @@ public class MarkedIndividual implements java.io.Serializable {
       Encounter enc = (Encounter) encounters.get(i);
       if(enc.getTissueSamples()!=null){
         List<TissueSample> list = enc.getTissueSamples();
+        if(list.size()>0){
+          al.addAll(list);
+        }
+      }
+    }
+    return al;
+  }
+  
+  public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideo() {
+    ArrayList<SinglePhotoVideo> al = new ArrayList<SinglePhotoVideo>();
+    int numEncounters = encounters.size();
+    for (int i = 0; i < numEncounters; i++) {
+      Encounter enc = (Encounter) encounters.get(i);
+      if(enc.getSinglePhotoVideo()!=null){
+        List<SinglePhotoVideo> list = enc.getSinglePhotoVideo();
         if(list.size()>0){
           al.addAll(list);
         }

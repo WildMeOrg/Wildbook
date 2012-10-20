@@ -32,7 +32,7 @@ import java.io.PrintWriter;
 
 
 //Set alternateID for this encounter/sighting
-public class EncounterSetTissueSample extends HttpServlet {
+public class TissueSampleRemoveBiologicalMeasurement extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -49,50 +49,34 @@ public class EncounterSetTissueSample extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    String sharky = "None";
 
-
-    sharky = request.getParameter("encounter");
     myShepherd.beginDBTransaction();
-    if ((myShepherd.isEncounter(sharky)) && (request.getParameter("sampleID") != null) && (!request.getParameter("sampleID").equals(""))) {
-      Encounter enc = myShepherd.getEncounter(sharky);
+    if ((request.getParameter("analysisID")!=null)&&(request.getParameter("encounter")!=null)&&(request.getParameter("sampleID")!=null)&& (!request.getParameter("sampleID").equals("")) && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("encounter")))&&(myShepherd.isEncounter(request.getParameter("encounter")))) {
       try {
         
-        
-        
-        TissueSample genSample=new TissueSample();
-        if(myShepherd.isTissueSample(request.getParameter("sampleID"), sharky)){
-          genSample=myShepherd.getTissueSample(request.getParameter("sampleID"), sharky);
-          genSample.resetAbstractClassParameters(request);
-        }
-        else{
-          genSample=new TissueSample(enc.getCatalogNumber(), request.getParameter("sampleID"), request);
-          enc.addTissueSample(genSample);
-        }
-        
-        
-        if(request.getParameter("tissueType")!=null){genSample.setTissueType(request.getParameter("tissueType"));}
-        if(request.getParameter("preservationMethod")!=null){genSample.setPreservationMethod(request.getParameter("preservationMethod"));}
-        if(request.getParameter("storageLabID")!=null){genSample.setStorageLabID(request.getParameter("storageLabID"));}
-        if(request.getParameter("alternateSampleID")!=null){genSample.setAlternateSampleID(request.getParameter("alternateSampleID"));}
-        
-        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Added or updated tissue sample ID "+request.getParameter("sampleID")+".<br />"+genSample.getHTMLString());
-        
+        Encounter enc = myShepherd.getEncounter(request.getParameter("encounter"));
+        TissueSample genSample=myShepherd.getTissueSample(request.getParameter("sampleID"), request.getParameter("encounter"));
+        BiologicalMeasurement mtDNA=myShepherd.getBiologicalMeasurement(request.getParameter("sampleID"), request.getParameter("encounter"), request.getParameter("analysisID"));
+        genSample.removeGeneticAnalysis(mtDNA);
+        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed biological measurement ID "+request.getParameter("analysisID")+".<br />");
 
+        myShepherd.throwAwayGeneticAnalysis(mtDNA);          
+        
       } 
       catch (Exception le) {
         locked = true;
+        le.printStackTrace();
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
       }
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully set the biological sample for encounter " + sharky + ".</p>");
+        out.println("<strong>Success!</strong> I have successfully removed a biological measurement for tissue sample "+request.getParameter("sampleID")+" for encounter " + request.getParameter("encounter") + ".</p>");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("encounter") + "\">Return to encounter " + request.getParameter("encounter") + "</a></p>\n");
         out.println(ServletUtilities.getFooter());
         } 
       else {
@@ -100,14 +84,14 @@ public class EncounterSetTissueSample extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user or is inaccessible. Please wait a few seconds before trying to modify this encounter again.");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("encounter") + "\">Return to encounter " + request.getParameter("encounter") + "</a></p>\n");
         out.println(ServletUtilities.getFooter());
 
       }
     } else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to set the biological sample. I cannot find the encounter that you intended it for in the database.");
+      out.println("<strong>Error:</strong> I was unable to remove the haplotype. I cannot find the encounter that you intended it for in the database.");
       out.println(ServletUtilities.getFooter());
 
     }
