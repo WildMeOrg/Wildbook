@@ -8,13 +8,13 @@
     
         <property name="javax.jdo.PersistenceManagerFactoryClass" value="org.datanucleus.api.jdo.JDOPersistenceManagerFactory"/>
        
-       	<property name="datanucleus.ConnectionDriverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+       	<property name="datanucleus.ConnectionDriverName" value="org.postgresql.Driver"/>
        
-        <property name="datanucleus.ConnectionURL" value="jdbc:derby:shepherd_derby_database;create=true"/>
+        <property name="datanucleus.ConnectionURL" value="jdbc:postgresql://localhost:5432/mantas2"/>
               
-        <property name="datanucleus.ConnectionUserName" value="shepherd"/>       
+        <property name="datanucleus.ConnectionUserName" value="matcher"/>       
            
-        <property name="datanucleus.ConnectionPassword" value="shepherd"/>
+        <property name="datanucleus.ConnectionPassword" value="q1w2e3r4t5"/>
 
        	<property name="datanucleus.autoCreateSchema" value="true"/>
          
