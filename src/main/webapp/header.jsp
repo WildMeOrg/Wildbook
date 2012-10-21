@@ -62,11 +62,18 @@
           <td><![endif]-->
       <ul>
         <li><a
-          href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp"
+          href="http://<%=CommonConfiguration.getURLLocation(request) %>/overview.jsp"
           class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index:
-          100;"><strong><%=props.getProperty("intro")%></strong></a>
+          100;"><strong>Overview</strong></a>
         </li>
+                <li><a
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/photographing.jsp"
+	          class="enclose"
+	          style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index:
+	          100;"><strong>How to Photograph</strong></a>
+	        </li>
+
 
       </ul>
       <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
@@ -84,6 +91,12 @@
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/submit.jsp"
           class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;"><%=props.getProperty("report")%>
+        </a></li>
+        
+                <li><a
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptamanta.jsp"
+	          class="enclose"
+	          style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Adopt a Manta
         </a></li>
 
       </ul>
@@ -217,7 +230,7 @@
           if (CommonConfiguration.getWikiLocation()!=null) {
         %>
         <li><a
-          href="<%=CommonConfiguration.getWikiLocation() %>library_access_policy"
+          href="<%=CommonConfiguration.getWikiLocation() %>ecocean_library_access_policy"
           target="_blank" class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("accessPolicy")%>
         </a></li>
@@ -320,9 +333,6 @@
           }
         %>
 
-<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/javadoc/index.html" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Javadoc</a></li>
-						
-						
 
         <!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
