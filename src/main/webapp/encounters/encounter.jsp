@@ -62,9 +62,10 @@ File encounterDir = new File(encountersDir, num);
 
 
 //let's load encounters.properties
-  Properties encprops = new Properties();
-  encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
+  //Properties encprops = new Properties();
+  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
+  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode);
 
 
   pageContext.setAttribute("num", num);
