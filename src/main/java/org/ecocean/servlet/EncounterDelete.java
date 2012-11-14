@@ -133,6 +133,7 @@ public class EncounterDelete extends HttpServlet {
 		  //let's get ready for emailing
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 		  es.execute(mailer);
+		  es.shutdown();
 
 
         } else {
