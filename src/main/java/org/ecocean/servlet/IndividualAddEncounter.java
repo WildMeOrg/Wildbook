@@ -278,6 +278,7 @@ public class IndividualAddEncounter extends HttpServlet {
               ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
               ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message);
             }
+            es.shutdown();
           }
 
           //if lock exception thrown
