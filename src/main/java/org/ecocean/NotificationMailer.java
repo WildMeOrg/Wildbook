@@ -54,7 +54,6 @@ public class NotificationMailer implements Runnable {
     props.put("mail.smtp.host", host);
     session = Session.getDefaultInstance(props, null);
     message = new MimeMessage(session);
-    //mailerObject.start();
   }
 
 
@@ -63,6 +62,7 @@ public class NotificationMailer implements Runnable {
    */
   public void run() {
     sendIt(host, from, to, subject, text, images);
+    mailerObject=null;
   }
 
 
@@ -81,6 +81,7 @@ public class NotificationMailer implements Runnable {
 	        e.printStackTrace();
 	        System.out.println("     from: "+from3);
 	        System.out.println("     to: "+to3);
+	        mailerObject.interrupt();
 	      }
 
 	    }

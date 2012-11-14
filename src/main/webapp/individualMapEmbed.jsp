@@ -200,6 +200,7 @@ String lastLatLong="";
 	
           markers.push(marker);
           map.fitBounds(bounds); 
+        
  
  <%
  
@@ -286,10 +287,26 @@ String lastLatLong="";
      map: map
    });
 
-  //movePath.setMap(map);
+  
+ 
+	var maxZoomService = new google.maps.MaxZoomService();
+	maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
+		    if (response.status == google.maps.MaxZoomStatus.OK) {
+		    	if(response.zoom < map.getZoom()){
+		    		map.setZoom(response.zoom);
+		    	}
+		    }
+		    
+	});
+ 
+ 
 
-      } // end initialize function
+ } // end initialize function
       
+ 
+
+
+	
       
 
       function fullScreen(){
@@ -366,6 +383,8 @@ String lastLatLong="";
     	}
 
       
+
+    	
       
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>

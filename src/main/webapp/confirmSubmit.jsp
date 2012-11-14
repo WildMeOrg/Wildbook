@@ -140,6 +140,7 @@
     }
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
+    
   }
 
   String thumbLocation = "file-"+thisEncounterDir.getAbsolutePath() + "/thumb.jpg";
@@ -327,7 +328,10 @@ if(CommonConfiguration.sendEmailNotifications()){
       es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), informOthers, ("New encounter submission: " + number), personalizedThanksMessage, e_images));
     }
   }
+  es.shutdown();
 }
+
+myShepherd=null;
 
 %>
 </div>
