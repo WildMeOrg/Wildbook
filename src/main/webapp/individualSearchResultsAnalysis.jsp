@@ -424,7 +424,7 @@
 
         var options = {
           width: 450, height: 300,
-          title: 'Haplotypes in Matched Encounters',
+          title: 'Haplotypes in Matched Individuals',
           colors: [
                    <%
                    String haploColor="CC0000";
