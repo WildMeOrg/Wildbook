@@ -473,6 +473,9 @@ myShepherd.rollbackDBTransaction();
                    }
                    if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
                 	   haploColor=encprops.getProperty("defaultMarkerColor");
+                	   %>
+                	   <tr bgcolor="#<%=haploColor%>"><td><strong>Unknown</strong></td></tr>
+                	   <%
                    }  
                    
                    %>
