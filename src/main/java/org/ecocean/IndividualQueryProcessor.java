@@ -59,7 +59,7 @@ public class IndividualQueryProcessor {
     //locationID filters-------------------------------------------------
     String[] locCodes=request.getParameterValues("locationCodeField");
     if((locCodes!=null)&&(!locCodes[0].equals("None"))){
-          prettyPrint.append("Location ID is one of the following: ");
+          prettyPrint.append("Sighted in at least one of the following locationsIDs: ");
           int kwLength=locCodes.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -1077,6 +1077,9 @@ public class IndividualQueryProcessor {
     //check whether locationIDs are AND'd rather than OR'd
     if(request.getParameter("andLocationIDs") != null){
 		 //String[] locCodes=request.getParameterValues("locationCodeField");
+      
+      prettyPrint=new StringBuffer(prettyPrint.toString().replaceAll("Sighted in at least one of the following locationsIDs", "Sighted at least once in each of the following location IDs"));
+      
 		    if((locCodes!=null)&&(!locCodes[0].equals("None"))){
 		       for (int q = 0; q < rIndividuals.size(); q++) {
         			MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
