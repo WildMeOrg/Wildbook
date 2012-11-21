@@ -1226,40 +1226,14 @@ else {
             value="<%=sendFile %>"></p></form>
 <%
   }
-%>
 
-<br />
-<p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %>
-</strong>: </p>
 
-<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
-
-<p><%=sharky.getComments().replaceAll("\n", "<br>")%>
-</p>
-</div>
-<%
-  if (CommonConfiguration.isCatalogEditable()) {
-%>
-<p>
-
-<form action="IndividualAddComment" method="post" name="addComments">
-  <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-  <input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
-  <input name="action" type="hidden" value="comments" id="action">
-
-  <p><textarea name="comments" cols="60" id="comments"></textarea> <br>
-    <input name="Submit" type="submit" value="<%=addComments %>">
-</form>
-</p>
-<%
-    } //if isEditable
 
 
   }
 %>
 
 
-</p>
 
 
 </td>
@@ -1295,7 +1269,7 @@ else {
    }
 %>
 
-<br />
+<br /><br />
 <table>
 <tr>
 <td>
@@ -1306,7 +1280,32 @@ else {
 </td>
 </tr>
 </table>
+
 <%
+if(isOwner){
+%>
+<p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %></strong>: </p>
+
+<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+	<p><%=sharky.getComments().replaceAll("\n", "<br>")%></p>
+</div>
+<%
+  if (CommonConfiguration.isCatalogEditable() && isOwner) {
+%>
+<p>
+	<form action="IndividualAddComment" method="post" name="addComments">
+  		<input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
+  		<input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
+  		<input name="action" type="hidden" value="comments" id="action">
+
+  		<p><textarea name="comments" cols="60" id="comments"></textarea> <br />
+    			<input name="Submit" type="submit" value="<%=addComments %>">
+	</form>
+</p>
+<%
+    } //if isEditable
+
+}
 
 } 
 
