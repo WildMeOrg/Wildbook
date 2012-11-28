@@ -109,7 +109,7 @@ margin-top: 0px !important;
 margin-bottom: 8px !important;
 </style>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
   <script type="text/javascript" src="encounters/StyledMarker.js"></script>
   
@@ -153,59 +153,7 @@ margin-bottom: 8px !important;
         }
 		   
 String lastLatLong="";
- for(int y=0;y<havegpsSize;y++){
-	 Encounter thisEnc=(Encounter)haveGPSData.get(y);
-	 
-	 String thisLatLong="999,999";
-	 if(((thisEnc.getDecimalLatitude())!=null)&&(thisEnc.getDecimalLongitude()!=null)){
-		 thisLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
-	 }
-	 //let's try to get this from locales.properties
-	 else{
-		 
-		 if(localesProps.getProperty(thisEnc.getLocationID())!=null){
-			 thisLatLong=localesProps.getProperty(thisEnc.getLocationID());
-		 }
-		 
-	 }
 
- %>
-          
-          var latLng = new google.maps.LatLng(<%=thisLatLong%>);
-          bounds.extend(latLng);
-          movePathCoordinates.push(latLng);
-           <%
-
-           
-           //currently unused programatically
-           String markerText="";
-           
-           
-           String colorToUseForMarker=haploColor;
-           String zIndexString="";
-           if((y==0)&&(havegpsSize>0)){
-        	   colorToUseForMarker="00FF00";
-        	   zIndexString=",zIndex: 10000";
-           }
-			
-           
-           %>
-           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=colorToUseForMarker%>",text:"<%=markerText%>"}),position:latLng,map:map<%=zIndexString%>});
-	    
-
-            google.maps.event.addListener(marker,'click', function() {
-                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
-             });
- 
-	
-          markers.push(marker);
-          map.fitBounds(bounds); 
-        
- 
- <%
- 
- lastLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
-} 
  
 //for an occurrence, we should also map where else its marked individuals have been spotted 
  if(request.getParameter("occurrence_number")!=null){
@@ -265,6 +213,60 @@ String lastLatLong="";
 	  } 
 	 
  }
+        
+ for(int y=0;y<havegpsSize;y++){
+	 Encounter thisEnc=(Encounter)haveGPSData.get(y);
+	 
+	 String thisLatLong="999,999";
+	 if(((thisEnc.getDecimalLatitude())!=null)&&(thisEnc.getDecimalLongitude()!=null)){
+		 thisLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
+	 }
+	 //let's try to get this from locales.properties
+	 else{
+		 
+		 if(localesProps.getProperty(thisEnc.getLocationID())!=null){
+			 thisLatLong=localesProps.getProperty(thisEnc.getLocationID());
+		 }
+		 
+	 }
+
+ %>
+          
+          var latLng = new google.maps.LatLng(<%=thisLatLong%>);
+          bounds.extend(latLng);
+          movePathCoordinates.push(latLng);
+           <%
+
+           
+           //currently unused programatically
+           String markerText="";
+           
+           
+           String colorToUseForMarker=haploColor;
+           String zIndexString="";
+           if((y==0)&&(havegpsSize>0)){
+        	   colorToUseForMarker="00FF00";
+        	   zIndexString=",zIndex: 10000";
+           }
+			
+           
+           %>
+           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=colorToUseForMarker%>",text:"<%=markerText%>"}),position:latLng,map:map<%=zIndexString%>});
+	    
+
+            google.maps.event.addListener(marker,'click', function() {
+                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+             });
+ 
+	
+          markers.push(marker);
+          map.fitBounds(bounds); 
+        
+ 
+ <%
+ 
+ lastLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
+} 
 
  %>
  var movePath = new google.maps.Polyline({

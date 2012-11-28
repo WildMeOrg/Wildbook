@@ -177,7 +177,7 @@ margin-bottom: 8px !important;
   
   
 
-    <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+    <script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
   
 <script type="text/javascript" src="StyledMarker.js"></script>
