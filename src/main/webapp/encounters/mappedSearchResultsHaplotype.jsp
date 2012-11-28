@@ -189,7 +189,7 @@ margin-bottom: 8px !important;
   
   
 
-    <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+    <script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
   
 <script type="text/javascript" src="StyledMarker.js"></script>
@@ -255,15 +255,15 @@ if(rEncounters.size()>0){
 
            
            %>
-           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
+           var marker<%=y%> = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
 	    
 
-            google.maps.event.addListener(marker,'click', function() {
+            google.maps.event.addListener(marker<%=y%>,'click', function() {
                  (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
              });
  
 	
-          markers.push(marker);
+          markers.push(marker<%=y%>);
           map.fitBounds(bounds); 
  
  <%
