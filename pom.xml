@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>shepherd</artifactId>
-  <version>3.0.1-EXPERIMENTAL</version>
+  <version>3.0.2-RELEASE</version>
   <packaging>war</packaging>
 
   <properties>
@@ -18,7 +18,7 @@
     <datanucleus.jodatime.version>3.1.0-release</datanucleus.jodatime.version>
     <datanucleus.jpa.version>2.1.8</datanucleus.jpa.version>
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
-     <geotools.version>8.2</geotools.version>
+     <geotools.version>8.3</geotools.version>
   </properties>
 
   <repositories>
