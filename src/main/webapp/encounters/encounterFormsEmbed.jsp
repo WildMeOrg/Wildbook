@@ -484,6 +484,8 @@ if(!request.getParameter("loggedIn").equals("true")){
 	<%	
     //Remove from occurrence if assigned
 	if((formShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && CommonConfiguration.isCatalogEditable() && request.getParameter("isOwner").equals("true") && (request.getParameter("edit")!=null) && (request.getParameter("edit").equals("manageOccurrence"))) {
+	
+	
 	%>
 	<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
   	<tr>
@@ -512,6 +514,8 @@ if(!request.getParameter("loggedIn").equals("true")){
       	}
       	  //create new Occurrence with name
       	  if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageOccurrence"))){
+      if((formShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+      
       %>
 <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
   <tr>
@@ -524,6 +528,7 @@ if(!request.getParameter("loggedIn").equals("true")){
       <form name="createOccurrence" method="post" action="../OccurrenceCreate">
         <input name="number" type="hidden" value="<%=num%>" /> 
         <input name="action" type="hidden" value="create" /> 
+        <%=encprops.getProperty("newOccurrenceID")%><br />
         <input name="occurrence" type="text" id="occurrence" size="10" maxlength="50" value="" />
         <br />
         <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
@@ -533,6 +538,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 </table></a>
 <br/>	
 	<%
+      	  }
       	  }
 		
 	//add this encounter to an Occurrence object
@@ -627,6 +633,12 @@ if(!request.getParameter("loggedIn").equals("true")){
 <br> <%
 			}
       	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
+      		
+      		String longy="";
+      		String laty="";
+      		if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
+      		if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
+      		
     		%> <a name="gps"></a>
     		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     			<tr>
@@ -639,10 +651,10 @@ if(!request.getParameter("loggedIn").equals("true")){
     				<form name="resetGPSform" method="post" action="../EncounterSetGPS">
     				<input name="action" type="hidden" value="resetGPS" />
     				<p><strong><%=encprops.getProperty("latitude")%>:</strong><br /> 
-    				<input type="text" size="7" maxlength="10" name="lat" id="lat" />
+    				<input type="text" size="7" maxlength="10" name="lat" id="lat" value="<%=laty %>"></input>
     				 
     				<br /> <strong><%=encprops.getProperty("longitude")%>:</strong><br> 
-    				<input type="text" size="7" maxlength="10" name="longitude" id="longitude" /> 
+    				<input type="text" size="7" maxlength="10" name="longitude" id="longitude" value="<%=longy %>"></input> 
     				<input name="number" type="hidden" value=<%=num%> /> 
     				<input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" />
     				</p>
