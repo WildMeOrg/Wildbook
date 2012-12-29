@@ -98,6 +98,7 @@ public class EncounterAddImage extends HttpServlet {
           if (fileName != null) {
 
             File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ encounterNumber);
+            if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
             File finalFile=new File(thisSharkDir, fileName);
             fullPathFilename=finalFile.getCanonicalPath();
             long file_size = filePart.writeTo(finalFile);
