@@ -169,8 +169,9 @@ public class AdoptionAction extends Action {
         if ((!thisAdoptionDir.exists()) && adoptionSuccess) {
           created = thisAdoptionDir.mkdir();
         }
-        ;
-      } catch (SecurityException sec) {
+        
+      } 
+      catch (SecurityException sec) {
         System.out.println("Security exception thrown while trying to created the directory for a new encounter!");
       }
       //System.out.println("Created?: "+created);
@@ -184,7 +185,7 @@ public class AdoptionAction extends Action {
             //System.out.println(writeFile);
             if (!writeFile) {
               //only write files out that are less than 9MB
-              if ((file[iter].getFileSize() < (4 * 9216000)) && (file[iter].getFileSize() > 0)) {
+              if ((file[iter].getFileSize() < (16 * 9216000)) && (file[iter].getFileSize() > 0)) {
 
                 byte[] buffer = new byte[8192];
                 int bytesRead = 0;
@@ -248,7 +249,10 @@ public class AdoptionAction extends Action {
         ad.setAdoptionStartDate(adoptionStartDate);
       }
 
-      ad.setAdopterImage(adopterImage);
+      if(!adopterImage.trim().equals("")){
+        ad.setAdopterImage(adopterImage);
+      }
+      
       ad.setAdopterQuote(adopterQuote);
       ad.setAdoptionManager(adoptionManager);
       ad.setIndividual(shark);
