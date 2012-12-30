@@ -746,28 +746,6 @@ if(CommonConfiguration.showProperty("showLifestage")){
 
 
 
-<%
-  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements());
-%>
-<c:if test="${showMeasurement}">
-<%
-    pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode));
-%>
-<tr><td><strong><%=props.getProperty("biomeasurements") %></strong></td></tr>
-<c:forEach items="${items}" var="item">
-<tr valign="top">
-<td>${item.label}
-<select name="biomeasurement${item.type}(operator)">
-  <option value="gt">&gt;</option>
-  <option value="lt">&lt;</option>
-  <option value="eq">=</option>
-</select>
-<input name="biomeasurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
-</td>
-</tr>
-</c:forEach>
-</c:if>
-
 
 
                 <%
@@ -996,6 +974,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
         }
       %>
 
+
   <p><strong><%=props.getProperty("geneticSex")%>:</strong> <span class="para">
       <a href="<%=CommonConfiguration.getWikiLocation()%>geneticSex"
         target="_blank"><img src="images/information_icon_svg.gif"
@@ -1033,7 +1012,25 @@ if(CommonConfiguration.showProperty("showLifestage")){
         }
       %>
       
-
+<%
+    pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode));
+%>
+<table><tr><td></td></tr>
+<tr><td><strong><%=props.getProperty("biomeasurements") %></strong></td></tr>
+<c:forEach items="${items}" var="item">
+<tr valign="top">
+<td>${item.label}
+<select name="biomeasurement${item.type}(operator)">
+  <option value="gt">&gt;</option>
+  <option value="lt">&lt;</option>
+  <option value="eq">=</option>
+</select>
+<input name="biomeasurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
+</td>
+</tr>
+</c:forEach>
+<tr><td></td></tr>
+</table>
    
       <p><strong><%=props.getProperty("msmarker")%>:</strong> 
       <span class="para">
