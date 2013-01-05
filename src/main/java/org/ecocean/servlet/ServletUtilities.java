@@ -111,28 +111,31 @@ public class ServletUtilities {
     Shepherd myShepherd = new Shepherd();
     myShepherd.beginDBTransaction();
     Encounter enc = myShepherd.getEncounter(number);
-    Vector notifyMe = enc.getInterestedResearchers();
-    int size = notifyMe.size();
-    String[] interested = new String[size];
-    for (int i = 0; i < size; i++) {
-      interested[i] = (String) notifyMe.get(i);
-    }
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
-    if (size > 0) {
-      Vector e_images = new Vector();
-      String mailMe = interested[0];
-      String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Encounter " + number + ": " + message + "\n\nLink to encounter: http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + number));
-      email += ("\n\nWant to stop tracking this set of encounter data? Use this link.\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?number=" + number + "&email=");
-      ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images));
-
-
-      //NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: "+number), (email+mailMe), e_images);
-      for (int j = 1; j < size; j++) {
-        mailMe = interested[j];
-
+    
+    
+    if(enc.getInterestedResearchers()!=null){
+      Vector notifyMe = enc.getInterestedResearchers();
+      int size = notifyMe.size();
+      String[] interested = new String[size];
+      for (int i = 0; i < size; i++) {
+        interested[i] = (String) notifyMe.get(i);
+      }
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      if (size > 0) {
+        Vector e_images = new Vector();
+        String mailMe = interested[0];
+        String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Encounter " + number + ": " + message + "\n\nLink to encounter: http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + number));
+        email += ("\n\nWant to stop tracking this set of encounter data? Use this link.\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?number=" + number + "&email=");
+        ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
         es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images));
+
+
+        //NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: "+number), (email+mailMe), e_images);
+        for (int j = 1; j < size; j++) {
+          mailMe = interested[j];
+          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images));
+        }
       }
     }
   }
@@ -142,27 +145,33 @@ public class ServletUtilities {
     Shepherd myShepherd = new Shepherd();
     myShepherd.beginDBTransaction();
     MarkedIndividual sharkie = myShepherd.getMarkedIndividual(shark);
-    Vector notifyMe = sharkie.getInterestedResearchers();
-    int size = notifyMe.size();
-    String[] interested = new String[size];
-    for (int i = 0; i < size; i++) {
-      interested[i] = (String) notifyMe.get(i);
-    }
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
-    if (size > 0) {
+    
+    
+    if(sharkie.getInterestedResearchers()!=null){
+      Vector notifyMe = sharkie.getInterestedResearchers();
+    
+    
+      int size = notifyMe.size();
+      String[] interested = new String[size];
+      for (int i = 0; i < size; i++) {
+        interested[i] = (String) notifyMe.get(i);
+      }
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      if (size > 0) {
 
-      ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+        ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
-      Vector e_images = new Vector();
-      String mailMe = interested[0];
-      String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Tag " + shark + ": " + message + "\n\nLink to individual: http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark));
-      email += ("\n\nWant to stop tracking this set of this individual's data? Use this link.\n\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?shark=" + shark + "&email=");
+        Vector e_images = new Vector();
+        String mailMe = interested[0];
+        String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Tag " + shark + ": " + message + "\n\nLink to individual: http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark));
+        email += ("\n\nWant to stop tracking this set of this individual's data? Use this link.\n\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?shark=" + shark + "&email=");
 
-      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Marked individual data update: " + shark), (email + mailMe), e_images));
-      for (int j = 1; j < size; j++) {
-        mailMe = interested[j];
-        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Individual data update: " + shark), (email + mailMe), e_images));
+        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Marked individual data update: " + shark), (email + mailMe), e_images));
+        for (int j = 1; j < size; j++) {
+          mailMe = interested[j];
+          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Individual data update: " + shark), (email + mailMe), e_images));
+        }
       }
     }
   }
