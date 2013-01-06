@@ -787,6 +787,10 @@ public class Encounter implements java.io.Serializable {
   public void setMatchedBy(String matchType) {
     identificationRemarks = matchType;
   }
+  
+  public void setIdentificationRemarks(String matchType) {
+    identificationRemarks = matchType;
+  }
 
 
   /**
