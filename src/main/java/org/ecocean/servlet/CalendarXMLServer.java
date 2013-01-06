@@ -107,51 +107,45 @@ public class CalendarXMLServer extends HttpServlet {
               if(tempEnc!=null){
                 if(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
                 
-              String sex="-";
-              MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.isAssignedToMarkedIndividual());
-              if((!sharky.getSex().equals("Unknown"))&&(!sharky.getSex().equals("unknown"))) {
-                if(sharky.getSex().equals("male")){
-                  sex="M";
-                }
+                  String sex="-";
+                  MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.isAssignedToMarkedIndividual());
+                  if((!sharky.getSex().equals("Unknown"))&&(!sharky.getSex().equals("unknown"))) {
+                    if(sharky.getSex().equals("male")){
+                      sex="M";
+                    }
+                    else{
+                      sex="F";
+                    }
+                  }
+
+                  String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
+                  outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
+                  outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</end_date>";
+                  outputXML+="<text><![CDATA["+tempEnc.getIndividualID()+"("+sex+")]]></text>";
+                  outputXML+="<details></details></event>";
+                  out.println(outputXML);
+                } 
                 else{
-                  sex="F";
+                  String sex="-";
+                  if((!tempEnc.getSex().equals("Unknown"))&&(!tempEnc.getSex().equals("unknown"))) {
+                     if(tempEnc.getSex().equals("male")){
+                       sex="M";
+                     }
+                     else{
+                       sex="F";
+                     }
+                  }
+                  String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
+                  outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
+                  outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:01"+"</end_date>";
+                  outputXML+="<text><![CDATA[No ID ("+sex+")]]></text>";
+                  outputXML+="<details></details></event>";
+                  out.println(outputXML);
                 }
               }
-              String size="-";
-              if(tempEnc.getSizeAsDouble()!=null) {
-                size=tempEnc.getSizeAsDouble().toString();
-              }
-                String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
-                outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
-                outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</end_date>";
-                outputXML+="<text><![CDATA["+tempEnc.getIndividualID()+"("+sex+"/"+size+")]]></text>";
-                outputXML+="<details></details></event>";
-                out.println(outputXML);
-               } else{
-                String sex="-";
-                if((!tempEnc.getSex().equals("Unknown"))&&(!tempEnc.getSex().equals("unknown"))) {
-              if(tempEnc.getSex().equals("male")){
-                  sex="M";
-                }
-                else{
-                  sex="F";
-                }
-            }
-            String size="-";
-            if(tempEnc.getSizeAsDouble()!=null) {
-                size=tempEnc.getSizeAsDouble().toString();
-            }
-            String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
-              outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
-              outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:01"+"</end_date>";
-              outputXML+="<text><![CDATA[No ID ("+sex+"/"+size+")]]></text>";
-              outputXML+="<details></details></event>";
-              out.println(outputXML);
-              }
-            }
                 
                 
-          }
+            }
 
           }
           catch(Exception e){
