@@ -240,7 +240,7 @@
                         <tr>
                             <td width="101" height="60" class="lineitem">
    								<%
-   								if(enc.getSinglePhotoVideo().size()>0){ 
+   								if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
    								%>                         
                             		<a href="individuals.jsp?number=<%=sharky.getName()%>"><img src="<%=imgName%>" alt="<%=sharky.getName()%>" border="0"/></a>
                             	<%

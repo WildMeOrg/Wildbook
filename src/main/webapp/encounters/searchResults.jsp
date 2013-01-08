@@ -265,7 +265,15 @@
     if ((numResults >= startNum) && (numResults <= endNum)) {
 %>
 <tr class="lineitem">
-  <td width="100" class="lineitem"><img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"></td>
+  <td width="100" class="lineitem">
+  <%
+   if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
+   %>
+  	<img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>">
+  <%
+   }
+  %>
+  </td>
 
   <%
     if (enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned")) {
