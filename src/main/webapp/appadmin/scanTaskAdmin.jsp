@@ -238,14 +238,23 @@
         name="delete" type="submit" id="delete" value="Delete"></form>
         <br />
         <%
-        if(request.getRemoteUser().equals("admin") ){
+        if(request.isUserInRole("admin")){
         %>
               <form name="scanNum<%=scanNum%>" method="post" action="../ScanTaskHandler">
               	<input name="action" type="hidden" id="action" value="addTask" />
               	<input name="restart" type="hidden" id="restart" value="true" />
               	<input name="encounterNumber" type="hidden" id="encounterNumber" value="<%=st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", "") %>" />
               	<input name="taskID" type="hidden" id="taskID" value="<%=st.getUniqueNumber()%>" />
-              	<input name="restart" type="submit" id="restart" value="Restart" />
+              	
+              	<%
+              	if(st.getUniqueNumber().startsWith("scanR")){
+              	%>
+              		<input name="rightSide" type="hidden" id="restart" value="true" />
+              	<%
+              	}
+              	%>
+              	
+              		<input name="restart" type="submit" id="restart" value="Restart" />
               </form>
         <%
         }
