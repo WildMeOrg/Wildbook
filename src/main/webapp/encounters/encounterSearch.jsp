@@ -1004,9 +1004,9 @@ if(CommonConfiguration.showProperty("showLifestage")){
     <div id="identity" style="display:none; ">
       <p>Use the fields below to limit your search to marked individuals with the following
         properties.</p>
-      <input name="resightOnly" type="checkbox" id="resightOnly"
-             value="true"> <%=encprops.getProperty("include")%> <select
-      name="numResights" id="numResights">
+      <input name="resightOnly" type="checkbox" id="resightOnly" value="true" /> <%=encprops.getProperty("include")%> 
+   
+   <select name="numResights" id="numResights">
       <option value="1" selected>1</option>
       <option value="2">2</option>
       <option value="3">3</option>
@@ -1023,6 +1023,8 @@ if(CommonConfiguration.showProperty("showLifestage")){
       <option value="14">14</option>
       <option value="15">15</option>
     </select> <%=encprops.getProperty("times")%>
+
+<input name="unassigned" type="checkbox" id="unassigned" value="true" /> <%=encprops.getProperty("unassignedEncounter")%>
 
       <p><strong><%=encprops.getProperty("alternateID")%>:</strong> <em> <input
         name="alternateIDField" type="text" id="alternateIDField" size="10"
