@@ -809,12 +809,12 @@ function FSControl(controlDiv, map) {
 				if(totalBehavs>1){
 				%>
 
-            <select multiple name="behaviorField" id="behaviorField">
+            <select multiple name="behaviorField" id="behaviorField" style="width: 500px">
               <option value="None"></option>
               <%
                 for (int f = 0; f < totalBehavs; f++) {
                   String word = behavs.get(f);
-                  if (word != null) {
+                  if ((word != null)&&(!word.trim().equals(""))) {
               %>
               <option value="<%=word%>"><%=word%>
               </option>

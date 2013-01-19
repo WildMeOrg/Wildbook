@@ -686,6 +686,55 @@ function FSControl(controlDiv, map) {
 				</table>
           </td>
         </tr>
+        
+         <tr>
+          <td valign="top"><strong><%=props.getProperty("behavior")%>:</strong>
+            <em> <span class="para">
+								<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank">
+                  <img src="../images/information_icon_svg.gif" alt="Help" border="0"
+                       align="absmiddle"/>
+                </a>
+							</span>
+            </em><br/>
+              <%
+				ArrayList<String> behavs = myShepherd.getAllBehaviors();
+				int totalBehavs=behavs.size();
+
+				
+				if(totalBehavs>1){
+				%>
+
+            <select multiple name="behaviorField" id="behaviorField" style="width: 500px">
+              <option value="None"></option>
+              <%
+                for (int f = 0; f < totalBehavs; f++) {
+                  String word = behavs.get(f);
+                  if ((word != null)&&(!word.trim().equals(""))) {
+              %>
+              <option value="<%=word%>"><%=word%>
+              </option>
+              <%
+
+                  }
+
+                }
+              %>
+            </select>
+              <%
+
+				}
+				else{
+					%>
+            <p><em><%=props.getProperty("noBehaviors")%>
+            </em></p>
+              <%
+				}
+				%>
+
+      </p>
+  </td>
+</tr>
+        
         <%
 
 if(CommonConfiguration.showProperty("showLifestage")){
