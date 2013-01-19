@@ -1024,7 +1024,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
       <option value="15">15</option>
     </select> <%=encprops.getProperty("times")%>
 
-<input name="unassigned" type="checkbox" id="unassigned" value="true" /> <%=encprops.getProperty("unassignedEncounter")%>
+<br /><input name="unassigned" type="checkbox" id="unassigned" value="true" /> <%=encprops.getProperty("unassignedEncounter")%>
 
       <p><strong><%=encprops.getProperty("alternateID")%>:</strong> <em> <input
         name="alternateIDField" type="text" id="alternateIDField" size="10"
