@@ -51,6 +51,17 @@ public class EncounterQueryProcessor {
     }
     //end resighted filter--------------------------------------------------------------------------------------
 
+    //filter for unassigned encounters------------------------------------------
+    if(request.getParameter("unassigned")!=null) {
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+        filter+="(individualID == \"Unassigned\")";
+      }
+      else{filter+=" && (individualID == \"Unassigned\")";}
+      prettyPrint.append("Unidentified.<br />");
+    }
+    //end unassigned filter--------------------------------------------------------------------------------------
+
+    
 
 /**    
   //filter for unidentifiable encounters------------------------------------------
