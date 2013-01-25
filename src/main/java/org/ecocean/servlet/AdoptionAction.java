@@ -185,7 +185,7 @@ public class AdoptionAction extends Action {
             //System.out.println(writeFile);
             if (!writeFile) {
               //only write files out that are less than 9MB
-              if ((file[iter].getFileSize() < (16 * 9216000)) && (file[iter].getFileSize() > 0)) {
+              if ((file[iter].getFileSize() < (CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576)) && (file[iter].getFileSize() > 0)) {
 
                 byte[] buffer = new byte[8192];
                 int bytesRead = 0;
