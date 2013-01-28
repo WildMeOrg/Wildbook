@@ -1255,6 +1255,11 @@
     <servlet-name>ScanResultsServlet</servlet-name>
     <url-pattern>/ScanResultsServlet</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>mitFeed</servlet-name>
+      <url-pattern>/MITFeed</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterAddImage</servlet-name>
