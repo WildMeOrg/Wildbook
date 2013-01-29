@@ -342,30 +342,8 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
   <td colspan="2"><input name="location" type="text" id="location" size="40"/></td>
 </tr>
 
-<tr class="form_row">
-		<td class="form_label1"><strong><%=props.getProperty("submit_gpslatitude")%>:</strong></td>
-		<td>
-		<input name="lat" type="text" id="lat" size="10" />
-		&deg;
-		</td>
-	</tr>
-	
-	<tr class="form_row">
-		<td class="form_label1"><strong><%=props.getProperty("submit_gpslongitude")%>:</strong></td>
-		<td>
-			<input name="longitude" type="text" id="longitude" size="10" />
-	
-		&deg;
-		<br/>
-		<br/> GPS coordinates are in the decimal degrees
-		format. Do you have GPS coordinates in a different format? <a
-			href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click
-		here to find a converter.</a>
-		</td>
-	</tr>
-	
-	
-	      <%
+<%
+
 
 if(CommonConfiguration.showProperty("showCountry")){
 
@@ -406,6 +384,33 @@ if(CommonConfiguration.showProperty("showCountry")){
 
 <%
 }  //end if showCountry
+
+%>
+<tr class="form_row">
+		<td class="form_label1"><strong><%=props.getProperty("submit_gpslatitude")%>:</strong></td>
+		<td>
+		<input name="lat" type="text" id="lat" size="10" />
+		&deg;
+		</td>
+	</tr>
+	
+	<tr class="form_row">
+		<td class="form_label1"><strong><%=props.getProperty("submit_gpslongitude")%>:</strong></td>
+		<td>
+			<input name="longitude" type="text" id="longitude" size="10" />
+	
+		&deg;
+		<br/>
+		<br/> GPS coordinates are in the decimal degrees
+		format. Do you have GPS coordinates in a different format? <a
+			href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click
+		here to find a converter.</a>
+		</td>
+	</tr>
+	
+	
+	      <%
+
 
 
 if(CommonConfiguration.showProperty("maximumDepthInMeters")){
