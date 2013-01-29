@@ -82,6 +82,7 @@ public class SubmitAction extends Action {
 		  String locCode = "", informothers = "";
 		  String livingStatus = "";
 		  String genusSpecies="";
+		  String country="";
   		  Shepherd myShepherd;
 
 
@@ -145,6 +146,9 @@ public class SubmitAction extends Action {
       livingStatus = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getLivingStatus());
       genusSpecies = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getGenusSpecies());
       informothers = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getInformothers().replaceAll(";", ",").replaceAll(" ", ""));
+      country = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getCountry());
+      
+      
       //check for spamBots
       boolean spamBot = false;
       StringBuffer spamFields = new StringBuffer();
@@ -688,6 +692,9 @@ public class SubmitAction extends Action {
       }
       if (!locCode.equals("")) {
         enc.setLocationCode(locCode);
+      }
+      if (!country.equals("")) {
+        enc.setCountry(country);
       }
       if (!informothers.equals("")) {
         enc.setInformOthers(informothers);

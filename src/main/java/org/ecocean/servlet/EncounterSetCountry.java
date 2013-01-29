@@ -5,7 +5,7 @@ import java.io.*;
 import org.ecocean.*;
 
 
-public class EncounterSetLifeStage extends HttpServlet {
+public class EncounterSetCountry extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {
       super.init(config);
@@ -29,19 +29,20 @@ public class EncounterSetLifeStage extends HttpServlet {
 
 
     encNum=request.getParameter("encounter");
-    String lifeStage="";
+    String country="";
     myShepherd.beginDBTransaction();
-    if ((myShepherd.isEncounter(encNum))&&(request.getParameter("lifeStage")!=null)) {
+    if ((myShepherd.isEncounter(encNum))&&(request.getParameter("country")!=null)) {
       Encounter enc=myShepherd.getEncounter(encNum);
-      lifeStage=request.getParameter("lifeStage").trim();
+      country=request.getParameter("country").trim();
       try{
 
-        if(lifeStage.equals("")){enc.setLifeStage(null);}
+        if(country.equals("")){enc.setCountry(null);}
         else{
-        	enc.setLifeStage(lifeStage);
-		}
-        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed life stage to " + request.getParameter("lifeStage") + ".</p>");
-        
+          enc.setCountry(country);
+          enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />Changed country to " + request.getParameter("country") + ".</p>");
+          
+    }
+
 
       }
       catch(Exception le){
@@ -54,13 +55,11 @@ public class EncounterSetLifeStage extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully changed the lifeStage for encounter "+encNum+" to "+lifeStage+".</p>");
+        out.println("<strong>Success!</strong> I have successfully changed the reported country for encounter "+encNum+" to "+country+".</p>");
 
         out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
         out.println(ServletUtilities.getFooter());
-        String message="The lifeStage for encounter "+encNum+" was set to "+lifeStage+".";
-        
-        
+        String message="The country for encounter "+encNum+" was set to "+country+".";
       }
       else{
 
@@ -75,7 +74,7 @@ public class EncounterSetLifeStage extends HttpServlet {
                 else {
                   myShepherd.rollbackDBTransaction();
                 out.println(ServletUtilities.getHeader(request));
-                out.println("<strong>Error:</strong> I was unable to set the lifeStage. I cannot find the encounter that you intended in the database.");
+                out.println("<strong>Error:</strong> I was unable to set the country. I cannot find the encounter that you intended in the database.");
                 out.println(ServletUtilities.getFooter());
 
                   }

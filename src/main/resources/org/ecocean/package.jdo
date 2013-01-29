@@ -160,6 +160,10 @@
             <field name="verbatimLocality" persistence-modifier="persistent">
                 <column length="1024" />
             </field>
+            
+            <field name="country" persistence-modifier="persistent">
+	                    <column length="512" />
+            </field>
 
 
             <field name="genus" persistence-modifier="persistent">

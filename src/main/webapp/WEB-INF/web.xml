@@ -555,6 +555,11 @@
         <servlet-class>org.ecocean.servlet.EncounterSetLifeStage</servlet-class>
   </servlet>
   
+        <servlet>
+          <servlet-name>EncounterSetCountry</servlet-name>
+          <servlet-class>org.ecocean.servlet.EncounterSetCountry</servlet-class>
+  </servlet>
+  
   <servlet>
         <servlet-name>EncounterSetReleaseDate</servlet-name>
         <servlet-class>org.ecocean.servlet.EncounterSetReleaseDate</servlet-class>
@@ -793,6 +798,11 @@
       <servlet-mapping>
         <servlet-name>EncounterSetLifeStage</servlet-name>
         <url-pattern>/EncounterSetLifeStage</url-pattern>
+  </servlet-mapping>
+  
+        <servlet-mapping>
+          <servlet-name>EncounterSetCountry</servlet-name>
+          <url-pattern>/EncounterSetCountry</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
@@ -1261,6 +1271,7 @@
       <url-pattern>/EncounterSetScarring</url-pattern>
        <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
        <url-pattern>/EncounterSetLifeStage</url-pattern>
+       <url-pattern>/EncounterSetCountry</url-pattern>
         <url-pattern>/EncounterSetTissueSample</url-pattern>
         <url-pattern>/TissueSampleSetHaplotype</url-pattern>
          <url-pattern>/TissueSampleSetMeasurement</url-pattern>

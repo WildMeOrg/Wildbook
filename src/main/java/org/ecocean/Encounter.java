@@ -78,6 +78,7 @@ public class Encounter implements java.io.Serializable {
   public String genus = "";
   public String specificEpithet;
   public String lifeStage;
+  public String country;
 
 
   /*
@@ -1756,6 +1757,11 @@ public class Encounter implements java.io.Serializable {
       return null;
     }
     
+    public String getCountry(){return country;}
     
+    public void setCountry(String newCountry) {
+      if(newCountry!=null){country = newCountry;}
+      else{country=null;}
+    }
 }
 
