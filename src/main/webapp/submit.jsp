@@ -365,7 +365,11 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
 	</tr>
 	
 	
-	
+	      <%
+
+if(CommonConfiguration.showProperty("showCountry")){
+
+%>
 
 		<tr class="form_row">
 			<td class="form_label1"><strong><%=props.getProperty("country")%>:</strong></td>
@@ -401,6 +405,9 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
 	
 
 <%
+}  //end if showCountry
+
+
 if(CommonConfiguration.showProperty("maximumDepthInMeters")){
 %>
 <tr class="form_row">

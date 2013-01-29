@@ -505,6 +505,45 @@ function FSControl(controlDiv, map) {
       <%
         }
       %>
+      
+      
+      <%
+
+if(CommonConfiguration.showProperty("showCountry")){
+
+%>
+<p><strong><%=encprops.getProperty("country")%>:</strong>
+  
+  <select name="country" id="country">
+  	<option value="None" selected="selected"></option>
+  <%
+  			       boolean hasMoreCountries=true;
+  			       int stageNum=0;
+  			       
+  			       while(hasMoreCountries){
+  			       	  String currentCountry = "country"+stageNum;
+  			       	  if(CommonConfiguration.getProperty(currentCountry)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry)%>"><%=CommonConfiguration.getProperty(currentCountry)%></option>
+  			       	  	<%
+  			       		stageNum++;
+  			          }
+  			          else{
+  			        	hasMoreCountries=false;
+  			          }
+  			          
+			       }
+			       if(stageNum==0){%>
+			    	   <p><em><%=encprops.getProperty("noCountries")%></em></p>
+			       <% }
+			       
+ %>
+  </select></p>
+<%
+}
+%>
+      
     </div>
   </td>
 

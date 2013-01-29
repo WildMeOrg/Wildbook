@@ -283,6 +283,32 @@ public class EncounterQueryProcessor {
             else{filter+=(" && "+stageFilter);}
             prettyPrint.append("<br />");
     }
+    //end lifeStage filters
+    
+    //country filters-------------------------------------------------
+    String[] countries=request.getParameterValues("country");
+    if((countries!=null)&&(!countries[0].equals("None"))&&(!countries[0].equals(""))){
+          prettyPrint.append("Country is one of the following: ");
+          int kwLength=countries.length;
+            String stageFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              String kwParam=countries[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(stageFilter.equals("(")){
+                  stageFilter+=" country == \""+kwParam+"\"";
+                }
+                else{
+                  stageFilter+=" || country == \""+kwParam+"\"";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            stageFilter+=" ) ";
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=stageFilter;}
+            else{filter+=(" && "+stageFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end country filters
     
     
     // Measurement filters-----------------------------------------------
