@@ -107,8 +107,13 @@
 		
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from the ECOCEAN Library or contributed to its ultimate development and launch in 2003.</em></p>
-		<p>Catlin J, Jones T, Norman B &amp; Wood D (in press). Consolidation in a wildlife tourism industry: the changing impact of whale shark tourist expenditure in the Ningaloo Coast region. <em>International Journal of Tourism Research</em>. </p>
-		<p>Catlin J, Jones R, Jones T, Norman B and Wood D (in press). Discovering Wildlife Tourism: A Whale Shark Tourism Case Study. <em>Current Issues in Tourism</em>.</p>
+		
+		<p>Davies, Tim K., Stevens, Guy, Meekan, Mark G., Struve, Juliane, and Rowcliffe, J. Marcus (2012) Can citizen science monitor whale-shark aggregations? Investigating bias in mark-recapture modelling using identification photographs sourced from the public. Wildlife Research 39, 696-704.<br /><a href="http://www.publish.csiro.au/paper/WR12092">Web link</a></p>
+		<p>Catlin J, Jones T, Norman B &amp; Wood D. Consolidation in a wildlife tourism industry: the changing impact of whale shark tourist expenditure in the Ningaloo Coast region. <em>International Journal of Tourism Research</em>,
+Volume 12, Issue 2, pages 134-148, March/April 2010. </p>
+		<p>Catlin J, Jones R, Jones T, Norman B and Wood D (2010). Discovering Wildlife Tourism: A Whale Shark Tourism Case Study. <em>Current Issues in Tourism</em>,
+
+Volume 13, Issue 4.</p>
 		<p>Jones T, Wood D, Catlin J &amp; Norman B (2009). Expenditure and ecotourism: predictors of expenditure for whale shark tour participants. <em>Journal of Ecotourism</em> Volume 8, Issue 1: 32-50.</p>
 		<p>Norman B (2009) ECOCEAN Best Practice Whale Shark Ecotourism UNEP MANUAL. Technical Report (United Nations Environment Program - Regional Seas) 7pp.<br />
 	      <a href="ECOCEAN%20Best%20Practice%20Whale%20Shark%20Ecotourism%20UNEP%20MANUAL.pdf">Web link</a>.		</p>
