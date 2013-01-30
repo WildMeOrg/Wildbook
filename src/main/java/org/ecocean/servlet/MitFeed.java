@@ -10,25 +10,25 @@ import javax.jdo.*;
 
 //adds spots to a new encounter
 public class MitFeed extends HttpServlet{
-	
-	
+
+
 	public void init(ServletConfig config) throws ServletException {
     	super.init(config);
 	}
 
-	
+
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
 		doPost(request, response);
 	}
-		
+
 
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-		
+
 		//open a shepherd
 		Shepherd myShepherd=new Shepherd();
-		
-		response.setContentType("application/xml; charset=UTF-8"); 
+
+		response.setContentType("application/xml; charset=UTF-8");
 		boolean madeChanges=false;
 		PrintWriter out = response.getWriter();
 		myShepherd.beginDBTransaction();
@@ -41,13 +41,13 @@ public class MitFeed extends HttpServlet{
 			String qualifier="";
 			action=request.getParameter("action");
 			qualifier=request.getParameter("qualifier");
-			
+
 			//now let's process
 			if((action!=null)&&(!action.equals(""))&&(qualifier!=null)&&(!qualifier.equals(""))){
 
 					//GetList, L
 					if((action.equals("GetList"))&&(qualifier.equals("L"))){
-						response.setContentType("text/html; charset=UTF-8"); 
+						response.setContentType("text/html; charset=UTF-8");
 						Iterator it=myShepherd.getAllEncounters(encQuery);
 						while(it.hasNext()) {
 							Encounter tempEnc=(Encounter)it.next();
@@ -58,7 +58,7 @@ public class MitFeed extends HttpServlet{
 					}
 					//GetList, R
 					else if((action.equals("GetList"))&&(qualifier.equals("R"))){
-						response.setContentType("text/html; charset=UTF-8"); 
+						response.setContentType("text/html; charset=UTF-8");
 						Iterator it2=myShepherd.getAllEncounters(encQuery);
 						while(it2.hasNext()) {
 							Encounter tempEnc2=(Encounter)it2.next();
@@ -71,73 +71,73 @@ public class MitFeed extends HttpServlet{
 					else if(action.equals("GetData")){
 						Encounter dataEnc=myShepherd.getEncounter(qualifier);
 						StringBuffer xmlData=new StringBuffer();
-						
+
 						//xml root
 						xmlData.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<encounter number=\""+qualifier+"\" year=\""+dataEnc.getYear()+"\" assignedToShark=\""+dataEnc.isAssignedToMarkedIndividual()+"\">\n");
-						
+
 						//left side
 						if((dataEnc.getSpots()!=null)&&(dataEnc.getSpots().size()>0)){
 							ArrayList<SuperSpot> spots=dataEnc.getSpots();
-							xmlData.append("<spots side=\"left\" image=\"http://www.whaleshark.org/encounters/"+qualifier+"/"+dataEnc.getSpotImageFileName()+"\">\n");
+							xmlData.append("<spots side=\"left\" image=\"http://www.whaleshark.org/shepherd_data_dir/encounters/"+qualifier+"/"+dataEnc.getSpotImageFileName()+"\">\n");
 							for (int numIter2=0;numIter2<spots.size();numIter2++) {
 								xmlData.append("     <spot centroidX=\""+spots.get(numIter2).getTheSpot().getCentroidX()+"\" centroidY=\""+spots.get(numIter2).getTheSpot().getCentroidY()+"\"/>\n");
 							}
-							
+
 							//write out the fiducial points
 							if((dataEnc.getLeftReferenceSpots()!=null)&&(dataEnc.getLeftReferenceSpots().size()>0)){
 								xmlData.append("     <fids>\n");
-								
+
 								ArrayList<SuperSpot> refSpots=dataEnc.getLeftReferenceSpots();
 								for(int fid=0;fid<3;fid++){
 									SuperSpot fido = refSpots.get(fid);
 									xmlData.append("          <fid cx=\""+fido.getCentroidX()+"\" cy=\""+fido.getCentroidY()+"\"/>\n");
 								}
 								xmlData.append("     </fids>\n");
-								
+
 							}
-							
-							
+
+
 							xmlData.append("</spots>\n");
 						}
-						
+
 						//right side
 						if((dataEnc.getRightSpots()!=null)&&(dataEnc.getRightSpots().size()>0)){
 							ArrayList<SuperSpot> spots=dataEnc.getRightSpots();
-							xmlData.append("<spots side=\"right\" image=\"http://www.whaleshark.org/encounters/"+qualifier+"/"+dataEnc.getRightSpotImageFileName()+"\">\n");
+							xmlData.append("<spots side=\"right\" image=\"http://www.whaleshark.org/shepherd_data_dir/encounters/"+qualifier+"/"+dataEnc.getRightSpotImageFileName()+"\">\n");
 							for (int numIter3=0;numIter3<spots.size();numIter3++) {
 								xmlData.append("     <spot centroidX=\""+spots.get(numIter3).getTheSpot().getCentroidX()+"\" centroidY=\""+spots.get(numIter3).getTheSpot().getCentroidY()+"\"/>\n");
 							}
-							
+
 							//write out the fiducial points
 							if((dataEnc.getRightReferenceSpots()!=null)&&(dataEnc.getRightReferenceSpots().size()>0)){
 								xmlData.append("     <fids>\n");
-								
+
 								ArrayList<SuperSpot> refSpots=dataEnc.getRightReferenceSpots();
 								for(int fid=0;fid<3;fid++){
 									SuperSpot fido = refSpots.get(fid);
 									xmlData.append("          <fid cx=\""+fido.getCentroidX()+"\" cy=\""+fido.getCentroidY()+"\"/>\n");
 								}
 								xmlData.append("     </fids>\n");
-								
+
 							}
-							
-							
+
+
 							xmlData.append("</spots>\n");
 						}
 						//end xml root
 						xmlData.append("</encounter>\n");
 						out.println(xmlData.toString());
-						
+
 					}
 					//GetMatches, encounter number
 					else if(action.equals("GetMatches")){
 						Encounter dataEnc=myShepherd.getEncounter(qualifier);
 						StringBuffer xmlData=new StringBuffer();
-						
+
 						//xml root
 						xmlData.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<encounter number=\""+qualifier+"\" assignedToShark=\""+dataEnc.isAssignedToMarkedIndividual()+"\">\n");
 						xmlData.append("<matches>\n");
-						
+
 						//logic
 						if(!dataEnc.isAssignedToMarkedIndividual().equals("Unassigned")) {
 							MarkedIndividual tempShark=myShepherd.getMarkedIndividual(dataEnc.isAssignedToMarkedIndividual());
@@ -149,26 +149,26 @@ public class MitFeed extends HttpServlet{
 								}
 							}
 						}
-						
+
 						//end xml root
 						xmlData.append("</matches>\n");
 						xmlData.append("</encounter>\n");
 						out.println(xmlData.toString());
 					}
-					
-			
-			
-			
+
+
+
+
 			} //end if all parameters OK
 			else{
 				out.println("<p>Invalid parameters requested. Check your request and try again.\nRequestsed parameters:\n");
 				out.println("action: "+action+"\n");
 				out.println("qualifier: "+qualifier+"\n</p>");
-				
+
 			}
-			
-			
-			
+
+
+
 			//wrap up
 			encQuery.closeAll();
 			sharkQuery.closeAll();
@@ -176,7 +176,7 @@ public class MitFeed extends HttpServlet{
 			myShepherd.closeDBTransaction();
 			encQuery=null;
 			sharkQuery=null;
-	
+
 	}
 	catch(Exception e) {
 		e.printStackTrace();
@@ -187,7 +187,7 @@ public class MitFeed extends HttpServlet{
 		sharkQuery=null;
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
-		
+
 	}
 	out.close();
 	myShepherd=null;
