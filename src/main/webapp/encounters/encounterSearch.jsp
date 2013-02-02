@@ -1133,7 +1133,9 @@ if(CommonConfiguration.showProperty("showLifestage")){
             	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
             </label>
       </p>
-
+      <p><strong><%=encprops.getProperty("tissueSampleID")%>:</strong>
+        <input name="tissueSampleID" type="text" size="50">    
+      </p>
       <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para">
       <a href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
         target="_blank"><img src="../images/information_icon_svg.gif"
@@ -1293,6 +1295,8 @@ else {
       %>
    
 </p>
+
+
 
     </div>
   </td>
