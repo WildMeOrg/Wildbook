@@ -319,7 +319,7 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
   			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
   			       	  	%>
   			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies).replaceAll("_"," ")%></option>
   			       	  	<%
   			       		taxNum++;
   			          }

@@ -1495,7 +1495,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
 			       	  	%>
 			       	  	 
-			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies).replaceAll("_"," ")%></option>
 			       	  	<%
 			       		taxNum++;
 			          }
