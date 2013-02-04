@@ -62,10 +62,9 @@
           <td><![endif]-->
       <ul>
         <li><a
-          href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index:
-          100;"><strong><%=props.getProperty("intro")%></strong></a>
+          href="http://www.ecoceanusa.org/shepherd" class="enclose" target="_blank"
+          style="margin: 0px 0 0px 0px; position: relative; width: 280px; height: 25px; z-index:
+          100;"><strong><%=props.getProperty("learnAboutShepherd")%></strong></a>
         </li>
 
       </ul>
@@ -320,9 +319,15 @@
           }
         %>
 
+	        <li><a
+          href="http://www.ecoceanusa.org/shepherd" class="enclose" target="_blank"
+          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px; z-index:
+          100;"><strong><%=props.getProperty("shepherdDoc")%></strong></a>
+        </li>
+        
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/javadoc/index.html" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Javadoc</a></li>
 						
-						
+					
 
         <!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
