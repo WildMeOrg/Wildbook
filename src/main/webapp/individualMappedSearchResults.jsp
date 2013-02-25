@@ -189,7 +189,7 @@ margin-bottom: 8px !important;
   
   
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
   
 <script type="text/javascript" src="encounters/StyledMarker.js"></script>
@@ -215,10 +215,17 @@ margin-bottom: 8px !important;
   	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
         var markers = [];
+	var movePathCoordinates = [];
+
+
+	<%
+	for(int uu=0;uu<rIndividuals.size();uu++){
+	%>
+  	var movePathCoordinates<%=uu%> = [];	
+  	<%
+  	}
+  	
  
- 
-        
-        <%
 int rIndividualsSize=rIndividuals.size();
         int count = 0;
 
@@ -229,9 +236,11 @@ if(rIndividualsSize>0){
 	//int havegpsSize=rIndividuals.size();
  for(int y=0;y<rIndividualsSize;y++){
 	 MarkedIndividual indie=(MarkedIndividual)rIndividuals.get(y);
+
 	 //Encounter thisEnc=
 	 Vector rEncounters=indie.getEncounters(); 
 	 int numEncs=rEncounters.size();
+	 boolean showMovePath=false;
 	for(int yh=0;yh<numEncs;yh++){
 		Encounter thisEnc=(Encounter)rEncounters.get(yh);
 		Double thisEncLat=null;
@@ -260,15 +269,20 @@ if(rIndividualsSize>0){
 		}
 		
 		if((thisEncLat!=null)&&(thisEncLong!=null)){
+		
+		showMovePath=true;
  %>
           
           var latLng = new google.maps.LatLng(<%=thisEncLat.toString()%>, <%=thisEncLong.toString()%>);
           bounds.extend(latLng);
+          movePathCoordinates<%=y%>.push(latLng);
            <%
            
            
            //currently unused programatically
            String markerText="";
+           
+           //another comment
            
            String haploColor="CC0000";
            if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
@@ -291,12 +305,53 @@ if(rIndividualsSize>0){
  <%
  
 	 }
+	 	 %>
+	 	 
+	 	//test comment
+	 	 	    
+	 	var movePath<%=y%> = new google.maps.Polyline({
+	 				       path: movePathCoordinates<%=y%>,
+	 				       geodesic: true,
+	 				       strokeOpacity: 0.0,
+	 				       strokeColor: 'white',
+	 				       icons: [{
+	 				         icon: {
+	 				           path: 'M -1,1 0,0 1,1',
+	 				           strokeOpacity: 1,
+	 				           strokeWeight: 1.5,
+	 				           scale: 6
+	 				           
+	 				         },
+	 				         repeat: '20px'
+	 				         
+	 				       }
+	 				       ],
+	 				       map: map
+	     		});
+	     		
+	 	 
+	 
+	 <%
  }
 }
 } 
 
 myShepherd.rollbackDBTransaction();
  %>
+ 
+
+ 
+   
+  
+ 	var maxZoomService = new google.maps.MaxZoomService();
+ 	maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
+ 		    if (response.status == google.maps.MaxZoomStatus.OK) {
+ 		    	if(response.zoom < map.getZoom()){
+ 		    		map.setZoom(response.zoom);
+ 		    	}
+ 		    }
+ 		    
+	});
 
       }
       
