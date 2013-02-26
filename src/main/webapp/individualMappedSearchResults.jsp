@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,java.util.Random" %>
 
 
 
@@ -49,7 +49,7 @@
     //get our Shepherd
     Shepherd myShepherd = new Shepherd();
 
-
+	Random ran= new Random();
 
 
 
@@ -238,7 +238,7 @@ if(rIndividualsSize>0){
 	 MarkedIndividual indie=(MarkedIndividual)rIndividuals.get(y);
 
 	 //Encounter thisEnc=
-	 Vector rEncounters=indie.getEncounters(); 
+	 Vector rEncounters=indie.returnEncountersWithGPSData(true,true); 
 	 int numEncs=rEncounters.size();
 	 boolean showMovePath=false;
 	for(int yh=0;yh<numEncs;yh++){
@@ -258,8 +258,8 @@ if(rIndividualsSize>0){
 	                if (localeprops.getProperty(lc) != null) {
 	                  String gps = localeprops.getProperty(lc);
 	                  StringTokenizer st = new StringTokenizer(gps, ",");
-	                  thisEncLat=new Double(st.nextToken());
-	                  thisEncLong=new Double(st.nextToken());
+	                  thisEncLat=(new Double(st.nextToken()))+ran.nextDouble()*0.02;
+	                  thisEncLong=(new Double(st.nextToken()))+ran.nextDouble()*0.02;;
 
 	                }
 	              } catch (Exception e) {
