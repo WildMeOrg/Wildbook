@@ -70,7 +70,15 @@ public class IndividualSearchExportCapture extends HttpServlet{
       for(int i=0;i<numIndividuals;i++) {
         MarkedIndividual s=rIndividuals.get(i);
 
-        if((s.wasSightedInLocationCode(locCode))&&(s.wasSightedInPeriod(startYear,startMonth,endYear,endMonth))) {
+        boolean wasSightedInRequestedLocation=false;
+        if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").trim().equals(""))){
+          wasSightedInRequestedLocation=s.wasSightedInLocationCode(locCode);
+        }
+        else{
+          wasSightedInRequestedLocation=true;
+        }
+        
+        if((wasSightedInRequestedLocation)&&(s.wasSightedInPeriod(startYear,startMonth,endYear,endMonth))) {
           boolean wasReleased=false;
           StringBuffer sb=new StringBuffer();
 
@@ -79,7 +87,14 @@ public class IndividualSearchExportCapture extends HttpServlet{
             boolean sharkWasSeen=false;
             
 
-              sharkWasSeen=s.wasSightedInPeriod(f,startMonth,1,(f+wrapsYear),endMonth, 31, locCode);
+              
+              if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").trim().equals(""))){
+                sharkWasSeen=s.wasSightedInPeriod(f,startMonth,1,(f+wrapsYear),endMonth, 31, locCode);
+              }
+              else{
+                sharkWasSeen=s.wasSightedInPeriod(f,startMonth,1,(f+wrapsYear),endMonth, 31);
+              }
+              
           
             if(sharkWasSeen){
               

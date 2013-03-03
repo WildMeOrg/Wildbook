@@ -585,19 +585,36 @@ margin-bottom: 8px !important;
   <%
     }
   %>
+  
   <br/>
-
-  <em><%=encprops.getProperty("locationID") %>
-  </em>: <%=enc.getLocationCode()%>
+  <em><%=encprops.getProperty("locationID") %></em>: <%=enc.getLocationCode()%>
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
   <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=loccode#loccode">edit</a>]</font>
   <a href="<%=CommonConfiguration.getWikiLocation()%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
-  %><br/>
-  <em><%=encprops.getProperty("latitude") %>
-  </em>:
+
+  if(CommonConfiguration.showProperty("showCountry")){
+  
+%>
+  <br/>
+  <em><%=encprops.getProperty("country") %></em>: <%=enc.getCountry()%>
+  <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=country#country">edit</a>]</font>
+  <a href="<%=CommonConfiguration.getWikiLocation()%>country" target="_blank"><img
+    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> 
+    
+    
+    <%
+    }
+    } //end if showCountry
+  %>
+  
+  
+  <br/>
+  <em><%=encprops.getProperty("latitude") %></em>:
   <%
     if ((enc.getDWCDecimalLatitude() != null) && (!enc.getDWCDecimalLatitude().equals("-9999.0"))) {
   %>
@@ -605,8 +622,7 @@ margin-bottom: 8px !important;
   <%
     }
   %>
-  <br/> <em><%=encprops.getProperty("longitude") %>
-  </em>:
+  <br/> <em><%=encprops.getProperty("longitude") %></em>:
   <%
     if ((enc.getDWCDecimalLongitude() != null) && (!enc.getDWCDecimalLongitude().equals("-9999.0"))) {
   %>
@@ -690,7 +706,12 @@ margin-bottom: 8px !important;
  %>
 
 <p class="para"><strong><%=encprops.getProperty("scarring") %>
-</strong><br/> <%=enc.getDistinguishingScar()%>
+</strong><br/> 
+<%
+String recordedScarring="";
+if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar();}
+%>
+<%=recordedScarring%>
     <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  	%>
@@ -882,7 +903,12 @@ margin-bottom: 8px !important;
 %>
 
 <p class="para"><strong><%=encprops.getProperty("comments") %>
-</strong><br/> <%=enc.getComments()%><br/>
+</strong><br/> 
+<%
+String recordedComments="";
+if(enc.getComments()!=null){recordedComments=enc.getComments();}
+%>
+<%=recordedComments%><br/>
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=comments#comments">edit</a>]</font>
@@ -1484,6 +1510,7 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
   <tr>
     <td>
       <%
+      if(enc.getInterestedResearchers()!=null){
         Vector trackers = enc.getInterestedResearchers();
         if ((isOwner) && (trackers.size() > 0)) {%>
 
@@ -1495,7 +1522,8 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
       </a></a>&nbsp;|&nbsp;
         <%}%></font></p>
 
-      <%}%>
+      <%}
+      }%>
     </td>
   </tr>
 </table>
