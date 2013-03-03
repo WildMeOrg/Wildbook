@@ -90,7 +90,7 @@
 		</div>
 			
 			<p>&nbsp;</p>
-			<p><strong>ZAVEN ARZOUMANIAN, Director, President</strong></p>
+			<p><strong>ZAVEN ARZOUMANIAN, Director, President, Co-founder</strong></p>
 			<p>Zaven Arzoumanian earned degrees in Physics at McGill University (B.Sc.) and Princeton University (M.A., Ph.D.). His research interests include the astrophysics of neutron stars and black holes, testing theories of gravitation and the nature of matter in extreme environments, and new technologies for instrumentation in radio and X-ray astronomy. Zaven is employed as a contract scientist at NASA's Goddard Space Flight Center in Greenbelt, MD, USA. Zaven’s interest in Whale Sharks and pattern-matching computations for biological applications was cultivated in a collaboration with Jason Holmberg and Brad Norman, culminating in the development of a technique for matching spot patterns adapted from astronomy, published in the Journal of Applied Ecology (May 2005).<br />
 			  Universities Space Research Association<br />
 			  NASA Goddard Space Flight Center<br />
@@ -108,7 +108,7 @@
 			  <a href="mailto:zebhogan@hotmail.com ">zebhogan@hotmail.com </a></p>
 <p><img src="images/hogan.jpg" width="450" height="286" border="1" /> </p>
 			<p>&nbsp;</p>
-			<p><strong>JASON HOLMBERG, Director, Secretary</strong></p>
+			<p><strong>JASON HOLMBERG, Director, Secretary, Co-founder</strong></p>
 			<p>Jason Holmberg joined ECOCEAN in 2002 and has logged over 8,000 hours of development time on the ECOCEAN Whale Shark Photo-identification Library. As Project Architect, he has designed and implemented new tools to support digital pattern recognition for Whale Sharks. Using Jaon’s tools, the project has been able to categorize and manage a large amount of Whale Shark data and to identify individual animals from multiple photos taken by different researchers many years apart. Jason’s ECOCEAN interface also encourages public participation in Whale Shark research via an automated email system that sends individual data contributors automatic updates on individual Whale Shark re-sightings. Jason also undertook further field-testing of the project’s methodology and technology in the Galapagos Islands in October 2004, Honduras in March 2005 and Australia in April 2005. He gave two talks at the International Whale Shark Conference in Perth, Australia in May 2005 and later that year accepted a Duke’s Choice Award on behalf of the ECOCEAN team for innovative use of Java technology for Whale Shark data management and pattern recognition. Jason co-authored a widely lauded paper with Zaven Arzoumanian and Brad Norman on a 12-year population study at Ningaloo Marine Park in Ecological Applications (January 2008).<br />
 			  ECOCEAN Library Architect<br />
 			  4836 NE 31st Avenue<br />
@@ -125,7 +125,7 @@
 			<p>Mark McBride is a software developer at Twitter Inc., building APIs that allow developers to access Twitter capabilities. He is also on the board of ECOCEAN USA. He is interested in all aspects of software development, as well as sustainability and conservation.</p>
 <p><img src="images/mcbride.jpg" width="450" height="300" border="1" /> </p>
 			<p>&nbsp;</p>
-			<p><strong>BRAD NORMAN, Director</strong></p>
+			<p><strong>BRAD NORMAN, Co-founder</strong></p>
 		<p>Brad Norman is a researcher with Murdoch University and is heading up a new Whale Shark study program there. His main research interests are Whale Shark biology, behavior and physiology, and sustainable eco-tourism and conservation. Brad began studying Whale Sharks at Ningaloo Marine Park, Western Australia in 1994 and has continued Whale Shark research both in Australia and abroad. Over his many years of work, he has established that the natural patterning on the skin of these sharks does not change over time and can be used to identify individuals. In addition to developing acoustic and satellite tracking programs at Ningaloo and Christmas Island, Indian Ocean with Australian authorities, he has also developed programs with WWF-Philippines, the Wildlife Trust of India, and the Galapagos National Parks. In 2006 he was awarded a Rolex Awards for Enterprise and as a Laureate and in 2007 provided training on Whale Shark monitoring and conservation issues to local stakeholders in eight countries. In 2008 he was also recognized by National Geographic as an Emerging Explorer for his work on species conservation and named an Ocean Hero by the same organization in 2010.<br />
 			  Conservation Biologist, ECOCEAN<br />
 			  Adjunct Research Associate, Murdoch University<br />
