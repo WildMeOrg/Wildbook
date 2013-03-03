@@ -505,6 +505,45 @@ function FSControl(controlDiv, map) {
       <%
         }
       %>
+      
+      
+      <%
+
+if(CommonConfiguration.showProperty("showCountry")){
+
+%>
+<p><strong><%=encprops.getProperty("country")%>:</strong>
+  
+  <select name="country" id="country">
+  	<option value="None" selected="selected"></option>
+  <%
+  			       boolean hasMoreCountries=true;
+  			       int stageNum=0;
+  			       
+  			       while(hasMoreCountries){
+  			       	  String currentCountry = "country"+stageNum;
+  			       	  if(CommonConfiguration.getProperty(currentCountry)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry)%>"><%=CommonConfiguration.getProperty(currentCountry)%></option>
+  			       	  	<%
+  			       		stageNum++;
+  			          }
+  			          else{
+  			        	hasMoreCountries=false;
+  			          }
+  			          
+			       }
+			       if(stageNum==0){%>
+			    	   <p><em><%=encprops.getProperty("noCountries")%></em></p>
+			       <% }
+			       
+ %>
+  </select></p>
+<%
+}
+%>
+      
     </div>
   </td>
 
@@ -885,6 +924,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <%
     pageContext.setAttribute("items", Util.findMeasurementDescs(langCode));
 %>
+<tr><td></td></tr>
 <tr><td><strong><%=encprops.getProperty("measurements") %></strong></td></tr>
 <c:forEach items="${items}" var="item">
 <tr valign="top">
@@ -898,39 +938,15 @@ if(CommonConfiguration.showProperty("showLifestage")){
 </td>
 </tr>
 </c:forEach>
+<tr><td></td></tr>
 </c:if>
-
-
-
-
-<%
-  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements());
-%>
-<c:if test="${showMeasurement}">
-<%
-    pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode));
-%>
-<tr><td><strong><%=encprops.getProperty("biomeasurements") %></strong></td></tr>
-<c:forEach items="${items}" var="item">
-<tr valign="top">
-<td>${item.label}
-<select name="biomeasurement${item.type}(operator)">
-  <option value="gt">&gt;</option>
-  <option value="lt">&lt;</option>
-  <option value="eq">=</option>
-</select>
-<input name="biomeasurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
-</td>
-</tr>
-</c:forEach>
-</c:if>
-
-
+<tr><td>
       <p><strong><%=encprops.getProperty("hasPhoto")%>: </strong>
             <label> 
             	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
             </label>
       </p>
+      </td></tr>
 <%
   int totalKeywords = myShepherd.getNumKeywords();
 %>
@@ -1117,7 +1133,9 @@ if(CommonConfiguration.showProperty("showLifestage")){
             	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
             </label>
       </p>
-
+      <p><strong><%=encprops.getProperty("tissueSampleID")%>:</strong>
+        <input name="tissueSampleID" type="text" size="50">    
+      </p>
       <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para">
       <a href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
         target="_blank"><img src="../images/information_icon_svg.gif"
@@ -1194,6 +1212,28 @@ if(CommonConfiguration.showProperty("showLifestage")){
       %>
       
       
+      <%
+    pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode));
+%>
+
+<table>
+<tr><td></td></tr>
+<tr><td><strong><%=encprops.getProperty("biomeasurements") %></strong></td></tr>
+<c:forEach items="${items}" var="item">
+<tr valign="top">
+<td>${item.label}
+<select name="biomeasurement${item.type}(operator)">
+  <option value="gt">&gt;</option>
+  <option value="lt">&lt;</option>
+  <option value="eq">=</option>
+</select>
+<input name="biomeasurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
+</td>
+</tr>
+</c:forEach>
+<tr><td></td></tr>
+</table>
+    
       <p><strong><%=encprops.getProperty("msmarker")%>:</strong> 
       <span class="para">
       	<a href="<%=CommonConfiguration.getWikiLocation()%>loci" target="_blank">
@@ -1255,6 +1295,8 @@ else {
       %>
    
 </p>
+
+
 
     </div>
   </td>

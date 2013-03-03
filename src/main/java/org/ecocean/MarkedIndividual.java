@@ -357,7 +357,7 @@ public class MarkedIndividual implements java.io.Serializable {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
 
-      if (temp.getLocationCode().startsWith(locCode)) {
+      if ((temp.getLocationID()!=null)&&(!temp.getLocationID().trim().equals(""))&&(temp.getLocationID().trim().equals(locCode))) {
 
         if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
           return true;
@@ -583,14 +583,22 @@ public class MarkedIndividual implements java.io.Serializable {
   }
 
   public boolean wasSightedInLocationCode(String locationCode) {
-    for (int c = 0; c < encounters.size(); c++) {
-      Encounter temp = (Encounter) encounters.get(c);
-      if (temp.getLocationCode().startsWith(locationCode)) {
-        return true;
-      }
+   
+        for (int c = 0; c < encounters.size(); c++) {
+          try{
+            Encounter temp = (Encounter) encounters.get(c);
+          
+            if ((temp.getLocationID()!=null)&&(!temp.getLocationID().trim().equals(""))&&(temp.getLocationID().trim().equals(locationCode))) {
+              return true;
+            }
+          }
+          catch(NullPointerException npe){return false;} 
+        }
+         
+        return false;
     }
-    return false;
-  }
+    
+
 
   public ArrayList<String> participatesInTheseVerbatimEventDates() {
     ArrayList<String> vbed = new ArrayList<String>();

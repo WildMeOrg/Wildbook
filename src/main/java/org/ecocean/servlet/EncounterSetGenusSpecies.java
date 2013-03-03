@@ -73,15 +73,22 @@ public class EncounterSetGenusSpecies extends HttpServlet {
 
 		//now we have to break apart genus species
 		StringTokenizer tokenizer=new StringTokenizer(genusSpecies," ");
-		if(tokenizer.countTokens()==2){
+		if(tokenizer.countTokens()>=2){
 
-        	myShark.setGenus(tokenizer.nextToken());
-        	myShark.setSpecificEpithet(tokenizer.nextToken());
-        	myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set genus and species to: " + genus + " "+specificEpithet + ".");
+			genus=tokenizer.nextToken();
+        	myShark.setGenus(genus);
+        	specificEpithet =tokenizer.nextToken();
+
+
+        		myShark.setSpecificEpithet(specificEpithet.replaceAll(",","").replaceAll("_"," "));
+        		myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set genus and species to: " + genus + " "+specificEpithet.replaceAll(",","").replaceAll("_"," "));
+
 	    }
 	    else if(genusSpecies.equals("unknown")){
 			myShark.setGenus(null);
         	myShark.setSpecificEpithet(null);
+        	myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />Set genus and species to null.");
+
 		}
 	    //handle malformed Genus Species formats
 	    else{throw new Exception("The format of the genusSpecies parameter in servlet EncounterSetGenusSpecies did not have two tokens delimited by a space (e.g., \"Rhincodon typus\").");}

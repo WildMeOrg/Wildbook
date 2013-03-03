@@ -446,6 +446,8 @@ if(!request.getParameter("loggedIn").equals("true")){
 	<%	
     //Remove from occurrence if assigned
 	if((formShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && CommonConfiguration.isCatalogEditable() && request.getParameter("isOwner").equals("true") && (request.getParameter("edit")!=null) && (request.getParameter("edit").equals("manageOccurrence"))) {
+	
+	
 	%>
 	<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
   	<tr>
@@ -474,6 +476,8 @@ if(!request.getParameter("loggedIn").equals("true")){
       	}
       	  //create new Occurrence with name
       	  if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageOccurrence"))){
+      if((formShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+      
       %>
 <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
   <tr>
@@ -486,6 +490,7 @@ if(!request.getParameter("loggedIn").equals("true")){
       <form name="createOccurrence" method="post" action="../OccurrenceCreate">
         <input name="number" type="hidden" value="<%=num%>" /> 
         <input name="action" type="hidden" value="create" /> 
+        <%=encprops.getProperty("newOccurrenceID")%><br />
         <input name="occurrence" type="text" id="occurrence" size="10" maxlength="50" value="" />
         <br />
         <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
@@ -495,6 +500,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 </table></a>
 <br/>	
 	<%
+      	  }
       	  }
 		
 	//add this encounter to an Occurrence object
@@ -589,6 +595,12 @@ if(!request.getParameter("loggedIn").equals("true")){
 <br> <%
 			}
       	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
+      		
+      		String longy="";
+      		String laty="";
+      		if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
+      		if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
+      		
     		%> <a name="gps"></a>
     		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     			<tr>
@@ -601,10 +613,10 @@ if(!request.getParameter("loggedIn").equals("true")){
     				<form name="resetGPSform" method="post" action="../EncounterSetGPS">
     				<input name="action" type="hidden" value="resetGPS" />
     				<p><strong><%=encprops.getProperty("latitude")%>:</strong><br /> 
-    				<input type="text" size="7" maxlength="10" name="lat" id="lat" />
+    				<input type="text" size="7" maxlength="10" name="lat" id="lat" value="<%=laty %>"></input>
     				 
     				<br /> <strong><%=encprops.getProperty("longitude")%>:</strong><br> 
-    				<input type="text" size="7" maxlength="10" name="longitude" id="longitude" /> 
+    				<input type="text" size="7" maxlength="10" name="longitude" id="longitude" value="<%=longy %>"></input> 
     				<input name="number" type="hidden" value=<%=num%> /> 
     				<input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" />
     				</p>
@@ -1445,7 +1457,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
 			       	  	%>
 			       	  	 
-			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies).replaceAll("_"," ")%></option>
 			       	  	<%
 			       		taxNum++;
 			          }
@@ -1510,7 +1522,55 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 						</table>
 						<br /> <%
 	}
-%>			
+	
+	
+	//
+	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("country"))){
+		%> 
+		<a name="country"></a>
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+			<tr>
+				<td align="left" valign="top" class="para"><strong><font color="#990000">
+					<%=encprops.getProperty("resetCountry")%>:</font></strong><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
+						    </td>
+						  </tr>
+						  <tr>
+						    <td align="left" valign="top">
+						      <form name="countryForm" action="../EncounterSetCountry" method="post">
+						            <select name="country" id="country">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreStages=true;
+						       int taxNum=0;
+						       while(hasMoreStages){
+						       	  String currentLifeStage = "country"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreStages=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
+						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
+						      </form>
+						    </td>
+						  </tr>
+						</table>
+						<br /> <%
+	}
+%>	
+	
+		
 
 <c:if test="${param.edit eq 'measurements'}">
  <% 
