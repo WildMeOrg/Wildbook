@@ -98,15 +98,7 @@
 			  USA<br />
 			  <a href="mailto:zaven@ecoceanusa.org">zaven@ecoceanusa.org</a></p>
 <p><img src="images/zaven.jpg" width="450" height="293" border="1" /></p>
-			<p>&nbsp;</p>
-			<p><strong>ZEB HOGAN, Director</strong></p>
-			<p>Zeb Hogan is a native of Tempe, Arizona and received his Ph.D. in Ecology from the University of California, Davis in 2004. His research interests include migratory fish ecology, multi-species fisheries management, the status and conservation of giant freshwater fish, endangered species issues, and conservation genetics. Zeb is also very involved in environmental education and outreach. He was recently designated a Conservation Science Fellow at the World Wildlife Fund and an Emerging Explorer by the National Geographic Society. He serves as a Director on the ECOCEAN USA board.<br />
-			  Center for Limnology <br />
-			  University of Wisconsin-Madison <br />
-			  680 N. Park Street <br />
-			  Madison, WI 53706 USA <br />
-			  <a href="mailto:zebhogan@hotmail.com ">zebhogan@hotmail.com </a></p>
-<p><img src="images/hogan.jpg" width="450" height="286" border="1" /> </p>
+			
 			<p>&nbsp;</p>
 			<p><strong>JASON HOLMBERG, Director, Secretary, Co-founder</strong></p>
 			<p>Jason Holmberg joined ECOCEAN in 2002 and has logged over 8,000 hours of development time on the ECOCEAN Whale Shark Photo-identification Library. As Project Architect, he has designed and implemented new tools to support digital pattern recognition for Whale Sharks. Using Jaon’s tools, the project has been able to categorize and manage a large amount of Whale Shark data and to identify individual animals from multiple photos taken by different researchers many years apart. Jason’s ECOCEAN interface also encourages public participation in Whale Shark research via an automated email system that sends individual data contributors automatic updates on individual Whale Shark re-sightings. Jason also undertook further field-testing of the project’s methodology and technology in the Galapagos Islands in October 2004, Honduras in March 2005 and Australia in April 2005. He gave two talks at the International Whale Shark Conference in Perth, Australia in May 2005 and later that year accepted a Duke’s Choice Award on behalf of the ECOCEAN team for innovative use of Java technology for Whale Shark data management and pattern recognition. Jason co-authored a widely lauded paper with Zaven Arzoumanian and Brad Norman on a 12-year population study at Ningaloo Marine Park in Ecological Applications (January 2008).<br />
@@ -137,7 +129,7 @@
     <p><img src="images/norman.jpg" width="450" height="293" border="1" /></p>
     
     <p>&nbsp;</p>
-    			<p><strong>SIMON PIERCE, Science Coordinator</strong></p>
+    			<p><strong>SIMON PIERCE, Director, Science Coordinator</strong></p>
     			<p>Simon Pierce is a conservation ecologist focusing on threatened marine species, particularly sharks and rays. Simon, a New Zealand native, has been based in Mozambique since 2005 where he leads research efforts on a large year-round aggregation of whale sharks. Simon's whale shark research examines the population ecology, movements and conservation status of these enormous fishes. His research is designed to bridge the gap between science in management in order to develop and implement effective conservation solutions. Simon is a Lead Scientist at the Marine Megafauna Association in Mozambique and Executive Director of Eyes on the Horizon, a national Mozambican marine conservation organisation. He holds a BSc degree from Victoria University of Wellington (NZ) and a BSc (Hons) and PhD from The University of Queensland (Australia).</p>
 <p><img src="images/SimonPierce.jpg" width="450" height="300" border="1" /> </p>
 				
