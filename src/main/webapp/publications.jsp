@@ -109,6 +109,9 @@
 		<p><em>The following reports and publications have either directly used data from the ECOCEAN Library or contributed to its ultimate development and launch in 2003.</em></p>
 		
 		<p>Davies, Tim K., Stevens, Guy, Meekan, Mark G., Struve, Juliane, and Rowcliffe, J. Marcus (2012) Can citizen science monitor whale-shark aggregations? Investigating bias in mark-recapture modelling using identification photographs sourced from the public. Wildlife Research 39, 696-704.<br /><a href="http://www.publish.csiro.au/paper/WR12092">Web link</a></p>
+		
+		<p>Marshall AD & SJ Pierce (2012) The use and abuse of photographic identification in sharks and rays. Journal of Fish Biology 80: 1361-1379</p>
+	
 		<p>Catlin J, Jones T, Norman B &amp; Wood D. Consolidation in a wildlife tourism industry: the changing impact of whale shark tourist expenditure in the Ningaloo Coast region. <em>International Journal of Tourism Research</em>,
 Volume 12, Issue 2, pages 134-148, March/April 2010. </p>
 		<p>Catlin J, Jones R, Jones T, Norman B and Wood D (2010). Discovering Wildlife Tourism: A Whale Shark Tourism Case Study. <em>Current Issues in Tourism</em>,
