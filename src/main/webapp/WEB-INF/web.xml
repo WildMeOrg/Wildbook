@@ -234,6 +234,12 @@
     <servlet-name>KeywordHandler</servlet-name>
     <servlet-class>org.ecocean.servlet.KeywordHandler</servlet-class>
   </servlet>
+  
+  
+    <servlet>
+      <servlet-name>ImportSRGD</servlet-name>
+      <servlet-class>org.ecocean.servlet.importer.SRGD</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>IndividualAddFile</servlet-name>
@@ -788,6 +794,12 @@
           <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
           <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
   </servlet-mapping>
+  
+  
+        <servlet-mapping>
+            <servlet-name>ImportSRGD</servlet-name>
+            <url-pattern>/ImportSRGD</url-pattern>
+  </servlet-mapping>
     
   
     <servlet-mapping>
@@ -1277,6 +1289,9 @@
          <url-pattern>/TissueSampleSetMeasurement</url-pattern>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
         <url-pattern>/TissueSampleRemoveBiologicalMeasurement</url-pattern>
+        
+        
+        <url-pattern>/ImportSRGD</url-pattern>
         
         <url-pattern>/IndividualCreate</url-pattern>
         <url-pattern>/OccurrenceCreate</url-pattern>
