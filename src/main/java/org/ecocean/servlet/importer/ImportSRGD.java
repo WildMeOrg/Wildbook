@@ -30,6 +30,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import au.com.bytecode.opencsv.CSVReader;
 import java.util.List;
+import org.joda.time.*;
+import org.joda.time.format.*;
+import java.lang.IllegalArgumentException;
 
 /**
  * Uploads an SRGD CSV file for data import
@@ -49,6 +52,8 @@ public class ImportSRGD extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     Shepherd myShepherd = new Shepherd();
 
+    System.out.println("\n\nStarting ImportSRGD servlet...");
+    
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -56,7 +61,9 @@ public class ImportSRGD extends HttpServlet {
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File tempSubdir = new File(webappsDir, "temp");
     if(!tempSubdir.exists()){tempSubdir.mkdir();}
-
+    System.out.println("\n\n     Finished directory creation...");
+    
+    
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -96,6 +103,7 @@ public class ImportSRGD extends HttpServlet {
             finalFile=new File(tempSubdir, fileName);
             filePart.writeTo(finalFile);
             successfullyWroteFile=true;
+            System.out.println("\n\n     I successfully uploaded the file!");
           }
         }
       }
@@ -106,10 +114,13 @@ public class ImportSRGD extends HttpServlet {
         try {
           if(successfullyWroteFile){
             
+            System.out.println("\n\n     Starting CSV content import...");
+            
             //OK, we have our CSV file
             //let's import
             CSVReader reader = new CSVReader(new FileReader(finalFile));
             List<String[]> allLines = reader.readAll();
+            System.out.println("\n\n     Read in the CSV file!");
             
             //let's detect the size of this array by reading the number of header columns in row 0
             String[] headerNames=allLines.get(0);
@@ -119,7 +130,11 @@ public class ImportSRGD extends HttpServlet {
             
             for(int i=1;i<numRows;i++){
               
+              System.out.println("\n\n     Processing row "+i);
+              
               String[] line=allLines.get(i);
+              
+              boolean ok2import=true;
               
               Encounter enc=new Encounter();
               
@@ -127,11 +142,17 @@ public class ImportSRGD extends HttpServlet {
               
               //line[0] is the sample_ID
               String encNumber=line[0].trim();
-              if(myShepherd.isEncounter(encNumber)){
-                enc=myShepherd.getEncounter(encNumber);
+              if(!encNumber.equals("")){
+                if(myShepherd.isEncounter(encNumber)){
+                  enc=myShepherd.getEncounter(encNumber);
+                }
+                else{
+                  enc.setCatalogNumber(encNumber);
+                }
               }
               else{
-                enc.setCatalogNumber(encNumber);
+                ok2import=false;
+                messages.append("          Could not find sample/encounter ID in the first column of row "+i+".<br />");
               }
               
               //line[1] is the IndividualID
@@ -160,31 +181,60 @@ public class ImportSRGD extends HttpServlet {
                   enc.setDecimalLatitude(longie);
                 }
                 catch(NumberFormatException nfe){
+                  nfe.printStackTrace();
                   messages.append(enc.getCatalogNumber()+": Longitude hit a NumberFormatException and could not be imported. The listed value was: "+longitude);
                 }
               }
               
               //line[4] is the date_time
-              
-              myShepherd.commitDBTransaction();
-              
-             
-              if(!individualID.equals("")){
-                MarkedIndividual indie=new MarkedIndividual();
-                myShepherd.beginDBTransaction();
+              String isoDate=line[4].trim();
+              if(!isoDate.equals("")){
+                DateTimeFormatter parser2 = ISODateTimeFormat.dateTimeParser();
                 
-                Encounter enc2=myShepherd.getEncounter(encNumber);
+                try{
+                  DateTime time = parser2.parseDateTime(isoDate);
+                  enc.setYear(time.getYear());
+                  enc.setMonth(time.getMonthOfYear());
+                  enc.setDay(time.getDayOfMonth());
+                  enc.setHour(time.getHourOfDay());
                 
-                if(myShepherd.isMarkedIndividual(individualID)){
-                  indie=myShepherd.getMarkedIndividual(individualID);
+                  int minutes=time.getMinuteOfHour();
+                  String minutes2=(new Integer(minutes)).toString();
+                  enc.setMinutes(minutes2);
                 }
-                else{
-                  indie.setIndividualID(individualID);
+                catch(IllegalArgumentException iae){
+                  iae.printStackTrace();
+                  messages.append("Could not import the date and time for row: "+i+". Cancelling the import for this row.");
+                  ok2import=false;
                 }
-                indie.addEncounter(enc2);
-                
-                myShepherd.commitDBTransaction();
               }
+              
+              
+              
+              if(ok2import){  
+                myShepherd.commitDBTransaction();
+              
+                if(!individualID.equals("")){
+                  MarkedIndividual indie=new MarkedIndividual();
+                  myShepherd.beginDBTransaction();
+                
+                  Encounter enc2=myShepherd.getEncounter(encNumber);
+                
+                  if(myShepherd.isMarkedIndividual(individualID)){
+                    indie=myShepherd.getMarkedIndividual(individualID);
+                  }
+                  else{
+                    indie.setIndividualID(individualID);
+                  }
+                  indie.addEncounter(enc2);
+                
+                  myShepherd.commitDBTransaction();
+                }
+                
+            }
+            else{myShepherd.rollbackDBTransaction();}
+              
+              
               
             }
             

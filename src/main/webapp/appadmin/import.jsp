@@ -99,7 +99,7 @@
 <body>
 <div id="wrapper">
   <div id="page">
-    <jsp:include page="header.jsp" flush="true">
+    <jsp:include page="../header.jsp" flush="true">
 
     <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
@@ -115,13 +115,13 @@
 		<p><strong>SRGD Data Import</strong></p>
         <p>The SRGD data format was developed under the GeneGIS initiative and can be used to import genetic and identity data into the Shepherd Project.</p>
 		<p>
-		<table width="250" bgcolor="#99CCFF">
+		<table>
   <tr>
     <td class="para">
       <form action="../ImportSRGD" method="post" enctype="multipart/form-data" name="ImportSRGD">
 	   <strong>
-	   <img align="absmiddle" src="../images/upload_small.gif"/> SRGD CSV file:</strong><br />
-        <input name="file2add" type="file" size="20" />
+	   <img align="absmiddle" src="../images/CSV.png"/> SRGD CSV file:</strong>&nbsp;
+        <input name="file2add" type="file" size="40" />
         <p><input name="addtlFile" type="submit" id="addtlFile" value="Upload" /></p>
 		</form>
     </td>
@@ -134,7 +134,7 @@
     </div>
     <!-- end maincol -->
 
-    <jsp:include page="footer.jsp" flush="true"/>
+    <jsp:include page="../footer.jsp" flush="true"/>
   </div>
   <!-- end page -->
 </div>
