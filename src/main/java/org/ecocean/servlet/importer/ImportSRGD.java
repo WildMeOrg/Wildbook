@@ -97,7 +97,7 @@ public class ImportSRGD extends HttpServlet {
           FilePart filePart = (FilePart) part;
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());
           if (fileName != null) {
-
+            System.out.println("     Trying to upload file: "+fileName);
             //File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ encounterNumber);
             //if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
             finalFile=new File(tempSubdir, fileName);
@@ -131,7 +131,8 @@ public class ImportSRGD extends HttpServlet {
             for(int i=1;i<numRows;i++){
               
               System.out.println("\n\n     Processing row "+i);
-              
+              boolean newEncounter=true;
+              boolean newShark=true;
               String[] line=allLines.get(i);
               
               boolean ok2import=true;
@@ -145,20 +146,25 @@ public class ImportSRGD extends HttpServlet {
               if(!encNumber.equals("")){
                 if(myShepherd.isEncounter(encNumber)){
                   enc=myShepherd.getEncounter(encNumber);
+                  newEncounter=false;
                 }
                 else{
                   enc.setCatalogNumber(encNumber);
+                  enc.setState("approved");
                 }
               }
               else{
                 ok2import=false;
-                messages.append("          Could not find sample/encounter ID in the first column of row "+i+".<br />");
+                messages.append("<li>Could not find sample/encounter ID in the first column of row "+i+".</li>");
+                System.out.println("          Could not find sample/encounter ID in the first column of row "+i+".");
               }
               
               //line[1] is the IndividualID
               String individualID=line[1].trim();
               if(!individualID.equals("")){
                 enc.setIndividualID(individualID);
+                System.out.println("          Setting Individual ID for row "+i+". Value: "+individualID);
+                
               }
               
               //line[2] is the latitude
@@ -167,9 +173,11 @@ public class ImportSRGD extends HttpServlet {
                 try{
                   Double lat=new Double(latitude);
                   enc.setDecimalLatitude(lat);
+                  System.out.println("          Setting latitude for row "+i+". Value: "+latitude);
+                  
                 }
                 catch(NumberFormatException nfe){
-                  messages.append(enc.getCatalogNumber()+": Latitude hit a NumberFormatException and could not be imported. The listed value was: "+latitude);
+                  messages.append("<li>"+enc.getCatalogNumber()+": Latitude hit a NumberFormatException in row "+i+" and could not be imported. The listed value was: "+latitude+"</li>");
                 }
               }
               
@@ -179,10 +187,12 @@ public class ImportSRGD extends HttpServlet {
                 try{
                   Double longie=new Double(longitude);
                   enc.setDecimalLatitude(longie);
+                  System.out.println("          Setting longitude for row "+i+". Value: "+longitude);
+                  
                 }
                 catch(NumberFormatException nfe){
                   nfe.printStackTrace();
-                  messages.append(enc.getCatalogNumber()+": Longitude hit a NumberFormatException and could not be imported. The listed value was: "+longitude);
+                  messages.append("<li>"+enc.getCatalogNumber()+": Longitude hit a NumberFormatException in row "+i+" and could not be imported. The listed value was: "+longitude+"</li>");
                 }
               }
               
@@ -196,23 +206,53 @@ public class ImportSRGD extends HttpServlet {
                   enc.setYear(time.getYear());
                   enc.setMonth(time.getMonthOfYear());
                   enc.setDay(time.getDayOfMonth());
-                  enc.setHour(time.getHourOfDay());
-                
+                  
+                  
                   int minutes=time.getMinuteOfHour();
+                  
+                  
                   String minutes2=(new Integer(minutes)).toString();
-                  enc.setMinutes(minutes2);
+                  
+                  if((time.getHourOfDay()!=0)&&(minutes!=0)){
+                    enc.setHour(time.getHourOfDay());
+                    enc.setMinutes(minutes2);
+                  }
+                  
+                  
+                  System.out.println("          Set date for encounter: "+enc.getDate());
+                  
                 }
                 catch(IllegalArgumentException iae){
                   iae.printStackTrace();
-                  messages.append("Could not import the date and time for row: "+i+". Cancelling the import for this row.");
+                  messages.append("<li>Could not import the date and time for row: "+i+". Cancelling the import for this row.</li>");
                   ok2import=false;
+                  
                 }
               }
               
+              //line[5] get locationID
+              String locationID=line[5].trim();
+              if(!locationID.equals("")){
+                enc.setLocationID(locationID);
+                System.out.println("          Setting location ID for row "+i+". Value: "+locationID);
+              }
+              
+              //line[6] get sex
+              String sex=line[6].trim();
+              if(!sex.equals("")){
+                
+                if(sex.equals("M")){enc.setSex("male");}
+                else if(sex.equals("F")){enc.setSex("female");}
+                else if(sex.equals("U")){enc.setSex("unknown");}
+                
+                System.out.println("          Setting sex for row "+i+". Value: "+sex);
+                
+              }
               
               
               if(ok2import){  
                 myShepherd.commitDBTransaction();
+                if(newEncounter){myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());}
               
                 if(!individualID.equals("")){
                   MarkedIndividual indie=new MarkedIndividual();
@@ -222,6 +262,7 @@ public class ImportSRGD extends HttpServlet {
                 
                   if(myShepherd.isMarkedIndividual(individualID)){
                     indie=myShepherd.getMarkedIndividual(individualID);
+                    newShark=false;
                   }
                   else{
                     indie.setIndividualID(individualID);
@@ -229,12 +270,13 @@ public class ImportSRGD extends HttpServlet {
                   indie.addEncounter(enc2);
                 
                   myShepherd.commitDBTransaction();
+                  if(newShark){myShepherd.storeNewMarkedIndividual(indie);}
                 }
                 
             }
             else{myShepherd.rollbackDBTransaction();}
               
-              
+              out.println("Imported row: "+line);
               
             }
             
@@ -261,7 +303,7 @@ public class ImportSRGD extends HttpServlet {
           out.println("<strong>Success!</strong> I have successfully uploaded and imported your SRGD CSV file.");
           
           if(messages.equals("")){messages.toString().equals("None");}
-          out.println("The following error messages were reported during the import process:<br />"+messages );
+          out.println("The following error messages were reported during the import process:<br /><ul>"+messages+"</ul>" );
 
           out.println(ServletUtilities.getFooter());
           } 
