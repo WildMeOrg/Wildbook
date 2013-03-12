@@ -166,7 +166,7 @@ public class ImportSRGD extends HttpServlet {
               if(!individualID.equals("")){
                 
                
-                  enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set identification to " + individualID + ".</p>");
+                  enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set marked individual to " + individualID + ".</p>");
              
                 
                 enc.setIndividualID(individualID);
@@ -203,7 +203,7 @@ public class ImportSRGD extends HttpServlet {
                   enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set longitude to " + longitude + ".</p>");
                   
                   Double longie=new Double(longitude);
-                  enc.setDecimalLatitude(longie);
+                  enc.setDecimalLongitude(longie);
                   System.out.println("          Setting longitude for row "+i+". Value: "+longitude);
                   
                 }
@@ -281,21 +281,37 @@ public class ImportSRGD extends HttpServlet {
                 myShepherd.beginDBTransaction();
                 Encounter enc3=myShepherd.getEncounter(encNumber);
                 TissueSample ts=new TissueSample(encNumber, ("sample_"+encNumber)) ;
-                myShepherd.getPM().makePersistent(ts);
-                enc3.addTissueSample(ts);
+                
+                if(myShepherd.isTissueSample(("sample_"+encNumber), encNumber)){
+                  ts=myShepherd.getTissueSample(("sample_"+encNumber), encNumber);
+                }
+                else{
+                  myShepherd.getPM().makePersistent(ts);
+                  enc3.addTissueSample(ts);
+                }
+                
+                
                 
                 //line[7] get haplotype
                 String haplo=line[7].trim();
                 if(!haplo.equals("")){
-                  
                   //TBD check id this analysis already exists
                   
                   MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis(("analysis_"+enc3.getCatalogNumber()), haplo, enc3.getCatalogNumber(), ("sample_"+enc3.getCatalogNumber()));
-                  myShepherd.getPM().makePersistent(mtDNA);
-                  ts.addGeneticAnalysis(mtDNA);
+                  if(myShepherd.isGeneticAnalysis(ts.getSampleID(), encNumber, ("analysis_"+enc3.getCatalogNumber()), "MitochondrialDNA")){
+                    mtDNA=myShepherd.getMitochondrialDNAAnalysis(ts.getSampleID(), encNumber, ("analysis_"+enc3.getCatalogNumber()));
+                    mtDNA.setHaplotype(haplo);
+                  }
+                  else{
+                    ts.addGeneticAnalysis(mtDNA);
+                    myShepherd.getPM().makePersistent(mtDNA);
+                  }
                   enc3.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Import SRGD process added or updated mitochondrial DNA analysis (haplotype) "+mtDNA.getAnalysisID()+" for tissue sample "+ts.getSampleID()+".<br />"+mtDNA.getHTMLString());
                   
                 }
+                
+                
+                
                 ArrayList<Locus> loci=new ArrayList<Locus>();
                 
                 //loci value import                     
@@ -325,7 +341,19 @@ public class ImportSRGD extends HttpServlet {
                 //TBD check if this analysis already exists
                 
                 MicrosatelliteMarkersAnalysis microAnalysis=new MicrosatelliteMarkersAnalysis((ts.getSampleID()+"_msMarkerAnalysis"), ts.getSampleID(), enc.getCatalogNumber(), loci); 
-                ts.addGeneticAnalysis(microAnalysis);
+                
+                
+                
+                if(myShepherd.isGeneticAnalysis(ts.getSampleID(), encNumber, (ts.getSampleID()+"_msMarkerAnalysis"), "MicrosatelliteMarkers")){
+                  microAnalysis=myShepherd.getMicrosatelliteMarkersAnalysis(ts.getSampleID(), encNumber, (ts.getSampleID()+"_msMarkerAnalysis"));
+                  microAnalysis.setLoci(loci);
+                }
+                else{
+                  ts.addGeneticAnalysis(microAnalysis);
+                  myShepherd.getPM().makePersistent(microAnalysis);
+                }
+                
+                
                 enc3.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Import SRGD process added or updated microsatellite markers of analysis "+microAnalysis.getAnalysisID()+" for tissue sample "+ts.getSampleID()+".<br />"+microAnalysis.getHTMLString());
                 
                 myShepherd.commitDBTransaction();

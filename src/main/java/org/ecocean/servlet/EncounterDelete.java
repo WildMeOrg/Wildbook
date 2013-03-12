@@ -63,9 +63,9 @@ public class EncounterDelete extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    if(!encountersDir.exists()){encountersDir.mkdir();}
     
     boolean isOwner = true;
 
@@ -86,7 +86,7 @@ public class EncounterDelete extends HttpServlet {
 
           String savedFilename = request.getParameter("number") + ".dat";
           File thisEncounterDir = new File(encountersDir.getAbsolutePath()+"/" + request.getParameter("number"));
-
+          if(!thisEncounterDir.exists()){thisEncounterDir.mkdir();}
 
           File serializedBackup = new File(thisEncounterDir, savedFilename);
           FileOutputStream fout = new FileOutputStream(serializedBackup);
