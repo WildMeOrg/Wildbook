@@ -33,6 +33,8 @@ import java.util.List;
 import org.joda.time.*;
 import org.joda.time.format.*;
 import java.lang.IllegalArgumentException;
+import org.ecocean.genetics.*;
+import java.util.ArrayList;
 
 /**
  * Uploads an SRGD CSV file for data import
@@ -155,15 +157,22 @@ public class ImportSRGD extends HttpServlet {
               }
               else{
                 ok2import=false;
-                messages.append("<li>Could not find sample/encounter ID in the first column of row "+i+".</li>");
+                messages.append("<li>Row "+i+": could not find sample/encounter ID in the first column of row "+i+".</li>");
                 System.out.println("          Could not find sample/encounter ID in the first column of row "+i+".");
               }
               
               //line[1] is the IndividualID
               String individualID=line[1].trim();
               if(!individualID.equals("")){
+                
+               
+                  enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set identification to " + individualID + ".</p>");
+             
+                
                 enc.setIndividualID(individualID);
                 System.out.println("          Setting Individual ID for row "+i+". Value: "+individualID);
+                
+                
                 
               }
               
@@ -171,13 +180,18 @@ public class ImportSRGD extends HttpServlet {
               String latitude=line[2].trim();
               if(!latitude.equals("")){
                 try{
+                  
+                 
+                    enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set latitude to " + latitude + ".</p>");
+                  
+                  
                   Double lat=new Double(latitude);
                   enc.setDecimalLatitude(lat);
                   System.out.println("          Setting latitude for row "+i+". Value: "+latitude);
                   
                 }
                 catch(NumberFormatException nfe){
-                  messages.append("<li>"+enc.getCatalogNumber()+": Latitude hit a NumberFormatException in row "+i+" and could not be imported. The listed value was: "+latitude+"</li>");
+                  messages.append("<li>Row "+i+" for sample ID "+enc.getCatalogNumber()+": Latitude hit a NumberFormatException in row "+i+" and could not be imported. The listed value was: "+latitude+"</li>");
                 }
               }
               
@@ -185,6 +199,9 @@ public class ImportSRGD extends HttpServlet {
               String longitude=line[3].trim();
               if(!longitude.equals("")){
                 try{
+                  
+                  enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set longitude to " + longitude + ".</p>");
+                  
                   Double longie=new Double(longitude);
                   enc.setDecimalLatitude(longie);
                   System.out.println("          Setting longitude for row "+i+". Value: "+longitude);
@@ -192,7 +209,7 @@ public class ImportSRGD extends HttpServlet {
                 }
                 catch(NumberFormatException nfe){
                   nfe.printStackTrace();
-                  messages.append("<li>"+enc.getCatalogNumber()+": Longitude hit a NumberFormatException in row "+i+" and could not be imported. The listed value was: "+longitude+"</li>");
+                  messages.append("<li>Row "+i+" for sample ID "+enc.getCatalogNumber()+": Longitude hit a NumberFormatException in row "+i+" and could not be imported. The listed value was: "+longitude+"</li>");
                 }
               }
               
@@ -218,13 +235,14 @@ public class ImportSRGD extends HttpServlet {
                     enc.setMinutes(minutes2);
                   }
                   
+                  enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set date to " + enc.getDate() + ".</p>");
                   
                   System.out.println("          Set date for encounter: "+enc.getDate());
                   
                 }
                 catch(IllegalArgumentException iae){
                   iae.printStackTrace();
-                  messages.append("<li>Could not import the date and time for row: "+i+". Cancelling the import for this row.</li>");
+                  messages.append("<li>Row "+i+": could not import the date and time for row: "+i+". Cancelling the import for this row.</li>");
                   ok2import=false;
                   
                 }
@@ -234,6 +252,8 @@ public class ImportSRGD extends HttpServlet {
               String locationID=line[5].trim();
               if(!locationID.equals("")){
                 enc.setLocationID(locationID);
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set location ID to " + locationID + ".</p>");
+                
                 System.out.println("          Setting location ID for row "+i+". Value: "+locationID);
               }
               
@@ -243,17 +263,77 @@ public class ImportSRGD extends HttpServlet {
                 
                 if(sex.equals("M")){enc.setSex("male");}
                 else if(sex.equals("F")){enc.setSex("female");}
-                else if(sex.equals("U")){enc.setSex("unknown");}
+                else{enc.setSex("unknown");}
                 
                 System.out.println("          Setting sex for row "+i+". Value: "+sex);
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set sex to " + enc.getSex() + ".</p>");
                 
               }
+              
+
               
               
               if(ok2import){  
                 myShepherd.commitDBTransaction();
                 if(newEncounter){myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());}
-              
+                
+                //before proceeding with haplotype and loci importing, we need to create the tissue sample
+                myShepherd.beginDBTransaction();
+                Encounter enc3=myShepherd.getEncounter(encNumber);
+                TissueSample ts=new TissueSample(encNumber, ("sample_"+encNumber)) ;
+                myShepherd.getPM().makePersistent(ts);
+                enc3.addTissueSample(ts);
+                
+                //line[7] get haplotype
+                String haplo=line[7].trim();
+                if(!haplo.equals("")){
+                  
+                  //TBD check id this analysis already exists
+                  
+                  MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis(("analysis_"+enc3.getCatalogNumber()), haplo, enc3.getCatalogNumber(), ("sample_"+enc3.getCatalogNumber()));
+                  myShepherd.getPM().makePersistent(mtDNA);
+                  ts.addGeneticAnalysis(mtDNA);
+                  enc3.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Import SRGD process added or updated mitochondrial DNA analysis (haplotype) "+mtDNA.getAnalysisID()+" for tissue sample "+ts.getSampleID()+".<br />"+mtDNA.getHTMLString());
+                  
+                }
+                ArrayList<Locus> loci=new ArrayList<Locus>();
+                
+                //loci value import                     
+                for (int f = 8; f < numColumns; f++) {
+                  String l1=line[f].trim();
+                  String l2=line[f+1].trim();
+                  String locusName=headerNames[f].replaceAll("L_", "");
+                  
+                  //verify that we're looking at the right loci and everything matches up nicely
+                  if((!l1.equals(""))&&(!l2.equals(""))&&(!locusName.equals(""))&&(headerNames[f].trim().toLowerCase().startsWith("l_"))&&(headerNames[f+1].trim().toLowerCase().startsWith("l_"))&&(headerNames[f].trim().toLowerCase().equals(headerNames[f+1].trim().toLowerCase()))){
+                    
+                   
+                      
+                          //get allele values
+                          Integer intA=new Integer(l1);
+                          Integer intB=new Integer(l2);
+                      
+                          Locus myLocus=new Locus(locusName, intA, intB);
+                          loci.add(myLocus);
+                      
+                  }
+                  
+                  f++;
+                }
+                System.out.println("          Found msMarkers!!!!!!!!!!!!1");
+                
+                //TBD check if this analysis already exists
+                
+                MicrosatelliteMarkersAnalysis microAnalysis=new MicrosatelliteMarkersAnalysis((ts.getSampleID()+"_msMarkerAnalysis"), ts.getSampleID(), enc.getCatalogNumber(), loci); 
+                ts.addGeneticAnalysis(microAnalysis);
+                enc3.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Import SRGD process added or updated microsatellite markers of analysis "+microAnalysis.getAnalysisID()+" for tissue sample "+ts.getSampleID()+".<br />"+microAnalysis.getHTMLString());
+                
+                myShepherd.commitDBTransaction();
+                
+
+          
+                
+                
                 if(!individualID.equals("")){
                   MarkedIndividual indie=new MarkedIndividual();
                   myShepherd.beginDBTransaction();
@@ -268,7 +348,8 @@ public class ImportSRGD extends HttpServlet {
                     indie.setIndividualID(individualID);
                   }
                   indie.addEncounter(enc2);
-                
+                  indie.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc2.getCatalogNumber() + ".</p>");
+                  
                   myShepherd.commitDBTransaction();
                   if(newShark){myShepherd.storeNewMarkedIndividual(indie);}
                 }
@@ -276,7 +357,7 @@ public class ImportSRGD extends HttpServlet {
             }
             else{myShepherd.rollbackDBTransaction();}
               
-              out.println("Imported row: "+line);
+              //out.println("Imported row: "+line);
               
             }
             
@@ -300,11 +381,14 @@ public class ImportSRGD extends HttpServlet {
           myShepherd.commitDBTransaction();
           myShepherd.closeDBTransaction();
           out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Success!</strong> I have successfully uploaded and imported your SRGD CSV file.");
+          out.println("<p><strong>Success!</strong> I have successfully uploaded and imported your SRGD CSV file.</p>");
           
-          if(messages.equals("")){messages.toString().equals("None");}
-          out.println("The following error messages were reported during the import process:<br /><ul>"+messages+"</ul>" );
+          if(messages.toString().equals("")){messages.append("None");}
+          out.println("<p>The following error messages were reported during the import process:<br /><ul>"+messages+"</ul></p>" );
 
+          out.println("<p><a href=\"appadmin/import.jsp\">Return to the import page</a></p>" );
+
+          
           out.println(ServletUtilities.getFooter());
           } 
       
