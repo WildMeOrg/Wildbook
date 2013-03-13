@@ -35,6 +35,7 @@ import org.joda.time.format.*;
 import java.lang.IllegalArgumentException;
 import org.ecocean.genetics.*;
 import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 /**
  * Uploads an SRGD CSV file for data import
@@ -216,23 +217,38 @@ public class ImportSRGD extends HttpServlet {
               //line[4] is the date_time
               String isoDate=line[4].trim();
               if(!isoDate.equals("")){
+                
+                StringTokenizer tks=new StringTokenizer(isoDate,"-");
+                int numTokens=tks.countTokens();
                 DateTimeFormatter parser2 = ISODateTimeFormat.dateTimeParser();
+                
+                enc.setMonth(-1);
+                enc.setDay(-1);
+                enc.setYear(-1);
+                enc.setHour(-1);
+                enc.setMinutes("00");
                 
                 try{
                   DateTime time = parser2.parseDateTime(isoDate);
                   enc.setYear(time.getYear());
-                  enc.setMonth(time.getMonthOfYear());
-                  enc.setDay(time.getDayOfMonth());
                   
+                  if(numTokens>=2){
+                    enc.setMonth(time.getMonthOfYear());
+                  }
+                  if(numTokens>=3){
+                    enc.setDay(time.getDayOfMonth());
+                  }
                   
-                  int minutes=time.getMinuteOfHour();
-                  
-                  
-                  String minutes2=(new Integer(minutes)).toString();
-                  
-                  if((time.getHourOfDay()!=0)&&(minutes!=0)){
-                    enc.setHour(time.getHourOfDay());
-                    enc.setMinutes(minutes2);
+
+                  if(isoDate.indexOf("T")!=-1){
+                    int minutes=time.getMinuteOfHour();
+                    String minutes2=(new Integer(minutes)).toString();
+                    if((time.getHourOfDay()!=0)&&(minutes!=0)){
+                      enc.setHour(time.getHourOfDay());
+                      if(isoDate.indexOf(":")!=-1){
+                        enc.setMinutes(minutes2);
+                      }
+                    }
                   }
                   
                   enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set date to " + enc.getDate() + ".</p>");
@@ -376,6 +392,13 @@ public class ImportSRGD extends HttpServlet {
                     indie.setIndividualID(individualID);
                   }
                   indie.addEncounter(enc2);
+                  if((indie.getSex()==null)||(indie.getSex()!=enc2.getSex())){
+                    indie.setSex(enc2.getSex());
+                    indie.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set sex to " + enc2.getSex() + ".</p>");
+                    
+                  }
+                  
+                  indie.resetMaxNumYearsBetweenSightings();
                   indie.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc2.getCatalogNumber() + ".</p>");
                   
                   myShepherd.commitDBTransaction();
