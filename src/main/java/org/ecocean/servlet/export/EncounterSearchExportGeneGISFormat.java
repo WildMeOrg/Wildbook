@@ -50,7 +50,7 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
     if(!encountersDir.exists()){encountersDir.mkdir();}
     
     //set up the files
-    String gisFilename = "geneGIS_export_" + request.getRemoteUser() + ".csv";
+    String gisFilename = "SRGD_export_" + request.getRemoteUser() + ".csv";
     File gisFile = new File(encountersDir.getAbsolutePath()+"/" + gisFilename);
 
 
@@ -65,9 +65,14 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
       
       try{
       
-      
+      if(request.getParameterMap().size()>0){
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
         rEncounters = queryResult.getResult();
+      }
+      else{
+        rEncounters=myShepherd.getAllEncountersNoFilterAsVector();
+      }
+        
       
         int numMatchingEncounters=rEncounters.size();
       
@@ -127,12 +132,13 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
         if(enc.getLocationID()!=null){locationID=enc.getLocationID();} 
           assembledString+=","+locationID;
           
+          //set the genetic sex
           String sexString="U";
-          if(enc.getSex()!=null){
-            if(enc.getSex().equals("male")){
+          if(enc.getGeneticSex()!=null){
+            if(enc.getGeneticSex().toLowerCase().startsWith("m")){
               sexString="M";
             }
-            else if(enc.getSex().equals("female")){
+            else if(enc.getGeneticSex().toLowerCase().startsWith("f")){
               sexString="F";
             }
           }

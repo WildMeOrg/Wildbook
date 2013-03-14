@@ -666,9 +666,24 @@ public class Shepherd {
     Query acceptedEncounters = pm.newQuery(encClass);
     try {
       c = (Collection) (acceptedEncounters.execute());
-      ArrayList list = new ArrayList(c);
-      Iterator it = list.iterator();
+      //ArrayList list = new ArrayList(c);
+      Iterator it = c.iterator();
       return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a transaction to use.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+  
+  public Vector getAllEncountersNoFilterAsVector() {
+    Collection c;
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass);
+    try {
+      c = (Collection) (acceptedEncounters.execute());
+      Vector list = new Vector(c);
+      return list;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a transaction to use.");
       npe.printStackTrace();

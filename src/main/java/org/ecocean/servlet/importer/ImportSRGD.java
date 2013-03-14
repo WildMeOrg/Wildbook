@@ -306,6 +306,20 @@ public class ImportSRGD extends HttpServlet {
                   enc3.addTissueSample(ts);
                 }
                 
+                //let's set genetic Sex
+                if(!sex.equals("")){  
+                  SexAnalysis mtDNA=new SexAnalysis(("analysis_"+enc3.getCatalogNumber()), sex, enc3.getCatalogNumber(), ("sample_"+enc3.getCatalogNumber()+"_sex"));
+                  if(myShepherd.isGeneticAnalysis(ts.getSampleID(), encNumber, ("analysis_"+enc3.getCatalogNumber()+"_sex"), "MitochondrialDNA")){
+                    mtDNA=myShepherd.getSexAnalysis(ts.getSampleID(), encNumber, ("analysis_"+enc3.getCatalogNumber()));
+                    mtDNA.setSex(sex);
+                  }
+                  else{
+                    ts.addGeneticAnalysis(mtDNA);
+                    myShepherd.getPM().makePersistent(mtDNA);
+                  }
+                  enc3.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Import SRGD process added or updated mitochondrial DNA analysis (haplotype) "+mtDNA.getAnalysisID()+" for tissue sample "+ts.getSampleID()+".<br />"+mtDNA.getHTMLString());
+                } 
+
                 
                 
                 //line[7] get haplotype

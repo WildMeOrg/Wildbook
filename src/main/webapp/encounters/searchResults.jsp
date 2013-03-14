@@ -308,18 +308,44 @@
   </td>
 <%
 }
-%>
 
-
-  <td class="lineitem"><%=enc.getSubmitterName()%>
-  </td>
+		if(enc.getSubmitterName()!=null){
+		%>
+			<td class="lineitem"><%=enc.getSubmitterName()%></td>
+		<%
+		}
+		else {
+		%>
+		<td class="lineitem">&nbsp;</td>
+		<%
+		}
+		%>
   <td class="lineitem"><%=enc.getDate()%>
   </td>
 
-  <td class="lineitem"><%=enc.getLocation()%>
-  </td>
-  <td class="lineitem"><%=enc.getLocationID()%>
-  </td>
+		<%
+		if(enc.getLocation()!=null){
+		%>
+			<td width="90" class="lineitem"><%=enc.getLocation()%></td>
+		<%
+		}
+		else {
+		%>
+		<td width="90" class="lineitem">&nbsp;</td>
+		<%
+		}
+		
+		if(enc.getLocationID()!=null){
+		%>
+			<td class="lineitem"><%=enc.getLocationID()%></td>
+		<%
+		}
+		else {
+		%>
+		<td class="lineitem">&nbsp;</td>
+		<%
+		}
+		%>
     <td class="lineitem">
     <%
     if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){

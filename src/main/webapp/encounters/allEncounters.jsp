@@ -531,19 +531,29 @@ if (highCount<totalCount) {%> <a
 		</a>
 	
 		</td>
-		<td width="90" class="lineitems"><%=enc.getLocation()%></td>
-	
+		<%
+		if(enc.getLocation()!=null){
+		%>
+			<td width="90" class="lineitems"><%=enc.getLocation()%></td>
+		<%
+		}
+		else {
+		%>
+		<td width="90" class="lineitems">&nbsp;</td>
+		<%
+		}
+		%>
 		<td class="lineitems"><%=enc.getLocationCode()%></td>
 		<%
 
 	String theSex=enc.getSex();
 	if(theSex.equals("male")) {theSex="M";}
 	else if (theSex.equals("female")) {theSex="F";}
-	else {theSex="-";}
+	else {theSex="&nbsp;";}
 	%>
 		<td class="lineitems"><%=theSex%></td>
 		<%
-	if (enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned")) {
+	if ((enc.getIndividualID()==null)||(enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned"))) {
 %>
 		<td class="lineitems">&nbsp;</td>
 		<%
@@ -555,18 +565,21 @@ if (highCount<totalCount) {%> <a
 	
 	//spot patterning data
 	if(CommonConfiguration.useSpotPatternRecognition()){
-	if(((enc.getSpots()==null)&&(enc.getRightSpots()==null))) {%>
-		<td class="lineitems">&nbsp;</td>
-		<% } 
-	else if((enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
-		<td class="lineitems">LR</td>
-		<%}
-	else if(enc.getSpots().size()>0) {%>
-		<td class="lineitems">L</td>
-		<%} 
-	else if(enc.getRightSpots().size()>0) {%>
+		if(((enc.getSpots()==null)&&(enc.getRightSpots()==null))) {%>
+			<td class="lineitems">&nbsp;</td>
+			<% } 
+		else if((enc.getSpots().size()>0)&&(enc.getRightSpots().size()>0)) {%>
+			<td class="lineitems">LR</td>
+			<%}
+		else if(enc.getSpots().size()>0) {%>
+			<td class="lineitems">L</td>
+			<%} 
+		else if(enc.getRightSpots().size()>0) {%>
 			<td class="lineitems">R</td>
-	<%}
+	<%	}
+		else{%>
+			<td class="lineitems">&nbsp;</td>
+		<%}
 	}	
 		
 		
