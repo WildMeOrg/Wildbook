@@ -80,7 +80,7 @@
   ArrayList uniqueEncounters = new ArrayList();
   for (int q = 0; q < rEncounters.size(); q++) {
     Encounter rEnc = (Encounter) rEncounters.get(q);
-    if (!rEnc.isAssignedToMarkedIndividual().equals("Unassigned")) {
+    if ((rEnc.getIndividualID()!=null)&&(!rEnc.getIndividualID().equals("Unassigned"))) {
       String assemblage = rEnc.getIndividualID() + ":" + rEnc.getYear() + ":" + rEnc.getMonth() + ":" + rEnc.getDay();
       if (!uniqueEncounters.contains(assemblage)) {
         numUniqueEncounters++;

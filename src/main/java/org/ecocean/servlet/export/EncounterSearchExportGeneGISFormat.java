@@ -149,7 +149,7 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
           if(enc.getHaplotype()!=null){haplotypeString+=enc.getHaplotype();}
         
           //find and print the ms markers
-          String msMarkerString="";
+          String msMarkerString=",";
           List<TissueSample> samples=enc.getTissueSamples();
           int numSamples=samples.size();
           boolean foundMsMarkers=false;
@@ -163,7 +163,20 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
                 if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
                   foundMsMarkers=true;
                   MicrosatelliteMarkersAnalysis ga2=(MicrosatelliteMarkersAnalysis)ga;
-                  List<Locus> loci=ga2.getLoci();
+                  
+                  for(int m=0;m<numLoci;m++){
+                    String locus=allLoci.get(m);
+                    if(ga2.hasLocus(locus)){
+                      Locus loc=ga2.getLocus(locus);
+                      if(loc.getAllele0()!=null){msMarkerString+=","+loc.getAllele0();}
+                      else{msMarkerString+=",";}
+                      if(loc.getAllele1()!=null){msMarkerString+=","+loc.getAllele1();}
+                      else{msMarkerString+=",";}
+                    }
+                    else{msMarkerString+=",,";}
+                  }
+                  
+                  /* List<Locus> loci=ga2.getLoci();
                   int localLoci=loci.size();
                   for(int m=0;m<localLoci;m++){
                     Locus locus=loci.get(m);
@@ -172,10 +185,19 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
                     if(locus.getAllele1()!=null){msMarkerString+=","+locus.getAllele1();}
                     else{msMarkerString+=",";}
                   }
-              
+              */
+                  
+                  
+                  
                 }
               }
             }
+          }
+          if(!foundMsMarkers){
+            for(int m=0;m<numLoci;m++){
+              msMarkerString+=",,";
+            }
+            
           }
         
           //out.println("<p>"+assembledString+haplotypeString+msMarkerString+"</p>");

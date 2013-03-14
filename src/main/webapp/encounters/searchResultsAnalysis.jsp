@@ -113,7 +113,7 @@
  		 
  		 
  		 Encounter thisEnc=(Encounter)rEncounters.get(y);
- 		 if((!thisEnc.equals("Unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){markedIndividuals.add(thisEnc.getIndividualID().trim());}
+ 		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){markedIndividuals.add(thisEnc.getIndividualID().trim());}
  		 //haplotype ie chart prep
  		 if(thisEnc.getHaplotype()!=null){
       	   if(pieHashtable.containsKey(thisEnc.getHaplotype().trim())){

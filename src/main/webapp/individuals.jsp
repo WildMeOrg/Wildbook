@@ -537,7 +537,19 @@ table.tissueSample td {
   <tr>
       <td class="lineitem"><%=enc.getDate()%>
     </td>
-    <td class="lineitem"><%=enc.getLocation()%>
+    <td class="lineitem">
+    <% 
+    if(enc.getLocation()!=null){
+    %>
+    <%=enc.getLocation()%>
+    <%
+    }
+    else{
+    %>
+    &nbsp;
+    <%
+    }
+    %>
     </td>
     <td width="100" height="32px" class="lineitem">
     	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
