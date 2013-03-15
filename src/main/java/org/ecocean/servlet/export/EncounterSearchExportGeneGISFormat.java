@@ -111,6 +111,8 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
           }
           else{assembledString+=",,";}
           
+          
+          //export an ISO8601 formatted date
           String dateString=",";
           if(enc.getYear()>0){
             dateString+=enc.getYear();
@@ -120,16 +122,27 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
             }
           }
           assembledString+=dateString;
-        
-          String timeString="T";
-          if(enc.getHour()>-1){timeString+=enc.getHour()+":"+enc.getMinutes();}
-          assembledString+=timeString;
+          //end date export
+          
+          
+          if(enc.getHour()>-1){
+            String timeString="T";
+            String hourString="";
+            hourString+=enc.getHour();
+            if(hourString.length()==1){hourString=("0"+hourString);}
+            String minuteString="00";
+            if(enc.getMinutes()!=null){minuteString=enc.getMinutes();}
+            if(minuteString.length()==1){minuteString=("0"+minuteString);}
+            //timeString+=enc.getHour()+":"+enc.getMinutes();
+            assembledString+=(timeString+hourString+":"+minuteString);
+           }
+          
         
         
         
         
         String locationID="";
-        if(enc.getLocationID()!=null){locationID=enc.getLocationID();} 
+        if(enc.getLocationID()!=null){locationID=enc.getLocationID().replaceAll(",", "-");} 
           assembledString+=","+locationID;
           
           //set the genetic sex
@@ -145,11 +158,12 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
           assembledString+=","+sexString;
         
           //find and print the haplotype
-          String haplotypeString=",";
-          if(enc.getHaplotype()!=null){haplotypeString+=enc.getHaplotype();}
+          String haplotypeString="";
+          if(enc.getHaplotype()!=null){haplotypeString+=(","+enc.getHaplotype());}
+          else{haplotypeString+=",";}
         
           //find and print the ms markers
-          String msMarkerString=",";
+          String msMarkerString="";
           List<TissueSample> samples=enc.getTissueSamples();
           int numSamples=samples.size();
           boolean foundMsMarkers=false;

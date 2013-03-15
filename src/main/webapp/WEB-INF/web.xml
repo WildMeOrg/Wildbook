@@ -238,7 +238,7 @@
   
     <servlet>
       <servlet-name>ImportSRGD</servlet-name>
-      <servlet-class>org.ecocean.servlet.importer.SRGD</servlet-class>
+      <servlet-class>org.ecocean.servlet.importer.ImportSRGD</servlet-class>
   </servlet>
 
   <servlet>
