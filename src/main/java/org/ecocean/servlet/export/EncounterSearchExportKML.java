@@ -110,8 +110,9 @@ public class EncounterSearchExportKML extends HttpServlet{
 
               String descHTML = "<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\">Direct Link</a></p>";
               descHTML += "<p> <strong>Date:</strong> " + enc.getDate() + "</p>";
-              descHTML += "<p> <strong>Location:</strong><br>" + enc.getLocation() + "</p>";
-            
+              if(enc.getLocation()!=null){
+                descHTML += "<p> <strong>Location:</strong><br>" + enc.getLocation() + "</p>";
+              }
               //trying to find problematic sizes...
               try{
                 if (enc.getSizeAsDouble() != null) {
