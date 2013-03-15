@@ -326,9 +326,13 @@
         </li>
         
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/javadoc/index.html" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Javadoc</a></li>
-						
+<%
+if(CommonConfiguration.isCatalogEditable()){
+%>						
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/import.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Data Import</a></li>
-					
+<%
+}
+%>					
 
         <!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
