@@ -662,8 +662,7 @@ function FSControl(controlDiv, map) {
   <td>
     <div id="observation" style="display:none; ">
       <p>Use the fields below to filter your search based on observed attributes.</p>
-      <input name="alive" type="hidden" id="alive" value="alive" /> 
-							<input name="dead" type="hidden" id="dead" value="dead" /> 
+
 							<input type="hidden" name="approved" value="acceptedEncounters"></input>
 							<input name="unapproved" type="hidden" value="allEncounters"></input>
 							<input name="unidentifiable" type="hidden" value="allEncounters"></input>
@@ -684,6 +683,17 @@ function FSControl(controlDiv, map) {
 						Unknown</label></td>
 					</tr>
 				</table>
+          </td>
+        </tr>
+        
+        <tr>
+          <td><strong><%=props.getProperty("status")%>: </strong><label>
+            <input name="alive" type="checkbox" id="alive" value="alive"
+                   checked> <%=props.getProperty("alive")%>
+          </label><label>
+            <input name="dead" type="checkbox" id="dead" value="dead"
+                   checked> <%=props.getProperty("dead")%>
+          </label>
           </td>
         </tr>
         
