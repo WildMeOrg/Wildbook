@@ -128,11 +128,7 @@ table.adopter td.image {
 <div id="main">
 	 <div id="leftcol">
 		 <div id="menu">
-		 		<div class="module">
-		  			<p><a href="finish.jsp"><img src="images/Finish_Finning_logo%202.gif" width="190" border="0" /></a><br>
-		 			 <center><span class="caption style4"><strong><a href="finish.jsp">Click here to learn more!</a></strong></span>
-		 			 </center></p>
-		   </div>
+		 		
 		 
 	<%
 	//check what language is requested
@@ -201,10 +197,10 @@ table.adopter td.image {
 
 </style>
 
-<script language="JavaScript" src="http://feed2js.org//feed2js.php?src=http%3A%2F%2Fecocean.wordpress.com%2Ffeed%2F&num=2&utf=y&html=a"  charset="UTF-8" type="text/javascript"></script>
+<script language="JavaScript" src="http://feed2js.org//feed2js.php?src=http%3A%2F%2Fwhalesharknews.wordpress.com%2Ffeed%2F&num=2&utf=y&html=a"  charset="UTF-8" type="text/javascript"></script>
 
 <noscript>
-<a href="http://feed2js.org//feed2js.php?src=http%3A%2F%2Fecocean.wordpress.com%2Ffeed%2F&num=2&utf=y&html=y">View RSS feed</a>
+<a href="http://feed2js.org//feed2js.php?src=http%3A%2F%2Fwhalesharknews.wordpress.com%2Ffeed%2F&num=2&utf=y&html=y">View RSS feed</a>
 </noscript>
 
         </div>
