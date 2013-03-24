@@ -701,7 +701,7 @@ function FSControl(controlDiv, map) {
           <td valign="top"><strong><%=props.getProperty("behavior")%>:</strong>
             <em> <span class="para">
 								<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank">
-                  <img src="../images/information_icon_svg.gif" alt="Help" border="0"
+                  <img src="images/information_icon_svg.gif" alt="Help" border="0"
                        align="absmiddle"/>
                 </a>
 							</span>
@@ -802,7 +802,13 @@ if(CommonConfiguration.showProperty("showLifestage")){
 </c:forEach>
 </c:if>
 
-
+<tr><td>
+      <p><strong><%=props.getProperty("hasPhoto")%> </strong>
+            <label> 
+            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+            </label>
+      </p>
+      </td></tr>
 
 
 

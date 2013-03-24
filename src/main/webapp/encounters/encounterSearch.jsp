@@ -941,7 +941,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <tr><td></td></tr>
 </c:if>
 <tr><td>
-      <p><strong><%=encprops.getProperty("hasPhoto")%>: </strong>
+      <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
             <label> 
             	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
             </label>
