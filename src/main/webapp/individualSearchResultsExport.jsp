@@ -218,6 +218,8 @@ Click here</a>
 			  <td bgcolor="#CCCCCC"><strong>Simple Mark-Recapture History File Export (single site, single state)</strong></td></tr>
 			<tr><td bgcolor="#FFFFFF">Number of capture sessions: <input type="text" name="numberSessions" size="3" maxLength="3"/></td></tr>
 			<tr><td bgcolor="#FFFFFF">Include marked individual ID as a comment at the end of each line: <input type="checkbox" name="includeIndividualID" /></td></tr>
+            <tr><td bgcolor="#FFFFFF">Include search query summary as a comment and URL at the start of the file: <input type="checkbox" name="includeQueryComments" /></td></tr>
+            
             <tr><td bgcolor="#FFFFFF"><input type="submit" value="Next"></td></tr>
 		</table>
 	<form>

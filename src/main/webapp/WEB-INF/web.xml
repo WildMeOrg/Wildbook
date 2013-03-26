@@ -378,6 +378,11 @@
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportKML</servlet-class>
   </servlet>
   
+        <servlet>
+          <servlet-name>SimpleCMROutput</servlet-name>
+          <servlet-class>org.ecocean.servlet.export.SimpleCMROutput</servlet-class>
+  </servlet>
+  
   
       <servlet>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
@@ -731,6 +736,11 @@
       <servlet-mapping>
         <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
         <url-pattern>/TissueSampleSetMicrosatelliteMarkers</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+          <servlet-name>SimpleCMROutput</servlet-name>
+          <url-pattern>/SimpleCMROutput</url-pattern>
   </servlet-mapping>
   
   
@@ -1344,6 +1354,7 @@
          <url-pattern>/OccurrenceAddComment</url-pattern>
           <url-pattern>/OccurrenceSetIndividualCount</url-pattern>
          <url-pattern>/IndividualAddComment</url-pattern>
+         <url-pattern>/SimpleCMROutput</url-pattern>
         
              <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
              <url-pattern>/SOCPROGExport</url-pattern>

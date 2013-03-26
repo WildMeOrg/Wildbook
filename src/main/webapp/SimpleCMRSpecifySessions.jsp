@@ -186,8 +186,21 @@ if(request.getParameter("includeIndividualID")!=null){
 
 <p>Please fill out the date fields below for the start and end of each session and then click the <strong>Submit</strong> button to obtain your capture history file.</p>
 
+<%
+
+String additionalParameters="&numberSessions="+numSessions;
+
+if(request.getParameter("includeIndividualID")!=null){
+	additionalParameters+="&includeIndividualID=includeIndividualID";
+}
+if(request.getParameter("includeQueryComments")!=null){
+	additionalParameters+="&includeQueryComments=includeQueryComments";
+}
+%>
+
+
 <p>
-<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=request.getQueryString()%>" method="post">
+<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=request.getQueryString()%><%=additionalParameters %>" method="post">
 <table>
 <%
 for(int i=0;i<numSessions;i++){
@@ -202,13 +215,7 @@ for(int i=0;i<numSessions;i++){
 %>
 <tr><td colspan="3"><input type="submit" value="Submit"></td></tr>
 </table>
-<%
-if(request.getParameter("includeIndividualID")!=null){
-%>
-<input type="hidden" id="includeIndividualID" value="includeIndividualID" />
-<%
-}
-%>
+
 </form>
 </p>
 
