@@ -17,6 +17,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.joda.time.format.*;
+import org.joda.time.*; 
+
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
 
@@ -53,7 +56,7 @@ public class SimpleCMROutput extends HttpServlet{
       } 
       catch(NumberFormatException nfe){nfe.printStackTrace();}
     }
-    System.out.println("numSessions detected is: "+numSessions);
+
     
   //Let's setup our email export file options
     String inpFilename = "SimpleMarkRecapture_" + request.getRemoteUser() + ".inp";
@@ -80,10 +83,6 @@ public class SimpleCMROutput extends HttpServlet{
       Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
       MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
       rIndividuals = result.getResult();
-      
-      System.out.println("Num matching individuals for SimpleMarkRecapture export: "+rIndividuals.size());
-      System.out.println("Query URL for SimpleMarkRecapture export: "+request.getQueryString());
-
       
 
 
@@ -140,7 +139,7 @@ public class SimpleCMROutput extends HttpServlet{
 
     StringBuffer histories = new StringBuffer();
     int numIndividuals=rIndividuals.size();
-    System.out.println("numSessions in method is: "+numSessions);
+    //System.out.println("numSessions in method is: "+numSessions);
     for(int i=0;i<numIndividuals;i++){
         MarkedIndividual indie=rIndividuals.get(i);
         String thisRecord="";
@@ -148,10 +147,16 @@ public class SimpleCMROutput extends HttpServlet{
         for(int j=0;j<numSessions;j++){
           
           //establish startDate
-          
+          DateTimeFormatter parser1 = ISODateTimeFormat.date();
+          String startdate = request.getParameter(("datepicker"+j+"start"));
+          DateTime start=parser1.parseDateTime(startdate);
+          System.out.println(("datepicker"+j+"start")+": "+start.toString());
           
           //establish endDate
-          
+          DateTimeFormatter parser2 = ISODateTimeFormat.date();
+          String enddate = request.getParameter(("datepicker"+j+"end"));
+          DateTime end=parser2.parseDateTime(startdate);
+          System.out.println(("datepicker"+j+"end")+": "+end.toString());
           
           //add the zero or the one
           thisRecord+="0";

@@ -179,6 +179,12 @@ if(request.getParameter("includeIndividualID")!=null){
 <li>Include individual ID as a comment after each line.</li>
 <%
 }
+
+if(request.getParameter("includeQueryComments")!=null){
+%>
+<li>Include selected query options as comments as well.</li>
+<%
+}
 %>
 </ul>
 </p>
@@ -200,15 +206,15 @@ if(request.getParameter("includeQueryComments")!=null){
 
 
 <p>
-<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=request.getQueryString()%><%=additionalParameters %>" method="post">
+<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=request.getQueryString()%><%=additionalParameters %>" method="POST">
 <table>
 <%
 for(int i=0;i<numSessions;i++){
 %>
 <tr>
 	<td bgcolor="#99CCFF">Session <%=(i+1)%>&nbsp;</td>
-	<td bgcolor="#C0C0C0">Start: <input type="text" id="datepicker<%=i%>start" /></td>
-	<td bgcolor="#C0C0C0">End: <input type="text" id="datepicker<%=i%>end" /></td>
+	<td bgcolor="#C0C0C0">Start: <input type="text" id="datepicker<%=i%>start" name="datepicker<%=i%>start" /></td>
+	<td bgcolor="#C0C0C0">End: <input type="text" id="datepicker<%=i%>end" name="datepicker<%=i%>end" /></td>
 </tr>
 <%
 }
