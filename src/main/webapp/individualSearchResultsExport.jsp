@@ -193,12 +193,34 @@
 </table>
 
 
-<p>Example output: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=request.getQueryString()%>">
-CAPTURE with annual seasons</a>
+<p>
+<table border="1" bordercolor="black" cellspacing="0">
+	<tr><td bgcolor="#CCCCCC"><strong>CAPTURE with annual seasons (example only)</strong></td></tr>
+	<tr><td bgcolor="#FFFFFF"><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=request.getQueryString()%>">
+		Click here</a>
+        </td></tr>
+</table>
+	</p>
+
+	<p>	<table border="1" bordercolor="black" cellspacing="0">
+			<tr><td bgcolor="#CCCCCC"><strong>SOCPROG Excel File Export</strong></td></tr>
+			<tr><td bgcolor="#FFFFFF">
+		<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/SOCPROGExport?<%=request.getQueryString()%>">
+Click here</a>
+</td></tr>
+</table>
 </p>
 
-<p><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/SOCPROGExport?<%=request.getQueryString()%>">
-SOCPROG Excel export file</a>
+<p>
+<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMRSpecifySessions.jsp?<%=request.getQueryString()%>" method="post">
+		<table border="1" bordercolor="black" cellspacing="0">
+			<tr>
+			  <td bgcolor="#CCCCCC"><strong>Simple Mark-Recapture History File Export (single site, single state)</strong></td></tr>
+			<tr><td bgcolor="#FFFFFF">Number of capture sessions: <input type="text" name="numberSessions" size="3" maxLength="3"/></td></tr>
+			<tr><td bgcolor="#FFFFFF">Include marked individual ID as a comment at the end of each line: <input type="checkbox" name="includeIndividualID" /></td></tr>
+            <tr><td bgcolor="#FFFFFF"><input type="submit" value="Next"></td></tr>
+		</table>
+	<form>
 </p>
 
 <%
