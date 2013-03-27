@@ -56,7 +56,28 @@ public class SimpleCMROutput extends HttpServlet{
       } 
       catch(NumberFormatException nfe){nfe.printStackTrace();}
     }
-
+    
+    DateTime[] start=new DateTime[numSessions];
+    DateTime[] end=new DateTime[numSessions];
+    String sessionsSummary="/*\n\nSummary of capture sessions:\n";
+    for(int j=0;j<numSessions;j++){
+      
+      //establish startDate
+      DateTimeFormatter parser1 = ISODateTimeFormat.date();
+      String startdate = request.getParameter(("datepicker"+j+"start"));
+      start[j]=parser1.parseDateTime(startdate);
+      //System.out.println(("datepicker"+j+"start")+": "+start.toString());
+      
+      //establish endDate
+      DateTimeFormatter parser2 = ISODateTimeFormat.date();
+      String enddate = request.getParameter(("datepicker"+j+"end"));
+      end[j]=parser2.parseDateTime(enddate);
+      //System.out.println(("datepicker"+j+"end")+": "+end.toString());
+      
+      sessionsSummary+=("Session "+(j+1)+": "+start[j].toString()+" to "+end[j].toString()+"\n");
+      
+    }
+    sessionsSummary+="\n*/\n";
     
   //Let's setup our email export file options
     String inpFilename = "SimpleMarkRecapture_" + request.getRemoteUser() + ".inp";
@@ -86,16 +107,22 @@ public class SimpleCMROutput extends HttpServlet{
       
 
 
-      String histories = addHistories(rIndividuals,numSessions, request);
-      String header="";
+      String histories = addHistories(rIndividuals,numSessions, request, start, end);
+      String header=sessionsSummary;
       String footer="";
       
       if(request.getParameter("includeQueryComments")!=null){
-        header="\n/* Query parameters:\n"+result.getQueryPrettyPrint().replaceAll("<br />", "\n")+"\n*/\n\n";
+        header+="\n\n/* \nQuery parameters:\n"+result.getQueryPrettyPrint().replaceAll("<br />", "\n")+"\n*/\n\n";
         footer="/*\nSourceURL:\n"+"http://"+CommonConfiguration.getURLLocation(request)+"/SimpleCMROutput?"+request.getQueryString()+"\n*/\n\n";
       }
       
-      outp.write(header+histories+footer);
+      if(request.getParameter("includeQueryComments")!=null){
+        outp.write(header);
+      }
+      outp.write(histories);
+      if(request.getParameter("includeQueryComments")!=null){
+        outp.write(footer);
+      }
       outp.close();
     
           
@@ -135,7 +162,7 @@ public class SimpleCMROutput extends HttpServlet{
       
     }
   
- private String addHistories(Vector<MarkedIndividual> rIndividuals, int numSessions, HttpServletRequest request) {
+ private String addHistories(Vector<MarkedIndividual> rIndividuals, int numSessions, HttpServletRequest request, DateTime[] start, DateTime[] end) {
 
     StringBuffer histories = new StringBuffer();
     int numIndividuals=rIndividuals.size();
@@ -146,21 +173,28 @@ public class SimpleCMROutput extends HttpServlet{
         
         for(int j=0;j<numSessions;j++){
           
-          //establish startDate
-          DateTimeFormatter parser1 = ISODateTimeFormat.date();
-          String startdate = request.getParameter(("datepicker"+j+"start"));
-          DateTime start=parser1.parseDateTime(startdate);
-          System.out.println(("datepicker"+j+"start")+": "+start.toString());
           
-          //establish endDate
-          DateTimeFormatter parser2 = ISODateTimeFormat.date();
-          String enddate = request.getParameter(("datepicker"+j+"end"));
-          DateTime end=parser2.parseDateTime(startdate);
-          System.out.println(("datepicker"+j+"end")+": "+end.toString());
-          
+          boolean wasSighted=false;
           //add the zero or the one
-          thisRecord+="0";
           
+          //remember that the folowing methods use GregorianCalendar internally, so month needs to be -1 as Gregorian counts January as month 0
+          if(request.getParameter("locationCodeField")!=null){
+            if(indie.wasSightedInPeriod(start[j].getYear(), (start[j].getMonthOfYear()-1), start[j].getDayOfMonth(), end[j].getYear(),(end[j].getMonthOfYear()-1), end[j].getDayOfMonth(), request.getParameter("locationCodeField").trim())){
+              wasSighted=true;
+            }
+          }
+          else{
+            if(indie.wasSightedInPeriod(start[j].getYear(), (start[j].getMonthOfYear()-1), start[j].getDayOfMonth(), end[j].getYear(),(end[j].getMonthOfYear()-1), end[j].getDayOfMonth())){
+              wasSighted=true;
+            }
+          }
+          
+          if(wasSighted){
+            thisRecord+="1";
+           }
+          else{
+            thisRecord+="0";
+          }
           
         }
         
@@ -168,7 +202,9 @@ public class SimpleCMROutput extends HttpServlet{
         if(request.getParameter("includeIndividualID")!=null){
           includeID="     /* "+indie.getIndividualID()+" */";
         }
-      histories.append(thisRecord+";"+includeID+"\n");
+      if(thisRecord.indexOf("1")!=-1){
+        histories.append(thisRecord+" 1;"+includeID+"\n");
+      }
     }
 
     return histories.toString();
