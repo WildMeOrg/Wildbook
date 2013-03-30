@@ -1329,7 +1329,22 @@ else {
   ArrayList al2 = myShepherd.getMarkedIndividualsByNickname(name);
   ArrayList al3 = myShepherd.getEncountersByAlternateID(name);
 
-  if (al.size() > 0) {
+  if (myShepherd.isEncounter(name)) {
+	  %>
+	  <meta http-equiv="REFRESH"
+	        content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
+	  </HEAD>
+	  <%
+	  } 
+	  else if(myShepherd.isOccurrence(name)) {
+	  %>
+	  <meta http-equiv="REFRESH"
+	        content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
+	  </HEAD>
+	  <%	
+	  }
+  
+	  else if (al.size() > 0) {
     //just grab the first one
     MarkedIndividual shr = (MarkedIndividual) al.get(0);
     String realName = shr.getName();
@@ -1359,20 +1374,7 @@ else {
       content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
 </HEAD>
 <%
-} else if (myShepherd.isEncounter(name)) {
-%>
-<meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
-</HEAD>
-<%
 } 
-else if(myShepherd.isOccurrence(name)) {
-%>
-<meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
-</HEAD>
-<%	
-}
 else {
 %>
 
