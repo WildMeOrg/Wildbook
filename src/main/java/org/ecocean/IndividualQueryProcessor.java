@@ -456,6 +456,22 @@ public class IndividualQueryProcessor {
     //end hasTissueSample filters-----------------------------------------------
 
     
+    //------------------------------------------------------------------
+    //hasPhoto filters-------------------------------------------------
+    if(request.getParameter("hasPhoto")!=null){
+          prettyPrint.append("Has at least one photo.");
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="enc464.images.contains(photo2)";}
+            else if (filter.indexOf("enc464.images.contains(photo2)")==-1){filter+=(" && enc464.images.contains(photo2) ");}
+
+            prettyPrint.append("<br />");
+            if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc464")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc464";}
+            if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo photo2")){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo photo2";}
+           
+    }
+    //end hasPhoto filters-----------------------------------------------
+
+    
     
     
     //------------------------------------------------------------------

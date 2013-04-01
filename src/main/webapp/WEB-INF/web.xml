@@ -249,6 +249,12 @@
     <servlet-name>KeywordHandler</servlet-name>
     <servlet-class>org.ecocean.servlet.KeywordHandler</servlet-class>
   </servlet>
+  
+  
+    <servlet>
+      <servlet-name>ImportSRGD</servlet-name>
+      <servlet-class>org.ecocean.servlet.importer.ImportSRGD</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>IndividualAddFile</servlet-name>
@@ -392,6 +398,11 @@
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportKML</servlet-class>
   </servlet>
   
+        <servlet>
+          <servlet-name>SimpleCMROutput</servlet-name>
+          <servlet-class>org.ecocean.servlet.export.SimpleCMROutput</servlet-class>
+  </servlet>
+  
   
       <servlet>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
@@ -500,6 +511,11 @@
     <servlet>
       <servlet-name>OccurrenceSetIndividualCount</servlet-name>
       <servlet-class>org.ecocean.servlet.OccurrenceSetIndividualCount</servlet-class>
+  </servlet>
+  
+      <servlet>
+        <servlet-name>DeleteAllDataPermanently</servlet-name>
+        <servlet-class>org.ecocean.servlet.DeleteAllDataPermanently</servlet-class>
   </servlet>
 
   <servlet>
@@ -759,6 +775,11 @@
   </servlet-mapping>
   
       <servlet-mapping>
+        <servlet-name>DeleteAllDataPermanently</servlet-name>
+        <url-pattern>/DeleteAllDataPermanently</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
         <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
         <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
   </servlet-mapping>
@@ -767,6 +788,11 @@
       <servlet-mapping>
         <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
         <url-pattern>/TissueSampleSetMicrosatelliteMarkers</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+          <servlet-name>SimpleCMROutput</servlet-name>
+          <url-pattern>/SimpleCMROutput</url-pattern>
   </servlet-mapping>
   
   
@@ -849,6 +875,12 @@
       <servlet-mapping>
           <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
           <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
+  </servlet-mapping>
+  
+  
+        <servlet-mapping>
+            <servlet-name>ImportSRGD</servlet-name>
+            <url-pattern>/ImportSRGD</url-pattern>
   </servlet-mapping>
     
   
@@ -1434,6 +1466,23 @@
     	<role-name>identifier</role-name>
         </auth-constraint>
   </security-constraint>
+  
+    <security-constraint>
+      <display-name>Manager Security Constraint</display-name>
+      <web-resource-collection>
+        <web-resource-name>Protected Area</web-resource-name>
+        <!-- Define the context-relative URL(s) to be protected -->
+  
+  
+        <url-pattern>/DeleteAllDataPermanently</url-pattern>
+  
+      </web-resource-collection>
+      <auth-constraint>
+        <!-- Anyone with one of the listed roles may access this area -->
+        <role-name>destroyer</role-name>
+  
+      </auth-constraint>
+  </security-constraint>
 
 
 <!-- Lock down the JSP files -->
@@ -1481,6 +1530,9 @@
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
         <url-pattern>/TissueSampleRemoveBiologicalMeasurement</url-pattern>
         
+        
+        <url-pattern>/ImportSRGD</url-pattern>
+        
         <url-pattern>/IndividualCreate</url-pattern>
         <url-pattern>/OccurrenceCreate</url-pattern>
         <url-pattern>/OccurrenceRemoveEncounter</url-pattern>
@@ -1505,6 +1557,7 @@
          <url-pattern>/OccurrenceAddComment</url-pattern>
           <url-pattern>/OccurrenceSetIndividualCount</url-pattern>
          <url-pattern>/IndividualAddComment</url-pattern>
+         <url-pattern>/SimpleCMROutput</url-pattern>
         
              <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
              <url-pattern>/SOCPROGExport</url-pattern>

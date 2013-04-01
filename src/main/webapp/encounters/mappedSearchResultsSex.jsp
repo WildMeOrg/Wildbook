@@ -177,10 +177,8 @@ margin-bottom: 8px !important;
   
   
 
-    <script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9"></script>
+    <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
-  
-<script type="text/javascript" src="StyledMarker.js"></script>
 
 
     <script type="text/javascript">
@@ -243,7 +241,11 @@ if(rEncounters.size()>0){
 
            
            %>
-           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
+           var marker = new google.maps.Marker({
+        	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|<%=haploColor%>',
+        	   position:latLng,
+        	   map:map
+        	   });
 	    
 
             google.maps.event.addListener(marker,'click', function() {
@@ -433,7 +435,7 @@ myShepherd.rollbackDBTransaction();
  <table cellpadding="3">
  <tr>
  <td valign="top">
-  <<div id="map_canvas" style="width: 770px; height: 510px; "></div>
+  <div id="map_canvas" style="width: 770px; height: 510px; "></div>
  </td>
  <td valign="top">
  <table>

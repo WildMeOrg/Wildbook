@@ -662,8 +662,7 @@ function FSControl(controlDiv, map) {
   <td>
     <div id="observation" style="display:none; ">
       <p>Use the fields below to filter your search based on observed attributes.</p>
-      <input name="alive" type="hidden" id="alive" value="alive" /> 
-							<input name="dead" type="hidden" id="dead" value="dead" /> 
+
 							<input type="hidden" name="approved" value="acceptedEncounters"></input>
 							<input name="unapproved" type="hidden" value="allEncounters"></input>
 							<input name="unidentifiable" type="hidden" value="allEncounters"></input>
@@ -687,11 +686,22 @@ function FSControl(controlDiv, map) {
           </td>
         </tr>
         
+        <tr>
+          <td><strong><%=props.getProperty("status")%>: </strong><label>
+            <input name="alive" type="checkbox" id="alive" value="alive"
+                   checked> <%=props.getProperty("alive")%>
+          </label><label>
+            <input name="dead" type="checkbox" id="dead" value="dead"
+                   checked> <%=props.getProperty("dead")%>
+          </label>
+          </td>
+        </tr>
+        
          <tr>
           <td valign="top"><strong><%=props.getProperty("behavior")%>:</strong>
             <em> <span class="para">
 								<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank">
-                  <img src="../images/information_icon_svg.gif" alt="Help" border="0"
+                  <img src="images/information_icon_svg.gif" alt="Help" border="0"
                        align="absmiddle"/>
                 </a>
 							</span>
@@ -792,7 +802,13 @@ if(CommonConfiguration.showProperty("showLifestage")){
 </c:forEach>
 </c:if>
 
-
+<tr><td>
+      <p><strong><%=props.getProperty("hasPhoto")%> </strong>
+            <label> 
+            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+            </label>
+      </p>
+      </td></tr>
 
 
 

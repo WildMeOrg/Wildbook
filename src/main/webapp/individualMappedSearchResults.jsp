@@ -41,7 +41,7 @@
 
     Properties haploprops = new Properties();
     haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-    
+
     Properties localeprops = new Properties();
    localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
 
@@ -51,6 +51,20 @@
 
 	Random ran= new Random();
 
+	//set up the aspect styles
+	String haplotypeStyle="";
+	String sexStyle="";
+	String generalStyle="";
+    if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("haplotype"))){
+    	haplotypeStyle="background-color:#D8D8D8";
+    }
+    else if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("sex"))){
+    	sexStyle="background-color:#D8D8D8";
+    }
+    else{
+    	generalStyle="background-color:#D8D8D8";
+    	//general comment
+    }
 
 
     //set up paging of results
@@ -192,7 +206,6 @@ margin-bottom: 8px !important;
 <script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
   
-<script type="text/javascript" src="encounters/StyledMarker.js"></script>
 
 
     <script type="text/javascript">
@@ -229,7 +242,13 @@ margin-bottom: 8px !important;
 int rIndividualsSize=rIndividuals.size();
         int count = 0;
 
-      
+	    ArrayList<String> allHaplos2=new ArrayList<String>(); 
+	    int numHaplos2 = 0;
+	    
+	    if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("haplotype"))){
+	    	allHaplos2=myShepherd.getAllHaplotypes(); 
+	    	numHaplos2=allHaplos2.size();
+	    }
         
       
 if(rIndividualsSize>0){
@@ -268,6 +287,31 @@ if(rIndividualsSize>0){
 	              }
 		}
 		
+		String haploColor="CC0000";
+		
+        if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
+     	   haploColor=map_props.getProperty("defaultMarkerColor");
+        }
+		
+        
+        //now check if we should show by sex
+		if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("sex"))){
+			if(indie.getSex().equals("male")){
+				haploColor="0000FF";
+			}
+			else if(indie.getSex().equals("female")){
+				haploColor="FF00FF";
+			}
+		}
+		else if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("haplotype"))){
+			
+
+	           if((indie.getHaplotype()!=null)&&(haploprops.getProperty(indie.getHaplotype())!=null)){
+	         	  if(!haploprops.getProperty(indie.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(indie.getHaplotype());}
+	            }
+		
+		}	
+		
 		if((thisEncLat!=null)&&(thisEncLong!=null)){
 		
 		showMovePath=true;
@@ -284,15 +328,15 @@ if(rIndividualsSize>0){
            
            //another comment
            
-           String haploColor="CC0000";
-           if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   haploColor=map_props.getProperty("defaultMarkerColor");
-           }
-
            
+
+
            %>
-           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
-	    
+           var marker = new google.maps.Marker({
+					        	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+					        	   position:latLng,
+					        	   map:map
+			});
 
             google.maps.event.addListener(marker,'click', function() {
                  (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
@@ -313,7 +357,7 @@ if(rIndividualsSize>0){
 	 				       path: movePathCoordinates<%=y%>,
 	 				       geodesic: true,
 	 				       strokeOpacity: 0.0,
-	 				       strokeColor: 'white',
+	 				       strokeColor: '<%=haploColor%>',
 	 				       icons: [{
 	 				         icon: {
 	 				           path: 'M -1,1 0,0 1,1',
@@ -492,12 +536,60 @@ myShepherd.rollbackDBTransaction();
      try {
  %>
  <p><%=map_props.getProperty("resultsNote")%></p>
+ 
+ <p>
+ <%=map_props.getProperty("mapAspect")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=generalStyle %>" href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=sexStyle%>" href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>&showBy=sex"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=haplotypeStyle %>" href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>&showBy=haplotype"><%=map_props.getProperty("displayAspectName1") %></a>
+ </p>
+ 
 <p><%=map_props.getProperty("mapNote")%></p>
  
  <div id="map-container">
  
  
-<div id="map_canvas" style="width: 770px; height: 510px; ">
+<table cellpadding="3">
+ <tr>
+ <td valign="top">
+<div id="map_canvas" style="width: 770px; height: 510px; "> </div>
+ </td>
+ 
+ <%
+ if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("haplotype"))){
+ %>
+ <td valign="top">
+ <table>
+ <tr><th>Haplotype Color Key</th></tr>
+                    <%
+                    String haploColor="CC0000";
+                   if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
+                	   haploColor=map_props.getProperty("defaultMarkerColor");
+                   }   
+                   for(int yy=0;yy<numHaplos2;yy++){
+                       String haplo=allHaplos2.get(yy);
+                       if((haploprops.getProperty(haplo)!=null)&&(!haploprops.getProperty(haplo).trim().equals(""))){
+                     	  haploColor = haploprops.getProperty(haplo);
+                        }
+					%>
+					<tr bgcolor="#<%=haploColor%>"><td><strong><%=haplo %></strong></td></tr>
+					<%
+                   }
+                   if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
+                	   haploColor=map_props.getProperty("defaultMarkerColor");
+                	   %>
+                	   <tr bgcolor="#<%=haploColor%>"><td><strong>Unknown</strong></td></tr>
+                	   <%
+                   }  
+                   
+                   %>
+
+ </table>
+ </td>
+ <%
+     }
+ %>
+ 
+ 
+ </tr>
+ </table>
  
 
  </div>

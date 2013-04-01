@@ -80,7 +80,7 @@
   ArrayList uniqueEncounters = new ArrayList();
   for (int q = 0; q < rEncounters.size(); q++) {
     Encounter rEnc = (Encounter) rEncounters.get(q);
-    if (!rEnc.isAssignedToMarkedIndividual().equals("Unassigned")) {
+    if ((rEnc.getIndividualID()!=null)&&(!rEnc.getIndividualID().equals("Unassigned"))) {
       String assemblage = rEnc.getIndividualID() + ":" + rEnc.getYear() + ":" + rEnc.getMonth() + ":" + rEnc.getDay();
       if (!uniqueEncounters.contains(assemblage)) {
         numUniqueEncounters++;
@@ -308,18 +308,44 @@
   </td>
 <%
 }
-%>
 
-
-  <td class="lineitem"><%=enc.getSubmitterName()%>
-  </td>
+		if(enc.getSubmitterName()!=null){
+		%>
+			<td class="lineitem"><%=enc.getSubmitterName()%></td>
+		<%
+		}
+		else {
+		%>
+		<td class="lineitem">&nbsp;</td>
+		<%
+		}
+		%>
   <td class="lineitem"><%=enc.getDate()%>
   </td>
 
-  <td class="lineitem"><%=enc.getLocation()%>
-  </td>
-  <td class="lineitem"><%=enc.getLocationID()%>
-  </td>
+		<%
+		if(enc.getLocation()!=null){
+		%>
+			<td width="90" class="lineitem"><%=enc.getLocation()%></td>
+		<%
+		}
+		else {
+		%>
+		<td width="90" class="lineitem">&nbsp;</td>
+		<%
+		}
+		
+		if(enc.getLocationID()!=null){
+		%>
+			<td class="lineitem"><%=enc.getLocationID()%></td>
+		<%
+		}
+		else {
+		%>
+		<td class="lineitem">&nbsp;</td>
+		<%
+		}
+		%>
     <td class="lineitem">
     <%
     if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
