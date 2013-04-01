@@ -16,16 +16,8 @@
 
 <html>
 <head>
-<title><%=CommonConfiguration.getHTMLTitle() %></title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description"
-	content="<%=CommonConfiguration.getHTMLDescription() %>" />
-<meta name="Keywords"
-	content="<%=CommonConfiguration.getHTMLKeywords() %>" />
-<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
+<title>Fix Some Fields</title>
 
-<link rel="shortcut icon"
-	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 </head>
 
 
@@ -63,19 +55,7 @@ while(allEncs.hasNext()){
 	//change state
 	Encounter sharky=(Encounter)allEncs.next();
 	
-	if((sharky.getSizeGuess()!=null)&&(!sharky.getSizeGuess().equals(""))){
-		if((sharky.getMeasurements()!=null)&&(sharky.getMeasurements().size()>0)){
-			
-			Measurement m=sharky.getMeasurements().get(0);
-			//if((m.getSamplingProtocol()==null)||(m.getSamplingProtocol().equals(""))){
-			%>
-			<p>Swapping <%=sharky.getCatalogNumber() %> which has sampling protocol: <%=m.getSamplingProtocol() %> which will be replaced with: <%=sharky.getSizeGuess() %></p>
-			<%
-				m.setSamplingProtocol(sharky.getSizeGuess());
-			//}
-		}
-		
-	}
+	if(sharky.getSex().equals("unsure")){sharky.setSex("unknown");}
 	
 	//if(sharky.getApproved()){sharky.setState("approved");}
 	//else if(sharky.getUnidentifiable()){sharky.setState("unidentifiable");}
@@ -86,14 +66,7 @@ while(allEncs.hasNext()){
 	//List<SinglePhotoVideo> images=sharky.getImages();
 	
 
-	
-	
-	/*
-	if(sharky.getSizeAsDouble()!=null){
-		Measurement measurement = new Measurement(sharky.getEncounterNumber(), "length", sharky.getSizeAsDouble(), "meters", sharky.getSizeGuess());
-        sharky.addMeasurement(measurement);
-	}
-	*/
+
 	
 	/*
 	
@@ -131,9 +104,9 @@ while(allEncs.hasNext()){
 }
 
 
-//while(allSharks.hasNext()){
+while(allSharks.hasNext()){
 
-	//MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
 	
 	//populate max years between resightings
 	/*
@@ -151,7 +124,9 @@ while(allEncs.hasNext()){
 	}*/
 	//sharky.resetMaxNumYearsBetweenSightings();
 	
-//}
+	if(sharky.getSex().equals("unsure")){sharky.setSex("unknown");}
+	
+}
 
 
 myShepherd.commitDBTransaction();
