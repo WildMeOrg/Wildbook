@@ -112,8 +112,8 @@ public class SimpleCMROutput extends HttpServlet{
       String footer="";
       
       if(request.getParameter("includeQueryComments")!=null){
-        header+="\n\n/* \nQuery parameters:\n"+result.getQueryPrettyPrint().replaceAll("<br />", "\n")+"\n*/\n\n";
-        footer="/*\nSourceURL:\n"+"http://"+CommonConfiguration.getURLLocation(request)+"/SimpleCMROutput?"+request.getQueryString()+"\n*/\n\n";
+        header+="\r\n\r\n/* \r\nQuery parameters:\n"+result.getQueryPrettyPrint().replaceAll("<br />", "\r\n")+"\r\n*/\r\n\r\n";
+        footer="/*\r\nSourceURL:\r\n"+"http://"+CommonConfiguration.getURLLocation(request)+"/SimpleCMROutput?"+request.getQueryString()+"\r\n*/\r\n\r\n";
       }
       
       if(request.getParameter("includeQueryComments")!=null){
@@ -203,7 +203,7 @@ public class SimpleCMROutput extends HttpServlet{
           includeID="     /* "+indie.getIndividualID()+" */";
         }
       if(thisRecord.indexOf("1")!=-1){
-        histories.append(thisRecord+" 1;"+includeID+"\n");
+        histories.append(thisRecord+" 1;"+includeID+"\r\n");
       }
     }
 
