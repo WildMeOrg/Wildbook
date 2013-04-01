@@ -189,7 +189,7 @@ int imageCount = 0;
             if (totalKeywords > 0) {
           %>
           <form action="../SinglePhotoVideoAddKeyword" method="post" name="keyword">
-            <select name="keyword" id="keyword">
+            <select multiple="multiple" name="keyword" id="keyword" size="5" required="required">
               <option value=" " selected>&nbsp;</option>
               <%
                 Iterator keys = imageShepherd.getAllKeywords(kwImagesQuery);

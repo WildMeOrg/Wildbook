@@ -464,7 +464,13 @@ margin-bottom: 8px !important;
 %>
     
     <p class="para"><img align="absmiddle" src="../images/life_icon.gif">
-      <%=encprops.getProperty("status")%>: <%=enc.getLivingStatus()%> <%
+      <%=encprops.getProperty("status")%>: 
+      <%
+      if(enc.getLivingStatus()!=null){
+      %>
+      <%=enc.getLivingStatus()%>
+       <%
+    }
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>[<a
         href="encounter.jsp?number=<%=num%>&edit=livingStatus#livingStatus">edit</a>]<%
@@ -578,7 +584,15 @@ margin-bottom: 8px !important;
 </c:if>
 
 <p class="para"><strong><%=encprops.getProperty("location") %>
-</strong><br/> <%=enc.getLocation()%>
+</strong><br/> 
+<%
+if(enc.getLocation()!=null){
+%>
+<%=enc.getLocation()%>
+<%
+}
+%>
+
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=location#location">edit</a>]</font>
@@ -594,22 +608,21 @@ margin-bottom: 8px !important;
   <a href="<%=CommonConfiguration.getWikiLocation()%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
-
-  if(CommonConfiguration.showProperty("showCountry")){
+  %>
   
-%>
   <br/>
-  <em><%=encprops.getProperty("country") %></em>: <%=enc.getCountry()%>
+  <em><%=encprops.getProperty("country") %></em>: 
   <%
+  if(enc.getCountry()!=null){
+  %>
+  <%=enc.getCountry()%>
+  <%
+  }
     if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
   <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=country#country">edit</a>]</font>
   <a href="<%=CommonConfiguration.getWikiLocation()%>country" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> 
-    
-    
-    <%
+    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
-    } //end if showCountry
   %>
   
   

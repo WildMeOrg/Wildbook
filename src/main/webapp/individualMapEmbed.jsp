@@ -109,10 +109,9 @@ margin-top: 0px !important;
 margin-bottom: 8px !important;
 </style>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
-  <script type="text/javascript" src="encounters/StyledMarker.js"></script>
-  
+
 
 <p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>
 <%
@@ -162,13 +161,23 @@ String lastLatLong="";
 	  Occurrence sharky=myShepherd.getOccurrence(name);
 	  ArrayList<String> occurIndies=sharky.getMarkedIndividualNamesForThisOccurrence();
 	  int numParticipatingIndies=occurIndies.size();
+	  
+	  //set up movePath line holders
+		
+		for(int uu=0;uu<numParticipatingIndies;uu++){
+		%>
+	  	var movePathCoordinates<%=uu%> = [];	
+	  	<%
+	  	}
+	  
+	  
 	  for(int g=0;g<numParticipatingIndies;g++){
 		  MarkedIndividual indie=myShepherd.getMarkedIndividual(occurIndies.get(g));
 		  if(indie.returnEncountersWithGPSData(true,false).size()>0){
-			  Vector encsWithGPS=indie.returnEncountersWithGPSData(true,false);
+			  Vector encsWithGPS=indie.returnEncountersWithGPSData(true,true);
 			  int numEncsWithGPS=encsWithGPS.size();
 			  for(int j=0;j<numEncsWithGPS;j++){
-				  if(!haveGPSData.contains(encsWithGPS.get(j))){
+				  //if(!haveGPSData.contains(encsWithGPS.get(j))){
 					  Encounter indieEnc=(Encounter)encsWithGPS.get(j);
 					  
 					  //we now have an Encounter that is external to this occurrence but part of a MarkedIndividual participating in this occurrence
@@ -186,18 +195,26 @@ String lastLatLong="";
 					          
 					          var latLng = new google.maps.LatLng(<%=thisLatLong%>);
 					          bounds.extend(latLng);
-					          //movePathCoordinates.push(latLng);
+					          movePathCoordinates<%=g%>.push(latLng);
 					           <%
 
 					           
 					           //currently unused programatically
 					           String markerText="";
-					           
-								
+					           String zIndexString="";
+					           String markerColor="C0C0C0";
+					           if(haveGPSData.contains(encsWithGPS.get(j))){
+					        	   markerColor="00FF00";
+					        	   zIndexString=",zIndex: 10000";
+					           }
 					           
 					           %>
-					           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"C0C0C0",text:"<%=markerText%>"}),position:latLng,map:map});
-						    
+					           
+					           var marker = new google.maps.Marker({
+					        	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=markerColor%>',
+					        	   position:latLng,
+					        	   map:map<%=zIndexString%>
+					        	});
 
 					             google.maps.event.addListener(marker,'click', function() {
 					                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indieEnc.isAssignedToMarkedIndividual()%>\"><%=indieEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=indieEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=indieEnc.getDate()%><br />Sex: <%=indieEnc.getSex()%><%if(indieEnc.getSizeAsDouble()!=null){%><br />Size: <%=indieEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=indieEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
@@ -206,10 +223,40 @@ String lastLatLong="";
 						
 					          markers.push(marker);
 					          map.fitBounds(bounds); 
-							<%          
-				  } 
+							<%    
+							lastLatLong=indieEnc.getDecimalLatitude()+","+indieEnc.getDecimalLongitude();
+
+				  //}  //end if 
+							if(haveGPSData.contains(encsWithGPS.get(j))){haveGPSData.remove(encsWithGPS.get(j));havegpsSize=haveGPSData.size();}
+				  
 			  } 
+			  
+			  
 		  } 
+		  
+		  %>
+		  var movePath<%=g%> = new google.maps.Polyline({
+			     path: movePathCoordinates<%=g%>,
+			     geodesic: true,
+			     strokeOpacity: 0.0,
+			     strokeColor: 'white',
+			     icons: [{
+			       icon: {
+			         path: 'M -1,1 0,0 1,1',
+			         strokeOpacity: 1,
+			         strokeWeight: 1.5,
+			         scale: 6
+			         
+			       },
+			       repeat: '20px'
+			       
+			     }
+			     ],
+			     map: map
+			   });
+
+			  <%
+		  
 	  } 
 	 
  }
@@ -251,8 +298,12 @@ String lastLatLong="";
 			
            
            %>
-           var marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=colorToUseForMarker%>",text:"<%=markerText%>"}),position:latLng,map:map<%=zIndexString%>});
-	    
+           
+			var marker = new google.maps.Marker({
+        	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=colorToUseForMarker%>',
+        	   position:latLng,
+        	   map:map<%=zIndexString%>
+        	});
 
             google.maps.event.addListener(marker,'click', function() {
                  (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
@@ -265,8 +316,7 @@ String lastLatLong="";
  
  <%
  
- lastLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
-} 
+ } 
 
  %>
  var movePath = new google.maps.Polyline({
