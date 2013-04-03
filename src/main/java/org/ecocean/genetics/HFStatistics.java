@@ -1,5 +1,5 @@
 /*
-    Copyright 2009 Stéphane De Mita, Mathieu Siol
+    Copyright 2009 StÃ©phane De Mita, Mathieu Siol
 
     This file is part of the EggLib library.
 
