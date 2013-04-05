@@ -341,7 +341,7 @@ z-index:99;
 <li class="drop"><a href="http://whalesharknews.wordpress.com/" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:45px; height:25px; z-index:100;"><strong>News</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
-<li><a href="http://ecocean.wordpress.com/" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px; z-index:100;">View Shark News</a></li>
+<li><a href="http://whalesharknews.wordpress.com/" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px; z-index:100;">View Shark News</a></li>
 </ul>
 
   
