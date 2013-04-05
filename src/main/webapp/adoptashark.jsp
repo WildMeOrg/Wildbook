@@ -125,8 +125,12 @@
 <table cellpadding="5">
 
 <tr>
-	<td width="250px" valign="top"><em>Use the button on the left if you would like your Adoption funds directed to ECOCEAN USA. ECOCEAN USA offers tax deductability in the United States as a 501(c)(3) nonprofit organization.</em></td>
+	<td width="250px" valign="top"><em>Use the button below if you would like your Adoption funds directed to ECOCEAN USA. ECOCEAN USA offers tax deductability in the United States as a 501(c)(3) nonprofit organization.</em></td>
+	
+	<!--
 	<td width="250px" valign="top"><em>Use the button on the right if you would like your Adoption funds directed to ECOCEAN (Australia).</em></td>
+	-->
+
 </tr>
 <tr><td>	
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
@@ -136,6 +140,8 @@
 <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
 </form>
 </td>
+
+<!--
 <td><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
 
 <input type="hidden" name="cmd" value="_s-xclick">
@@ -144,6 +150,7 @@
 <img alt="" border="0" src="https://www.paypalobjects.com/en_AU/i/scr/pixel.gif" width="1" height="1">
 </form>
  </td>
+ -->
 </tr>
 </table>
 

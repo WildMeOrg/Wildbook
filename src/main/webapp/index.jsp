@@ -240,11 +240,11 @@ table.adopter td.image {
 				 
 		 
 		 		 <p>
-		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />43000+ photos collected<br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />20000+  sighting reports</strong><br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3800+ whale sharks collaboratively tagged</strong><br />
+		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />47000+ photos collected<br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />22000+  sighting reports</strong><br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />4300+ whale sharks collaboratively tagged</strong><br />
 			   
-			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3400+ data contributors</strong></strong></span><br />
+			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3600+ data contributors</strong></strong></span><br />
 		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />365 research days/year</strong><br />
 		       
 			   <p align="center"><strong><a href="adoptashark.jsp">Please consider adopting a shark to support our mission!</a></strong></p>
@@ -258,13 +258,7 @@ table.adopter td.image {
 
 		 </div>
 
-	 <div id="video"><h1 class="intro">Video</h1>
-<object width="400" height="240"><param name="movie" value="http://www.youtube.com/v/1Fp4cBG18R4?fs=1&amp;hl=en_US"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/1Fp4cBG18R4?fs=1&amp;hl=en_US" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="400" height="240"></embed></object>
-       <p class="caption"><br>
-	   Learn more about the work of ECOCEAN with National Geographic's CritterCam!
-	   </p>
-       <p class="caption"><a href="video.jsp"><img src="images/Crystal_Clear_app_camera.gif" width="40" height="33" border="0" align="middle" />&nbsp;Click here for additional whale shark videos.</a></p>
-	</div>
+
 		 <div>
 		   <h1 class="intro">Data Contributors</h1>
 			<p class="caption">Many individuals and organizations actively contribute and manage data in the ECOCEAN Library. We will be featuring them here soon. </p>
