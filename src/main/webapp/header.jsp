@@ -208,7 +208,6 @@ z-index:99;
 
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/submit.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Report an Encounter</a></li>
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/wiki/doku.php?id=how_to_join_sharkgrid" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Join sharkGrid</a></li>
-	<li><a href="http://forum.ecocean.org" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Discuss</a></li>
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptashark.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Adopt a Shark</a></li>
 	
 	</ul>
@@ -329,9 +328,7 @@ z-index:99;
 	<ul>
 	
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/whoAreWe.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px z-index:99;">Who We Are</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/privateSector.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px; z-index:99;">Private Sector Partners</a></li>
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/partners.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px; z-index:99;">Partner Organisations & Individuals</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/support.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px; z-index:99;">Support ECOCEAN</a></li>
 		
 	</ul>
     
@@ -341,7 +338,7 @@ z-index:99;
                 
                 
         
-<li class="drop"><a href="http://ecocean.wordpress.com/" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:45px; height:25px; z-index:100;"><strong>News</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li class="drop"><a href="http://whalesharknews.wordpress.com/" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:45px; height:25px; z-index:100;"><strong>News</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 <li><a href="http://ecocean.wordpress.com/" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px; z-index:100;">View Shark News</a></li>
