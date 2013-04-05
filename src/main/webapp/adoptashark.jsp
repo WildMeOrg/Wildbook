@@ -93,9 +93,8 @@
 		<div id="maintext">
 		  <h1 class="intro"><img src="images/adoption.gif" width="56" height="48" align="absmiddle" />Adopt a Shark </h1>
 		</div>
-			
-			<p>You can support the ongoing research of the ECOCEAN Whale Shark Photo-identification Library by adopting a whale shark. A whale shark adoption allows you to:</p>
-			<ul>
+			<table><tr>
+			<td valign="top"><p>You can support the ongoing research of the ECOCEAN Whale Shark Photo-identification Library by adopting a whale shark. A whale shark adoption allows you to: <ul>
 			  <li>support cutting-edge whale shark research through the ECOCEAN Library </li>
 	    <li> receive email updates of resightings of your adopted shark</li>
 		<li>display your photo and a quote from you on the shark's page in our library</li>
@@ -109,18 +108,46 @@
 	          <li>Corporate adoption = USD $1000/year</li>
 		</ul>
 			<p>The cost of your adoption is tax deductible in the United States through ECOCEAN USA, a 501(c)(3) non-profit organization.</p>
+			</td>
+			<td width="200" align="left">
+				<p align="center"><a href="http://www.whaleshark.org/individuals.jsp?number=A-001"><img src="images/sample_adoption.gif" border="0" /></a>	
+				</p>
+				  <p align="center"><strong>
+				  Sample whale shark adoption for whale shark A-001. <br />
+				  </strong><strong><a href="http://www.whaleshark.org/individuals.jsp?number=A-003">Click here to see an example. </a> </strong></p>
+	  </td></table>
+			</p>
 			
 			<table><tr><td>
 			<h3>Creating an adoption</h3>
 			<p>To adopt a whale shark, follow these steps.</p>
-			<p>1. Make the appropriate donation using the PayPal link below.</p>
-	
+			<p>1. Make the appropriate donation using the appropriate PayPal button below.</p>
+<table cellpadding="5">
+
+<tr>
+	<td width="250px" valign="top"><em>Use the button on the left if you would like your Adoption funds directed to ECOCEAN USA. ECOCEAN USA offers tax deductability in the United States as a 501(c)(3) nonprofit organization.</em></td>
+	<td width="250px" valign="top"><em>Use the button on the right if you would like your Adoption funds directed to ECOCEAN (Australia).</em></td>
+</tr>
+<tr><td>	
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_s-xclick">
 <input type="hidden" name="hosted_button_id" value="5075222">
 <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
 <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
 </form>
+</td>
+<td><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="47YS8D5TXGZBY">
+<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypalobjects.com/en_AU/i/scr/pixel.gif" width="1" height="1">
+</form>
+ </td>
+</tr>
+</table>
+
+
 			<p>2. Send an email to <img src="images/adoptions_email.gif" width="228" height="18" align="absmiddle" />. Include the following in the email</p>
 			<ul>
 			  <li> your name and address</li>
@@ -134,13 +161,7 @@
 	<p>Your adoption (photograph, name, and quote) will be displayed on the web site page for your shark, and one adoption will be randomly chosen to be displayed on the front page of whaleshark.org.</p>
 	<p><em><strong>Thank you for adopting a shark and supporting our global research efforts! </strong></em></p>
 	</td>
-	<td width="200" align="left">
-	<p align="center"><a href="http://www.whaleshark.org/individuals.jsp?number=A-001"><img src="images/sample_adoption.gif" border="0" /></a>	
-	</p>
-	  <p align="center"><strong>
-	  Sample whale shark adoption for whale shark A-001. <br />
-	  </strong><strong><a href="http://www.whaleshark.org/individuals.jsp?number=A-001">Click here to see it on the shark page. </a> </strong></p>
-	  </td></tr></table>
+	</tr></table>
 	</div>
 	<!-- end maintext -->
 
