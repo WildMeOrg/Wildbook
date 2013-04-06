@@ -195,6 +195,23 @@ public class CommonConfiguration {
     initialize();
     return props.getProperty("htmlDescription").trim();
   }
+  
+  public static int getMaxMediaSizeInMegabytes(){
+    int maxSize=10;
+    
+    try{
+      String sMaxSize=getProperty("maxMediaSize");
+      if(sMaxSize!=null){
+        Integer value=new Integer(sMaxSize);
+        maxSize=value.intValue();
+      }
+    }
+    catch(Exception e){
+      System.out.println("\n\nHit an exception trying to read maxMediaSize property from commonConfiguration.properties.");
+      e.printStackTrace();
+    }
+    return maxSize;
+  }
 
   public static String getHTMLKeywords() {
     initialize();

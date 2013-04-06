@@ -82,6 +82,7 @@ public class SubmitAction extends Action {
 		  String locCode = "", informothers = "";
 		  String livingStatus = "";
 		  String genusSpecies="";
+		  String country="";
   		  Shepherd myShepherd;
 
 
@@ -145,6 +146,9 @@ public class SubmitAction extends Action {
       livingStatus = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getLivingStatus());
       genusSpecies = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getGenusSpecies());
       informothers = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getInformothers().replaceAll(";", ",").replaceAll(" ", ""));
+      country = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getCountry());
+
+
       //check for spamBots
       boolean spamBot = false;
       StringBuffer spamFields = new StringBuffer();
@@ -310,12 +314,12 @@ public class SubmitAction extends Action {
       String data = null;
 
       //File encountersDir = new File(getServlet().getServletContext().getRealPath("/encounters"));
-     
+
       String rootWebappPath = getServlet().getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
       File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
       if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
-      
+
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       if(!encountersDir.exists()){encountersDir.mkdir();}
       File thisEncounterDir = new File(encountersDir, uniqueID);
@@ -340,7 +344,7 @@ public class SubmitAction extends Action {
             //System.out.println(writeFile);
             if (!writeFile) {
               //only write files out that are less than 9MB
-              if ((file[iter].getFileSize() < (4 * 9216000)) && (file[iter].getFileSize() > 0)) {
+              if ((file[iter].getFileSize() < (CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576)) && (file[iter].getFileSize() > 0)) {
 
                 byte[] buffer = new byte[8192];
                 int bytesRead = 0;
@@ -448,10 +452,10 @@ public class SubmitAction extends Action {
 
 	  		//now we have to break apart genus species
 	  		StringTokenizer tokenizer=new StringTokenizer(genusSpecies," ");
-	  		if(tokenizer.countTokens()==2){
+	  		if(tokenizer.countTokens()>=2){
 
 	          	enc.setGenus(tokenizer.nextToken());
-	          	enc.setSpecificEpithet(tokenizer.nextToken());
+	          	enc.setSpecificEpithet(tokenizer.nextToken().replaceAll(",","").replaceAll("_"," "));
 
 	  	    }
 	  	    //handle malformed Genus Species formats
@@ -587,7 +591,7 @@ public class SubmitAction extends Action {
             position = position * -1;
           }*/
           enc.setDWCDecimalLatitude(position);
-          
+
           double degrees2 = (new Double(longitude)).doubleValue();
           double position2 = degrees2;
           enc.setDWCDecimalLongitude(position2);
@@ -604,8 +608,8 @@ public class SubmitAction extends Action {
         //enc.setGPSLongitude(longitude + "&deg; " + gpsLongitudeMinutes + "\' " + gpsLongitudeSeconds + "\" " + longDirection);
 
         //try {
-          
-          
+
+
           /*
           if (!gpsLongitudeMinutes.equals("")) {
             double minutes2 = ((new Double(gpsLongitudeMinutes)).doubleValue()) / 60;
@@ -619,7 +623,7 @@ public class SubmitAction extends Action {
             position = position * -1;
           }
           */
-          
+
 
 
         //} catch (Exception e) {
@@ -688,6 +692,9 @@ public class SubmitAction extends Action {
       }
       if (!locCode.equals("")) {
         enc.setLocationCode(locCode);
+      }
+      if (!country.equals("")) {
+        enc.setCountry(country);
       }
       if (!informothers.equals("")) {
         enc.setInformOthers(informothers);

@@ -662,8 +662,7 @@ function FSControl(controlDiv, map) {
   <td>
     <div id="observation" style="display:none; ">
       <p>Use the fields below to filter your search based on observed attributes.</p>
-      <input name="alive" type="hidden" id="alive" value="alive" /> 
-							<input name="dead" type="hidden" id="dead" value="dead" /> 
+
 							<input type="hidden" name="approved" value="acceptedEncounters"></input>
 							<input name="unapproved" type="hidden" value="allEncounters"></input>
 							<input name="unidentifiable" type="hidden" value="allEncounters"></input>
@@ -686,6 +685,66 @@ function FSControl(controlDiv, map) {
 				</table>
           </td>
         </tr>
+        
+        <tr>
+          <td><strong><%=props.getProperty("status")%>: </strong><label>
+            <input name="alive" type="checkbox" id="alive" value="alive"
+                   checked> <%=props.getProperty("alive")%>
+          </label><label>
+            <input name="dead" type="checkbox" id="dead" value="dead"
+                   checked> <%=props.getProperty("dead")%>
+          </label>
+          </td>
+        </tr>
+        
+         <tr>
+          <td valign="top"><strong><%=props.getProperty("behavior")%>:</strong>
+            <em> <span class="para">
+								<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank">
+                  <img src="images/information_icon_svg.gif" alt="Help" border="0"
+                       align="absmiddle"/>
+                </a>
+							</span>
+            </em><br/>
+              <%
+				ArrayList<String> behavs = myShepherd.getAllBehaviors();
+				int totalBehavs=behavs.size();
+
+				
+				if(totalBehavs>1){
+				%>
+
+            <select multiple name="behaviorField" id="behaviorField" style="width: 500px">
+              <option value="None"></option>
+              <%
+                for (int f = 0; f < totalBehavs; f++) {
+                  String word = behavs.get(f);
+                  if ((word != null)&&(!word.trim().equals(""))) {
+              %>
+              <option value="<%=word%>"><%=word%>
+              </option>
+              <%
+
+                  }
+
+                }
+              %>
+            </select>
+              <%
+
+				}
+				else{
+					%>
+            <p><em><%=props.getProperty("noBehaviors")%>
+            </em></p>
+              <%
+				}
+				%>
+
+      </p>
+  </td>
+</tr>
+        
         <%
 
 if(CommonConfiguration.showProperty("showLifestage")){
@@ -743,30 +802,14 @@ if(CommonConfiguration.showProperty("showLifestage")){
 </c:forEach>
 </c:if>
 
+<tr><td>
+      <p><strong><%=props.getProperty("hasPhoto")%> </strong>
+            <label> 
+            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+            </label>
+      </p>
+      </td></tr>
 
-
-
-<%
-  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements());
-%>
-<c:if test="${showMeasurement}">
-<%
-    pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode));
-%>
-<tr><td><strong><%=props.getProperty("biomeasurements") %></strong></td></tr>
-<c:forEach items="${items}" var="item">
-<tr valign="top">
-<td>${item.label}
-<select name="biomeasurement${item.type}(operator)">
-  <option value="gt">&gt;</option>
-  <option value="lt">&lt;</option>
-  <option value="eq">=</option>
-</select>
-<input name="biomeasurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
-</td>
-</tr>
-</c:forEach>
-</c:if>
 
 
 
@@ -996,6 +1039,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
         }
       %>
 
+
   <p><strong><%=props.getProperty("geneticSex")%>:</strong> <span class="para">
       <a href="<%=CommonConfiguration.getWikiLocation()%>geneticSex"
         target="_blank"><img src="images/information_icon_svg.gif"
@@ -1033,7 +1077,25 @@ if(CommonConfiguration.showProperty("showLifestage")){
         }
       %>
       
-
+<%
+    pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode));
+%>
+<table><tr><td></td></tr>
+<tr><td><strong><%=props.getProperty("biomeasurements") %></strong></td></tr>
+<c:forEach items="${items}" var="item">
+<tr valign="top">
+<td>${item.label}
+<select name="biomeasurement${item.type}(operator)">
+  <option value="gt">&gt;</option>
+  <option value="lt">&lt;</option>
+  <option value="eq">=</option>
+</select>
+<input name="biomeasurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
+</td>
+</tr>
+</c:forEach>
+<tr><td></td></tr>
+</table>
    
       <p><strong><%=props.getProperty("msmarker")%>:</strong> 
       <span class="para">

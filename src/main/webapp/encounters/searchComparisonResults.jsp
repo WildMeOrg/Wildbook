@@ -846,7 +846,7 @@ var selectedRectangle2;
 			<%
 				try {
 				%>
-					F<sub>st</sub> = <%=fstats.getTheta() %> (Weir and Cockerham 1984 method)<br />
+					F<sub>st</sub> = <%=df.format(fstats.getTheta()) %> (Weir and Cockerham 1984 method)<br />
 
 				<%
 				}
@@ -905,7 +905,7 @@ var selectedRectangle2;
 				<%
 				try {
 				%>
-					F<sub>st</sub> = <%=fstats.getTheta() %><br />
+					F<sub>st</sub> = <%=df.format(fstats.getTheta()) %><br />
 					(Weir and Cockerham 1984 method)</p>
 				<%
 				}

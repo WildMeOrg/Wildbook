@@ -130,6 +130,10 @@ public class EncounterSearchExportShapefile extends HttpServlet{
             }
             featureBuilder.add(haploString);
             featureBuilder.add(("http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+enc.getCatalogNumber()));
+            
+            featureBuilder.add(enc.getDecimalLatitudeAsDouble());
+            featureBuilder.add(enc.getDecimalLongitudeAsDouble());
+            
             SimpleFeature feature = featureBuilder.buildFeature(null);
             collection.add(feature);
           }
@@ -295,7 +299,9 @@ public class EncounterSearchExportShapefile extends HttpServlet{
       builder.add("Individual", String.class); 
       builder.add("Sex", String.class);
       builder.add("Haplotype", String.class);
-      builder.add("URL", String.class); 
+      builder.add("URL", String.class);
+      builder.add("Latitude", Double.class);
+      builder.add("Longitude", Double.class);
 
       // build the type
       final SimpleFeatureType LOCATION = builder.buildFeatureType();

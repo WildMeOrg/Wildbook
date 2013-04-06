@@ -51,6 +51,17 @@ public class EncounterQueryProcessor {
     }
     //end resighted filter--------------------------------------------------------------------------------------
 
+    //filter for unassigned encounters------------------------------------------
+    if(request.getParameter("unassigned")!=null) {
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+        filter+="(individualID == \"Unassigned\")";
+      }
+      else{filter+=" && (individualID == \"Unassigned\")";}
+      prettyPrint.append("Unidentified.<br />");
+    }
+    //end unassigned filter--------------------------------------------------------------------------------------
+
+    
 
 /**    
   //filter for unidentifiable encounters------------------------------------------
@@ -272,6 +283,32 @@ public class EncounterQueryProcessor {
             else{filter+=(" && "+stageFilter);}
             prettyPrint.append("<br />");
     }
+    //end lifeStage filters
+    
+    //country filters-------------------------------------------------
+    String[] countries=request.getParameterValues("country");
+    if((countries!=null)&&(!countries[0].equals("None"))&&(!countries[0].equals(""))){
+          prettyPrint.append("Country is one of the following: ");
+          int kwLength=countries.length;
+            String stageFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              String kwParam=countries[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(stageFilter.equals("(")){
+                  stageFilter+=" country == \""+kwParam+"\"";
+                }
+                else{
+                  stageFilter+=" || country == \""+kwParam+"\"";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            stageFilter+=" ) ";
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=stageFilter;}
+            else{filter+=(" && "+stageFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end country filters
     
     
     // Measurement filters-----------------------------------------------
@@ -449,21 +486,35 @@ public class EncounterQueryProcessor {
     }
     //end verbatimEventDate filters-----------------------------------------------
 
+    
+    
     //------------------------------------------------------------------
     //hasTissueSample filters-------------------------------------------------
     if(request.getParameter("hasTissueSample")!=null){
           prettyPrint.append("Has tissue sample.");
-
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="tissueSamples.contains(dce)";}
             else if (filter.indexOf("tissueSamples.contains(dce)")==-1){filter+=(" && tissueSamples.contains(dce) ");}
-
             prettyPrint.append("<br />");
             if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce";}
-            else if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce";}
-            
+            else if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce";}        
     }
     //end hasTissueSample filters-----------------------------------------------
 
+    //------------------------------------------------------------------
+    //TissueSample sampleID filters-------------------------------------------------
+    if((request.getParameter("tissueSampleID")!=null)&&(!request.getParameter("tissueSampleID").trim().equals(""))){
+          prettyPrint.append("Has biological sample with ID: "+request.getParameter("tissueSampleID"));
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="tissueSamples.contains(dce123) && (dce123.sampleID.toLowerCase().indexOf('"+request.getParameter("tissueSampleID").trim().toLowerCase()+"') != -1)";}
+            else if (filter.indexOf("tissueSamples.contains(dce)")==-1){filter+=(" && tissueSamples.contains(dce123) && (dce123.sampleID.toLowerCase().indexOf('"+request.getParameter("tissueSampleID").trim().toLowerCase()+"') != -1) ");}
+            prettyPrint.append("<br />");
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce123";}
+            else if(!jdoqlVariableDeclaration.contains("org.ecocean.genetics.TissueSample dce123")){jdoqlVariableDeclaration+=";org.ecocean.genetics.TissueSample dce123";}        
+    }
+    //end hasTissueSample filters-----------------------------------------------
+
+    
+    
+    
     //------------------------------------------------------------------
     //hasPhoto filters-------------------------------------------------
     if(request.getParameter("hasPhoto")!=null){

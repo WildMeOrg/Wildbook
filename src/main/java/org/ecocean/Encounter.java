@@ -78,6 +78,7 @@ public class Encounter implements java.io.Serializable {
   public String genus = "";
   public String specificEpithet;
   public String lifeStage;
+  public String country;
 
 
   /*
@@ -785,6 +786,10 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setMatchedBy(String matchType) {
+    identificationRemarks = matchType;
+  }
+  
+  public void setIdentificationRemarks(String matchType) {
     identificationRemarks = matchType;
   }
 
@@ -1653,6 +1658,32 @@ public class Encounter implements java.io.Serializable {
       return null;
     }
     
+    /**
+     * A convenience method that returns the first genetic sex found in the TissueSamples for this Encounter. 
+     * 
+     *@return a String if found or null if no genetic sex is found
+     */
+    public String getGeneticSex(){
+      int numTissueSamples=tissueSamples.size();
+      if(numTissueSamples>0){
+        for(int j=0;j<numTissueSamples;j++){
+          TissueSample thisSample=tissueSamples.get(j);
+          int numAnalyses=thisSample.getNumAnalyses();
+          if(numAnalyses>0){
+            List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+            for(int g=0;g<numAnalyses;g++){
+              GeneticAnalysis ga = gAnalyses.get(g);
+              if(ga.getAnalysisType().equals("SexAnalysis")){
+                SexAnalysis mito=(SexAnalysis)ga;
+                if(mito.getSex()!=null){return mito.getSex();}
+              }
+            }
+          }
+        }
+      }
+      return null;
+    }
+    
     public List<SinglePhotoVideo> getImages(){return images;}
     
     public boolean hasKeyword(Keyword word){
@@ -1752,6 +1783,11 @@ public class Encounter implements java.io.Serializable {
       return null;
     }
     
+    public String getCountry(){return country;}
     
+    public void setCountry(String newCountry) {
+      if(newCountry!=null){country = newCountry;}
+      else{country=null;}
+    }
 }
 

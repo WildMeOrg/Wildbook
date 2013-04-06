@@ -60,6 +60,7 @@ public class SubmitForm extends ActionForm {
   private String genusSpecies="";
   private String behavior="";
   private String lifeStage="";
+  private String country="";
   
   private Map<String, Object> measurements = new HashMap<String, Object>();
   
@@ -157,6 +158,7 @@ public class SubmitForm extends ActionForm {
     satelliteTagSerial = "";
     satelliteTagArgosPttNumber = "";
     satelliteTagName = "";
+    country="";
   }
 
 
@@ -322,6 +324,13 @@ public class SubmitForm extends ActionForm {
   public void setSubmitterOrganization(String submitterOrganization) {
       this.submitterOrganization = submitterOrganization;
   }
+  
+  public String getCountry() {
+    return this.country;
+}
+public void setCountry(String newCountry) {
+    this.country = newCountry;
+}
 
   public String getSubmitterProject() {
         return this.submitterProject;

@@ -537,7 +537,19 @@ table.tissueSample td {
   <tr>
       <td class="lineitem"><%=enc.getDate()%>
     </td>
-    <td class="lineitem"><%=enc.getLocation()%>
+    <td class="lineitem">
+    <% 
+    if(enc.getLocation()!=null){
+    %>
+    <%=enc.getLocation()%>
+    <%
+    }
+    else{
+    %>
+    &nbsp;
+    <%
+    }
+    %>
     </td>
     <td width="100" height="32px" class="lineitem">
     	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
@@ -1226,40 +1238,14 @@ else {
             value="<%=sendFile %>"></p></form>
 <%
   }
-%>
 
-<br />
-<p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %>
-</strong>: </p>
 
-<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
-
-<p><%=sharky.getComments().replaceAll("\n", "<br>")%>
-</p>
-</div>
-<%
-  if (CommonConfiguration.isCatalogEditable()) {
-%>
-<p>
-
-<form action="IndividualAddComment" method="post" name="addComments">
-  <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-  <input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
-  <input name="action" type="hidden" value="comments" id="action">
-
-  <p><textarea name="comments" cols="60" id="comments"></textarea> <br>
-    <input name="Submit" type="submit" value="<%=addComments %>">
-</form>
-</p>
-<%
-    } //if isEditable
 
 
   }
 %>
 
 
-</p>
 
 
 </td>
@@ -1295,7 +1281,7 @@ else {
    }
 %>
 
-<br />
+<br /><br />
 <table>
 <tr>
 <td>
@@ -1306,7 +1292,32 @@ else {
 </td>
 </tr>
 </table>
+
 <%
+if(isOwner){
+%>
+<p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %></strong>: </p>
+
+<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+	<p><%=sharky.getComments().replaceAll("\n", "<br>")%></p>
+</div>
+<%
+  if (CommonConfiguration.isCatalogEditable() && isOwner) {
+%>
+<p>
+	<form action="IndividualAddComment" method="post" name="addComments">
+  		<input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
+  		<input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
+  		<input name="action" type="hidden" value="comments" id="action">
+
+  		<p><textarea name="comments" cols="60" id="comments"></textarea> <br />
+    			<input name="Submit" type="submit" value="<%=addComments %>">
+	</form>
+</p>
+<%
+    } //if isEditable
+
+}
 
 } 
 
@@ -1318,7 +1329,22 @@ else {
   ArrayList al2 = myShepherd.getMarkedIndividualsByNickname(name);
   ArrayList al3 = myShepherd.getEncountersByAlternateID(name);
 
-  if (al.size() > 0) {
+  if (myShepherd.isEncounter(name)) {
+	  %>
+	  <meta http-equiv="REFRESH"
+	        content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
+	  </HEAD>
+	  <%
+	  } 
+	  else if(myShepherd.isOccurrence(name)) {
+	  %>
+	  <meta http-equiv="REFRESH"
+	        content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
+	  </HEAD>
+	  <%	
+	  }
+  
+	  else if (al.size() > 0) {
     //just grab the first one
     MarkedIndividual shr = (MarkedIndividual) al.get(0);
     String realName = shr.getName();
@@ -1348,20 +1374,7 @@ else {
       content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
 </HEAD>
 <%
-} else if (myShepherd.isEncounter(name)) {
-%>
-<meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
-</HEAD>
-<%
 } 
-else if(myShepherd.isOccurrence(name)) {
-%>
-<meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
-</HEAD>
-<%	
-}
 else {
 %>
 
