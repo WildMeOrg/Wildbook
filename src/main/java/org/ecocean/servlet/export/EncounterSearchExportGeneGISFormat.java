@@ -94,7 +94,7 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
         //out.println("<html><body>");
         //out.println("Individual ID,Other ID 1,Date,Time,Latitude,Longitude,Area,Sub Area,Sex,Haplotype"+locusString.toString());
       
-        outp.write("Sample_ID,Individual_ID,Latitude,Longitude,Date_Time,Region,Sex,Haplotype"+locusString.toString()+"\n");
+        outp.write("Sample_ID,Individual_ID,Latitude,Longitude,Date_Time,Region,Sex,Haplotype"+locusString.toString()+",Occurrence_ID\n");
       
         for(int i=0;i<numMatchingEncounters;i++){
         
@@ -215,7 +215,13 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
           }
         
           //out.println("<p>"+assembledString+haplotypeString+msMarkerString+"</p>");
-          outp.write(assembledString+haplotypeString+msMarkerString+"\n");
+          String occurrenceID=",";
+          if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+            Occurrence occur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+            occurrenceID+=occur.getOccurrenceID();
+          }
+          
+          outp.write(assembledString+haplotypeString+msMarkerString+occurrenceID+"\r\n");
 
         }
         outp.close();

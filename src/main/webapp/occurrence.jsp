@@ -401,7 +401,13 @@ if(sharky.getLocationID()!=null){
     </td>
     <td class="lineitem"><a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
     </td>
-    <td class="lineitem"><%=enc.getLocation()%>
+    <%
+    String location="&nbsp;";
+    if(enc.getLocation()!=null){
+    	location=enc.getLocation();
+    }
+    %>
+    <td class="lineitem"><%=location%>
     </td>
     <td width="100" height="32px" class="lineitem">
     	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
