@@ -223,8 +223,12 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               Label lNumberx21 = new Label(20, count, Integer.toString(enc.getDay()));
               sheet.addCell(lNumberx21);
             }
-            Label lNumberx22 = new Label(21, count, (enc.getDay() + ":" + enc.getMinutes()));
-            sheet.addCell(lNumberx22);
+            
+            if(enc.getHour()>-1){
+              Label lNumberx22 = new Label(21, count, (enc.getHour() + ":" + enc.getMinutes()));
+              sheet.addCell(lNumberx22);
+            }
+            
             Label lNumberx23 = new Label(22, count, enc.getLocation());
             sheet.addCell(lNumberx23);
             if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
