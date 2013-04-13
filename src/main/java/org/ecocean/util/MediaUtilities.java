@@ -134,7 +134,7 @@ public class MediaUtilities {
    * Loads the specified image from the specified file.
    * @param f file to which to save image
    */
-  public static BufferedImage loadImageJPEG(File f) throws IOException {
+  public static BufferedImage loadImage(File f) throws IOException {
     if (f == null)
       throw new NullPointerException("Invalid (null) file specified");
     else if (!f.exists())
