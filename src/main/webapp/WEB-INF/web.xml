@@ -617,6 +617,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>BatchUpload</servlet-name>
+    <servlet-class>org.ecocean.servlet.BatchUpload</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>ScanWorkItemResultsHandler</servlet-name>
     <servlet-class>org.ecocean.servlet.ScanWorkItemResultsHandler</servlet-class>
   </servlet>
@@ -881,6 +886,11 @@
   <servlet-mapping>
     <servlet-name>ResurrectDeletedAdoption</servlet-name>
     <url-pattern>/ResurrectDeletedAdoption</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>BatchUpload</servlet-name>
+    <url-pattern>/BatchUpload/*</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -1281,6 +1291,7 @@
       <url-pattern>/encounters/allEncountersUnapproved.jsp</url-pattern>
       <url-pattern>/appadmin/*</url-pattern>
       <url-pattern>/logs/*</url-pattern>
+      <url-pattern>/BatchUpload/*</url-pattern>
 
     </web-resource-collection>
     <auth-constraint>

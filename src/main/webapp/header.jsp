@@ -233,6 +233,18 @@
           class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("general")%>
         </a></li>
+
+        <%
+        if(CommonConfiguration.allowBatchUpload()){
+        %>
+        <li><a
+          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/batchUpload.jsp"
+          class="enclose"
+          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("batchUpload")%>
+        </a></li>
+		<%
+          }
+		%>
         
         <li><a
 	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/logs.jsp"
