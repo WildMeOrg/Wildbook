@@ -182,7 +182,7 @@
       <div id="errors">
         <hr />
   			<h2><%=bundle.getProperty("gui.errors.title")%></h2>
-        <ul id="errorsList">
+        <ul id="errorList">
         <c:forEach var="err" items="${batchErrors}">
           <li>${err}</li>
         </c:forEach>

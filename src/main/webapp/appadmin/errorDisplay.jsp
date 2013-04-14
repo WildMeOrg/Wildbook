@@ -59,7 +59,7 @@
   Throwable throwable = proc == null ? null : proc.getThrown();
   List<String> errors = (List<String>)session.getAttribute("batchErrors");
   List<String> warnings = (List<String>)session.getAttribute("batchWarnings");
-  boolean hasErrors = errors != null && !errors.isEmpty() || proc.getStatus() == BatchProcessor.Status.ERROR;
+  boolean hasErrors = errors != null && !errors.isEmpty();
   boolean hasWarnings = warnings != null && !warnings.isEmpty();
 %>
 <html>

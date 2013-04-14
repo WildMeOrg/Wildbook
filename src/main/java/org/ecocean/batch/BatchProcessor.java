@@ -476,17 +476,20 @@ public final class BatchProcessor implements Runnable {
               continue;
             }
             // TODO: If video file, copy placeholder image? Just ignores and lets JSP handle it for now.
-
-            // Resize image to thumbnail & write to file.
-            try {
-              createThumbnail(src, dst, 100, 75);
-  //            log.trace(String.format("Created thumbnail image for encounter %s", enc.getCatalogNumber()));
-            }
-            catch (Exception ex) {
-              log.warn(String.format("Failed to create thumbnail correctly: %s", dst.getAbsolutePath()), ex);
+            if (MediaUtilities.isAcceptableImageFile(src)) {
+              // Resize image to thumbnail & write to file.
+              try {
+                createThumbnail(src, dst, 100, 75);
+                log.trace(String.format("Created thumbnail image for encounter %s", enc.getCatalogNumber()));
+              }
+              catch (Exception ex) {
+                log.warn(String.format("Failed to create thumbnail correctly: %s", dst.getAbsolutePath()), ex);
+              }
             }
             // Process copyright-overlaid thumbnail for each media item.
             for (SinglePhotoVideo spv : media) {
+              if (!MediaUtilities.isAcceptableImageFile(spv.getFile()))
+                continue;
               src = spv.getFile();
               dst = new File(src.getParentFile(), spv.getDataCollectionEventID() + ".jpg");
               if (dst.exists()) {
