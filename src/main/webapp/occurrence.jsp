@@ -399,7 +399,19 @@ if(sharky.getLocationID()!=null){
   <tr>
       <td class="lineitem"><%=enc.getDate()%>
     </td>
-    <td class="lineitem"><a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
+    <td class="lineitem">
+    	<%
+    	if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))){
+    	%>
+    	<a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
+    	<%
+    	}
+    	else{
+    	%>
+    	&nbsp;
+    	<%
+    	}
+    	%>
     </td>
     <%
     String location="&nbsp;";
