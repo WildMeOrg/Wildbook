@@ -155,7 +155,7 @@
                         name="yes" type="submit" id="yes" value="Permanently delete"></form>
                     </td>
                     <td align="left" valign="top">
-                      <form name="form2" method="post" action="encounters/encounter.jsp">
+                      <form name="form2" method="post" action="encounter.jsp">
                         <input name="number" type="hidden"
                                value=<%=request.getParameter("number")%>> <input name="no"
                                                                                  type="submit"
