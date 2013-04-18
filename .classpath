@@ -13,7 +13,7 @@
   <classpathentry kind="var" path="M2_REPO/javax/transaction/transaction-api/1.1/transaction-api-1.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/james/apache-mime4j/0.6/apache-mime4j-0.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/ow2/asm/asm/4.0/asm-4.0.jar"/>
-  <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.6.1/commons-beanutils-1.6.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.8.3/commons-beanutils-1.8.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-codec/commons-codec/1.4/commons-codec-1.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-collections/commons-collections/3.1/commons-collections-3.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-digester/commons-digester/1.6/commons-digester-1.6.jar"/>
@@ -26,14 +26,14 @@
   <classpathentry kind="var" path="M2_REPO/commons-validator/commons-validator/1.1.4/commons-validator-1.1.4.jar"/>
   <classpathentry kind="var" path="M2_REPO/servlets/com/cos/05Nov2002/cos-05Nov2002.jar"/>
   <classpathentry kind="var" path="M2_REPO/net/sourceforge/cssparser/cssparser/0.9.5/cssparser-0.9.5.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-jdo/3.1.2/datanucleus-api-jdo-3.1.2.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-rest/3.1.0-release/datanucleus-api-rest-3.1.0-release.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-core/3.1.2/datanucleus-core-3.1.2.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-jdo/3.2.0-release/datanucleus-api-jdo-3.2.0-release.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-rest/3.2.0-release/datanucleus-api-rest-3.2.0-release.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-core/3.2.0-release/datanucleus-core-3.2.0-release.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-enhancer/3.1.1/datanucleus-enhancer-3.1.1.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-jodatime/3.1.0-release/datanucleus-jodatime-3.1.0-release.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-jodatime/3.2.0-release/datanucleus-jodatime-3.2.0-release.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-jpa/2.1.8/datanucleus-jpa-2.1.8.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-rdbms/3.1.2/datanucleus-rdbms-3.1.2.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-spatial/3.1.1/datanucleus-spatial-3.1.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-rdbms/3.2.0-release/datanucleus-rdbms-3.2.0-release.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-spatial/3.2.0-release/datanucleus-spatial-3.2.0-release.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/derby/derby/10.8.2.2/derby-10.8.2.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/dilib/dilib/1.0/dilib-1.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/dom4j/dom4j/1.6.1/dom4j-1.6.1.jar"/>
@@ -75,6 +75,8 @@
   <classpathentry kind="var" path="M2_REPO/org/w3c/css/sac/1.3/sac-1.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/sanselan/sanselan/0.97-incubator/sanselan-0.97-incubator.jar"/>
   <classpathentry kind="var" path="M2_REPO/xalan/serializer/2.7.1/serializer-2.7.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-core/1.2.1/shiro-core-1.2.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-web/1.2.1/shiro-web-1.2.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.6.1/slf4j-api-1.6.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-asm/3.1.1.RELEASE/spring-asm-3.1.1.RELEASE.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-core/3.1.1.RELEASE/spring-core-3.1.1.RELEASE.jar"/>

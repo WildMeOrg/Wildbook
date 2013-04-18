@@ -45,6 +45,10 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import java.sql.*;
+
+import java.util.Properties;
+
 //ATOM feed
 
 public class ServletUtilities {
@@ -456,5 +460,21 @@ public class ServletUtilities {
     DateTimeFormatter fmt = ISODateTimeFormat.date();
     return (fmt.print(dt));
   }
+  
+  public static Connection getConnection() throws SQLException {
+
+    Connection conn = null;
+    Properties connectionProps = new Properties();
+    connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName"));
+    connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword"));
+
+    
+    conn = DriverManager.getConnection(
+           CommonConfiguration.getProperty("datanucleus.ConnectionURL"),
+           connectionProps);
+    
+    System.out.println("Connected to database for authentication.");
+    return conn;
+}
 
 }

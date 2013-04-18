@@ -344,12 +344,12 @@ if(CommonConfiguration.isCatalogEditable()){
     </strong></a></li>
     <%if (request.getRemoteUser() == null) {%>
     <li><a
-      href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp"
+      href="http://<%=CommonConfiguration.getURLLocation(request) %>/login.jsp"
       style="margin: 0px 0 0px 0px; position: relative; width: 76px; height: 25px; z-index: 100;"><strong><%=props.getProperty("login")%>
     </strong></a></li>
     <%} else {%>
     <li><a
-      href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp"
+      href="http://<%=CommonConfiguration.getURLLocation(request) %>/LogoutUser"
       style="margin: 0px 0 0px 0px; position: relative; width: 76px; height: 25px; z-index: 100;"><strong><%=props.getProperty("logout")%>
     </strong></a></li>
     <%}%>

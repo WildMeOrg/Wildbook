@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/nosecurity">
+
+    <!-- maxActive: Maximum number of dB connections in pool. 
+         -->
+  <!-- maxIdle: Maximum number of idle dB connections to retain in pool.
+         Set to -1 for no limit.  See also the DBCP documentation on this
+         and the minEvictableIdleTimeMillis configuration parameter.
+         -->
+  <!-- maxWait: Maximum time to wait for a dB connection to become available
+         in ms, in this example 10 seconds. An Exception is thrown if
+         this timeout is exceeded.  Set to -1 to wait indefinitely.
+         -->
+  <!-- username and password: Derby dB username and password for dB connections  -->
+  <!-- driverClassName: Class name for Derby is org.apache.derby.jdbc.EmbeddedDriver
+         -->
+  <!-- url: The JDBC connection url for connecting to your Derby dB.
+         
+         -->
+  <!-- logAbandoned, removeAbandoned, removeAbandonedTimeout: Control whether 
+        the container will prevent connection pool leaks by automatically removing 
+        Connection, Statement, ResultSet, etc. objects that haven't been closed 
+        -->
+
+    <Resource name="jdbc/security" auth="Container" 
+        maxActive="5" maxIdle="3" maxWait="10000" 
+        username="shepherd" password="shepherd" 
+        driverClassName="org.apache.derby.jdbc.EmbeddedDriver" 
+        url="jdbc:derby:shepherd_derby_database;create=true" 
+        logAbandoned="true" removeAbandoned="true" 
+        removeAbandonedTimeout="60" type="javax.sql.DataSource" />
+        
+</Context>

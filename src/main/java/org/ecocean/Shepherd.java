@@ -1807,6 +1807,22 @@ public class Shepherd {
     }
     return it;
   }
+  
+  public ArrayList<User> getAllUsers() {
+    Extent allKeywords = null;
+    ArrayList<User> it = new ArrayList<User>();
+    try {
+      allKeywords = pm.getExtent(User.class, true);
+      Query acceptedKeywords = pm.newQuery(allKeywords);
+      acceptedKeywords.setOrdering("username descending");
+      Collection c = (Collection) (acceptedKeywords.execute());
+      it=new ArrayList<User>(c);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return it;
+    }
+    return it;
+  }
 
   public Iterator getAllOccurrences() {
     Extent allOccurs = null;
@@ -1819,6 +1835,21 @@ public class Shepherd {
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
+    }
+    return it;
+  }
+  
+  public ArrayList<Role> getAllRoles() {
+    Extent allKeywords = null;
+    ArrayList<Role> it = new ArrayList<Role>();
+    try {
+      allKeywords = pm.getExtent(Role.class, true);
+      Query acceptedKeywords = pm.newQuery(allKeywords);
+      Collection c = (Collection) (acceptedKeywords.execute());
+      it=new ArrayList<Role>(c);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return it;
     }
     return it;
   }
@@ -2234,6 +2265,22 @@ public class Shepherd {
     Query q = pm.newQuery(MitochondrialDNAAnalysis.class);
     q.setResult("distinct haplotype");
     q.setOrdering("haplotype ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
+  
+  public ArrayList<String> getAllRoleNames() {
+    Query q = pm.newQuery(Role.class);
+    q.setResult("distinct rolename");
+    q.setOrdering("rolename ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
+  
+  public ArrayList<String> getAllUsernames() {
+    Query q = pm.newQuery(User.class);
+    q.setResult("distinct username");
+    q.setOrdering("username ascending");
     Collection results = (Collection) q.execute();
     return (new ArrayList(results));
   }
