@@ -476,7 +476,9 @@
 		 			 <field name="rolename" column="ROLE_NAME">
 							 			    				<column length="100"/>
 		 			</field>
-		 			
+		 			<field name="description" persistence-modifier="persistent">
+					                <column jdbc-type="LONGVARCHAR" />
+            				</field>
 		 					
 		 </class>
         
