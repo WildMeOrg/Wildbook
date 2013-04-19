@@ -251,7 +251,15 @@
         	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/scanTaskAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Grid Administration</a></li>
 		<%
           }
-		%>			
+		%>
+		
+	<li><a
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp"
+	          class="enclose"
+	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userManagement")%>
+        </a></li>	
+		
+		
         
         <%
           if (CommonConfiguration.getTapirLinkURL() != null) {
@@ -275,16 +283,14 @@
         <% } %>
         
         
-        <%
-          if (CommonConfiguration.useTapirLinkURL()) {
-        %>
+    
         <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/kwAdmin.jsp"
                class="enclose"
                style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("photoKeywords")%>
         </a>
         </li>
         <%
-          }
+          
 
           if (CommonConfiguration.allowAdoptions()) {
         %>
