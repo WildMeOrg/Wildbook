@@ -19,9 +19,8 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.CommonConfiguration" %>
-<%@ page import="org.ecocean.Shepherd" %>
+<%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
+<%@ page import="org.ecocean.*" %>
 
 
 <%
@@ -71,9 +70,25 @@
      
 
       <h1 class="intro">User Management</h1>
-      <p>Future home of user management page...</p>
+      
+      <table>
+      <tr><td>Username</td><td>Roles</td><td>Delete</td></tr>
+      
+      <%
+      myShepherd.beginDBTransaction();
+      ArrayList<User> allUsers=myShepherd.getAllUsers();
+      int numUsers=allUsers.size();
+      for(int i=0;i<numUsers;i++){
+      	User user=allUsers.get(i);
+      	%>
+      	<tr><td><%=user.getUsername()%></td><td><%=myShepherd.getAllRolesForUserAsString(user.getUsername()) %></td><td>Delete</td></tr>
+      	<%
+      
+      }
+      
+      %>
  
-
+	</table>
       <jsp:include page="../footer.jsp" flush="true"/>
     </div>
   </div>

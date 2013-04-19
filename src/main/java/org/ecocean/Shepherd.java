@@ -298,9 +298,33 @@ public class Shepherd {
     int numRoles=roles.size();
     for(int i=0;i<numRoles;i++) {
       Role kw = (Role) roles.get(i);
-      if((kw.getRolename().equals(rolename))&&(kw.getUsername().equals(username))){return kw;}
+      if((kw.getRolename().equals(rolename))&&(kw.getUsername().equals(username))){
+        return kw;
+        }
     }
     return null;
+  }
+  
+  public ArrayList<Role> getAllRolesForUser(String username) {
+    String filter = "this.username == '" + username + "'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    return (new ArrayList<Role>(c));
+  }
+  
+  public String getAllRolesForUserAsString(String username) {
+    String filter = "this.username == '" + username + "'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList<Role> roles=new ArrayList<Role>(c);
+    int numRoles=roles.size();
+    String rolesFound="";
+    for(int i=0;i<numRoles;i++){
+      rolesFound+=(roles.get(i).getRolename()+" ");
+    }
+    return rolesFound;
   }
   
   public User getUser(String username) {
