@@ -150,30 +150,7 @@ File encounterDir = new File(encountersDir, num);
 
     -->
 
-table.tissueSample {
-    border-width: 1px;
-    border-spacing: 2px;
-    border-style: hidden;
-    border-color: gray;
-    border-collapse: collapse;
-    background-color: white;
-}
-table.tissueSample th {
-    border-width: 1px;
-    padding: 1px;
-    border-style: solid;
-    border-color: gray;
-    background-color: #99CCFF;
-    -moz-border-radius: ;
-}
-table.tissueSample td {
-    border-width: 1px;
-    padding: 2px;
-    border-style: solid;
-    border-color: gray;
-    background-color: white;
-    -moz-border-radius: ;
-}
+
 
 
 th.measurement{

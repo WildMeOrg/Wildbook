@@ -70,9 +70,9 @@
      
 
       <h1 class="intro">User Management</h1>
-      
-      <table>
-      <tr><td>Username</td><td>Roles</td><td>Delete</td></tr>
+      <h4 class="intro">Existing Users</h4>
+      <table width="100%" class="tissueSample">
+      <tr><th><strong>Username</strong></th><th><strong>Roles</strong></th><th><strong>Delete?</strong></th></tr>
       
       <%
       myShepherd.beginDBTransaction();
@@ -81,7 +81,7 @@
       for(int i=0;i<numUsers;i++){
       	User user=allUsers.get(i);
       	%>
-      	<tr><td><%=user.getUsername()%></td><td><%=myShepherd.getAllRolesForUserAsString(user.getUsername()) %></td><td>Delete</td></tr>
+      	<tr><td><%=user.getUsername()%></td><td><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()) %></em></td><td><a href="../UserDelete?username=<%=user.getUsername()%>"><img src="../images/cancel.gif" /></a></td></tr>
       	<%
       
       }
@@ -89,6 +89,10 @@
       %>
  
 	</table>
+	
+	<h4 class="intro">Create a User</h4>
+	<p>TBD...</p>
+	
       <jsp:include page="../footer.jsp" flush="true"/>
     </div>
   </div>
