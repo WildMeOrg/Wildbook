@@ -100,7 +100,7 @@
               <p align="center"><%=props.getProperty("requested")%>
               </p>
 
-              <p>
+              <p align="center">
 			<!--  
               <form method="POST"
                     action='<%= response.encodeURL("j_security_check") %>' name="loginForm">
