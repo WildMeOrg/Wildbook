@@ -146,6 +146,8 @@
 		         /SinglePhotoVideoAddKeyword = authc, roles[admin]
 		         /EncounterSearchExportGeneGISFormat = authc, roles[admin]
 		         /EncounterSearchExportKML = authc, roles[admin]
+		         /UserCreate = authc, roles[admin]
+		         /UserDelete = authc, roles[admin]
 		         /EncounterSearchExportExcelFile = authc, roles[admin]
 		         /EncounterSearchExportShapefile = authc, roles[admin]
 		         /EncounterSearchExportEmailAddresses = authc, roles[admin]
@@ -412,6 +414,17 @@
   <servlet>
     <servlet-name>EncounterAddSpotFile</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddSpotFile</servlet-class>
+  </servlet>
+  
+  
+    <servlet>
+      <servlet-name>UserCreate</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
+  </servlet>
+  
+      <servlet>
+        <servlet-name>UserDelete</servlet-name>
+        <servlet-class>org.ecocean.servlet.UserDelete</servlet-class>
   </servlet>
 
   <servlet>
@@ -897,6 +910,16 @@
       <servlet-mapping>
         <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+          <servlet-name>UserCreate</servlet-name>
+          <url-pattern>/UserCreate</url-pattern>
+  </servlet-mapping>
+  
+     <servlet-mapping>
+            <servlet-name>UserDelete</servlet-name>
+            <url-pattern>/UserDelete</url-pattern>
   </servlet-mapping>
   
         <servlet-mapping>

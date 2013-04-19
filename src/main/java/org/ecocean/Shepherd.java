@@ -291,6 +291,28 @@ public class Shepherd {
     }
     return tempEnc;
   }
+  
+  public Role getRole(String rolename, String username) {
+
+    ArrayList<Role> roles = getAllRoles();
+    int numRoles=roles.size();
+    for(int i=0;i<numRoles;i++) {
+      Role kw = (Role) roles.get(i);
+      if((kw.getRolename().equals(rolename))&&(kw.getUsername().equals(username))){return kw;}
+    }
+    return null;
+  }
+  
+  public User getUser(String username) {
+    User user= null;
+    try {
+      user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, username.trim()), true)));
+    } 
+    catch (Exception nsoe) {
+      return null;
+    }
+    return user;
+  }
 
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;

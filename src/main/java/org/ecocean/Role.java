@@ -17,7 +17,7 @@ public class Role implements java.io.Serializable {
   
     private String username;
     private String rolename ;
-    private String description;
+
   
     
     //JDOQL required empty instantiator
@@ -42,9 +42,6 @@ public class Role implements java.io.Serializable {
     public void setRolename(String rolename) {
       this.rolename = rolename;
     }
-    
-    public String getDescription(){return description;}
-    public void getDescription(String descr){this.description=descr;}
   
 
 
