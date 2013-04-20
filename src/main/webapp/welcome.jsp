@@ -89,21 +89,17 @@
           </p>
 
           <p><%=props.getProperty("grantedRole")%>
-
-            <%
-              String role = "";
-            Shepherd myShepherd=new Shepherd();  
-            ArrayList<Role> roles=myShepherd.getAllRoles();
-            int numRoles=roles.size();
-			for(int i=0;i<numRoles;i++){
-				Role thisRole=roles.get(i);
-				if(request.isUserInRole(thisRole.getRolename())){role+=(thisRole.getRolename()+" ");}
-			}
-
-            %> <strong><%=role%>
-            </strong>.</p>
+			<%
+			Shepherd myShepherd=new Shepherd();
+			myShepherd.beginDBTransaction();
+			%>
+             <strong><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser())%></strong></p>
             
             <%
+            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            
 	        Logger log = LoggerFactory.getLogger(getClass());
 	        log.info(request.getRemoteUser()+" logged in from IP address "+request.getRemoteAddr()+".");
 

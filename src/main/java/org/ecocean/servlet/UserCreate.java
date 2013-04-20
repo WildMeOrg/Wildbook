@@ -80,10 +80,11 @@ public class UserCreate extends HttpServlet {
           Role role=new Role();
           if(myShepherd.getRole(thisRole,username)==null){
             
-            role.setRolename(request.getParameter("rolename").trim());
-            role.setUsername(request.getParameter("username").trim());
+            role.setRolename(thisRole);
+            role.setUsername(username);
             myShepherd.getPM().makePersistent(role);
             addedRoles+=(roles[i]+" ");
+            //System.out.println(addedRoles);
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
           }

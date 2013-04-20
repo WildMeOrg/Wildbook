@@ -191,7 +191,7 @@
               <p>Inform others email addresses to assign: <input
                 name="informEmail" type="text" id="informEmail" size="50"
                 maxlength="999"> <br/>
-                <br> <input name="Update" type="submit" id="Update"
+                <br /> <input name="Update" type="submit" id="Update"
                             value="Update"></p>
             </form>
           </td>

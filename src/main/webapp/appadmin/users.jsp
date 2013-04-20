@@ -91,13 +91,39 @@
 	</table>
 	
 	<h4 class="intro">Create a User</h4>
-	<p>TBD...</p>
+	<p>
+    	<form action="../UserCreate" method="post" id="newUser">
+    		    <table width="100%" class="tissueSample">
+      				<tr><th><strong>Username</strong></th><th><strong>Password</strong></th><th><strong>Roles</strong></th></tr>
+                   	<tr><td colspan="3"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured and listed in commonConfiguration.properties and matched to the URL-based functions of the Shepherd Project in web.xml.</em></td></tr>
+      				<tr>
+            			<td>Username: <input name="username" type="text" size="15" maxlength="90" /></td>
+                        <td>Password: <input name="password" type="text" size="15" maxlength="90" /></td>
+                        
+                        
+                        <td> Roles: 
+                        	<select multiple="multiple" name="rolename" id="rolename" size="5" required="required">
+
+             					 <option value="admin">admin</option>
+              					<option value="destroyer">destroyer</option>
+
+            				</select>
+                        </td>	
+            		</tr>
+                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
+            </table>
+    	</form>
+    </p>
 	
       <jsp:include page="../footer.jsp" flush="true"/>
     </div>
   </div>
   <!-- end page --></div>
 <!--end wrapper -->
+<%
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+%>
 </body>
 </html>
 
