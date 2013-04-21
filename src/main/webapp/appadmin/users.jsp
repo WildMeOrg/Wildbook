@@ -24,8 +24,14 @@
 
 
 <%
-
-  Shepherd myShepherd = new Shepherd();
+  	//get our Shepherd for data retrieval and persistence
+  	Shepherd myShepherd = new Shepherd();
+  
+  	//get the available user roles
+  	ArrayList<String> roles=CommonConfiguration.getSequentialPropertyValues("role");
+	ArrayList<String> roleDefinitions=CommonConfiguration.getSequentialPropertyValues("roleDefinition");
+	int numRoles=roles.size();
+  	int numRoleDefinitions=roleDefinitions.size();
 
 //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -72,7 +78,12 @@
       <h1 class="intro">User Management</h1>
       <h4 class="intro">Existing Users</h4>
       <table width="100%" class="tissueSample">
-      <tr><th><strong>Username</strong></th><th><strong>Roles</strong></th><th><strong>Delete?</strong></th></tr>
+      <tr><th><strong>Username</strong></th>
+      <th><strong>Full Name</strong></th>
+      <th><strong>Email</strong></th>
+      <th><strong>Affiliation</strong></th>
+      <th><strong>Roles</strong></th>
+      <th><strong>Delete?</strong></th></tr>
       
       <%
       myShepherd.beginDBTransaction();
@@ -80,8 +91,20 @@
       int numUsers=allUsers.size();
       for(int i=0;i<numUsers;i++){
       	User user=allUsers.get(i);
+      	String affiliation="&nbsp;";
+      	if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+      	String fullName="&nbsp;";
+      	if(user.getFullName()!=null){fullName=user.getFullName();}
+      	String emailAddress="&nbsp;";
+      	if(user.getEmailAddress()!=null){emailAddress=user.getEmailAddress();}
       	%>
-      	<tr><td><%=user.getUsername()%></td><td><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()) %></em></td><td><a href="../UserDelete?username=<%=user.getUsername()%>"><img src="../images/cancel.gif" /></a></td></tr>
+      	<tr>
+      		<td><%=user.getUsername()%></td>
+      		<td><%=fullName%></td>
+      		<td><%=emailAddress%></td>
+      		<td><%=affiliation%></td>
+      		<td><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()) %></em></td>
+      		<td><a href="../UserDelete?username=<%=user.getUsername()%>"><img src="../images/cancel.gif" /></a></td></tr>
       	<%
       
       }
@@ -89,28 +112,51 @@
       %>
  
 	</table>
-	
-	<h4 class="intro">Create a User</h4>
+    
+     <h4 class="intro">Existing Roles</h4>
+     <table width="100%" class="tissueSample">
+      <tr><th><strong>Role</strong></th><th><strong>Definition</strong></th></tr>
+		<%
+								for(int q=0;q<numRoles;q++){
+									String localRole=roles.get(q);
+									String localDefinition="";
+									if(numRoleDefinitions>=q){localDefinition=roleDefinitions.get(q);}
+								%>
+             					 <tr><td><%=localRole%></td><td><%=localDefinition%></td></tr>
+              					<%
+								}
+		%>
+    </table>
+    
+	<h4 class="intro">Create/Edit a User</h4>
 	<p>
     	<form action="../UserCreate" method="post" id="newUser">
     		    <table width="100%" class="tissueSample">
-      				<tr><th><strong>Username</strong></th><th><strong>Password</strong></th><th><strong>Roles</strong></th></tr>
-                   	<tr><td colspan="3"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured and listed in commonConfiguration.properties and matched to the URL-based functions of the Shepherd Project in web.xml.</em></td></tr>
+      				<tr><th><strong>Username</strong></th><th><strong>Password</strong></th><th><strong>Confirm Password</strong></th><th><strong>Roles</strong></th></tr>
+                   	<tr><td colspan="4"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured and listed in commonConfiguration.properties and matched to the URL-based functions of the Shepherd Project in web.xml.</em></td></tr>
       				<tr>
             			<td>Username: <input name="username" type="text" size="15" maxlength="90" /></td>
                         <td>Password: <input name="password" type="text" size="15" maxlength="90" /></td>
+                        <td>Confirm Password: <input name="password2" type="text" size="15" maxlength="90" /></td>
                         
                         
-                        <td> Roles: 
+                        <td> Roles (multi-select): 
                         	<select multiple="multiple" name="rolename" id="rolename" size="5" required="required">
-
-             					 <option value="admin">admin</option>
-              					<option value="destroyer">destroyer</option>
-
+								<%
+								for(int q=0;q<numRoles;q++){
+								%>
+             					 <option value="<%=roles.get(q)%>"><%=roles.get(q)%></option>
+              					<%
+								}
+								%>
+                                
             				</select>
                         </td>	
             		</tr>
-                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
+                    <tr><td colspan="4">Full name: <input name="fullName" type="text" size="15" maxlength="90" /></td></tr>
+                    <tr><td colspan="4">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" /></td></tr>
+                    <tr><td colspan="4">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" /></td></tr>
+                    <tr><td colspan="4"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
             </table>
     	</form>
     </p>

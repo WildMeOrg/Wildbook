@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 
 public class UserCreate extends HttpServlet {
@@ -43,34 +44,62 @@ public class UserCreate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-    boolean locked = false;
+    boolean createThisUser = false;
 
     String addedRoles="";
+    boolean isEdit=false;
+    if(request.getParameter("isEdit")!=null){isEdit=true;}
 
     //create a new Role from an encounter
 
-    if ((request.getParameterValues("rolename") != null) && (request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals(""))) {
+    if ((request.getParameterValues("rolename") != null) && (request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals(""))&& (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))) {
       
       String username=request.getParameter("username").trim();
       String password=request.getParameter("password").trim();
+      String password2=request.getParameter("password2").trim();
+      if((password.equals(password2))||(isEdit)){
+        
+        Shepherd myShepherd = new Shepherd();
+        
+        User newUser=new User();
       
-      myShepherd.beginDBTransaction();
-      
-      if(myShepherd.getUser(username)==null){
-
-        User newUser=new User(username,password);
-        
-        //add more details in the future to the User object
-        
-        myShepherd.getPM().makePersistent(newUser);
-        
-        myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
-
+      
+        if(myShepherd.getUser(username)==null){
+          newUser=new User(username,password);
+          myShepherd.getPM().makePersistent(newUser);
+          createThisUser=true;
+        }
+        else{
+          newUser=myShepherd.getUser(username);
+        }
+        
+        //here handle all of the other User fields (e.g., email address, etc.)
+        if((request.getParameter("fullName")!=null)&&(!request.getParameter("fullName").trim().equals(""))){
+          newUser.setFullName(request.getParameter("fullName").trim());
+        }
+        if((request.getParameter("emailAddress")!=null)&&(!request.getParameter("emailAddress").trim().equals(""))){
+          newUser.setEmailAddress(request.getParameter("emailAddress").trim());
+        }
+        if((request.getParameter("affiliation")!=null)&&(!request.getParameter("affiliation").trim().equals(""))){
+          newUser.setAffiliation(request.getParameter("affiliation").trim());
+        }
+        
+        //now handle roles
+        
+        //if this is not a new user, we need to blow away all old roles
+        ArrayList<Role> preexistingRoles=new ArrayList<Role>();
+        if(!createThisUser){
+          //get existing roles for this existing user
+          preexistingRoles=myShepherd.getAllRolesForUser(username);
+          myShepherd.getPM().deletePersistentAll(preexistingRoles);
+        }
+        
+        
         String[] roles=request.getParameterValues("rolename");
         int numRoles=roles.length;
         for(int i=0;i<numRoles;i++){
@@ -94,15 +123,40 @@ public class UserCreate extends HttpServlet {
 
         myShepherd.commitDBTransaction();    
         myShepherd.closeDBTransaction();
+        myShepherd=null;
        
 
             //output success statement
             out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Success:</strong> User '" + username + "' was successfully created with added roles: " + addedRoles);
+            if(createThisUser){
+              out.println("<strong>Success:</strong> User '" + username + "' was successfully created with added roles: " + addedRoles);
+            }
+            else{
+              out.println("<strong>Success:</strong> User '" + username + "' was successfully updated and has assigned roles: " + addedRoles);
+              
+            }
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp" + "\">Return to User Administration" + "</a></p>\n");
             out.println(ServletUtilities.getFooter());
             
     }
+    else{
+        //output failure statement
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure:</strong> User was NOT successfully created. Your passwords did not match.");
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp" + "\">Return to User Administration" + "</a></p>\n");
+        out.println(ServletUtilities.getFooter());
+        
+      }
+      
+      
+}
+else{
+  //output failure statement
+  out.println(ServletUtilities.getHeader(request));
+  out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username and password information I needed.");
+  out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp" + "\">Return to User Administration" + "</a></p>\n");
+  out.println(ServletUtilities.getFooter());
+  
 }
 
 

@@ -46,10 +46,6 @@
   	  		
   	  		Role newRole1=new Role("tomcat","admin");
   	  		myShepherd.getPM().makePersistent(newRole1);
-  	  		Role newRole2=new Role("tomcat","tomcat");
-	  		myShepherd.getPM().makePersistent(newRole2);
-	  		Role newRole3=new Role("tomcat","imageProcessor");
-	  		myShepherd.getPM().makePersistent(newRole3);
 	  		Role newRole4=new Role("tomcat","destroyer");
 	  		myShepherd.getPM().makePersistent(newRole4);
 	  		
