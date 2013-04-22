@@ -56,11 +56,15 @@ public class UserCreate extends HttpServlet {
 
     //create a new Role from an encounter
 
-    if ((request.getParameterValues("rolename") != null) && (request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals(""))&& (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))) {
+    if ((request.getParameterValues("rolename") != null) && (request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (((request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals("")) && (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))) || (request.getParameter("isEdit")!=null))) {
       
       String username=request.getParameter("username").trim();
-      String password=request.getParameter("password").trim();
-      String password2=request.getParameter("password2").trim();
+      
+      String password="";
+      if(!isEdit)request.getParameter("password").trim();
+      String password2="";
+      if(!isEdit)request.getParameter("password2").trim();
+      
       if((password.equals(password2))||(isEdit)){
         
         Shepherd myShepherd = new Shepherd();
@@ -82,12 +86,19 @@ public class UserCreate extends HttpServlet {
         if((request.getParameter("fullName")!=null)&&(!request.getParameter("fullName").trim().equals(""))){
           newUser.setFullName(request.getParameter("fullName").trim());
         }
+        else if(isEdit&&(request.getParameter("fullName")!=null)&&(request.getParameter("fullName").trim().equals(""))){newUser.setFullName(null);}
+        
+        
         if((request.getParameter("emailAddress")!=null)&&(!request.getParameter("emailAddress").trim().equals(""))){
           newUser.setEmailAddress(request.getParameter("emailAddress").trim());
         }
+        else if(isEdit&&(request.getParameter("emailAddress")!=null)&&(request.getParameter("emailAddress").trim().equals(""))){newUser.setEmailAddress(null);}
+        
         if((request.getParameter("affiliation")!=null)&&(!request.getParameter("affiliation").trim().equals(""))){
           newUser.setAffiliation(request.getParameter("affiliation").trim());
         }
+        else if(isEdit&&(request.getParameter("affiliation")!=null)&&(request.getParameter("affiliation").trim().equals(""))){newUser.setAffiliation(null);}
+        
         
         //now handle roles
         

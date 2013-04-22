@@ -313,6 +313,15 @@ public class Shepherd {
     return (new ArrayList<Role>(c));
   }
   
+  public boolean doesUserHaveRole(String username, String rolename) {
+    String filter = "this.username == '" + username + "' && this.rolename == '" + rolename + "'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    if(c.size()>0){return true;}
+    return false;
+  }
+  
   public String getAllRolesForUserAsString(String username) {
     String filter = "this.username == '" + username + "'";
     Extent encClass = pm.getExtent(Role.class, true);

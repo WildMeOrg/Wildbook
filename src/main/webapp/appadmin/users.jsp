@@ -77,12 +77,13 @@
 
       <h1 class="intro">User Management</h1>
       <h4 class="intro">Existing Users</h4>
-      <table width="100%" class="tissueSample">
+      <table width="810px" class="tissueSample">
       <tr><th><strong>Username</strong></th>
       <th><strong>Full Name</strong></th>
       <th><strong>Email</strong></th>
       <th><strong>Affiliation</strong></th>
       <th><strong>Roles</strong></th>
+      <th width="40px"><strong>Edit?</strong></th>
       <th><strong>Delete?</strong></th></tr>
       
       <%
@@ -104,7 +105,8 @@
       		<td><%=emailAddress%></td>
       		<td><%=affiliation%></td>
       		<td><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()) %></em></td>
-      		<td><a href="../UserDelete?username=<%=user.getUsername()%>"><img src="../images/cancel.gif" /></a></td></tr>
+      		<td><a href="users.jsp?username=<%=user.getUsername()%>&isEdit=true#editUser"><img width="20px" height="20px" src="../images/Crystal_Clear_action_edit.png" /></a></td>   	
+      		<td><a href="../UserDelete?username=<%=user.getUsername()%>"><img  width="20px" height="20px" src="../images/cancel.gif" /></a></td></tr>
       	<%
       
       }
@@ -128,24 +130,69 @@
 		%>
     </table>
     
-	<h4 class="intro">Create/Edit a User</h4>
+	<h4 class="intro"><a name="editUser" /></a>Create/Edit a User</h4>
 	<p>
-    	<form action="../UserCreate" method="post" id="newUser">
+	<%
+	String isEditAddition="";
+	if(request.getParameter("isEdit")!=null){isEditAddition="?isEdit=true";}
+	%>
+    	<form action="../UserCreate<%=isEditAddition %>" method="post" id="newUser">
     		    <table width="100%" class="tissueSample">
-      				<tr><th><strong>Username</strong></th><th><strong>Password</strong></th><th><strong>Confirm Password</strong></th><th><strong>Roles</strong></th></tr>
-                   	<tr><td colspan="4"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured and listed in commonConfiguration.properties and matched to the URL-based functions of the Shepherd Project in web.xml.</em></td></tr>
+    		    <%
+    		    //let's set up any pre-defined values if appropriate
+    		    String localUsername="";
+    		    String localAffiliation="";
+    		    String localEmail="";
+    		    String localFullName="";
+    		    
+    		    if((request.getParameter("isEdit")!=null)&&(myShepherd.getUser(request.getParameter("username").trim())!=null)){
+    		    	User thisUser=myShepherd.getUser(request.getParameter("username").trim());
+    		    	localUsername=thisUser.getUsername();
+    		    	if(thisUser.getAffiliation()!=null){
+    		    		localAffiliation=thisUser.getAffiliation();
+    		    	}
+    		    	if(thisUser.getEmailAddress()!=null){
+    		    		localEmail=thisUser.getEmailAddress();
+    		    	}
+    		    	if(thisUser.getFullName()!=null){
+    		    		localFullName=thisUser.getFullName();
+    		    	}
+    		    }
+    		    
+    		    %>
+    		    
+    		    
+      				<tr><td colspan="4"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured, listed in commonConfiguration.properties, and matched to the URL-based functions of the Shepherd Project in the Apache Shiro filter in web.xml.</em></td></tr>
       				<tr>
-            			<td>Username: <input name="username" type="text" size="15" maxlength="90" /></td>
-                        <td>Password: <input name="password" type="text" size="15" maxlength="90" /></td>
-                        <td>Confirm Password: <input name="password2" type="text" size="15" maxlength="90" /></td>
+            			
+                        <%
+                        String disabled="";
+                        String readonly="";
+                        if(request.getParameter("isEdit")!=null){
+                        	disabled="disabled=\"disabled\"";
+                        	readonly="readonly=\"readonly\"";
+                        }
+                        %>
+                        <td>Username: <input name="username" type="text" size="15" maxlength="90" value="<%=localUsername %>" <%=readonly %>></input></td>
+                        
+                        <td>Password: <input name="password" type="password" size="15" maxlength="90" <%=disabled %>></input></td>
+                        <td>Confirm Password: <input name="password2" type="password" size="15" maxlength="90" <%=disabled %>></input></td>
                         
                         
                         <td> Roles (multi-select): 
                         	<select multiple="multiple" name="rolename" id="rolename" size="5" required="required">
 								<%
 								for(int q=0;q<numRoles;q++){
+									String selected="";
+									if((request.getParameter("isEdit")!=null)&&(myShepherd.getUser(request.getParameter("username").trim())!=null)){
+										if(myShepherd.doesUserHaveRole(request.getParameter("username").trim(),roles.get(q))){
+											selected="selected=\"true\"";
+										}
+									}
+									
+					    		    	
 								%>
-             					 <option value="<%=roles.get(q)%>"><%=roles.get(q)%></option>
+             					 <option value="<%=roles.get(q)%>" <%=selected%>><%=roles.get(q)%></option>
               					<%
 								}
 								%>
@@ -153,9 +200,9 @@
             				</select>
                         </td>	
             		</tr>
-                    <tr><td colspan="4">Full name: <input name="fullName" type="text" size="15" maxlength="90" /></td></tr>
-                    <tr><td colspan="4">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" /></td></tr>
-                    <tr><td colspan="4">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" /></td></tr>
+                    <tr><td colspan="4">Full name: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
+                    <tr><td colspan="4">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td></tr>
+                    <tr><td colspan="4">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
                     <tr><td colspan="4"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
             </table>
     	</form>

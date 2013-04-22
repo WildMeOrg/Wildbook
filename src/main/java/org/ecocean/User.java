@@ -61,7 +61,12 @@ public class User implements java.io.Serializable {
   }
   public void setFullName (String fullName)
   {
-    this.fullName = fullName;
+    if(fullName!=null){
+      this.fullName = fullName;
+    }
+    else{
+      this.fullName=null;
+    }
     RefreshDate();
   }
 
@@ -69,9 +74,11 @@ public class User implements java.io.Serializable {
   {
     return this.emailAddress;
   }
-  public void setEmailAddress (String emailAddress)
-  {
-    this.emailAddress = emailAddress;
+  public void setEmailAddress (String emailAddress){
+    if(emailAddress!=null){
+      this.emailAddress = emailAddress;
+    }
+    else{this.emailAddress=null;}
     RefreshDate();
   }
 
@@ -81,7 +88,9 @@ public class User implements java.io.Serializable {
   }
   public void setPhysicalAddress (String physicalAddress)
   {
-    this.physicalAddress = physicalAddress;
+    
+    if(physicalAddress!=null){this.physicalAddress = physicalAddress;}
+    else{this.physicalAddress=null;}
     RefreshDate();
   }
 
@@ -91,7 +100,8 @@ public class User implements java.io.Serializable {
   }
   public void setPhoneNumber (String phoneNumber)
   {
-    this.phoneNumber = phoneNumber;
+    if(phoneNumber!=null){this.phoneNumber = phoneNumber;}
+    else{this.phoneNumber=null;}
     RefreshDate();
   }
 
@@ -101,7 +111,10 @@ public class User implements java.io.Serializable {
   }
   public void setAffiliation (String affiliation)
   {
-    this.affiliation = affiliation;
+    if(affiliation!=null){
+      this.affiliation = affiliation;
+    }
+    else{this.affiliation=null;}
     RefreshDate();
   }
 
