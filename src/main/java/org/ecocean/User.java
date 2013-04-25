@@ -31,6 +31,7 @@ public class User implements java.io.Serializable {
   
   	private String username;
   	private String password ;
+  	private String salt;
   
   	
   	//JDOQL required empty instantiator
@@ -45,9 +46,10 @@ public class User implements java.io.Serializable {
   	  setNotes(notes);
   	}
   	
-  	public User(String username,String password){
+  	public User(String username,String password, String salt){
   	  setUsername(username);
   	  setPassword(password);
+  	  setSalt(salt);
   	}
 
   public void RefreshDate()
@@ -154,6 +156,9 @@ public class User implements java.io.Serializable {
   	public void setPassword(String password) {
   		this.password = password;
   	}
+  	
+  	public void setSalt(String salt){this.salt=salt;}
+  	public String getSalt(){return salt;}
 
 
 

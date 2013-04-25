@@ -461,8 +461,11 @@
 			</field>
 			
 			<field name="password" column="password">
-						    				<column length="100"/>
+						    				<column jdbc-type="LONGVARCHAR" />
 			</field>
+			            <field name="salt" persistence-modifier="persistent">
+			                <column jdbc-type="LONGVARCHAR" />
+            </field>
 					
 		 </class>
 		 

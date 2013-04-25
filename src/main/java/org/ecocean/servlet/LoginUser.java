@@ -14,7 +14,7 @@ import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 
-
+import org.ecocean.*;
 
 
 
@@ -54,13 +54,25 @@ import org.apache.shiro.subject.Subject;
 		String url = "/login.jsp";
 		
 		//see /login.jsp for these form fields
-		String username = request.getParameter("username");
-		String password = request.getParameter("password");
+		String username = request.getParameter("username").trim();
+		String password = request.getParameter("password").trim();
+		
+		
+		String salt="";
+		Shepherd myShepherd=new Shepherd();
+		myShepherd.beginDBTransaction();
+		if(myShepherd.getUser(username)!=null){
+		  User user=myShepherd.getUser(username);
+		  salt=user.getSalt();  
+		}
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+    String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
+    //System.out.println("Authenticating hashed password: "+hashedPassword+" including salt "+salt);
 		
 	    //create a UsernamePasswordToken using the
 		//username and password provided by the user
-		UsernamePasswordToken token = 
-			new UsernamePasswordToken(username, password);
+		UsernamePasswordToken token = new UsernamePasswordToken(username, hashedPassword);
 	
 		try {
 			

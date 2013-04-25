@@ -52,7 +52,10 @@ public class UserCreate extends HttpServlet {
 
     String addedRoles="";
     boolean isEdit=false;
-    if(request.getParameter("isEdit")!=null){isEdit=true;}
+    if(request.getParameter("isEdit")!=null){
+      isEdit=true;
+      //System.out.println("isEdit is TRUE in UserCreate!");
+    }
 
     //create a new Role from an encounter
 
@@ -61,9 +64,9 @@ public class UserCreate extends HttpServlet {
       String username=request.getParameter("username").trim();
       
       String password="";
-      if(!isEdit)request.getParameter("password").trim();
+      if(!isEdit)password=request.getParameter("password").trim();
       String password2="";
-      if(!isEdit)request.getParameter("password2").trim();
+      if(!isEdit)password2=request.getParameter("password2").trim();
       
       if((password.equals(password2))||(isEdit)){
         
@@ -74,7 +77,12 @@ public class UserCreate extends HttpServlet {
         myShepherd.beginDBTransaction();
       
         if(myShepherd.getUser(username)==null){
-          newUser=new User(username,password);
+          
+          
+          String salt=ServletUtilities.getSalt().toHex();
+          String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
+          //System.out.println("hashed password: "+hashedPassword+" with salt "+salt + " from source password "+password);
+          newUser=new User(username,hashedPassword,salt);
           myShepherd.getPM().makePersistent(newUser);
           createThisUser=true;
         }

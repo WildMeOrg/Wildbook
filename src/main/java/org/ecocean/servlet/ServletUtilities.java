@@ -47,6 +47,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import java.sql.*;
 
+
+import org.apache.shiro.crypto.hash.*;
+import org.apache.shiro.util.*; 
+import org.apache.shiro.crypto.*;
+
+
+
 import java.util.Properties;
 
 //ATOM feed
@@ -476,5 +483,14 @@ public class ServletUtilities {
     System.out.println("Connected to database for authentication.");
     return conn;
 }
+
+public static String hashAndSaltPassword(String clearTextPassword, String salt) {
+    return new Sha512Hash(clearTextPassword, salt, 200000).toHex();
+}
+
+public static ByteSource getSalt() {
+    return new SecureRandomNumberGenerator().nextBytes();
+}
+
 
 }
