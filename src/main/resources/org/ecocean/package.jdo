@@ -419,5 +419,73 @@
 			</field>
 		</class>
 		
+		
+		<class name="User" identity-type="application" table="USERS">
+		            
+					 
+		            <field name="fullName">
+		                <column name="FULLNAME" />
+		            </field>
+		            
+		            <field name="emailAddress">
+		                <column name="EMAILADDRESS" />
+		            </field>
+		
+		            <field name="physicalAddress">
+			    	<column name="PHYSICALADDRESS" />
+		            </field>
+		            
+		            
+		            <field name="phoneNumber">
+		                <column name="PHONENUMBER" />
+		            </field>
+		            
+		             <field name="affiliation">
+			    	<column name="AFFILIATION" />
+		            </field>
+		            
+		            <field name="notes">
+			    	<column name="NOTES" />
+		            </field>
+		            
+		            <field name="dateInMilliseconds" persistence-modifier="persistent">
+			                    <column jdbc-type="BIGINT" allows-null="true" />
+            			</field>
+            			
+            			  <field name="userID" persistence-modifier="persistent">
+							                    <column jdbc-type="BIGINT" allows-null="true" />
+            			</field>
+		
+		            <field name="username" primary-key="true" column="username">
+			    				<column length="100"/>
+			</field>
+			
+			<field name="password" column="password">
+						    				<column jdbc-type="LONGVARCHAR" />
+			</field>
+			            <field name="salt" persistence-modifier="persistent">
+			                <column jdbc-type="LONGVARCHAR" />
+            </field>
+					
+		 </class>
+		 
+		 		<class name="Role" identity-type="datastore" table="USER_ROLES">
+		 		            
+		 			
+		 		
+		 		            <field name="username" column="username">
+		 			    				<column length="100"/>
+		 			</field>
+		 			 <field name="rolename" column="ROLE_NAME">
+							 			    				<column length="100"/>
+		 			</field>
+		 		
+		 					
+		 </class>
+        
+
+        
+		
+		
     </package>
 </jdo>

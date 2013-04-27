@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>shepherd</artifactId>
-  <version>3.2.0-EXPERIMENTAL</version>
+  <version>3.3.0-EXPERIMENTAL</version>
   <packaging>war</packaging>
 
   <properties>
@@ -48,6 +48,24 @@
       <artifactId>servlet-api</artifactId>
       <version>2.5</version>
     </dependency>
+    
+    <dependency>
+      <groupId>org.apache.shiro</groupId>
+      <artifactId>shiro-core</artifactId>
+      <version>1.2.1</version>
+</dependency>
+
+<dependency>
+  <groupId>org.apache.shiro</groupId>
+  <artifactId>shiro-web</artifactId>
+  <version>1.2.1</version>
+</dependency>
+
+<dependency>
+	<groupId>commons-dbcp</groupId>
+	<artifactId>commons-dbcp</artifactId>
+	<version>1.4</version>
+</dependency>
     
     <dependency>
         <groupId>ch.qos.logback</groupId>
@@ -111,6 +129,12 @@
 	<groupId>org.apache.commons</groupId>
 	<artifactId>commons-math</artifactId>
 	<version>2.2</version>
+</dependency>
+
+<dependency>
+	<groupId>mysql</groupId>
+	<artifactId>mysql-connector-java</artifactId>
+	<version>5.1.21</version>
 </dependency>
             
     <dependency>
@@ -291,7 +315,7 @@
    <artifactId>maven-javadoc-plugin</artifactId>
    <version>2.8</version>
 <configuration>
-	        <reportOutputDirectory>${project.basedir}/target/${pom.artifactId}-${pom.version}</reportOutputDirectory>
+	        <reportOutputDirectory>${project.basedir}/target/${project.artifactId}-${project.version}</reportOutputDirectory>
 	        <destDir>javadoc</destDir>
 	        <show>private</show>
 	    </configuration>
@@ -401,14 +425,7 @@
           </execution>
         </executions>
       </plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <configuration>
-                <source>1.5</source>
-                <target>1.5</target>
-              </configuration>
-            </plugin>
+
            
       <plugin>
         <artifactId>maven-failsafe-plugin</artifactId>
