@@ -100,8 +100,8 @@
               <p align="center"><%=props.getProperty("requested")%>
               </p>
 
-              <p>
-
+              <p align="center">
+			<!--  
               <form method="POST"
                     action='<%= response.encodeURL("j_security_check") %>' name="loginForm">
                 <table border="0" align="center" cellpadding="5" cellspacing="2">
@@ -115,7 +115,7 @@
                     <th align="left"><font color="#0000"><%=props.getProperty("password") %>: <input
                       type="password" name="j_password" size="16" maxlength="16"/></font></th>
                   </tr>
-                  <!-- login reset buttons layout -->
+                 
                   <tr align="left" valign="top">
                     <td align="left">
                       <div align="left">
@@ -128,6 +128,25 @@
                   </tr>
                 </table>
               </form>
+              
+              -->
+              
+              <form action="LoginUser" method="post">
+    <table align="left" border="0" cellspacing="0" cellpadding="3">
+        <tr>
+            <td>Username:</td>
+            <td><input type="text" name="username" maxlength="50" /></td>
+        </tr>
+        <tr>
+            <td>Password:</td>
+            <td><input type="password" name="password" maxlength="50" /></td>
+        </tr>
+        <tr>
+            <td colspan="2" align="right"><input type="submit" name="submit" value="Login" /></td>
+        </tr>
+    </table>
+</form>
+              
               </p>
 
               <script language="JavaScript" type="text/javascript">

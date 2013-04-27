@@ -809,12 +809,12 @@ public class EncounterQueryProcessor {
     if(request.getParameter("alive")==null) {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('alive')";}
       else{filter+=" && !livingStatus.startsWith('alive')";}
-      prettyPrint.append("Alive.<br />");
+      prettyPrint.append("Not alive.<br />");
     }
     if(request.getParameter("dead")==null) {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('dead')";}
       else{filter+=" && !livingStatus.startsWith('dead')";}
-      prettyPrint.append("Dead.<br />");
+      prettyPrint.append("Not dead.<br />");
     }
     //filter by alive/dead status--------------------------------------------------------------------------------------
 
