@@ -75,7 +75,7 @@
                 #create an object of the RoleSecurityJdbcRealm
                 #IniShiroFilter will inject that object into the SecurityManager
                 [main]
-                realmA = org.ecocean.security.dao.RoleSecurityJdbcRealm
+                realmA = org.ecocean.security.ShepherdRealm
                 
                 #this application will use all the default
                 #filters (see link above)
@@ -456,12 +456,7 @@
   <!--  Start Shiro filters -->  
   
   
-    <servlet>
-        <description>Finds all users in the data store</description>
-        <display-name>GetAllUsers</display-name>
-        <servlet-name>GetAllUsers</servlet-name>
-        <servlet-class>org.ecocean.servlet.GetAllUsers</servlet-class>
-    </servlet>
+
     
     <servlet>
       	<description>
@@ -1175,10 +1170,6 @@
   </servlet-mapping>
   
   
-    <servlet-mapping>
-      <servlet-name>GetAllUsers</servlet-name>
-      <url-pattern>/GetAllUsers</url-pattern>
-    </servlet-mapping>
     <servlet-mapping>
     	<servlet-name>LoginUser</servlet-name>
     	<url-pattern>/LoginUser</url-pattern>

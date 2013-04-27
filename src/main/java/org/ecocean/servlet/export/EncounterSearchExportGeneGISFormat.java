@@ -164,6 +164,7 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
         
           //find and print the ms markers
           String msMarkerString="";
+          //if(!haplotypeString.endsWith(",")){msMarkerString=",";}
           List<TissueSample> samples=enc.getTissueSamples();
           int numSamples=samples.size();
           boolean foundMsMarkers=false;
@@ -215,13 +216,16 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
           }
         
           //out.println("<p>"+assembledString+haplotypeString+msMarkerString+"</p>");
-          String occurrenceID=",";
+          //String occurrenceID=",";
+          String occurrenceID="";
+          //if(!msMarkerString.endsWith(",")){occurrenceID=",";}
           if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
             Occurrence occur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
             occurrenceID+=occur.getOccurrenceID();
+            //if(msMarkerString.endsWith(",")){occurrenceID=occurrenceID.replace(",",",,");}
           }
           
-          outp.write(assembledString+haplotypeString+msMarkerString+occurrenceID+"\r\n");
+          outp.write(assembledString+haplotypeString+msMarkerString+","+occurrenceID+"\r\n");
 
         }
         outp.close();
@@ -260,7 +264,7 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
         outp=null;
       }
       
-
+        //test comment
     }
     catch(Exception e) {
       e.printStackTrace();

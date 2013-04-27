@@ -420,7 +420,7 @@
 		</class>
 		
 		
-		<class name="User" identity-type="application" table="users">
+		<class name="User" identity-type="application" table="USERS">
 		            
 					 
 		            <field name="fullName">

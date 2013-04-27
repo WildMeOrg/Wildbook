@@ -68,7 +68,7 @@ import org.ecocean.*;
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
     String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
-    //System.out.println("Authenticating hashed password: "+hashedPassword+" including salt "+salt);
+    System.out.println("Authenticating hashed password: "+hashedPassword+" including salt "+salt);
 		
 	    //create a UsernamePasswordToken using the
 		//username and password provided by the user
