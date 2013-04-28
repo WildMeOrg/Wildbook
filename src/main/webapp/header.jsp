@@ -284,6 +284,13 @@ z-index:99;
 					
 						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/software.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;" >Client Software</a></li>
 						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/scanTaskAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">sharkGrid</a></li>
+						
+							<li><a
+							          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp"
+							          class="enclose"
+							          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">User Management
+        </a></li>
+						
 					<%
 					
 					if((request.getParameter("isAdmin")!=null)&&(request.getParameter("isAdmin").equals("true"))) {%>

@@ -134,16 +134,25 @@
               <form action="LoginUser" method="post">
     <table align="left" border="0" cellspacing="0" cellpadding="3">
         <tr>
-            <td>Username:</td>
+            <td width="50px">Username:</td>
             <td><input type="text" name="username" maxlength="50" /></td>
         </tr>
         <tr>
-            <td>Password:</td>
+            <td width="50px">Password:</td>
             <td><input type="password" name="password" maxlength="50" /></td>
         </tr>
         <tr>
-            <td colspan="2" align="right"><input type="submit" name="submit" value="Login" /></td>
+            <td align="left" colspan="2" align="right"><input type="submit" name="submit" value="Login" /></td>
         </tr>
+        <tr><td colspan="2">
+                      <p>&nbsp;</p>
+	              <p align="center"><font size="-1">*If you have problems logging in or would like 
+		        to know more about gaining higher privileges, please contact:<br />
+		        <br />
+		        <img src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/webmaster.gif" width="228" height="18" /></font></p>
+		      <p align="center"><font size="-1"></font></p>
+<p>&nbsp;</p>
+        </td></tr>
     </table>
 </form>
               
@@ -155,13 +164,7 @@
                 // -->
               </script>
 
-              <p>&nbsp;</p>
-              <p align="center"><font size="-1">*If you have problems logging in or would like 
-	        to know more about gaining higher privileges, please contact:<br />
-	        <br />
-	        <img src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/webmaster.gif" width="228" height="18" /></font></p>
-	      <p align="center"><font size="-1"></font></p>
-<p>&nbsp;</p>
+
 
               </td>
               </tr>
