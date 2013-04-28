@@ -62,6 +62,124 @@
     </taglib>
   </jsp-config-->
 
+  <filter>
+        <filter-name>ShiroFilter</filter-name>
+        <filter-class>org.apache.shiro.web.servlet.IniShiroFilter</filter-class>
+        <init-param>
+            <param-name>config</param-name>
+            <param-value>
+                #See Shiro API http://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/servlet/IniShiroFilter.html
+                
+                #create an object of the RoleSecurityJdbcRealm
+                #IniShiroFilter will inject that object into the SecurityManager
+                [main]
+                realmA = org.ecocean.security.ShepherdRealm
+                
+                #this application will use all the default
+                #filters (see link above)
+                #for example the default login page is /login.jsp
+                #users who try to access a page protected by Shiro
+                #will be sent to /login.jsp
+                [filters]
+
+
+                #only let authenticated users
+                #with the appropriate role
+                #view the web pages in the secure
+                #and admin areas
+                [urls]
+                
+                /appadmin/** = authc, roles[admin]
+                /MassSetInformOthers = authc, roles[admin]
+                /MassExposeGBIF = authc, roles[admin]
+                /MassSetLocationCodeFromLocationString = authc, roles[admin]
+                /MassSwapLocationCode = authc, roles[admin]
+                /logs/** = authc, roles[admin,manager]
+                /xcalendar/** = authc, roles[admin,manager,reviewer,researcher,local]
+                /encounters/allEncountersUnapproved.jsp = authc, roles[admin,manager,reviewer,researcher,local]
+                /InterconnectSubmitSpots = authc, roles[admin,manager,imageProcessor]
+		/interconnectSubmitSpots= authc, roles[admin,manager,imageProcessor]
+		/GenePopExport = authc, roles[admin,manager,researcher]
+		/individualSearch.jsp = authc, roles[admin,manager,researcher]
+		/individualSearchResults.jsp = authc, roles[admin,manager,researcher]
+		/individualSearchResultsExport.jsp = authc, roles[admin,manager,researcher]
+		/individualSearchResultsAnalysis.jsp = authc, roles[admin,manager,researcher]
+		/individualMappedSearchResults.jsp = authc, roles[admin,manager,researcher]
+		/individualThumbnailSearchResults.jsp = authc, roles[admin,manager,researcher]
+		/encounters/thumbnailSearch.jsp = authc, roles[admin,manager,researcher]
+		 /encounters/thumbnailSearchResults.jsp = authc, roles[admin,manager,researcher]
+		 /encounters/encounterSearch.jsp = authc, roles[admin,manager,researcher]
+		 /encounters/searchResults.jsp = authc, roles[admin,manager,researcher]
+		 /encounters/searchResultsAnalysis.jsp = authc, roles[admin,manager,researcher]
+		 /encounters/mappedSearchResults.jsp = authc, roles[admin,manager,researcher]
+		 /encounters/mappedSearchResultsSex.jsp = authc, roles[admin,manager,researcher]
+		 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[admin,manager,researcher]
+		 /encounters/exportSearchResults.jsp = authc, roles[admin,manager,researcher]
+		 /googleSearch.jsp = authc, roles[admin,manager,researcher]
+		 /googleSearchResults.jsp = authc, roles[admin,manager,researcher]
+		 /encounters/imageViewer.jsp = authc, roles[admin,manager,researcher]
+		 /encounters/searchComparison.jsp = authc, roles[admin,manager,researcher]
+      		/encounters/searchComparisonResults.jsp = authc, roles[admin,manager,researcher]
+                /encounters/encounterSpotVisualizer.jsp = authc, roles[admin,manager,researcher]
+		/IndividualSetAlternateID = authc, roles[admin,manager,researcher]
+		 /EncounterApprove = authc, roles[admin,manager,approver]
+		 /EncounterSetAlternateID = authc, roles[admin,manager,researcher]
+		 /EncounterSetState = authc, roles[admin,manager,researcher]
+		 /EncounterSetScarring = authc, roles[admin,manager,researcher]
+		  /EncounterSetVerbatimEventDate = authc, roles[admin,manager,researcher]
+		  /EncounterSetLifeStage = authc, roles[admin,manager,researcher]
+		  /EncounterSetCountry = authc, roles[admin,manager,researcher]
+		  /EncounterSetTissueSample = authc, roles[admin,manager,researcher]
+		   /TissueSampleSetHaplotype = authc, roles[admin,manager,researcher]
+		   /TissueSampleSetMeasurement = authc, roles[admin,manager,researcher]
+		  /TissueSampleRemoveHaplotype = authc, roles[admin,manager,researcher]
+		   /TissueSampleRemoveBiologicalMeasurement = authc, roles[admin,manager,researcher]
+		   /ImportSRGD = authc, roles[admin]
+		        /IndividualCreate = authc, roles[admin,manager,identifier]
+		        /OccurrenceCreate = authc, roles[admin,manager,researcher]
+		        /OccurrenceRemoveEncounter = authc, roles[admin,manager,researcher]
+		        /IndividualRemoveEncounter = authc, roles[admin,manager,identifier]
+		        /OccurrenceAddEncounter = authc, roles[admin,manager,researcher]
+		        /IndividualAddEncounter = authc, roles[admin,manager,identifier]
+		         /TissueSampleSetSexAnalysis = authc, roles[admin,manager,researcher]
+		        /TissueSampleRemoveSexAnalysis = authc, roles[admin,manager,researcher]
+		         /EncounterRemoveTissueSample = authc, roles[admin,manager,researcher]
+		         /EncounterRemoveImage = authc, roles[admin,manager,researcher]
+		         /SinglePhotoVideoRemoveKeyword = authc, roles[admin,manager,researcher]
+		         /SinglePhotoVideoAddKeyword = authc, roles[admin,manager,researcher]
+		         /EncounterSearchExportGeneGISFormat = authc, roles[admin,manager,researcher]
+		         /EncounterSearchExportKML = authc, roles[admin,manager,researcher]
+		         /UserCreate = authc, roles[admin]
+		         /UserDelete = authc, roles[admin]
+		         /EncounterSearchExportExcelFile = authc, roles[admin,manager,researcher]
+		         /EncounterSearchExportShapefile = authc, roles[admin,manager,researcher]
+		         /EncounterSearchExportEmailAddresses = authc, roles[admin,manager,researcher]
+		         /EncounterAddComment = authc, roles[admin,manager,researcher]
+		         /OccurrenceAddComment = authc, roles[admin,manager,researcher]
+		          /OccurrenceSetIndividualCount = authc, roles[admin,manager,researcher]
+		         /IndividualAddComment = authc, roles[admin,manager,researcher]
+		         /SimpleCMROutput = authc, roles[admin,manager,researcher]
+		             /GenalexExportCodominantMSDataBySize = authc, roles[admin,manager,researcher]
+		             /SOCPROGExport = authc, roles[admin,manager,researcher]
+		             /OccurrenceSetGroupBehavior = authc, roles[admin,manager,researcher]
+		             /EncounterSetBehavior = authc, roles[admin,manager,researcher]
+		      /CJS = authc, roles[admin,manager,researcher]
+		      /software.jsp = authc, roles[admin,manager,researcher]
+		      /interconnect/mac/Interconnect.jar = authc, roles[admin,manager,researcher]
+      			/DeleteAllDataPermanently = authc, roles[destroyer]
+      			/encounters/searchExport = authc, roles[admin,manager,researcher]
+      			/welcome.jsp = authc
+               
+
+            </param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>ShiroFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
 
   <filter>
     <filter-name>UTF8Filter</filter-name>
@@ -311,6 +429,44 @@
       <servlet-class>org.ecocean.servlet.SideFeed</servlet-class>
   </servlet>
 
+ 
+    <servlet>
+      <servlet-name>UserCreate</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
+  </servlet>
+  
+      <servlet>
+        <servlet-name>UserDelete</servlet-name>
+        <servlet-class>org.ecocean.servlet.UserDelete</servlet-class>
+  </servlet>
+  
+  <!--  Start Shiro filters -->  
+    
+    
+  
+      
+      <servlet>
+        	<description>
+        	Log in user using username and password provided</description>
+        	<display-name>
+        	LoginUser</display-name>
+        	<servlet-name>LoginUser</servlet-name>
+        	<servlet-class>
+        	org.ecocean.servlet.LoginUser</servlet-class>
+     </servlet>
+        
+     <servlet>
+        	<description>
+        	Logs user out</description>
+        	<display-name>
+        	LogoutUser</display-name>
+        	<servlet-name>LogoutUser</servlet-name>
+        	<servlet-class>
+        	org.ecocean.servlet.LogoutUser</servlet-class>
+    </servlet>
+    
+    
+  <!-- end Shiro filters -->
 
   <servlet>
     <servlet-name>EncounterAddSpotFile</servlet-name>
@@ -821,6 +977,26 @@
       <url-pattern>/EncounterSetTissueSample</url-pattern>
   </servlet-mapping>
   
+        <servlet-mapping>
+            <servlet-name>UserCreate</servlet-name>
+            <url-pattern>/UserCreate</url-pattern>
+    </servlet-mapping>
+    
+       <servlet-mapping>
+              <servlet-name>UserDelete</servlet-name>
+              <url-pattern>/UserDelete</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+      	<servlet-name>LoginUser</servlet-name>
+      	<url-pattern>/LoginUser</url-pattern>
+      </servlet-mapping>
+      <servlet-mapping>
+      	<servlet-name>LogoutUser</servlet-name>
+      	<url-pattern>/LogoutUser</url-pattern>
+    </servlet-mapping>
+  
+  
       <servlet-mapping>
         <servlet-name>EncounterRemoveTissueSample</servlet-name>
         <url-pattern>/EncounterRemoveTissueSample</url-pattern>
@@ -1245,11 +1421,7 @@
     <url-pattern>/TrackerFeed</url-pattern>
   </servlet-mapping>
   
-    <servlet-mapping>
-      <servlet-name>InterconnectSubmitSpots</servlet-name>
-      <url-pattern>/InterconnectSubmitSpots</url-pattern>
-      <url-pattern>/interconnectSubmitSpots</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>EncounterAddSpotFile</servlet-name>
@@ -1346,7 +1518,12 @@
       <web-resource-collection>
         <web-resource-name>Protected Area</web-resource-name>
         <!-- Define the context-relative URL(s) to be protected -->
+        
+        <!--
               <url-pattern>/InterconnectSubmitSpots</url-pattern>
+        -->      
+              
+              
       </web-resource-collection>
       <auth-constraint>
         <!-- Anyone with one of the listed roles may access this area -->
@@ -1364,6 +1541,7 @@
       <web-resource-name>Protected Area</web-resource-name>
       <!-- Define the context-relative URL(s) to be protected -->
       
+      <!--
       	 
             <url-pattern>/CJS</url-pattern>
             <url-pattern>/IndividualAddComment</url-pattern>
@@ -1420,6 +1598,8 @@
 	      <url-pattern>/EncounterAddImage</url-pattern>
 	      <url-pattern>/EncounterSetSubmitterID</url-pattern>
 	      <url-pattern>/EncounterSetMatchedBy</url-pattern>
+	      
+	      -->
 	
       
     </web-resource-collection>
@@ -1436,8 +1616,12 @@
       <display-name>Limit approvals</display-name>
       <web-resource-collection>
         <web-resource-name>Protected Area</web-resource-name>
-        <!-- Define the context-relative URL(s) to be protected -->        
+        <!-- Define the context-relative URL(s) to be protected -->    
+        
+        <!--
   	<url-pattern>/EncounterApprove</url-pattern>
+      -->
+      
       </web-resource-collection>
       <auth-constraint>
         <!-- Anyone with one of the listed roles may access this area -->
@@ -1451,10 +1635,18 @@
         <display-name>Limit identifications</display-name>
         <web-resource-collection>
           <web-resource-name>Protected Area</web-resource-name>
-          <!-- Define the context-relative URL(s) to be protected -->        
+          <!-- Define the context-relative URL(s) to be protected -->  
+          
+          
+          <!--
+          
     	<url-pattern>/IndividualRemoveEncounter</url-pattern>
     	  <url-pattern>/IndividualCreate</url-pattern>
     	  <url-pattern>/IndividualAddEncounter</url-pattern>
+    	  
+    	  -->
+    	  
+    	  
         </web-resource-collection>
         <auth-constraint>
           <!-- Anyone with one of the listed roles may access this area -->
@@ -1470,8 +1662,11 @@
         <web-resource-name>Protected Area</web-resource-name>
         <!-- Define the context-relative URL(s) to be protected -->
   
+  <!--
   
         <url-pattern>/DeleteAllDataPermanently</url-pattern>
+  
+  -->
   
       </web-resource-collection>
       <auth-constraint>
@@ -1488,6 +1683,8 @@
     <web-resource-collection>
       <web-resource-name>Protected Area</web-resource-name>
       <!-- Define the context-relative URL(s) to be protected -->
+      
+      <!--
       
       	    <url-pattern>/welcome.jsp</url-pattern>
             <url-pattern>/appadmin/scanTaskAdmin.jsp</url-pattern>
@@ -1603,6 +1800,7 @@
       <url-pattern>/encounters/allEncountersUnapproved.jsp</url-pattern>
       <url-pattern>/appadmin/*</url-pattern>
       <url-pattern>/logs/*</url-pattern>
+      -->
       
     </web-resource-collection>
     <auth-constraint>
@@ -1615,21 +1813,7 @@
   </security-constraint>
 
 
-  <security-constraint>
-    <display-name>Manager Security Constraint</display-name>
-    <web-resource-collection>
-      <web-resource-name>Protected Area</web-resource-name>
-      <!-- Define the context-relative URL(s) to be protected -->
-      <url-pattern>/encounters/searchExport</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>admin</role-name>
-      <role-name>manager</role-name>
-      <role-name>researcher</role-name>
-      <role-name>local</role-name>
-    </auth-constraint>
-  </security-constraint>
+
 
 
   <security-constraint>
@@ -1637,14 +1821,14 @@
     <web-resource-collection>
       <web-resource-name>Protected Area</web-resource-name>
       <!-- Define the context-relative URL(s) to be protected -->
-
+!--
       <url-pattern>/appadmin/admin.jsp</url-pattern>
       <url-pattern>/appadmin/kwAdmin.jsp</url-pattern>
       <url-pattern>/MassSetInformOthers</url-pattern>
       	     <url-pattern>/MassSetLocationCodeFromLocationString</url-pattern>
       	       <url-pattern>/MassSwapLocationCode</url-pattern>
 	       <url-pattern>/MassExposeGBIF</url-pattern>
-
+-->
     </web-resource-collection>
     <auth-constraint>
       <!-- Anyone with one of the listed roles may access this area -->
@@ -1653,7 +1837,7 @@
   </security-constraint>
 
 
-  <!-- Login configuration uses form-based authentication -->
+  <!-- Login configuration uses form-based authentication 
   <login-config>
     <auth-method>FORM</auth-method>
     <realm-name>Shepherd Realm</realm-name>
@@ -1662,6 +1846,7 @@
       <form-error-page>/error.jsp</form-error-page>
     </form-login-config>
   </login-config>
+  -->
 
     <!-- Security roles referenced by this web application -->
     <security-role>
