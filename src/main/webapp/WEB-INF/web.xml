@@ -122,7 +122,7 @@
       		/encounters/searchComparisonResults.jsp = authc, roles[admin,manager,researcher]
                 /encounters/encounterSpotVisualizer.jsp = authc, roles[admin,manager,researcher]
 		/IndividualSetAlternateID = authc, roles[admin,manager,researcher]
-		 /EncounterApprove = authc, roles[admin,manager,approver]
+		 /EncounterApprove = authc, roles[admin,manager,approve]
 		 /EncounterSetAlternateID = authc, roles[admin,manager,researcher]
 		 /EncounterSetState = authc, roles[admin,manager,researcher]
 		 /EncounterSetScarring = authc, roles[admin,manager,researcher]
