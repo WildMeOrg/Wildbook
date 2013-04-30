@@ -91,7 +91,12 @@
                 #and admin areas
                 [urls]
                 
-                /appadmin/** = authc, roles[admin]
+                /appadmin/admin.jsp = authc, roles[admin]
+                /appadmin/import.jsp = authc, roles[admin]
+                /appadmin/kwAdmin.jsp = authc, roles[admin]
+                /appadmin/logs.jsp = authc, roles[admin]
+                /appadmin/stats.jsp = authc, roles[admin]
+                /appadmin/users.jsp = authc, roles[admin]
                 /MassSetInformOthers = authc, roles[admin]
                 /MassExposeGBIF = authc, roles[admin]
                 /MassSetLocationCodeFromLocationString = authc, roles[admin]
@@ -99,6 +104,7 @@
                 /logs/** = authc, roles[admin]
                 /UserCreate = authc, roles[admin]
 		 /UserDelete = authc, roles[admin]
+		 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
                 /xcalendar/** = authc, roles[researcher]
                 /encounters/allEncountersUnapproved.jsp = authc, roles[researcher]
                 /InterconnectSubmitSpots = authc, roles[imageProcessor]
