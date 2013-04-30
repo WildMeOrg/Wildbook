@@ -75,6 +75,8 @@
 
   //link path to submit page with appropriate language
   String submitPath = "submit.jsp?langCode=" + langCode;
+  
+  //test comment
 
 %>
 
