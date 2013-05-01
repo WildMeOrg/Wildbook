@@ -338,6 +338,12 @@ public class EncounterQueryProcessor {
           else if ("eq".equals(operatorParamValue)) {
             operator = "==";
           }
+          else if ("gteq".equals(operatorParamValue)) {
+            operator = ">=";
+          }
+          else if ("lteq".equals(operatorParamValue)) {
+            operator = "<=";
+          }
           if (operator != null) {
             prettyPrint.append(measurementDesc.getUnitsLabel());
             prettyPrint.append(" is ");
@@ -409,6 +415,12 @@ public class EncounterQueryProcessor {
           }
           else if ("eq".equals(operatorParamValue)) {
             operator = "==";
+          }
+          else if ("gteq".equals(operatorParamValue)) {
+            operator = ">=";
+          }
+          else if ("lteq".equals(operatorParamValue)) {
+            operator = "<=";
           }
           if (operator != null) {
             prettyPrint.append("Biological/chemical measurement "+measurementDesc.getType());
