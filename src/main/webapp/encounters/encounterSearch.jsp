@@ -976,19 +976,28 @@ if(CommonConfiguration.showProperty("showLifestage")){
       %>
 
     </select>
+    </td>
+    </tr>
+           <tr><td>
+      <p>
+            <label> 
+            	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
+            </label> <%=encprops.getProperty("orPhotoKeywords")%> 
+      </p>
+      </td></tr>
     <%
     } else {
     %>
 
     <p><em><%=encprops.getProperty("noKeywords")%>
     </em>
-
+</td>
+</tr>
         <%
 					
 				}
 				%>
-  </td>
-</tr>
+  
 <tr>
   <td><strong><%=encprops.getProperty("submitterName")%>:</strong>
     <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>

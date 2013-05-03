@@ -499,7 +499,7 @@ public class IndividualQueryProcessor {
       else{filter+=" && (";}
       
       if((request.getParameter("photoKeywordOperator")!=null)&&(request.getParameter("photoKeywordOperator").equals("_OR_"))){
-          prettyPrint.append("Photo/video keyword is one of the following: ");
+          prettyPrint.append("Photo/video keyword is any one of the following: ");
       }
       else{
         prettyPrint.append("All of these photo/video keywords are applied: ");
