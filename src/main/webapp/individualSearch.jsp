@@ -878,19 +878,32 @@ if(CommonConfiguration.showProperty("showLifestage")){
               %>
 
             </select>
+            
+            </td>
+        </tr>
+            
+            <tr><td>
+      <p>
+            <label> 
+            	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
+            </label> <strong><%=props.getProperty("orPhotoKeywords")%> </strong>
+      </p>
+      </td></tr>
+      
+      
             <%
             } else {
             %>
 
             <p><em><%=props.getProperty("noKeywords")%>
-            </em></p>
+            </em></p></td>
+        </tr>
 
             <%
 
               }
             %>
-          </td>
-        </tr>
+          
 
        
         <tr>

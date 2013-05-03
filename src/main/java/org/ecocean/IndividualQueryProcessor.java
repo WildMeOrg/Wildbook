@@ -490,41 +490,62 @@ public class IndividualQueryProcessor {
     //keyword filters-------------------------------------------------
     myShepherd.beginDBTransaction();
     String[] keywords=request.getParameterValues("keyword");
-    if((keywords!=null)&&(!keywords[0].equals("None"))){
-          prettyPrint.append("Photo/video keyword is one of the following: ");
-          int kwLength=keywords.length;
-            String locIDFilter="(";
-            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+    String photoKeywordOperator = "&&";
+    if((request.getParameter("photoKeywordOperator")!=null)&&(request.getParameter("photoKeywordOperator").equals("_OR_"))){photoKeywordOperator = "||";}
 
+    if((keywords!=null)&&(!keywords[0].equals("None"))){
+      
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(";}
+      else{filter+=" && (";}
+      
+      if((request.getParameter("photoKeywordOperator")!=null)&&(request.getParameter("photoKeywordOperator").equals("_OR_"))){
+          prettyPrint.append("Photo/video keyword is one of the following: ");
+      }
+      else{
+        prettyPrint.append("All of these photo/video keywords are applied: ");
+      }
+          int kwLength=keywords.length;
+            
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              String locIDFilter="(";
               String kwParam=keywords[kwIter].replaceAll("%20", " ").trim();
               if(!kwParam.equals("")){
                 if(locIDFilter.equals("(")){
-                  locIDFilter+=" word.indexname == \""+kwParam+"\" ";
+                  locIDFilter+=" word"+kwIter+".indexname == \""+kwParam+"\" ";
                 }
                 else{
-                  locIDFilter+=" || word.indexname == \""+kwParam+"\" ";
+                  locIDFilter+=" "+photoKeywordOperator+" word"+kwIter+".indexname == \""+kwParam+"\" ";
                 }
                 Keyword kw=myShepherd.getKeyword(kwParam.trim());
                 prettyPrint.append(kw.getReadableName()+" ");
               }
-            }
-            locIDFilter+=" )";
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc3) && enc3.images.contains(photo) && photo.keywords.contains(word) && "+locIDFilter;}
-            else{
-              if(filter.indexOf("encounters.contains(enc3)")==-1){filter+=" && encounters.contains(enc3)";}
+              locIDFilter+=" )";
+            
+             // if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(encounters.contains(enc3_"+kwIter+") && enc3_"+kwIter+".images.contains(photo"+kwIter+") && photo"+kwIter+".keywords.contains(word"+kwIter+") && "+locIDFilter+")";}
+             // else{
+                if(filter.indexOf("encounters.contains(enc3_"+kwIter+")")==-1){
+                  if(kwIter>0){filter+=" "+photoKeywordOperator+" ";}
+                  filter+="(  encounters.contains(enc3_"+kwIter+")";
+                }
               
-              if(filter.indexOf("enc3.images.contains(photo)")==-1){filter+=" && enc3.images.contains(photo)";}
+                if(filter.indexOf("enc3_"+kwIter+".images.contains(photo"+kwIter+")")==-1){filter+=" && enc3_"+kwIter+".images.contains(photo"+kwIter+")";}
              
-              if(filter.indexOf("photo.keywords.contains(word)")==-1){filter+=" && photo.keywords.contains(word)";}
-              filter+=(" && "+locIDFilter);
-            }
+                if(filter.indexOf("photo"+kwIter+".keywords.contains(word"+kwIter+")")==-1){filter+=" && photo"+kwIter+".keywords.contains(word"+kwIter+")";}
+                filter+=(" && "+locIDFilter+")");
+             // }
+            
 
+              
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc3_"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc3_"+kwIter;}
+            
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo photo"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo photo"+kwIter;}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Keyword word"+kwIter;}
+           
+            
+            }
+            filter+=" ) ";
+            
             prettyPrint.append("<br />");
-            if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc3")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc3";}
-            
-              if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo photo")){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo photo";}
-              if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word")){jdoqlVariableDeclaration+=";org.ecocean.Keyword word";}
-            
       }
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
