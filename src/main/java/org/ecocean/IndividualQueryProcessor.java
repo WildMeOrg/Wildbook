@@ -524,14 +524,14 @@ public class IndividualQueryProcessor {
              // if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(encounters.contains(enc3_"+kwIter+") && enc3_"+kwIter+".images.contains(photo"+kwIter+") && photo"+kwIter+".keywords.contains(word"+kwIter+") && "+locIDFilter+")";}
              // else{
                 if(filter.indexOf("encounters.contains(enc3_"+kwIter+")")==-1){
-                  if(kwIter>0){filter+=" && ";}
-                  filter+=" encounters.contains(enc3_"+kwIter+")";
+                  if(kwIter>0){filter+=" "+photoKeywordOperator+" ";}
+                  filter+="(  encounters.contains(enc3_"+kwIter+")";
                 }
               
                 if(filter.indexOf("enc3_"+kwIter+".images.contains(photo"+kwIter+")")==-1){filter+=" && enc3_"+kwIter+".images.contains(photo"+kwIter+")";}
              
                 if(filter.indexOf("photo"+kwIter+".keywords.contains(word"+kwIter+")")==-1){filter+=" && photo"+kwIter+".keywords.contains(word"+kwIter+")";}
-                filter+=(" "+photoKeywordOperator+" "+locIDFilter);
+                filter+=(" && "+locIDFilter+")");
              // }
             
 
