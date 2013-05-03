@@ -1472,7 +1472,7 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
           <input name="action" type="hidden" value="enc_comments" id="action">
 
         <p>
-          <textarea name="comments" cols="50" id="comments"></textarea> <br/>
+          <textarea name="autocomments" cols="50" id="autocomments"></textarea> <br/>
           <input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>">
         </p>
       </form>
