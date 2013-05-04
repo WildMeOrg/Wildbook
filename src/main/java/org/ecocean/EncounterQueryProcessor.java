@@ -575,7 +575,7 @@ public class EncounterQueryProcessor {
                   locIDFilter+=" "+photoKeywordOperator+" word"+kwIter+".indexname == \""+kwParam+"\" ";
                 }
                 Keyword kw=myShepherd.getKeyword(kwParam.trim());
-                prettyPrint.append(kw.getReadableName()+" ");
+                prettyPrint.append("\""+kw.getReadableName()+"\" ");
               }
               locIDFilter+=" )";
             
