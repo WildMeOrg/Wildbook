@@ -149,11 +149,6 @@
               
               </p>
 
-              <script language="JavaScript" type="text/javascript">
-                <!--
-                document.forms["loginForm"].elements["j_username"].focus()
-                // -->
-              </script>
 
               <p>&nbsp;</p>
 
