@@ -21,6 +21,7 @@ package org.ecocean.servlet;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.MailThreadExecutorService;
 import org.ecocean.NotificationMailer;
 import org.ecocean.Shepherd;
 
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
+import java.util.concurrent.ThreadPoolExecutor;
 
 //Set alternateID for this encounter/sighting
 public class EncounterSetAsUnidentifiable extends HttpServlet {
@@ -93,7 +95,7 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/allEncounters.jsp\">View all encounters</a></font></p>");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/allIndividuals.jsp\">View all individuals</a></font></p>");
           out.println(ServletUtilities.getFooter());
-          String message = "Encounter #" + request.getParameter("number") + " was set as unidentifiable in the database.";
+          String message = "Encounter " + request.getParameter("number") + " was set as unidentifiable in the database.";
           ServletUtilities.informInterestedParties(request, request.getParameter("number"),
             message);
 
@@ -101,11 +103,17 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
 
           Vector e_images = new Vector();
 
-          emailUpdate += CommonConfiguration.appendEmailRemoveHashString(request, emailUpdate,
+          emailUpdate = CommonConfiguration.appendEmailRemoveHashString(request, emailUpdate,
             submitterEmail);
 
-          NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitterEmail, ("Encounter update: " + request.getParameter("number")), emailUpdate, e_images);
-
+          
+        //let's get ready for emailing
+        ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+        
+        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitterEmail, ("Encounter update: " + request.getParameter("number")), emailUpdate, e_images));
+        es.shutdown();
+          
+          
 
         } else {
           out.println(ServletUtilities.getHeader(request));

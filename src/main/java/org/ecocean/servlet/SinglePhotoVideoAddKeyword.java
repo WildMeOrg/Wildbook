@@ -52,33 +52,44 @@ public class SinglePhotoVideoAddKeyword extends HttpServlet {
         boolean locked = false;
         String readableName = "";
         myShepherd.beginDBTransaction();
-        try {
-          Keyword word = myShepherd.getKeyword(request.getParameter("keyword"));
-          //word.addImageName(request.getParameter("number") + "/" + request.getParameter("photoName"));
-          SinglePhotoVideo vid=myShepherd.getSinglePhotoVideo(request.getParameter("photoName"));
-          vid.addKeyword(word);
-          
-          
-          readableName = word.getReadableName();
-        } catch (Exception le) {
-          locked = true;
-          myShepherd.rollbackDBTransaction();
-          le.printStackTrace();
+        
+        String[] keywords=request.getParameterValues("keyword");
+        int numKeywords=0;
+        if(keywords!=null){numKeywords=keywords.length;}
+        
+        for(int i=0;i<numKeywords;i++){
+          try {
+            myShepherd.beginDBTransaction();
+            Keyword word = myShepherd.getKeyword(keywords[i]);
+            SinglePhotoVideo vid=myShepherd.getSinglePhotoVideo(request.getParameter("photoName"));
+            vid.addKeyword(word);
+
+            readableName+= (word.getReadableName()+"<br />");
+            myShepherd.commitDBTransaction();
+          } 
+          catch (Exception le) {
+            locked = true;
+            myShepherd.rollbackDBTransaction();
+            le.printStackTrace();
+          }
+        
         }
+        
         if (!locked) {
 
-          myShepherd.commitDBTransaction();
+          //myShepherd.commitDBTransaction();
 
           //confirm success
           out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Success:</strong> The keyword <i>" + readableName + "</i> was added to the image.");
+          out.println("<strong>Success:</strong> The following keywords were added to the image:<br /><i>" + readableName + "</i>");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
           out.println("<p><a href=\"../encounters/allEncounters.jsp\">View all encounters</a></font></p>");
           out.println(ServletUtilities.getFooter());
-        } else {
+        } 
+        else {
           out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Failure:</strong> I have NOT added this keyword to the photo. This keyword is currently being modified by another user.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+          out.println("<strong>Failure:</strong> I have NOT added one or more of the keywords to the photo.");
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
           out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
           out.println("<p><a href=\"allIndividuals.jsp\">View all sharks</a></font></p>");
 
@@ -89,11 +100,11 @@ public class SinglePhotoVideoAddKeyword extends HttpServlet {
   
       else {
 
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-       out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-        out.println("<p><a href=\"allIndividuals.jsp\">View all sharks</a></font></p>");
-        out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+          out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
+          out.println("<p><a href=\"allIndividuals.jsp\">View all sharks</a></font></p>");
+          out.println(ServletUtilities.getFooter());
       }
 
 

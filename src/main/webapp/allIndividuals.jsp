@@ -238,9 +238,19 @@
                                 String imgName = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
                         %>
                         <tr>
-                            <td width="101" height="60" class="lineitem"><a
-                                    href="individuals.jsp?number=<%=sharky.getName()%>"><img
-                                    src="<%=imgName%>" alt="<%=sharky.getName()%>" border="0"/></a>
+                            <td width="101" height="60" class="lineitem">
+   								<%
+   								if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
+   								%>                         
+                            		<a href="individuals.jsp?number=<%=sharky.getName()%>"><img src="<%=imgName%>" alt="<%=sharky.getName()%>" border="0"/></a>
+                            	<%
+   								}
+   								else{
+   								%>
+   									&nbsp;	
+                            	<%
+   								}
+                            	%>
                             </td>
                             <td class="lineitems"><a
                                     href="individuals.jsp?number=<%=sharky.getName()%>"><%=sharky.getName()%>

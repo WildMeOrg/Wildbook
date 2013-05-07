@@ -27,53 +27,39 @@ import org.ecocean.genetics.*;
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.io.File;
 
 /**
- * <code>Shepherd</code> is the main	information	retrieval, processing, and persistence class in the Shepherd Project.
- * The <code>Shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it, using the Java Data Objects (JDO) implementation from DataNucleus.org.
- * Any application seeking access to	mark-recapture data must invoke an	instance of	Shepherd first and use it to retrieve any data stored in the
+ * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
+ * The <code>shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it.
+ * Any application seeking access to	whale shark	data must invoke an	instance of	shepherd first and use it to retrieve any data stored in the
  * database.
  * <p/>
- * While	a <code>Shepherd</code>	object is easily invoked with a	single constructor,	no data
- * can be retrieved until a new Transaction has been	started. Changes made using the Transaction must be committed (store changes) or rolled back (ignore changes).
+ * While	a <code>shepherd</code>	object is easily invoked with a	single,	simple constructor,	no data
+ * can be retrieved until a new Transaction has been	started. Changes made using the Transaction must be committed (store changes) or rolled back (ignore changes) before the application can finish.
  * Example:
- * <code>
- *<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
- *<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,javax.jdo.*"%>
- *<html>
- *<head>
- *<title>My Sample JSP File Using a Shepherd Object</title>
- *</head>
- *<body>
- *<%
- *Shepherd myShepherd=new Shepherd();
- *%>
+ * <p align="center"><code>
+ * <p/>
+ * shepherd myShepherd=new shepherd();<br>
+ * myShepherd.beginDBTransaction();
+ * <p align="center">Now	make any changes to	the	database objects that are needed.
+ * <p align="center">
+ * <p/>
+ * myShepherd.commitDBTransaction();
+ * *myShepherd.closeDBTransaction();
+ * </code>
+ * <p/>
  *
- *<p>The number of encounters in the database is: <%=myShepherd.getNumEncounters()%></p>
- *<p>The number of marked individuals in the database is: <%=myShepherd.getNumMarkedIndividuals()%></p>
- *<%
- *myShepherd.rollbackDBTransaction();
- *myShepherd.closeDBTransaction();
- *%>
- *</body>
- *</html>
- *</code>
  * @author Jason Holmberg
- * @see MarkedIndividual, Encounter, Keyword
+ * @version alpha-2
+ * @see shark, encounter, superSpot,	spot
  */
 public class Shepherd {
 
-  /*
-   * The JDO persistence manager used under the covers in this class.
-   */
   private PersistenceManager pm;
-
-  /*
-   * The PersistenceMangerFactory used to generate a PersistenceManger instance for this Shepherd.
-   */
+  public static Vector matches = new Vector();
   private PersistenceManagerFactory pmf;
 
-  public static Vector matches = new Vector();
 
   /**
    * Constructor to create a new shepherd thread object
@@ -90,29 +76,24 @@ public class Shepherd {
     }
   }
 
-/*
- * Returns the JDO persistence manager used by Shepherd under the covers.
- * 
- */
+
   public PersistenceManager getPM() {
     return pm;
   }
 
-  /*
-   * Returns the JDO factory class that creates persistence managers.
-   * 
-   */
   public PersistenceManagerFactory getPMF() {
     return pmf;
   }
 
 
   /**
-   * Stores a new, unassigned Encounter in the database for later retrieval and analysis.
+   * Stores a new, unassigned encounter in the database for later retrieval and analysis.
    * Each new encounter is assigned a unique number which is also its unique retrievable ID in the database.
-   * @param enc The new encounter to be added to the database.
-   * @return An identifier that represents the unique number of this new encounter in the database.
-   * @ see Encounter
+   * This method will be the primary method used for future web submissions to shepherd from web-based applications.
+   *
+   * @param enc the new, unassociated encounter to be considered for addition to the database
+   * @return an Integer number that represents the unique number of this new encounter in the datatbase
+   * @ see encounter
    */
   public String storeNewEncounter(Encounter enc, String uniqueID) {
     enc.setEncounterNumber(uniqueID);
@@ -122,16 +103,31 @@ public class Shepherd {
       commitDBTransaction();
     } catch (Exception e) {
       rollbackDBTransaction();
-      System.out.println("I failed to create a new encounter in Shepherd.storeNewEncounter().");
+      System.out.println("I failed to create a new encounter in shepherd.storeNewEncounter().");
       System.out.println("     uniqueID:" + uniqueID);
       e.printStackTrace();
       return "fail";
     }
     return (uniqueID);
   }
-  
+
+    public void storeNewOccurrence(Occurrence enc) {
+      //enc.setOccurrenceID(uniqueID);
+      beginDBTransaction();
+      try {
+        pm.makePersistent(enc);
+        commitDBTransaction();
+      } catch (Exception e) {
+        rollbackDBTransaction();
+        System.out.println("I failed to create a new Occurrence in shepherd.storeNewOccurrence().");
+        e.printStackTrace();
+
+      }
+
+  }
+
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
-    
+
     beginDBTransaction();
     try {
       pm.makePersistent(indie);
@@ -145,12 +141,6 @@ public class Shepherd {
     return true;
   }
 
-  /**
-   * Persists a new adoption in the database.
-   * @param ad The adoption to persist.
-   * @param uniqueID The unique identifier (e.g., primary key for an RDBMS) to persist the adoption under.
-   * @return A string of "fail on a failed persist" and the unique identifier on success.
-   */
   public String storeNewAdoption(Adoption ad, String uniqueID) {
     beginDBTransaction();
     try {
@@ -166,9 +156,6 @@ public class Shepherd {
     return (uniqueID);
   }
 
-  /*
-   * Persists a new Keyword in the database.
-   */
   public String storeNewKeyword(Keyword kw) {
     beginDBTransaction();
     try {
@@ -182,10 +169,7 @@ public class Shepherd {
     return "success";
   }
 
-/*
- * Persists a spot pattern recognition ScanTask in the database.
- * 
- */
+
   public boolean storeNewTask(ScanTask task) {
     //beginDBTransaction();
     try {
@@ -210,48 +194,53 @@ public class Shepherd {
     pm.deletePersistent(enc);
   }
 
-  /*
-   * Removes a TissueSample object from the database. It's data is permanently lost. 
-   */
   public void throwAwayTissueSample(TissueSample genSample) {
+    //String removedParameters = genSample.getHTMLString();
+    //List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
+    /*
+    for(int i=0;i<list.size();i++){
+      GeneticAnalysis gen=list.get(i);
+      genSample.removeGeneticAnalysis(gen);
+      pm.deletePersistent(gen);
+      i--;
+    }*/
     pm.deletePersistent(genSample);
+    //return removedParameters;
   }
-  
-  /*
-   * Removes an object of base class Genetic Analysis from the database. It's data is permanently lost. 
-   */  
   public void throwAwayGeneticAnalysis(GeneticAnalysis analysis) {
     //String removedParameters = analysis.getHTMLString();
     pm.deletePersistent(analysis);
     //return removedParameters;
   }
 
-  /*
-   * Removes a MicrosatelliteMarkersAnalysis object from the database. It's data is permanently lost. 
-   */
   public void throwAwayMicrosatelliteMarkersAnalysis(MicrosatelliteMarkersAnalysis analysis) {
+    //String removedParameters = analysis.getHTMLString();
+    /*
+    while(analysis.getLoci().size()>0){
+      Locus l=analysis.getLoci().get(0);
+      analysis.getLoci().remove(0);
+      pm.deletePersistent(l);
+    }
+    */
     pm.deletePersistent(analysis);
+    //return removedParameters;
   }
 
-  /*
-   * Removes an Adoption object from the database. It's data is permanently lost. 
-   */  
   public void throwAwayAdoption(Adoption ad) {
     String number = ad.getID();
     pm.deletePersistent(ad);
   }
 
-  /*
-   * Removes a Keyword object from the database. It's data is permanently lost. 
-   */
   public void throwAwayKeyword(Keyword word) {
     String indexname = word.getIndexname();
     pm.deletePersistent(word);
   }
 
-  /*
-   * Removes an array of spot patterns that were previously assigned to an Encounter. 
-   */
+  public void throwAwayOccurrence(Occurrence word) {
+    pm.deletePersistent(word);
+  }
+
+
   public void throwAwaySuperSpotArray(SuperSpot[] spots) {
     if (spots != null) {
       for (int i = 0; i < spots.length; i++) {
@@ -272,9 +261,6 @@ public class Shepherd {
     pm.deletePersistent(bye_bye_sharky);
   }
 
-  /*
-   * Removes a ScanTask object from the database. It's data is permanently lost. 
-   */
   public void throwAwayTask(ScanTask sTask) {
     String name = sTask.getUniqueNumber();
 
@@ -285,11 +271,7 @@ public class Shepherd {
 
   }
 
-/**
- * Returns an Encounter object identified by its catalogNumber (of the primary key in the database).
- * @param num Unique identifier (Encounter.catalogNumber) of the encounter.
- * @return null if nothing matching this string was found. Return the encounter if it can be found.
- */
+
   public Encounter getEncounter(String num) {
     Encounter tempEnc = null;
     try {
@@ -300,11 +282,6 @@ public class Shepherd {
     return tempEnc;
   }
 
-  /**
-   * Returns a SinglePhotoVideo object from the database.
-   * @param num The primary key/unique number of the object.
-   * @return The object or null if it does not exist in the database.
-   */
   public SinglePhotoVideo getSinglePhotoVideo(String num) {
     SinglePhotoVideo tempEnc = null;
     try {
@@ -314,13 +291,62 @@ public class Shepherd {
     }
     return tempEnc;
   }
+  
+  public Role getRole(String rolename, String username) {
 
-  /**
-   * Returns a TissueSample object stored for an encounter.
-   * @param sampleID The sample identifier for the tissue sample.
-   * @param encounterNumber The encounter number under which the sample is stored.
-   * @return The tissue sample or null if no matching object was found.
-   */
+    ArrayList<Role> roles = getAllRoles();
+    int numRoles=roles.size();
+    for(int i=0;i<numRoles;i++) {
+      Role kw = (Role) roles.get(i);
+      if((kw.getRolename().equals(rolename))&&(kw.getUsername().equals(username))){
+        return kw;
+        }
+    }
+    return null;
+  }
+  
+  public ArrayList<Role> getAllRolesForUser(String username) {
+    String filter = "this.username == '" + username + "'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    return (new ArrayList<Role>(c));
+  }
+  
+  public boolean doesUserHaveRole(String username, String rolename) {
+    String filter = "this.username == '" + username + "' && this.rolename == '" + rolename + "'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    if(c.size()>0){return true;}
+    return false;
+  }
+  
+  public String getAllRolesForUserAsString(String username) {
+    String filter = "this.username == '" + username + "'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList<Role> roles=new ArrayList<Role>(c);
+    int numRoles=roles.size();
+    String rolesFound="";
+    for(int i=0;i<numRoles;i++){
+      rolesFound+=(roles.get(i).getRolename()+" ");
+    }
+    return rolesFound;
+  }
+  
+  public User getUser(String username) {
+    User user= null;
+    try {
+      user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, username.trim()), true)));
+    } 
+    catch (Exception nsoe) {
+      return null;
+    }
+    return user;
+  }
+
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
     try {
@@ -340,13 +366,6 @@ public class Shepherd {
     return null;
   }
 
-  /**
-   * Returns a haplotype analysis identified by its encounter number, tissue sample number, and analysis number.
-   * @param sampleID The sample ID for the tissue sample on which this analysis was performed.
-   * @param encounterNumber The Encounter.catalogNumber under which the tissue sample is stored.
-   * @param analysisIDThe identifier of this haplotype analysis.
-   * @return The analysis object or null if no match was found in the database.
-   */
   public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       MitochondrialDNAAnalysis mtDNA = (MitochondrialDNAAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "MitochondrialDNA");
@@ -358,13 +377,6 @@ public class Shepherd {
     }
   }
 
-  /**
-   * Returns the designated genetic sex analysis.
-   * @param sampleID The sample ID for the tissue sample on which this analysis was performed.
-   * @param encounterNumber The Encounter.catalogNumber under which the tissue sample is stored.
-   * @param analysisIDThe identifier of this genetic sex analysis.
-   * @return The analysis object or null if no match was found in the database.
-   */
   public SexAnalysis getSexAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       SexAnalysis mtDNA = (SexAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "SexAnalysis");
@@ -375,14 +387,19 @@ public class Shepherd {
       return null;
     }
   }
+  
+  public BiologicalMeasurement getBiologicalMeasurement(String sampleID, String encounterNumber, String analysisID) {
+    try {
+      BiologicalMeasurement mtDNA = (BiologicalMeasurement)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "BiologicalMeasurement");
+      return mtDNA;
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+  }
 
-  /**
-   * Returns the designated microsatellite marker analysis.
-   * @param sampleID The sample ID for the tissue sample on which this analysis was performed.
-   * @param encounterNumber The Encounter.catalogNumber under which the tissue sample is stored.
-   * @param analysisID The identifier of this microsatellite marker analysis.
-   * @return The analysis object or null if no match was found in the database.
-   */
+
   public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(sampleID, encounterNumber, analysisID, "MicrosatelliteMarkers");
@@ -397,11 +414,7 @@ public class Shepherd {
 
 
 
-/**
- * Returns the specified adoption object.
- * @param num The unique identifier of the Adoption.
- * @return The object or null if no match was found in the database. 
- */
+
   public Adoption getAdoption(String num) {
     Adoption tempEnc = null;
     try {
@@ -412,13 +425,16 @@ public class Shepherd {
     return tempEnc;
   }
 
-  /**
-   * Returns the specified DataCollectionEvent object.
-   * @param clazz Class of the object.
-   * @param num Unique identifier of the object.
-   * @return The object or null if no match was found in the database.
-   */
   public <T extends DataCollectionEvent> T findDataCollectionEvent(Class<T> clazz, String num) {
+    T dataCollectionEvent = null;
+    try {
+      dataCollectionEvent = (T) pm.getObjectById((pm.newObjectIdInstance(clazz, num.trim())), true);
+    } catch (Exception e) {
+    }
+    return dataCollectionEvent;
+  }
+  
+  public <T extends GeneticAnalysis> T findGeneticAnalysis(Class<T> clazz, String num) {
     T dataCollectionEvent = null;
     try {
       dataCollectionEvent = (T) pm.getObjectById((pm.newObjectIdInstance(clazz, num.trim())), true);
@@ -428,11 +444,6 @@ public class Shepherd {
   }
 
 
-  /**
-   * Returns a detached, fully populated copy of an Encounter object.
-   * @param num The unique number of the object to copy.
-   * @return The object or null if it could not be found or copied without error.
-   */
   public Encounter getEncounterDeepCopy(String num) {
     if (isEncounter(num)) {
       Encounter tempEnc = getEncounter(num.trim());
@@ -446,12 +457,7 @@ public class Shepherd {
       return null;
     }
   }
-  
-  /**
-   * Returns a detached, fully populated copy of an Adoption object.
-   * @param num The unique number of the object to copy.
-   * @return The object or null if it could not be found or copied without error.
-   */
+
   public Adoption getAdoptionDeepCopy(String num) {
     if (isAdoption(num)) {
       Adoption tempEnc = getAdoption(num.trim());
@@ -466,11 +472,7 @@ public class Shepherd {
     }
   }
 
-  /**
-   * Returns a detached, fully populated copy of a Keyword object.
-   * @param num The unique number of the object to copy.
-   * @return The object or null if it could not be found or copied without error.
-   */
+
   public Keyword getKeywordDeepCopy(String name) {
     if (isKeyword(name)) {
       Keyword tempWord = ((Keyword) (getKeyword(name.trim())));
@@ -485,11 +487,7 @@ public class Shepherd {
     }
   }
 
-/**
- * Returns a persisted spot pattern recognition ScanTask object.
- * @param uniqueID The unique identifier of the task.
- * @return The object or null if not found in the database (or if an error occurred).
- */
+
   public ScanTask getScanTask(String uniqueID) {
     ScanTask tempTask = null;
     try {
@@ -500,11 +498,6 @@ public class Shepherd {
     return tempTask;
   }
 
-  /**
-   * Returns a keyword either by matching its readableName or indexName attributes.
-   * @param readableName The Keyword.readableName or Keyword.indexName attribute for the Keyword to match and return.
-   * @return The object or null if not found in the database.
-   */
   public Keyword getKeyword(String readableName) {
 
     Iterator keywords = getAllKeywords();
@@ -516,12 +509,9 @@ public class Shepherd {
 
   }
 
-  /**
-   * Returns a list of Keyword objects that two Encounter objects have in common.
-   * @param encounterNumber1 The Encounter.catalogNumber attribute to match for the first Encounter object to compare.
-   * @param encounterNumber2 The Encounter.catalogNumber attribute to match for the first Encounter object to compare.
-   * @return An ArrayList of the Keyword.readableName attributes for Keywords that both Encounter object have in common.
-   */
+
+
+
   public ArrayList<String> getKeywordsInCommon(String encounterNumber1, String encounterNumber2) {
     ArrayList<String> inCommon = new ArrayList<String>();
     Encounter enc1 = getEncounter(encounterNumber1);
@@ -530,6 +520,8 @@ public class Shepherd {
     Iterator keywords = getAllKeywords();
     while (keywords.hasNext()) {
       Keyword kw = (Keyword) keywords.next();
+
+      //if ((kw.isMemberOf(enc1)) && (kw.isMemberOf(enc2))) {
       if (enc1.hasKeyword(kw) && enc2.hasKeyword(kw)) {
         inCommon.add(kw.getReadableName());
       }
@@ -539,27 +531,17 @@ public class Shepherd {
     return inCommon;
   }
 
-/**
- * Returns true if the designated String matches the Encounter.catalogNumber attribute of an Encounter object in the database.
- * @param num Encounter.catalogNumber attribute to match.
- * @return True if the object exists in the database. Otherwise, false.
- */
+
   public boolean isEncounter(String num) {
     try {
       Encounter tempEnc = ((org.ecocean.Encounter) (pm.getObjectById(pm.newObjectIdInstance(Encounter.class, num.trim()), true)));
     } catch (Exception nsoe) {
-      nsoe.printStackTrace();
+      //nsoe.printStackTrace();
       return false;
     }
     return true;
   }
 
-  /**
-   * Returns true if a matching TissueSample object can be found in the database.
-   * @param num Encounter.catalogNumber attribute to match.
-   * @param sampleID Sample identifier to match.
-   * @return True if the object exists in the database. Otherwise, false.
-   */
   public boolean isTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
     try {
@@ -579,13 +561,7 @@ public class Shepherd {
     return false;
   }
 
-  /**
-   * Returns true if a matching GeneticAnalysis object can be found in the database.
-   * @param num Encounter.catalogNumber attribute to match.
-   * @param sampleID Sample identifier to match.
-   * @param analysisID The identifier of the analysis.
-   * @return True if the object exists in the database. Otherwise, false.
-   */
+  //TBD - need separate for haplotype and ms markers
   public boolean isGeneticAnalysis(String sampleID, String encounterNumber, String analysisID, String type) {
     TissueSample tempEnc = null;
     try {
@@ -605,13 +581,6 @@ public class Shepherd {
     return false;
   }
 
-  /**
-   * Returns the designated, uncast GeneticAnalysis object from the database.
-   * @param sampleID The sample ID for the tissue sample on which this analysis was performed.
-   * @param encounterNumber The Encounter.catalogNumber under which the tissue sample is stored.
-   * @param analysisID The identifier of this genetic analysis.
-   * @return The analysis object or null if no match was found in the database.
-   */
   public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID) {
     try {
       String filter = "this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
@@ -629,15 +598,7 @@ public class Shepherd {
     }
     return null;
   }
-  
-  /**
-   * Returns the designated, uncast GeneticAnalysis object from the database.
-   * @param sampleID The sample ID for the tissue sample on which this analysis was performed.
-   * @param encounterNumber The Encounter.catalogNumber under which the tissue sample is stored.
-   * @param analysisID The identifier of this genetic analysis.
-   * @param type The type of the GeneticAnalysis to match.
-   * @return The analysis object or null if no match was found in the database.
-   */
+
   public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID, String type) {
     try {
       String filter = "this.analysisType == \""+type+"\" && this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
@@ -656,11 +617,6 @@ public class Shepherd {
     return null;
   }
 
-  /**
-   * Returns true if a matching Adoption object is found in the database.
-   * @param num Unique identifier of the Adoption to match.
-   * @return True if the adoption can be found in the database. Otherwise, false.
-   */
   public boolean isAdoption(String num) {
     try {
       Adoption tempEnc = ((org.ecocean.Adoption) (pm.getObjectById(pm.newObjectIdInstance(Adoption.class, num.trim()), true)));
@@ -670,22 +626,16 @@ public class Shepherd {
     return true;
   }
 
-  /**
-   * Returns true if a matching Keyword object is found in the database. The match can be made if the String parameter matches the readableName or indexName of the Keyword.
-   * @param keywordDescription Unique Keyword.readableName or Keyword.indexName to match.
-   * @return True if the object can be found in the database. Otherwise, false.
-   */
   public boolean isKeyword(String keywordDescription) {
     Iterator keywords = getAllKeywords();
 	    while (keywords.hasNext()) {
       Keyword kw = (Keyword) keywords.next();
-      if((kw.getReadableName().equals(keywordDescription))||(kw.getIndexname().equals(keywordDescription))){return true;}
+      if(kw.getReadableName().equals(keywordDescription)){return true;}
  	}
 
     return false;
   }
 
-  
   public boolean isSinglePhotoVideo(String indexname) {
     try {
       SinglePhotoVideo tempEnc = ((org.ecocean.SinglePhotoVideo) (pm.getObjectById(pm.newObjectIdInstance(SinglePhotoVideo.class, indexname.trim()), true)));
@@ -708,6 +658,15 @@ public class Shepherd {
   public boolean isMarkedIndividual(String name) {
     try {
       MarkedIndividual tempShark = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, name.trim()), true)));
+    } catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
+  
+  public boolean isOccurrence(String name) {
+    try {
+      Occurrence tempShark = ((org.ecocean.Occurrence) (pm.getObjectById(pm.newObjectIdInstance(Occurrence.class, name.trim()), true)));
     } catch (Exception nsoe) {
       return false;
     }
@@ -762,9 +721,24 @@ public class Shepherd {
     Query acceptedEncounters = pm.newQuery(encClass);
     try {
       c = (Collection) (acceptedEncounters.execute());
-      ArrayList list = new ArrayList(c);
-      Iterator it = list.iterator();
+      //ArrayList list = new ArrayList(c);
+      Iterator it = c.iterator();
       return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a transaction to use.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+  
+  public Vector getAllEncountersNoFilterAsVector() {
+    Collection c;
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass);
+    try {
+      c = (Collection) (acceptedEncounters.execute());
+      Vector list = new Vector(c);
+      return list;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a transaction to use.");
       npe.printStackTrace();
@@ -779,6 +753,18 @@ public class Shepherd {
       return it;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+  
+  public Iterator getAllSinglePhotoVideosNoQuery() {
+    try {
+      Extent spvClass = pm.getExtent(SinglePhotoVideo.class, true);
+      Iterator it = spvClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSinglePhotoVideosNoQuery. Returning a null iterator.");
       npe.printStackTrace();
       return null;
     }
@@ -833,9 +819,9 @@ public class Shepherd {
 
 
   /**
-   * Retrieves any all encounters that are stored in the database
+   * Retrieves any all approved encounters that are stored in the database
    *
-   * @return an Iterator of all whale shark encounters stored in the database
+   * @return an Iterator of all whale shark encounters stored in the database that are approved
    * @see encounter, java.util.Iterator
    */
   public Iterator getAllEncounters() {
@@ -870,13 +856,28 @@ public class Shepherd {
     }
   }
   
+  public ArrayList getAllOccurrences(Query myQuery) {
+    Collection c;
+    try {
+      c = (Collection) (myQuery.execute());
+      ArrayList list = new ArrayList(c);
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return list;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllOccurrences(Query). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideo(Query acceptedEncounters) {
     Collection c;
     try {
       c = (Collection) (acceptedEncounters.execute());
       ArrayList<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>(c);
       return list;
-    } 
+    }
     catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllSinglePhotoVideo(Query). Returning a null collection.");
       npe.printStackTrace();
@@ -898,7 +899,65 @@ public class Shepherd {
       return null;
     }
   }
-
+  
+  public ArrayList<PatterningPassport> getPatterningPassports() {
+    int num = 0;
+    ArrayList al = new ArrayList<PatterningPassport>();
+    try {
+      //pm.getFetchPlan().setGroup("count");
+      Query q = pm.newQuery(PatterningPassport.class); // no filter, so all instances match
+      Collection results = (Collection) q.execute();
+      num = results.size();
+      al = new ArrayList<PatterningPassport>(results);
+      q.closeAll();
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      //return num;
+      System.out.println("getPatterningPassports EXCEPTION! " + num);
+      return al;
+    }
+    //return num;
+    System.out.println("getPatterningPassports. Returning a collection of length " + al.size() + ". " + num);
+    return al;
+    
+    
+    
+    /*
+    Collection c;
+    Extent encClass = this.getPM().getExtent(PatterningPassport.class, true);
+    Query query = this.getPM().newQuery(encClass);
+    
+    
+    try {
+      c = (Collection) (query.execute());
+      ArrayList list = new ArrayList(c);
+      ArrayList al = new ArrayList<PatterningPassport>(c);
+      System.out.println("getPatterningPassports. Returning a collection of length " + al.size() + ".");
+      System.out.println("... list.size() is " + list.size() + ".");
+      return al;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getPatterningPassports. Returning a null collection because I didn't have a transaction to use.");
+      npe.printStackTrace();
+      return null;
+    }
+    */
+   
+  }
+  /*
+  public ArrayList<File> getAllPatterningPassportFiles() {
+    Iterator all_spv = getAllSinglePhotoVideosNoQuery();
+    Collection c = new ArrayList();
+    while(all_spv.hasNext())
+    {
+      SinglePhotoVideo spv = (SinglePhotoVideo)all_spv.next();
+      File ppFile = spv.getPatterningPassportFile();
+      c.add(ppFile);
+    }
+    ArrayList<File> list = new ArrayList<File>(c);
+    return list;
+    
+  }
+  */
 
   public Iterator getAvailableScanWorkItems(int pageSize, long timeout) {
     Collection c;
@@ -1057,11 +1116,16 @@ public class Shepherd {
   }
 
   public ArrayList getAllAdoptionsForMarkedIndividual(String ind) {
-    String filter = "this.individual == '" + ind + "'";
-    Extent encClass = pm.getExtent(Adoption.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
-    Collection c = (Collection) (acceptedEncounters.execute());
-    return (new ArrayList(c));
+    if(CommonConfiguration.allowAdoptions()){
+      String filter = "this.individual == '" + ind + "'";
+      Extent encClass = pm.getExtent(Adoption.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      return (new ArrayList(c));
+    }
+    else{
+      return (new ArrayList());
+    }
   }
 
   public ArrayList getAllAdoptionsForEncounter(String shark) {
@@ -1097,6 +1161,77 @@ public class Shepherd {
     Iterator it = c.iterator();
     return it;
   }
+
+
+  public Iterator getAllOccurrencesForMarkedIndividual(String indie) {
+    //Query acceptedEncounters = pm.newQuery(encClass, filter2use);
+    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    //System.out.println("getAllOccurrencesForMarkedIndividual size: "+c.size());
+    Iterator it = c.iterator();
+    return it;
+  }
+  
+  public Occurrence getOccurrenceForEncounter(String encounterID){
+    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+"\"  VARIABLES org.ecocean.Encounter enc";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    while(it.hasNext()){
+      return ((Occurrence)it.next());
+    }
+    return null;
+  }
+
+  public ArrayList<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
+    HashMap<String,Integer> hmap = new HashMap<String,Integer>();
+    //TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
+   //TreeMap<String, Integer> map=new TreeMap<String, Integer>(cmp);
+   TreeMap<String, Integer> map=new TreeMap<String, Integer>();
+      Iterator it=getAllOccurrencesForMarkedIndividual(indie);
+      while(it.hasNext()){
+         Occurrence oc=(Occurrence)it.next();
+         ArrayList<MarkedIndividual> alreadyCounted=new ArrayList<MarkedIndividual>();
+         ArrayList<Encounter> encounters=oc.getEncounters();
+         int numEncounters=encounters.size();
+         for(int i=0;i<numEncounters;i++){
+           Encounter enc=encounters.get(i);
+           if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))&&(!enc.getIndividualID().equals(indie))){
+             MarkedIndividual indieEnc=this.getMarkedIndividual(enc.getIndividualID());
+             //check if we already have this Indie
+             if(!hmap.containsKey(indieEnc.getIndividualID())){
+               hmap.put(indieEnc.getIndividualID(), (new Integer(1)));
+               alreadyCounted.add(indieEnc);
+             }
+             else if(!alreadyCounted.contains(indieEnc)){
+               Integer oldValue=hmap.get(indieEnc.getIndividualID());
+               hmap.put(indieEnc.getIndividualID(), (oldValue+1));
+               //System.out.println("Iterating: "+indieEnc.getIndividualID());
+             }
+
+           }
+         }
+      }
+      //map.putAll(hmap);
+      //System.out.println("hmap size is: "+hmap.size());
+      //System.out.println("Let's copy hmap to map...");
+      //Iterator jit=hmap.keySet().iterator();
+      //while(jit.hasNext()){
+        //System.out.println("     hmap now size is: "+hmap.size());
+        //String lString=(String)jit.next();
+        //map.put(lString, hmap.get(lString));
+        //System.out.println("     map now size is: "+map.size());
+      //}
+      //System.out.println("Final map size is: "+map.size());
+      
+      ArrayList<Map.Entry> as = new ArrayList<Map.Entry>( hmap.entrySet() );  
+      IndividualOccurrenceNumComparator cmp=new IndividualOccurrenceNumComparator();
+      Collections.sort( as , cmp);  
+      Collections.reverse(as);
+      return as;
+  }
+
 
   public ArrayList<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
@@ -1216,6 +1351,17 @@ public class Shepherd {
     return tempShark;
   }
 
+  public Occurrence getOccurrence(String id) {
+    Occurrence tempShark = null;
+    try {
+      tempShark = ((org.ecocean.Occurrence) (pm.getObjectById(pm.newObjectIdInstance(Occurrence.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      return null;
+    }
+    return tempShark;
+  }
+
 
   /**
    * Returns all of the names of the sharks that can be used for training purporses - i.e. have more than one encounter - in a Vector format
@@ -1302,9 +1448,9 @@ public class Shepherd {
 
   public Iterator getAllMarkedIndividuals(Query sharks) {
     Collection c = (Collection) (sharks.execute());
-    ArrayList list = new ArrayList(c);
+    //ArrayList list = new ArrayList(c);
     //Collections.reverse(list);
-    Iterator it = list.iterator();
+    Iterator it = c.iterator();
     return it;
   }
 
@@ -1716,6 +1862,52 @@ public class Shepherd {
     }
     return it;
   }
+  
+  public ArrayList<User> getAllUsers() {
+    Extent allKeywords = null;
+    ArrayList<User> it = new ArrayList<User>();
+    try {
+      allKeywords = pm.getExtent(User.class, true);
+      Query acceptedKeywords = pm.newQuery(allKeywords);
+      acceptedKeywords.setOrdering("username descending");
+      Collection c = (Collection) (acceptedKeywords.execute());
+      it=new ArrayList<User>(c);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return it;
+    }
+    return it;
+  }
+
+  public Iterator getAllOccurrences() {
+    Extent allOccurs = null;
+    Iterator it = null;
+    try {
+      allOccurs = pm.getExtent(Occurrence.class, true);
+      Query acceptedOccurs = pm.newQuery(allOccurs);
+      Collection c = (Collection) (acceptedOccurs.execute());
+      it = c.iterator();
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return null;
+    }
+    return it;
+  }
+  
+  public ArrayList<Role> getAllRoles() {
+    Extent allKeywords = null;
+    ArrayList<Role> it = new ArrayList<Role>();
+    try {
+      allKeywords = pm.getExtent(Role.class, true);
+      Query acceptedKeywords = pm.newQuery(allKeywords);
+      Collection c = (Collection) (acceptedKeywords.execute());
+      it=new ArrayList<Role>(c);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return it;
+    }
+    return it;
+  }
 
   public Iterator getAllKeywords(Query acceptedKeywords) {
     Extent allKeywords = null;
@@ -1887,7 +2079,7 @@ public class Shepherd {
         else {
                 count--;
         }
-            } 
+            }
             else if (count > endNum) {
               stopMe = true;
               return thumbs;
@@ -2131,6 +2323,22 @@ public class Shepherd {
     Collection results = (Collection) q.execute();
     return (new ArrayList(results));
   }
+  
+  public ArrayList<String> getAllRoleNames() {
+    Query q = pm.newQuery(Role.class);
+    q.setResult("distinct rolename");
+    q.setOrdering("rolename ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
+  
+  public ArrayList<String> getAllUsernames() {
+    Query q = pm.newQuery(User.class);
+    q.setResult("distinct username");
+    q.setOrdering("username ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
 
   public ArrayList<String> getAllGeneticSexes() {
     Query q = pm.newQuery(SexAnalysis.class);
@@ -2229,6 +2437,8 @@ public class Shepherd {
     Collection results = (Collection)q.execute ();
     return (new ArrayList(results));
   }
+  
+
 
 } //end Shepherd class
 

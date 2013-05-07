@@ -78,6 +78,7 @@ public class Encounter implements java.io.Serializable {
   public String genus = "";
   public String specificEpithet;
   public String lifeStage;
+  public String country;
 
 
   /*
@@ -746,7 +747,9 @@ public class Encounter implements java.io.Serializable {
   }
 
   /**
-   * Sets the String holding specific location data used for searching
+   * A legacy method replaced by setLocationID(...).
+   * 
+   * 
    */
   public void setLocationCode(String newLoc) {
     setLocationID(newLoc);
@@ -783,6 +786,10 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setMatchedBy(String matchType) {
+    identificationRemarks = matchType;
+  }
+  
+  public void setIdentificationRemarks(String matchType) {
     identificationRemarks = matchType;
   }
 
@@ -1203,8 +1210,7 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setLocationID(String newLocationID) {
-    if(newLocationID!=null){locationID = newLocationID;}
-    else{locationID = null;}
+    this.locationID = newLocationID.trim();
   }
 
   public Double getMaximumDepthInMeters() {
@@ -1293,8 +1299,7 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setBehavior(String beh) {
-    if(beh!=null){behavior = beh;}
-    else{behavior = null;}
+    this.behavior = beh;
   }
 
   public String getEventID() {
@@ -1472,7 +1477,7 @@ public class Encounter implements java.io.Serializable {
   //public void setDecimalLatitude(String lat){this.decimalLatitude=Double.parseDouble(lat);}
 
   public String getDecimalLongitude(){
-    if(decimalLatitude!=null){return Double.toString(decimalLongitude);}
+    if(decimalLongitude!=null){return Double.toString(decimalLongitude);}
     return null;
   }
 
@@ -1653,6 +1658,32 @@ public class Encounter implements java.io.Serializable {
       return null;
     }
     
+    /**
+     * A convenience method that returns the first genetic sex found in the TissueSamples for this Encounter. 
+     * 
+     *@return a String if found or null if no genetic sex is found
+     */
+    public String getGeneticSex(){
+      int numTissueSamples=tissueSamples.size();
+      if(numTissueSamples>0){
+        for(int j=0;j<numTissueSamples;j++){
+          TissueSample thisSample=tissueSamples.get(j);
+          int numAnalyses=thisSample.getNumAnalyses();
+          if(numAnalyses>0){
+            List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+            for(int g=0;g<numAnalyses;g++){
+              GeneticAnalysis ga = gAnalyses.get(g);
+              if(ga.getAnalysisType().equals("SexAnalysis")){
+                SexAnalysis mito=(SexAnalysis)ga;
+                if(mito.getSex()!=null){return mito.getSex();}
+              }
+            }
+          }
+        }
+      }
+      return null;
+    }
+    
     public List<SinglePhotoVideo> getImages(){return images;}
     
     public boolean hasKeyword(Keyword word){
@@ -1674,6 +1705,89 @@ public class Encounter implements java.io.Serializable {
     
     public Vector getOldAdditionalImageNames(){return additionalImageNames;}
     
+    public Double getLatitudeAsDouble(){return decimalLatitude;}
+    public Double getLongitudeAsDouble(){return decimalLongitude;}
     
+    public boolean hasMeasurements(){
+      if((measurements!=null)&&(measurements.size()>0)){
+        int numMeasurements=measurements.size();
+        for(int i=0;i<numMeasurements;i++){
+          Measurement m=measurements.get(i);
+          if(m.getValue()!=null){return true;}
+        }
+      }
+      return false;
+    }
+    
+    public boolean hasMeasurement(String type){
+      if((measurements!=null)&&(measurements.size()>0)){
+        int numMeasurements=measurements.size();
+        for(int i=0;i<numMeasurements;i++){
+          Measurement m=measurements.get(i);
+          if((m.getValue()!=null)&&(m.getType().equals(type))){return true;}
+        }
+      }
+      return false;
+    }
+    
+    public boolean hasBiologicalMeasurement(String type){
+      if((tissueSamples!=null)&&(tissueSamples.size()>0)){  
+        int numTissueSamples=tissueSamples.size();
+        for(int i=0;i<numTissueSamples;i++){
+          TissueSample ts=tissueSamples.get(i);
+          if(ts.getBiologicalMeasurement(type)!=null){
+            BiologicalMeasurement bm=ts.getBiologicalMeasurement(type);
+            if(bm.getValue()!=null){return true;}
+          }
+        }
+      }
+      return false;
+    }
+    
+    
+    
+    /**
+     * Returns the first measurement of the specified type
+     * @param type
+     * @return
+     */
+    public Measurement getMeasurement(String type){
+      if((measurements!=null)&&(measurements.size()>0)){
+        int numMeasurements=measurements.size();
+        for(int i=0;i<numMeasurements;i++){
+          Measurement m=measurements.get(i);
+          if((m.getValue()!=null)&&(m.getType().equals(type))){return m;}
+        }
+      }
+      return null;
+    }
+    
+    public BiologicalMeasurement getBiologicalMeasurement(String type){
+      
+      if(tissueSamples!=null){int numTissueSamples=tissueSamples.size();
+      for(int y=0;y<numTissueSamples;y++){
+        TissueSample ts=tissueSamples.get(y);
+        if((ts.getGeneticAnalyses()!=null)&&(ts.getGeneticAnalyses().size()>0)){
+          int numMeasurements=ts.getGeneticAnalyses().size();
+          for(int i=0;i<numMeasurements;i++){
+            GeneticAnalysis m=ts.getGeneticAnalyses().get(i);
+            if(m.getAnalysisType().equals("BiologicalMeasurement")){
+              BiologicalMeasurement f=(BiologicalMeasurement)m;
+              if((f.getMeasurementType().equals(type))&&(f.getValue()!=null)){return f;}
+            }
+          }
+        }
+      }
+      }
+
+      return null;
+    }
+    
+    public String getCountry(){return country;}
+    
+    public void setCountry(String newCountry) {
+      if(newCountry!=null){country = newCountry;}
+      else{country=null;}
+    }
 }
 

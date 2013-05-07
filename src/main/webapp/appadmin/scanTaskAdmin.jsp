@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,org.ecocean.Shepherd,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor" %>
+         import="org.ecocean.CommonConfiguration,org.ecocean.Shepherd,org.ecocean.Encounter,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor" %>
 <%
 
   //concurrency examination for creation and removal threads
@@ -217,7 +217,13 @@
                   id="scanNum<%=scanNum%>_WriteResult" value="Write Result"></form>
       <br> <%
       }
-      if ((request.isUserInRole("admin")) || (request.getRemoteUser().equals(st.getSubmitter()))) {%>
+      boolean hasPermissionForThisEncounter=false;
+      if ((request.isUserInRole("admin")) || (request.getRemoteUser().equals(st.getSubmitter()))) {hasPermissionForThisEncounter=true;}
+      else if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){
+    	Encounter scanEnc=myShepherd.getEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""));
+    	if((scanEnc.getLocationID()!=null)&&(request.isUserInRole(scanEnc.getLocationID()))){hasPermissionForThisEncounter=true;}  	
+      }
+      if (hasPermissionForThisEncounter) {%>
       <form name="scanNum<%=scanNum%>" method="post"
             action="../ScanTaskHandler"><input name="action" type="hidden"
                                                id="action" value="removeTask"><input name="taskID"
@@ -225,6 +231,9 @@
                                                                                      id="taskID"
                                                                                      value="<%=st.getUniqueNumber()%>"><input
         name="delete" type="submit" id="delete" value="Delete"></form>
+        <br />
+
+        
       <%
         }
       %>
@@ -287,7 +296,14 @@
         name="viewresult" type="submit" id="viewresult" value="View"></form>
     </td>
     <td>
-      <%if ((request.isUserInRole("admin")) || (request.getRemoteUser().equals(st.getSubmitter()))) {%>
+      <%      
+      boolean hasPermissionForThisEncounter=false;
+      if ((request.isUserInRole("admin")) || (request.getRemoteUser().equals(st.getSubmitter()))) {hasPermissionForThisEncounter=true;}
+      else if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){
+    	Encounter scanEnc=myShepherd.getEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""));
+    	if((scanEnc.getLocationID()!=null)&&(request.isUserInRole(scanEnc.getLocationID()))){hasPermissionForThisEncounter=true;}  	
+      }
+      if (hasPermissionForThisEncounter) {%>
       <form name="scanNum<%=scanNum%>" method="post"
             action="../ScanTaskHandler"><input name="action" type="hidden"
                                                id="action" value="removeTask"><input name="taskID"

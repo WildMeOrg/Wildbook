@@ -187,7 +187,10 @@ public class IndividualCreate extends HttpServlet {
               File atomFile = new File(getServletContext().getRealPath(("/atom.xml")));
 
               ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile);
-
+              
+              //shutdown the mailing threadpool
+              es.shutdown();
+              
             }
             //set up the directory for this individual
             File thisSharkDir = new File(individualsDir, request.getParameter("individual"));

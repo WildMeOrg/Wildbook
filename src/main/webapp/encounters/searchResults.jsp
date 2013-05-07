@@ -47,14 +47,6 @@
   int endNum = 10;
 
 
-
-//let's set up our Excel spreasheeting operations
-  //String filenameOBIS = "searchResults_OBIS_" + request.getRemoteUser() + ".xls";
-  //String filenameExport = "searchResults_" + request.getRemoteUser() + ".xls";
-  //String kmlFilename = "KMLExport_" + request.getRemoteUser() + ".kml";
-  //File fileOBIS = new File(getServletContext().getRealPath(("/encounters/" + filenameOBIS)));
-  //File fileExport = new File(getServletContext().getRealPath(("/encounters/" + filenameExport)));
-
   try {
 
     if (request.getParameter("startNum") != null) {
@@ -88,7 +80,7 @@
   ArrayList uniqueEncounters = new ArrayList();
   for (int q = 0; q < rEncounters.size(); q++) {
     Encounter rEnc = (Encounter) rEncounters.get(q);
-    if (!rEnc.isAssignedToMarkedIndividual().equals("Unassigned")) {
+    if ((rEnc.getIndividualID()!=null)&&(!rEnc.getIndividualID().equals("Unassigned"))) {
       String assemblage = rEnc.getIndividualID() + ":" + rEnc.getYear() + ":" + rEnc.getMonth() + ":" + rEnc.getDay();
       if (!uniqueEncounters.contains(assemblage)) {
         numUniqueEncounters++;
@@ -191,6 +183,12 @@
   <li><a
     href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
+        <li><a
+     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+   </a></li>
+      <li><a
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+   </a></li>
 
 </ul>
 
@@ -245,6 +243,9 @@
   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
     <strong><%=encprops.getProperty("locationID")%>
     </strong></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
+    <strong><%=encprops.getProperty("occurrenceID")%>
+    </strong></td>
 </tr>
 
 <%
@@ -264,7 +265,15 @@
     if ((numResults >= startNum) && (numResults <= endNum)) {
 %>
 <tr class="lineitem">
-  <td width="100" class="lineitem"><img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>"></td>
+  <td width="100" class="lineitem">
+  <%
+   if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
+   %>
+  	<img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>">
+  <%
+   }
+  %>
+  </td>
 
   <%
     if (enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned")) {
@@ -299,17 +308,58 @@
   </td>
 <%
 }
-%>
 
-
-  <td class="lineitem"><%=enc.getSubmitterName()%>
-  </td>
+		if(enc.getSubmitterName()!=null){
+		%>
+			<td class="lineitem"><%=enc.getSubmitterName()%></td>
+		<%
+		}
+		else {
+		%>
+		<td class="lineitem">&nbsp;</td>
+		<%
+		}
+		%>
   <td class="lineitem"><%=enc.getDate()%>
   </td>
 
-  <td class="lineitem"><%=enc.getLocation()%>
-  </td>
-  <td class="lineitem"><%=enc.getLocationCode()%>
+		<%
+		if(enc.getLocation()!=null){
+		%>
+			<td width="90" class="lineitem"><%=enc.getLocation()%></td>
+		<%
+		}
+		else {
+		%>
+		<td width="90" class="lineitem">&nbsp;</td>
+		<%
+		}
+		
+		if(enc.getLocationID()!=null){
+		%>
+			<td class="lineitem"><%=enc.getLocationID()%></td>
+		<%
+		}
+		else {
+		%>
+		<td class="lineitem">&nbsp;</td>
+		<%
+		}
+		%>
+    <td class="lineitem">
+    <%
+    if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+    	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+    %>
+    <a href="../occurrence.jsp?number=<%=thisOccur.getOccurrenceID()%>"><%=thisOccur.getOccurrenceID() %></a>
+    <%	
+    }
+    else{
+    %>
+    &nbsp;
+    <%	
+    }
+    %>
   </td>
 </tr>
 <%
@@ -379,19 +429,7 @@
   </tr>
 </table>
 
-<p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
-<p><%=encprops.getProperty("exportedOBIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=encprops.getProperty("clickHere")%></a><br />
-<%=encprops.getProperty("exportedOBISLocales")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=encprops.getProperty("clickHere")%></a>
-</p>
 
-<p><%=encprops.getProperty("exportedEmail")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportEmailAddresses?<%=request.getQueryString()%>"><%=encprops.getProperty("clickHere")%>
-</a>
-</p>
-
-<p><%=encprops.getProperty("exportedGeneGIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportGeneGISFormat?<%=request.getQueryString()%>">
-<%=encprops.getProperty("clickHere")%></a>
-</p>
 
 
 <p>

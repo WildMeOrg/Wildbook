@@ -140,6 +140,7 @@
     }
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
+    
   }
 
   String thumbLocation = "file-"+thisEncounterDir.getAbsolutePath() + "/thumb.jpg";
@@ -219,7 +220,13 @@
   new image(s).</em></p>
 <%
 
+
+if(CommonConfiguration.sendEmailNotifications()){
+
   Vector e_images = new Vector();
+
+
+
 
   //get the email thread handler
   ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
@@ -271,7 +278,8 @@
       }
     }
 
-  } else {
+  } 
+  else {
     String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString
       (request, thanksmessage, submitter);
 
@@ -320,7 +328,10 @@
       es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), informOthers, ("New encounter submission: " + number), personalizedThanksMessage, e_images));
     }
   }
+  es.shutdown();
+}
 
+myShepherd=null;
 
 %>
 </div>

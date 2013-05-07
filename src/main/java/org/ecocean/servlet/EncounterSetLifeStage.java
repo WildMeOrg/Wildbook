@@ -40,7 +40,8 @@ public class EncounterSetLifeStage extends HttpServlet {
         else{
         	enc.setLifeStage(lifeStage);
 		}
-
+        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed life stage to " + request.getParameter("lifeStage") + ".</p>");
+        
 
       }
       catch(Exception le){
@@ -58,6 +59,8 @@ public class EncounterSetLifeStage extends HttpServlet {
         out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
         out.println(ServletUtilities.getFooter());
         String message="The lifeStage for encounter "+encNum+" was set to "+lifeStage+".";
+        
+        
       }
       else{
 

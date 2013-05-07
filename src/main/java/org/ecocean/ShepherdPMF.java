@@ -19,14 +19,15 @@
 
 package org.ecocean;
 
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
-
 import javax.jdo.JDOException;
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManagerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Properties;
 
 
 public class ShepherdPMF {
@@ -41,18 +42,39 @@ public class ShepherdPMF {
         Properties dnProperties = new Properties();
 
 
-        dnProperties.setProperty("datanucleus.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.PersistenceManagerFactoryImpl");
+        dnProperties.setProperty("javax.jdo.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.JDOPersistenceManagerFactory");
 
-        //class setup
-        Enumeration<?> e = CommonConfiguration.getPropertyNames();
-        while(e.hasMoreElements()) {
-          String name = (String) e.nextElement();
+        Properties props = new Properties();
+        String shepherdDataDir="shepherd_data_dir";
+        if((CommonConfiguration.getProperty("dataDirectoryName")!=null)&&(!CommonConfiguration.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=CommonConfiguration.getProperty("dataDirectoryName");}
+        Properties overrideProps=loadOverrideProps(shepherdDataDir);
+        //System.out.println(overrideProps);
+        
+        if(overrideProps.size()>0){props=overrideProps;}
+        else {
+          //otherwise load the embedded commonConfig
+          
+          try {
+            props.load(ShepherdPMF.class.getResourceAsStream("/bundles/jdoconfig.properties"));
+          } 
+          catch (IOException ioe) {
+            ioe.printStackTrace();
+          }
+        }
+        
+        
+
+        Enumeration<Object> propsNames = props.keys();
+        while (propsNames.hasMoreElements()) {
+          String name = (String) propsNames.nextElement();
           if (name.startsWith("datanucleus") || name.startsWith("javax.jdo")) {
-            dnProperties.setProperty(name, CommonConfiguration.getProperty(name).trim());
+            dnProperties.setProperty(name, props.getProperty(name).trim());
           }
         }
 
         pmf = JDOHelper.getPersistenceManagerFactory(dnProperties);
+
+
       }
       return pmf;
     } catch (JDOException jdo) {
@@ -60,6 +82,44 @@ public class ShepherdPMF {
       System.out.println("I couldn't instantiate a PMF.");
       return null;
     }
+  }
+  
+  public static Properties loadOverrideProps(String shepherdDataDir) {
+    //System.out.println("Starting loadOverrideProps");
+    Properties myProps=new Properties();
+    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
+    //System.out.println(configDir.getAbsolutePath());
+    //sometimes this ends up being the "bin" directory of the J2EE container
+    //we need to fix that
+    if((configDir.getAbsolutePath().contains("/bin/")) || (configDir.getAbsolutePath().contains("\\bin\\"))){
+      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
+      configDir=new File(fixedPath);
+      //System.out.println("Fixing the bin issue in Shepherd PMF. ");
+      //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+    }
+    //System.out.println(configDir.getAbsolutePath());
+    if(!configDir.exists()){configDir.mkdirs();}
+    File configFile = new File(configDir, "jdoconfig.properties");
+    if (configFile.exists()) {
+      //System.out.println("Overriding default properties with " + configFile.getAbsolutePath());
+      FileInputStream fileInputStream = null;
+      try {
+        fileInputStream = new FileInputStream(configFile);
+        myProps.load(fileInputStream);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      finally {
+        if (fileInputStream != null) {
+          try {
+            fileInputStream.close();
+          } catch (Exception e2) {
+            e2.printStackTrace();
+          }
+        }
+      }
+    }
+    return myProps;
   }
 
 }

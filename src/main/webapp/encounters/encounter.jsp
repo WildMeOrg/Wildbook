@@ -62,9 +62,10 @@ File encounterDir = new File(encountersDir, num);
 
 
 //let's load encounters.properties
-  Properties encprops = new Properties();
-  encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
+  //Properties encprops = new Properties();
+  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
+  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode);
 
 
   pageContext.setAttribute("num", num);
@@ -149,30 +150,20 @@ File encounterDir = new File(encountersDir, num);
 
     -->
 
-table.tissueSample {
-    border-width: 1px;
-    border-spacing: 2px;
-    border-style: hidden;
-    border-color: gray;
-    border-collapse: collapse;
-    background-color: white;
+
+
+
+th.measurement{
+	 font-size: 0.9em;
+	 font-weight: normal;
+	 font-style:italic;
 }
-table.tissueSample th {
-    border-width: 1px;
-    padding: 1px;
-    border-style: solid;
-    border-color: gray;
-    background-color: #99CCFF;
-    -moz-border-radius: ;
+
+td.measurement{
+	 font-size: 0.9em;
+	 font-weight: normal;
 }
-table.tissueSample td {
-    border-width: 1px;
-    padding: 2px;
-    border-style: solid;
-    border-color: gray;
-    background-color: white;
-    -moz-border-radius: ;
-}
+
 </style>
 
 
@@ -242,7 +233,24 @@ margin-bottom: 8px !important;
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
   <script type="text/javascript" src="StyledMarker.js"></script>
 
+<!--  FACEBOOK LIKE BUTTON -->
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
 
+<!-- GOOGLE PLUS-ONE BUTTON -->
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
 </head>
 
 <body <%if (request.getParameter("noscript") == null) {%>
@@ -266,7 +274,7 @@ margin-bottom: 8px !important;
       Encounter enc = myShepherd.getEncounter(num);
       pageContext.setAttribute("enc", enc);
       String livingStatus = "";
-      if (enc.getLivingStatus().equals("dead")) {
+      if ((enc.getLivingStatus()!=null)&&(enc.getLivingStatus().equals("dead"))) {
         livingStatus = " (deceased)";
       }
       //int numImages = enc.getAdditionalImageNames().size();
@@ -309,30 +317,45 @@ margin-bottom: 8px !important;
           <p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unapproved_title") %>
             : <%=num%><%=livingStatus %>
           </font>
+          </p>
         </td>
       </tr>
     </table>
     <%
-    } else {
+    } 
+    else {
     %>
 
-    <p><font size="4"><strong><%=encprops.getProperty("title") %>
-    </strong>: <%=num%><%=livingStatus %>
+    <p><font size="4"><strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %>
     </font></p>
+<%
+    }
+%>
+     
+    <p class="caption"><em><%=encprops.getProperty("description") %></em></p>
+ <table><tr valign="middle">  
+  <td>
+    <!-- Google PLUS-ONE button -->
+<g:plusone size="small" annotation="none"></g:plusone>
+</td>
+<td>
+<!--  Twitter TWEET THIS button -->
+<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+</td>
+<td>
+<!-- Facebook LIKE button -->
+<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
+</td>
+</tr></table> 
+<br />
+<br />
     <%
-      if (enc.getEventID() != null) {
-    %>
-    <p class="para"><%=encprops.getProperty("eventID") %>:
-      <%=enc.getEventID() %>
-    </p>
-    <%
-      }
-    %>
-    <%}%> <%
     if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
   %>
     <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
-      <%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> <%
+      <%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> 
+      <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
       <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=manageIdentity">edit</a>]</font>
@@ -366,8 +389,39 @@ margin-bottom: 8px !important;
     </p>
     <%
       } //end else
+	
+    
+    if (enc.getEventID() != null) {
+  %>
+  <p class="para"><%=encprops.getProperty("eventID") %>:
+    <%=enc.getEventID() %>
+  </p>
+  <%
+    }
+  
+  %>
+	<p class="para">
+	<%=encprops.getProperty("occurrenceID") %>:
+	<%
+	if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+	%>
+		<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></a>	
+	<% 	
+	}
+	else{
+	%>
+	<%=encprops.getProperty("none_assigned") %>
+	<%
+	}
 
-
+        if (isOwner && CommonConfiguration.isCatalogEditable()) {
+      %>
+      <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=manageOccurrence">edit</a>]</font>
+      <%
+        }
+      %>
+  </p>
+<%
     if(CommonConfiguration.showProperty("showTaxonomy")){
     
     String genusSpeciesFound=encprops.getProperty("notAvailable");
@@ -387,7 +441,13 @@ margin-bottom: 8px !important;
 %>
     
     <p class="para"><img align="absmiddle" src="../images/life_icon.gif">
-      <%=encprops.getProperty("status")%>: <%=enc.getLivingStatus()%> <%
+      <%=encprops.getProperty("status")%>: 
+      <%
+      if(enc.getLivingStatus()!=null){
+      %>
+      <%=enc.getLivingStatus()%>
+       <%
+    }
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>[<a
         href="encounter.jsp?number=<%=num%>&edit=livingStatus#livingStatus">edit</a>]<%
@@ -501,26 +561,50 @@ margin-bottom: 8px !important;
 </c:if>
 
 <p class="para"><strong><%=encprops.getProperty("location") %>
-</strong><br/> <%=enc.getLocation()%>
+</strong><br/> 
+<%
+if(enc.getLocation()!=null){
+%>
+<%=enc.getLocation()%>
+<%
+}
+%>
+
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=location#location">edit</a>]</font>
   <%
     }
   %>
+  
   <br/>
-
-  <em><%=encprops.getProperty("locationID") %>
-  </em>: <%=enc.getLocationCode()%>
+  <em><%=encprops.getProperty("locationID") %></em>: <%=enc.getLocationCode()%>
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
   <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=loccode#loccode">edit</a>]</font>
   <a href="<%=CommonConfiguration.getWikiLocation()%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
-  %><br/>
-  <em><%=encprops.getProperty("latitude") %>
-  </em>:
+  %>
+  
+  <br/>
+  <em><%=encprops.getProperty("country") %></em>: 
+  <%
+  if(enc.getCountry()!=null){
+  %>
+  <%=enc.getCountry()%>
+  <%
+  }
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
+  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=country#country">edit</a>]</font>
+  <a href="<%=CommonConfiguration.getWikiLocation()%>country" target="_blank"><img
+    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
+    }
+  %>
+  
+  
+  <br/>
+  <em><%=encprops.getProperty("latitude") %></em>:
   <%
     if ((enc.getDWCDecimalLatitude() != null) && (!enc.getDWCDecimalLatitude().equals("-9999.0"))) {
   %>
@@ -528,8 +612,7 @@ margin-bottom: 8px !important;
   <%
     }
   %>
-  <br/> <em><%=encprops.getProperty("longitude") %>
-  </em>:
+  <br/> <em><%=encprops.getProperty("longitude") %></em>:
   <%
     if ((enc.getDWCDecimalLongitude() != null) && (!enc.getDWCDecimalLongitude().equals("-9999.0"))) {
   %>
@@ -613,7 +696,12 @@ margin-bottom: 8px !important;
  %>
 
 <p class="para"><strong><%=encprops.getProperty("scarring") %>
-</strong><br/> <%=enc.getDistinguishingScar()%>
+</strong><br/> 
+<%
+String recordedScarring="";
+if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar();}
+%>
+<%=recordedScarring%>
     <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  	%>
@@ -679,7 +767,7 @@ margin-bottom: 8px !important;
 </c:if>
 <table>
 <tr>
-<th>Type</th><th>Size</th><th>Units</th><c:if test="${!empty samplingProtocols}"><th>Sampling Protocol</th></c:if>
+<th class="measurement">Type</th><th class="measurement">Size</th><th class="measurement">Units</th><c:if test="${!empty samplingProtocols}"><th class="measurement">Sampling Protocol</th></c:if>
 </tr>
 <c:forEach var="item" items="${measurements}">
  <% 
@@ -695,7 +783,7 @@ margin-bottom: 8px !important;
    }
  %>
 <tr>
-    <td><c:out value="${item.label}"/></td><td><c:out value="${measurementValue}"/></td><td><c:out value="${item.unitsLabel}"/></td><td><c:out value="${samplingProtocol}"/></td>
+    <td class="measurement"><c:out value="${item.label}"/></td><td class="measurement"><c:out value="${measurementValue}"/></td><td class="measurement"><c:out value="${item.unitsLabel}"/></td><td class="measurement"><c:out value="${samplingProtocol}"/></td>
 </tr>
 </c:forEach>
 </table>
@@ -805,7 +893,12 @@ margin-bottom: 8px !important;
 %>
 
 <p class="para"><strong><%=encprops.getProperty("comments") %>
-</strong><br/> <%=enc.getComments()%><br/>
+</strong><br/> 
+<%
+String recordedComments="";
+if(enc.getComments()!=null){recordedComments=enc.getComments();}
+%>
+<%=recordedComments%><br/>
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=comments#comments">edit</a>]</font>
@@ -1120,12 +1213,30 @@ for(int j=0;j<numTissueSamples;j++){
 			
 			<% 
 			}
+			else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
+				BiologicalMeasurement mito=(BiologicalMeasurement)ga;
+				%>
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
+				<%
+				if(!mito.getSuperHTMLString().equals("")){
+				%>
+				<em>
+				<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+				<br /><%=mito.getSuperHTMLString()%>
+				</em>
+				<%
+				}
+				%>
+				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveBiologicalMeasurement?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			<%
+			}
 		}
 		%>
 		</table>
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><%=encprops.getProperty("addHaplotype") %></a></span></p>
-		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=msMarkers#msMarkers"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
+		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=msMarkers#msMarkers"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=msMarkers#msMarkers"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
+		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><%=encprops.getProperty("addBiologicalMeasurement") %></a></span></p>
 	
 	</td>
 	
@@ -1309,13 +1420,32 @@ else {
 
   }
 
-
-
 if(loggedIn){
+
+//now iterate through the jspImport# declarations in encounter.properties and import those files locally
+int currentImportNum=0;
+while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
+	  String importName=encprops.getProperty(("jspImport"+currentImportNum));
+	//let's set up references to our file system components
+	  
+%>
+	<hr />
+		<jsp:include page="<%=importName %>" flush="true">
+			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+			<jsp:param name="encounterNumber" value="<%=num%>" />
+    		<jsp:param name="isOwner" value="<%=isOwnerValue %>" />
+		</jsp:include>
+
+    <%
+
+ currentImportNum++;
+} //end while for jspImports
+
+
 %>
 
 <br/>
-<hr>
+<hr />
 <table>
   <tr>
     <td valign="top">
@@ -1326,8 +1456,11 @@ if(loggedIn){
       <%
         if (enc.getRComments() != null) {
       %>
+      <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+      
       <p class="para"><%=enc.getRComments().replaceAll("\n", "<br />")%>
       </p>
+      </div>
       <%
         }
         if (CommonConfiguration.isCatalogEditable()) {
@@ -1339,16 +1472,19 @@ if(loggedIn){
           <input name="action" type="hidden" value="enc_comments" id="action">
 
         <p>
-          <textarea name="comments" cols="50" id="comments"></textarea> <br/>
+          <textarea name="autocomments" cols="50" id="autocomments"></textarea> <br/>
           <input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>">
         </p>
       </form>
     </td>
   </tr>
 </table>
+
 <%
       }
     }
+
+
   }
 
 %>
@@ -1358,11 +1494,13 @@ if(loggedIn){
 </tr>
 
 </table>
+
 <br/>
 <table>
   <tr>
     <td>
       <%
+      if(enc.getInterestedResearchers()!=null){
         Vector trackers = enc.getInterestedResearchers();
         if ((isOwner) && (trackers.size() > 0)) {%>
 
@@ -1374,11 +1512,14 @@ if(loggedIn){
       </a></a>&nbsp;|&nbsp;
         <%}%></font></p>
 
-      <%}%>
+      <%}
+      }%>
     </td>
   </tr>
 </table>
-  <%
+
+<%
+
 kwQuery.closeAll();
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
@@ -1417,7 +1558,11 @@ catch(Exception e){
 
 
 </div>
+
+
+
 <jsp:include page="../footer.jsp" flush="true"/>
+
 </div>
 <!-- end page -->
 

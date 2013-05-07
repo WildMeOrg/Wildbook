@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -475,6 +475,102 @@ if(!request.getParameter("loggedIn").equals("true")){
   </table>
 <br /> <%
 		  	}
+%>		
+
+
+
+<a name="manageOccurrence"></a>  
+<!-- start Occurrence management section-->			  
+	<%	
+    //Remove from occurrence if assigned
+	if((formShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && CommonConfiguration.isCatalogEditable() && request.getParameter("isOwner").equals("true") && (request.getParameter("edit")!=null) && (request.getParameter("edit").equals("manageOccurrence"))) {
+	
+	
+	%>
+	<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+  	<tr>
+    	<td align="left" valign="top" class="para"><font color="#990000">
+      <table>
+        <tr>
+          <td><font color="#990000"><img align="absmiddle"
+                                         src="../images/cancel.gif"/></font></td>
+          <td><strong><%=encprops.getProperty("removeFromOccurrence")%>
+          </strong></td>
+        </tr>
+      </table>
+    </font></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form action="../OccurrenceRemoveEncounter" method="post" name="removeOccurrence">
+      	<input name="number" type="hidden" value="<%=num%>" /> 
+      	<input name="action" type="hidden" value="remove" /> 
+      	<input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+<br /> <%
+      	}
+      	  //create new Occurrence with name
+      	  if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageOccurrence"))){
+      if((formShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+      
+      %>
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+  <tr>
+    <td align="left" valign="top" class="para">
+    	<font color="#990000">
+      		<strong><%=encprops.getProperty("createOccurrence")%></strong></font></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form name="createOccurrence" method="post" action="../OccurrenceCreate">
+        <input name="number" type="hidden" value="<%=num%>" /> 
+        <input name="action" type="hidden" value="create" /> 
+        <%=encprops.getProperty("newOccurrenceID")%><br />
+        <input name="occurrence" type="text" id="occurrence" size="10" maxlength="50" value="" />
+        <br />
+        <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
+      </form>
+    </td>
+  </tr>
+</table></a>
+<br/>	
+	<%
+      	  }
+      	  }
+		
+	//add this encounter to an Occurrence object
+	if ((formShepherd.getOccurrenceForEncounter(request.getParameter("number"))==null)&&(request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageOccurrence"))) {
+		%> 
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+    <tr>
+      <td align="left" valign="top" class="para"><font color="#990000">
+      
+        <strong><%=encprops.getProperty("add2Occurrence")%></strong></font></td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="add2occurrence" action="../OccurrenceAddEncounter" method="post">
+        <%=encprops.getProperty("occurrenceID")%>: <input name="occurrence" type="text" size="10" maxlength="50" /><br /> 
+                                                                            
+            <input name="number" type="hidden" value="<%=num%>" /> 
+            <input name="action" type="hidden" value="add" />
+          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
+          </form>
+      </td>
+    </tr>
+  </table>
+<br /> <%
+		  	}
+	//test comment
+	
+%>		
+	
+<!-- end Occurrence management section -->			  
+			  
+<%			  
 		  	  //Remove from MarkedIndividual if not unassigned
 		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned"))&&CommonConfiguration.isCatalogEditable()&&request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageIdentity"))) {
 		  %>
@@ -537,6 +633,12 @@ if(!request.getParameter("loggedIn").equals("true")){
 <br> <%
 			}
       	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
+      		
+      		String longy="";
+      		String laty="";
+      		if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
+      		if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
+      		
     		%> <a name="gps"></a>
     		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
     			<tr>
@@ -549,10 +651,10 @@ if(!request.getParameter("loggedIn").equals("true")){
     				<form name="resetGPSform" method="post" action="../EncounterSetGPS">
     				<input name="action" type="hidden" value="resetGPS" />
     				<p><strong><%=encprops.getProperty("latitude")%>:</strong><br /> 
-    				<input type="text" size="7" maxlength="10" name="lat" id="lat" />
+    				<input type="text" size="7" maxlength="10" name="lat" id="lat" value="<%=laty %>"></input>
     				 
     				<br /> <strong><%=encprops.getProperty("longitude")%>:</strong><br> 
-    				<input type="text" size="7" maxlength="10" name="longitude" id="longitude" /> 
+    				<input type="text" size="7" maxlength="10" name="longitude" id="longitude" value="<%=longy %>"></input> 
     				<input name="number" type="hidden" value=<%=num%> /> 
     				<input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" />
     				</p>
@@ -788,7 +890,52 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
           if(thisSample.getTissueType()!=null){tissueType=thisSample.getTissueType();}
           %>
           <%=encprops.getProperty("tissueType")%><br />
-          <input name="tissueType" type="text" size="20" value="<%=tissueType %>" /> 
+          
+          
+          
+                        <%
+              if(CommonConfiguration.getProperty("tissueType0")==null){
+              %>
+              <input name="tissueType" type="text" size="20" maxlength="50"> 
+              <%
+              }
+              else{
+            	  //iterate and find the locationID options
+            	  %>
+            	  <select name="tissueType" id="tissueType">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreLocs=true;
+						       int taxNum=0;
+						       while(hasMoreLocs){
+						       	  String currentLoc = "tissueType"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLoc)!=null){
+						       		  
+						       		  String selected="";
+						       		  if(tissueType.equals(CommonConfiguration.getProperty(currentLoc))){selected="selected=\"selected\"";}
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentLoc)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreLocs=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select>  
+            	  
+            	  
+            <% 	  
+              }
+              %>
+          
+          
           
           <%
           String preservationMethod="";
@@ -963,6 +1110,163 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
       </form>
     </td>
   </tr>
+</table>
+<br /> 
+<%
+}
+
+
+//reset or create a biological measurement
+if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("addBiologicalMeasurement"))){
+		%> 
+
+<a name="addBiologicalMeasurement"></a>
+<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+<tr>
+<td align="left" valign="top" class="para"><strong>
+<font color="#990000"><%=encprops.getProperty("setBiologicalMeasurement")%></font></strong></td>
+</tr>
+<tr>
+<td></td>
+</tr>
+<tr>
+<td align="left" valign="top">
+  <form name="setBiologicalMeasurement" action="../TissueSampleSetMeasurement" method="post">
+
+    <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+    <%
+    BiologicalMeasurement mtDNA=new BiologicalMeasurement();
+    String analysisIDString="";
+    if((request.getParameter("analysisID")!=null)&&(formShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"BiologicalMeasurement"))){
+  	    analysisIDString=request.getParameter("analysisID");
+  		mtDNA=formShepherd.getBiologicalMeasurement(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
+    }
+    %>
+    <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+    
+
+    
+    <%
+    String type="";
+    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
+    %>
+    <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)<br />
+    
+
+
+     		<%
+     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementType");
+ 			int numProps=values.size();
+ 			ArrayList<String> measurementUnits=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementUnits");
+ 			int numUnitsProps=measurementUnits.size();
+     		
+     		if(numProps>0){
+
+     			%>
+     			<p><select size="<%=(numProps+1) %>" name="measurementType" id="measurementType">
+     			<%
+     		
+     			for(int y=0;y<numProps;y++){
+     				String units="";
+     				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
+     				String selected="";
+     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
+     					selected="selected=\"selected\"";
+     				}
+     			%>
+     				<option value="<%=values.get(y) %>" <%=selected %>><%=values.get(y) %><%=units %></option>
+     			<%
+     			}
+     			%>
+     			</select>
+				</p>
+			<%
+     		}
+     		else{
+			%>
+    			<input name="measurementType" type="text" size="20" maxlength="100" value="<%=type %>" /> 
+    		<%
+     		}
+    		
+     		
+     		
+    String thisValue="";
+    if(mtDNA.getValue()!=null){thisValue=mtDNA.getValue().toString();}
+    %>
+    <%=encprops.getProperty("value")%> (<%=encprops.getProperty("required")%>)<br />
+    <input name="value" type="text" size="20" maxlength="100" value="<%=thisValue %>"></input>
+    
+	<%
+    String thisSamplingProtocol="";
+    if(mtDNA.getSamplingProtocol()!=null){thisSamplingProtocol=mtDNA.getSamplingProtocol();}
+    %>
+    <%=encprops.getProperty("samplingProtocol")%><br />
+    
+    
+     		<%
+     		ArrayList<String> protovalues=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementSamplingProtocols");
+ 			int protonumProps=protovalues.size();
+     		
+     		if(protonumProps>0){
+
+     			%>
+     			<p><select size="<%=(protonumProps+1) %>" name="samplingProtocol" id="samplingProtocol">
+     			<%
+     		
+     			for(int y=0;y<protonumProps;y++){
+     				String selected="";
+     				if((mtDNA.getSamplingProtocol()!=null)&&(mtDNA.getSamplingProtocol().equals(protovalues.get(y)))){
+     					selected="selected=\"selected\"";
+     				}
+     			%>
+     				<option value="<%=protovalues.get(y) %>" <%=selected %>><%=protovalues.get(y) %></option>
+     			<%
+     			}
+     			%>
+     			</select>
+				</p>
+			<%
+     		}
+     		else{
+			%>
+    			<input name="samplingProtocol" type="text" size="20" maxlength="100" value="<%=type %>" /> 
+    		<%
+     		}
+
+    String processingLabTaskID="";
+    if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+    %>
+    <%=encprops.getProperty("processingLabTaskID")%><br />
+    <input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+
+		 <%
+    String processingLabName="";
+    if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+    %>
+    <%=encprops.getProperty("processingLabName")%><br />
+    <input name="processingLabName" type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+
+		 <%
+    String processingLabContactName="";
+    if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+    %>
+    <%=encprops.getProperty("processingLabContactName")%><br />
+    <input name="processingLabContactName" type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+
+		 <%
+    String processingLabContactDetails="";
+    if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+    %>
+    <%=encprops.getProperty("processingLabContactDetails")%><br />
+    <input name="processingLabContactDetails" type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+
+		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
+      <input name="encounter" type="hidden" value="<%=num%>" /> 
+      <input name="action" type="hidden" value="setBiologicalMeasurement" /> 
+      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementAnalysis" value="Set" />
+  </form>
+</td>
+</tr>
 </table>
 <br /> 
 <%
@@ -1234,7 +1538,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
 			       	  	%>
 			       	  	 
-			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies).replaceAll("_"," ")%></option>
 			       	  	<%
 			       		taxNum++;
 			          }
@@ -1299,7 +1603,55 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 						</table>
 						<br /> <%
 	}
-%>			
+	
+	
+	//
+	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("country"))){
+		%> 
+		<a name="country"></a>
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
+			<tr>
+				<td align="left" valign="top" class="para"><strong><font color="#990000">
+					<%=encprops.getProperty("resetCountry")%>:</font></strong><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
+						    </td>
+						  </tr>
+						  <tr>
+						    <td align="left" valign="top">
+						      <form name="countryForm" action="../EncounterSetCountry" method="post">
+						            <select name="country" id="country">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreStages=true;
+						       int taxNum=0;
+						       while(hasMoreStages){
+						       	  String currentLifeStage = "country"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreStages=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
+						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
+						      </form>
+						    </td>
+						  </tr>
+						</table>
+						<br /> <%
+	}
+%>	
+	
+		
 
 <c:if test="${param.edit eq 'measurements'}">
  <% 
@@ -1328,7 +1680,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
             <tr>
               <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/></td>
               <td><input name="measurement${index}(value)" value="${measurementEvent.value}"/>
-                  <input type="hidden" name="measurement${index}(type)" value="${item.type}"/><c:out value="(${item.unitsLabel})"/>
+                  <input type="hidden" name="measurement${index}(type)" value="${item.type}"/><input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/><c:out value="(${item.unitsLabel})"/>
                   <select name="measurement${index}(samplingProtocol)">
                   <c:forEach items="${optionDescs}" var="optionDesc">
                     <c:choose>

@@ -23,7 +23,7 @@
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 <%
-  String number = request.getParameter("number");
+  String number = request.getParameter("number").trim();
   int imageNum = 1;
   try {
     imageNum = (new Integer(request.getParameter("imageNum"))).intValue();
@@ -34,9 +34,7 @@
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
   File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  //if(!encountersDir.exists()){encountersDir.mkdir();}
   File thisEncounterDir = new File(encountersDir, number);
 
 
@@ -162,9 +160,7 @@
           <p>I have successfully reset the thumbnail image for encounter number <strong><%=number%></strong>.</p>
 
           <p><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>">View
-            encounter #<%=number%>
-          </a>.</p>
+            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>">View encounter <%=number%>.</a></p>
 
 
         </div>

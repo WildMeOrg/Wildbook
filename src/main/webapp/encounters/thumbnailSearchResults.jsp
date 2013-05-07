@@ -70,40 +70,37 @@
 
     myShepherd.beginDBTransaction();
     EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
-	String filter="";
+	
   	StringBuffer prettyPrint=new StringBuffer("");
   	Map<String,Object> paramMap = new HashMap<String, Object>();
 
+  	/**
+  	String filter="";
     if (request.getParameter("noQuery") == null) {
     	filter="SELECT from org.ecocean.SinglePhotoVideo WHERE ("+EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap).replaceAll("SELECT FROM", "SELECT DISTINCT catalogNumber FROM")+").contains(this.correspondingEncounterNumber)";
     } 
     else {
-      
-      /*Iterator allEncounters = myShepherd.getAllEncounters();
-      while (allEncounters.hasNext()) {
-        Encounter enc = (Encounter) allEncounters.next();
-        rEncounters.add(enc);
-      }*/
+
 		filter="SELECT from org.ecocean.SinglePhotoVideo";
     	
     }
+    */
     
-	Query query=myShepherd.getPM().newQuery(filter);
-	query.setRange((startNum-1), endNum);
-	rEncounters=myShepherd.getAllSinglePhotoVideo(query);
-	
-
     String[] keywords = request.getParameterValues("keyword");
     if (keywords == null) {
       keywords = new String[0];
     }
 
-    //int numThumbnails = myShepherd.getNumThumbnails(rEncounters.iterator(), keywords);
-	//int numThumbnails=0;
-    String countFilter=filter.replaceFirst("SELECT from","SELECT count(this) from");
-	Query countQuery=myShepherd.getPM().newQuery(countFilter);
-	//List results = (List)countQuery.execute();
-	int numThumbnails=((Long)countQuery.execute()).intValue();
+    if (request.getParameter("noQuery") == null) {
+	  queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+	
+    rEncounters=myShepherd.getThumbnails(request, queryResult.getResult().iterator(), startNum, endNum, keywords);
+    }
+    else{
+    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo");
+    	rEncounters=new ArrayList<SinglePhotoVideo>((Collection<SinglePhotoVideo>)allQuery.execute());
+   }
+
 
   %>
   <title><%=CommonConfiguration.getHTMLTitle() %>
@@ -263,7 +260,12 @@
   <li><a
     href="../xcalendar/calendar2.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
-
+        <li><a
+     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+   </a></li>
+ <li><a
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+   </a></li>
 </ul>
 <%
   }
@@ -277,9 +279,7 @@
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
       </p>
-      <p><strong><%=encprops.getProperty("totalMatches")%>
-      </strong>: <%=numThumbnails%>
-      </p>
+
 
       <p><%=encprops.getProperty("belowMatches")%> <%=startNum%>
         - <%=endNum%> <%=encprops.getProperty("thatMatched")%>
@@ -386,7 +386,7 @@
 			<%
             if(!thumbLink.endsWith("video.jpg")){
             	%>
-              <h3><%=(countMe + startNum) %>/<%=numThumbnails %></h3>
+              <h3><%=(countMe + startNum) %></h3>
             <%
             }
             %>
@@ -445,7 +445,7 @@
             	if(!thumbLink.endsWith("video.jpg")){
             	%>
                       <tr>
-                        <td><span class="caption"><em><%=(countMe + startNum) %>/<%=numThumbnails %>
+                        <td><span class="caption"><em><%=(countMe + startNum) %>
                         </em></span></td>
                       </tr>
                       <tr>
@@ -789,13 +789,10 @@
 
       <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=prettyPrint.toString().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField")).replaceAll("alternateIDField", (encprops.getProperty("alternateID"))).replaceAll("alternateIDField", (encprops.getProperty("size")))%>
+        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
       </p>
       
-      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
-      </strong><br/>
-        <%=filter%>
-      </p>
+
 
     </td>
   </tr>

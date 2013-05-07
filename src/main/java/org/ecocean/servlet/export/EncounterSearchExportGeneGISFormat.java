@@ -3,6 +3,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
@@ -44,12 +45,12 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    if(!encountersDir.exists()){encountersDir.mkdir();}
     
     //set up the files
-    String gisFilename = "geneGIS_export_" + request.getRemoteUser() + ".csv";
+    String gisFilename = "SRGD_export_" + request.getRemoteUser() + ".csv";
     File gisFile = new File(encountersDir.getAbsolutePath()+"/" + gisFilename);
 
 
@@ -64,37 +65,54 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
       
       try{
       
-      
+      if(request.getParameterMap().size()>0){
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
         rEncounters = queryResult.getResult();
+      }
+      else{
+        rEncounters=myShepherd.getAllEncountersNoFilterAsVector();
+      }
+        
       
         int numMatchingEncounters=rEncounters.size();
       
         //build the CSV file header
         StringBuffer locusString=new StringBuffer("");
         int numLoci=2; //most covered species will be loci
+       
+        ArrayList<String> allLoci=myShepherd.getAllLoci();
+        
         try{
-          numLoci=(new Integer(CommonConfiguration.getProperty("numLoci"))).intValue();
+          numLoci=allLoci.size();
         }
         catch(Exception e){System.out.println("numPloids configuration value did not resolve to an integer.");e.printStackTrace();}
       
         for(int j=0;j<numLoci;j++){
-          locusString.append(",Locus"+(j+1)+" A1,Locus"+(j+1)+" A2");
+          locusString.append(",L_"+allLoci.get(j)+",L_"+allLoci.get(j));
         
         }
         //out.println("<html><body>");
         //out.println("Individual ID,Other ID 1,Date,Time,Latitude,Longitude,Area,Sub Area,Sex,Haplotype"+locusString.toString());
       
-        outp.write("Individual ID,Other ID 1,Date,Time,Latitude,Longitude,Area,Sub Area,Sex,Haplotype"+locusString.toString()+"\n");
+        outp.write("Sample_ID,Individual_ID,Latitude,Longitude,Date_Time,Region,Sex,Haplotype"+locusString.toString()+",Occurrence_ID\n");
       
         for(int i=0;i<numMatchingEncounters;i++){
         
           Encounter enc=(Encounter)rEncounters.get(i);
           String assembledString="";
-          if(enc.getIndividualID()!=null){assembledString+=enc.getIndividualID();}
-          if(enc.getAlternateID()!=null){assembledString+=","+enc.getAlternateID();}
+          assembledString+=enc.getCatalogNumber();
+          if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){assembledString+=(","+enc.getIndividualID());}
+          //if(enc.getAlternateID()!=null){assembledString+=","+enc.getAlternateID();}
           else{assembledString+=",";}
         
+          if((enc.getDecimalLatitude()!=null)&&(enc.getDecimalLongitude()!=null)){
+            assembledString+=","+enc.getDecimalLatitude();
+            assembledString+=","+enc.getDecimalLongitude();
+          }
+          else{assembledString+=",,";}
+          
+          
+          //export an ISO8601 formatted date
           String dateString=",";
           if(enc.getYear()>0){
             dateString+=enc.getYear();
@@ -104,29 +122,49 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
             }
           }
           assembledString+=dateString;
+          //end date export
+          
+          
+          if(enc.getHour()>-1){
+            String timeString="T";
+            String hourString="";
+            hourString+=enc.getHour();
+            if(hourString.length()==1){hourString=("0"+hourString);}
+            String minuteString="00";
+            if(enc.getMinutes()!=null){minuteString=enc.getMinutes();}
+            if(minuteString.length()==1){minuteString=("0"+minuteString);}
+            //timeString+=enc.getHour()+":"+enc.getMinutes();
+            assembledString+=(timeString+hourString+":"+minuteString);
+           }
+          
         
-          String timeString=",";
-          if(enc.getHour()>-1){timeString+=enc.getHour()+":"+enc.getMinutes();}
-          assembledString+=timeString;
         
         
         
-          if((enc.getDecimalLatitude()!=null)&&(enc.getDecimalLongitude()!=null)){
-            assembledString+=","+enc.getDecimalLatitude();
-            assembledString+=","+enc.getDecimalLongitude();
+        String locationID="";
+        if(enc.getLocationID()!=null){locationID=enc.getLocationID().replaceAll(",", "-");} 
+          assembledString+=","+locationID;
+          
+          //set the genetic sex
+          String sexString="U";
+          if(enc.getGeneticSex()!=null){
+            if(enc.getGeneticSex().toLowerCase().startsWith("m")){
+              sexString="M";
+            }
+            else if(enc.getGeneticSex().toLowerCase().startsWith("f")){
+              sexString="F";
+            }
           }
-          else{assembledString+=",,";}
-        
-          assembledString+=","+enc.getVerbatimLocality();
-          assembledString+=","+enc.getLocationID();
-          assembledString+=","+enc.getSex();
+          assembledString+=","+sexString;
         
           //find and print the haplotype
-          String haplotypeString=",";
-          if(enc.getHaplotype()!=null){haplotypeString+=enc.getHaplotype();}
+          String haplotypeString="";
+          if(enc.getHaplotype()!=null){haplotypeString+=(","+enc.getHaplotype());}
+          else{haplotypeString+=",";}
         
           //find and print the ms markers
           String msMarkerString="";
+          //if(!haplotypeString.endsWith(",")){msMarkerString=",";}
           List<TissueSample> samples=enc.getTissueSamples();
           int numSamples=samples.size();
           boolean foundMsMarkers=false;
@@ -140,7 +178,20 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
                 if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
                   foundMsMarkers=true;
                   MicrosatelliteMarkersAnalysis ga2=(MicrosatelliteMarkersAnalysis)ga;
-                  List<Locus> loci=ga2.getLoci();
+                  
+                  for(int m=0;m<numLoci;m++){
+                    String locus=allLoci.get(m);
+                    if(ga2.hasLocus(locus)){
+                      Locus loc=ga2.getLocus(locus);
+                      if(loc.getAllele0()!=null){msMarkerString+=","+loc.getAllele0();}
+                      else{msMarkerString+=",";}
+                      if(loc.getAllele1()!=null){msMarkerString+=","+loc.getAllele1();}
+                      else{msMarkerString+=",";}
+                    }
+                    else{msMarkerString+=",,";}
+                  }
+                  
+                  /* List<Locus> loci=ga2.getLoci();
                   int localLoci=loci.size();
                   for(int m=0;m<localLoci;m++){
                     Locus locus=loci.get(m);
@@ -149,14 +200,32 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
                     if(locus.getAllele1()!=null){msMarkerString+=","+locus.getAllele1();}
                     else{msMarkerString+=",";}
                   }
-              
+              */
+                  
+                  
+                  
                 }
               }
             }
           }
+          if(!foundMsMarkers){
+            for(int m=0;m<numLoci;m++){
+              msMarkerString+=",,";
+            }
+            
+          }
         
           //out.println("<p>"+assembledString+haplotypeString+msMarkerString+"</p>");
-          outp.write(assembledString+haplotypeString+msMarkerString+"\n");
+          //String occurrenceID=",";
+          String occurrenceID="";
+          //if(!msMarkerString.endsWith(",")){occurrenceID=",";}
+          if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+            Occurrence occur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+            occurrenceID+=occur.getOccurrenceID();
+            //if(msMarkerString.endsWith(",")){occurrenceID=occurrenceID.replace(",",",,");}
+          }
+          
+          outp.write(assembledString+haplotypeString+msMarkerString+","+occurrenceID+"\r\n");
 
         }
         outp.close();
@@ -195,7 +264,7 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
         outp=null;
       }
       
-
+        //test comment
     }
     catch(Exception e) {
       e.printStackTrace();

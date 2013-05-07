@@ -58,9 +58,9 @@ public class EncounterAddImage extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    if(!encountersDir.exists()){encountersDir.mkdir();}
     
     //set up for response
     response.setContentType("text/html");
@@ -72,7 +72,7 @@ public class EncounterAddImage extends HttpServlet {
     String fullPathFilename="";
 
     try {
-      MultipartParser mp = new MultipartParser(request, 10 * 1024 * 1024); // 2MB
+      MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576)); // 2MB
       Part part;
       while ((part = mp.readNextPart()) != null) {
         String name = part.getName();
@@ -98,6 +98,7 @@ public class EncounterAddImage extends HttpServlet {
           if (fileName != null) {
 
             File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ encounterNumber);
+            if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
             File finalFile=new File(thisSharkDir, fileName);
             fullPathFilename=finalFile.getCanonicalPath();
             long file_size = filePart.writeTo(finalFile);

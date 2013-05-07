@@ -29,11 +29,11 @@
 
 %>
 <div id="footer">
-  <div id="credits">
+ 
 
-  </div>
+  
   <p class="credit">This software is distributed under the <a
-    href="http://www.gnu.org/licenses/gpl-2.0.html" target="_blank">GPL v2 license</a> and is
+    href="http://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPL v3 license</a> and is
     intended to support mark-recapture field studies. Open source and commercially licensed products
     used in this framework are listed <a
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/thirdparty.jsp">here</a>. This is version <%=CommonConfiguration.getVersion()%>.</p>

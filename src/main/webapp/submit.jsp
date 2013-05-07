@@ -272,17 +272,17 @@
   </select>
     <select name="minutes" id="minutes">
       <option value="00" selected="selected">:00</option>
-      <option value="15">:05</option>
-      <option value="15">:10</option>
+      <option value="05">:05</option>
+      <option value="10">:10</option>
       <option value="15">:15</option>
-      <option value="20">:15</option>
-      <option value="15">:25</option>
+      <option value="20">:20</option>
+      <option value="25">:25</option>
       <option value="30">:30</option>
-      <option value="30">:35</option>
-      <option value="30">:40</option>
+      <option value="35">:35</option>
+      <option value="40">:40</option>
       <option value="45">:45</option>
-      <option value="45">:50</option>
-      <option value="45">:55</option>
+      <option value="50">:50</option>
+      <option value="55">:55</option>
     </select></td>
 </tr>
 
@@ -319,7 +319,7 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
   			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
   			       	  	%>
   			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies).replaceAll("_"," ")%></option>
   			       	  	<%
   			       		taxNum++;
   			          }
@@ -337,11 +337,55 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
 %>
 
 <tr class="form_row">
-  <td class="form_label" rowspan="3"><strong><font
+  <td class="form_label" rowspan="4"><strong><font
     color="#CC0000"><%=props.getProperty("submit_location")%>:</font></strong></td>
-  <td colspan="2"><input name="location" type="text" id="location"
-                         size="40"/></td>
+  <td colspan="2"><input name="location" type="text" id="location" size="40"/></td>
 </tr>
+
+<%
+
+
+if(CommonConfiguration.showProperty("showCountry")){
+
+%>
+
+		<tr class="form_row">
+			<td class="form_label1"><strong><%=props.getProperty("country")%>:</strong></td>
+		<td>
+	  		<select name="country" id="country">
+	  			<option value="" selected="selected"></option>
+	  			<%
+	  			       boolean hasMoreCountries=true;
+	  			       int taxNum=0;
+	  			       
+	  			       while(hasMoreCountries){
+	  			       	  String currentCountry = "country"+taxNum;
+	  			       	  if(CommonConfiguration.getProperty(currentCountry)!=null){
+	  			       	  	%>
+	  			       	  	 
+	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry)%>"><%=CommonConfiguration.getProperty(currentCountry)%></option>
+	  			       	  	<%
+	  			       		taxNum++;
+	  			          }
+	  			          else{
+	  			             hasMoreCountries=false;
+	  			          }
+	  			          
+				       }
+				       
+	 %>
+	  </select>
+	
+</td>
+	</tr>
+	
+	
+	
+
+<%
+}  //end if showCountry
+
+%>
 <tr class="form_row">
 		<td class="form_label1"><strong><%=props.getProperty("submit_gpslatitude")%>:</strong></td>
 		<td>
@@ -349,6 +393,7 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
 		&deg;
 		</td>
 	</tr>
+	
 	<tr class="form_row">
 		<td class="form_label1"><strong><%=props.getProperty("submit_gpslongitude")%>:</strong></td>
 		<td>
@@ -362,8 +407,12 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
 		here to find a converter.</a>
 		</td>
 	</tr>
+	
+	
+	      <%
 
-<%
+
+
 if(CommonConfiguration.showProperty("maximumDepthInMeters")){
 %>
 <tr class="form_row">
