@@ -130,6 +130,13 @@ public class ImportSRGD extends HttpServlet {
             int numColumns = headerNames.length;
             int numRows = allLines.size();
            
+            //determine the Occurrence_ID column as it is at the end
+            int occurrenceIDColumnNumber=-1;
+            for(int g=0;g<numColumns;g++){
+              if(headerNames[g].equals("Occurrence_ID")){
+                occurrenceIDColumnNumber=g;
+              }
+            }
             
             for(int i=1;i<numRows;i++){
               
@@ -291,6 +298,27 @@ public class ImportSRGD extends HttpServlet {
                 enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set sex to " + enc.getSex() + ".</p>");
                 
               }
+              
+              //line[occurrenceIDColumnNumber] get Occurrence_ID
+              Occurrence occur=new Occurrence();
+              if(occurrenceIDColumnNumber!=-1){
+                String occurID=line[occurrenceIDColumnNumber];
+                
+                if(myShepherd.isOccurrence(occurID)){
+                  occur=myShepherd.getOccurrence(occurID);
+                  occur.addEncounter(enc);
+                  occur.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc.getCatalogNumber() + ".</p>");
+                  
+                }
+                else{
+                  occur=new Occurrence(occurID,enc);
+                  occur.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc.getCatalogNumber() + ".</p>");
+                  
+                  myShepherd.getPM().makePersistent(occur);
+
+                 }
+              }
+              
             }
               
 

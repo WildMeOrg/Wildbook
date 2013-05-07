@@ -930,6 +930,8 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <tr valign="top">
 <td>${item.label}
 <select name="measurement${item.type}(operator)">
+<option value="gteq">&gt;=</option>
+<option value="lteq">&lt;=</option>
   <option value="gt">&gt;</option>
   <option value="lt">&lt;</option>
   <option value="eq">=</option>
@@ -974,19 +976,28 @@ if(CommonConfiguration.showProperty("showLifestage")){
       %>
 
     </select>
+    </td>
+    </tr>
+           <tr><td>
+      <p>
+            <label> 
+            	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
+            </label> <%=encprops.getProperty("orPhotoKeywords")%> 
+      </p>
+      </td></tr>
     <%
     } else {
     %>
 
     <p><em><%=encprops.getProperty("noKeywords")%>
     </em>
-
+</td>
+</tr>
         <%
 					
 				}
 				%>
-  </td>
-</tr>
+  
 <tr>
   <td><strong><%=encprops.getProperty("submitterName")%>:</strong>
     <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
@@ -1223,6 +1234,8 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <tr valign="top">
 <td>${item.label}
 <select name="biomeasurement${item.type}(operator)">
+<option value="gteq">&gt;=</option>
+<option value="lteq">&lt;=</option>
   <option value="gt">&gt;</option>
   <option value="lt">&lt;</option>
   <option value="eq">=</option>
