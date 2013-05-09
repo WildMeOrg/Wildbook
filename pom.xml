@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>shepherd</artifactId>
-  <version>3.3.0-EXPERIMENTAL</version>
+  <version>3.3.0-RELEASE</version>
   <packaging>war</packaging>
 
   <properties>
@@ -336,13 +336,15 @@
         <artifactId>maven-jetty-plugin</artifactId>
         <version>6.1.25</version>
         <configuration>
+        
+        <additionalClasspathElements>
+	            <additionalClasspathElement>${project.build.outputDirectory}</additionalClasspathElement>
+</additionalClasspathElements>
+        
           <!--jettyConfig>src/test/resources/jetty/jetty.xml</jettyConfig-->
-          <userRealms>
-            <userRealm implementation="org.mortbay.jetty.security.HashUserRealm">
-              <name>Shepherd Realm</name>
-              <config>src/test/resources/jetty/shepherd.properties</config>
-            </userRealm>
-          </userRealms>
+
+
+
           <connectors>
             <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
               <port>8080</port>

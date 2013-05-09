@@ -45,26 +45,26 @@ public class LoginIT extends WebTestCase {
   public void testLogin() {
     beginAt("/index.jsp");
     clickLinkWithExactText("Log in");
-    setTextField("j_username", "admin");
-    setTextField("j_password", "password");
+    setTextField("username", "tomcat");
+    setTextField("password", "tomcat123");
     submit();
     assertTextPresent("Login success!");
     clickLinkWithExactText("Home");
     assertLinkPresentWithExactText("Log out");
     clickLinkWithExactText("Log out");
-    assertTextPresent("You are now safely logged out");
+    assertTextPresent("Overview");
   }
 
   public void testUnsuccessfulLogin() {
     beginAt("/index.jsp");
     clickLinkWithExactText("Log in");
-    setTextField("j_username", "foo");
-    setTextField("j_password", "bar");
+    setTextField("username", "foo");
+    setTextField("password", "bar");
     submit();
 
-    assertTextPresent("You could not be logged in");
+    assertTextPresent("Username");
     gotoPage("/appadmin/admin.jsp");
-    assertTextPresent("You have requested a higher level");
+    assertTextPresent("Username");
   }
 
 }
