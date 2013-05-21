@@ -291,6 +291,61 @@ public class Shepherd {
     }
     return tempEnc;
   }
+  
+  public Role getRole(String rolename, String username) {
+
+    ArrayList<Role> roles = getAllRoles();
+    int numRoles=roles.size();
+    for(int i=0;i<numRoles;i++) {
+      Role kw = (Role) roles.get(i);
+      if((kw.getRolename().equals(rolename))&&(kw.getUsername().equals(username))){
+        return kw;
+        }
+    }
+    return null;
+  }
+  
+  public ArrayList<Role> getAllRolesForUser(String username) {
+    String filter = "this.username == '" + username + "'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    return (new ArrayList<Role>(c));
+  }
+  
+  public boolean doesUserHaveRole(String username, String rolename) {
+    String filter = "this.username == '" + username + "' && this.rolename == '" + rolename + "'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    if(c.size()>0){return true;}
+    return false;
+  }
+  
+  public String getAllRolesForUserAsString(String username) {
+    String filter = "this.username == '" + username + "'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList<Role> roles=new ArrayList<Role>(c);
+    int numRoles=roles.size();
+    String rolesFound="";
+    for(int i=0;i<numRoles;i++){
+      rolesFound+=(roles.get(i).getRolename()+" ");
+    }
+    return rolesFound;
+  }
+  
+  public User getUser(String username) {
+    User user= null;
+    try {
+      user = ((User) (pm.getObjectById(pm.newObjectIdInstance(User.class, username.trim()), true)));
+    } 
+    catch (Exception nsoe) {
+      return null;
+    }
+    return user;
+  }
 
   public TissueSample getTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
@@ -1807,6 +1862,22 @@ public class Shepherd {
     }
     return it;
   }
+  
+  public ArrayList<User> getAllUsers() {
+    Extent allKeywords = null;
+    ArrayList<User> it = new ArrayList<User>();
+    try {
+      allKeywords = pm.getExtent(User.class, true);
+      Query acceptedKeywords = pm.newQuery(allKeywords);
+      acceptedKeywords.setOrdering("username descending");
+      Collection c = (Collection) (acceptedKeywords.execute());
+      it=new ArrayList<User>(c);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return it;
+    }
+    return it;
+  }
 
   public Iterator getAllOccurrences() {
     Extent allOccurs = null;
@@ -1819,6 +1890,21 @@ public class Shepherd {
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
+    }
+    return it;
+  }
+  
+  public ArrayList<Role> getAllRoles() {
+    Extent allKeywords = null;
+    ArrayList<Role> it = new ArrayList<Role>();
+    try {
+      allKeywords = pm.getExtent(Role.class, true);
+      Query acceptedKeywords = pm.newQuery(allKeywords);
+      Collection c = (Collection) (acceptedKeywords.execute());
+      it=new ArrayList<Role>(c);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return it;
     }
     return it;
   }
@@ -2234,6 +2320,22 @@ public class Shepherd {
     Query q = pm.newQuery(MitochondrialDNAAnalysis.class);
     q.setResult("distinct haplotype");
     q.setOrdering("haplotype ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
+  
+  public ArrayList<String> getAllRoleNames() {
+    Query q = pm.newQuery(Role.class);
+    q.setResult("distinct rolename");
+    q.setOrdering("rolename ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
+  
+  public ArrayList<String> getAllUsernames() {
+    Query q = pm.newQuery(User.class);
+    q.setResult("distinct username");
+    q.setOrdering("username ascending");
     Collection results = (Collection) q.execute();
     return (new ArrayList(results));
   }

@@ -84,7 +84,7 @@ public class ShepherdPMF {
     }
   }
   
-  private static Properties loadOverrideProps(String shepherdDataDir) {
+  public static Properties loadOverrideProps(String shepherdDataDir) {
     //System.out.println("Starting loadOverrideProps");
     Properties myProps=new Properties();
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");

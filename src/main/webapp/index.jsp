@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,org.ecocean.Shepherd,org.ecocean.grid.GridManager,org.ecocean.grid.GridManagerFactory, java.util.Properties" %>
+         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.grid.GridManager,org.ecocean.grid.GridManagerFactory, java.util.Properties,java.util.ArrayList" %>
 
 
 <%
@@ -31,6 +31,37 @@
   int numWorkItems = gm.getIncompleteWork().size();
 
   Shepherd myShepherd = new Shepherd();
+  
+  	//check usernames and passwords
+	myShepherd.beginDBTransaction();
+  	ArrayList<User> users=myShepherd.getAllUsers();
+  	if(users.size()==0){
+  		String salt=ServletUtilities.getSalt().toHex();
+        String hashedPassword=ServletUtilities.hashAndSaltPassword("tomcat123", salt);
+        //System.out.println("Creating default hashed password: "+hashedPassword+" with salt "+salt);
+        
+        
+  		User newUser=new User("tomcat",hashedPassword,salt);
+  		myShepherd.getPM().makePersistent(newUser);
+  		System.out.println("Creating tomcat user account...");
+  		
+  	  	ArrayList<Role> roles=myShepherd.getAllRoles();
+  	  	if(roles.size()==0){
+  	  	System.out.println("Creating tomcat roles...");
+  	  		
+  	  		Role newRole1=new Role("tomcat","admin");
+  	  		myShepherd.getPM().makePersistent(newRole1);
+	  		Role newRole4=new Role("tomcat","destroyer");
+	  		myShepherd.getPM().makePersistent(newRole4);
+	  		
+	  		System.out.println("Creating tomcat user account...");
+  	  	}
+  	}
+  	
+
+
+  	myShepherd.commitDBTransaction();
+  	
 
 //setup our Properties object to hold all properties
 

@@ -792,6 +792,8 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <tr valign="top">
 <td>${item.label}
 <select name="measurement${item.type}(operator)">
+<option value="gteq">&gt;=</option>
+<option value="lteq">&lt;=</option>
   <option value="gt">&gt;</option>
   <option value="lt">&lt;</option>
   <option value="eq">=</option>
@@ -876,19 +878,32 @@ if(CommonConfiguration.showProperty("showLifestage")){
               %>
 
             </select>
+            
+            </td>
+        </tr>
+            
+            <tr><td>
+      <p>
+            <label> 
+            	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
+            </label> <strong><%=props.getProperty("orPhotoKeywords")%> </strong>
+      </p>
+      </td></tr>
+      
+      
             <%
             } else {
             %>
 
             <p><em><%=props.getProperty("noKeywords")%>
-            </em></p>
+            </em></p></td>
+        </tr>
 
             <%
 
               }
             %>
-          </td>
-        </tr>
+          
 
        
         <tr>
@@ -1086,6 +1101,8 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <tr valign="top">
 <td>${item.label}
 <select name="biomeasurement${item.type}(operator)">
+<option value="gteq">&gt;=</option>
+<option value="lteq">&lt;=</option>
   <option value="gt">&gt;</option>
   <option value="lt">&lt;</option>
   <option value="eq">=</option>

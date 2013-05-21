@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+         import="java.util.ArrayList,org.ecocean.*,java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <html>
 <head>
   <title><%=CommonConfiguration.getHTMLTitle() %>
@@ -89,18 +89,17 @@
           </p>
 
           <p><%=props.getProperty("grantedRole")%>
-
-            <%
-              String role = "";
-              if (request.isUserInRole("admin")) {
-                role = "Administrator";
-              }
-
-
-            %> <strong><%=role%>
-            </strong>.</p>
+			<%
+			Shepherd myShepherd=new Shepherd();
+			myShepherd.beginDBTransaction();
+			%>
+             <strong><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser())%></strong></p>
             
             <%
+            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            
 	        Logger log = LoggerFactory.getLogger(getClass());
 	        log.info(request.getRemoteUser()+" logged in from IP address "+request.getRemoteAddr()+".");
 
