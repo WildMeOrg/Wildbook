@@ -1829,7 +1829,7 @@
     <web-resource-collection>
       <web-resource-name>Protected Area</web-resource-name>
       <!-- Define the context-relative URL(s) to be protected -->
-!--
+<!--
       <url-pattern>/appadmin/admin.jsp</url-pattern>
       <url-pattern>/appadmin/kwAdmin.jsp</url-pattern>
       <url-pattern>/MassSetInformOthers</url-pattern>
