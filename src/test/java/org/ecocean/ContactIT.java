@@ -38,6 +38,6 @@ public class ContactIT extends WebTestCase {
     beginAt("/index.jsp");
     clickLinkWithExactText("Contact Us");
     assertResponseCode(200);
-    assertTextPresent("We welcome your comments");
+    assertTextPresent("The team at Manta Matcher welcome your comments and questions.");
   }
 }
