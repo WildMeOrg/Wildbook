@@ -152,18 +152,20 @@
           style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewUnapproved")%>
         </a></li>
 
-        <%
-          if ((request.getParameter("isAdmin") != null) && (request.getParameter("isAdmin").equals("true"))) {
-        %>
+      
+      <%
+      //test comment
+      if(request.getUserPrincipal()!=null){
+      %>
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&amp;end=10&amp;sort=nosort&amp;user=<%=request.getRemoteUser()%>"
           class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewMySubmissions")%>
         </a>
         </li>
-        <%
-          }
-        %>
+	<%
+	}
+	%>
 
         <li>
           <a
@@ -241,6 +243,10 @@
         </a></li>
         <% } %>
 
+	<%
+	if(request.isUserInRole("admin")){
+	%>
+
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp"
           class="enclose"
@@ -253,19 +259,7 @@
 	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("logs")%>
         </a></li>
                 
-        <%
-        if(CommonConfiguration.useSpotPatternRecognition()){
-        %>
-         <li><a
-	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/software/software.jsp"
-	          class="enclose"
-	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("gridSoftware")%>
-        </a></li>
 
-        	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/scanTaskAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Grid Administration</a></li>
-		<%
-          }
-		%>
 		
 	<li><a
 	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp"
@@ -303,8 +297,16 @@
                style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("photoKeywords")%>
         </a>
         </li>
+        
         <%
-          
+        }
+        %>
+        
+        
+        <%
+
+	if(request.isUserInRole("admin")){
+
 
           if (CommonConfiguration.allowAdoptions()) {
         %>
@@ -336,6 +338,7 @@
         </li>
 
         <%
+        }
           }
         %>
 
