@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -326,6 +327,64 @@ public class CommonConfiguration {
       canAdopt = false;
     }
     return canAdopt;
+  }
+
+  /**
+   * This configuration option defines whether batch upload of {@link MarkedIndividual} or {@link Encounter} objects are allowed.
+   *
+   * @return true if batch upload functionality should be displayed. False if batch upload are not supported in this catalog.
+   */
+  public static boolean allowBatchUpload() {
+    initialize();
+    return parseBoolean(props.getProperty("allowBatchUpload"), false);
+  }
+
+  /**
+   * Helper method to parse boolean from string.
+   * @param s string to parse
+   * @return true if s is one of { true, yes, ok, 1 }
+   */
+  private static boolean parseBoolean(String s, boolean def) {
+    if (s == null)
+      return def;
+    String prop = s.trim().toLowerCase(Locale.US);
+    if ("true".equals(prop) || "yes".equals(prop) || "ok".equals(prop) || "1".equals(prop)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * This configuration option defines the class name of the batch data plugin
+   * to use (must implement {@link org.eocean.batch.BatchProcessorPlugin}).
+   *
+   * @return Fully-qualified class name of the plugin to use, or null.
+   */
+  public static String getBatchUploadPlugin() {
+    initialize();
+    if (props.getProperty("batchUploadPlugin") != null) {
+      return props.getProperty("batchUploadPlugin").trim();
+    }
+    return null;
+  }
+
+  /**
+   * This configuration option defines whether batch upload of {@link MarkedIndividual} or {@link Encounter} objects are allowed.
+   *
+   * @return true if batch upload functionality should be displayed. False if batch upload are not supported in this catalog.
+   */
+  public static int getBatchUploadProgressRefresh() {
+    initialize();
+    int def = 10;
+    String prop = props.getProperty("batchUploadProgressRefresh");
+    if (prop == null || "".equals(prop.trim())) {
+      return def;
+    }
+    try {
+      return Integer.parseInt(prop.trim());
+    } catch (NumberFormatException ex) {
+      return def;
+    }
   }
 
   public static boolean sendEmailNotifications() {
