@@ -254,13 +254,17 @@
     <td width="32" bgcolor="#CCCCCC"><strong>User</strong></td>
     <td bgcolor="#CCCCCC"><strong>Results</strong></td>
     <td bgcolor="#CCCCCC"><strong>Actions</strong></td>
-
+	<td bgcolor="#CCCCCC"><strong>ID</strong></td>
   </tr>
   <%
     Iterator it2 = myShepherd.getAllScanTasksNoQuery();
     scanNum = 0;
     while (it2.hasNext()) {
       ScanTask st = (ScanTask) it2.next();
+      Encounter scanEnc=new Encounter();
+      if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){
+      	scanEnc=myShepherd.getEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""));
+      }
       if (st.hasFinished()) {
 
         //determine if left or right-side scan
@@ -300,7 +304,6 @@
       boolean hasPermissionForThisEncounter=false;
       if ((request.isUserInRole("admin")) || (request.getRemoteUser().equals(st.getSubmitter()))) {hasPermissionForThisEncounter=true;}
       else if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){
-    	Encounter scanEnc=myShepherd.getEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""));
     	if((scanEnc.getLocationID()!=null)&&(request.isUserInRole(scanEnc.getLocationID()))){hasPermissionForThisEncounter=true;}  	
       }
       if (hasPermissionForThisEncounter) {%>
@@ -318,18 +321,23 @@
     </td>
 
 
-    <!-- don't list nodes
+
 						
 						<td>
-						
 						<%
-							int numNodes=st.getNodeLocations().size();
-							for(int d=0;d<numNodes;d++){ %>
-								<font size="-4"><%=(String)st.getNodeLocations().get(d)%></font><br>
-						<%
-							}
+						if((scanEnc.getIndividualID()!=null)&&(!scanEnc.getIndividualID().equals("Unassigned"))){
 						%>
-						</td> -->
+						<a href="../individuals.jsp?number=<%=scanEnc.getIndividualID()%>"><%=scanEnc.getIndividualID()%></a>
+						<%
+      					}
+      					else{
+						%>
+						&nbsp;
+						<%
+      					}
+						%>
+				
+						</td>
 
   </tr>
   <%
