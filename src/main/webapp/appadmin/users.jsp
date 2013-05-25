@@ -106,7 +106,21 @@
       		<td><%=affiliation%></td>
       		<td><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()) %></em></td>
       		<td><a href="users.jsp?username=<%=user.getUsername()%>&isEdit=true#editUser"><img width="20px" height="20px" src="../images/Crystal_Clear_action_edit.png" /></a></td>   	
-      		<td><a href="../UserDelete?username=<%=user.getUsername()%>"><img  width="20px" height="20px" src="../images/cancel.gif" /></a></td></tr>
+      		<td>
+      			<%
+      			if(!user.getUsername().equals(request.getUserPrincipal().getName())){
+      			%>
+      			<a href="../UserDelete?username=<%=user.getUsername()%>"><img  width="20px" height="20px" src="../images/cancel.gif" /></a>
+      			<%
+      			}
+      			else {
+      			%>
+      			&nbsp;
+      			<%
+      			}
+      			%>
+      		</td>
+      	</tr>
       	<%
       
       }
