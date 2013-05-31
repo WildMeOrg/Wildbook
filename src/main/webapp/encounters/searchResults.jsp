@@ -439,7 +439,7 @@
       <p><strong><%=encprops.getProperty("matchingEncounters")%>
       </strong>: <%=numResults%>
         <%
-          if (request.isUserInRole("admin")) {
+          if (request.getUserPrincipal()!=null) {
         %>
         <br/>
         <%=numUniqueEncounters%> <%=encprops.getProperty("identifiedUnique")%><br/>

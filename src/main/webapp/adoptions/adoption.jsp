@@ -59,7 +59,9 @@
     sharkForm = request.getParameter("individual");
   }
 
-  boolean isOwner = false;
+  boolean isOwner = true;
+  
+  /**
   if (request.isUserInRole("admin")) {
     isOwner = true;
   } else if (request.getParameter("number") != null) {
@@ -68,6 +70,7 @@
       isOwner = true;
     }
   }
+  *//
 
   if (request.getParameter("number") != null) {
     tempAD = myShepherd.getAdoption(request.getParameter("number"));

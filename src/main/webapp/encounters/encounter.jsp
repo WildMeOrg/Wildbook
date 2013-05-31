@@ -190,7 +190,7 @@ td.measurement{
 
     //block right-click user copying if no permissions available
     <%
-    if((request.isUserInRole("admin"))||(request.isUserInRole("imageProcessor"))){
+    if(request.getUserPrincipal()!=null){
     %>
     hs.blockRightClick = false;
     <%

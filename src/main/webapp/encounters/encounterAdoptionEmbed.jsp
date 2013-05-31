@@ -131,7 +131,7 @@ div.scroll {
   <%
     }
 
-    if (request.isUserInRole("admin")) {
+    if (request.getUserPrincipal()!=null) {
   %>
   <tr>
     <td>&nbsp;</td>
@@ -168,7 +168,7 @@ div.scroll {
   }
 
   //add adoption
-  if (request.isUserInRole("admin")) {
+  if (request.getUserPrincipal()!=null) {
 %>
 <p><a
   href="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/adoption.jsp?encounter=<%=num%>#create">[+]

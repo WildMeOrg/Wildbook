@@ -124,7 +124,7 @@
   <%
     }
 
-    if (request.isUserInRole("admin")) {
+    if (request.getUserPrincipal()!=null) {
   %>
   <tr>
     <td>&nbsp;</td>
