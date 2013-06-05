@@ -92,8 +92,9 @@
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
 
-			if(!addText.equals("")){
+	if(!addText.equals("")){
             	File file2process = new File(adoptionsDir.getAbsolutePath()+"/" + number + "/" + addText);
+            	if(file2process.exists()){
 
             	int intWidth = 190;
             	int intHeight = 190;
@@ -135,6 +136,7 @@
        
           </di:img>
 		<%
+		}
 		}
 		%>
           <h1 class="intro">Success</h1>
