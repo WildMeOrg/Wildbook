@@ -43,7 +43,7 @@
   String adopterName = "";
   String adopterAddress = "";
   String adopterEmail = "";
-  String adopterImage = "";
+  String adopterImage="";
   String adoptionStartDate = "";
   String adoptionEndDate = "";
   String adopterQuote = "";
@@ -77,7 +77,9 @@
     adopterName = tempAD.getAdopterName();
     adopterAddress = tempAD.getAdopterAddress();
     adopterEmail = tempAD.getAdopterEmail();
-    adopterImage = tempAD.getAdopterImage();
+    if((tempAD.getAdopterImage()!=null)&&(!tempAD.getAdopterImage().trim().equals(""))){
+    	adopterImage = tempAD.getAdopterImage();
+  	}
     adoptionStartDate = tempAD.getAdoptionStartDate();
     adoptionEndDate = tempAD.getAdoptionEndDate();
     adopterQuote = tempAD.getAdopterQuote();
@@ -236,11 +238,18 @@
     </tr>
     <tr>
       <td>Image:</td>
-      <td><input name="theFile1" type="file" size="30"
-                 value="<%=adopterImage%>"></input>&nbsp;&nbsp; <%if ((adopterImage != null) && (!adopterImage.equals(""))) {%>
-        <img
-          src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=id%>/thumb.jpg"
-          align="absmiddle"/>&nbsp; <%
+      <%
+      String adopterImageString="";
+      if(adopterImage!=null){
+    	  adopterImageString=adopterImage;
+    	}
+      %>
+      <td><input name="theFile1" type="file" size="30" value="<%=adopterImageString%>"></input>&nbsp;&nbsp; 
+      <%
+      if ((adopterImage != null) && (!adopterImageString.equals(""))) {
+      %>
+        <img src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp; 
+        <%
           }
         %>
       </td>
