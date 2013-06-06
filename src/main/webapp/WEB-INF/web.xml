@@ -125,6 +125,7 @@
 		 /EncounterSetAlternateID = authc, roles[admin]
 		 /EncounterSetState = authc, roles[admin]
 		 /EncounterSetScarring = authc, roles[admin]
+		 /EncounterSetGPS = authc, roles[admin]
 		  /EncounterSetVerbatimEventDate = authc, roles[admin]
 		  /EncounterSetLifeStage = authc, roles[admin]
 		  /EncounterSetCountry = authc, roles[admin]
