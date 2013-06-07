@@ -74,6 +74,7 @@
                 #IniShiroFilter will inject that object into the SecurityManager
                 [main]
                 realmA = org.ecocean.security.ShepherdRealm
+                roles.unauthorizedUrl = /accessDenied.jsp 
                 
                 authc.loginUrl = /login.jsp
                 
@@ -91,21 +92,16 @@
                 #and admin areas
                 [urls]
                 
-                /appadmin/admin.jsp = authc, roles[admin]
-                /appadmin/import.jsp = authc, roles[admin]
-                /appadmin/kwAdmin.jsp = authc, roles[admin]
-                /appadmin/logs.jsp = authc, roles[admin]
-                /appadmin/stats.jsp = authc, roles[admin]
-                /appadmin/users.jsp = authc, roles[admin]
+                /appadmin/** = authc, roles[admin]
                 /MassSetInformOthers = authc, roles[admin]
                 /MassExposeGBIF = authc, roles[admin]
                 /MassSetLocationCodeFromLocationString = authc, roles[admin]
                 /MassSwapLocationCode = authc, roles[admin]
                 /logs/** = authc, roles[admin]
-                /UserCreate = authc, roles[admin]
+        /UserCreate = authc, roles[admin]
 		 /UserDelete = authc, roles[admin]
-		 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
-                /xcalendar/** = authc, roles[researcher]
+		 /ResetCommonConfiguration = authc, roles[admin]
+		 /xcalendar/** = authc, roles[researcher]
                 /encounters/allEncountersUnapproved.jsp = authc, roles[researcher]
                 /InterconnectSubmitSpots = authc, roles[imageProcessor]
 		/interconnectSubmitSpots= authc, roles[imageProcessor]
@@ -144,6 +140,7 @@
 		   /TissueSampleSetMeasurement = authc, roles[researcher]
 		  /TissueSampleRemoveHaplotype = authc, roles[researcher]
 		   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
+
 		   /ImportSRGD = authc, roles[admin]
 		        /IndividualCreate = authc, roles[identifier]
 		        /OccurrenceCreate = authc, roles[researcher]
@@ -415,6 +412,11 @@
   <servlet>
     <servlet-name>DontTrack</servlet-name>
     <servlet-class>org.ecocean.servlet.DontTrack</servlet-class>
+  </servlet>
+  
+    <servlet>
+      <servlet-name>ResetCommonConfiguration</servlet-name>
+      <servlet-class>org.ecocean.servlet.ResetCommonConfiguration</servlet-class>
   </servlet>
 
   <servlet>
@@ -936,6 +938,11 @@
     <servlet-mapping>
       <servlet-name>TissueSampleSetHaplotype</servlet-name>
       <url-pattern>/TissueSampleSetHaplotype</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+        <servlet-name>ResetCommonConfiguration</servlet-name>
+        <url-pattern>/ResetCommonConfiguration</url-pattern>
   </servlet-mapping>
   
       <servlet-mapping>
@@ -1541,339 +1548,5 @@
       </auth-constraint>
   </security-constraint>
 
-
-<!-- Lock down the servlets -->
-  <security-constraint>
-    <display-name>Tomcat Server Configuration Security Constraint</display-name>
-    <web-resource-collection>
-      <web-resource-name>Protected Area</web-resource-name>
-      <!-- Define the context-relative URL(s) to be protected -->
-      
-      <!--
-      	 
-            <url-pattern>/CJS</url-pattern>
-            <url-pattern>/IndividualAddComment</url-pattern>
-	  
-	    <url-pattern>/EncounterSetIdentifiable</url-pattern>
-	    <url-pattern>/EncounterSetDynamicProperty</url-pattern>
-	    <url-pattern>/EncounterSetPatterningCode</url-pattern>
-	    <url-pattern>/EncounterResetDate</url-pattern>
-	    <url-pattern>/EncounterAddComment</url-pattern>
-	    <url-pattern>/EncounterSetAsUnidentifiable</url-pattern>
-	    <url-pattern>/EncounterSetSubmitterPhotographerContactInfo</url-pattern>
-	    <url-pattern>/EncounterSetLocationID</url-pattern>
-	    <url-pattern>/EncounterRemoveSpots</url-pattern>
-	    <url-pattern>/WriteOutScanTask</url-pattern>
-	    <url-pattern>/ResurrectDeletedEncounter</url-pattern>
-	    <url-pattern>/ResurrectDeletedAdoption</url-pattern>
-	     
-	     <url-pattern>/EncounterSetSex</url-pattern>
-	     <url-pattern>/EncounterSetGPS</url-pattern>
-	     <url-pattern>/EncounterSetMaximumDepth</url-pattern>
-	     <url-pattern>/EncounterSetMaximumElevation</url-pattern>
-	     <url-pattern>/EncounterSetLocation</url-pattern>
-	     <url-pattern>/EncounterSetSize</url-pattern>
-	     <url-pattern>/EncounterDelete</url-pattern>
-	     <url-pattern>/EncounterSetScarring</url-pattern>
-	     <url-pattern>/EncounterSetOccurrenceRemarks</url-pattern>
-
-	   
-	       <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
-	     
-	       <url-pattern>/IndividualSetSex</url-pattern>
-	       <url-pattern>/CalendarXMLServer2</url-pattern>
-	       <url-pattern>/CalendarXMLServer</url-pattern>
-	       <url-pattern>/DontTrack</url-pattern>
-	       <url-pattern>/DeleteAdoption</url-pattern>
-	       <url-pattern>/trackIt</url-pattern>
-	       <url-pattern>/ImageSearch</url-pattern>
-	       <url-pattern>/UpdateEmailAddress</url-pattern>
-	       <url-pattern>/KeywordHandler</url-pattern>
-	       <url-pattern>/IndividualSetNickName</url-pattern>
-	       <url-pattern>/IndividualSetAlternateID</url-pattern>
-	       
-	        <url-pattern>/EncounterSetAlternateID</url-pattern>
-	        <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
-	        <url-pattern>/EncounterSetInformOthers</url-pattern>
-	        <url-pattern>/IndividualAddFile</url-pattern>
-	        <url-pattern>/TrackerFeed</url-pattern>
-	        <url-pattern>/EncounterAddSpotFile</url-pattern>
-	    <url-pattern>/EncounterRemoveImage</url-pattern>
-	     <url-pattern>/IndividualRemoveDataFile</url-pattern>
-	        <url-pattern>/ImgServlet</url-pattern>
-	      <url-pattern>/EncounterSetLivingStatus</url-pattern>
-	      <url-pattern>/ScanResultsServlet</url-pattern>
-	      <url-pattern>/EncounterAddImage</url-pattern>
-	      <url-pattern>/EncounterSetSubmitterID</url-pattern>
-	      <url-pattern>/EncounterSetMatchedBy</url-pattern>
-	      
-	      -->
-	
-      
-    </web-resource-collection>
-    <auth-constraint>
-      <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>admin</role-name>
-	<role-name>researcher</role-name>
-	<role-name>manager</role-name>
-	<role-name>local</role-name>
-    </auth-constraint>
-  </security-constraint>
-  
-  <security-constraint>
-      <display-name>Limit approvals</display-name>
-      <web-resource-collection>
-        <web-resource-name>Protected Area</web-resource-name>
-        <!-- Define the context-relative URL(s) to be protected -->    
-        
-        <!--
-  	<url-pattern>/EncounterApprove</url-pattern>
-      -->
-      
-      </web-resource-collection>
-      <auth-constraint>
-        <!-- Anyone with one of the listed roles may access this area -->
-        <role-name>admin</role-name>
-  	<role-name>manager</role-name>
-  	<role-name>approver</role-name>
-      </auth-constraint>
-  </security-constraint>
-  
-    <security-constraint>
-        <display-name>Limit identifications</display-name>
-        <web-resource-collection>
-          <web-resource-name>Protected Area</web-resource-name>
-          <!-- Define the context-relative URL(s) to be protected -->  
-          
-          
-          <!--
-          
-    	<url-pattern>/IndividualRemoveEncounter</url-pattern>
-    	  <url-pattern>/IndividualCreate</url-pattern>
-    	  <url-pattern>/IndividualAddEncounter</url-pattern>
-    	  
-    	  -->
-    	  
-    	  
-        </web-resource-collection>
-        <auth-constraint>
-          <!-- Anyone with one of the listed roles may access this area -->
-          <role-name>admin</role-name>
-    	<role-name>manager</role-name>
-    	<role-name>identifier</role-name>
-        </auth-constraint>
-  </security-constraint>
-  
-    <security-constraint>
-      <display-name>Manager Security Constraint</display-name>
-      <web-resource-collection>
-        <web-resource-name>Protected Area</web-resource-name>
-        <!-- Define the context-relative URL(s) to be protected -->
-  
-  <!--
-  
-        <url-pattern>/DeleteAllDataPermanently</url-pattern>
-  
-  -->
-  
-      </web-resource-collection>
-      <auth-constraint>
-        <!-- Anyone with one of the listed roles may access this area -->
-        <role-name>destroyer</role-name>
-  
-      </auth-constraint>
-  </security-constraint>
-
-
-<!-- Lock down the JSP files -->
-  <security-constraint>
-    <display-name>Tomcat Server Configuration Security Constraint</display-name>
-    <web-resource-collection>
-      <web-resource-name>Protected Area</web-resource-name>
-      <!-- Define the context-relative URL(s) to be protected -->
-      
-      <!--
-      
-      	    <url-pattern>/welcome.jsp</url-pattern>
-            <url-pattern>/appadmin/scanTaskAdmin.jsp</url-pattern>
-            <url-pattern>/encounters/encounterSpotVisualizer.jsp</url-pattern>
-
-	    <url-pattern>/googleSearch.jsp</url-pattern>
-	   <url-pattern>/googleSearchResults.jsp</url-pattern>
-            <url-pattern>/encounters/allEncountersUnapproved.jsp</url-pattern>
-            <url-pattern>/software.jsp</url-pattern>
-            <url-pattern>/interconnect/mac/Interconnect.jnlp</url-pattern>
-            
-            <url-pattern>/appadmin/scanTaskAdmin.jsp</url-pattern>
-            <url-pattern>/individualSearch.jsp</url-pattern>
-            <url-pattern>/individualSearchResults.jsp</url-pattern>
-            <url-pattern>/individualThumbnailSearchResults.jsp</url-pattern>
-            <url-pattern>/resetThumbnail.jsp</url-pattern>
-            <url-pattern>/encounters/encounterSearch.jsp</url-pattern>
-           <url-pattern>/encounters/mappedSearchResults.jsp</url-pattern>
-           <url-pattern>/encounters/scanEndApplet.jsp</url-pattern>
-           <url-pattern>/encounters/i3sScanEndApplet.jsp</url-pattern>
-            <url-pattern>/encounters/thumbnailSearchResults.jsp</url-pattern>
-             <url-pattern>/xcalendar/*</url-pattern>
-
-
-      <url-pattern>/appadmin/scanTaskAdmin.jsp</url-pattern>
-      <url-pattern>/encounters/encounterSpotVisualizer.jsp</url-pattern>
-      <url-pattern>/IndividualSetAlternateID</url-pattern>
-      <url-pattern>/EncounterSetAlternateID</url-pattern>
-      <url-pattern>/EncounterSetState</url-pattern>
-      <url-pattern>/EncounterSetScarring</url-pattern>
-       <url-pattern>/EncounterSetVerbatimEventDate</url-pattern>
-       <url-pattern>/EncounterSetLifeStage</url-pattern>
-       <url-pattern>/EncounterSetCountry</url-pattern>
-        <url-pattern>/EncounterSetTissueSample</url-pattern>
-        <url-pattern>/TissueSampleSetHaplotype</url-pattern>
-         <url-pattern>/TissueSampleSetMeasurement</url-pattern>
-        <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
-        <url-pattern>/TissueSampleRemoveBiologicalMeasurement</url-pattern>
-        
-        
-        <url-pattern>/ImportSRGD</url-pattern>
-        
-        <url-pattern>/IndividualCreate</url-pattern>
-        <url-pattern>/OccurrenceCreate</url-pattern>
-        <url-pattern>/OccurrenceRemoveEncounter</url-pattern>
-        <url-pattern>/IndividualRemoveEncounter</url-pattern>
-                <url-pattern>/OccurrenceAddEncounter</url-pattern>
-        <url-pattern>/IndividualAddEncounter</url-pattern>
-        
-                <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
-        <url-pattern>/TissueSampleRemoveSexAnalysis</url-pattern>
-        
-         <url-pattern>/EncounterRemoveTissueSample</url-pattern>
-         <url-pattern>/EncounterRemoveImage</url-pattern>
-         <url-pattern>/SinglePhotoVideoRemoveKeyword</url-pattern>
-         <url-pattern>/SinglePhotoVideoAddKeyword</url-pattern>
-         <url-pattern>/EncounterSearchExportGeneGISFormat</url-pattern>
-         <url-pattern>/EncounterSearchExportKML</url-pattern>
-         <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
-         <url-pattern>/EncounterSearchExportShapefile</url-pattern>
-         <url-pattern>/EncounterSearchExportEmailAddresses</url-pattern>
-         
-         <url-pattern>/EncounterAddComment</url-pattern>
-         <url-pattern>/OccurrenceAddComment</url-pattern>
-          <url-pattern>/OccurrenceSetIndividualCount</url-pattern>
-         <url-pattern>/IndividualAddComment</url-pattern>
-         <url-pattern>/SimpleCMROutput</url-pattern>
-        
-             <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
-             <url-pattern>/SOCPROGExport</url-pattern>
-             
-             <url-pattern>/OccurrenceSetGroupBehavior</url-pattern>
-             <url-pattern>/EncounterSetBehavior</url-pattern>
-         
-      <url-pattern>/CJS</url-pattern>
-      <url-pattern>/software.jsp</url-pattern>
-      <url-pattern>/interconnect/mac/Interconnect.jar</url-pattern>
-      <url-pattern>/xcalendar/*</url-pattern>
-
-
-      <url-pattern>/InterconnectSubmitSpots</url-pattern>
-      <url-pattern>/interconnectSubmitSpots</url-pattern>
-      <url-pattern>/GenePopExport</url-pattern>
-
-
-      <url-pattern>/appadmin/kwSearch.jsp</url-pattern>
-      <url-pattern>/appadmin/kwResults.jsp</url-pattern>
-      <url-pattern>/individualSearch.jsp</url-pattern>
-      <url-pattern>/individualSearchResults.jsp</url-pattern>
-      <url-pattern>/individualSearchResultsExport.jsp</url-pattern>
-      <url-pattern>/individualSearchResultsAnalysis.jsp</url-pattern>
-      <url-pattern>/individualMappedSearchResults.jsp</url-pattern>
-      <url-pattern>/individualThumbnailSearchResults.jsp</url-pattern>
-      <url-pattern>/encounters/thumbnailSearch.jsp</url-pattern>
-      <url-pattern>/encounters/thumbnailSearchResults.jsp</url-pattern>
-      <url-pattern>/encounters/encounterSearch.jsp</url-pattern>
-      <url-pattern>/encounters/searchComparison.jsp</url-pattern>
-      <url-pattern>/encounters/searchComparisonResults.jsp</url-pattern>
-      <url-pattern>/encounters/searchResults.jsp</url-pattern>
-      <url-pattern>/encounters/searchResultsAnalysis.jsp</url-pattern>
-      <url-pattern>/encounters/mappedSearchResults.jsp</url-pattern>
-      <url-pattern>/encounters/mappedSearchResultsSex.jsp</url-pattern>
-      <url-pattern>/encounters/mappedSearchResultsHaplotype.jsp</url-pattern>
-       <url-pattern>/encounters/exportSearchResults.jsp</url-pattern>
-      <url-pattern>/googleSearch.jsp</url-pattern>
-      <url-pattern>/googleSearchResults.jsp</url-pattern>
-      <url-pattern>/encounters/imageViewer.jsp</url-pattern>
-      
-      <url-pattern>/encounters/searchComparison.jsp</url-pattern>
-      <url-pattern>/encounters/searchComparisonResults.jsp</url-pattern>
-      
-      
-      <url-pattern>/encounters/allEncountersUnapproved.jsp</url-pattern>
-      <url-pattern>/appadmin/*</url-pattern>
-      <url-pattern>/logs/*</url-pattern>
-      -->
-      
-    </web-resource-collection>
-    <auth-constraint>
-      <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>admin</role-name>
-	<role-name>researcher</role-name>
-	<role-name>manager</role-name>
-	<role-name>local</role-name>
-    </auth-constraint>
-  </security-constraint>
-
-
-
-
-
-  <security-constraint>
-    <display-name>Researcher Security Constraint</display-name>
-    <web-resource-collection>
-      <web-resource-name>Protected Area</web-resource-name>
-      <!-- Define the context-relative URL(s) to be protected -->
-<!--
-      <url-pattern>/appadmin/admin.jsp</url-pattern>
-      <url-pattern>/appadmin/kwAdmin.jsp</url-pattern>
-      <url-pattern>/MassSetInformOthers</url-pattern>
-      	     <url-pattern>/MassSetLocationCodeFromLocationString</url-pattern>
-      	       <url-pattern>/MassSwapLocationCode</url-pattern>
-	       <url-pattern>/MassExposeGBIF</url-pattern>
--->
-    </web-resource-collection>
-    <auth-constraint>
-      <!-- Anyone with one of the listed roles may access this area -->
-      <role-name>admin</role-name>
-    </auth-constraint>
-  </security-constraint>
-
-
-  <!-- Login configuration uses form-based authentication 
-  <login-config>
-    <auth-method>FORM</auth-method>
-    <realm-name>Shepherd Realm</realm-name>
-    <form-login-config>
-      <form-login-page>/login.jsp</form-login-page>
-      <form-error-page>/error.jsp</form-error-page>
-    </form-login-config>
-  </login-config>
-  -->
-
-    <!-- Security roles referenced by this web application -->
-    <security-role>
-      <role-name>manager</role-name>
-    </security-role>
-    <security-role>
-      <role-name>admin</role-name>
-    </security-role>
-    <security-role>
-      <role-name>researcher</role-name>
-    </security-role>
-    <security-role>
-      <role-name>reviewer</role-name>
-    </security-role>
-    <security-role>
-      <role-name>local</role-name>
-    </security-role>
-    <security-role>
-      <role-name>search</role-name>
-    </security-role>
 
 </web-app>

@@ -93,7 +93,7 @@
 
 
   boolean isOwner = false;
-  if (request.isUserInRole("admin")) {
+  if (request.getUserPrincipal()!=null) {
     isOwner = true;
   }
 
@@ -220,7 +220,7 @@ table.tissueSample td {
 
     //block right-click user copying if no permissions available
     <%
-    if(!request.isUserInRole("imageProcessor")){
+    if(request.getUserPrincipal()==null){
     %>
     hs.blockRightClick = true;
     <%
