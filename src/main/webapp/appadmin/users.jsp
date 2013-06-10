@@ -152,12 +152,19 @@
 	%>
     	<form action="../UserCreate<%=isEditAddition %>" method="post" id="newUser">
     		    <table width="100%" class="tissueSample">
+    		    
+
+    		    
     		    <%
     		    //let's set up any pre-defined values if appropriate
     		    String localUsername="";
     		    String localAffiliation="";
     		    String localEmail="";
     		    String localFullName="";
+    		    String profilePhotoURL="/images/empty_profile.jpg";
+    		    String userProject="";
+    		    String userStatement="";
+    		    String userURL="";
     		    
     		    if((request.getParameter("isEdit")!=null)&&(myShepherd.getUser(request.getParameter("username").trim())!=null)){
     		    	User thisUser=myShepherd.getUser(request.getParameter("username").trim());
@@ -171,11 +178,25 @@
     		    	if(thisUser.getFullName()!=null){
     		    		localFullName=thisUser.getFullName();
     		    	}
+    		    	if(thisUser.getUserProject()!=null){
+			    userProject=thisUser.getUserProject();
+    		    	}
+    		    	if(thisUser.getUserStatement()!=null){
+				userStatement=thisUser.getUserStatement();
+    		    	}
+    		    	if(thisUser.getURL()!=null){
+				userURL=thisUser.getUserURL();
+    		    	}
     		    }
     		    
     		    %>
     		    
-    		    
+    		        		    <tr>
+		        		    	<td>
+		        		    		<img src="<%=profilePhotoURL%>" />
+		        		    	</td>
+		        		    
+    		    	<td><table width="100%" class="tissueSample">
       				<tr><td colspan="4"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured, listed in commonConfiguration.properties, and matched to the URL-based functions of the Shepherd Project in the Apache Shiro filter in web.xml.</em></td></tr>
       				<tr>
             			
@@ -217,7 +238,18 @@
                     <tr><td colspan="4">Full name: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
                     <tr><td colspan="4">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td></tr>
                     <tr><td colspan="4">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
+                     <tr><td colspan="4">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
+                    
+                    <tr><td colspan="4">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
+		                        
+                    <tr><td colspan="4">Project URL: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
+		     <tr><td colspan="4"><textarea name="userStatement" size="100"><%=userStatement%></textarea></td></tr>                  
+                    
+                    <tr><td colspan="4"><input name="file2add" type="file" size="20" /></td></tr>
                     <tr><td colspan="4"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
+            </table>
+            </td>
+            </tr>
             </table>
     	</form>
     </p>

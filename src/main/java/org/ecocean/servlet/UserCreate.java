@@ -21,11 +21,18 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 
+import com.oreilly.servlet.multipart.FilePart;
+import com.oreilly.servlet.multipart.MultipartParser;
+import com.oreilly.servlet.multipart.ParamPart;
+import com.oreilly.servlet.multipart.Part;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -44,6 +51,15 @@ public class UserCreate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    
+    //set up the user directory
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File usersDir=new File(shepherdDataDir.getAbsolutePath()+"/users");
+    if(!usersDir.exists()){usersDir.mkdir();}
     
     //set up for response
     response.setContentType("text/html");
@@ -106,6 +122,59 @@ public class UserCreate extends HttpServlet {
           newUser.setAffiliation(request.getParameter("affiliation").trim());
         }
         else if(isEdit&&(request.getParameter("affiliation")!=null)&&(request.getParameter("affiliation").trim().equals(""))){newUser.setAffiliation(null);}
+        
+        if((request.getParameter("userProject")!=null)&&(!request.getParameter("userProject").trim().equals(""))){
+          newUser.setUserProject(request.getParameter("userProject").trim());
+        }
+        else if(isEdit&&(request.getParameter("userProject")!=null)&&(request.getParameter("userProject").trim().equals(""))){newUser.setUserProject(null);}
+        
+        if((request.getParameter("userStatement")!=null)&&(!request.getParameter("userStatement").trim().equals(""))){
+          newUser.setUserStatement(request.getParameter("userStatement").trim());
+        }
+        else if(isEdit&&(request.getParameter("userStatement")!=null)&&(request.getParameter("userStatement").trim().equals(""))){newUser.setUserStatement(null);}
+        
+        if((request.getParameter("userURL")!=null)&&(!request.getParameter("userURL").trim().equals(""))){
+          newUser.setUserURL(request.getParameter("userURL").trim());
+        }
+        else if(isEdit&&(request.getParameter("userURL")!=null)&&(request.getParameter("userURL").trim().equals(""))){newUser.setUserURL(null);}
+        
+        String fileName="None";
+        String fullPathFilename="";
+        
+        try {
+          
+          File userDir=new File(shepherdDataDir.getAbsolutePath()+"/"+username);
+          if(!userDir.exists()){userDir.mkdir();}
+          
+          MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576)); 
+          Part part;
+          while ((part = mp.readNextPart()) != null) {
+            String name = part.getName();
+            if (part.isFile()) {
+              FilePart filePart = (FilePart) part;
+              fileName = ServletUtilities.cleanFileName(filePart.getFileName());
+              if (fileName != null) {
+
+                File thisSharkDir = new File(usersDir.getAbsolutePath() +"/"+ username);
+                if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
+                File finalFile=new File(thisSharkDir, fileName);
+                fullPathFilename=finalFile.getCanonicalPath();
+                long file_size = filePart.writeTo(finalFile);
+                
+                //add the SinglePhotoVideo object
+                SinglePhotoVideo spv = new SinglePhotoVideo(username,finalFile);
+                spv.setCorrespondingUsername(username);
+                newUser.setUserImage(spv);
+
+              }
+            }
+          }
+        }
+        catch(Exception e){
+          System.out.println("UserCreate servlet: error encountered uploading profile photo!");
+          e.printStackTrace();
+        }
+        
         
         
         //now handle roles
