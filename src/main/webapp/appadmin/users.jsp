@@ -161,7 +161,7 @@
     		    String localAffiliation="";
     		    String localEmail="";
     		    String localFullName="";
-    		    String profilePhotoURL="/images/empty_profile.jpg";
+    		    String profilePhotoURL="../images/empty_profile.jpg";
     		    String userProject="";
     		    String userStatement="";
     		    String userURL="";
@@ -184,8 +184,11 @@
     		    	if(thisUser.getUserStatement()!=null){
 				userStatement=thisUser.getUserStatement();
     		    	}
-    		    	if(thisUser.getURL()!=null){
+    		    	if(thisUser.getUserURL()!=null){
 				userURL=thisUser.getUserURL();
+    		    	}
+    		    	if(thisUser.getUserImage()!=null){
+    		    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName()+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
     		    	}
     		    }
     		    
@@ -193,7 +196,7 @@
     		    
     		        		    <tr>
 		        		    	<td>
-		        		    		<img src="<%=profilePhotoURL%>" />
+		        		    		<img src="<%=profilePhotoURL%>" width="200px" height="*" />
 		        		    	</td>
 		        		    
     		    	<td><table width="100%" class="tissueSample">
@@ -239,11 +242,9 @@
                     <tr><td colspan="4">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td></tr>
                     <tr><td colspan="4">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
                      <tr><td colspan="4">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
-                    
-                    <tr><td colspan="4">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
-		                        
+                          
                     <tr><td colspan="4">Project URL: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
-		     <tr><td colspan="4"><textarea name="userStatement" size="100"><%=userStatement%></textarea></td></tr>                  
+		     <tr><td colspan="4">User Statement: <textarea name="userStatement" size="100"><%=userStatement%></textarea></td></tr>                  
                     
                     <tr><td colspan="4"><input name="file2add" type="file" size="20" /></td></tr>
                     <tr><td colspan="4"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>

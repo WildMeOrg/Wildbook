@@ -138,42 +138,7 @@ public class UserCreate extends HttpServlet {
         }
         else if(isEdit&&(request.getParameter("userURL")!=null)&&(request.getParameter("userURL").trim().equals(""))){newUser.setUserURL(null);}
         
-        String fileName="None";
-        String fullPathFilename="";
-        
-        try {
-          
-          File userDir=new File(shepherdDataDir.getAbsolutePath()+"/"+username);
-          if(!userDir.exists()){userDir.mkdir();}
-          
-          MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576)); 
-          Part part;
-          while ((part = mp.readNextPart()) != null) {
-            String name = part.getName();
-            if (part.isFile()) {
-              FilePart filePart = (FilePart) part;
-              fileName = ServletUtilities.cleanFileName(filePart.getFileName());
-              if (fileName != null) {
 
-                File thisSharkDir = new File(usersDir.getAbsolutePath() +"/"+ username);
-                if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
-                File finalFile=new File(thisSharkDir, fileName);
-                fullPathFilename=finalFile.getCanonicalPath();
-                long file_size = filePart.writeTo(finalFile);
-                
-                //add the SinglePhotoVideo object
-                SinglePhotoVideo spv = new SinglePhotoVideo(username,finalFile);
-                spv.setCorrespondingUsername(username);
-                newUser.setUserImage(spv);
-
-              }
-            }
-          }
-        }
-        catch(Exception e){
-          System.out.println("UserCreate servlet: error encountered uploading profile photo!");
-          e.printStackTrace();
-        }
         
         
         
