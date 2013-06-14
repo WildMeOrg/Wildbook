@@ -554,6 +554,8 @@ public final class BatchUpload extends HttpServlet {
         proc = new BatchProcessor(data.listInd, data.listEnc, errors, warnings, loc);
         proc.setMapMedia(data.mapMedia);
         proc.setListSam(data.listSam);
+        getServletContext().setAttribute("BATCH_SERVER_ROOT_URI", CommonConfiguration.getServerRootURI(req));
+        getServletContext().setAttribute("BATCH_SERVER_URL_LOCATION", CommonConfiguration.getURLLocation(req));
         proc.setServletContext(getServletContext());
         proc.setUser(req.getRemoteUser());
         proc.setDataDir(getDataDir());

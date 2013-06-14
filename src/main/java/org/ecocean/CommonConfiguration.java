@@ -123,6 +123,15 @@ public class CommonConfiguration {
     return request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
   }
 
+  /**
+   * @param req HttpServletRequest for which to return server root URI
+   * @return The server's root URI (scheme-relative), comprising server name,
+   * port, and trailing slash (e.g. <em>//server:8080/</em>).
+   */
+  public static String getServerRootURI(HttpServletRequest req) {
+    return String.format("//%s:%d/", req.getServerName(), req.getServerPort());
+  }
+
   public static String getMailHost() {
     initialize();
     return props.getProperty("mailHost").trim();

@@ -544,6 +544,10 @@ public final class BatchProcessor implements Runnable {
         }
       }
 
+      // Remove temporary attributes from ServletContext.
+      servletContext.removeAttribute("BATCH_SERVER_ROOT_URI");
+      servletContext.removeAttribute("BATCH_SERVER_URL_LOCATION");
+
       phase = Phase.DONE;
       cleanupTemporaryFiles();
       status = Status.FINISHED;
