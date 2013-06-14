@@ -9,13 +9,22 @@ import java.util.Arrays;
  * @author Giles Winstanley
  */
 public class BatchMedia {
+  /** EventID for item (links to an encounter in CSV file). */
   private String eventID;
+  /** URL from which media item can be downloaded. */
   private String mediaURL;
+  /** Copyright owner string. */
   private String copyrightOwner;
+  /** Copyright statement string. */
   private String copyrightStatement;
+  /** Array of media keywords. */
   private String[] keywords;
+  /** Flag indicating whether item has been downloaded. */
   private boolean downloaded;
+  /** Flag indicating whether item has been assigned to an encounter. */
   private boolean assigned;
+  /** Flag indicating whether item should be persisted to database. */
+  private boolean persist = true;
 
   public BatchMedia(String eventID, String mediaURL, String copyrightOwner, String copyrightStatement) {
     this.eventID = eventID;
@@ -83,4 +92,11 @@ public class BatchMedia {
     this.assigned = assigned;
   }
 
+  public boolean isPersist() {
+    return persist;
+  }
+
+  public void setPersist(boolean persist) {
+    this.persist = persist;
+  }
 }

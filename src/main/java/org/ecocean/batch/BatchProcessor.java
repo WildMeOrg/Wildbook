@@ -22,7 +22,7 @@ package org.ecocean.batch;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -36,7 +36,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import javax.imageio.ImageIO;
 import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.servlet.ServletContext;
@@ -406,6 +405,8 @@ public final class BatchProcessor implements Runnable {
                 if (!spv.getFile().delete()) // Remove file to maintain clean data folder.
                   log.warn("Unable to delete unassigned media file: {}", spv.getFile().getAbsoluteFile());
                 enc.removeSinglePhotoVideo(spv);
+              } else if (!bp.isPersist()) {
+                enc.removeSinglePhotoVideo(spv);
               }
             }
           }
@@ -580,22 +581,19 @@ public final class BatchProcessor implements Runnable {
    */
   private static void downloadUrlToFile(URL url, File file) throws IOException {
     BufferedInputStream is = null;
-    ByteArrayOutputStream buf = null;
-    FileOutputStream fos = null;
+    BufferedOutputStream os = null;
     try {
       is = new BufferedInputStream(url.openStream());
-      buf = new ByteArrayOutputStream();
+      os = new BufferedOutputStream(new FileOutputStream(file));
       byte[] b = new byte[4096];
       int len = -1;
       while ((len = is.read(b)) != -1)
-        buf.write(b, 0, len);
-      buf.flush();
-      fos = new FileOutputStream(file);
-      fos.write(buf.toByteArray());
-      fos.flush();
+        os.write(b, 0, len);
+      os.flush();
+      os.flush();
     } finally {
-      if (fos != null)
-        fos.close();
+      if (os != null)
+        os.close();
       if (is != null)
         is.close();
     }
