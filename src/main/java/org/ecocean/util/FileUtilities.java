@@ -21,8 +21,10 @@ package org.ecocean.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import org.slf4j.Logger;
@@ -37,6 +39,36 @@ public class FileUtilities {
   private static final Logger log = LoggerFactory.getLogger(FileUtilities.class);
 
   private FileUtilities() {}
+
+  /**
+   * Loads the contents of a specified file.
+   * @param f File to load
+   * @return A byte array containing the contents of the specified {@code File}.
+   */
+  public static byte[] loadFile(File f) throws IOException {
+    if (!f.exists()) {
+      throw new FileNotFoundException();
+    }
+    FileInputStream fis = null;
+    try {
+      ByteArrayOutputStream bao = new ByteArrayOutputStream();
+      fis = new FileInputStream(f);
+      byte[] b = new byte[4096];
+      int n;
+      while ((n = fis.read(b)) != -1) {
+        bao.write(b, 0, n);
+      }
+      return bao.toByteArray();
+    } finally {
+      if (fis != null) {
+        try {
+          fis.close();
+        } catch (IOException iox) {
+          log.warn(iox.getMessage(), iox);
+        }
+      }
+    }
+  }
 
   /**
    * Copies a file to another location.

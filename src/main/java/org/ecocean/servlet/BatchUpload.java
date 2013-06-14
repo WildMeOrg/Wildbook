@@ -22,10 +22,7 @@ import org.ecocean.batch.BatchData;
 import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.Part;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -48,7 +45,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -946,36 +942,6 @@ public final class BatchUpload extends HttpServlet {
   }
 
   /**
-   * Loads the contents of a specified file.
-   * @param f File to load
-   * @return A byte array containing the contents of the specified {@code File}.
-   */
-  public static byte[] loadFile(File f) throws IOException {
-    if (!f.exists()) {
-      throw new FileNotFoundException();
-    }
-    FileInputStream fis = null;
-    try {
-      ByteArrayOutputStream bao = new ByteArrayOutputStream();
-      fis = new FileInputStream(f);
-      byte[] b = new byte[4096];
-      int n;
-      while ((n = fis.read(b)) != -1) {
-        bao.write(b, 0, n);
-      }
-      return bao.toByteArray();
-    } finally {
-      if (fis != null) {
-        try {
-          fis.close();
-        } catch (IOException iox) {
-          log.warn(iox.getMessage(), iox);
-        }
-      }
-    }
-  }
-
-  /**
    * Default method which redirects to main page.
    * @param req servlet request
    * @param res servlet response
@@ -1262,27 +1228,6 @@ public final class BatchUpload extends HttpServlet {
 
     return list;
   }
-
-	/**
-	 * Utility method for performing timezone adjustments to dates.
-	 * @param dateTime date to be adjusted
-	 * @param oldTZ current timezone (null denotes UTC)
-	 * @param newTZ new timezone (null denotes UTC)
-	 * @return Date instance adjusted for timezone offsets specified
-	 */
-	private static Date adjustDateByTimezones(Date dateTime, TimeZone oldTZ, TimeZone newTZ)
-	{
-		long dt = dateTime.getTime();
-		int oAdj = 0;
-		int nAdj = 0;
-		if (oldTZ != null)
-			oAdj = oldTZ.getOffset(dt);
-		if (newTZ != null)
-			nAdj = newTZ.getOffset(dt);
-		dt += oAdj;
-		dt -= nAdj;
-		return new Date(dt);
-	}
 }
 
 /**
