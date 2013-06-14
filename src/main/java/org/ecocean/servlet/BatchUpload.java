@@ -193,26 +193,11 @@ public final class BatchUpload extends HttpServlet {
   /**
    * Gets the name of the delegate dispatch method from the servlet request.
    */
-  private String parseDelegateMethodName(HttpServletRequest req) {
-    String def = "handleRequest";
-    String path = req.getPathInfo();
-    if (path == null || "".equals(path)) {
-      return def;
-    } else {
-      int pos1 = path.indexOf('/');
-      int pos2 = path.indexOf('/', pos1 + 1);
-      if (pos2 < 0) {
-        pos2 = path.length();
-      }
-      if (pos1 > pos2) {
-        return def;
-      }
-      String s = path.substring(pos1 + 1, pos2);
-      if (s.equals("")) {
-        return def;
-      }
-      return s;
-    }
+  private final String parseDelegateMethodName(HttpServletRequest req) {
+    final Pattern p = Pattern.compile("^[^/]*/([^/]+)");
+    final String def = "handleRequest";
+    Matcher m = p.matcher(req.getPathInfo());
+    return m.matches() ? m.group(1) : def;
   }
 
   /**
