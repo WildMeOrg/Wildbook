@@ -410,9 +410,9 @@ public final class BatchUpload extends HttpServlet {
       File[] batchFiles = new File[batchTypes.length];
       for (int i = 0; i < batchTypes.length; i++) {
         batchFiles[i] = (File)session.getAttribute("batch" + batchTypes[i]);
-        if (batchFiles[i] == null) {
+        if (i < 2 && batchFiles[i] == null) {
           errors.add(bundle.getString("batchUpload.error.NoDataFile" + batchTypes[i]));
-        } else if (!batchFiles[i].exists()) {
+        } else if (batchFiles[i] != null && !batchFiles[i].exists()) {
           errors.add(bundle.getString("batchUpload.error.DataFileUploadErr" + batchTypes[i]));
         }
       }
@@ -429,9 +429,12 @@ public final class BatchUpload extends HttpServlet {
       if (errors.isEmpty()) {
         // Parse data files & check for errors.
         BatchParser bp = new BatchParser(loc, batchFiles[0], batchFiles[1]);
-        bp.setFileMeasurements(batchFiles[2]);
-        bp.setFileMedia(batchFiles[3]);
-        bp.setFileSamples(batchFiles[4]);
+        if (batchFiles[2] != null)
+          bp.setFileMeasurements(batchFiles[2]);
+        if (batchFiles[3] != null)
+          bp.setFileMedia(batchFiles[3]);
+        if (batchFiles[4] != null)
+          bp.setFileSamples(batchFiles[4]);
         if (bp.parseBatchData()) {
           List<Map<String, Object>> dataInd = bp.getIndividualData();
           List<Map<String, Object>> dataEnc = bp.getEncounterData();
@@ -1150,6 +1153,8 @@ public final class BatchUpload extends HttpServlet {
    */
   private List<Measurement> parseMea(List<Map<String, Object>> dataMea, List<String> errors, ResourceBundle bundle) {
     List<Measurement> list = new ArrayList<Measurement>();
+    if (dataMea == null)
+      return list;
     String pre = "measurement.";
 
     for (Map<String, Object> map : dataMea) {
@@ -1172,6 +1177,8 @@ public final class BatchUpload extends HttpServlet {
    */
   private List<BatchMedia> parseMed(List<Map<String, Object>> dataMed, List<String> errors, ResourceBundle bundle) {
     List<BatchMedia> list = new ArrayList<BatchMedia>();
+    if (dataMed == null)
+      return list;
     String pre = "media.";
 
     for (Map<String, Object> map : dataMed) {
@@ -1203,6 +1210,8 @@ public final class BatchUpload extends HttpServlet {
    */
   private List<TissueSample> parseSam(List<Map<String, Object>> dataSam, List<String> errors, ResourceBundle bundle) {
     List<TissueSample> list = new ArrayList<TissueSample>();
+    if (dataSam == null)
+      return list;
     String pre = "sample.";
 
     for (Map<String, Object> map : dataSam) {

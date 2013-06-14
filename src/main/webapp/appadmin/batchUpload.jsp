@@ -243,6 +243,11 @@
 			<h2><%=bundle.getProperty("gui.step5.title")%></h2>
 			<p><%=bundle.getProperty("gui.step5.text")%></p>
 
+<%
+  // Clean up page resources.
+  myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
+%>
 			<jsp:include page="../footer.jsp" flush="true"/>
 		</div>
 	</div>
