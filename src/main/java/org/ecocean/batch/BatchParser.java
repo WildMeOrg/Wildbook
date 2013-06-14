@@ -384,7 +384,7 @@ public class BatchParser {
    * and data types are coerced to some degree.
    * (e.g. boolean => true/false/yes/no)
    * @param csvFile CSV file to parse
-   * @param prefix prefix for key entries in resources
+   * @param type type of data item to parsed
    * @return map of field keys to values
    */
   private List<Map<String, Object>> parseBatchData(File csvFile, Type type) {

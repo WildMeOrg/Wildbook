@@ -46,7 +46,7 @@ import org.ecocean.genetics.TissueSample;
  * <p><strong>WARNING:</strong> Implementors should be aware that because this
  * class can intercept and modify all data being uploaded, it has potential to
  * be a data security risk when used inappropriately. Care should be taken with
- * all  field and method access modifiers to ensure no inadvertent data access
+ * all field and method access modifiers to ensure no inadvertent data access
  * may occur from unwanted sources.</p>
  *
  * @author Giles Winstanley
@@ -179,6 +179,9 @@ public abstract class BatchProcessorPlugin {
   /**
    * Method to perform plugin work before the {@code BatchProcessor} performs
    * the core of its work.
+   * This method is called before any of the media files have been downloaded,
+   * so if reliant on downloaded media files, they should not be removed from
+   * the relevant collection (see {@link #getMapPhoto()}.
    * Implementations of this method should ensure they return quickly,
    * and before returning should have assigned values for the maxCount and
    * counter fields, ready to track progress.

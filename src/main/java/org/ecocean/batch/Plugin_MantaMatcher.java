@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * This class intercepts images with the <code>_CR</code> suffix for use as
  * &quot;candidate region&quot; images for the MantaMatcher algorithm.
  * Each matching image is copied to a new file, then processed using the
- * algorithm's <em>mmprocess</em> executable to generate the other files
+ * algorithm's <code>mmprocess</code> executable to generate the other files
  * necessary for performing image matching.
  * <p><strong>NOTE:</strong> Only one <code>_CR</code> image per encounter
  * should be specified in the batch data, as only a single image per encounter

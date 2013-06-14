@@ -356,7 +356,7 @@ public class CommonConfiguration {
 
   /**
    * This configuration option defines the class name of the batch data plugin
-   * to use (must implement {@link org.eocean.batch.BatchProcessorPlugin}).
+   * to use (must implement {@link org.ecocean.batch.BatchProcessorPlugin}).
    *
    * @return Fully-qualified class name of the plugin to use, or null.
    */

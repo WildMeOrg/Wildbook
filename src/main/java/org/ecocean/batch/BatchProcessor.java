@@ -166,7 +166,7 @@ public final class BatchProcessor implements Runnable {
   /**
    * Sets the {@code ServletContext} to use for contextual reference,
    * which is required to access web application data files.
-   * @param servletContext {@code ServletContext} from calling servlet
+   * @param dataDir folder in which non-database data is stored
    */
   public void setDataDir(File dataDir) {
     if (dataDir == null)

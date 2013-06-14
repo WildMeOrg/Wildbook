@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Giles Winstanley
  */
-public class MediaUtilities {
+public final class MediaUtilities {
   /** SLF4J logger instance for writing log entries. */
   private static Logger log = LoggerFactory.getLogger(MediaUtilities.class);
   /** Instance for writing JPEG images. */
@@ -206,10 +206,10 @@ public class MediaUtilities {
    * @param targetWidth the desired width of the scaled instance, in pixels
    * @param targetHeight the desired height of the scaled instance, in pixels
    * @param hint one of the rendering hints that corresponds to
-   *    {@link RenderingHints.KEY_INTERPOLATION} (e.g.
-   *    {@link RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR},
-   *    {@link RenderingHints.VALUE_INTERPOLATION_BILINEAR},
-   *    {@link RenderingHints.VALUE_INTERPOLATION_BICUBIC})
+   *    {@link java.awt.RenderingHints.KEY_INTERPOLATION} (e.g.
+   *    {@link java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR},
+   *    {@link java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR},
+   *    {@link java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC})
    * @return a scaled version of the original {@code BufferedImage}
    */
   public static BufferedImage rescaleImage(BufferedImage img, int targetWidth, int targetHeight, Object hint) {
