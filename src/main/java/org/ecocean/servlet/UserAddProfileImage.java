@@ -138,7 +138,7 @@ public class UserAddProfileImage extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success!</strong> I have successfully uploaded the user profile image file.");
 
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?username=" + username + "\">Return to User Management.</a></p>\n");
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?isEdit=true&username=" + username + "#editUser\">Return to User Management.</a></p>\n");
           out.println(ServletUtilities.getFooter());
           //String message = "An additional image file has been uploaded for encounter #" + encounterNumber + ".";
           //ServletUtilities.informInterestedParties(request, encounterNumber, message);

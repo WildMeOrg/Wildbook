@@ -152,6 +152,7 @@
 		         /UserCreate = authc, roles[admin]
 		         /UserDelete = authc, roles[admin]
 		         /UserAddProfileImage = authc, roles[admin]
+		         /UserRemoveProfileImage = authc, roles[admin]
 		         /EncounterSearchExportExcelFile = authc, roles[admin]
 		         /EncounterSearchExportShapefile = authc, roles[admin]
 		         /EncounterSearchExportEmailAddresses = authc, roles[admin]
@@ -634,10 +635,10 @@
     <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
     <servlet-class>org.ecocean.servlet.MassSetLocationCodeFromLocationString</servlet-class>
   </servlet>
-  
-    <servlet>
-      <servlet-name>UserAddProfileImage</servlet-name>
-      <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
+
+      <servlet>
+        <servlet-name>UserRemoveProfileImage</servlet-name>
+        <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
   </servlet>
 
   <servlet>
@@ -961,6 +962,12 @@
       <url-pattern>/EncounterSetTissueSample</url-pattern>
   </servlet-mapping>
   
+    
+      <servlet-mapping>
+        <servlet-name>UserAddProfileImage</servlet-name>
+        <url-pattern>/UserAddProfileImage</url-pattern>
+  </servlet-mapping>
+  
       <servlet-mapping>
         <servlet-name>EncounterRemoveTissueSample</servlet-name>
         <url-pattern>/EncounterRemoveTissueSample</url-pattern>
@@ -1136,6 +1143,11 @@
   <servlet-mapping>
     <servlet-name>EncounterRemoveSpots</servlet-name>
     <url-pattern>/EncounterRemoveSpots</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>UserRemoveProfileImage</servlet-name>
+      <url-pattern>/UserRemoveProfileImage</url-pattern>
   </servlet-mapping>
 
 
