@@ -9,7 +9,7 @@ public class WebImageFilenameFilter extends RegexFilenameFilter {
   private static final RegexFilenameFilter INSTANCE = new WebImageFilenameFilter();
   
   private WebImageFilenameFilter() {
-    super("(?i:(.+)\\.(jpe?g?|png))");
+    super("(.+)\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES);
   }
 
   public static RegexFilenameFilter instance() {

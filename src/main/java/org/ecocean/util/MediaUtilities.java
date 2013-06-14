@@ -49,6 +49,12 @@ import org.slf4j.LoggerFactory;
 public final class MediaUtilities {
   /** SLF4J logger instance for writing log entries. */
   private static Logger log = LoggerFactory.getLogger(MediaUtilities.class);
+  /** Regex pattern string suffix for matching image filenames (case-insensitive, capturing group). */
+  public static final String REGEX_SUFFIX_FOR_IMAGES = "(?i:(jpe?g?|png|gif|tiff?|bmp))$";
+  /** Regex pattern string suffix for matching image filenames (case-insensitive, capturing group). */
+  public static final String REGEX_SUFFIX_FOR_WEB_IMAGES = "(?i:(jpe?g?|png|gif))$";
+  /** Regex pattern string suffix for matching video filenames (case-insensitive, capturing group). */
+  public static final String REGEX_SUFFIX_FOR_MOVIES = "(?i:mp4|mpg|mov|wmv|avi)$";
   /** Instance for writing JPEG images. */
   private static ImageWriter iwJPEG;
   /** Instance for writing JPEG images. */
@@ -80,7 +86,7 @@ public final class MediaUtilities {
    * @return true if filename is support, false otherwise
    */
   public static boolean isAcceptableImageFile(String filename) {
-    return (filename == null) ? false : filename.matches("^.+\\.(?i:png|jpe?g?|gif|bmp)$");
+    return (filename == null) ? false : filename.matches("^.+\\." + REGEX_SUFFIX_FOR_WEB_IMAGES);
   }
 
   /**
@@ -91,7 +97,7 @@ public final class MediaUtilities {
    * @return true if filename is support, false otherwise
    */
   public static boolean isAcceptableVideoFile(String filename) {
-    return (filename == null) ? false : filename.matches("^.+\\.(?i:mp4|mpg|mov|wmv|avi)$");
+    return (filename == null) ? false : filename.matches("^.+\\." + REGEX_SUFFIX_FOR_MOVIES);
   }
 
   /**
