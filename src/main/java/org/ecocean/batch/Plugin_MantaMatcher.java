@@ -29,6 +29,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,7 +37,9 @@ import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.util.FileUtilities;
-import org.ecocean.util.RegexFilenameFilter;
+import org.ecocean.util.ListHelper;
+import org.ecocean.util.MantaMatcherUtilities;
+import org.ecocean.util.MediaUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,18 +50,21 @@ import org.slf4j.LoggerFactory;
  * Each matching image is copied to a new file, then processed using the
  * algorithm's <code>mmprocess</code> executable to generate the other files
  * necessary for performing image matching.
- * <p><strong>NOTE:</strong> Only one <code>_CR</code> image per encounter
- * should be specified in the batch data, as only a single image per encounter
- * is currently supported by the website design.
+ * This class does not run <code>mmatch</code> for performance reasons.
+ * Including it in the batch process causes an unacceptable delay,
+ * and it's reasonable to assume data uploaded via this mechanism have been
+ * previously checked visually.
  *
  * @author Giles Winstanley
  */
 public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
   /** SLF4J logger instance for writing log entries. */
   private static final Logger log = LoggerFactory.getLogger(Plugin_MantaMatcher.class);
+  /** Regex pattern string for matching CR image filenames. */
+  private static final Pattern REGEX_CR = Pattern.compile("^(.+)_CR\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES);
   /** Resources for internationalization. */
   private ResourceBundle bundle;
-  /** Collection of media files to process. */
+  /** Collection of media files to process with mmprocess. */
   private List<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>();
 
   public Plugin_MantaMatcher(List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale loc) {
@@ -73,18 +79,17 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
 
   @Override
   void preProcess() {
-    // Process all images to find MantaMatcher "_CR" images.
-    // Keep track of MM images for post-processing.
-    Pattern p = Pattern.compile("^(.+)_CR\\.(?i:(jpe?g?|png))$");
+    // Process all images to find MantaMatcher CR images.
     List<File> done = new ArrayList<File>();
     for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
       File f = spv.getFile();
-      Matcher m = p.matcher(f.getName());
+      Matcher m = REGEX_CR.matcher(f.getName());
       if (m.matches()) {
+        getMapPhoto().get(spv).setPersist(false);
         if (done.contains(f)) {
-          String msg = MessageFormat.format(bundle.getString("plugin.warning.duplicate"), f.getName());
+          String msg = MessageFormat.format(bundle.getString("plugin.warning.duplicateFile"), f.getName());
           addWarning(msg);
-          log.warn(String.format("Duplicate _CR image found: %s", f.getAbsolutePath()));
+          log.warn(String.format("Duplicate CR image file found: %s", f.getAbsolutePath()));
         } else {
           done.add(f);
           list.add(spv);
@@ -97,42 +102,54 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
 
   /**
    * Process images for MantaMantcher algorithm.
-   * The mmprocess executable requires input of a &quot;candidate region&quot;
-   * image, which must have the filename suffix <em>_CR</em>
+   * The <code>mmprocess</code> executable requires input of a &quot;candidate region&quot;
+   * image, which must have the filename suffix <code>_CR</code>
    * (e.g.&nbsp;foo_CR.jpg).
+   * For each CR image file found:
+   * <ol>
+   * <li>Locate reference image to use (ID image, else fall back to CR image).</li>
+   * <li>Rename CR image relative to reference image.</li>
+   * <li>Call <code>mmprocess</code> to produce MM algorithm artefacts.</li>
+   * </ol>
    * Output comprises three files with the suffixes <em>{ _EH, _FT, _FEAT }</em>.
    * This method ensures the initial file conditions, then checks for output.
    */
   @Override
-  void process() throws IOException {
-    RegexFilenameFilter ff = new RegexFilenameFilter("(?i:(.+)_CR\\.(jpe?g?|png))");
+  void process() throws IOException, InterruptedException {
     for (SinglePhotoVideo spv : list) {
-      // Copy file to isolate MM process.
-      Matcher m = ff.getMatcher(spv.getFile().getName());
-      if (!m.matches())
-        throw new IOException("Non-matching filename: " + spv.getFilename());
-      File f = new File(spv.getFile().getParentFile(), String.format("mantaProcessedImage.%s", m.group(2)));
-      File fCR = new File(spv.getFile().getParentFile(), String.format("mantaProcessedImage_CR.%s", m.group(2)));
+      // Find reference image (ideally ID, but CR in case of fall-back).
+      SinglePhotoVideo ref = findReferenceImageFile(spv);
+      if (ref == null) {
+        ref = spv;
+         String msg = MessageFormat.format(bundle.getString("plugin.warning.noReference"), spv.getFile().getName());
+        addWarning(msg);
+        log.warn(String.format("Unable to find associated reference image for: %s", spv.getFile().getName()));
+      }
 
-      if (f.exists() || fCR.exists()) {
-        String msg = MessageFormat.format(bundle.getString("plugin.warning.duplicate"), f.getName());
+      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ref);
+      File fCR = mmFiles.get("CR");
+      if (!fCR.equals(spv.getFile()) && fCR.exists()) {
+        String msg = MessageFormat.format(bundle.getString("plugin.warning.duplicate"), fCR.getName());
         addWarning(msg);
-        log.warn(String.format("Duplicate _CR image found: %s", f.getAbsolutePath()));
-      } else if (!spv.getFile().exists()) {
-        String msg = MessageFormat.format(bundle.getString("plugin.warning.fileNotFound"), spv.getFile().getAbsolutePath());
+        log.warn(String.format("Duplicate CR image found: %s", fCR.getAbsolutePath()));
+      } else if (!ref.getFile().exists()) {
+        String msg = MessageFormat.format(bundle.getString("plugin.warning.fileNotFound"), ref.getFile().getAbsolutePath());
         addWarning(msg);
-        log.warn(String.format("Original image not found: %s", spv.getFile().getAbsolutePath()));
+        log.warn(String.format("Original image not found: %s", ref.getFile().getAbsolutePath()));
       } else {
-        FileUtilities.copyFile(spv.getFile(), fCR);
-        FileUtilities.copyFile(spv.getFile(), f);
+        // Rename CR file if necessary.
+        if (ref == spv)
+          FileUtilities.copyFile(spv.getFile(), fCR);
+        else
+          spv.getFile().renameTo(fCR);
         // Perform MM process.
-        mmprocess(f);
+        mmprocess(ref.getFile());
         // Check that mmprocess did something.
-        File fEH = new File(fCR.getParentFile(), fCR.getName().replace("_CR", "_EH"));
-        File fFT = new File(fCR.getParentFile(), fCR.getName().replace("_CR", "_FT"));
-        File fFEAT = new File(fCR.getParentFile(), fCR.getName().replaceFirst("_CR.+$", ".FEAT"));
+        File fEH = mmFiles.get("EH");
+        File fFT = mmFiles.get("FT");
+        File fFEAT = mmFiles.get("FEAT");
         if (!fEH.exists() || !fFT.exists() || !fFEAT.exists()) {
-          String param = String.format("%1$s_EH.%2$s, %1$s_FT.%2$s, %1$s.FEAT,", m.group(1), m.group(2));
+          String param = String.format("%s, %s, %s", fEH.getName(), fFT.getName(), fFEAT.getName());
           String msg = MessageFormat.format(bundle.getString("plugin.warning.mmprocess.failed"), param);
           addWarning(msg);
           log.warn(msg);
@@ -143,20 +160,60 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
     }
   }
 
-  private void mmprocess(File imageFile) throws IOException {
+  /**
+   * Attempts to find the ID image file relating to the specified CR image file.
+   * @param spvCR CR image file for which to find ID image file
+   * @return {@code SinglePhotoVideo} instance of the ID image, or null if not found.
+   */
+  private SinglePhotoVideo findReferenceImageFile(SinglePhotoVideo spvCR) {
+    File fCR = spvCR.getFile();
+    Matcher m = REGEX_CR.matcher(fCR.getName());
+    if (!m.matches())
+      throw new IllegalArgumentException("Invalid CR image filename");
+    File f = new File(fCR.getParentFile(), String.format("%s.%s", m.group(1), m.group(2)));
+    // Check for existence of image without _CR suffix.
+    if (f.exists()) {
+      // Find SPV to match file.
+      for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
+        if (spv.getFile().equals(f)) {
+          log.trace("Found matching reference: " + spv.getFile().getName());
+          return spv;
+        }
+      }
+    }
+    // Failed to find obvious matching SPV, so fall-back to top ID image.
+    final String REGEX_ID = String.format("^%s[-_ ](?i:Id)(?=[ .]).*\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES, m.group(1));
+    for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
+      if (spv.getFile().getName().matches(REGEX_ID)) {
+        log.trace("Found matching ID ref: " + spv.getFile().getName());
+        return spv;
+      }
+    }
+    // Failed to find any match.
+    return null;
+  }
+
+  /**
+   * Runs the <code>mmprocess</code> utility on the specified image file.
+   * This method assumes that the related _CR image file is also in place.
+   * @param imageFile image file for which to run utility
+   * @throws IOException if there is a problem redirecting the process output to file
+   * @throws InterruptedException if the process is interrupted
+   */
+  private void mmprocess(File imageFile) throws IOException, InterruptedException {
+    assert MantaMatcherUtilities.getMatcherFilesMap(imageFile).get("CR").exists();
     File fOut = new File(imageFile.getParentFile(), "mmprocess.log");
     if (fOut.exists())
       fOut.delete();
 
-    List<String> args = new ArrayList<String>();
-    args.add("/usr/bin/mmprocess");
-    args.add(imageFile.getAbsolutePath());
-    args.add("4");
-    args.add("1");
-    args.add("2");
+    List<String> args = ListHelper.create("/usr/bin/mmprocess")
+            .add(imageFile.getAbsolutePath())
+            .add("4").add("1").add("2").asList();
     ProcessBuilder proc = new ProcessBuilder(args);
+    proc.redirectErrorStream(true);
+    log.trace("Running mmprocess for: " + imageFile.getName());
     Process p = proc.directory(imageFile.getParentFile()).start();
-    
+
     InputStream in = null;
     OutputStream out = null;
     try {
@@ -175,5 +232,9 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
         out.close();
       }
     }
+    // Wait for process to finish, to avoid overload of processes.
+    if (p.waitFor() == 0)
+      fOut.delete();
+    assert MantaMatcherUtilities.checkMatcherFilesExist(imageFile);
   }
 }
