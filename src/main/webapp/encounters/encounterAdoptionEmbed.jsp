@@ -171,7 +171,7 @@ div.scroll {
   if (request.getUserPrincipal()!=null) {
 %>
 <p><a
-  href="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/adoption.jsp?encounter=<%=num%>#create">[+]
+  href="../adoptions/adoption.jsp?encounter=<%=num%>#create">[+]
   Add adoption</a></p>
 <%
   }
