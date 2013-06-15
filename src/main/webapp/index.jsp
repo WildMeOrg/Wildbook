@@ -54,6 +54,27 @@
 	  		Role newRole4=new Role("tomcat","destroyer");
 	  		myShepherd.getPM().makePersistent(newRole4);
 	  		
+	  		Role newRole5=new Role("tomcat","manager");
+	  		myShepherd.getPM().makePersistent(newRole5);
+	  		
+	  		Role newRole6=new Role("tomcat","adoption");
+	  		myShepherd.getPM().makePersistent(newRole6);
+	  		
+	  		Role newRole7=new Role("tomcat","imageProcessor");
+	  		myShepherd.getPM().makePersistent(newRole7);
+	  		
+	  		Role newRole8=new Role("tomcat","approve");
+				  		myShepherd.getPM().makePersistent(newRole8);
+				  		
+				  		Role newRole9=new Role("tomcat","identifier");
+							  		myShepherd.getPM().makePersistent(newRole9);
+							  		
+							  		Role newRole2=new Role("tomcat","researcher");
+										  		myShepherd.getPM().makePersistent(newRole2);
+	  		
+	  		
+	  		
+	  		
 	  		System.out.println("Creating tomcat user account...");
   	  	}
   	}
