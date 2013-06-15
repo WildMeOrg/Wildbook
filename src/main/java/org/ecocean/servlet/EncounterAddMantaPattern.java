@@ -24,6 +24,7 @@ import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
 import org.ecocean.*;
+import org.ecocean.util.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -38,21 +39,22 @@ import java.util.*;
  * 
  * This servlet allows the user to upload a processed patterning file for use with the MantaMatcher algorithm.
  * @author jholmber
+ * @author Giles Winstanley
  *
  */
 public class EncounterAddMantaPattern extends HttpServlet {
 
-
+  @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
 
-
+  @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     doPost(request, response);
   }
 
-
+  @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     Shepherd myShepherd = new Shepherd();
     myShepherd.beginDBTransaction();
@@ -68,273 +70,246 @@ public class EncounterAddMantaPattern extends HttpServlet {
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-    boolean removedJPEG = false, locked = false;
-    String fileName = "mantaProcessedImage_CR.jpg"; 
-    String enhancedFileName = "mantaProcessedImage_EH.jpg"; 
+    boolean locked = false;
     String encounterNumber = "";
-    String action="imageadd";
+    Map<String, File> mmFiles = null;
+    String action = "imageadd";
     
-    StringBuffer resultComment=new StringBuffer();
+    StringBuilder resultComment = new StringBuilder();
     
-    String dataCollectionEventID="";
-    
-    if((request.getParameter("action")!=null)&&(request.getParameter("action").equals("imageremove"))){action="imageremove";}
-    else if((request.getParameter("action")!=null)&&(request.getParameter("action").equals("rescan"))){action="rescan";}
+    if (request.getParameter("action") != null && request.getParameter("action").equals("imageremove")) {
+      action = "imageremove";
+    }
+    else if (request.getParameter("action") != null && request.getParameter("action").equals("rescan")) {
+      action = "rescan";
+    }
 
     try {
-      if(action.equals("imageremove")){
-        //eliminate the previous JPG version of this file if it existed                         //eliminate the previous JPG if it existed
+      // ====================================================================
+      if (action.equals("imageremove")){
+
         encounterNumber = request.getParameter("number");
-        
-        
         try {
-
-          Encounter enc=myShepherd.getEncounter(encounterNumber);
-          //List<SinglePhotoVideo> myphots=enc.getSinglePhotoVideo();
-          //int myPhotsSize=myphots.size();
-          File thisEncounterDir = new File(encountersDir, request.getParameter("number"));
-          //for(int t=0;t<myPhotsSize;t++){
-            SinglePhotoVideo spv=myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
-            String spvName=spv.getFilename().replaceAll(".jpg", "_CR.jpg").replaceAll(".JPG","_CR.JPG");
-
-            File spvCRFile=new File(thisEncounterDir,spvName);
-            if(spvCRFile.exists()){
-              //test comment
-              File jpegVersion = new File(thisEncounterDir, spvName);
-              File enhancedVersion = new File(thisEncounterDir, spvName.replaceAll("_CR", "_EH"));
-              File matchFile= new File(thisEncounterDir, (spv.getDataCollectionEventID()+"_matchOutput.xhtml"));
-              File FEATFile = new File(thisEncounterDir, spv.getFilename().replaceAll(".jpg", ".FEAT").replaceAll(".JPG", ".FEAT").replaceAll(".jpeg", ".FEAT").replaceAll(".JPEG", ".FEAT"));
-              File FTFile = new File(thisEncounterDir, spvName.replaceAll("_CR", "_FT"));
-           if (jpegVersion.exists() && (!jpegVersion.getName().equals(spv.getFilename()))) {
-                removedJPEG = jpegVersion.delete();
-              }
-          if (enhancedVersion.exists()  && (!enhancedVersion.getName().equals(spv.getFilename())) ) {
-                removedJPEG = enhancedVersion.delete();
-              }
-              if (matchFile.exists() ) {
-                removedJPEG = matchFile.delete();
-              }
-              if (FEATFile.exists()  && (!FEATFile.getName().equals(spv.getFilename()))) {
-                removedJPEG = FEATFile.delete();
-              }
-              if (FTFile.exists()  && (!FTFile.getName().equals(spv.getFilename()))) {
-                removedJPEG = FTFile.delete();
-              }
-              jpegVersion=null;
-              enhancedVersion=null;
+          Encounter enc = myShepherd.getEncounter(encounterNumber);
+          SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+          File mmCR = mmFiles.get("CR");
+          if (mmCR.exists()) {
+            File mmEH = mmFiles.get("EH");
+            File mmFT = mmFiles.get("FT");
+            File mmFEAT = mmFiles.get("FEAT");
+            File matchFile = mmFiles.get("XHTML");
+            if (mmCR.exists() && !mmCR.getName().equals(spv.getFilename())) {
+              mmCR.delete();
             }
-          //}
-          
+            if (mmEH.exists()) {
+              mmEH.delete();
+            }
+            if (mmFT.exists()) {
+              mmFT.delete();
+            }
+            if (mmFEAT.exists()) {
+              mmFEAT.delete();
+            }
+            if (matchFile.exists() ) {
+              matchFile.delete();
+            }
+          }
+          mmFiles = null;
         } 
         catch (SecurityException thisE) {
           thisE.printStackTrace();
-          System.out.println("Error attempting to delete the old JPEG version of a submitted manta data image!!!!");
-          removedJPEG = false;
+          System.out.println("Error attempting to delete the old version of a submitted manta data image!!!!");
           resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
         }
       }
-      //test comment
-      else if(action.equals("rescan")){
-        //eliminate the previous JPG version of this file if it existed                         //eliminate the previous JPG if it existed
+      // ====================================================================
+      else if (action.equals("rescan")){
+
         encounterNumber = request.getParameter("number");
-        
-        
         try {
+          File encDir = new File(encountersDir, request.getParameter("number"));
+          SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          File spvFile = new File(encDir, spv.getFilename());
+          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+          File matchFile = mmFiles.get("XHTML");
+          if (matchFile.exists() ) {
+            matchFile.delete();
+          }
 
-          Encounter enc=myShepherd.getEncounter(encounterNumber);
-          List<SinglePhotoVideo> myphots=enc.getSinglePhotoVideo();
-          int myPhotsSize=myphots.size();
-          File thisEncounterDir = new File(encountersDir, request.getParameter("number"));
- 
-            SinglePhotoVideo spv=myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
-            dataCollectionEventID=spv.getDataCollectionEventID();
-
-
-              //test comment
-              File jpegVersion = new File(thisEncounterDir, spv.getFilename());
-
-
+          String pathImage = CommonConfiguration.getServerRootURI(request) + "shepherd_data_dir/encounters/";
+          String pathLink = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=";
+          List<String> procArg = ListHelper.create("/usr/bin/mmatch")
+                  .add(encountersDir.getAbsolutePath())
+                  .add(spvFile.getAbsolutePath())
+                  .add("0").add("0").add("2").add("1")
+                  .add("-o").add(mmFiles.get("XHTML").getName())
+                  .add("-s").add(encountersDir.getAbsolutePath() + "/").add(pathImage).add(pathLink)
+                  .asList();
+          ProcessBuilder pb2 = new ProcessBuilder(procArg);
+          pb2.directory(encDir);
           
-          ProcessBuilder pb2 = new ProcessBuilder("/usr/bin/mmatch", encountersDir.getAbsolutePath(), jpegVersion.getAbsolutePath(),"0","0","2","1","-o",(spv.getDataCollectionEventID()+"_matchOutput.xhtml"),"-s",(encountersDir.getAbsolutePath()+"/"),"http://www.mantamatcher.org/shepherd_data_dir/encounters/","http://www.mantamatcher.org/encounters/encounter.jsp?number=");
-          pb2.directory(thisEncounterDir);
+          String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
+          resultComment.append("<br />").append(procArgStr).append("<br /><br />");
+          System.out.println(procArgStr);
           
-          
-          resultComment.append(("<br />/usr/bin/mmatch "+ encountersDir.getAbsolutePath()+" "+ jpegVersion.getAbsolutePath()+" 0"+" 0"+" 2"+" 1"+" -o"+(" "+spv.getDataCollectionEventID()+"_matchOutput.xhtml")+" -s "+(encountersDir.getAbsolutePath()+"/")+" http://www.mantamatcher.org/shepherd_data_dir/encounters/"+" http://www.mantamatcher.org/encounters/encounter.jsp?number=")+"<br /><br />");
-          System.out.println(("/usr/bin/mmatch "+ encountersDir.getAbsolutePath()+" "+ jpegVersion.getAbsolutePath()+" 0"+" 0"+" 2"+" 1"+" -o"+(" "+spv.getDataCollectionEventID()+"_matchOutput.xhtml")+" -s "+(encountersDir.getAbsolutePath()+"/")+" http://www.mantamatcher.org/shepherd_data_dir/encounters/"+" http://www.mantamatcher.org/encounters/encounter.jsp?number="));
-          
-          String ls_str2;
-           //Process ls_proc2 = Runtime.getRuntime().exec(execString2); 
           pb2.start();
-        } 
-        catch (SecurityException thisE) {
-          thisE.printStackTrace();
-          System.out.println("Error attempting to delete the old JPEG version of a submitted manta data image!!!!");
-          removedJPEG = false;
-          resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
+
+          // Wait a little while to ensure results file has been created (with timeout).
+          long timeStart = System.currentTimeMillis();
+          while (!matchFile.exists() && System.currentTimeMillis() - timeStart < 2000) {
+            try {
+              Thread.sleep(100);
+            } catch (InterruptedException ex) {
+              // Ignore, as irrelevant.
+            }
+          }
+        }
+        catch (SecurityException sx) {
+          sx.printStackTrace();
+          System.out.println("Error attempting to rescan manta feature image!!!!");
+          resultComment.append("I hit a security error trying to rescan manta feature image. Please check your file system permissions.");
         }
       }
-      else if(action.equals("imageadd")){
+      // ====================================================================
+      else if (action.equals("imageadd")) {
         
-        MultipartParser mp = new MultipartParser(request, 10 * 1024 * 1024); // 2MB
-        Part part;
+        MultipartParser mp = new MultipartParser(request, 10 * 1024 * 1024); // 10MB
+        Part part = null;
         while ((part = mp.readNextPart()) != null) {
           String name = part.getName();
           if (part.isParam()) {
-
-
-            // it's a parameter part
-            ParamPart paramPart = (ParamPart) part;
+            ParamPart paramPart = (ParamPart)part;
             String value = paramPart.getStringValue();
 
-            //determine which variable to assign the param to
+            // Determine encounter to which to assign new CR image.
             if (name.equals("number")) {
               encounterNumber = value;
-              //System.out.println("Setting encounterNumber to: "+encounterNumber);
             } 
-            
-            //let's detect our filename
-            if(name.equals("photoNumber")){
-              //test comment
-              //Integer photoNumber=new Integer(value);
-              //Encounter enc=myShepherd.getEncounter(encounterNumber);
-              
-              SinglePhotoVideo spv=myShepherd.getSinglePhotoVideo(value);
-              dataCollectionEventID=spv.getDataCollectionEventID();
-              fileName=spv.getFilename().replaceAll(".jpg", "_CR.jpg").replaceAll(".JPG", "_CR.JPG").replaceAll(".jpeg", "_CR.jpeg").replaceAll(".JPEG", "_CR.JPEG");
+            // Determine existing image to which to assign new CR image.
+            if (name.equals("photoNumber")){
+              SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(value);
+              mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
             }
-
           }
 
+          // Check for FilePart is done after other Part types.
+          // NOTE: "number" and "photoNumber" must be come first in JSP form
+          // to ensure correct association with encounter/photo.
           File thisEncounterDir = new File(encountersDir, encounterNumber);
-        
-       
           if (part.isFile()) {
-            FilePart filePart = (FilePart) part;
-            String uploadedFileName=ServletUtilities.cleanFileName(filePart.getFileName());
-            if((uploadedFileName.trim().toLowerCase().endsWith("jpg"))||(uploadedFileName.trim().toLowerCase().endsWith("jpeg"))){
-              //fileName = ServletUtilities.cleanFileName(filePart.getFileName());
-
-              //eliminate the previous JPG version of this file if it existed                         //eliminate the previous JPG if it existed
-              try {
-
-
-
-                File jpegVersion = new File(thisEncounterDir, fileName);
-                File enhancedVersion = new File(thisEncounterDir, enhancedFileName);
-                if (jpegVersion.exists()) {
-                  removedJPEG = jpegVersion.delete();
-                }
-                if (enhancedVersion.exists()) {
-                  removedJPEG = enhancedVersion.delete();
-                }
-                jpegVersion=null;
-                enhancedVersion=null;
-
-              } 
-              catch (SecurityException thisE) {
-                thisE.printStackTrace();
-                System.out.println("Error attempting to delete the old JPEG version of a submitted manta data image!!!!");
-                removedJPEG = false;
-                resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
-                locked=true;
-              }
-
-              File write2me=new File(thisEncounterDir, fileName);
-              long file_size = filePart.writeTo(
-                  write2me
-              );
-              resultComment.append("Successfully saved the new feature image.<br />");
-              filePart=null;
-              
-
-              
-
-              ProcessBuilder pb = new ProcessBuilder("/usr/bin/mmprocess", write2me.getAbsolutePath().replaceAll("_CR", ""), "4","1","2");
-                  
-              System.out.println("I am trying to execute the command:<br/>"+"/usr/bin/mmprocess "+ write2me.getAbsolutePath().replaceAll("_CR", "")+ " 4"+" 1"+" 2"+"<br />");
-              resultComment.append("I am trying to execute the command:<br/>"+"/usr/bin/mmprocess "+ write2me.getName().replaceAll("_CR", "")+ " 4"+" 1"+" 2"+"<br />");
-              
-              //test comment
-              
-              String ls_str;
-              write2me.setWritable(true, false);
-              //Process ls_proc = Runtime.getRuntime().exec(execArray); 
-              Process ls_proc=pb.start();
-             
-
-              // get its output (your input) stream 
-
-              BufferedReader ls_in= new BufferedReader(new InputStreamReader(ls_proc.getInputStream()));
-     
-              //DataInputStream ls_in = new DataInputStream(ls_proc.getInputStream()); 
-              resultComment.append("mmprocess reported the following when trying to create the enhanced image file:<br />");
-              
-              try { 
-                while ((ls_str = ls_in.readLine()) != null) { 
-                  //System.out.println(ls_str); 
-                  resultComment.append(ls_str+"<br />");
-                } 
-              } 
-              catch (IOException e) { 
-                e.printStackTrace();
-                locked=true;
-                resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
-                resultComment.append(e.getStackTrace().toString());
-                
-              } 
-              
-              if(!locked){
-                //if we've made it here, we have an enhanced image and can kick off a scan.
-                
-                //String execString2="/usr/bin/mmatch "+encountersDir.getAbsolutePath()+" "+winQuote(write2me.getAbsolutePath().replaceAll("_CR", ""))+" 0 0 1 0 -o "+thisEncounterDir.getAbsolutePath()+"/matchOutput.xhtml";
-                
-                ProcessBuilder pb2 = new ProcessBuilder("/usr/bin/mmatch", encountersDir.getAbsolutePath(), write2me.getAbsolutePath().replaceAll("_CR", ""),"0","0","2","1","-o",(dataCollectionEventID+"_matchOutput.xhtml"),"-s",(encountersDir.getAbsolutePath()+"/"),"http://www.mantamatcher.org/shepherd_data_dir/encounters/","http://www.mantamatcher.org/encounters/encounter.jsp?number=");
-                pb2.directory(thisEncounterDir);
-                
-                
-                resultComment.append(("<br />/usr/bin/mmatch "+ encountersDir.getAbsolutePath()+" "+ write2me.getAbsolutePath().replaceAll("_CR", "")+" 0"+" 0"+" 2"+" 1"+" -o"+" "+(dataCollectionEventID+"_"+"matchOutput.xhtml")+" -s "+(encountersDir.getAbsolutePath()+"/")+" http://www.mantamatcher.org/shepherd_data_dir/encounters/"+" http://www.mantamatcher.org/encounters/encounter.jsp?number=")+"<br /><br />");
-                System.out.println(("/usr/bin/mmatch "+ encountersDir.getAbsolutePath()+" "+ write2me.getAbsolutePath().replaceAll("_CR", "")+" 0"+" 0"+" 2"+" 1"+" -o"+(dataCollectionEventID+"_"+"matchOutput.xhtml")+" -s "+(encountersDir.getAbsolutePath()+"/")+" http://www.mantamatcher.org/shepherd_data_dir/encounters/"+" http://www.mantamatcher.org/encounters/encounter.jsp?number="));
-                
-                String ls_str2;
-                 //Process ls_proc2 = Runtime.getRuntime().exec(execString2); 
-                pb2.start();
-                
-              }
-              
-
+            FilePart filePart = (FilePart)part;
+            assert mmFiles != null;
+            try {
+              // Attempt to delete existing MM algorithm images.
+              File mmCR = mmFiles.get("CR");
+              File mmEH = mmFiles.get("EH");
+              File mmFT = mmFiles.get("FT");
+              File mmFEAT = mmFiles.get("FEAT");
+              if (mmCR.exists())
+                mmCR.delete();
+              if (mmEH.exists())
+                mmEH.delete();
+              if (mmFT.exists())
+                mmFT.delete();
+              if (mmFEAT.exists())
+                mmFEAT.delete();
             }
-            else{
+            catch (SecurityException sx) {
+              sx.printStackTrace();
+              System.out.println("Error attempting to delete the old version of a submitted manta data image!!!!");
+              resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
+              locked=true;
+            }
+
+            // Save new image to file ready for processing.
+            File write2me = mmFiles.get("CR");
+            filePart.writeTo(write2me);
+            resultComment.append("Successfully saved the new feature image.<br />");
+
+            // Run 'mmprocess' for image enhancement & to create feature files.
+            List<String> procArg = ListHelper.create("/usr/bin/mmprocess")
+                    .add(write2me.getAbsolutePath().replaceAll("_CR", ""))
+                    .add("4").add("1").add("2").asList();
+            ProcessBuilder pb = new ProcessBuilder(procArg);
+
+            String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
+            System.out.println("I am trying to execute the command: " + procArgStr);
+            resultComment.append("I am trying to execute the command:<br/>").append(procArgStr).append("<br />");
+
+            Process process = pb.start();
+            // Read ouput from process.
+            resultComment.append("mmprocess reported the following when trying to create the enhanced image file:<br />");
+            BufferedReader brProc = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            try { 
+              String temp = null;
+              while ((temp = brProc.readLine()) != null) {
+                resultComment.append(temp).append("<br />");
+              } 
+            } 
+            catch (IOException iox) {
+              iox.printStackTrace();
+              locked = true;
+              resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
+              resultComment.append(iox.getStackTrace().toString());
+            } 
+
+            if (!locked) {
+              //if we've made it here, we have an enhanced image and can kick off a scan.
+              String pathImage = CommonConfiguration.getServerRootURI(request) + "shepherd_data_dir/encounters/";
+              String pathLink = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=";
+              List<String> procArg2 = ListHelper.create("/usr/bin/mmatch")
+                      .add(encountersDir.getAbsolutePath())
+                      .add(write2me.getAbsolutePath().replaceAll("_CR", ""))
+                      .add("0").add("0").add("2").add("1")
+                      .add("-o").add(mmFiles.get("XHTML").getName())
+                      .add("-s").add(encountersDir.getAbsolutePath() + "/").add(pathImage).add(pathLink)
+                      .asList();
+              String procArg2Str = ListHelper.toDelimitedStringQuoted(procArg2, " ");
+              ProcessBuilder pb2 = new ProcessBuilder(procArg2);
+              pb2.directory(thisEncounterDir);
+
+              resultComment.append("<br />").append(procArg2Str).append("<br /><br />");
+              System.out.println(procArg2Str);
+
+              pb2.start();
+
+              // Wait a little while to ensure results file has been created (with timeout).
+              File matchFile = mmFiles.get("XHTML");
+              long timeStart = System.currentTimeMillis();
+              while (!matchFile.exists() && System.currentTimeMillis() - timeStart < 2000) {
+                try {
+                  Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                  // Ignore, as irrelevant.
+                }
+              }
+            }
+            else {
               locked = true;
             }
-      
           }
         }
-  
       }
-      
-  
+      // ====================================================================
 
-
-      //System.out.println(encounterNumber);
-      //System.out.println(fileName);
       myShepherd.beginDBTransaction();
       System.out.println("    I see encounterNumber as: "+encounterNumber);
       if ((myShepherd.isEncounter(encounterNumber))&&!locked) {
         Encounter add2shark = myShepherd.getEncounter(encounterNumber);
         try {
-
-
           String user = "Unknown User";
           if (request.getRemoteUser() != null) {
             user = request.getRemoteUser();
           }
-          if(action.equals("imageadd")){
-            
+          if (action.equals("imageadd")){
             add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Submitted new mantamatcher data image.</p>");
+          }
+          else if (action.equals("rescan")){
+            add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Performed matching scan of mantamatcher feature data.</p>");
           }
           else {
             add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed mantamatcher data image.</p>");
-            
           }
         } 
         catch (Exception le) {
@@ -343,53 +318,39 @@ public class EncounterAddMantaPattern extends HttpServlet {
           le.printStackTrace();
         }
 
-        //we're getting to the response phase
-        
+        // Send response to user.
 
         if (!locked) {
           myShepherd.commitDBTransaction();
           myShepherd.closeDBTransaction();
           
-
-   
-          
-          if(action.equals("imageadd")){
-            
-            String resultsURL = ("/" + CommonConfiguration.getDataDirectoryName() + "/encounters/"+encounterNumber+"/"+dataCollectionEventID+"_matchOutput.xhtml");
+          if (action.equals("imageadd")) {
+            assert mmFiles != null;
+            String resultsURL = "/" + CommonConfiguration.getDataDirectoryName() + "/encounters/" + encounterNumber + "/" + mmFiles.get("XHTML").getName();
             response.sendRedirect(resultsURL);
-            
-            //out.println("<strong>Confirmed:</strong> I have successfully uploaded your mantamatcher data image file.");
-            
           }
-          else if(action.equals("rescan")){
-            
-            String resultsURL = ("/" + CommonConfiguration.getDataDirectoryName() + "/encounters/"+encounterNumber+"/"+dataCollectionEventID+"_matchOutput.xhtml");
+          else if (action.equals("rescan")) {
+            assert mmFiles != null;
+            String resultsURL = "/" + CommonConfiguration.getDataDirectoryName() + "/encounters/" + encounterNumber + "/" + mmFiles.get("XHTML").getName();
             response.sendRedirect(resultsURL);
-            
-
           }
           else {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Confirmed:</strong> I have successfully removed your mantamatcher data image file.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+            out.println("<p><a href=\"//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
             out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-            
             out.println(ServletUtilities.getFooter());
-            
           }
-          
-        } else {
+        }
+        else {
           out.println(ServletUtilities.getHeader(request));
-          
-          if(action.equals("imageadd")){
-            
-            out.println("<strong>Step 2 Failed:</strong> I could not upload this patterning file. There may be a database error, or a non-JPG file type may have been uploaded.");
-           }
+          if (action.equals("imageadd")) {
+            out.println("<strong>Step 2 Failed:</strong> I could not upload this patterning file. There may be a database error, or a incompatible image file format may have been uploaded.");
+          }
           else {
             out.println("<strong>Step 2 Failed:</strong> I could not remove this patterning file. There may be a database error.");
           }
-          
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+          out.println("<p><a href=\"//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
           out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
           out.println(ServletUtilities.getFooter());
         }
@@ -400,7 +361,6 @@ public class EncounterAddMantaPattern extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to execute this action. I cannot find the encounter that you intended it for in the database.");
         out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-        
         out.println(ServletUtilities.getFooter());
       }
     } 
@@ -409,18 +369,14 @@ public class EncounterAddMantaPattern extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to execute the action.");
       out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-      
       out.println(ServletUtilities.getFooter());
+    }
+    finally {
+      out.close();
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }
-    out.close();
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
   }
-
-  
-
 
 }
   
