@@ -47,7 +47,7 @@ public class AdoptionAction extends Action {
   private String adopterName = "";
   private String adopterAddress = "";
   private String adopterEmail = "";
-  private String adopterImage = "";
+  private String adopterImage;
   private String adoptionStartDate = "";
   private String adoptionEndDate = "";
   private String adopterQuote = "";
@@ -249,7 +249,7 @@ public class AdoptionAction extends Action {
         ad.setAdoptionStartDate(adoptionStartDate);
       }
 
-      if(!adopterImage.trim().equals("")){
+      if((adopterImage!=null)&&(!adopterImage.trim().equals(""))){
         ad.setAdopterImage(adopterImage);
       }
       

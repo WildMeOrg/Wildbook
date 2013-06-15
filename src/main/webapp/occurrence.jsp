@@ -58,7 +58,7 @@
 
 
   boolean isOwner = false;
-  if (request.isUserInRole("admin")) {
+  if (request.getUserPrincipal()!=null {
     isOwner = true;
   }
 
@@ -134,7 +134,7 @@
 
     //block right-click user copying if no permissions available
     <%
-    if(!request.isUserInRole("imageProcessor")){
+    if(request.getUserPrincipal()==null){
     %>
     hs.blockRightClick = true;
     <%
