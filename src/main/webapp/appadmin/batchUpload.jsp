@@ -216,6 +216,15 @@
       </ul>
 			<p><%=bundle.getProperty("gui.step2.text2")%></p>
 
+<%
+  String batchPlugin = CommonConfiguration.getBatchUploadPlugin();
+  if (batchPlugin != null) {
+%>
+      <p class="pluginText"><%=bundle.getProperty("gui.step2.pluginText")%></p>
+<%
+  }
+%>
+
 			<h2><%=bundle.getProperty("gui.step3.title")%></h2>
 			<p><%=bundle.getProperty("gui.step3.text")%></p>
 			<!--<h3><%=bundle.getProperty("gui.titleForm")%></h3>-->

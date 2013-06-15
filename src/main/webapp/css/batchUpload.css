@@ -57,6 +57,9 @@ span.dpFormat {
 span.dataType {
   font-weight: bold;
 }
+span.fileName {
+  font-style: italic;
+}
 span.enum {
 }
 span.buttonDesc {
