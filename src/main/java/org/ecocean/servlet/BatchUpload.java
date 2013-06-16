@@ -369,7 +369,7 @@ public final class BatchUpload extends HttpServlet {
       String uniq = null;
       synchronized(DF) { uniq = DF.format(new Date()); }
       // Process submitted files.
-      MultipartParser mp = new MultipartParser(req, 1048576 * 2); // 2MB (arbitrary, copied from image upload limit)
+      MultipartParser mp = new MultipartParser(req, CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576);
       Part part = null;
       String type = "batchInd";
       while ((part = mp.readNextPart()) != null) {

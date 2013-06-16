@@ -174,7 +174,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
       // ====================================================================
       else if (action.equals("imageadd")) {
         
-        MultipartParser mp = new MultipartParser(request, 10 * 1024 * 1024); // 10MB
+        MultipartParser mp = new MultipartParser(request, CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576);
         Part part = null;
         while ((part = mp.readNextPart()) != null) {
           String name = part.getName();
