@@ -207,9 +207,10 @@
 			<h2><%=bundle.getProperty("gui.step2.title")%></h2>
 			<p><%=bundle.getProperty("gui.step2.text")%></p>
       <ul id="rules">
-      <% for (int i = 0; i <= 14; i++) { %>
+      <% for (int i = 0; i <= 16; i++) { %>
         <li><%=bundle.getProperty("gui.step2.list" + i)%></li>
       <% } %>
+      <li><%=MessageFormat.format(bundle.getProperty("gui.step2.maxMediaSize"), CommonConfiguration.getMaxMediaSizeInMegabytes())%></li>
       <% for (int i = 0; i <= 13; i++) { %>
       <li><%=MessageFormat.format(bundle.getProperty("gui.step2.enums.list" + i), createOptionsList(i, langCode))%></li>
       <% } %>
@@ -227,7 +228,7 @@
 
 			<h2><%=bundle.getProperty("gui.step3.title")%></h2>
 			<p><%=bundle.getProperty("gui.step3.text")%></p>
-			<!--<h3><%=bundle.getProperty("gui.titleForm")%></h3>-->
+			<p class="notice"><%=bundle.getProperty("gui.step3.text2")%></p>
       <form name="batchUpload" method="post" enctype="multipart/form-data" accept-charset="utf-8" action="../BatchUpload/uploadBatchData">
 			<table id="batchTable">
         <% for (String type : TYPES) { %>
@@ -244,7 +245,6 @@
 				</tr>
 			</table>
 			</form>
-			<p class="notice"><%=bundle.getProperty("gui.step3.text2")%></p>
 
 			<h2><%=bundle.getProperty("gui.step4.title")%></h2>
 			<p><%=bundle.getProperty("gui.step4.text")%></p>

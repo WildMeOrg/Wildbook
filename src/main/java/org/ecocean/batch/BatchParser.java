@@ -373,7 +373,7 @@ public class BatchParser {
     if (csvSam != null && csvSam.exists())
       samValueMap = parseBatchData(csvSam, Type.SAMPLE);
     if (encValueMap == null || encValueMap.isEmpty())
-      errors.add(MessageFormat.format(res.getString("err.NoData"), Type.ENCOUNTER.name()));
+      errors.add(MessageFormat.format(res.getString("err.NoData"), toTitleCase(Type.ENCOUNTER.toString())));
 
     return errors.isEmpty();
   }
@@ -472,7 +472,7 @@ public class BatchParser {
 
           // Check for unspecified required field.
           if (req && (s == null || "".equals(s))) {
-            errors.add(MessageFormat.format(res.getString("err.RequiredValue"), type.toString(), fieldHeader));
+            errors.add(MessageFormat.format(res.getString("err.RequiredValue"), toTitleCase(type.toString()), fieldHeader));
             continue;
           }
 
@@ -482,7 +482,7 @@ public class BatchParser {
 //          log.trace(String.format("fieldKey=%s, formatType=%s, s=%s, val=%s", fieldKey, formatType, s, val));
           if (val == null || (val instanceof List && ((List)val).isEmpty())) {
             if (req)
-              errors.add(MessageFormat.format(res.getString("err.InvalidValue"), type.toString(), fieldHeader, s));
+              errors.add(MessageFormat.format(res.getString("err.InvalidValue"), toTitleCase(type.toString()), fieldHeader, s));
           } else
             valueMap.put(fieldKey, val);
         }
@@ -617,6 +617,13 @@ public class BatchParser {
     } else
       throw new IllegalArgumentException("Invalid type specified: " + type);
     return null;
+  }
+
+  private String toTitleCase(String s) {
+    StringBuilder sb = new StringBuilder(s.length());
+    sb.append(s.substring(0, 1).toUpperCase(locale));
+    sb.append(s.substring(1).toLowerCase(locale));
+    return sb.toString();
   }
 
   /**

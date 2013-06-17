@@ -32,19 +32,7 @@ import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -55,13 +43,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Keyword;
-import org.ecocean.MarkedIndividual;
-import org.ecocean.Measurement;
-import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
+import org.ecocean.*;
 import org.ecocean.batch.BatchParser;
 import org.ecocean.batch.BatchMedia;
 import org.ecocean.batch.BatchProcessor;
@@ -134,7 +116,7 @@ public final class BatchUpload extends HttpServlet {
   private static final Pattern REGEX_DP = Pattern.compile("^\\s*([^=]+)\\s*=\\s*([^=]+)\\s*$");
   // TODO: Enhance regex for URL matching.
   /** Regex for matching image download URLs. */
-  private static final String REGEX_URL = "^(http|ftp|file)://.+$";
+  private static final String REGEX_URL = "^(https?|ftp|file)://.+$";
   /** Map of batch processors currently operating. */
   private static final Map<String, BatchProcessor> processMap = new HashMap<String, BatchProcessor>();
   /** Support for running asynchronous tasks. */
@@ -449,7 +431,7 @@ public final class BatchUpload extends HttpServlet {
           listMea = parseMea(dataMea, errors, bundle);
           listMed = parseMed(dataMed, errors, bundle);
           listSam = parseSam(dataSam, errors, bundle);
-          mapMedia = assignDataRelationshipsAndValidate(listInd, listEnc, listMea, listMed, listSam, req.getRemoteUser(), errors, bundle);
+          mapMedia = assignDataRelationshipsAndValidate(req, res, listInd, listEnc, listMea, listMed, listSam, errors, bundle);
 
           // OUTPUT RESULT.
 
@@ -640,12 +622,14 @@ public final class BatchUpload extends HttpServlet {
    * @return A map of {@code SinglePhotoVideo} instances to previously parsed media items ready for further processing
    */
   private Map<SinglePhotoVideo, BatchMedia> assignDataRelationshipsAndValidate(
+          HttpServletRequest req,
+          HttpServletResponse res,
           List<MarkedIndividual> listInd,
           List<Encounter> listEnc,
           List<Measurement> listMea,
           List<BatchMedia> listMed,
           List<TissueSample> listSam,
-          String user, List<String> errors, ResourceBundle bundle) throws IOException {
+          List<String> errors, ResourceBundle bundle) throws IOException {
 
     // Get reference to persistent store.
     Shepherd shepherd = new Shepherd();
@@ -667,7 +651,6 @@ public final class BatchUpload extends HttpServlet {
     }
 
     // Get valid values of certain data.
-//    List<String> listSex = Arrays.asList(new String[]{"male","female","unknown"});
     List<String> listSex = CommonConfiguration.getSequentialPropertyValues("sex");
     List<String> listTax = CommonConfiguration.getSequentialPropertyValues("genusSpecies");
     List<String> listLS = CommonConfiguration.getSequentialPropertyValues("lifeStage");
@@ -676,11 +659,12 @@ public final class BatchUpload extends HttpServlet {
 
     // Validate encounters.
     Map<String, Encounter> mapEnc = new HashMap<String, Encounter>();
+    Set<String> locIDs = new HashSet<String>();
     for (Encounter x : listEnc) {
       // Check for repetition.
       if (mapEnc.containsKey(x.getEventID())) {
         String msg = bundle.getString("batchUpload.verifyError.repeatEncounter");
-        errors.add(MessageFormat.format(msg, x.getIndividualID()));
+        errors.add(MessageFormat.format(msg, x.getEventID()));
       } else {
         mapEnc.put(x.getEventID(), x);
       }
@@ -694,7 +678,7 @@ public final class BatchUpload extends HttpServlet {
         x.setIndividualID(null);
       } else if (!indIDs.contains(x.getIndividualID())) {
         String msg = bundle.getString("batchUpload.verifyError.encounterUnknownIndividual");
-        errors.add(MessageFormat.format(msg, x.getIndividualID()));
+        errors.add(MessageFormat.format(msg, x.getEventID(), x.getIndividualID()));
       } else {
         MarkedIndividual ind = listInd.get(indIDs.indexOf(indID));
         ind.addEncounter(x);
@@ -704,31 +688,40 @@ public final class BatchUpload extends HttpServlet {
       String sex = x.getSex();
       if (!listSex.isEmpty() && !listSex.contains(sex)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidSex");
-        errors.add(MessageFormat.format(msg, sex));
+        errors.add(MessageFormat.format(msg, x.getEventID(), sex));
       }
 
       // Check genus/species.
       String tax = x.getGenus() + " " + x.getSpecificEpithet();
       if (!listTax.isEmpty() && !listTax.contains(tax)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidTaxonomy");
-        errors.add(MessageFormat.format(msg, tax));
+        errors.add(MessageFormat.format(msg, x.getEventID(), tax));
       }
 
       // Check life stage.
       String lifeStage = x.getLifeStage();
       if (lifeStage != null && !listLS.isEmpty() && !listLS.contains(lifeStage)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidLifeStage");
-        errors.add(MessageFormat.format(msg, lifeStage));
+        errors.add(MessageFormat.format(msg, x.getEventID(), lifeStage));
       }
 
       // Check location.
       String locID = x.getLocationID();
       if (locID == null && listLoc.size() == 1) {
-        x.setMeasureUnits(listLoc.get(0));
+        locID = listLoc.get(0);
+        x.setLocationID(locID);
       }
-      if (locID != null && !listLoc.isEmpty() && !listLoc.contains(locID)) {
-        String msg = bundle.getString("batchUpload.verifyError.encounterInvalidLocation");
-        errors.add(MessageFormat.format(msg, locID));
+      if (locID == null) {
+        String msg = bundle.getString("batchUpload.verifyError.encounterNoLocation");
+        errors.add(MessageFormat.format(msg, x.getEventID()));
+      }
+      else {
+        if (!listLoc.contains(locID)) {
+          String msg = bundle.getString("batchUpload.verifyError.encounterInvalidLocation");
+          errors.add(MessageFormat.format(msg, x.getEventID(), locID));
+        }
+        else
+          locIDs.add(locID);
       }
 
       // Check measurement sampling protocol. TODO: Check against measurements
@@ -756,12 +749,16 @@ public final class BatchUpload extends HttpServlet {
     List<String> listMU = CommonConfiguration.getSequentialPropertyValues("measurementUnits");
 
     // Check/assign measurements.
+    Set<Measurement> badMeaNoEnc = new LinkedHashSet<Measurement>();
+    Set<String> badMeaInvalidEnc = new LinkedHashSet<String>();
+    Set<String> badMeaInvalidType = new LinkedHashSet<String>();
+    Set<String> badMeaInvalidUnits = new LinkedHashSet<String>();
+    Set<String> badMeaInvalidProtocol = new LinkedHashSet<String>();
     if (listMea != null) {
       for (Measurement x : listMea) {
         String encID = x.getCorrespondingEncounterNumber();
         if (encID == null || "".equals(encID)) {
-          String msg = bundle.getString("batchUpload.verifyError.measurementNoEncounter");
-          errors.add(MessageFormat.format(msg, listMea.indexOf(x)));
+          badMeaNoEnc.add(x);
         } else {
           // Ensure encounter matches one already parsed.
           try {
@@ -769,49 +766,65 @@ public final class BatchUpload extends HttpServlet {
             enc.addMeasurement(x);
             // TODO: Fill shared data from encounter?
           } catch (Exception ex) {
-            String msg = bundle.getString("batchUpload.verifyError.measurementInvalidEncounter");
-            errors.add(MessageFormat.format(msg, x.getCorrespondingEncounterNumber()));
+            badMeaInvalidEnc.add(x.getCorrespondingEncounterNumber());
           }
         }
 
         // Check measurement type.
         String type = x.getType();
-        if (!listMT.isEmpty() && !listMT.contains(type)) {
-          String msg = bundle.getString("batchUpload.verifyError.measurementInvalidType");
-          errors.add(MessageFormat.format(msg, type));
-        }
+        if (!listMT.isEmpty() && !listMT.contains(type))
+          badMeaInvalidType.add(type);
 
         // Check measurement units.
         String units = x.getUnits();
-        if (!listMU.isEmpty() && !listMU.contains(units)) {
-          String msg = bundle.getString("batchUpload.verifyError.measurementInvalidUnits");
-          errors.add(MessageFormat.format(msg, units));
-        }
+        if (!listMU.isEmpty() && !listMU.contains(units))
+          badMeaInvalidUnits.add(units);
 
         // Check measurement protocol.
         String protocol = x.getSamplingProtocol();
-        if (!listSP.isEmpty() && !listSP.contains(protocol)) {
-          String msg = bundle.getString("batchUpload.verifyError.measurementInvalidProtocol");
-          errors.add(MessageFormat.format(msg, protocol));
-        }
+        if (!listSP.isEmpty() && !listSP.contains(protocol))
+          badMeaInvalidProtocol.add(protocol);
+      }
+      if (!badMeaNoEnc.isEmpty())
+        errors.add(bundle.getString("batchUpload.verifyError.measurementNoEncounter"));
+      for (String s : badMeaInvalidEnc) {
+        String msg = bundle.getString("batchUpload.verifyError.measurementInvalidEncounter");
+        errors.add(MessageFormat.format(msg, s));
+      }
+      for (String s : badMeaInvalidType) {
+        String msg = bundle.getString("batchUpload.verifyError.measurementInvalidType");
+        errors.add(MessageFormat.format(msg, s));
+      }
+      for (String s : badMeaInvalidUnits) {
+        String msg = bundle.getString("batchUpload.verifyError.measurementInvalidUnits");
+        errors.add(MessageFormat.format(msg, s));
+      }
+      for (String s : badMeaInvalidProtocol) {
+        String msg = bundle.getString("batchUpload.verifyError.measurementInvalidProtocol");
+        errors.add(MessageFormat.format(msg, s));
       }
     }
 
     // Validate/assign media, and assign target filename on local filesystem.
     // This does NOT download the media items, just prepares data relating to them.
-    File dataDir = new File(getDataDir(), user);
+    File dataDir = new File(getDataDir(), req.getRemoteUser());
     Map<SinglePhotoVideo, BatchMedia> map = new HashMap<SinglePhotoVideo, BatchMedia>();
     Set<String> spvNames = new HashSet<String>();
+    Set<BatchMedia> badMedNoEnc = new LinkedHashSet<BatchMedia>();
+    Set<String> badMedInvalidEnc = new LinkedHashSet<String>();
+    Set<String> badMedDupFile = new LinkedHashSet<String>();
+    Set<String> badMedInvalidType = new LinkedHashSet<String>();
+    Set<BatchMedia> badMedNoUrl = new LinkedHashSet<BatchMedia>();
+    Set<String> badMedInvalidUrl = new LinkedHashSet<String>();
+    Set<String> badMedInvalidKeyword = new LinkedHashSet<String>();
     if (listMed != null) {
       for (BatchMedia bm : listMed) {
-        if (bm.getEventID() == null) {
-          String msg = bundle.getString("batchUpload.verifyError.mediaNoEncounter");
-          errors.add(MessageFormat.format(msg, listMed.indexOf(bm)));
-        }
+        if (bm.getEventID() == null)
+          badMedNoEnc.add(bm);
         // Check media URL.
         if (bm.getMediaURL() == null) {
-          String msg = bundle.getString("batchUpload.verifyError.mediaNoURL");
-          errors.add(MessageFormat.format(msg, listMed.indexOf(bm)));
+          badMedNoUrl.add(bm);
+          continue;
         } else {
           if (bm.getMediaURL().toLowerCase(Locale.US).startsWith("www.")) {
             bm.setMediaURL("http://" + bm.getMediaURL());
@@ -819,10 +832,8 @@ public final class BatchUpload extends HttpServlet {
             bm.setMediaURL("ftp://" + bm.getMediaURL());
           }
           // Validate URL format. TODO: create better regex for URL matching.
-          if (!bm.getMediaURL().matches(REGEX_URL)) {
-            String msg = bundle.getString("batchUpload.verifyError.mediaInvalidURL");
-            errors.add(MessageFormat.format(msg, bm.getMediaURL()));
-          }
+          if (!bm.getMediaURL().matches(REGEX_URL))
+            badMedInvalidUrl.add(bm.getMediaURL());
         }
         // Check media keywords.
         // NOTE: Shepherd returns an iterator instead of a collection, so we
@@ -837,16 +848,14 @@ public final class BatchUpload extends HttpServlet {
           List<String> listKWALC = new ArrayList<String>();
           for (Keyword kw : listKWA)
             listKWALC.add(kw.getReadableName().toLowerCase(Locale.US));
-          List<String> keywords = new ArrayList<String>(Arrays.asList(bm.getKeywords()));
+          List<String> keywords = Arrays.asList(bm.getKeywords());
           for (ListIterator iter = keywords.listIterator(); iter.hasNext();) {
             String s = (String)iter.next();
             int idx = listKWALC.indexOf(s.toLowerCase(Locale.US));
             if (idx >= 0) {
               iter.set(listKWA.get(idx).getReadableName());
             } else {
-              // NOTE: Comment the following to gnore bad keywords.
-              String msg = bundle.getString("batchUpload.verifyError.mediaInvalidKeyword");
-              errors.add(MessageFormat.format(msg, s));
+              badMedInvalidKeyword.add(s); // NOTE: Comment this line to ignore bad keywords.
               iter.remove();
             }
           }
@@ -864,23 +873,18 @@ public final class BatchUpload extends HttpServlet {
         }
         filename = ServletUtilities.cleanFileName(filename);
         // Check for duplicate file.
-        if (spvNames.contains(filename)) {
-          String msg = bundle.getString("batchUpload.verifyError.mediaDuplicateName");
-          errors.add(MessageFormat.format(msg, filename));
-        }
+        if (spvNames.contains(filename))
+          badMedDupFile.add(filename);
         spvNames.add(filename);
         // Check for invalid media type.
-        if (!MediaUtilities.isAcceptableMediaFile(filename)) {
-          String msg = bundle.getString("batchUpload.verifyError.mediaInvalidName");
-          errors.add(MessageFormat.format(msg, filename, bm.getMediaURL()));
-        }
+        if (!MediaUtilities.isAcceptableMediaFile(filename))
+          badMedInvalidType.add(filename.substring(filename.lastIndexOf(".") + 1));
         if (bm.getEventID() != null) {
           // Get encounter instance, and assign data.
           File f = new File(dataDir, filename);
           Encounter enc = mapEnc.get(bm.getEventID());
           if (enc == null) {
-            String msg = bundle.getString("batchUpload.verifyError.mediaInvalidEncounter");
-            errors.add(MessageFormat.format(msg, bm.getEventID()));
+            badMedInvalidEnc.add(bm.getEventID());
           } else {
             SinglePhotoVideo spv = new SinglePhotoVideo(enc.getEncounterNumber(), f);
             enc.addSinglePhotoVideo(spv);
@@ -907,18 +911,44 @@ public final class BatchUpload extends HttpServlet {
           }
         }
       }
+      if (!badMedNoEnc.isEmpty())
+        errors.add(bundle.getString("batchUpload.verifyError.mediaNoEncounter"));
+      for (String s : badMedInvalidEnc) {
+        String msg = bundle.getString("batchUpload.verifyError.mediaInvalidEncounter");
+        errors.add(MessageFormat.format(msg, s));
+      }
+      for (String s : badMedDupFile) {
+        String msg = bundle.getString("batchUpload.verifyError.mediaDuplicateFile");
+        errors.add(MessageFormat.format(msg, s));
+      }
+      for (String s : badMedInvalidType) {
+        String msg = bundle.getString("batchUpload.verifyError.mediaInvalidType");
+        errors.add(MessageFormat.format(msg, s));
+      }
+      if (!badMedNoUrl.isEmpty())
+        errors.add(bundle.getString("batchUpload.verifyError.mediaNoURL"));
+      for (String s : badMedInvalidUrl) {
+        String msg = bundle.getString("batchUpload.verifyError.mediaInvalidURL");
+        errors.add(MessageFormat.format(msg, s));
+      }
+      for (String s : badMedInvalidKeyword) {
+        String msg = bundle.getString("batchUpload.verifyError.mediaInvalidKeyword");
+        errors.add(MessageFormat.format(msg, s));
+      }
     }
 
     // Get valid values of certain data.
     List<String> listTT = CommonConfiguration.getSequentialPropertyValues("tissueType");
 
     // Check/assign samples.
+    Set<TissueSample> badSamNoEnc = new LinkedHashSet<TissueSample>();
+    Set<String> badSamInvalidEnc = new LinkedHashSet<String>();
+    Set<String> badSamInvalidType = new LinkedHashSet<String>();
     if (listSam != null) {
       for (TissueSample x : listSam) {
         String encID = x.getCorrespondingEncounterNumber();
         if (encID == null || "".equals(encID)) {
-          String msg = bundle.getString("batchUpload.verifyError.sampleNoEncounter");
-          errors.add(MessageFormat.format(msg, listSam.indexOf(x)));
+          badSamNoEnc.add(x);
         } else {
           // Ensure encounter matches one already parsed.
           try {
@@ -926,17 +956,24 @@ public final class BatchUpload extends HttpServlet {
             enc.addTissueSample(x);
             // TODO: Fill shared data from encounter?
           } catch (Exception ex) {
-            String msg = bundle.getString("batchUpload.verifyError.sampleInvalidEncounter");
-            errors.add(MessageFormat.format(msg, x.getCorrespondingEncounterNumber()));
+            badSamInvalidEnc.add(x.getCorrespondingEncounterNumber());
           }
         }
 
         // Check tissue type.
         String tissueType = x.getTissueType();
-        if (!listTT.isEmpty() && !listTT.contains(tissueType)) {
-          String msg = bundle.getString("batchUpload.verifyError.sampleInvalidTissueType");
-          errors.add(MessageFormat.format(msg, tissueType));
-        }
+        if (!listTT.isEmpty() && !listTT.contains(tissueType))
+          badSamInvalidType.add(tissueType);
+      }
+      if (!badSamNoEnc.isEmpty())
+        errors.add(bundle.getString("batchUpload.verifyError.sampleNoEncounter"));
+      for (String s : badSamInvalidEnc) {
+        String msg = bundle.getString("batchUpload.verifyError.sampleInvalidEncounter");
+        errors.add(MessageFormat.format(msg, s));
+      }
+      for (String s : badSamInvalidType) {
+        String msg = bundle.getString("batchUpload.verifyError.sampleInvalidTissueType");
+        errors.add(MessageFormat.format(msg, s));
       }
     }
 

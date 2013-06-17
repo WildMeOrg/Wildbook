@@ -87,8 +87,8 @@
       <p>The application encountered a problem.</p>
 
 <%  if (hasErrors) { %>
-			<h2><%=bundle.getProperty("gui.titleErrors")%></h2>
-      <ul id="errors">
+			<h2><%=bundle.getProperty("gui.errors.title")%></h2>
+      <ul id="errorList">
       <c:forEach var="err" items="${batchErrors}">
         <li>${err}</li>
       </c:forEach>
