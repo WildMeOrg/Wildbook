@@ -968,8 +968,7 @@ public final class BatchUpload extends HttpServlet {
   private void handleException(HttpServletRequest req, HttpServletResponse res, Throwable t) throws ServletException, IOException {
     log.warn(t.getMessage(), t);
     req.setAttribute("thrown", t);
-    // FIXME: Send to useful page.
-    res.sendRedirect("http://" + CommonConfiguration.getURLLocation(req) + "/appadmin/errorDisplay.jsp");
+    res.sendRedirect("//" + CommonConfiguration.getURLLocation(req) + "/appadmin/batchErrorDisplay.jsp");
   }
 
   /**
