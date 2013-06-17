@@ -118,7 +118,7 @@
         props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
         list.add(props.getProperty("unmatchedFirstEncounter"));
         list.add(props.getProperty("visualInspection"));
-        list.add(props.getProperty("automatedMatching"));
+        list.add(props.getProperty("patternMatch"));
         break;
       case 8:
         list = CommonConfiguration.getSequentialPropertyValues("measurement");
