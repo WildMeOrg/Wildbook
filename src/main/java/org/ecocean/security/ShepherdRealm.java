@@ -13,6 +13,7 @@ import org.ecocean.*;
 import java.util.TreeSet;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.ecocean.servlet.ServletUtilities;
 
@@ -102,8 +103,18 @@ public class ShepherdRealm extends AuthorizingRealm {
     } 
     
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+      System.out.println("      \n!!!!!!!!!!!!!doGetAuthorizationInfo\n");
      String username = (String) principals.getPrimaryPrincipal();
-     return new SimpleAuthorizationInfo(getRoleNamesForUser(username));
+     SimpleAuthorizationInfo sai=new SimpleAuthorizationInfo(getRoleNamesForUser(username));
+     Set<String>    permissions   = new HashSet<String>();
+     
+     //does this user have rest permissions?
+     if(getRoleNamesForUser(username).contains("rest")){
+       System.out.println("     The user is RESTful!");
+       permissions.add("read");
+     }
+     sai.setStringPermissions(permissions);
+     return sai;
 }
 
 }

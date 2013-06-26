@@ -75,6 +75,7 @@
                 [main]
                 realmA = org.ecocean.security.ShepherdRealm
                 roles.unauthorizedUrl = /accessDenied.jsp 
+
                 
                 authc.loginUrl = /login.jsp
                 
@@ -91,6 +92,8 @@
                 #view the web pages in the secure
                 #and admin areas
                 [urls]
+                
+                /rest/** = authc, rest
                 
                 /appadmin/** = authc, roles[admin]
                 /MassSetInformOthers = authc, roles[admin]
