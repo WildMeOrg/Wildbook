@@ -101,7 +101,7 @@
                 /MassSetLocationCodeFromLocationString = authc, roles[admin]
                 /MassSwapLocationCode = authc, roles[admin]
                 /logs/** = authc, roles[admin]
-        /UserCreate = authc, roles[admin]
+       		 /UserCreate = authc, roles[admin]
 		 /UserDelete = authc, roles[admin]
 		 /ResetCommonConfiguration = authc, roles[admin]
 		 /xcalendar/** = authc, roles[researcher]
@@ -361,6 +361,16 @@
   <servlet>
     <servlet-name>ScanResultsServlet</servlet-name>
     <servlet-class>org.ecocean.servlet.ScanResultsServlet</servlet-class>
+  </servlet>
+  
+    <servlet>
+      <servlet-name>UserAddProfileImage</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
+  </servlet>
+  
+      <servlet>
+        <servlet-name>UserRemoveProfileImage</servlet-name>
+        <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
   </servlet>
 
   <servlet>
@@ -1063,6 +1073,16 @@
   <servlet-mapping>
       <servlet-name>EncounterSetGenusSpecies</servlet-name>
       <url-pattern>/EncounterSetGenusSpecies</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+        <servlet-name>UserAddProfileImage</servlet-name>
+        <url-pattern>/UserAddProfileImage</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+          <servlet-name>UserRemoveProfileImage</servlet-name>
+          <url-pattern>/UserRemoveProfileImage</url-pattern>
   </servlet-mapping>
   
 
