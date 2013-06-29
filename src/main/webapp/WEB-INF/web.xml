@@ -93,7 +93,9 @@
                 #and admin areas
                 [urls]
                 
-                /rest/** = authc, rest
+                /rest/** = anon
+                
+                /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
                 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
                 /appadmin/** = authc, roles[admin]
