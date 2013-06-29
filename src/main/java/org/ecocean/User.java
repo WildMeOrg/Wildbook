@@ -2,6 +2,7 @@ package org.ecocean;
 
 import java.util.Date;
 import java.io.Serializable;
+import org.ecocean.SinglePhotoVideo;
 
 /**
  * <code>User</code> stores information about a contact/user.
@@ -22,6 +23,12 @@ public class User implements java.io.Serializable {
   private String phoneNumber;
   //Organization or project affiliation
   private String affiliation;
+  
+  private String userProject;
+  private String userStatement;
+  private String userURL;
+  private SinglePhotoVideo userImage;
+  
   //Misc. information about this user
   private String notes;
   //Date of last update of this record, in ms
@@ -161,5 +168,31 @@ public class User implements java.io.Serializable {
   	public String getSalt(){return salt;}
 
 
+    public void setUserProject(String newProj) {
+      if(newProj!=null){userProject = newProj;}
+    else{userProject=null;}
+    }
+    public String getUserProject(){return userProject;}
+    
+    public void setUserStatement(String newState) {
+      if(newState!=null){userStatement = newState;}
+    else{userStatement=null;}
+    }
+    public String getUserStatement(){return userStatement;}
+    
+    public SinglePhotoVideo getUserImage(){return userImage;}
+    
+
+    public void setUserImage(SinglePhotoVideo newImage) {
+      if(newImage!=null){userImage = newImage;}
+    else{userImage=null;}
+    }
+    
+    public void setUserURL(String newURL) {
+      if(newURL!=null){userURL = newURL;}
+    else{userURL=null;}
+    }
+    public String getUserURL(){return userURL;}
+  	
 
 }

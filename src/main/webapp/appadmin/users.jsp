@@ -1,6 +1,6 @@
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
+  ~ Copyright (C) 2013 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
   ~ modify it under the terms of the GNU General Public License
@@ -78,13 +78,16 @@
       <h1 class="intro">User Management</h1>
       <h4 class="intro">Existing Users</h4>
       <table width="810px" class="tissueSample">
-      <tr><th><strong>Username</strong></th>
-      <th><strong>Full Name</strong></th>
-      <th><strong>Email</strong></th>
-      <th><strong>Affiliation</strong></th>
-      <th><strong>Roles</strong></th>
-      <th width="40px"><strong>Edit?</strong></th>
-      <th><strong>Delete?</strong></th></tr>
+      	<tr>
+      		<th>&nbsp;</th>
+      		<th><strong>Username</strong></th>
+      		<th><strong>Full Name</strong></th>
+      		<th><strong>Email</strong></th>
+      		<th><strong>Affiliation</strong></th>
+      		<th><strong>Roles</strong></th>
+      		<th width="40px"><strong>Edit?</strong></th>
+      		<th><strong>Delete?</strong></th>
+      	</tr>
       
       <%
       myShepherd.beginDBTransaction();
@@ -100,6 +103,21 @@
       	if(user.getEmailAddress()!=null){emailAddress=user.getEmailAddress();}
       	%>
       	<tr>
+      		<td>
+      		<%
+      		if(user.getUserImage()!=null){
+      			String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName()+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+      		%>
+      		<img src="<%=profilePhotoURL %>" width="75px" height="*"/>
+      		<%
+      		}
+      		else{
+      		%>
+      		&nbsp;
+      		<%
+      		}
+      		%>
+      		</td>
       		<td><%=user.getUsername()%></td>
       		<td><%=fullName%></td>
       		<td><%=emailAddress%></td>
@@ -150,14 +168,22 @@
 	String isEditAddition="";
 	if(request.getParameter("isEdit")!=null){isEditAddition="?isEdit=true";}
 	%>
-    	<form action="../UserCreate<%=isEditAddition %>" method="post" id="newUser">
+    	
     		    <table width="100%" class="tissueSample">
+    		    
+
+    		    
     		    <%
     		    //let's set up any pre-defined values if appropriate
     		    String localUsername="";
     		    String localAffiliation="";
     		    String localEmail="";
     		    String localFullName="";
+    		    String profilePhotoURL="../images/empty_profile.jpg";
+    		    String userProject="";
+    		    String userStatement="";
+    		    String userURL="";
+    		    boolean hasProfilePhoto=false;
     		    
     		    if((request.getParameter("isEdit")!=null)&&(myShepherd.getUser(request.getParameter("username").trim())!=null)){
     		    	User thisUser=myShepherd.getUser(request.getParameter("username").trim());
@@ -171,11 +197,57 @@
     		    	if(thisUser.getFullName()!=null){
     		    		localFullName=thisUser.getFullName();
     		    	}
+    		    	if(thisUser.getUserProject()!=null){
+			    userProject=thisUser.getUserProject();
+    		    	}
+    		    	if(thisUser.getUserStatement()!=null){
+				userStatement=thisUser.getUserStatement();
+    		    	}
+    		    	if(thisUser.getUserURL()!=null){
+				userURL=thisUser.getUserURL();
+    		    	}
+    		    	if(thisUser.getUserImage()!=null){
+    		    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName()+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+    		    	}
+    		    	if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
     		    }
     		    
     		    %>
     		    
-    		    
+    		        		    <tr>
+		        		    	<td>
+		        		    		<table border="0">
+		        		    			<tr>
+		        		    				<td style="border: solid 0">
+		        		    					<img src="<%=profilePhotoURL%>" width="200px" height="*" />
+		        		    				</td>
+		        		    			</tr>
+		        		    			<%
+		        		    			if(request.getParameter("isEdit")!=null){
+		        		    			%>
+		        		    			<tr>
+		        		    					<td style="border: solid 0"><form action="../UserAddProfileImage" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
+        												<img src="../images/upload_small.gif" align="absmiddle" />&nbsp;Upload photo:<br /> 
+		        		    						 <input name="username" type="hidden" value="<%=localUsername%>" id="profileUploadUsernameField" />
+        												<input name="file2add" type="file" size="20" />
+        												<input name="addtlFile" type="submit" id="addtlFile" value="Upload" />
+        											</form>
+		        		    					</td>
+		        		    				</tr>
+		        		    				<%
+		        		    				if(hasProfilePhoto){
+		        		    				%>
+		        		    					<tr><td style="border: solid 0">Delete profile photo:&nbsp;<a href="../UserRemoveProfileImage?username=<%=localUsername%>"><img src="../images/cancel.gif" width="16px" height="16px" align="absmiddle" /></a></td></tr>
+		        		    			
+		        		    				<%
+		        		    				}
+		        		    			}
+		        		    			%>
+		        		    			</table>
+		        		    		
+		        		    	</td>
+		        	<form action="../UserCreate<%=isEditAddition %>" method="post" id="newUser">	    
+    		    	<td><table width="100%" class="tissueSample">
       				<tr><td colspan="4"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured, listed in commonConfiguration.properties, and matched to the URL-based functions of the Shepherd Project in the Apache Shiro filter in web.xml.</em></td></tr>
       				<tr>
             			
@@ -217,9 +289,17 @@
                     <tr><td colspan="4">Full name: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
                     <tr><td colspan="4">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td></tr>
                     <tr><td colspan="4">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
+                     <tr><td colspan="4">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
+                          
+                    <tr><td colspan="4">Project URL: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
+		     <tr><td colspan="4" valign="top">User Statement: <textarea name="userStatement" size="100"><%=userStatement%></textarea></td></tr>                  
+                    
                     <tr><td colspan="4"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
             </table>
-    	</form>
+            </td></form>
+            </tr>
+            </table>
+    	
     </p>
 	
       <jsp:include page="../footer.jsp" flush="true"/>
