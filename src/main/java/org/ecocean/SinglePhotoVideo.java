@@ -14,6 +14,9 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   private String filename;
   private String fullFileSystemPath;
   
+  //use for User objects
+  String correspondingUsername;
+  
   /*
   private String thumbnailFilename;
   private String thumbnailFullFileSystemPath;
@@ -127,6 +130,10 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   public void setPatterningPassport(PatterningPassport patterningPassport) {
     this.patterningPassport = patterningPassport;
   }
+  
+  public String getCorrespondingUsername(){return correspondingUsername;}
+  public void setCorrespondingUsername(String username){this.correspondingUsername=correspondingUsername;}
+
   
   
 }
