@@ -1511,7 +1511,7 @@ public ArrayList<String> getAllAssignedUsers(){
    int numEncs=encounters.size();
    for(int c=0;c<numEncs;c++) {
      Encounter temp=(Encounter)encounters.get(c);
-     if((temp.getAssignedUser()!=null)&&(!allIDs.contains(temp.getAssignedUser()))) {allIDs.add(temp.getAssignedUser());}
+     if((temp.getAssignedUsername()!=null)&&(!allIDs.contains(temp.getAssignedUsername()))) {allIDs.add(temp.getAssignedUsername());}
    }
 
    return allIDs;

@@ -898,10 +898,10 @@ public class Encounter implements java.io.Serializable {
 
   //old method. use getAssignedUser() instead
   public String getSubmitterID() {
-    return getAssignedUser();
+    return getAssignedUsername();
   }
   
-  public String getAssignedUser() {
+  public String getAssignedUsername() {
     return submitterID;
   }
 
