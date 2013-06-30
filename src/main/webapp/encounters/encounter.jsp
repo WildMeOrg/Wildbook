@@ -540,23 +540,48 @@ margin-bottom: 8px !important;
         }
       %>
     </p>
-    <%
-
-
-      if ((loggedIn) && (enc.getSubmitterID() != null)) {
-    %>
-    <p class="para"><img align="absmiddle"
-                         src="../images/Crystal_Clear_app_Login_Manager.gif"> <%=encprops.getProperty("assigned_user")%>
-      : <%=enc.getSubmitterID()%> <%
+ 	
+ 
+    <p class="para"><img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif"> <%=encprops.getProperty("assigned_user")%>: 
+                         
+                         <%
+                         if(enc.getAssignedUsername()!=null){
+                        	 String username=enc.getAssignedUsername();
+                         	if(myShepherd.getUser(username)!=null){
+                         		User thisUser=myShepherd.getUser(username);
+                         		if(thisUser.getFullName()!=null){
+                         		%>
+                         		<%=thisUser.getFullName() %>
+                         		<%	
+                         		}
+                         		else{
+                                %>
+                                &nbsp;
+                                <%	
+                                }
+                         	}
+                         	else{
+                         	%>
+                         	&nbsp;
+                         	<%	
+                         	}
+                         }
+                         else {
+                         %>
+                         &nbsp;
+                         <%
+                         }
+                         
+                         
+                         
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=user#user">edit</a>]</font>
-      <%
+      	%>
+      		<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=user#user">edit</a>]</font>
+      	<%
         }
       %>
     </p>
-    <%
-      }
-    %>
+
   </td>
 </tr>
 <tr>
