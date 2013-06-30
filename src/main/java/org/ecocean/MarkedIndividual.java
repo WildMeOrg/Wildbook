@@ -1504,5 +1504,17 @@ public long getMaxTimeBetweenTwoSightings(){
   return maxTime;
 }
 
+public ArrayList<String> getAllAssignedUsers(){
+  ArrayList<String> allIDs = new ArrayList<String>();
+
+   //add an alt IDs for the individual's encounters
+   int numEncs=encounters.size();
+   for(int c=0;c<numEncs;c++) {
+     Encounter temp=(Encounter)encounters.get(c);
+     if((temp.getAssignedUser()!=null)&&(!allIDs.contains(temp.getAssignedUser()))) {allIDs.add(temp.getAssignedUser());}
+   }
+
+   return allIDs;
+ }
 
 }
