@@ -97,7 +97,7 @@
                 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
                 
-                /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
+                
                 /appadmin/** = authc, roles[admin]
                 /MassSetInformOthers = authc, roles[admin]
                 /MassExposeGBIF = authc, roles[admin]
