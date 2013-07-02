@@ -1420,7 +1420,9 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("s
   <tr>
     <td align="left" valign="top">
       <form name="livingStatusForm" action="../EncounterSetLivingStatus"
-            method="post"><select name="livingStatus" id="livingStatus">
+            method="post">
+            
+            <select name="livingStatus" id="livingStatus">
         <option value="alive" selected><%=encprops.getProperty("alive")%>
         </option>
         <option value="dead"><%=encprops.getProperty("dead")%>
@@ -1884,10 +1886,26 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
     </tr>
     <tr>
       <td align="left" valign="top">
-        <form name="asetSubmID" action="../EncounterSetSubmitterID"
-              method="post"><input name="submitter" type="text" size="10"
-                                   maxlength="50"> <input name="number" type="hidden"
-                                                          value=<%=num%>> <input name="Assign"
+        <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post">
+          
+          <select name="submitter" id="submitter">
+        	<option value=""></option>
+        	<%
+        	ArrayList<String> usernames=formShepherd.getAllUsernames();
+        	int numUsers=usernames.size();
+        	for(int i=0;i<numUsers;i++){
+        		String thisUsername=usernames.get(i);
+        		User thisUser=formShepherd.getUser(thisUsername);
+        		String thisUserFullname=thisUsername;
+        		if(thisUser.getFullName()!=null){thisUserFullname=thisUser.getFullName();}
+        	%>
+        	<option value="<%=thisUsername%>"><%=thisUserFullname%></option>
+        	<%
+			}
+        	%>
+      	</select> 
+              
+          <input name="number" type="hidden" value=<%=num%>> <input name="Assign"
                                                                                  type="submit"
                                                                                  id="Assign"
                                                                                  value="<%=encprops.getProperty("assign")%>">
