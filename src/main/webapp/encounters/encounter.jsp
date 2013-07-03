@@ -297,13 +297,23 @@ width: 100% !important;
 height: 100% !important;
 margin-top: 0px !important;
 margin-bottom: 8px !important;
+
+  .ui-dialog-titlebar-close { display: none; }
+  code { font-size: 2em; }
+
 </style>
 
+
+
+
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>
 
 <!--added below for improved map selection -->
  <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
+
 
 
   <script type="text/javascript" src="StyledMarker.js"></script>
@@ -542,24 +552,112 @@ margin-bottom: 8px !important;
     </p>
  	
  
-    <p class="para"><img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif"> <%=encprops.getProperty("assigned_user")%>: 
+    <p class="para">
+    <table ><tr><td>
+     <%=encprops.getProperty("assigned_user")%>&nbsp;</td>
+        <%               
+        if (isOwner && CommonConfiguration.isCatalogEditable()) {
+      	%>
+      		<td><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=user#user">edit</a>]</font></td>
+      	<%
+        }
+      %>
+     </tr>
+     <tr>
+     <td>
+                         
                          
                          <%
                          if(enc.getAssignedUsername()!=null){
+                        	 
+                         	
+                        	 
                         	 String username=enc.getAssignedUsername();
                          	if(myShepherd.getUser(username)!=null){
-                         		User thisUser=myShepherd.getUser(username);
-                         		if(thisUser.getFullName()!=null){
                          		%>
-                         		<%=thisUser.getFullName() %>
+                                <table align="middle">
+                                <%
+                         	
+                         		User thisUser=myShepherd.getUser(username);
+                                String profilePhotoURL="../images/empty_profile.jpg";
+                    		    
+                         		if(thisUser.getUserImage()!=null){
+                         			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName()+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                         		
+                         				
+                         		}
+                         		%>
+                     			<tr><td><center><a href="#"><img border="1" align="top" src="<%=profilePhotoURL%>" width="50px" height="*" /></a></center></td></tr>
+                     			<%
+                         		String displayName="";
+                         		if(thisUser.getFullName()!=null){
+                         			displayName=thisUser.getFullName();
+                         		
+                         		%>
+                         		<tr><td><a href="#"><%=displayName %></a></td></tr>
                          		<%	
                          		}
                          		else{
                                 %>
-                                &nbsp;
+                                <tr><td>&nbsp;</td></tr>
                                 <%	
                                 }
+                         		%>
+                         		</table>
+                         		
+                         		<!-- Now prep the popup dialog -->
+                         		<div id="dialog" title="<%=displayName %>" style="display:none">
+                         			<table cellpadding="3px"><tr><td>
+                         			<img border="1" align="top" src="<%=profilePhotoURL%>" width="150px" height="*" />
+                         			</td>
+                         			<td><p>
+                         			<%
+                         			if(thisUser.getAffiliation()!=null){
+                         			%>
+                         			<strong>Affiliation:</strong> <%=thisUser.getAffiliation() %><br />
+                         			<%	
+                         			}
+                         			
+                         			if(thisUser.getUserProject()!=null){
+                         			%>
+                         			<strong>Research Project:</strong> <%=thisUser.getUserProject() %><br />
+                         			<%	
+                         			}
+                         			
+                         			if(thisUser.getUserURL()!=null){
+                             			%>
+                             			<strong>Web site:</strong> <a class="nada" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><br />
+                             			<%	
+                             		}
+                         			
+                         			if(thisUser.getUserStatement()!=null){
+                             			%>
+                             			<br /><em>"<%=thisUser.getUserStatement() %>"</em>
+                             			<%	
+                             		}
+                         			%>
+                         			</p>
+                         			</td></tr></table>
+                         		</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlg = $("#dialog").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 500
+});
+
+$("a").mouseover(function() {
+  dlg.dialog("open");
+}).mouseout(function() {
+  //dlg.dialog("close");
+});
+</script>
+                         		
+                         		<% 
                          	}
+                         	
                          	else{
                          	%>
                          	&nbsp;
@@ -571,16 +669,11 @@ margin-bottom: 8px !important;
                          &nbsp;
                          <%
                          }
-                         
-                         
-                         
-        if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      	%>
-      		<font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=user#user">edit</a>]</font>
-      	<%
-        }
-      %>
-    </p>
+                        %>
+                        </td>
+
+    
+    </tr></table></p>
 
   </td>
 </tr>
