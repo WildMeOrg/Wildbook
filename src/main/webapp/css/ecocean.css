@@ -52,14 +52,19 @@ p.caption, .caption {
   font-size: 0.8em;
 }
 
-a {
+a,a.ecocean {
   text-decoration: none;
   font-weight: bold;
   border: none;
 }
 
-a:hover {
+a:hover,a.ecocean:hover {
   text-decoration: underline;
+  border: none;
+}
+
+a:focus,a.ecocean:focus {
+  text-decoration: none;
   border: none;
 }
 
@@ -207,6 +212,7 @@ a:hover {
 img {
   padding: 0px;
   margin: 0px;
+  
 }
 
 #banner {

@@ -587,14 +587,17 @@ margin-bottom: 8px !important;
                          				
                          		}
                          		%>
-                     			<tr><td><center><a href="#"><img border="1" align="top" src="<%=profilePhotoURL%>" width="50px" height="*" /></a></center></td></tr>
+                     			<tr><td><center><div style="height: 50px">
+						<a href="#"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
+					</div></center></td></tr>
                      			<%
                          		String displayName="";
                          		if(thisUser.getFullName()!=null){
                          			displayName=thisUser.getFullName();
                          		
                          		%>
-                         		<tr><td><a href="#"><%=displayName %></a></td></tr>
+                         		<tr><td style="border:none"><center><a style="font-weight:normal;border:none" href="#"><%=displayName %></a></center></td></tr>
+                         		<tr><td><center><p class="caption">(rollover to learn more)</center></p></td></tr>
                          		<%	
                          		}
                          		else{
@@ -608,7 +611,7 @@ margin-bottom: 8px !important;
                          		<!-- Now prep the popup dialog -->
                          		<div id="dialog" title="<%=displayName %>" style="display:none">
                          			<table cellpadding="3px"><tr><td>
-                         			<img border="1" align="top" src="<%=profilePhotoURL%>" width="150px" height="*" />
+                         			<div style="height: 150px"><img border="1" align="top" src="<%=profilePhotoURL%>" style="height: 100%" />
                          			</td>
                          			<td><p>
                          			<%
@@ -626,7 +629,7 @@ margin-bottom: 8px !important;
                          			
                          			if(thisUser.getUserURL()!=null){
                              			%>
-                             			<strong>Web site:</strong> <a class="nada" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><br />
+                             			<strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><br />
                              			<%	
                              		}
                          			
