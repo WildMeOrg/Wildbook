@@ -1127,6 +1127,39 @@ public class Shepherd {
       return (new ArrayList());
     }
   }
+  
+  /*
+   * Retrieve the distinct User objects for all Encounters related to this MarkedIndividual
+   * 
+   */
+  public ArrayList<User> getAllUsersForMarkedIndividual(MarkedIndividual indie){
+    ArrayList<User> relatedUsers=new ArrayList<User>();
+    ArrayList<String> usernames=indie.getAllAssignedUsers();
+    int size=usernames.size();
+    if(size>0){
+      for(int i=0;i<size;i++){
+        String thisUsername=usernames.get(i);
+        if(getUser(thisUsername)!=null){
+          relatedUsers.add(getUser(thisUsername));
+        }
+      }
+    }
+    
+    return relatedUsers;
+  }
+  
+  /*
+   * Retrieve the distinct User objects for all Encounters related to this MarkedIndividual
+   * 
+   */
+  public ArrayList<User> getAllUsersForMarkedIndividual(String indie){
+    ArrayList<User> relatedUsers=new ArrayList<User>();
+    if(getMarkedIndividual(indie)!=null){
+      MarkedIndividual foundIndie=getMarkedIndividual(indie);
+      return getAllUsersForMarkedIndividual(foundIndie);
+    }
+    return relatedUsers;
+  }
 
   public ArrayList getAllAdoptionsForEncounter(String shark) {
     String filter = "this.encounter == '" + shark + "'";
