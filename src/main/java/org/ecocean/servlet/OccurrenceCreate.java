@@ -82,6 +82,7 @@ public class OccurrenceCreate extends HttpServlet {
             myShepherd.storeNewOccurrence(newOccur);
             
             enc2make.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to new occurrence " + request.getParameter("occurrence") + ".</p>");
+            enc2make.setOccurrenceID(request.getParameter("occurrence").trim());
           } 
           catch (Exception le) {
             locked = true;

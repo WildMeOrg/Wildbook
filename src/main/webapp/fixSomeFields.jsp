@@ -55,7 +55,7 @@ while(allEncs.hasNext()){
 	//change state
 	Encounter sharky=(Encounter)allEncs.next();
 	
-	if(sharky.getSex().equals("unsure")){sharky.setSex("unknown");}
+	//if(sharky.getSex().equals("unsure")){sharky.setSex("unknown");}
 	
 	//if(sharky.getApproved()){sharky.setState("approved");}
 	//else if(sharky.getUnidentifiable()){sharky.setState("unidentifiable");}
@@ -65,8 +65,13 @@ while(allEncs.hasNext()){
 	//int numPhotos=sharky.getImages().size();
 	//List<SinglePhotoVideo> images=sharky.getImages();
 	
-
-
+if(myShepherd.getOccurrenceForEncounter(sharky.getCatalogNumber())!=null){
+	Occurrence occur=myShepherd.getOccurrenceForEncounter(sharky.getCatalogNumber());
+	sharky.setOccurrenceID(occur.getOccurrenceID());
+}
+else{
+	sharky.setOccurrenceID(null);
+}
 	
 	/*
 	
@@ -124,7 +129,7 @@ while(allSharks.hasNext()){
 	}*/
 	//sharky.resetMaxNumYearsBetweenSightings();
 	
-	if(sharky.getSex().equals("unsure")){sharky.setSex("unknown");}
+	//if(sharky.getSex().equals("unsure")){sharky.setSex("unknown");}
 	
 }
 
