@@ -180,6 +180,8 @@
       			/DeleteAllDataPermanently = authc, roles[destroyer]
       			/encounters/searchExport = authc, roles[researcher]
       			/welcome.jsp = authc
+      			
+      			/EncounterSetSubmitterID = authc, roles[researcher]
                
 
             </param-value>
