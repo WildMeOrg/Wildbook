@@ -255,7 +255,7 @@ td.measurement{
   <script>
             function initialize() {
             //alert("Initializing map!");
-              var mapZoom = 2;
+              var mapZoom = 1;
           	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
       
               
@@ -268,8 +268,11 @@ td.measurement{
         });
         
         	if(marker!=null){
-			marker.setMap(map);    
-	}
+			marker.setMap(map);  
+			map.setCenter(marker.position);
+			
+ 			//alert("Setting center!");
+		}
  
         google.maps.event.addListener(map, 'click', function(event) {
 					//alert("Clicked map!");
@@ -1497,18 +1500,23 @@ else {
            
            %>
            marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
+           
+           
+           
 	   
 	   <%
 	   if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
 	   %>
 	   	marker.setVisible(false);
+	   	
 	   <%	
 	   }
-	   %>
- 
-	
+	   
+ 	%>
+	   
           markers.push(marker);
           //map.fitBounds(bounds); 
+          
 
       
       function fullScreen(){
