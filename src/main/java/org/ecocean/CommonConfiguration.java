@@ -497,4 +497,18 @@ public class CommonConfiguration {
     return dataDirectoryName;
   }
   
+  /**
+   * This configuration option defines whether information about User objects associated with Encounters and MarkedIndividuals will be displayed to web site viewers.
+   *
+   * @return true if edits are allows. False otherwise.
+   */
+  public static boolean showUsersToPublic() {
+    initialize();
+    boolean showUsersToPublic = true;
+    if ((props.getProperty("showUsersToPublic") != null) && (props.getProperty("showUsersToPublic").equals("false"))) {
+      showUsersToPublic = false;
+    }
+    return showUsersToPublic;
+  }
+  
 }
