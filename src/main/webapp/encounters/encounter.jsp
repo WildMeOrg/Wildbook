@@ -555,7 +555,9 @@ margin-bottom: 8px !important;
       %>
     </p>
  	
- 
+ <%
+ if(CommonConfiguration.showUsersToPublic()){
+ %>
     <p class="para">
     <table><tr><td>
      <%=encprops.getProperty("assigned_user")%>&nbsp;</td>
@@ -681,6 +683,9 @@ $("a#username").mouseover(function() {
 
     
     </tr></table></p>
+    <%
+	 } //end if showUsersToGeneralPublic()
+    %>
 
   </td>
 </tr>

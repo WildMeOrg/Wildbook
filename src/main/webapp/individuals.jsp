@@ -1045,6 +1045,9 @@ table.tissueSample td {
 <!-- end thumbnail gallery -->
 
 <br />
+<%
+if(CommonConfiguration.showUsersToPublic()){
+%>
 <p>
   <strong><%=props.getProperty("collaboratingResearchers") %></strong>
 </p>
@@ -1163,7 +1166,9 @@ table.tissueSample td {
 
     
     </tr></table></p>
-  
+  <%
+} //end if showUsersToGeneralPublic
+  %>
   
   
   
