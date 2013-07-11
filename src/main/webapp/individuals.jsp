@@ -262,6 +262,9 @@ table.tissueSample td {
   })();
 </script>
 
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>
 
 
 
@@ -1040,6 +1043,139 @@ table.tissueSample td {
 
 </table>
 <!-- end thumbnail gallery -->
+
+<br />
+<p>
+  <strong><%=props.getProperty("collaboratingResearchers") %></strong>
+</p>
+  
+     <p class="para">
+    <table >
+     <tr>
+     <td>
+                         
+                         
+                         <%
+                         myShepherd.beginDBTransaction();
+                         
+                         ArrayList<User> relatedUsers =  myShepherd.getAllUsersForMarkedIndividual(sharky);
+                         int numUsers=relatedUsers.size();
+                         if(numUsers>0){
+                         for(int userNum=0;userNum<numUsers;userNum++){	
+                        	 
+                        	 User thisUser=relatedUsers.get(userNum);
+                        	 String username=thisUser.getUsername();
+                         	 %>
+                                
+                                <table align="left">
+                                	<%
+                         	
+                         		
+                                	String profilePhotoURL="images/empty_profile.jpg";
+                    		    
+                         		if(thisUser.getUserImage()!=null){
+                         			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName()+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+
+                         		}
+                         		%>
+                     			<tr><td><center><div style="height: 50px">
+						<a href="#" id="username<%=userNum%>"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
+					</div></center></td></tr>
+                     			<%
+                         		String displayName="";
+                         		if(thisUser.getFullName()!=null){
+                         			displayName=thisUser.getFullName();
+                         		
+                         		%>
+                         		<tr><td style="border:none"><center><a id="username<%=userNum%>" style="font-weight:normal;border:none" href="#"><%=displayName %></a></center></td></tr>
+                         		<tr><td><center><p class="caption">(rollover to learn more)</center></p></td></tr>
+                         		<%	
+                         		}
+                         		
+                         		%>
+                         	</table>
+                         		
+                         		<!-- Now prep the popup dialog -->
+                         		<div id="dialog<%=userNum%>" title="<%=displayName %>" style="display:none">
+                         			<table cellpadding="3px"><tr><td>
+                         			<div style="height: 150px"><img border="1" align="top" src="<%=profilePhotoURL%>" style="height: 100%" />
+                         			</td>
+                         			<td><p>
+                         			<%
+                         			if(thisUser.getAffiliation()!=null){
+                         			%>
+                         			<strong>Affiliation:</strong> <%=thisUser.getAffiliation() %><br />
+                         			<%	
+                         			}
+                         			
+                         			if(thisUser.getUserProject()!=null){
+                         			%>
+                         			<strong>Research Project:</strong> <%=thisUser.getUserProject() %><br />
+                         			<%	
+                         			}
+                         			
+                         			if(thisUser.getUserURL()!=null){
+                             			%>
+                             			<strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><br />
+                             			<%	
+                             			}
+                         			
+                         			if(thisUser.getUserStatement()!=null){
+                             			%>
+                             			<br /><em>"<%=thisUser.getUserStatement() %>"</em>
+                             			<%	
+                             			}
+                         			%>
+                         			</p>
+                         			</td></tr></table>
+                         		</div>
+                         		<!-- popup dialog script -->
+
+					<script>
+					    var dlg<%=userNum%> = $("#dialog<%=userNum%>").dialog({
+					      autoOpen: false,
+					      draggable: false,
+					      resizable: false,
+					      width: 500
+					    });
+					    
+					    $("a#username<%=userNum%>").mouseover(function() {
+					      dlg<%=userNum%>.dialog("open");
+					    }).mouseout(function() {
+					      //dlg.dialog("close");
+					    });
+					</script>
+
+                         		
+                         		<% 
+                         	} //end for loop of users
+                         	
+                         } //end if loop if there are any users
+                         else{
+                        %>	 
+                         
+                        	 <p><%=props.getProperty("noCollaboratingResearchers") %></p>
+                        <%	 
+                         }
+                        
+                        %>
+                        </td>
+
+    
+    </tr></table></p>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
 <!-- Start genetics -->
 <br />
