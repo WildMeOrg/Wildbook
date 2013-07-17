@@ -603,7 +603,7 @@ margin-bottom: 8px !important;
                          		
                          		%>
                          		<tr><td style="border:none"><center><a id="username" style="font-weight:normal;border:none" href="#"><%=displayName %></a></center></td></tr>
-                         		<tr><td><center><p class="caption">(rollover to learn more)</center></p></td></tr>
+                         		<tr><td><center><p class="caption">(click to learn more)</center></p></td></tr>
                          		<%	
                          		}
                          		else{
@@ -657,7 +657,7 @@ var dlg = $("#dialog").dialog({
   width: 500
 });
 
-$("a#username").mouseover(function() {
+$("a#username").click(function() {
   dlg.dialog("open");
 }).mouseout(function() {
   //dlg.dialog("close");
