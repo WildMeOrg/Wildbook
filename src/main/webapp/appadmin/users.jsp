@@ -87,6 +87,7 @@
       		<th><strong>Roles</strong></th>
       		<th width="40px"><strong>Edit?</strong></th>
       		<th><strong>Delete?</strong></th>
+      		<th><strong>Last Login</strong></th>
       	</tr>
       
       <%
@@ -137,6 +138,15 @@
       			<%
       			}
       			%>
+      		</td>
+      		<td>
+      		<% 
+      		if(user.getLastLoginAsDateString()!=null){
+      		%>
+      			<em><%=user.getLastLoginAsDateString().substring(0,user.getLastLoginAsDateString().indexOf("T")) %></em>
+      		<%
+      		}
+      		%>
       		</td>
       	</tr>
       	<%
