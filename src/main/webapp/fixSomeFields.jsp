@@ -55,6 +55,23 @@ while(allEncs.hasNext()){
 	//change state
 	Encounter sharky=(Encounter)allEncs.next();
 	
+	if((sharky.getAssignedUsername()==null)||(sharky.getAssignedUsername().trim().replaceAll("NONE", "").equals(""))){
+		
+		String autoText=sharky.getRComments();
+		if(autoText.indexOf("admin")!=-1){sharky.setSubmitterID("admin");}
+		
+		//iterate through users and assign those instead if appropriate
+		ArrayList<User> users=myShepherd.getAllUsers();
+		int numUsers = users.size();
+		for(int i=0;i<numUsers;i++){
+			User thisUser=users.get(i);
+			if(autoText.indexOf(thisUser.getUsername())!=-1){
+				sharky.setSubmitterID(thisUser.getUsername());
+			}
+		}
+		
+	}
+	
 	//if(sharky.getSex().equals("unsure")){sharky.setSex("unknown");}
 	
 	//if(sharky.getApproved()){sharky.setState("approved");}
@@ -64,7 +81,9 @@ while(allEncs.hasNext()){
 	//change to SinglePhotoVideo
 	//int numPhotos=sharky.getImages().size();
 	//List<SinglePhotoVideo> images=sharky.getImages();
-	
+
+	/*
+	//fix for lack of assignment of Occurrence IDs to Encounter
 if(myShepherd.getOccurrenceForEncounter(sharky.getCatalogNumber())!=null){
 	Occurrence occur=myShepherd.getOccurrenceForEncounter(sharky.getCatalogNumber());
 	sharky.setOccurrenceID(occur.getOccurrenceID());
@@ -72,7 +91,7 @@ if(myShepherd.getOccurrenceForEncounter(sharky.getCatalogNumber())!=null){
 else{
 	sharky.setOccurrenceID(null);
 }
-	
+*/
 	/*
 	
 	for(int i=0;i<numPhotos;i++){
@@ -141,7 +160,7 @@ myShepherd.commitDBTransaction();
 
 
 <p>Done successfully!</p>
-<p>numLogEncounters: <%=numLogEncounters %></p>
+
 
 <%
 } 
