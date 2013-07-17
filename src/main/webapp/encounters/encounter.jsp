@@ -193,10 +193,11 @@ td.measurement{
           	if(marker!=null){marker.setMap(null);}  
           	marker = new google.maps.Marker({
           	      position: location,
-          	      map: map
+          	      map: map,
+          	      visible: true
           	  });
           
-          	  map.setCenter(location);
+          	  //map.setCenter(location);
           	  
           	    var ne_lat_element = document.getElementById('lat');
           	    var ne_long_element = document.getElementById('longitude');
@@ -1496,8 +1497,14 @@ else {
            
            %>
            marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
-	    
-
+	   
+	   <%
+	   if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
+	   %>
+	   	marker.setVisible(false);
+	   <%	
+	   }
+	   %>
  
 	
           markers.push(marker);
