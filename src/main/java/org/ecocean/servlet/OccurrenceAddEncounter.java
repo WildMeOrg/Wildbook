@@ -78,15 +78,18 @@ public class OccurrenceAddEncounter extends HttpServlet {
           //boolean sexMismatch = false;
 
           //myShepherd.beginDBTransaction();
-          Occurrence addToMe = myShepherd.getOccurrence(request.getParameter("occurrence"));
+          Occurrence addToMe = myShepherd.getOccurrence(request.getParameter("occurrence").trim());
 
           try {
             if (!addToMe.getEncounters().contains(enc2add)) {
               addToMe.addEncounter(enc2add);
+              
             }
+            enc2add.setOccurrenceID(request.getParameter("occurrence").trim());
             enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to occurrence " + request.getParameter("occurrence") + ".</p>");
             addToMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + request.getParameter("number") + ".</p>");
 
+            
           } catch (Exception le) {
             le.printStackTrace();
             locked = true;

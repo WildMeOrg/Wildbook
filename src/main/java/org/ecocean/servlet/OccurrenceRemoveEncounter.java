@@ -76,7 +76,8 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
 
           enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from occurrence " + old_name + ".</p>");
           removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter " + request.getParameter("number") + ".</p>");
-
+          enc2remove.setOccurrenceID(null);
+          
           if (removeFromMe.getEncounters().size() == 0) {
             myShepherd.throwAwayOccurrence(removeFromMe);
             wasRemoved = true;

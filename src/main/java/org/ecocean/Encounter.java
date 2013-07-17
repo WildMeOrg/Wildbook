@@ -126,6 +126,9 @@ public class Encounter implements java.io.Serializable {
   private String minutes = "00";
   
   private String state="";
+  
+  //the globally unique identifier (GUID) for this Encounter
+  private String guid;
 
   private long dateInMilliseconds=0;
   //describes how the shark was measured
@@ -1109,12 +1112,13 @@ public class Encounter implements java.io.Serializable {
     numSpotsRight = numspots;
   }
 
+  
   public void setDWCGlobalUniqueIdentifier(String guid) {
-    occurrenceID = guid;
+    this.guid = guid;
   }
 
   public String getDWCGlobalUniqueIdentifier() {
-    return occurrenceID;
+    return guid;
   }
 
   public void setDWCImageURL(String link) {
@@ -1796,5 +1800,13 @@ public class Encounter implements java.io.Serializable {
       if(newCountry!=null){country = newCountry;}
       else{country=null;}
     }
+    
+    public void setOccurrenceID(String vet) {
+      if(vet!=null){this.occurrenceID = vet;}
+      else{this.occurrenceID=null;}
+  }
+    
+    public String getOccurrenceID(){return occurrenceID;}
+    
 }
 
