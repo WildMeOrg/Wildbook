@@ -1049,7 +1049,7 @@ table.tissueSample td {
 if(CommonConfiguration.showUsersToPublic()){
 %>
 <p>
-  <strong><%=props.getProperty("collaboratingResearchers") %></strong>
+  <strong><%=props.getProperty("collaboratingResearchers") %></strong> (click each to learn more)
 </p>
   
      <p class="para">
@@ -1082,7 +1082,7 @@ if(CommonConfiguration.showUsersToPublic()){
                          		}
                          		%>
                      			<tr><td><center><div style="height: 50px">
-						<a href="#" id="username<%=userNum%>"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
+						<a id="username<%=userNum%>"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
 					</div></center></td></tr>
                      			<%
                          		String displayName="";
@@ -1090,8 +1090,8 @@ if(CommonConfiguration.showUsersToPublic()){
                          			displayName=thisUser.getFullName();
                          		
                          		%>
-                         		<tr><td style="border:none"><center><a id="username<%=userNum%>" style="font-weight:normal;border:none" href="#"><%=displayName %></a></center></td></tr>
-                         		<tr><td><center><p class="caption">(rollover to learn more)</center></p></td></tr>
+                         		<tr><td style="border:none"><center><a id="username<%=userNum%>" style="font-weight:normal;border:none"><%=displayName %></a></center></td></tr>
+                         		
                          		<%	
                          		}
                          		
@@ -1142,7 +1142,7 @@ if(CommonConfiguration.showUsersToPublic()){
 					      width: 500
 					    });
 					    
-					    $("a#username<%=userNum%>").mouseover(function() {
+					    $("a#username<%=userNum%>").click(function() {
 					      dlg<%=userNum%>.dialog("open");
 					    }).mouseout(function() {
 					      //dlg.dialog("close");
