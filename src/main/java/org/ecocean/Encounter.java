@@ -106,7 +106,9 @@ public class Encounter implements java.io.Serializable {
   private String researcherComments = "None";
 
   //username of the logged in researcher assigned to the encounter
+  //this STring is matched to an org.ecocean.User object to obtain more information
   private String submitterID;
+  
   //name, email, phone, address of the encounter reporter
   private String submitterEmail, submitterPhone, submitterAddress;
   private String hashedSubmitterEmail;
@@ -894,7 +896,12 @@ public class Encounter implements java.io.Serializable {
     submitterID = name;
   }
 
+  //old method. use getAssignedUser() instead
   public String getSubmitterID() {
+    return getAssignedUser();
+  }
+  
+  public String getAssignedUser() {
     return submitterID;
   }
 
