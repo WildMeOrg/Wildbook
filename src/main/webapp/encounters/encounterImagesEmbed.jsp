@@ -62,7 +62,7 @@ Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
 
 
 <p class="para"><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px"
-                     height="*"><strong>&nbsp;<%=encprops.getProperty("images")%>
+                     height="25px"><strong>&nbsp;<%=encprops.getProperty("images")%>
 </strong><br/> <%
   if (session.getAttribute("logged") != null) {
 %> <em><%=encprops.getProperty("click2view")%>

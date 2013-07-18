@@ -442,7 +442,7 @@ margin-bottom: 8px !important;
     <%
     if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
   %>
-    <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
+    <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="50px">
       <%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> 
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -455,7 +455,7 @@ margin-bottom: 8px !important;
     <%
     } else {
     %>
-    <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="*">
+    <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="50px" />
       <%=encprops.getProperty("identified_as") %>: <a
         href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%>
       </a></font>

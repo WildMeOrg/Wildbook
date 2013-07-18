@@ -310,7 +310,7 @@ table.tissueSample td {
 
 <table><tr>
 <td>
-<span class="para"><img src="images/tag_big.gif" width="75px" height="*" align="absmiddle"/></span>
+<span class="para"><img src="images/tag_big.gif" width="75px" height="75px" align="absmiddle"/></span>
 </td>
 <td valign="middle">
  <h1><strong> <%=markedIndividualTypeCaps %>
@@ -561,20 +561,20 @@ table.tissueSample td {
     		//if the encounter has photos, show photo folder icon
     		if((enc.getImages()!=null) && (enc.getImages().size()>0)){
     		%>
-    			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="*" />
+    			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="32px" />
     		<%
     		}
     		
     		//if the encounter has a tissue sample, show an icon
     		if((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)){
     		%>
-    			<img src="images/microscope.gif" height="32px" width="*" />
+    			<img src="images/microscope.gif" height="32px" width="32px" />
     		<%
     		}
     		//if the encounter has a measurement, show the measurement icon
     		if(enc.hasMeasurements()){
     		%>	
-    			<img src="images/ruler.png" height="32px" width="*" />
+    			<img src="images/ruler.png" height="32px" width="32px" />
         	<%	
     		}
     		%>
