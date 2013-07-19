@@ -335,26 +335,20 @@ table.tissueSample td {
 <a name="alternateid"></a>
 
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
-  <%=sharky.getAlternateID()%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
-    href="individuals.jsp?number=<%=name%>&edit=alternateid#alternateid"><%=edit%>
-  </a>]<%}%>
+  <%=sharky.getAlternateID()%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a style="color:blue;cursor: pointer;" id="alternateID"><%=edit%></a>]<%}%>
 
   
 </p>
-<%
-  if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("alternateid"))) {%>
-<br>
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-       bgcolor="#99CCFF">
-  <tr>
-    <td align="left" valign="top"><span class="style1"><%=setAlternateID %>:</span></td>
-  </tr>
+
+
+<!-- Now prep the popup dialog -->
+<div id="dialogAlternateID" title="<%=setAlternateID %>" style="display:none">
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
   <tr>
     <td align="left" valign="top">
-      <form name="set_alternateid" method="post"
-            action="IndividualSetAlternateID"><input name="individual"
-                                                     type="hidden"
-                                                     value="<%=request.getParameter("number")%>"> <%=alternateID %>
+      <form name="set_alternateid" method="post" action="IndividualSetAlternateID">
+      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>"> <%=alternateID %>
         :
         <input name="alternateid" type="text" id="alternateid" size="15"
                maxlength="150"><br> <input name="Name" type="submit"
@@ -362,7 +356,23 @@ table.tissueSample td {
     </td>
   </tr>
 </table>
-</a><br> <%}%>
+
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlg = $("#dialogAlternateID").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 500
+});
+
+$("a#alternateID").click(function() {
+  dlg.dialog("open");
+});
+</script>
+
+
 </p>
 <%
     if(CommonConfiguration.showProperty("showTaxonomy")){
@@ -394,9 +404,7 @@ table.tissueSample td {
 
   %>
   <%=nickname %>: <%=myNickname%>
-  <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
-  href="individuals.jsp?number=<%=name%>&edit=nickname#nickname"><%=edit %>
-</a>]<%}%>
+  <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a id="nickname" style="color:blue;cursor: pointer;"><%=edit %></a>]<%}%>
   <br/>
   <%=nicknamer %>: <%=myNicknamer%>
 
@@ -405,13 +413,14 @@ table.tissueSample td {
     }
 
 
-    if (CommonConfiguration.isCatalogEditable() && isOwner && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("nickname"))) {%>
-  <br/><br/>
-  <a name="nickname">
-    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
-      <tr>
-        <td align="left" valign="top"><span class="style1"><%=setNickname %>:</span></td>
-      </tr>
+    if (CommonConfiguration.isCatalogEditable() && isOwner) {%>
+
+
+  
+  <!-- Now prep the popup dialog -->
+<div id="dialogNickname" title="<%=setNickname %>" style="display:none">
+    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
       <tr>
         <td align="left" valign="top">
           <form name="nameShark" method="post" action="IndividualSetNickName">
@@ -425,22 +434,33 @@ table.tissueSample td {
         </td>
       </tr>
     </table>
-  </a>
-  <br/> <%}%>
+    </div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgNick = $("#dialogNickname").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 500
+});
+
+$("a#nickname").click(function() {
+  dlgNick.dialog("open");
+});
+</script>
+ <%}%>
 
 </p>
-<p><%=sex %>: <%=sharky.getSex()%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%>[<a
-  href="individuals.jsp?number=<%=name%>&edit=sex#sex"><%=edit %>
-</a>]<%}%><br>
+<p><%=sex %>: <%=sharky.getSex()%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%>[<a id="sex" style="color:blue;cursor: pointer;"><%=edit %></a>]<%}%><br />
   <%
     //edit sex
-    if (CommonConfiguration.isCatalogEditable() && isOwner && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("sex"))) {%>
-  <br><a name="sex">
-    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-           bgcolor="#99CCFF">
-      <tr>
-        <td align="left" valign="top"><span class="style1"><%=setsex %>:</span></td>
-      </tr>
+    if (CommonConfiguration.isCatalogEditable() && isOwner) {%>
+  
+    <!-- Now prep the popup dialog -->
+<div id="dialogSex" title="<%=setsex %>" style="display:none">
+  
+    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
       <tr>
         <td align="left" valign="top">
           <form name="setxsexshark" action="IndividualSetSex" method="post">
@@ -456,7 +476,23 @@ table.tissueSample td {
         </td>
       </tr>
     </table>
-  </a><br> <%}%>
+    
+        </div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgSex = $("#dialogSex").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 500
+});
+
+$("a#sex").click(function() {
+  dlgSex.dialog("open");
+});
+</script>
+    
+   <%}%>
 
 </p>
 
@@ -1082,7 +1118,7 @@ if(CommonConfiguration.showUsersToPublic()){
                          		}
                          		%>
                      			<tr><td><center><div style="height: 50px">
-						<a href="#" id="username<%=userNum%>"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
+						<a style="color:blue;cursor: pointer;" href="#" id="username<%=userNum%>"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
 					</div></center></td></tr>
                      			<%
                          		String displayName="";
@@ -1090,7 +1126,7 @@ if(CommonConfiguration.showUsersToPublic()){
                          			displayName=thisUser.getFullName();
                          		
                          		%>
-                         		<tr><td style="border:none"><center><a id="username<%=userNum%>" style="font-weight:normal;border:none" href="#"><%=displayName %></a></center></td></tr>
+                         		<tr><td style="border:none"><center><a style="color:blue;cursor: pointer;" id="username<%=userNum%>" style="font-weight:normal;border:none" href="#"><%=displayName %></a></center></td></tr>
                          		<tr><td><center><p class="caption">(rollover to learn more)</center></p></td></tr>
                          		<%	
                          		}

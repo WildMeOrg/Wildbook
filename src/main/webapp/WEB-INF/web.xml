@@ -172,7 +172,7 @@
       			/encounters/searchExport = authc, roles[admin]
       			/welcome.jsp = authc
       			
-      			/EncounterSetSubmitterID = authc, roles[researcher]
+      			/EncounterSetSubmitterID = authc, roles[admin]
                
 
             </param-value>
