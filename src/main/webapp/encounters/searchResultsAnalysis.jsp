@@ -42,8 +42,8 @@
     encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
 
     Properties haploprops = new Properties();
-    haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-
+    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd();
