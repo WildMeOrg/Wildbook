@@ -594,7 +594,7 @@ margin-bottom: 8px !important;
                          		}
                          		%>
                      			<tr><td><center><div style="height: 50px">
-						<a id="username" href="#"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
+						<a id="username" style="color:blue;cursor: pointer;"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
 					</div></center></td></tr>
                      			<%
                          		String displayName="";
@@ -602,8 +602,8 @@ margin-bottom: 8px !important;
                          			displayName=thisUser.getFullName();
                          		
                          		%>
-                         		<tr><td style="border:none"><center><a id="username" style="font-weight:normal;border:none" href="#"><%=displayName %></a></center></td></tr>
-                         		<tr><td><center><p class="caption">(rollover to learn more)</center></p></td></tr>
+                         		<tr><td style="border:none"><center><a style="color:blue;cursor: pointer;" id="username" style="font-weight:normal;border:none"><%=displayName %></a></center></td></tr>
+                         		<tr><td><center><p class="caption">(click to learn more)</center></p></td></tr>
                          		<%	
                          		}
                          		else{
@@ -654,13 +654,11 @@ var dlg = $("#dialog").dialog({
   autoOpen: false,
   draggable: false,
   resizable: false,
-  width: 500
+  width: 600
 });
 
-$("a#username").mouseover(function() {
+$("a#username").click(function() {
   dlg.dialog("open");
-}).mouseout(function() {
-  //dlg.dialog("close");
 });
 </script>
                          		
