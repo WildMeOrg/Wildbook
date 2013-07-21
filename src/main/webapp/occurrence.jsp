@@ -213,7 +213,7 @@
 <table><tr>
 
 <td valign="middle">
- <h1><strong><%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
+ <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
  <table><tr valign="middle">  
   <td>

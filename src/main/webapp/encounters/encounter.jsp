@@ -490,7 +490,7 @@ margin-bottom: 8px !important;
   
   %>
 	<p class="para">
-	<%=encprops.getProperty("occurrenceID") %>:
+	<img width="24px" height="24px" align="absmiddle" src="../images/occurrence.png" />&nbsp;<%=encprops.getProperty("occurrenceID") %>:
 	<%
 	if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
 	%>
@@ -564,7 +564,7 @@ margin-bottom: 8px !important;
         <%               
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       	%>
-      		<td><font size="-1">[<a id="user" style="color:blue;cursor: pointer;">edit</a>]</font></td>
+      		<td><font size="-1"><a id="user" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font></td>
       	<%
         }
       %>
@@ -666,8 +666,7 @@ $("a#username").click(function() {
 <!-- start set username popup -->  
 <div id="dialogUser" title="<%=encprops.getProperty("assignUser")%>" style="display:none">  
 
-	    <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-         bgcolor="#CCCCCC">
+	    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
     <tr>
       <td align="left" valign="top" class="para"><font
         color="#990000"><img align="absmiddle"
@@ -784,7 +783,7 @@ $("a#user").click(function() {
   </a>
     <%
 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- 					%><font size="-1">[<a id="date" style="color:blue;cursor: pointer;">edit</a>]</font> <%
+ 					%><font size="-1"><a id="date" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
         		}
         		%>
        		
@@ -803,7 +802,7 @@ $("a#user").click(function() {
     <%
 				}
 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- 					%> <font size="-1">[<a id="VBDate" style="color:blue;cursor: pointer;">edit</a>]</font> <%
+ 					%> <font size="-1"><a id="VBDate" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
         		}
         		%>
       		
@@ -819,7 +818,7 @@ $("a#user").click(function() {
   <br /><em><%=encprops.getProperty("releaseDate") %></em>:
     <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
     <c:if test="${editable}">
-        <font size="-1">[<a id="releaseDate" style="color:blue;cursor: pointer;">edit</a>]</font>
+        <font size="-1"><a id="releaseDate" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
     </c:if>
   </p>
 </c:if>
@@ -999,14 +998,14 @@ if(enc.getLocation()!=null){
 
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %><font size="-1">[<a id="location" style="color:blue;cursor: pointer;">edit</a>]</font>
+  %><font size="-1"><a id="location" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
   <%
     }
   %>
 <br /><em><%=encprops.getProperty("locationID") %></em>: <%=enc.getLocationCode()%>
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1">[<a id="locationID" style="color:blue;cursor: pointer;">edit</a>]</font>
+  <font size="-1"><a id="locationID" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
   <a href="<%=CommonConfiguration.getWikiLocation()%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
@@ -1022,7 +1021,7 @@ if(enc.getLocation()!=null){
   <%
   }
     if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1">[<a id="country" style="color:blue;cursor: pointer;">edit</a>]</font>
+  <font size="-1"><a id="country" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
   <a href="<%=CommonConfiguration.getWikiLocation()%>country" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
