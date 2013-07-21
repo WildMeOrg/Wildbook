@@ -171,95 +171,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 </table>
 <br> <%
 				}
-     %>
-<c:if test="${param.edit eq 'releaseDate'}">
-  <a name="releaseDate"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font color="#990000">
-                    <%=encprops.getProperty("releaseDate")%>:</font></strong><br />
-      </td>
-    </tr>
-    <tr>
-        <td>
-            <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate">
-                <input type="hidden" name="encounter" value="${num}"/>
-            <table>
-                <tr><td><%=encprops.getProperty("releaseDateFormat") %></td></tr>
-                <c:set var="releaseDate">
-                    <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
-                </c:set>
-                <tr><td><input name="releaseDate" value="${releaseDate}"/></td></tr>
-                <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
-            </table>
-            </form>
-        </td>
-    </tr>
-  </table>
-</c:if>     
-     <%
-				//set location code
-				if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("loccode"))){
-			%> <a name="loccode"></a><br />
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setLocationID")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="addLocCode" action="../EncounterSetLocationID"
-              method="post">
-              
-              <%
-              if(CommonConfiguration.getProperty("locationID0")==null){
-              %>
-              <input name="code" type="text" size="10" maxlength="50"> 
-              <%
-              }
-              else{
-            	  //iterate and find the locationID options
-            	  %>
-            	  <select name="code" id="code">
-						            	<option value=""></option>
-						       
-						       <%
-						       boolean hasMoreLocs=true;
-						       int taxNum=0;
-						       while(hasMoreLocs){
-						       	  String currentLoc = "locationID"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLoc)!=null){
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc)%>"><%=CommonConfiguration.getProperty(currentLoc)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreLocs=false;
-						          }
-						          
-						       }
-						       %>
-						       
-						       
-						      </select>  
-            	  
-            	  
-            <% 	  
-              }
-              %>
-              
-                                   <input name="number" type="hidden" value="<%=num%>"> 
-                                   <input name="action" type="hidden" value="addLocCode">
-          <input name="Set Location ID"
-                 type="submit" id="Add" value="<%=encprops.getProperty("setLocationID")%>"></form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-				
+			
 		//set alternateid
 		if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){
 		%> <a name="alternateid"></a><br />
@@ -282,30 +194,6 @@ if(!request.getParameter("loggedIn").equals("true")){
 <br /> <%
 		}
 		
-		//set verbatimEventDate
-		if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("verbatimEventDate"))){
-		%> 
-		<a name="verbatimEventDate"></a><br />
-		  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-		    <tr>
-		      <td align="left" valign="top" class="para"><strong><font
-		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
-		        <br />
-			<font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
-          		</em></font>
-		        </td>
-		    </tr>
-		    <tr>
-		      <td align="left" valign="top">
-		        <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate"
-		              method="post"><input name="verbatimEventDate" type="text" size="10" maxlength="50"> 
-		              <input name="encounter" type="hidden" value=<%=num%>>
-		          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
-		      </td>
-		    </tr>
-		  </table>
-		<br /> <%
-				}
 		
 		
 		//encounter set dynamic property
@@ -665,28 +553,8 @@ if(!request.getParameter("loggedIn").equals("true")){
     		<br /> <%
     			}
 				//set location for sighting
-			if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("location"))){
-		%> <a name="location"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setLocation")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setLocation" action="../EncounterSetLocation"
-              method="post"><textarea name="location" size="15"><%=enc.getLocation()%>
-        </textarea>
-          <input name="number" type="hidden" value=<%=num%>> <input
-            name="action" type="hidden" value="setLocation"> <input
-            name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setLocation")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-				
+
+			
 //update submitted comments for sighting
 if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("comments"))){
 %> 
@@ -1560,54 +1428,12 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 						    </td>
 						  </tr>
 						</table>
-						<br /> <%
+						<br /> 
+						
+						<%
 	}
 	
-	
-	//
-	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("country"))){
-		%> 
-		<a name="country"></a>
-		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-			<tr>
-				<td align="left" valign="top" class="para"><strong><font color="#990000">
-					<%=encprops.getProperty("resetCountry")%>:</font></strong><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
-						    </td>
-						  </tr>
-						  <tr>
-						    <td align="left" valign="top">
-						      <form name="countryForm" action="../EncounterSetCountry" method="post">
-						            <select name="country" id="country">
-						            	<option value=""></option>
-						       
-						       <%
-						       boolean hasMoreStages=true;
-						       int taxNum=0;
-						       while(hasMoreStages){
-						       	  String currentLifeStage = "country"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreStages=false;
-						          }
-						          
-						       }
-						       %>
-						       
-						       
-						      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
-						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
-						      </form>
-						    </td>
-						  </tr>
-						</table>
-						<br /> <%
-	}
+
 %>	
 	
 		

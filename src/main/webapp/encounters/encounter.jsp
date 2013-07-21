@@ -747,10 +747,49 @@ $("a#username").click(function() {
     <%
 				}
 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- 					%> <font size="-1">[<a
-    href="encounter.jsp?number=<%=num%>&edit=verbatimEventDate#verbatimEventDate">edit</a>]</font> <%
+ 					%> <font size="-1">[<a id="VBDate" style="color:blue;cursor: pointer;">edit</a>]</font> <%
         		}
         		%>
+        		
+<!-- start verbatim event date popup -->  
+<div id="dialogVBDate" title="<%=encprops.getProperty("setVerbatimEventDate")%>" style="display:none">  
+
+	  <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+		    <tr>
+		      <td align="left" valign="top" class="para"><strong><font
+		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
+		        <br />
+			<font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
+          		</em></font>
+		        </td>
+		    </tr>
+		    <tr>
+		      <td align="left" valign="top">
+		        <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate"
+		              method="post"><input name="verbatimEventDate" type="text" size="10" maxlength="50"> 
+		              <input name="encounter" type="hidden" value=<%=num%>>
+		          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
+		      </td>
+		    </tr>
+		  </table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgVBDate = $("#dialogVBDate").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#VBDate").click(function() {
+  dlgVBDate.dialog("open");
+});
+</script>   
+<!-- end locationID -->  
+        		
+        		
+        		
 <%
   pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
 %>
@@ -758,10 +797,47 @@ $("a#username").click(function() {
   <p class="para"><strong><%=encprops.getProperty("releaseDate") %></strong>
     <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
     <c:if test="${editable}">
-        <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=releaseDate#releaseDate">edit</a>]</font>
+        <font size="-1">[<a id="releaseDate" style="color:blue;cursor: pointer;">edit</a>]</font>
     </c:if>
   </p>
 </c:if>
+
+<!-- start releaseDate popup -->  
+<div id="dialogReleaseDate" title="<%=encprops.getProperty("setReleaseDate")%>" style="display:none">  
+
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
+
+    <tr>
+        <td>
+            <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate">
+                <input type="hidden" name="encounter" value="${num}"/>
+            <table>
+                <tr><td><%=encprops.getProperty("releaseDateFormat") %></td></tr>
+                <c:set var="releaseDate">
+                    <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
+                </c:set>
+                <tr><td><input name="releaseDate" value="${releaseDate}"/></td></tr>
+                <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
+            </table>
+            </form>
+        </td>
+    </tr>
+  </table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgReleaseDate = $("#dialogReleaseDate").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#releaseDate").click(function() {
+  dlgReleaseDate.dialog("open");
+});
+</script>   
+<!-- end releaseDate --> 
 
 <p class="para"><strong><%=encprops.getProperty("location") %>
 </strong><br/> 
@@ -775,23 +851,22 @@ if(enc.getLocation()!=null){
 
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=location#location">edit</a>]</font>
+  %><font size="-1">[<a id="location" style="color:blue;cursor: pointer;">edit</a>]</font>
   <%
     }
   %>
-  
-  <br/>
-  <em><%=encprops.getProperty("locationID") %></em>: <%=enc.getLocationCode()%>
+<br /><em><%=encprops.getProperty("locationID") %></em>: <%=enc.getLocationCode()%>
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=loccode#loccode">edit</a>]</font>
+  <font size="-1">[<a id="locationID" style="color:blue;cursor: pointer;">edit</a>]</font>
   <a href="<%=CommonConfiguration.getWikiLocation()%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
   %>
-  
-  <br/>
-  <em><%=encprops.getProperty("country") %></em>: 
+
+<br />
+
+ <em><%=encprops.getProperty("country") %></em>: 
   <%
   if(enc.getCountry()!=null){
   %>
@@ -799,15 +874,13 @@ if(enc.getLocation()!=null){
   <%
   }
     if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=country#country">edit</a>]</font>
+  <font size="-1">[<a id="country" style="color:blue;cursor: pointer;">edit</a>]</font>
   <a href="<%=CommonConfiguration.getWikiLocation()%>country" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
   %>
   
-  
-  <br/>
-  <em><%=encprops.getProperty("latitude") %></em>:
+  <br /><em><%=encprops.getProperty("latitude") %></em>:
   <%
     if ((enc.getDWCDecimalLatitude() != null) && (!enc.getDWCDecimalLatitude().equals("-9999.0"))) {
   %>
@@ -833,6 +906,166 @@ if(enc.getLocation()!=null){
 
 </p>
 
+
+<!-- start locationID -->  
+<div id="dialogLocationID" title="<%=encprops.getProperty("setLocationID")%>" style="display:none">  
+
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top">
+        <form name="addLocCode" action="../EncounterSetLocationID" method="post">
+              
+              <%
+              if(CommonConfiguration.getProperty("locationID0")==null){
+              %>
+              <input name="code" type="text" size="10" maxlength="50"> 
+              <%
+              }
+              else{
+            	  //iterate and find the locationID options
+            	  %>
+            	  <select name="code" id="code">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreLocs=true;
+						       int taxNum=0;
+						       while(hasMoreLocs){
+						       	  String currentLoc = "locationID"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLoc)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc)%>"><%=CommonConfiguration.getProperty(currentLoc)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreLocs=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select>  
+            	  
+            	  
+            <% 	  
+              }
+              %>
+              
+                                   <input name="number" type="hidden" value="<%=num%>" /> 
+                                   <input name="action" type="hidden" value="addLocCode" />
+          <input name="Set Location ID" type="submit" id="Add" value="<%=encprops.getProperty("setLocationID")%>" /></form>
+      </td>
+    </tr>
+  </table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgLocationID = $("#dialogLocationID").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#locationID").click(function() {
+  dlgLocationID.dialog("open");
+});
+</script>   
+<!-- end locationID -->  
+
+
+<!-- start location popup -->  
+<div id="dialogLocation" title="<%=encprops.getProperty("setLocation")%>" style="display:none">  
+
+  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top">
+        <form name="setLocation" action="../EncounterSetLocation" method="post">
+        <textarea name="location" size="15"><%=enc.getLocation().trim()%></textarea>
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="setLocation" /> 
+          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setLocation")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgLocation = $("#dialogLocation").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#location").click(function() {
+  dlgLocation.dialog("open");
+});
+</script>   
+<!-- end location --> 
+
+
+<!-- start country popup -->  
+<div id="dialogCountry" title="<%=encprops.getProperty("resetCountry")%>" style="display:none">  
+
+		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
+			<tr>
+				<td align="left" valign="top" class="para"><strong><font color="#990000">
+					<%=encprops.getProperty("resetCountry")%>:</font></strong><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
+						    </td>
+						  </tr>
+						  <tr>
+						    <td align="left" valign="top">
+						      <form name="countryForm" action="../EncounterSetCountry" method="post">
+						            <select name="country" id="country">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreStages=true;
+						       int taxNum=0;
+						       while(hasMoreStages){
+						       	  String currentLifeStage = "country"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreStages=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
+						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
+						      </form>
+						    </td>
+						  </tr>
+						</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgCountry = $("#dialogCountry").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#country").click(function() {
+  dlgCountry.dialog("open");
+});
+</script>   
+<!-- end country -->  
+ 
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
     <%
