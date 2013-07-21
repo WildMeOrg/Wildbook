@@ -728,13 +728,13 @@ $("a#username").click(function() {
   </a>
     <%
 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- 					%><font size="-1">[<a
-    href="encounter.jsp?number=<%=num%>&edit=date#date">edit</a>]</font> <%
+ 					%><font size="-1">[<a id="date" style="color:blue;cursor: pointer;">edit</a>]</font> <%
         		}
         		%>
-  <br/>
+       		
 
-    <%=encprops.getProperty("verbatimEventDate")%>:
+<br />
+<em><%=encprops.getProperty("verbatimEventDate")%></em>:
     <%
 				if(enc.getVerbatimEventDate()!=null){
 				%>
@@ -750,43 +750,9 @@ $("a#username").click(function() {
  					%> <font size="-1">[<a id="VBDate" style="color:blue;cursor: pointer;">edit</a>]</font> <%
         		}
         		%>
-        		
-<!-- start verbatim event date popup -->  
-<div id="dialogVBDate" title="<%=encprops.getProperty("setVerbatimEventDate")%>" style="display:none">  
-
-	  <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-		    <tr>
-		      <td align="left" valign="top" class="para"><strong><font
-		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
-		        <br />
-			<font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
-          		</em></font>
-		        </td>
-		    </tr>
-		    <tr>
-		      <td align="left" valign="top">
-		        <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate"
-		              method="post"><input name="verbatimEventDate" type="text" size="10" maxlength="50"> 
-		              <input name="encounter" type="hidden" value=<%=num%>>
-		          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
-		      </td>
-		    </tr>
-		  </table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgVBDate = $("#dialogVBDate").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#VBDate").click(function() {
-  dlgVBDate.dialog("open");
-});
-</script>   
-<!-- end locationID -->  
+      		
+  
+<!-- end verbatim event date -->  
         		
         		
         		
@@ -794,7 +760,7 @@ $("a#VBDate").click(function() {
   pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
 %>
 <c:if test="${showReleaseDate}">
-  <p class="para"><strong><%=encprops.getProperty("releaseDate") %></strong>
+  <br /><em><%=encprops.getProperty("releaseDate") %></em>:
     <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
     <c:if test="${editable}">
         <font size="-1">[<a id="releaseDate" style="color:blue;cursor: pointer;">edit</a>]</font>
@@ -838,6 +804,132 @@ $("a#releaseDate").click(function() {
 });
 </script>   
 <!-- end releaseDate --> 
+<!-- start verbatim event date popup -->  
+<div id="dialogVBDate" title="<%=encprops.getProperty("setVerbatimEventDate")%>" style="display:none">  
+
+	  <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+		    <tr>
+		      <td align="left" valign="top" class="para"><strong><font
+		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
+		        <br />
+			<font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
+          		</em></font>
+		        </td>
+		    </tr>
+		    <tr>
+		      <td align="left" valign="top">
+		        <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate"
+		              method="post"><input name="verbatimEventDate" type="text" size="10" maxlength="50"> 
+		              <input name="encounter" type="hidden" value=<%=num%>>
+		          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
+		      </td>
+		    </tr>
+		  </table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgVBDate = $("#dialogVBDate").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#VBDate").click(function() {
+  dlgVBDate.dialog("open");
+});
+</script> 
+<!-- start date popup -->  
+<div id="dialogDate" title="<%=encprops.getProperty("resetEncounterDate")%>" style="display:none">  
+
+  <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr>
+      <td align="left" valign="top">
+        <form name="setxencshark" action="../EncounterResetDate" method="post">
+          <em><%=encprops.getProperty("day")%>
+          </em> <select name="day" id="day">
+          <option value="0">?</option>
+          <%
+            for (int pday = 1; pday < 32; pday++) {
+          %>
+          <option value="<%=pday%>"><%=pday%>
+          </option>
+          <%
+            }
+          %>
+        </select><br> <em>&nbsp;<%=encprops.getProperty("month")%>
+        </em> <select name="month" id="month">
+          <option value="-1">?</option>
+          <%
+            for (int pmonth = 1; pmonth < 13; pmonth++) {
+          %>
+          <option value="<%=pmonth%>"><%=pmonth%>
+          </option>
+          <%
+            }
+          %>
+        </select><br> <em>&nbsp;<%=encprops.getProperty("year")%>
+        </em> <select name="year" id="year">
+          <option value="-1">?</option>
+
+          <%
+            for (int pyear = nowYear; pyear > (nowYear - 50); pyear--) {
+          %>
+          <option value="<%=pyear%>"><%=pyear%>
+          </option>
+          <%
+            }
+          %>
+        </select><br> <em>&nbsp;<%=encprops.getProperty("hour")%>
+        </em> <select name="hour" id="hour">
+          <option value="-1" selected>?</option>
+          <option value="6">6 am</option>
+          <option value="7">7 am</option>
+          <option value="8">8 am</option>
+          <option value="9">9 am</option>
+          <option value="10">10 am</option>
+          <option value="11">11 am</option>
+          <option value="12">12 pm</option>
+          <option value="13">1 pm</option>
+          <option value="14">2 pm</option>
+          <option value="15">3 pm</option>
+          <option value="16">4 pm</option>
+          <option value="17">5 pm</option>
+          <option value="18">6 pm</option>
+          <option value="19">7 pm</option>
+          <option value="20">8 pm</option>
+        </select><br> <em>&nbsp;<%=encprops.getProperty("minutes")%>
+        </em> <select name="minutes" id="minutes">
+          <option value="00" selected>:00</option>
+          <option value="15">:15</option>
+          <option value="30">:30</option>
+          <option value="45">:45</option>
+        </select><br> <input name="number" type="hidden" value="<%=num%>"
+                             id="number"> <input name="action" type="hidden"
+                                                 value="changeEncounterDate"> <input name="AddDate"
+                                                                                     type="submit"
+                                                                                     id="AddDate"
+                                                                                     value="<%=encprops.getProperty("setDate")%>">
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgDate = $("#dialogDate").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#date").click(function() {
+  dlgDate.dialog("open");
+});
+</script>   
+<!-- end date dialog -->  
 
 <p class="para"><strong><%=encprops.getProperty("location") %>
 </strong><br/> 
