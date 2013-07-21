@@ -1656,47 +1656,6 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 <br/> <%
 			}
 
-		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("user"))){
-		%> <a name="user"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-         bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><font
-        color="#990000"><img align="absmiddle"
-                             src="../images/Crystal_Clear_app_Login_Manager.gif"/>
-        <strong><%=encprops.getProperty("assignUser")%>:</strong></font></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post">
-          
-          <select name="submitter" id="submitter">
-        	<option value=""></option>
-        	<%
-        	ArrayList<String> usernames=formShepherd.getAllUsernames();
-        	int numUsers=usernames.size();
-        	for(int i=0;i<numUsers;i++){
-        		String thisUsername=usernames.get(i);
-        		User thisUser=formShepherd.getUser(thisUsername);
-        		String thisUserFullname=thisUsername;
-        		if(thisUser.getFullName()!=null){thisUserFullname=thisUser.getFullName();}
-        	%>
-        	<option value="<%=thisUsername%>"><%=thisUserFullname%></option>
-        	<%
-			}
-        	%>
-      	</select> 
-              
-          <input name="number" type="hidden" value=<%=num%>> <input name="Assign"
-                                                                                 type="submit"
-                                                                                 id="Assign"
-                                                                                 value="<%=encprops.getProperty("assign")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br/> <%
-		}
 
 	//reset scarring
 	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("scar"))){

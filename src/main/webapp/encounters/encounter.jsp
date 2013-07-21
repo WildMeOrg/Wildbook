@@ -564,7 +564,7 @@ margin-bottom: 8px !important;
         <%               
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       	%>
-      		<td><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=user#user">edit</a>]</font></td>
+      		<td><font size="-1">[<a id="user" style="color:blue;cursor: pointer;">edit</a>]</font></td>
       	<%
         }
       %>
@@ -661,6 +661,62 @@ $("a#username").click(function() {
   dlg.dialog("open");
 });
 </script>
+
+
+<!-- start set username popup -->  
+<div id="dialogUser" title="<%=encprops.getProperty("assignUser")%>" style="display:none">  
+
+	    <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
+         bgcolor="#CCCCCC">
+    <tr>
+      <td align="left" valign="top" class="para"><font
+        color="#990000"><img align="absmiddle"
+                             src="../images/Crystal_Clear_app_Login_Manager.gif"/>
+        <strong><%=encprops.getProperty("assignUser")%>:</strong></font></td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post">
+          
+          <select name="submitter" id="submitter">
+        	<option value=""></option>
+        	<%
+        	ArrayList<String> usernames=myShepherd.getAllUsernames();
+        	int numUsers=usernames.size();
+        	for(int i=0;i<numUsers;i++){
+        		String thisUsername=usernames.get(i);
+        		User thisUser2=myShepherd.getUser(thisUsername);
+        		String thisUserFullname=thisUsername;
+        		if(thisUser2.getFullName()!=null){thisUserFullname=thisUser2.getFullName();}
+        	%>
+        	<option value="<%=thisUsername%>"><%=thisUserFullname%></option>
+        	<%
+			}
+        	%>
+      	</select> 
+              
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="Assign" type="submit" id="Assign" value="<%=encprops.getProperty("assign")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgUser = $("#dialogUser").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#user").click(function() {
+  dlgUser.dialog("open");
+});
+</script> 
+
+
                          		
                          		<% 
                          	}
