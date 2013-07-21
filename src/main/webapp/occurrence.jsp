@@ -239,7 +239,7 @@ if(sharky.getGroupBehavior()!=null){
 <%
 }
 %>
-&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a id="groupB" style="color:blue;cursor: pointer;"><%=props.getProperty("edit")%></a>]<%}%>
+&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a id="groupB" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
@@ -321,21 +321,16 @@ if(sharky.getIndividualCount()!=null){
 <%
 }
 %>
-&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
-    href="occurrence.jsp?number=<%=name%>&edit=individualCount#individualCount"><%=props.getProperty("edit")%>
-  </a>]<%}%>
+&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a id="indies" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
-<%
-  if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("individualCount"))) {
-%>
 
 
-<a name="individualCount">
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
-  <tr>
-    <td align="left" valign="top"><span class="style1"><%=props.getProperty("setIndividualCount") %></span></td>
-  </tr>
+
+<div id="dialogIndies" title="<%=props.getProperty("setIndividualCount") %>" style="display:none">
+            
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
+
   <tr>
     <td align="left" valign="top">
       <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
@@ -348,12 +343,25 @@ if(sharky.getIndividualCount()!=null){
     </td>
   </tr>
 </table>
-</a><br />
+
+                         		</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgIndies = $("#dialogIndies").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#indies").click(function() {
+  dlgIndies.dialog("open");
+});
+</script>
 
 
-<%
-  }
-%>
+
+
 <p><%=props.getProperty("locationID") %>: 
 <%
 if(sharky.getLocationID()!=null){
