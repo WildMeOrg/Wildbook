@@ -538,16 +538,45 @@ margin-bottom: 8px !important;
        <%
     }
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %>[<a
-        href="encounter.jsp?number=<%=num%>&edit=livingStatus#livingStatus">edit</a>]<%
+      %><a id="livingStatus" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
         }
       %>
     </p>
+    
+        <!-- start set alternate ID popup -->  
+<div id="dialogLivingStatus" title="<%=encprops.getProperty("resetStatus")%>" style="display:none">  
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+  <tr>
+    <td align="left" valign="top">
+      <form name="livingStatusForm" action="../EncounterSetLivingStatus" method="post">    
+            <select name="livingStatus" id="livingStatus">
+        <option value="alive" selected><%=encprops.getProperty("alive")%></option>
+        <option value="dead"><%=encprops.getProperty("dead")%></option>
+      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number" />
+        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetStatus")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+</div>
+<!-- popup dialog script -->
+<script>
+var dlgLivingStatus = $("#dialogLivingStatus").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#livingStatus").click(function() {
+  dlgLivingStatus.dialog("open");
+});
+</script> 
 
 
     <p class="para">
-    	<img align="absmiddle" src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>
-      : <%=enc.getAlternateID()%>
+    	<img align="absmiddle" src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>: <%=enc.getAlternateID()%>
       <%
       if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
@@ -557,7 +586,7 @@ margin-bottom: 8px !important;
       %>
     </p>
     
-    <!-- start set username popup -->  
+    <!-- start set alternate ID popup -->  
 <div id="dialogAlternateID" title="<%=encprops.getProperty("setAlternateID")%>" style="display:none">  
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
     <tr>
@@ -590,7 +619,7 @@ $("a#alternateID").click(function() {
  %>
     <p class="para">
     <table><tr><td>
-     <%=encprops.getProperty("assigned_user")%>&nbsp;</td>
+     <img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif" /> <%=encprops.getProperty("assigned_user")%>&nbsp;</td>
         <%               
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       	%>
@@ -1882,8 +1911,7 @@ else {
   src="../images/2globe_128.gif" width="56" height="56"
   align="absmiddle"/></a><%=encprops.getProperty("mapping") %></strong></p>
 
-<p><%=encprops.getProperty("map_note") %>
-</p>
+
 
 
 
@@ -2010,12 +2038,23 @@ else {
       
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
+    
+  <%
+ if((request.getUserPrincipal()!=null) || ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
+ %>
+ <p><%=encprops.getProperty("map_note") %></p>
  <div id="map_canvas" style="width: 510px; height: 350px; "></div>
- 
- 
+ <%
+ }
+ else {
+ %>
+ <p><%=encprops.getProperty("nomap") %></p>
+ <%
+ }
+ %>
  <!-- adding ne submit GPS-->
  <%
- if(loggedIn){
+ if(loggedIn && isOwner){
  String longy="";
        		String laty="";
        		if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}

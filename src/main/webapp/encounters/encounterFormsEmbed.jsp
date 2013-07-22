@@ -1288,36 +1288,9 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("s
     </td>
   </tr>
 </table>
-<br> <%
-			}
-			
-		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("livingStatus"))){
-						%> <a name="livingStatus"></a>
-<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-  <tr>
-    <td align="left" valign="top" class="para"><strong><font
-      color="#990000"><img align="absmiddle"
-                           src="../images/life_icon.gif"> <%=encprops.getProperty("resetStatus")%>:</font></strong>
-    </td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form name="livingStatusForm" action="../EncounterSetLivingStatus"
-            method="post">
-            
-            <select name="livingStatus" id="livingStatus">
-        <option value="alive" selected><%=encprops.getProperty("alive")%>
-        </option>
-        <option value="dead"><%=encprops.getProperty("dead")%>
-        </option>
-      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
-        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetStatus")%>">
-      </form>
-    </td>
-  </tr>
-</table>
 <br /> <%
-			}
+
+}
 			
 if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("genusSpecies"))){
 									%> <a name="genusSpecies"></a>
