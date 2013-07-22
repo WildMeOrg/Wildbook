@@ -549,11 +549,41 @@ margin-bottom: 8px !important;
     	<img align="absmiddle" src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>
       : <%=enc.getAlternateID()%>
       <%
-        if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %>[<a href="encounter.jsp?number=<%=num%>&edit=alternateid#alternateid">edit</a>]<%
+      if (isOwner && CommonConfiguration.isCatalogEditable()) {
+      %>
+      <a id="alternateID" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+      <%
         }
       %>
     </p>
+    
+    <!-- start set username popup -->  
+<div id="dialogAlternateID" title="<%=encprops.getProperty("setAlternateID")%>" style="display:none">  
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top">
+        <form name="setAltID" action="../EncounterSetAlternateID" method="post">
+              <input name="alternateid" type="text" size="10" maxlength="50" /> 
+                                   <input name="encounter" type="hidden" value="<%=num%>" />
+          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="Set" />
+          </form>
+      </td>
+    </tr>
+  </table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgAlternateID = $("#dialogAlternateID").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#alternateID").click(function() {
+  dlgAlternateID.dialog("open");
+});
+</script> 
  	
  <%
  if(CommonConfiguration.showUsersToPublic()){

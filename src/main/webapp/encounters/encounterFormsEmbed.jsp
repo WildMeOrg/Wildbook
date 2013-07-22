@@ -169,32 +169,9 @@ if(!request.getParameter("loggedIn").equals("true")){
     </td>
   </tr>
 </table>
-<br> <%
-				}
-			
-		//set alternateid
-		if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("alternateid"))){
-		%> <a name="alternateid"></a><br />
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setAlternateID")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setAltID" action="../EncounterSetAlternateID"
-              method="post"><input name="alternateid" type="text"
-                                   size="10" maxlength="50"> <input name="encounter"
-                                                                    type="hidden" value=<%=num%>>
-          <input name="Set"
-                 type="submit" id="<%=encprops.getProperty("set")%>" value="Set"></form>
-      </td>
-    </tr>
-  </table>
 <br /> <%
-		}
-		
-		
+				}
+					
 		
 		//encounter set dynamic property
 		if(CommonConfiguration.isCatalogEditable()&&request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("dynamicproperty"))){
