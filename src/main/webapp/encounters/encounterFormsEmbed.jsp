@@ -1260,37 +1260,6 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 <%
 }
 
-
-//--------------------------
-//edit sex reported for sighting	
-if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("sex"))){
-						%> 
-<a name="sex"></a>
-<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-  <tr>
-    <td align="left" valign="top" class="para"><strong><font
-      color="#990000"><%=encprops.getProperty("resetSex")%>:</font></strong></td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form name="setxencshark" action="../EncounterSetSex" method="post">
-        <select name="selectSex" size="1" id="selectSex">
-          <option value="unknown" selected><%=encprops.getProperty("unknown")%>
-          </option>
-          <option value="male"><%=encprops.getProperty("male")%>
-          </option>
-          <option value="female"><%=encprops.getProperty("female")%>
-          </option>
-        </select> <input name="number" type="hidden" value="<%=num%>" id="number">
-        <input name="action" type="hidden" value="setEncounterSex">
-        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetSex")%>">
-      </form>
-    </td>
-  </tr>
-</table>
-<br /> <%
-
-}
 			
 if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("genusSpecies"))){
 									%> <a name="genusSpecies"></a>
@@ -1549,64 +1518,8 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
  </form>
  <br />
 </c:if>
- 
-  
-
-		
-<%				
-				//reset water depth
-				if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("depth"))){
-		%> <a name="depth"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setDepth")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencdepth" action="../EncounterSetMaximumDepth" method="post">
-          <input name="depth" type="text" id="depth" size="10"> <%=encprops.getProperty("meters")%>
-          <input name="lengthUnits" type="hidden"
-                 id="lengthUnits" value="Meters"> <input name="number"
-                                                         type="hidden" value="<%=num%>" id="number">
-          <input
-            name="action" type="hidden" value="setEncounterDepth"> <input
-          name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-			
-			
-				//reset elevation
-		if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("elevation"))){
-		%> <a name="elevation"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("setElevation")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencelev" action="../EncounterSetMaximumElevation" method="post">
-          <input name="elevation" type="text" id="elevation" size="10"> Meters <input
-          name="lengthUnits" type="hidden" id="lengthUnits" value="Meters">
-          <input name="number" type="hidden" value="<%=num%>" id="number">
-          <input name="action" type="hidden" value="setEncounterElevation">
-          <input name="AddElev" type="submit" id="AddElev"
-                 value="<%=encprops.getProperty("setElevation")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br/> <%
-			}
-
-
+ 		
+<%
 	//reset scarring
 	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("scar"))){
 	%> <a name="scar"></a>

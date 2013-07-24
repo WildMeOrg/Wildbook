@@ -1124,7 +1124,7 @@ if(enc.getLocation()!=null){
               <%
               if(CommonConfiguration.getProperty("locationID0")==null){
               %>
-              <input name="code" type="text" size="10" maxlength="50"> 
+              <input name="code" type="text" size="10" maxlength="50" /> 
               <%
               }
               else{
@@ -1218,7 +1218,7 @@ $("a#location").click(function() {
 <!-- start country popup -->  
 <div id="dialogCountry" title="<%=encprops.getProperty("resetCountry")%>" style="display:none">  
 
-		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
+		<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
 			<tr>
 				<td align="left" valign="top" class="para"><strong><font color="#990000">
 					<%=encprops.getProperty("resetCountry")%>:</font></strong><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
@@ -1270,7 +1270,7 @@ $("a#country").click(function() {
   dlgCountry.dialog("open");
 });
 </script>   
-<!-- end country -->  
+<!-- end country popup-->  
  
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
@@ -1288,7 +1288,7 @@ $("a#country").click(function() {
   %> <%=encprops.getProperty("unknown") %><%
     }
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=depth#depth">edit</a>]</font>
+  %>&nbsp;<a id="depth" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
   <%
     }
   %>
@@ -1297,6 +1297,44 @@ $("a#country").click(function() {
   }
 %>
 <!-- End Display maximumDepthInMeters -->
+
+
+<!-- start depth popup -->  
+<div id="dialogDepth" title="<%=encprops.getProperty("setDepth")%>" style="display:none">  
+
+	<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr>
+      <td align="left" valign="top">
+        <form name="setencdepth" action="../EncounterSetMaximumDepth" method="post">
+          <input name="depth" type="text" id="depth" size="10"> <%=encprops.getProperty("meters")%>
+          <input name="lengthUnits" type="hidden"
+                 id="lengthUnits" value="Meters"> <input name="number"
+                                                         type="hidden" value="<%=num%>" id="number">
+          <input
+            name="action" type="hidden" value="setEncounterDepth"> <input
+          name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>">
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgDepth = $("#dialogDepth").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#depth").click(function() {
+  dlgDepth.dialog("open");
+});
+</script>   
+<!-- end depth popup --> 
+
+
 
 <!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
 <%
@@ -1317,25 +1355,98 @@ $("a#country").click(function() {
 
 
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %><font size="-1">[<a
-    href="encounter.jsp?number=<%=num%>&edit=elevation#elevation">edit</a>]</font>
+  %><a id="elev" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
   <%
     }
   %>
 </p>
+
+<!-- start elevation popup -->  
+<div id="dialogElev" title="<%=encprops.getProperty("setElevation")%>" style="display:none">  
+
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top">
+        <form name="setencelev" action="../EncounterSetMaximumElevation" method="post">
+          <input name="elevation" type="text" id="elevation" size="10" /> Meters <input
+          name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
+          <input name="number" type="hidden" value="<%=num%>" id="number" />
+          <input name="action" type="hidden" value="setEncounterElevation" /><br />
+          <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- popup dialog script -->
+<script>
+var dlgElev = $("#dialogElev").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#elev").click(function() {
+  dlgElev.dialog("open");
+});
+</script>   
+<!-- end elevation popup --> 
+
 <%
   }
 %>
 <!-- End Display maximumElevationInMeters -->
 
+
 <p class="para"><strong><%=encprops.getProperty("sex") %>
 </strong><br/> <%=enc.getSex()%> <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %><font size="-1">[<a
-  href="encounter.jsp?number=<%=num%>&edit=sex#sex">edit</a>]</font>
+ %><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
     <%
  	}
  %>
+<!-- start elevation popup -->  
+<div id="dialogSex" title="<%=encprops.getProperty("resetSex")%>" style="display:none">  
+
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+  <tr>
+    <td align="left" valign="top">
+      <form name="setxencshark" action="../EncounterSetSex" method="post">
+        <select name="selectSex" size="1" id="selectSex">
+          <option value="unknown" selected><%=encprops.getProperty("unknown")%>
+          </option>
+          <option value="male"><%=encprops.getProperty("male")%>
+          </option>
+          <option value="female"><%=encprops.getProperty("female")%>
+          </option>
+        </select> 
+        <input name="number" type="hidden" value="<%=num%>" id="number" />
+        <input name="action" type="hidden" value="setEncounterSex" />
+        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetSex")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+</div>
+
+<!-- popup dialog script -->
+<script>
+var dlgSex = $("#dialogSex").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#sex").click(function() {
+  dlgSex.dialog("open");
+});
+</script>   
+<!-- end sex popup --> 
+
 
 <p class="para"><strong><%=encprops.getProperty("scarring") %>
 </strong><br/> 
