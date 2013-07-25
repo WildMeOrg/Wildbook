@@ -505,11 +505,125 @@ margin-bottom: 8px !important;
 
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
-      <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=manageOccurrence">edit</a>]</font>
+      <font size="-1"><a id="occurrence" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
       <%
         }
       %>
   </p>
+  
+  <%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start occurrence popup-->  
+<div id="dialogOccurrence" title="<%=encprops.getProperty("assignOccurrence")%>" style="display:none">  
+
+<p><em><%=encprops.getProperty("occurrenceMessage")%></em></p>
+ 
+<!-- start Occurrence management section-->			  
+	<%	
+    //Remove from occurrence if assigned
+	if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
+	
+	
+	%>
+	<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+  	<tr>
+    	<td align="left" valign="top" class="para"><font color="#990000">
+      <table>
+        <tr>
+          <td><font color="#990000"><img align="absmiddle"
+                                         src="../images/cancel.gif"/></font></td>
+          <td><strong><%=encprops.getProperty("removeFromOccurrence")%>
+          </strong></td>
+        </tr>
+      </table>
+    </font></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form action="../OccurrenceRemoveEncounter" method="post" name="removeOccurrence">
+      	<input name="number" type="hidden" value="<%=num%>" /> 
+      	<input name="action" type="hidden" value="remove" /> 
+      	<input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+<br /> <%
+      	}
+      	  //create new Occurrence with name
+      	 
+      if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+      
+      %>
+<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+  <tr>
+    <td align="left" valign="top" class="para">
+    	<font color="#990000">
+      		<strong><%=encprops.getProperty("createOccurrence")%></strong></font></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form name="createOccurrence" method="post" action="../OccurrenceCreate">
+        <input name="number" type="hidden" value="<%=num%>" /> 
+        <input name="action" type="hidden" value="create" /> 
+        <%=encprops.getProperty("newOccurrenceID")%><br />
+        <input name="occurrence" type="text" id="occurrence" size="10" maxlength="50" value="" />
+        <br />
+        <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+<br/>	
+<strong>--OR--</strong>	
+<br />
+<br />
+  <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top" class="para"><font color="#990000">
+      
+        <strong><%=encprops.getProperty("add2Occurrence")%></strong></font></td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="add2occurrence" action="../OccurrenceAddEncounter" method="post">
+        <%=encprops.getProperty("occurrenceID")%>: <input name="occurrence" type="text" size="10" maxlength="50" /><br /> 
+                                                                            
+            <input name="number" type="hidden" value="<%=num%>" /> 
+            <input name="action" type="hidden" value="add" />
+          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
+          </form>
+      </td>
+    </tr>
+  </table>
+ <%
+ }
+	
+%>		
+	
+<!-- end Occurrence management section -->			  
+			  
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgOccurrence = $("#dialogOccurrence").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#occurrence").click(function() {
+  dlgOccurrence.dialog("open");
+});
+</script>   
+<!-- end set occurrenceID -->  
+<%
+}
+%>  
+  
+  
 <%
     if(CommonConfiguration.showProperty("showTaxonomy")){
     
@@ -1112,8 +1226,10 @@ if(enc.getLocation()!=null){
 
 </p>
 
-
-<!-- start locationID -->  
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start locationID popup-->  
 <div id="dialogLocationID" title="<%=encprops.getProperty("setLocationID")%>" style="display:none">  
 
   <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
@@ -1271,6 +1387,9 @@ $("a#country").click(function() {
 });
 </script>   
 <!-- end country popup-->  
+<%
+    }
+%>
  
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
@@ -1298,7 +1417,9 @@ $("a#country").click(function() {
 %>
 <!-- End Display maximumDepthInMeters -->
 
-
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
 <!-- start depth popup -->  
 <div id="dialogDepth" title="<%=encprops.getProperty("setDepth")%>" style="display:none">  
 
@@ -1333,7 +1454,9 @@ $("a#depth").click(function() {
 });
 </script>   
 <!-- end depth popup --> 
-
+<%
+}
+%>
 
 
 <!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
@@ -1361,6 +1484,9 @@ $("a#depth").click(function() {
   %>
 </p>
 
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
 <!-- start elevation popup -->  
 <div id="dialogElev" title="<%=encprops.getProperty("setElevation")%>" style="display:none">  
 
@@ -1393,6 +1519,9 @@ $("a#elev").click(function() {
 });
 </script>   
 <!-- end elevation popup --> 
+<%
+}
+%>
 
 <%
   }
@@ -1404,9 +1533,7 @@ $("a#elev").click(function() {
 </strong><br/> <%=enc.getSex()%> <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-    <%
- 	}
- %>
+    
 <!-- start elevation popup -->  
 <div id="dialogSex" title="<%=encprops.getProperty("resetSex")%>" style="display:none">  
 
@@ -1446,6 +1573,9 @@ $("a#sex").click(function() {
 });
 </script>   
 <!-- end sex popup --> 
+<%
+ 	}
+ %>
 
 
 <p class="para"><strong><%=encprops.getProperty("scarring") %>
