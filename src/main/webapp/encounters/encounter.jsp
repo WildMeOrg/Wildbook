@@ -736,7 +736,7 @@ $("a#alternateID").click(function() {
 <%
 }
     
- if(CommonConfiguration.showUsersToPublic()){
+ if((CommonConfiguration.showUsersToPublic())||(request.getUserPrincipal()!=null)){
  %>
     <p class="para">
     <table><tr><td>
@@ -850,6 +850,7 @@ $("a#username").click(function() {
                       	&nbsp;
                       	<%	
                       	}
+                      	} //end if show users to general public
                          	if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
 
@@ -922,9 +923,7 @@ $("a#user").click(function() {
 
     
     </tr></table></p>
-    <%
-	 } //end if showUsersToGeneralPublic()
-    %>
+    
 
   </td>
 </tr>
