@@ -656,8 +656,10 @@ $("a#occurrence").click(function() {
         }
       %>
     </p>
-    
-        <!-- start set alternate ID popup -->  
+    <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    %>
+        <!-- start set living status popup -->  
 <div id="dialogLivingStatus" title="<%=encprops.getProperty("resetStatus")%>" style="display:none">  
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
@@ -687,7 +689,9 @@ $("a#livingStatus").click(function() {
   dlgLivingStatus.dialog("open");
 });
 </script> 
-
+<%
+    }
+%>
 
     <p class="para">
     	<img align="absmiddle" src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>: <%=enc.getAlternateID()%>
@@ -699,7 +703,9 @@ $("a#livingStatus").click(function() {
         }
       %>
     </p>
-    
+    <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    %>
     <!-- start set alternate ID popup -->  
 <div id="dialogAlternateID" title="<%=encprops.getProperty("setAlternateID")%>" style="display:none">  
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
@@ -727,8 +733,9 @@ $("a#alternateID").click(function() {
   dlgAlternateID.dialog("open");
 });
 </script> 
- 	
- <%
+<%
+}
+    
  if(CommonConfiguration.showUsersToPublic()){
  %>
     <p class="para">
@@ -834,6 +841,17 @@ $("a#username").click(function() {
   dlg.dialog("open");
 });
 </script>
+<%
+                         	}
+                         
+                      	
+                      	else{
+                      	%>
+                      	&nbsp;
+                      	<%	
+                      	}
+                         	if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
 
 
 <!-- start set username popup -->  
@@ -893,11 +911,6 @@ $("a#user").click(function() {
                          		<% 
                          	}
                          	
-                         	else{
-                         	%>
-                         	&nbsp;
-                         	<%	
-                         	}
                          }
                          else {
                          %>
