@@ -523,7 +523,40 @@ margin-bottom: 8px !important;
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
-      [<a>edit</a>] 
+      <a id="matchedBy" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> 
+        <div id="dialogMatchedBy" title="<%=encprops.getProperty("matchedBy")%>" style="display:none">  
+  		<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr>
+      <td align="left" valign="top">
+        <form name="setMBT" action="../EncounterSetMatchedBy" method="post">
+          <select name="matchedBy" id="matchedBy">
+            <option
+              value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%>
+            </option>
+            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%>
+            </option>
+            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%>
+            </option>
+          </select> <input name="number" type="hidden" value="<%=num%>" />
+          <input name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+  		</div>
+<script>
+  var dlgMatchedBy = $("#dialogMatchedBy").dialog({
+    autoOpen: false,
+    draggable: false,
+    resizable: false,
+    width: 600
+  });
+
+  $("a#matchedBy").click(function() {
+    dlgMatchedBy.dialog("open");
+  });
+  </script> 
         <%
         }
       %>

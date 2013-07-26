@@ -218,41 +218,7 @@ if(!request.getParameter("loggedIn").equals("true")){
   </table>
 <br /> <%
 			}
-				
-				//set matchedBy type
-			if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("manageMatchedBy"))){
-		%> <a name="matchedBy"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><font
-        color="#990000"><img align="absmiddle"
-                             src="../images/Crystal_Clear_app_matchedBy.gif"/>
-        <strong><%=encprops.getProperty("matchedBy")%>:</strong></font></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setMBT" action="../EncounterSetMatchedBy" method="post">
-          <select name="matchedBy" id="matchedBy">
-            <option
-              value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%>
-            </option>
-            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%>
-            </option>
-            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%>
-            </option>
-          </select> <input name="number" type="hidden" value=<%=num%>>
-          <input name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
-				
-				
-			
-		  
-	
+
   
       	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
       		
