@@ -24,7 +24,60 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
+<%!
 
+  //shepherd must have an open trasnaction when passed in
+  public String getNextIndividualNumber(Encounter enc, Shepherd myShepherd) {
+    String returnString = "";
+    try {
+      String lcode = enc.getLocationCode();
+      if ((lcode != null) && (!lcode.equals(""))) {
+
+        //let's see if we can find a string in the mapping properties file
+        Properties props = new Properties();
+        //set up the file input stream
+        props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
+
+
+        //let's see if the property is defined
+        if (props.getProperty(lcode) != null) {
+          returnString = props.getProperty(lcode);
+
+
+          int startNum = 1;
+          boolean keepIterating = true;
+
+          //let's iterate through the potential individuals
+          while (keepIterating) {
+            String startNumString = Integer.toString(startNum);
+            if (startNumString.length() < 3) {
+              while (startNumString.length() < 3) {
+                startNumString = "0" + startNumString;
+              }
+            }
+            String compositeString = returnString + startNumString;
+            if (!myShepherd.isMarkedIndividual(compositeString)) {
+              keepIterating = false;
+              returnString = compositeString;
+            } else {
+              startNum++;
+            }
+
+          }
+          return returnString;
+
+        }
+
+
+      }
+      return returnString;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return returnString;
+    }
+  }
+
+%>
 
 <%
 
@@ -447,38 +500,165 @@ margin-bottom: 8px !important;
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
-      <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=manageIdentity">edit</a>]</font>
+      <font size="-1"><a id="identity" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
       <%
         }
       %>
     </p>
     <%
-    } else {
+    } 
+    else {
     %>
     <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="50px" />
-      <%=encprops.getProperty("identified_as") %>: <a
-        href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%>
-      </a></font>
+      <%=encprops.getProperty("identified_as") %>: <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%>
+      </a>
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %>[<a href="encounter.jsp?number=<%=num%>&edit=manageIdentity">edit</a>]<%
+      %><a id="identity" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+      <%
         }
-        if (isOwner) {
-      %><br> <img align="absmiddle"
-                  src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>
-      : <%=enc.getMatchedBy()%>
+        
+      %>
+      <br /> <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>: <%=enc.getMatchedBy()%>
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %>[<a
-        href="encounter.jsp?number=<%=num%>&edit=manageMatchedBy#matchedBy">edit</a>]<%
-        }
-      %> <%
+      %>
+      [<a>edit</a>] 
+        <%
         }
       %>
     </p>
     <%
       } //end else
 	
+
+      if (isOwner && CommonConfiguration.isCatalogEditable()) {
+      %>
+      <!-- start  ID popup -->  
+  <div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" style="display:none">  
+  		
+  	<p><em><%=encprops.getProperty("identityMessage") %></em></p>	
+  		
+  <%
+  if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+  %>		
+  		
+  <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
+    <tr>
+      <td align="left" valign="top" class="para"><font color="#990000">
+        <img align="absmiddle" src="../images/tag_small.gif"/><br />
+        <strong><%=encprops.getProperty("add2MarkedIndividual")%>:</strong></font></td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="add2shark" action="../IndividualAddEncounter" method="post"><%=encprops.getProperty("individual")%>: 
+              <input name="individual" type="text" size="10" maxlength="50" /><br /> <%=encprops.getProperty("matchedBy")%>
+          :<br />
+          <select name="matchType" id="matchType">
+            <option
+              value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%>
+            </option>
+            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%>
+            </option>
+            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%>
+            </option>
+          </select> <br /> <input name="noemail" type="checkbox" value="noemail" />
+          <%=encprops.getProperty("suppressEmail")%><br /> 
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="add" />
+          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+<br /> 
+<%
+  }
+  		 	  	  //Remove from MarkedIndividual if not unassigned
+		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned")) && CommonConfiguration.isCatalogEditable()) {
+		  %>
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+  <tr>
+    <td align="left" valign="top" class="para"><font color="#990000">
+      <table>
+        <tr>
+          <td><font color="#990000">
+          	<img align="absmiddle" src="../images/cancel.gif"/></font></td>
+          <td><strong><%=encprops.getProperty("removeFromMarkedIndividual")%>
+          </strong></td>
+        </tr>
+      </table>
+    </font></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form action="../IndividualRemoveEncounter" method="post" name="removeShark"><input name="number" type="hidden" value="<%=num%>" /> 
+                <input name="action" type="hidden" value="remove" /> 
+                <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+<br /> 
+<%
+   }
+		 
+	if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+		
+%>	 
+  		 
+  		 
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+  <tr>
+    <td align="left" valign="top" class="para"><font color="#990000">
+      <img align="absmiddle" src="../images/tag_small.gif"/>
+      <strong><%=encprops.getProperty("createMarkedIndividual")%>:</strong>
+      </font>
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form name="createShark" method="post" action="../IndividualCreate">
+        <input name="number" type="hidden" value="<%=num%>" /> 
+        <input name="action" type="hidden" value="create" /> 
+        <input name="individual" type="text" id="individual" size="10" maxlength="50" value="<%=getNextIndividualNumber(enc, myShepherd)%>" /><br />
+        
+        	<input name="noemail" type="checkbox" value="noemail" />
+        	<%=encprops.getProperty("suppressEmail")%><br /> 
+        
+      <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+<%
+	}
+%>
+
+  </div>
+                           		
+  <script>
+  var dlgIdentity = $("#dialogIdentity").dialog({
+    autoOpen: false,
+    draggable: false,
+    resizable: false,
+    width: 600
+  });
+
+  $("a#identity").click(function() {
+    dlgIdentity.dialog("open");
+  });
+  </script> 
+  <%
+  }
+    	  
+    	  
+    	  
+    	  
+    	  
+    	  
+    	  
+    	  
     
     if (enc.getEventID() != null) {
   %>
