@@ -531,8 +531,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
     	<td align="left" valign="top" class="para"><font color="#990000">
       <table>
         <tr>
-          <td><font color="#990000"><img align="absmiddle"
-                                         src="../images/cancel.gif"/></font></td>
+          <td><font color="#990000"><img align="absmiddle" src="../images/cancel.gif"/></font></td>
           <td><strong><%=encprops.getProperty("removeFromOccurrence")%>
           </strong></td>
         </tr>
@@ -634,12 +633,68 @@ $("a#occurrence").click(function() {
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
           <%=encprops.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>&nbsp;<%
             if (isOwner && CommonConfiguration.isCatalogEditable()) {
-          %>[<a href="encounter.jsp?number=<%=num%>&edit=genusSpecies#genusSpecies">edit</a>]<%
+          %><a id="taxon" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
             }
           %>
        </p>
 
+  <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    %>
+    <!-- start set alternate ID popup -->  
+<div id="dialogTaxon" title="<%=encprops.getProperty("resetTaxonomy")%>" style="display:none">  
+			<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+			  <tr>
+			    <td align="left" valign="top">
+			      <form name="taxonomyForm" action="../EncounterSetGenusSpecies" method="post">
+			           <img align="absmiddle" src="../images/taxontree.gif" /> <select name="genusSpecies" id="genusSpecies">
+			            	<option value="unknown"><%=encprops.getProperty("notAvailable")%></option>
+			       
+			       <%
+			       boolean hasMoreTax=true;
+			       int taxNum=0;
+			       while(hasMoreTax){
+			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
+			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
+			       	  	%>
+			       	  	 
+			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies).replaceAll("_"," ")%></option>
+			       	  	<%
+			       		taxNum++;
+			          }
+			          else{
+			             hasMoreTax=false;
+			          }
+			          
+			       }
+			       %>
+			       
+			       
+			      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
+			        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
+			      </form>
+			    </td>
+			  </tr>
+			</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgTaxon = $("#dialogTaxon").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#taxon").click(function() {
+  dlgTaxon.dialog("open");
+});
+</script> 
 <%
+}
+
+
 }
 %>
     
@@ -1597,13 +1652,51 @@ String recordedScarring="";
 if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar();}
 %>
 <%=recordedScarring%>
-    <%
- 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- 	%>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=scar#scar">edit</a>]</font>
+<%
+if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+ %>
+<a id="scar" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+    
+<div id="dialogScar" title="<%=encprops.getProperty("editScarring")%>" style="display:none">  
+
+  <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr>
+      <td align="left" valign="top">
+        <form name="setencsize" action="../EncounterSetScarring" method="post">
+          <textarea name="scars" size="15"><%=enc.getDistinguishingScar()%>
+          </textarea>
+          <input name="number" type="hidden" value="<%=num%>" id="number" />
+          <input name="action" type="hidden" value="setScarring" /> 
+          <br />
+          <input name="Add" type="submit" id="scar" value="<%=encprops.getProperty("resetScarring")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- popup dialog script -->
+<script>
+var dlgScar = $("#dialogScar").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#scar").click(function() {
+  dlgScar.dialog("open");
+});
+</script>   
+    
+    
     <%
  	}
  	%>
+ 	
+ 	
+ 	
 
 <p class="para"><strong><%=encprops.getProperty("behavior") %>
 </strong> <br/>

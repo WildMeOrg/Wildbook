@@ -1170,50 +1170,6 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 <%
 }
 
-			
-if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("genusSpecies"))){
-									%> <a name="genusSpecies"></a>
-			<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-			  <tr>
-			    <td align="left" valign="top" class="para"><strong><font
-			      color="#990000"><img align="absmiddle"
-			                           src="../images/taxontree.gif"> <%=encprops.getProperty("resetTaxonomy")%>:</font></strong>
-			    </td>
-			  </tr>
-			  <tr>
-			    <td align="left" valign="top">
-			      <form name="taxonomyForm" action="../EncounterSetGenusSpecies" method="post">
-			            <select name="genusSpecies" id="genusSpecies">
-			            	<option value="unknown"><%=encprops.getProperty("notAvailable")%></option>
-			       
-			       <%
-			       boolean hasMoreTax=true;
-			       int taxNum=0;
-			       while(hasMoreTax){
-			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
-			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
-			       	  	%>
-			       	  	 
-			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies).replaceAll("_"," ")%></option>
-			       	  	<%
-			       		taxNum++;
-			          }
-			          else{
-			             hasMoreTax=false;
-			          }
-			          
-			       }
-			       %>
-			       
-			       
-			      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
-			        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
-			      </form>
-			    </td>
-			  </tr>
-			</table>
-			<br /> <%
-	}
 	
 	//
 	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("lifeStage"))){
@@ -1430,29 +1386,7 @@ if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("g
 </c:if>
  		
 <%
-	//reset scarring
-	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("scar"))){
-	%> <a name="scar"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("editScarring")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencsize" action="../EncounterSetScarring" method="post">
-          <textarea name="scars" size="15"><%=enc.getDistinguishingScar()%>
-          </textarea>
-          <input name="number" type="hidden" value="<%=num%>" id="number">
-          <input name="action" type="hidden" value="setScarring"> <input
-          name="Add" type="submit" id="scar" value="<%=encprops.getProperty("resetScarring")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br/> <%
-			}
+
 
 		//kick off a scan
 				if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))&&request.getParameter("isOwner").equals("true")) {
