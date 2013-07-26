@@ -280,39 +280,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 <%
 }
 
-//update submitted comments for sighting
-if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("behavior"))){
-%> 
-<a name="behavior"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para">
-      	<strong><font color="#990000"><%=encprops.getProperty("editBehaviorComments")%>:</font></strong>
-      	<br /><font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setBehaviorComments" action="../EncounterSetBehavior"
-              method="post"><textarea name="behaviorComment" size="15">
-         <%
-         if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
-         %>
-              <%=enc.getBehavior()%>
-        <%
-        }
-        %>
-        </textarea>
-          <input name="number" type="hidden" value=<%=num%>> <input
-            name="action" type="hidden" value="editBehavior"> <input
-            name="EditBeh" type="submit" id="EditBeh"
-            value="<%=encprops.getProperty("submitEdit")%>"></form>
-      </td>
-    </tr>
-  </table>
-<br /> 
-<%
-}
+
 //reset contact info
 if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
 		%> 
@@ -983,57 +951,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 <%
 }
 
-	
-	//
-	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("lifeStage"))){
-		%> 
-		<a name="lifeStage"></a>
-		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-			<tr>
-				<td align="left" valign="top" class="para"><strong><font color="#990000">
-					<%=encprops.getProperty("resetLifeStage")%>:</font></strong><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
-						    </td>
-						  </tr>
-						  <tr>
-						    <td align="left" valign="top">
-						      <form name="lifeStageForm" action="../EncounterSetLifeStage" method="post">
-						            <select name="lifeStage" id="lifeStage">
-						            	<option value=""></option>
-						       
-						       <%
-						       boolean hasMoreStages=true;
-						       int taxNum=0;
-						       while(hasMoreStages){
-						       	  String currentLifeStage = "lifeStage"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreStages=false;
-						          }
-						          
-						       }
-						       %>
-						       
-						       
-						      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
-						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
-						      </form>
-						    </td>
-						  </tr>
-						</table>
-						<br /> 
-						
-						<%
-	}
-	
-
-%>	
-	
+%>
 		
 
 <c:if test="${param.edit eq 'measurements'}">
@@ -1506,34 +1424,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 	  	  
 	  	  //add e-mail for tracking
 	  	 
-	  %> <!--<br /><table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-      	<tr>
-        	<td align="left" valign="top" class="para"><font color="#990000">Track data changes to this encounter via email address:</font></td>
-        </tr>
-        <tr>
-        	<td align="left" valign="top"> 
-           		<form name="trackShark" method="post" action="../TrackIt">
-		  			<input name="number" type="hidden" value=<%=num%>>
-              		<input name="email" type="text" id="email" size="20" maxlength="50">
-              		<input name="Track" type="submit" id="Track" value="Track">
-            	</form>
-			</td>
-        </tr>
-      </table><br />
-	        <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-      	<tr>
-        	<td align="left" valign="top" class="para"><font color="#990000">Remove email address from tracking:</font></td>
-        </tr>
-        <tr>
-        	<td align="left" valign="top"> 
-           		<form name="trackShark" method="post" action="../DontTrack">
-		  			<input name="number" type="hidden" value=<%=num%>>
-              		<input name="email" type="text" id="email" size="20" maxlength="50">
-              		<input name="Remove" type="submit" id="RemoveTrack" value="Remove">
-            	</form>
-			</td>
-        </tr>
-      </table><br />-->
+	  %> 
 
 <p>&nbsp;</p>
   <%

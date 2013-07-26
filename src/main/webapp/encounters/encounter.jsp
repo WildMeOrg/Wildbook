@@ -605,6 +605,8 @@ margin-bottom: 8px !important;
     </tr>
   </table>
 <br /> 
+<strong>--<%=encprops.getProperty("or") %>--</strong>
+<br /><br />
 <%
   }
   		 	  	  //Remove from MarkedIndividual if not unassigned
@@ -788,7 +790,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
   </tr>
 </table>
 <br/>	
-<strong>--OR--</strong>	
+<strong>--<%=encprops.getProperty("or") %>--</strong>	
 <br />
 <br />
   <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
@@ -1498,7 +1500,7 @@ if(enc.getLocation()!=null){
   %>
   <br/> <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=gps#map">edit</a>]</font>
+  %><a href="encounter.jsp?number=<%=num%>&edit=gps#map"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
   <%
     }
   %><br/> <a href="#map"><%=encprops.getProperty("view_map") %>
@@ -1925,15 +1927,66 @@ $("a#scar").click(function() {
     }
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=behavior#behavior">edit</a>]</font>
+  <a id="behavior" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
   <%
     }
   %>
 </p>
+
+
+  <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    %>
+    <!-- start set behavior popup -->  
+<div id="dialogBehavior" title="<%=encprops.getProperty("editBehaviorComments")%>" style="display:none">  
+			  <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top" class="para">
+      	<p><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></p>
+      </td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="setBehaviorComments" action="../EncounterSetBehavior" method="post">
+        <textarea name="behaviorComment" cols="50"><%
+        
+         if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
+         %>
+<%=enc.getBehavior().trim()%>
+        <%
+        }
+        %>
+        </textarea>
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="editBehavior" /> <br />
+          <input name="EditBeh" type="submit" id="EditBeh" value="<%=encprops.getProperty("submitEdit")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- popup dialog script -->
+<script>
+var dlgBehavior = $("#dialogBehavior").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#behavior").click(function() {
+  dlgBehavior.dialog("open");
+});
+</script> 
 <%
+}
+
+
+
   if (CommonConfiguration.showProperty("showLifestage")) {
 %>
-<p class="para"><strong><%=encprops.getProperty("lifeStage") %>
+<p class="para"><strong><%=encprops.getProperty("lifeStage")%>
 </strong> <br/>
   <%
     if (enc.getLifeStage() != null) {
@@ -1943,20 +1996,78 @@ $("a#scar").click(function() {
   } 
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %>
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=lifeStage#lifeStage">edit</a>]</font>
+  <a id="LifeStage"  style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
   <%
     }
   %>
 </p>
+
+ <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    %>
+    <!-- start set life stage popup -->  
+<div id="dialogLifeStage" title="<%=encprops.getProperty("resetLifeStage")%>" style="display:none">  
+	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+			
+						  <tr>
+						    <td align="left" valign="top">
+						      <form name="lifeStageForm" action="../EncounterSetLifeStage" method="post">
+						            <select name="lifeStage" id="lifeStage">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreStages=true;
+						       int taxNum=0;
+						       while(hasMoreStages){
+						       	  String currentLifeStage = "lifeStage"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreStages=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select> 
+						      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
+						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+						      </form>
+						    </td>
+						  </tr>
+						</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgLifeStage = $("#dialogLifeStage").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#LifeStage").click(function() {
+  dlgLifeStage.dialog("open");
+});
+</script> 
 <%
+
+
   }
-%>
-<%
+  }
+
   pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements());
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
 %>
+
 <c:if test="${showMeasurements}">
 <%
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
