@@ -952,38 +952,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 }
 
 %>
-		
 
- 
-<c:if test="${param.edit eq 'metalTags'}">
- <% pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); %>
- <a name="metalTags"></a>
- <form name="setMetalTags" method="post" action="../EncounterSetTags">
- <input type="hidden" name="tagType" value="metalTags"/>
- <input type="hidden" name="encounter" value="${num}"/>
- <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-     <tr>
-      <td align="left" valign="top" class="para"><strong><font color="#990000">
-                    <%=encprops.getProperty("resetMetalTags")%></font></strong><br />
-      </td>
-    </tr>
- <c:forEach items="${metalTagDescs}" var="metalTagDesc">
-    <%
-      MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("metalTagDesc");
-      MetalTag metalTag = Util.findMetalTag(metalTagDesc, enc);
-      if (metalTag == null) {
-          metalTag = new MetalTag();
-      }
-      pageContext.setAttribute("metalTag", metalTag);
-    %>
-    <tr><td class="formLabel"><c:out value="${metalTagDesc.locationLabel}"/></td></tr>
-    <tr><td><input name="metalTag(${metalTagDesc.location})" value="${metalTag.tagNumber}"/></td></tr>
- </c:forEach>
- <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
- </table>
- </form>
- <br />
-</c:if>
  
 <c:if test="${param.edit eq 'acousticTag'}">
  <c:set var="acousticTag" value="${enc.acousticTag}"/>

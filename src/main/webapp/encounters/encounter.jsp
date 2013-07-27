@@ -2214,9 +2214,13 @@ $("a#measure").click(function() {
   pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode));
 %>
 <p class="para"><strong><c:out value="${metalTagTitle}"></c:out></strong>
-<c:if test="${editable and !empty metalTags}">
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=metalTags#metalTags">edit</a>]</font>
-</c:if>
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+&nbsp;<a id="metal" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%
+}
+%>
 <table>
 <c:forEach var="item" items="${metalTags}">
  <% 
@@ -2231,6 +2235,58 @@ $("a#measure").click(function() {
 </c:forEach>
 </table>
 </p>
+
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start metal tag popup -->  
+<div id="dialogMetal" title="<%=encprops.getProperty("resetMetalTags")%>" style="display:none">  
+
+        <% pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); %>
+ 
+ <form name="setMetalTags" method="post" action="../EncounterSetTags">
+ <input type="hidden" name="tagType" value="metalTags"/>
+ <input type="hidden" name="encounter" value="${num}"/>
+ <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+     
+ <c:forEach items="${metalTagDescs}" var="metalTagDesc">
+    <%
+      MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("metalTagDesc");
+      MetalTag metalTag = Util.findMetalTag(metalTagDesc, enc);
+      if (metalTag == null) {
+          metalTag = new MetalTag();
+      }
+      pageContext.setAttribute("metalTag", metalTag);
+    %>
+    <tr><td class="formLabel"><c:out value="${metalTagDesc.locationLabel}"/></td></tr>
+    <tr><td><input name="metalTag(${metalTagDesc.location})" value="${metalTag.tagNumber}"/></td></tr>
+ </c:forEach>
+ <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
+ </table>
+ </form>
+       
+	
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgMetal = $("#dialogMetal").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#metal").click(function() {
+  dlgMetal.dialog("open");
+});
+</script>   
+<!-- end metal tags popup --> 
+<%
+}
+%>
+
+
 </c:if>
 
 <c:if test="${showAcousticTag}">
