@@ -954,57 +954,6 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 %>
 		
 
-<c:if test="${param.edit eq 'measurements'}">
- <% 
-   pageContext.setAttribute("items", Util.findMeasurementDescs(langCode)); 
- %>
-        <a name="measurements"></a>
-        <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-        <form name="setMeasurements" method="post"
-                action="../EncounterSetMeasurements">
-        <input type="hidden" name="encounter" value="${num}"/>
-        <c:set var="index" value="0"/>
-        <%
-          List<Measurement> list = (List<Measurement>) enc.getMeasurements();
-        
-        %>
-        <c:forEach items="${items}" var="item">
-        <%
-          MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
-          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
-          if (measurement == null) {
-              measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
-          }
-          pageContext.setAttribute("measurementEvent", measurement);
-          pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode));
-        %>
-            <tr>
-              <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/></td>
-              <td><input name="measurement${index}(value)" value="${measurementEvent.value}"/>
-                  <input type="hidden" name="measurement${index}(type)" value="${item.type}"/><input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/><c:out value="(${item.unitsLabel})"/>
-                  <select name="measurement${index}(samplingProtocol)">
-                  <c:forEach items="${optionDescs}" var="optionDesc">
-                    <c:choose>
-                    <c:when test="${measurementEvent.samplingProtocol eq optionDesc.name}">
-                      <option value="${optionDesc.name}" selected="selected"><c:out value="${optionDesc.display}"/></option>
-                    </c:when>
-                    <c:otherwise>
-                      <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
-                    </c:otherwise>
-                    </c:choose>
-                  </c:forEach>
-                  </select>
-              </td>
-            </tr>
-            <c:set var="index" value="${index + 1}"/>
-        </c:forEach>
-        <tr>
-        <td><input name="${set}" type="submit" value="${set}"/></td>
-        </tr>
-        </form>
-        </table>
-        <br/>
- </c:if>
  
 <c:if test="${param.edit eq 'metalTags'}">
  <% pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); %>

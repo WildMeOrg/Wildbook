@@ -1680,7 +1680,15 @@ $("a#country").click(function() {
 		%>
 
 <p class="para"><strong><%=encprops.getProperty("depth") %>
-</strong><br/>
+</strong>
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>
+&nbsp;<a id="depth" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%
+}
+%>
+<br/>
   <%
     if (enc.getDepthAsDouble() !=null) {
   %> 
@@ -1688,10 +1696,7 @@ $("a#country").click(function() {
   } else {
   %> <%=encprops.getProperty("unknown") %><%
     }
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %>&nbsp;<a id="depth" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
+    
   %>
 </p>
 <%
@@ -1746,7 +1751,15 @@ $("a#depth").click(function() {
   if (CommonConfiguration.showProperty("maximumElevationInMeters")) {
 %>
 <p class="para"><strong><%=encprops.getProperty("elevation") %>
-</strong><br/>
+</strong>&nbsp;
+ <%
+ if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>
+<a id="elev" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+  <%
+    }
+  %>
+<br/>
 
 <%
     if (enc.getMaximumElevationInMeters()!=null) {
@@ -1758,12 +1771,8 @@ $("a#depth").click(function() {
   <%
     }
 
-
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %><a id="elev" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
-  %>
+%>
+   
 </p>
 
 <%
@@ -1812,10 +1821,19 @@ $("a#elev").click(function() {
 
 
 <p class="para"><strong><%=encprops.getProperty("sex") %>
-</strong><br/> <%=enc.getSex()%> <%
- 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-    
+</strong>&nbsp;
+<%
+if(isOwner&&CommonConfiguration.isCatalogEditable()) {	
+ %>
+ <a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%
+}
+%>
+<br/> <%=enc.getSex()%> 
+
+<%
+if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+%>    
 <!-- start elevation popup -->  
 <div id="dialogSex" title="<%=encprops.getProperty("resetSex")%>" style="display:none">  
 
@@ -1861,17 +1879,24 @@ $("a#sex").click(function() {
 
 
 <p class="para"><strong><%=encprops.getProperty("scarring") %>
-</strong><br/> 
+</strong>&nbsp;
+<%
+if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+ %>
+<a id="scar" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%
+}
+%>
+<br/> 
 <%
 String recordedScarring="";
 if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar();}
 %>
 <%=recordedScarring%>
+
 <%
 if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %>
-<a id="scar" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-    
+ %>    
 <div id="dialogScar" title="<%=encprops.getProperty("editScarring")%>" style="display:none">  
 
   <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
@@ -1914,7 +1939,15 @@ $("a#scar").click(function() {
  	
 
 <p class="para"><strong><%=encprops.getProperty("behavior") %>
-</strong> <br/>
+</strong>&nbsp;
+<% 
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+	  %>
+<a id="behavior" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+	  <%
+	    }
+%>
+<br/>
   <%
     if (enc.getBehavior() != null) {
   %>
@@ -1925,11 +1958,7 @@ $("a#scar").click(function() {
   <%=encprops.getProperty("none")%>
   <%
     }
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %>
-  <a id="behavior" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
+    
   %>
 </p>
 
@@ -1987,19 +2016,22 @@ $("a#behavior").click(function() {
   if (CommonConfiguration.showProperty("showLifestage")) {
 %>
 <p class="para"><strong><%=encprops.getProperty("lifeStage")%>
-</strong> <br/>
+</strong>&nbsp;   
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>
+  <a id="LifeStage" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+  <%
+    }
+  %>
+  <br/>
   <%
     if (enc.getLifeStage() != null) {
   %>
   <%=enc.getLifeStage()%>
   <%
   } 
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %>
-  <a id="LifeStage"  style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
-  %>
+ %>
 </p>
 
  <%
@@ -2075,7 +2107,7 @@ $("a#LifeStage").click(function() {
 %>
 <p class="para"><strong><c:out value="${measurementTitle}"></c:out></strong>
 <c:if test="${editable and !empty measurements}">
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=measurements#measurements">edit</a>]</font>
+  <a id="measure" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
 </c:if>
 <table>
 <tr>
@@ -2100,6 +2132,80 @@ $("a#LifeStage").click(function() {
 </c:forEach>
 </table>
 </p>
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start depth popup -->  
+<div id="dialogMeasure" title="<%=encprops.getProperty("setMeasurements")%>" style="display:none">  
+ <% 
+   pageContext.setAttribute("items", Util.findMeasurementDescs(langCode)); 
+ %>
+        
+       <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+        <form name="setMeasurements" method="post" action="../EncounterSetMeasurements">
+        <input type="hidden" name="encounter" value="${num}"/>
+        <c:set var="index" value="0"/>
+        <%
+          List<Measurement> list = (List<Measurement>) enc.getMeasurements();
+        
+        %>
+        <c:forEach items="${items}" var="item">
+        <%
+          MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
+          if (measurement == null) {
+              measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
+          }
+          pageContext.setAttribute("measurementEvent", measurement);
+          pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode));
+        %>
+            <tr>
+              <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/></td>
+              <td><input name="measurement${index}(value)" value="${measurementEvent.value}"/>
+                  <input type="hidden" name="measurement${index}(type)" value="${item.type}"/><input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/><c:out value="(${item.unitsLabel})"/>
+                  <select name="measurement${index}(samplingProtocol)">
+                  <c:forEach items="${optionDescs}" var="optionDesc">
+                    <c:choose>
+                    <c:when test="${measurementEvent.samplingProtocol eq optionDesc.name}">
+                      <option value="${optionDesc.name}" selected="selected"><c:out value="${optionDesc.display}"/></option>
+                    </c:when>
+                    <c:otherwise>
+                      <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
+                    </c:otherwise>
+                    </c:choose>
+                  </c:forEach>
+                  </select>
+              </td>
+            </tr>
+            <c:set var="index" value="${index + 1}"/>
+        </c:forEach>
+        <tr>
+        <td><input name="${set}" type="submit" value="${set}"/></td>
+        </tr>
+        </form>
+        </table>
+	
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgMeasure = $("#dialogMeasure").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#measure").click(function() {
+  dlgMeasure.dialog("open");
+});
+</script>   
+<!-- end measurements popup --> 
+<%
+}
+%>
+
+
 </c:if>
 
 <c:if test="${showMetalTags}">
