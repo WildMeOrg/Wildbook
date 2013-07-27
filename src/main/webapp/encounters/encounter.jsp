@@ -2495,20 +2495,57 @@ $("a#sat").click(function() {
 %>
 
 <p class="para"><strong><%=encprops.getProperty("comments") %>
-</strong><br/> 
+</strong>
+  <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>&nbsp;<a id="comments" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+  <%
+    }
+  %>
+<br/> 
 <%
 String recordedComments="";
 if(enc.getComments()!=null){recordedComments=enc.getComments();}
 %>
 <%=recordedComments%><br/>
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=comments#comments">edit</a>]</font>
-  <%
-    }
-  %>
 
 </p>
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start sat tag metadata popup -->  
+<div id="dialogComments" title="<%=encprops.getProperty("editSubmittedComments")%>" style="display:none">  
+
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+ 
+      <td align="left" valign="top" cols="50">
+        <form name="setComments" action="../EncounterSetOccurrenceRemarks" method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%>
+</textarea>
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="editComments" /> 
+           <br /><input name="EditComm" type="submit" id="EditComm" value="<%=encprops.getProperty("submitEdit")%>" /></form>
+      </td>
+    </tr>
+  </table>
+	
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgComments = $("#dialogComments").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#comments").click(function() {
+  dlgComments.dialog("open");
+});
+</script>   
+<!-- end addtl comments popup --> 
+<%
+}
+%>
 
 
 <p class="para"><strong><%=encprops.getProperty("submitter") %>

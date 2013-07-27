@@ -254,32 +254,6 @@ if(!request.getParameter("loggedIn").equals("true")){
     			}
 				//set location for sighting
 
-			
-//update submitted comments for sighting
-if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("comments"))){
-%> 
-<a name="comments"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("editSubmittedComments")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setComments" action="../EncounterSetOccurrenceRemarks"
-              method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%>
-        </textarea>
-          <input name="number" type="hidden" value=<%=num%>> <input
-            name="action" type="hidden" value="editComments"> <input
-            name="EditComm" type="submit" id="EditComm"
-            value="<%=encprops.getProperty("submitEdit")%>"></form>
-      </td>
-    </tr>
-  </table>
-<br /> 
-<%
-}
-
 
 //reset contact info
 if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
