@@ -951,56 +951,6 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 <%
 }
 
-%>
-
- 
-<c:if test="${param.edit eq 'satelliteTag'}">
- <a name="satelliteTag"></a>
- <c:set var="satelliteTag" value="${enc.satelliteTag}"/>
- <c:if test="${empty satelliteTag}">
- <%
-   pageContext.setAttribute("satelliteTag", new SatelliteTag());
- %>
- </c:if>
- <%
-    pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
- %>
- <form name="setSatelliteTag" method="post" action="../EncounterSetTags">
- <input type="hidden" name="tagType" value="satelliteTag"/>
- <input type="hidden" name="encounter" value="${num}"/>
- <input type="hidden" name="id" value="${satelliteTag.id}"/>
- <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-      <tr>
-      <td align="left" valign="top" class="para"><strong><font color="#990000">
-                    <%=encprops.getProperty("resetSatelliteTag")%></font></strong><br />
-      </td>
-    </tr>
-    <tr><td class="formLabel">Name:</td></tr>
-    <tr><td>
-      <select name="satelliteTagName">
-      <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
-        <c:choose>
-            <c:when test="${satelliteTagName eq satelliteTag.name}">
-                <option value="${satelliteTagName}" selected="selected">${satelliteTagName}</option>
-            </c:when>
-            <c:otherwise>
-                <option value="${satelliteTagName}">${satelliteTagName}</option>
-            </c:otherwise>
-        </c:choose>
-      </c:forEach>
-      </select>
-    </td></tr>
-    <tr><td class="formLabel">Serial number:</td></tr>
-    <tr><td><input name="satelliteTagSerial" value="${satelliteTag.serialNumber}"/></td></tr>
-    <tr><td class="formLabel">Argos PTT Number:</td></tr>
-    <tr><td><input name="satelliteTagArgosPttNumber" value="${satelliteTag.argosPttNumber}"/></td></tr>
-    <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
- </table>
- </form>
- <br />
-</c:if>
- 		
-<%
 
 
 		//kick off a scan

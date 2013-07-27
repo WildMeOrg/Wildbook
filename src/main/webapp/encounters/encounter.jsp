@@ -2374,9 +2374,13 @@ $("a#acoustic").click(function() {
   pageContext.setAttribute("satelliteTag", enc.getSatelliteTag());
 %>
 <p class="para"><strong><c:out value="${satelliteTagTitle}"></c:out></strong>
-<c:if test="${editable}">
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=satelliteTag#satelliteTag">edit</a>]</font>
-</c:if>
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+&nbsp;<a id="sat" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%
+}
+%>
 <table>
 <tr>
     <td>Name:</td><td><c:out value="${satelliteTag.name}"/></td>
@@ -2389,6 +2393,71 @@ $("a#acoustic").click(function() {
 </tr>
 </table>
 </p>
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start sat tag metadata popup -->  
+<div id="dialogSat" title="<%=encprops.getProperty("resetSatelliteTag")%>" style="display:none">  
+
+ <c:set var="satelliteTag" value="${enc.satelliteTag}"/>
+ <c:if test="${empty satelliteTag}">
+ <%
+   pageContext.setAttribute("satelliteTag", new SatelliteTag());
+ %>
+ </c:if>
+ <%
+    pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
+ %>
+ <form name="setSatelliteTag" method="post" action="../EncounterSetTags">
+ <input type="hidden" name="tagType" value="satelliteTag"/>
+ <input type="hidden" name="encounter" value="${num}"/>
+ <input type="hidden" name="id" value="${satelliteTag.id}"/>
+ <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr><td class="formLabel">Name:</td></tr>
+    <tr><td>
+      <select name="satelliteTagName">
+      <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+        <c:choose>
+            <c:when test="${satelliteTagName eq satelliteTag.name}">
+                <option value="${satelliteTagName}" selected="selected">${satelliteTagName}</option>
+            </c:when>
+            <c:otherwise>
+                <option value="${satelliteTagName}">${satelliteTagName}</option>
+            </c:otherwise>
+        </c:choose>
+      </c:forEach>
+      </select>
+    </td></tr>
+    <tr><td class="formLabel">Serial number:</td></tr>
+    <tr><td><input name="satelliteTagSerial" value="${satelliteTag.serialNumber}"/></td></tr>
+    <tr><td class="formLabel">Argos PTT Number:</td></tr>
+    <tr><td><input name="satelliteTagArgosPttNumber" value="${satelliteTag.argosPttNumber}"/></td></tr>
+    <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
+ </table>
+ </form>
+       
+	
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgSat = $("#dialogSat").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#sat").click(function() {
+  dlgSat.dialog("open");
+});
+</script>   
+<!-- end sat tag popup --> 
+<%
+}
+%>
+
 </c:if>
 
 <%
