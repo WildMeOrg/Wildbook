@@ -2285,8 +2285,6 @@ $("a#metal").click(function() {
 <%
 }
 %>
-
-
 </c:if>
 
 <c:if test="${showAcousticTag}">
@@ -2296,7 +2294,14 @@ $("a#metal").click(function() {
 %>
 <p class="para"><strong><c:out value="${acousticTagTitle}"></c:out></strong>
 <c:if test="${editable}">
-  <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=acousticTag#acousticTag">edit</a>]</font>
+&nbsp;
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<a id="acoustic" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%
+}
+%>
 </c:if>
 <table>
 <tr>
@@ -2307,6 +2312,60 @@ $("a#metal").click(function() {
 </tr>
 </table>
 </p>
+
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start acoustic tag popup -->  
+<div id="dialogAcoustic" title="<%=encprops.getProperty("resetAcousticTag")%>" style="display:none">  
+
+<c:set var="acousticTag" value="${enc.acousticTag}"/>
+ <c:if test="${empty acousticTag}">
+ <%
+   pageContext.setAttribute("acousticTag", new AcousticTag());
+ %>
+ </c:if>
+ <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+   
+    <tr>
+      <td>
+        <form name="setAcousticTag" method="post" action="../EncounterSetTags">
+        <input type="hidden" name="encounter" value="${num}"/>
+        <input type="hidden" name="tagType" value="acousticTag"/>
+        <input type="hidden" name="id" value="${acousticTag.id}"/>
+        <table>
+          <tr><td class="formLabel">Serial number:</td></tr>
+          <tr><td><input name="acousticTagSerial" value="${acousticTag.serialNumber}"/></td></tr>
+          <tr><td class="formLabel">ID:</td></tr>
+          <tr><td><input name="acousticTagId" value="${acousticTag.idNumber}"/></td></tr>
+          <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
+        </table>
+        </form>
+      </td>
+    </tr>
+ </table>
+       
+	
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgAcoustic = $("#dialogAcoustic").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#acoustic").click(function() {
+  dlgAcoustic.dialog("open");
+});
+</script>   
+<!-- end acoustic tag popup --> 
+<%
+}
+%>
+
 </c:if>
 
 <c:if test="${showSatelliteTag}">

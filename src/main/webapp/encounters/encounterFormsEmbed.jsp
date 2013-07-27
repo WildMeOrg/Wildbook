@@ -954,40 +954,6 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 %>
 
  
-<c:if test="${param.edit eq 'acousticTag'}">
- <c:set var="acousticTag" value="${enc.acousticTag}"/>
- <c:if test="${empty acousticTag}">
- <%
-   pageContext.setAttribute("acousticTag", new AcousticTag());
- %>
- </c:if>
- <a name="acousticTag"></a>
- <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font color="#990000">
-                    <%=encprops.getProperty("resetAcousticTag")%></font></strong><br />
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <form name="setAcousticTag" method="post" action="../EncounterSetTags">
-        <input type="hidden" name="encounter" value="${num}"/>
-        <input type="hidden" name="tagType" value="acousticTag"/>
-        <input type="hidden" name="id" value="${acousticTag.id}"/>
-        <table>
-          <tr><td class="formLabel">Serial number:</td></tr>
-          <tr><td><input name="acousticTagSerial" value="${acousticTag.serialNumber}"/></td></tr>
-          <tr><td class="formLabel">ID:</td></tr>
-          <tr><td><input name="acousticTagId" value="${acousticTag.idNumber}"/></td></tr>
-          <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
-        </table>
-        </form>
-      </td>
-    </tr>
- </table>
- <br />
-</c:if>
- 
 <c:if test="${param.edit eq 'satelliteTag'}">
  <a name="satelliteTag"></a>
  <c:set var="satelliteTag" value="${enc.satelliteTag}"/>
