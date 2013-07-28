@@ -2817,7 +2817,233 @@ if(loggedIn){
 <a name="tissueSamples"></a>
 <p class="para"><img align="absmiddle" src="../images/microscope.gif">
     <strong><%=encprops.getProperty("tissueSamples") %></strong></p>
-    <p class="para"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&edit=tissueSample#tissueSample"><%=encprops.getProperty("addTissueSample") %></a></p>
+    <p class="para"><a id="sample" style="color:blue;cursor: pointer;"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a id="sample" style="color:blue;cursor: pointer;"><%=encprops.getProperty("addTissueSample") %></a></p>
+
+
+ <%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start sat tag metadata popup -->  
+<div id="dialogSample" title="<%=encprops.getProperty("setTissueSample")%>" style="display:none">  
+
+<form name="setTissueSample" action="../EncounterSetTissueSample" method="post">
+<table cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr>
+      <tr><td>
+
+
+          <%=encprops.getProperty("sampleID")%> (<%=encprops.getProperty("required")%>)&nbsp;
+          <%
+          TissueSample thisSample=new TissueSample();
+          String sampleIDString="";
+          if((request.getParameter("sampleID")!=null)&&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+        	  sampleIDString=request.getParameter("sampleID");
+        	  thisSample=myShepherd.getTissueSample(sampleIDString, enc.getCatalogNumber());
+              
+          }
+          %>
+          <input name="sampleID" type="text" size="20" maxlength="100" value="<%=sampleIDString %>" /><br />
+          </td></tr>
+          
+          <tr><td>
+          <%
+          String alternateSampleID="";
+          if(thisSample.getAlternateSampleID()!=null){alternateSampleID=thisSample.getAlternateSampleID();}
+          %>
+          <%=encprops.getProperty("alternateSampleID")%> <input name="alternateSampleID" type="text" size="20" maxlength="100" value="<%=alternateSampleID %>" /> 
+           </td></tr>
+           
+           
+           <tr><td>
+          <%
+          String tissueType="";
+          if(thisSample.getTissueType()!=null){tissueType=thisSample.getTissueType();}
+          %>
+          <%=encprops.getProperty("tissueType")%>&nbsp;
+          
+          
+          
+                        <%
+              if(CommonConfiguration.getProperty("tissueType0")==null){
+              %>
+              <input name="tissueType" type="text" size="20" maxlength="50"> 
+              <%
+              }
+              else{
+            	  //iterate and find the locationID options
+            	  %>
+            	  <select name="tissueType" id="tissueType">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreLocs=true;
+						       int taxNum=0;
+						       while(hasMoreLocs){
+						       	  String currentLoc = "tissueType"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLoc)!=null){
+						       		  
+						       		  String selected="";
+						       		  if(tissueType.equals(CommonConfiguration.getProperty(currentLoc))){selected="selected=\"selected\"";}
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentLoc)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreLocs=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select>  
+            	  
+            	  
+            <% 	  
+              }
+              %>
+           </td></tr>
+          
+          <tr><td>
+          <%
+          String preservationMethod="";
+          if(thisSample.getPreservationMethod()!=null){preservationMethod=thisSample.getPreservationMethod();}
+          %>
+          <%=encprops.getProperty("preservationMethod")%> <input name="preservationMethod" type="text" size="20" maxlength="100" value="<%=preservationMethod %>"/> 
+          </td></tr>
+          
+          <tr><td>
+          <%
+          String storageLabID="";
+          if(thisSample.getStorageLabID()!=null){storageLabID=thisSample.getStorageLabID();}
+          %>
+          <%=encprops.getProperty("storageLabID")%> <input name="storageLabID" type="text" size="20" maxlength="100" value="<%=storageLabID %>"/> 
+          </td></tr>
+          
+          <tr><td>
+          <%
+          String samplingProtocol="";
+          if(thisSample.getSamplingProtocol()!=null){samplingProtocol=thisSample.getSamplingProtocol();}
+          %>
+          <%=encprops.getProperty("samplingProtocol")%> <input name="samplingProtocol" type="text" size="20" maxlength="100" value="<%=samplingProtocol %>" /> 
+          </td></tr>
+          
+          <tr><td>
+          <%
+          String samplingEffort="";
+          if(thisSample.getSamplingEffort()!=null){samplingEffort=thisSample.getSamplingEffort();}
+          %>
+          <%=encprops.getProperty("samplingEffort")%> <input name="samplingEffort" type="text" size="20" maxlength="100" value="<%=samplingEffort%>"/> 
+     		</td></tr>
+     
+			<tr><td>     
+          <%
+          String fieldNumber="";
+          if(thisSample.getFieldNumber()!=null){fieldNumber=thisSample.getFieldNumber();}
+          %>
+		  <%=encprops.getProperty("fieldNumber")%> <input name="fieldNumber" type="text" size="20" maxlength="100" value="<%=fieldNumber %>" /> 
+          </td></tr>
+          
+          
+          <tr><td>
+          <%
+          String fieldNotes="";
+          if(thisSample.getFieldNotes()!=null){fieldNotes=thisSample.getFieldNotes();}
+          %>
+           <%=encprops.getProperty("fieldNotes")%> <input name="fieldNNotes" type="text" size="20" maxlength="100" value="<%=fieldNotes %>" /> 
+          </td></tr>
+          
+          <tr><td>
+          <%
+          String eventRemarks="";
+          if(thisSample.getEventRemarks()!=null){eventRemarks=thisSample.getEventRemarks();}
+          %>
+          <%=encprops.getProperty("eventRemarks")%> <input name="eventRemarks" type="text" size="20" value="<%=eventRemarks %>" /> 
+          </td></tr>
+          
+          <tr><td>
+          <%
+          String institutionID="";
+          if(thisSample.getInstitutionID()!=null){institutionID=thisSample.getInstitutionID();}
+          %>
+          <%=encprops.getProperty("institutionID")%> <input name="institutionID" type="text" size="20" maxlength="100" value="<%=institutionID %>" /> 
+          </td></tr>
+          
+          <tr><td>
+          <%
+          String collectionID="";
+          if(thisSample.getCollectionID()!=null){collectionID=thisSample.getCollectionID();}
+          %>
+          <%=encprops.getProperty("collectionID")%> <input name="collectionID" type="text" size="20" maxlength="100" value="<%=collectionID %>" /> 
+          </td></tr>
+          
+          <tr><td>
+          <%
+          String collectionCode="";
+          if(thisSample.getCollectionCode()!=null){collectionCode=thisSample.getCollectionCode();}
+          %>
+          <%=encprops.getProperty("collectionCode")%> <input name="collectionCode" type="text" size="20" maxlength="100" value="<%=collectionCode %>" /> 
+          </td></tr>
+          
+          <tr><td>
+          <%
+          String datasetID="";
+          if(thisSample.getDatasetID()!=null){datasetID=thisSample.getDatasetID();}
+          %>
+			<%=encprops.getProperty("datasetID")%> <input name="datasetID" type="text" size="20" maxlength="100" value="<%=datasetID %>" /> 
+          </td></tr>
+          
+          
+          <tr><td>
+          <%
+          String datasetName="";
+          if(thisSample.getDatasetName()!=null){datasetName=thisSample.getDatasetName();}
+          %>
+          <%=encprops.getProperty("datasetName")%> <input name="datasetName" type="text" size="20" maxlength="100" value="<%=datasetName %>" /> 
+			</td></tr>
+            
+            
+            <tr><td>
+            	<input name="encounter" type="hidden" value="<%=num%>" /> 
+            	<input name="action" type="hidden" value="setTissueSample" /> 
+            	<input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
+   			</td></tr>
+      </td>
+    </tr>
+  </table>
+</form>	
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgSample = $("#dialogSample").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#sample").click(function() {
+  dlgSample.dialog("open");
+});
+</script>   
+<!-- end add bio sample popup --> 
+<%
+}
+
+//setup the javascript to handle displaying an edit tissue sample dialog box
+if((request.getParameter("sampleID")!=null)&&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+%>
+<script>
+dlgSample.dialog("open");
+</script>  
+
+
+<%	
+}	
+%>
 <p>
 <%
 List<TissueSample> tissueSamples=enc.getTissueSamples();
@@ -2927,7 +3153,7 @@ for(int j=0;j<numTissueSamples;j++){
 	</td>
 	
 	
-	<td><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample#tissueSample"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
+	<td><a id="sample" href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
 	<%
 }
 %>
@@ -2947,9 +3173,7 @@ else {
 	  	  	  	if (request.getParameter("noscript")==null) {
 	  	  	  %>
 <hr />
-<p><a name="map"><strong><img
-  src="../images/2globe_128.gif" width="56" height="56"
-  align="absmiddle"/></a><%=encprops.getProperty("mapping") %></strong></p>
+<p><a name="map"><strong><img src="../images/2globe_128.gif" width="56" height="56" align="absmiddle"/></a><%=encprops.getProperty("mapping") %></strong></p>
 
 
 
