@@ -1167,34 +1167,7 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 	  	  	}
 			if(CommonConfiguration.isCatalogEditable()){
 	  	  %>
-<table border="1" cellpadding="2" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-  <tr>
-    <td align="left" valign="top" class="para">
-      <font color="#990000"><img
-        align="absmiddle" src="../images/thumbnail_image.gif"/></font>
-      <strong><%=encprops.getProperty("resetThumbnail")%>
-      </strong>&nbsp;</font></td>
-  </tr>
-  <tr>
-    <td align="left">
-      <form action="../resetThumbnail.jsp" method="get" enctype="multipart/form-data"
-            name="resetThumbnail">
-        <input name="number" type="hidden" value="<%=num%>" id="numreset"><br/>
-        <%=encprops.getProperty("useImage")%>: <select name="imageNum">
-        <%
-          for (int rmi2 = 1; rmi2 <= numImages; rmi2++) {
-        %>
-        <option value="<%=rmi2%>"><%=rmi2%>
-        </option>
-        <%
-          }
-        %>
-      </select><br/>
-        <input name="resetSubmit" type="submit" id="resetSubmit"
-               value="<%=encprops.getProperty("resetThumbnail")%>"></form>
-    </td>
-  </tr>
-</table>
+
 <br/> <a name="tapirlink"></a>
   <table width="175" border="1" cellpadding="1" cellspacing="0"
          bordercolor="#000000" bgcolor="#CECFCE">

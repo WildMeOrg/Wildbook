@@ -53,9 +53,8 @@ if (session.getAttribute("langCode") != null) {
 Properties encprops = new Properties();
 encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
-
-
 Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
+
 
 
 %>
@@ -555,6 +554,35 @@ catch (Exception e) {
         <p><input name="addtlFile" type="submit" id="addtlFile"
                   value="Upload"></p></form>
 
+    </td>
+  </tr>
+</table>
+<br />
+<table width="250" bgcolor="#99CCFF">
+  <tr>
+    <td align="left" valign="top" class="para">
+      <font color="#990000"><img
+        align="absmiddle" src="../images/thumbnail_image.gif"/></font>
+      <strong><%=encprops.getProperty("resetThumbnail")%>
+      </strong>&nbsp;</font></td>
+  </tr>
+  <tr>
+    <td align="left">
+      <form action="../resetThumbnail.jsp" method="get" enctype="multipart/form-data"
+            name="resetThumbnail">
+        <input name="number" type="hidden" value="<%=imageEncNum%>" id="numreset"><br/>
+        <%=encprops.getProperty("useImage")%>: <select name="imageNum">
+        <%
+          for (int rmi2 = 1; rmi2 <= numImagesHere; rmi2++) {
+        %>
+        <option value="<%=rmi2%>"><%=rmi2%>
+        </option>
+        <%
+          }
+        %>
+      </select><br/>
+        <input name="resetSubmit" type="submit" id="resetSubmit"
+               value="<%=encprops.getProperty("resetThumbnail")%>"></form>
     </td>
   </tr>
 </table>
