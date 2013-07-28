@@ -2639,11 +2639,12 @@ if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals("
 <p class="para"><strong><%=encprops.getProperty("inform_others") %>
 </strong> <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=others#others">edit</a>]</font>
+ %>
+ <a id="inform" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
     <%
  	}
  %><br/> <%
-        	if(enc.getInformOthers()!=null){
+    if(enc.getInformOthers()!=null){
         		
         		if(enc.getInformOthers().indexOf(",")!=-1) {
         	//break up the string
@@ -2663,7 +2664,49 @@ if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals("
   <%=encprops.getProperty("none") %>
   <%
 			}
-		%> <%
+		
+ %>
+ </p>
+ <%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start sat tag metadata popup -->  
+<div id="dialogInform" title="<%=encprops.getProperty("setOthersToInform")%>" style="display:none">  
+<p><em><%=encprops.getProperty("separateEmails") %></em></p>
+  <table cellpadding="1" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top">
+        <form name="setOthers" action="../EncounterSetInformOthers" method="post">
+          <input name="encounter" type="hidden" value="<%=num%>" />
+          <input name="informothers" type="text" size="50" <%if(enc.getInformOthers()!=null){%>
+                 value="<%=enc.getInformOthers().trim()%>" <%}%> maxlength="1000" />
+          <br /> <input name="Set" type="submit" id="Set" value="<%=encprops.getProperty("set")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+	
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgInform = $("#dialogInform").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#inform").click(function() {
+  dlgInform.dialog("open");
+});
+</script>   
+<!-- end inform others popup --> 
+<%
+}
+%>
+ 
+ <%
+ 
 	}
  
 		 if (isOwner) {

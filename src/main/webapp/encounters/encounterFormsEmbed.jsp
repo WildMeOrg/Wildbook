@@ -193,31 +193,6 @@ if(!request.getParameter("loggedIn").equals("true")){
   </table>
 <br /> <%
 		}
-		
-				
-				
-				//set informothers
-			if((request.getParameter("isOwner").equals("true"))&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("others"))){
-		%> <a name="others"></a><br />
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para">
-        <strong><%=encprops.getProperty("setOthersToInform")%>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setOthers" action="../EncounterSetInformOthers" method="post">
-          <input name="encounter" type="hidden" value="<%=num%>">
-          <input name="informothers" type="text" size="28" <%if(enc.getInformOthers()!=null){%>
-                 value="<%=enc.getInformOthers().trim()%>" <%}%> maxlength="1000">
-          <br> <input name="Set" type="submit" id="Set" value="<%=encprops.getProperty("set")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> <%
-			}
 
   
       	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
