@@ -2827,23 +2827,23 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
 <div id="dialogSample" title="<%=encprops.getProperty("setTissueSample")%>" style="display:none">  
 
 <form name="setTissueSample" action="../EncounterSetTissueSample" method="post">
-<table cellspacing="0" bordercolor="#FFFFFF">
+<table cellspacing="2" bordercolor="#FFFFFF" >
 
     <tr>
       <tr><td>
 
 
-          <%=encprops.getProperty("sampleID")%> (<%=encprops.getProperty("required")%>)&nbsp;
+          <%=encprops.getProperty("sampleID")%> (<%=encprops.getProperty("required")%>)</td><td>
           <%
           TissueSample thisSample=new TissueSample();
           String sampleIDString="";
-          if((request.getParameter("sampleID")!=null)&&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+          if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))&&(request.getParameter("sampleID")!=null)&&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
         	  sampleIDString=request.getParameter("sampleID");
         	  thisSample=myShepherd.getTissueSample(sampleIDString, enc.getCatalogNumber());
               
           }
           %>
-          <input name="sampleID" type="text" size="20" maxlength="100" value="<%=sampleIDString %>" /><br />
+          <input name="sampleID" type="text" size="20" maxlength="100" value="<%=sampleIDString %>" />
           </td></tr>
           
           <tr><td>
@@ -2851,7 +2851,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String alternateSampleID="";
           if(thisSample.getAlternateSampleID()!=null){alternateSampleID=thisSample.getAlternateSampleID();}
           %>
-          <%=encprops.getProperty("alternateSampleID")%> <input name="alternateSampleID" type="text" size="20" maxlength="100" value="<%=alternateSampleID %>" /> 
+          <%=encprops.getProperty("alternateSampleID")%></td><td><input name="alternateSampleID" type="text" size="20" maxlength="100" value="<%=alternateSampleID %>" /> 
            </td></tr>
            
            
@@ -2860,7 +2860,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String tissueType="";
           if(thisSample.getTissueType()!=null){tissueType=thisSample.getTissueType();}
           %>
-          <%=encprops.getProperty("tissueType")%>&nbsp;
+          <%=encprops.getProperty("tissueType")%></td><td>
           
           
           
@@ -2912,7 +2912,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String preservationMethod="";
           if(thisSample.getPreservationMethod()!=null){preservationMethod=thisSample.getPreservationMethod();}
           %>
-          <%=encprops.getProperty("preservationMethod")%> <input name="preservationMethod" type="text" size="20" maxlength="100" value="<%=preservationMethod %>"/> 
+          <%=encprops.getProperty("preservationMethod")%></td><td><input name="preservationMethod" type="text" size="20" maxlength="100" value="<%=preservationMethod %>"/> 
           </td></tr>
           
           <tr><td>
@@ -2920,7 +2920,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String storageLabID="";
           if(thisSample.getStorageLabID()!=null){storageLabID=thisSample.getStorageLabID();}
           %>
-          <%=encprops.getProperty("storageLabID")%> <input name="storageLabID" type="text" size="20" maxlength="100" value="<%=storageLabID %>"/> 
+          <%=encprops.getProperty("storageLabID")%></td><td><input name="storageLabID" type="text" size="20" maxlength="100" value="<%=storageLabID %>"/> 
           </td></tr>
           
           <tr><td>
@@ -2928,7 +2928,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String samplingProtocol="";
           if(thisSample.getSamplingProtocol()!=null){samplingProtocol=thisSample.getSamplingProtocol();}
           %>
-          <%=encprops.getProperty("samplingProtocol")%> <input name="samplingProtocol" type="text" size="20" maxlength="100" value="<%=samplingProtocol %>" /> 
+          <%=encprops.getProperty("samplingProtocol")%></td><td><input name="samplingProtocol" type="text" size="20" maxlength="100" value="<%=samplingProtocol %>" /> 
           </td></tr>
           
           <tr><td>
@@ -2936,7 +2936,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String samplingEffort="";
           if(thisSample.getSamplingEffort()!=null){samplingEffort=thisSample.getSamplingEffort();}
           %>
-          <%=encprops.getProperty("samplingEffort")%> <input name="samplingEffort" type="text" size="20" maxlength="100" value="<%=samplingEffort%>"/> 
+          <%=encprops.getProperty("samplingEffort")%></td><td><input name="samplingEffort" type="text" size="20" maxlength="100" value="<%=samplingEffort%>"/> 
      		</td></tr>
      
 			<tr><td>     
@@ -2944,7 +2944,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String fieldNumber="";
           if(thisSample.getFieldNumber()!=null){fieldNumber=thisSample.getFieldNumber();}
           %>
-		  <%=encprops.getProperty("fieldNumber")%> <input name="fieldNumber" type="text" size="20" maxlength="100" value="<%=fieldNumber %>" /> 
+		  <%=encprops.getProperty("fieldNumber")%></td><td><input name="fieldNumber" type="text" size="20" maxlength="100" value="<%=fieldNumber %>" /> 
           </td></tr>
           
           
@@ -2953,7 +2953,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String fieldNotes="";
           if(thisSample.getFieldNotes()!=null){fieldNotes=thisSample.getFieldNotes();}
           %>
-           <%=encprops.getProperty("fieldNotes")%> <input name="fieldNNotes" type="text" size="20" maxlength="100" value="<%=fieldNotes %>" /> 
+           <%=encprops.getProperty("fieldNotes")%></td><td><input name="fieldNNotes" type="text" size="20" maxlength="100" value="<%=fieldNotes %>" /> 
           </td></tr>
           
           <tr><td>
@@ -2961,7 +2961,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String eventRemarks="";
           if(thisSample.getEventRemarks()!=null){eventRemarks=thisSample.getEventRemarks();}
           %>
-          <%=encprops.getProperty("eventRemarks")%> <input name="eventRemarks" type="text" size="20" value="<%=eventRemarks %>" /> 
+          <%=encprops.getProperty("eventRemarks")%></td><td><input name="eventRemarks" type="text" size="20" value="<%=eventRemarks %>" /> 
           </td></tr>
           
           <tr><td>
@@ -2969,15 +2969,16 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String institutionID="";
           if(thisSample.getInstitutionID()!=null){institutionID=thisSample.getInstitutionID();}
           %>
-          <%=encprops.getProperty("institutionID")%> <input name="institutionID" type="text" size="20" maxlength="100" value="<%=institutionID %>" /> 
+          <%=encprops.getProperty("institutionID")%></td><td><input name="institutionID" type="text" size="20" maxlength="100" value="<%=institutionID %>" /> 
           </td></tr>
+          
           
           <tr><td>
           <%
           String collectionID="";
           if(thisSample.getCollectionID()!=null){collectionID=thisSample.getCollectionID();}
           %>
-          <%=encprops.getProperty("collectionID")%> <input name="collectionID" type="text" size="20" maxlength="100" value="<%=collectionID %>" /> 
+          <%=encprops.getProperty("collectionID")%></td><td><input name="collectionID" type="text" size="20" maxlength="100" value="<%=collectionID %>" /> 
           </td></tr>
           
           <tr><td>
@@ -2985,7 +2986,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String collectionCode="";
           if(thisSample.getCollectionCode()!=null){collectionCode=thisSample.getCollectionCode();}
           %>
-          <%=encprops.getProperty("collectionCode")%> <input name="collectionCode" type="text" size="20" maxlength="100" value="<%=collectionCode %>" /> 
+          <%=encprops.getProperty("collectionCode")%></td><td><input name="collectionCode" type="text" size="20" maxlength="100" value="<%=collectionCode %>" /> 
           </td></tr>
           
           <tr><td>
@@ -2993,7 +2994,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String datasetID="";
           if(thisSample.getDatasetID()!=null){datasetID=thisSample.getDatasetID();}
           %>
-			<%=encprops.getProperty("datasetID")%> <input name="datasetID" type="text" size="20" maxlength="100" value="<%=datasetID %>" /> 
+			<%=encprops.getProperty("datasetID")%></td><td><input name="datasetID" type="text" size="20" maxlength="100" value="<%=datasetID %>" /> 
           </td></tr>
           
           
@@ -3002,11 +3003,11 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           String datasetName="";
           if(thisSample.getDatasetName()!=null){datasetName=thisSample.getDatasetName();}
           %>
-          <%=encprops.getProperty("datasetName")%> <input name="datasetName" type="text" size="20" maxlength="100" value="<%=datasetName %>" /> 
+          <%=encprops.getProperty("datasetName")%></td><td><input name="datasetName" type="text" size="20" maxlength="100" value="<%=datasetName %>" /> 
 			</td></tr>
             
             
-            <tr><td>
+            <tr><td colspan="2">
             	<input name="encounter" type="hidden" value="<%=num%>" /> 
             	<input name="action" type="hidden" value="setTissueSample" /> 
             	<input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
@@ -3033,17 +3034,19 @@ $("a#sample").click(function() {
 <%
 }
 
+
 //setup the javascript to handle displaying an edit tissue sample dialog box
-if((request.getParameter("sampleID")!=null)&&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+if((request.getParameter("sampleID")!=null) && (request.getParameter("edit")!=null) && request.getParameter("edit").equals("tissueSample") && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
 %>
 <script>
 dlgSample.dialog("open");
 </script>  
 
-
 <%	
 }	
 %>
+
+
 <p>
 <%
 List<TissueSample> tissueSamples=enc.getTissueSamples();
@@ -3080,7 +3083,7 @@ for(int j=0;j<numTissueSamples;j++){
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype#haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
 			<%
 			}
 			else if(ga.getAnalysisType().equals("SexAnalysis")){
@@ -3145,7 +3148,108 @@ for(int j=0;j<numTissueSamples;j++){
 		}
 		%>
 		</table>
-		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=haplotype#haplotype"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+		<p><span class="caption"><a id="haplotype" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="haplotype" style="color:blue;cursor: pointer;"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+		<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start haplotype popup -->  
+<div id="dialogHaplotype" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">  
+<form name="setHaplotype" action="../TissueSampleSetHaplotype" method="post">
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+ 
+  <tr>
+    <td>
+      
+
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)</td><td>
+        <%
+        MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis();
+        String analysisIDString="";
+        if((request.getParameter("edit")!=null) && (request.getParameter("edit").equals("haplotype")) && (request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"MitochondrialDNA"))){
+      	    analysisIDString=request.getParameter("analysisID");
+      		mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
+        }
+        %>
+        <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /></td>
+   </tr>
+   <tr>
+        <%
+        String haplotypeString="";
+        try{
+        	if(mtDNA.getHaplotype()!=null){haplotypeString=mtDNA.getHaplotype();}
+        }
+        catch(NullPointerException npe34){}
+        %>
+        <td><%=encprops.getProperty("haplotype")%> (<%=encprops.getProperty("required")%>)</td><td>
+        <input name="haplotype" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" /> 
+ 		</td></tr>
+ 		 
+ 		 <tr>
+ 		 <%
+        String processingLabTaskID="";
+        if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+        %>
+        <td><%=encprops.getProperty("processingLabTaskID")%></td><td>
+        <input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+ 		</td></tr>
+ 		
+ 		<tr><td>
+  		 <%
+        String processingLabName="";
+        if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+        %>
+        <%=encprops.getProperty("processingLabName")%></td><td>
+        <input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+ 		</td></tr>
+ 		
+ 		<tr><td>
+   		 <%
+        String processingLabContactName="";
+        if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+        %>
+        <%=encprops.getProperty("processingLabContactName")%></td><td>
+        <input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+ 		</td></tr>
+ 		
+ 		<tr><td>
+   		 <%
+        String processingLabContactDetails="";
+        if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+        %>
+        <%=encprops.getProperty("processingLabContactDetails")%></td><td>
+        <input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+ 		</td></tr>
+ 		<tr><td colspan="2">
+ 		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="setHaplotype" /> 
+          <input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
+      
+    </td>
+  </tr>
+</table>
+	</form>
+	
+</div>
+                         	
+<script>
+var dlgHaplotype = $("#dialogHaplotype").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#haplotype").click(function() {
+  dlgHaplotype.dialog("open");
+});
+</script>   
+<!-- end haplotype popup --> 
+<%
+}
+%>
+		
+		
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=msMarkers#msMarkers"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=msMarkers#msMarkers"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><%=encprops.getProperty("addBiologicalMeasurement") %></a></span></p>
@@ -3159,7 +3263,19 @@ for(int j=0;j<numTissueSamples;j++){
 %>
 </table>
 </p>
+
 <%
+//setup the javascript to handle displaying an edit haplotype dialog box
+if((request.getParameter("sampleID")!=null) && (request.getParameter("analysisID")!=null) && (request.getParameter("edit")!=null) && request.getParameter("edit").equals("haplotype") && (myShepherd.isGeneticAnalysis(request.getParameter("sampleID"), request.getParameter("number"), request.getParameter("analysisID"), "MitochondrialDNA"))){
+%>
+<script>
+dlgHaplotype.dialog("open");
+</script>  
+
+<%	
+}	
+
+
 }
 else {
 %>
