@@ -2826,7 +2826,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
 <!-- start sat tag metadata popup -->  
 <div id="dialogSample" title="<%=encprops.getProperty("setTissueSample")%>" style="display:none">  
 
-<form name="setTissueSample" action="../EncounterSetTissueSample" method="post">
+<form id="setTissueSample" action="../EncounterSetTissueSample" method="post">
 <table cellspacing="2" bordercolor="#FFFFFF" >
 
     <tr>
@@ -2837,7 +2837,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           <%
           TissueSample thisSample=new TissueSample();
           String sampleIDString="";
-          if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))&&(request.getParameter("sampleID")!=null)&&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+          if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))&&(request.getParameter("sampleID")!=null) && (request.getParameter("function")!=null) && (request.getParameter("function").equals("1")) &&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
         	  sampleIDString=request.getParameter("sampleID");
         	  thisSample=myShepherd.getTissueSample(sampleIDString, enc.getCatalogNumber());
               
@@ -3028,6 +3028,8 @@ var dlgSample = $("#dialogSample").dialog({
 
 $("a#sample").click(function() {
   dlgSample.dialog("open");
+  $("#setTissueSample").find("input[type=text], textarea").val("");
+  
 });
 </script>   
 <!-- end add bio sample popup --> 
@@ -3083,7 +3085,7 @@ for(int j=0;j<numTissueSamples;j++){
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype&function=2"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
 			<%
 			}
 			else if(ga.getAnalysisType().equals("SexAnalysis")){
@@ -3154,7 +3156,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
 <!-- start haplotype popup -->  
 <div id="dialogHaplotype" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">  
-<form name="setHaplotype" action="../TissueSampleSetHaplotype" method="post">
+<form id="setHaplotype" action="../TissueSampleSetHaplotype" method="post">
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
  
   <tr>
@@ -3165,7 +3167,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
         <%
         MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis();
         String analysisIDString="";
-        if((request.getParameter("edit")!=null) && (request.getParameter("edit").equals("haplotype")) && (request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"MitochondrialDNA"))){
+        if((request.getParameter("function")!=null)&&(request.getParameter("function").equals("2"))&&(request.getParameter("edit")!=null) && (request.getParameter("edit").equals("haplotype")) && (request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"MitochondrialDNA"))){
       	    analysisIDString=request.getParameter("analysisID");
       		mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
         }
@@ -3242,6 +3244,8 @@ var dlgHaplotype = $("#dialogHaplotype").dialog({
 
 $("a#haplotype").click(function() {
   dlgHaplotype.dialog("open");
+  $("#setHaplotype").find("input[type=text], textarea").val("");
+  
 });
 </script>   
 <!-- end haplotype popup --> 
@@ -3257,7 +3261,7 @@ $("a#haplotype").click(function() {
 	</td>
 	
 	
-	<td><a id="sample" href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
+	<td><a id="sample" href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample&function=1"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
 	<%
 }
 %>
