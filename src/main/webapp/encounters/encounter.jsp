@@ -3337,7 +3337,7 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 															<%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
-<!-- start sat tag metadata popup -->  
+<!-- start ms marker popup -->  
 <div id="dialogMSMarkersSet<%=thisSample.getSampleID()%>" title="<%=encprops.getProperty("setMsMarkers")%>" style="display:none">  
 
 <form id="setMsMarkers" action="../TissueSampleSetMicrosatelliteMarkers" method="post">
@@ -3475,7 +3475,192 @@ $("a#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveBiologicalMeasurement?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+				</span></td><td style="border-style: none;"><a style="color:blue;cursor: pointer;" id="setBioMeasure<%=thisSample.getSampleID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				
+						<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start biomeasure popup -->  
+<div id="dialogSetBiomeasure4<%=thisSample.getSampleID() %>" title="<%=encprops.getProperty("setBiologicalMeasurement")%>" style="display:none">  
+  <form action="../TissueSampleSetMeasurement" method="post">
+
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+
+<tr>
+<td>
+
+    <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+    <%
+    BiologicalMeasurement mtDNA=mito;
+    String analysisIDString=mtDNA.getAnalysisID();
+    
+    %>
+    </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+    </td></tr>
+
+    <tr><td>
+    <%
+    String type="";
+    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
+    %>
+    <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)
+    </td><td>
+
+
+     		<%
+     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementType");
+ 			int numProps=values.size();
+ 			ArrayList<String> measurementUnits=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementUnits");
+ 			int numUnitsProps=measurementUnits.size();
+     		
+     		if(numProps>0){
+
+     			%>
+     			<p><select size="<%=(numProps+1) %>" name="measurementType" id="measurementType">
+     			<%
+     		
+     			for(int y=0;y<numProps;y++){
+     				String units="";
+     				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
+     				String selected="";
+     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
+     					selected="selected=\"selected\"";
+     				}
+     			%>
+     				<option value="<%=values.get(y) %>" <%=selected %>><%=values.get(y) %><%=units %></option>
+     			<%
+     			}
+     			%>
+     			</select>
+				</p>
+			<%
+     		}
+     		else{
+			%>
+    			<input name="measurementType" type="text" size="20" maxlength="100" value="<%=type %>" /> 
+    		<%
+     		}
+    %>		
+    </td></tr>
+
+    <tr><td> 		
+    <% 		
+    String thisValue="";
+    if(mtDNA.getValue()!=null){thisValue=mtDNA.getValue().toString();}
+    %>
+    <%=encprops.getProperty("value")%> (<%=encprops.getProperty("required")%>)<br />
+    </td><td><input name="value" type="text" size="20" maxlength="100" value="<%=thisValue %>"></input>
+    </td></tr>
+
+    <tr><td>
+	<%
+    String thisSamplingProtocol="";
+    if(mtDNA.getSamplingProtocol()!=null){thisSamplingProtocol=mtDNA.getSamplingProtocol();}
+    %>
+    <%=encprops.getProperty("samplingProtocol")%>
+    </td><td>
+    
+     		<%
+     		ArrayList<String> protovalues=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementSamplingProtocols");
+ 			int protonumProps=protovalues.size();
+     		
+     		if(protonumProps>0){
+
+     			%>
+     			<p><select size="<%=(protonumProps+1) %>" name="samplingProtocol" id="samplingProtocol">
+     			<%
+     		
+     			for(int y=0;y<protonumProps;y++){
+     				String selected="";
+     				if((mtDNA.getSamplingProtocol()!=null)&&(mtDNA.getSamplingProtocol().equals(protovalues.get(y)))){
+     					selected="selected=\"selected\"";
+     				}
+     			%>
+     				<option value="<%=protovalues.get(y) %>" <%=selected %>><%=protovalues.get(y) %></option>
+     			<%
+     			}
+     			%>
+     			</select>
+				</p>
+			<%
+     		}
+     		else{
+			%>
+    			<input name="samplingProtocol" type="text" size="20" maxlength="100" value="<%=type %>" /> 
+    		<%
+     		}
+			%>
+			</td></tr>
+
+    <tr><td>
+    <%
+    String processingLabTaskID="";
+    if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+    %>
+    <%=encprops.getProperty("processingLabTaskID")%><br />
+    </td><td><input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+</td></tr>
+
+    <tr><td>
+		 <%
+    String processingLabName="";
+    if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+    %>
+    <%=encprops.getProperty("processingLabName")%><br />
+    </td><td><input name="processingLabName" type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+
+</td></tr>
+
+    <tr><td>
+		 <%
+    String processingLabContactName="";
+    if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+    %>
+    <%=encprops.getProperty("processingLabContactName")%><br />
+    </td><td><input name="processingLabContactName" type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+</td></tr>
+
+    <tr><td>
+		 <%
+    String processingLabContactDetails="";
+    if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+    %>
+    <%=encprops.getProperty("processingLabContactDetails")%><br />
+    </td><td><input name="processingLabContactDetails" type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+</td></tr>
+
+    <tr><td>
+		  <input name="sampleID" type="hidden" value="<%=thisSample.getSampleID()%>" /> 
+      <input name="encounter" type="hidden" value="<%=num%>" /> 
+      <input name="action" type="hidden" value="setBiologicalMeasurement" /> 
+      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementAnalysis" value="Set" />
+ 
+</td>
+</tr>
+</table>
+	 </form>
+</div>
+                         	
+<script>
+var dlgSetBiomeasure<%=thisSample.getSampleID() %> = $("#dialogSetBiomeasure4<%=thisSample.getSampleID() %>").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
+  dlgSetBiomeasure<%=thisSample.getSampleID() %>.dialog("open");
+  
+});
+</script>   
+<!-- end biomeasure popup --> 
+<%
+}
+%>
+				
+				</td><td style="border-style: none;"><a href="../TissueSampleRemoveBiologicalMeasurement?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
 			<%
 			}
 		}
