@@ -3030,6 +3030,7 @@ $("a#sample").click(function() {
   dlgSample.dialog("open");
   $("#setTissueSample").find("input[type=text], textarea").val("");
   
+  
 });
 </script>   
 <!-- end add bio sample popup --> 
@@ -3085,78 +3086,16 @@ for(int j=0;j<numTissueSamples;j++){
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=haplotype&function=2"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
-			<%
-			}
-			else if(ga.getAnalysisType().equals("SexAnalysis")){
-				SexAnalysis mito=(SexAnalysis)ga;
-				%>
-				<tr><td style="border-style: none;"><strong><span class="caption"><%=encprops.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %>
-				<%
-				if(!mito.getSuperHTMLString().equals("")){
-				%>
-				<em>
-				<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
-				<br /><%=mito.getSuperHTMLString()%>
-				</em>
-				<%
-				}
-				%>
-				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=sexAnalysis#sexAnalysis"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
-			<%
-			}
-			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
-				MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
-				
-			%>
-			<tr>
+				</span></td>
 				<td style="border-style: none;">
-					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span></p>
-					<span class="caption"><%=mito.getAllelesHTMLString() %>
-						<%
-									if(!mito.getSuperHTMLString().equals("")){
-									%>
-									<em>
-									<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
-									<br /><%=mito.getSuperHTMLString()%>
-									</em>
-									<%
-									}
-				%>
-					
-					</span>
-				</td>
-				<td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=msMarkers#msMarkers"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
-			
-			<% 
-			}
-			else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
-				BiologicalMeasurement mito=(BiologicalMeasurement)ga;
-				%>
-				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
-				<%
-				if(!mito.getSuperHTMLString().equals("")){
-				%>
-				<em>
-				<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
-				<br /><%=mito.getSuperHTMLString()%>
-				</em>
-				<%
-				}
-				%>
-				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveBiologicalMeasurement?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
-			<%
-			}
-		}
-		%>
-		</table>
-		<p><span class="caption"><a id="haplotype" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="haplotype" style="color:blue;cursor: pointer;"><%=encprops.getProperty("addHaplotype") %></a></span></p>
-		<%
+					<a id="haplo<%=mito.getAnalysisID() %>" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				
+							<%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
 <!-- start haplotype popup -->  
-<div id="dialogHaplotype" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">  
-<form id="setHaplotype" action="../TissueSampleSetHaplotype" method="post">
+<div id="dialogHaplotype<%=mito.getAnalysisID() %>" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">  
+<form id="setHaplotype<%=mito.getAnalysisID() %>" action="../TissueSampleSetHaplotype" method="post">
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
  
   <tr>
@@ -3166,13 +3105,9 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
         <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)</td><td>
         <%
         MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis();
-        String analysisIDString="";
-        if((request.getParameter("function")!=null)&&(request.getParameter("function").equals("2"))&&(request.getParameter("edit")!=null) && (request.getParameter("edit").equals("haplotype")) && (request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"MitochondrialDNA"))){
-      	    analysisIDString=request.getParameter("analysisID");
-      		mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
-        }
+        mtDNA=mito;
         %>
-        <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /></td>
+        <input name="analysisID" type="text" size="20" maxlength="100" value="<%=mtDNA.getAnalysisID() %>" /></td>
    </tr>
    <tr>
         <%
@@ -3222,7 +3157,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
         <input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
  		</td></tr>
  		<tr><td colspan="2">
- 		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
+ 		  <input name="sampleID" type="hidden" value="<%=thisSample.getSampleID() %>" /> 
           <input name="number" type="hidden" value="<%=num%>" /> 
           <input name="action" type="hidden" value="setHaplotype" /> 
           <input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
@@ -3235,16 +3170,183 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
 </div>
                          	
 <script>
-var dlgHaplotype = $("#dialogHaplotype").dialog({
+var dlgHaplotype<%=mito.getAnalysisID() %> = $("#dialogHaplotype<%=mito.getAnalysisID() %>").dialog({
   autoOpen: false,
   draggable: false,
   resizable: false,
   width: 600
 });
 
-$("a#haplotype").click(function() {
-  dlgHaplotype.dialog("open");
-  $("#setHaplotype").find("input[type=text], textarea").val("");
+$("a#haplo<%=mito.getAnalysisID() %>").click(function() {
+  dlgHaplotype<%=mito.getAnalysisID() %>.dialog("open");
+ 
+});
+</script>   
+<!-- end haplotype popup --> 
+<%
+}
+%>
+				
+				</td><td style="border-style: none;"><a href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			<%
+			}
+			else if(ga.getAnalysisType().equals("SexAnalysis")){
+				SexAnalysis mito=(SexAnalysis)ga;
+				%>
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=encprops.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %>
+				<%
+				if(!mito.getSuperHTMLString().equals("")){
+				%>
+				<em>
+				<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+				<br /><%=mito.getSuperHTMLString()%>
+				</em>
+				<%
+				}
+				%>
+				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=sexAnalysis#sexAnalysis"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			<%
+			}
+			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+				MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
+				
+			%>
+			<tr>
+				<td style="border-style: none;">
+					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span></p>
+					<span class="caption"><%=mito.getAllelesHTMLString() %>
+						<%
+									if(!mito.getSuperHTMLString().equals("")){
+									%>
+									<em>
+									<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+									<br /><%=mito.getSuperHTMLString()%>
+									</em>
+									<%
+									}
+				%>
+					
+					</span>
+				</td>
+				<td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=msMarkers"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			
+			<% 
+			}
+			else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
+				BiologicalMeasurement mito=(BiologicalMeasurement)ga;
+				%>
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
+				<%
+				if(!mito.getSuperHTMLString().equals("")){
+				%>
+				<em>
+				<br /><%=encprops.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+				<br /><%=mito.getSuperHTMLString()%>
+				</em>
+				<%
+				}
+				%>
+				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveBiologicalMeasurement?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+			<%
+			}
+		}
+		%>
+		</table>
+		<p><span class="caption"><a id="addHaplotype<%=thisSample.getSampleID() %>" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="addHaplotype<%=thisSample.getSampleID() %>" style="color:blue;cursor: pointer;"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+		<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start haplotype popup -->  
+<div id="dialogHaplotype4<%=thisSample.getSampleID() %>" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">  
+<form id="setHaplotype" action="../TissueSampleSetHaplotype" method="post">
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+ 
+  <tr>
+    <td>
+      
+
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)</td><td>
+        <%
+        MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis();
+        String analysisIDString="";
+        //if((request.getParameter("function")!=null)&&(request.getParameter("function").equals("2"))&&(request.getParameter("edit")!=null) && (request.getParameter("edit").equals("haplotype")) && (request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"MitochondrialDNA"))){
+      	//    analysisIDString=request.getParameter("analysisID");
+      	//	mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
+        //}
+        %>
+        <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /></td>
+   </tr>
+   <tr>
+        <%
+        String haplotypeString="";
+        try{
+        	if(mtDNA.getHaplotype()!=null){haplotypeString=mtDNA.getHaplotype();}
+        }
+        catch(NullPointerException npe34){}
+        %>
+        <td><%=encprops.getProperty("haplotype")%> (<%=encprops.getProperty("required")%>)</td><td>
+        <input name="haplotype" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" /> 
+ 		</td></tr>
+ 		 
+ 		 <tr>
+ 		 <%
+        String processingLabTaskID="";
+        if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+        %>
+        <td><%=encprops.getProperty("processingLabTaskID")%></td><td>
+        <input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+ 		</td></tr>
+ 		
+ 		<tr><td>
+  		 <%
+        String processingLabName="";
+        if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+        %>
+        <%=encprops.getProperty("processingLabName")%></td><td>
+        <input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+ 		</td></tr>
+ 		
+ 		<tr><td>
+   		 <%
+        String processingLabContactName="";
+        if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+        %>
+        <%=encprops.getProperty("processingLabContactName")%></td><td>
+        <input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+ 		</td></tr>
+ 		
+ 		<tr><td>
+   		<%
+        String processingLabContactDetails="";
+        if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+        %>
+        <%=encprops.getProperty("processingLabContactDetails")%></td><td>
+        <input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+ 		</td></tr>
+ 		<tr><td colspan="2">
+ 		  <input name="sampleID" type="hidden" value="<%=thisSample.getSampleID()%>" /> 
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="setHaplotype" /> 
+          <input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
+      
+    </td>
+  </tr>
+</table>
+	</form>
+	
+</div>
+                         	
+<script>
+var dlgHaplotypeAdd<%=thisSample.getSampleID() %> = $("#dialogHaplotype4<%=thisSample.getSampleID() %>").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#addHaplotype<%=thisSample.getSampleID() %>").click(function() {
+  dlgHaplotypeAdd<%=thisSample.getSampleID() %>.dialog("open");
+  //$("#setHaplotype").find("input[type=text], textarea").val("");
   
 });
 </script>   
@@ -3254,7 +3356,135 @@ $("a#haplotype").click(function() {
 %>
 		
 		
-		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=msMarkers#msMarkers"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=msMarkers#msMarkers"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
+		<p><span class="caption"><a id="msmarkers" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="msmarkers" style="color:blue;cursor: pointer;"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
+		
+		<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start sat tag metadata popup -->  
+<div id="dialogMSMarkers" title="<%=encprops.getProperty("setMsMarkers")%>" style="display:none">  
+
+<form id="setMsMarkers" action="../TissueSampleSetMicrosatelliteMarkers" method="post">
+
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+  <tr>
+    <td align="left" valign="top">
+
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)</td><td>
+        <%
+        MicrosatelliteMarkersAnalysis msDNA=new MicrosatelliteMarkersAnalysis();
+        String analysisIDString="";
+        if((request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"MicrosatelliteMarkers"))){
+      	    analysisIDString=request.getParameter("analysisID");
+      		msDNA=myShepherd.getMicrosatelliteMarkersAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
+        }
+        %>
+        <input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /></td></tr>
+        
+		<tr><td>
+ 		 <%
+        String processingLabTaskID="";
+        if(msDNA.getProcessingLabTaskID()!=null){processingLabTaskID=msDNA.getProcessingLabTaskID();}
+        %>
+        <%=encprops.getProperty("processingLabTaskID")%><br />
+        </td><td><input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+ 		</td></tr>
+ 		
+ 		<tr><td>
+  		 <%
+        String processingLabName="";
+        if(msDNA.getProcessingLabName()!=null){processingLabName=msDNA.getProcessingLabName();}
+        %>
+        <%=encprops.getProperty("processingLabName")%><br />
+        </td><td><input name="processingLabName" type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+ 		</td></tr>
+ 		
+ 		<tr><td>
+   		 <%
+        String processingLabContactName="";
+        if(msDNA.getProcessingLabContactName()!=null){processingLabContactName=msDNA.getProcessingLabContactName();}
+        %>
+        <%=encprops.getProperty("processingLabContactName")%><br />
+        </td><td><input name="processingLabContactName" type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+ 		</td></tr>
+ 		
+ 		<tr><td>
+   		 <%
+        String processingLabContactDetails="";
+        if(msDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=msDNA.getProcessingLabContactDetails();}
+        %>
+        <%=encprops.getProperty("processingLabContactDetails")%><br />
+        </td><td><input name="processingLabContactDetails" type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+ 		</td></tr>
+ 		<tr><td>
+ 		<%
+ 		//begin setting up the loci and alleles
+ 	      int numPloids=2; //most covered species will be diploids
+ 	      try{
+ 	        numPloids=(new Integer(CommonConfiguration.getProperty("numPloids"))).intValue();
+ 	      }
+ 	      catch(Exception e){System.out.println("numPloids configuration value did not resolve to an integer.");e.printStackTrace();}
+ 	      
+ 	      int numLoci=10;
+ 	      try{
+ 	 	  	numLoci=(new Integer(CommonConfiguration.getProperty("numLoci"))).intValue();
+ 	 	  }
+ 	 	  catch(Exception e){System.out.println("numLoci configuration value did not resolve to an integer.");e.printStackTrace();}
+ 	 	   
+ 		  for(int locus=0;locus<numLoci;locus++){
+ 			 String locusNameValue="";
+ 			 if((msDNA.getLoci()!=null)&&(locus<msDNA.getLoci().size())){locusNameValue=msDNA.getLoci().get(locus).getName();}
+ 		  %>
+			<br /><%=encprops.getProperty("locus") %>: <input name="locusName<%=locus %>" type="text" size="10" value="<%=locusNameValue %>" /><br />
+ 				<%
+ 				for(int ploid=0;ploid<numPloids;ploid++){
+ 					Integer ploidValue=0;
+ 					if((msDNA.getLoci()!=null)&&(locus<msDNA.getLoci().size())&&(msDNA.getLoci().get(locus).getAllele(ploid)!=null)){ploidValue=msDNA.getLoci().get(locus).getAllele(ploid);}
+ 			 		  
+ 				%>
+ 				<%=encprops.getProperty("allele") %>: <input name="allele<%=locus %><%=ploid %>" type="text" size="10" value="<%=ploidValue %>" /><br />
+ 			
+ 			
+ 				<%
+ 				}
+ 				%>
+ 			
+		  <%
+ 		  }  //end for loci loop
+		  %> 
+		  
+		  <tr><td colspan="2">
+ 		  <input name="sampleID" type="hidden" value="<%=request.getParameter("sampleID")%>" /> 
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          
+          <input name="EditTissueSample" type="submit" id="EditTissueSample" value="Set" />
+    </td></tr>
+    </td>
+  </tr>
+</table>
+	  </form>
+</div>
+   
+<script>
+var dlgMSMarkers = $("#dialogMSMarkers").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#msmarkers").click(function() {
+  dlgMSMarkers.dialog("open");
+  $("#setMsMarkers").find("input[type=text], textarea").val("");
+});
+</script>   
+<!-- end ms markers popup --> 
+<%
+}
+%>
+		
+		
+		
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><%=encprops.getProperty("addBiologicalMeasurement") %></a></span></p>
 	
@@ -3275,10 +3505,15 @@ if((request.getParameter("sampleID")!=null) && (request.getParameter("analysisID
 <script>
 dlgHaplotype.dialog("open");
 </script>  
-
 <%	
 }	
-
+else if((request.getParameter("sampleID")!=null) && (request.getParameter("analysisID")!=null) && (request.getParameter("edit")!=null) && request.getParameter("edit").equals("msMarkers") && (myShepherd.isGeneticAnalysis(request.getParameter("sampleID"), request.getParameter("number"), request.getParameter("analysisID"), "MicrosatelliteMarkers"))){
+	%>
+	<script>
+	dlgMSMarkers.dialog("open");
+	</script>  
+	<%	
+	}	
 
 }
 else {
