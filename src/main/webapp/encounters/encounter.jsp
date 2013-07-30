@@ -3204,7 +3204,108 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&analysisID=<%=mito.getAnalysisID() %>&edit=sexAnalysis#sexAnalysis"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+				</span></td><td style="border-style: none;"><a id="setSex<%=thisSample.getSampleID() %>" style="color:blue;cursor: pointer;" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				
+				<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start genetic sex popup -->  
+<div id="dialogSexSet<%=thisSample.getSampleID() %>" title="<%=encprops.getProperty("setSexAnalysis")%>" style="display:none">  
+
+<form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
+
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+<tr>
+  <td>
+  
+      <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+      <%
+      SexAnalysis mtDNA=mito;
+      String analysisIDString=mtDNA.getAnalysisID();
+      %>
+      </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+      </td></tr>
+      <tr><td>
+      <%
+      String haplotypeString="";
+      try{
+      	if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
+      }
+      catch(NullPointerException npe34){}
+      %>
+      <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
+      </td><td><input name="sex" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" /> 
+		</td></tr>
+		
+		<tr><td>
+		 <%
+      String processingLabTaskID="";
+      if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+      %>
+      <%=encprops.getProperty("processingLabTaskID")%><br />
+      </td><td><input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+	</td></tr>
+		
+		<tr><td>
+		 <%
+      String processingLabName="";
+      if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+      %>
+      <%=encprops.getProperty("processingLabName")%><br />
+      </td><td><input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+</td></tr>
+		
+		<tr><td>
+ 		 <%
+      String processingLabContactName="";
+      if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+      %>
+      <%=encprops.getProperty("processingLabContactName")%><br />
+      </td><td><input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+</td></tr>
+		
+		<tr><td>
+ 		 <%
+      String processingLabContactDetails="";
+      if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+      %>
+      <%=encprops.getProperty("processingLabContactDetails")%><br />
+      </td><td><input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+</td></tr>
+		
+		<tr><td>
+		  <input name="sampleID" type="hidden" value="<%=thisSample.getSampleID()%>" /> 
+        <input name="number" type="hidden" value="<%=num%>" /> 
+        <input name="action" type="hidden" value="setSexAnalysis" /> 
+        <input name="EditTissueSampleSexAnalysis" type="submit" id="EditTissueSampleSexAnalysis" value="Set" />
+  
+  </td>
+</tr>
+</table>
+  </form>
+	
+</div>
+                         	
+<script>
+var dlgSexSet<%=thisSample.getSampleID() %> = $("#dialogSexSet<%=thisSample.getSampleID() %>").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#setSex<%=thisSample.getSampleID() %>").click(function() {
+  dlgSexSet<%=thisSample.getSampleID() %>.dialog("open");
+  
+});
+</script>   
+<!-- end genetic sex popup --> 
+<%
+}
+%>
+				
+				</td>
+				<td style="border-style: none;"><a href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
 			<%
 			}
 			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
@@ -3608,8 +3709,107 @@ $("a#msmarkersAdd<%=thisSample.getSampleID()%>").click(function() {
 	
 		
 		
+<p><span class="caption"><a id="addSex<%=thisSample.getSampleID() %>" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="addSex<%=thisSample.getSampleID() %>" style="color:blue;cursor: pointer;"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
 		
-		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=sexAnalysis#sexAnalysis"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start genetic sex popup -->  
+<div id="dialogSex4<%=thisSample.getSampleID() %>" title="<%=encprops.getProperty("setSexAnalysis")%>" style="display:none">  
+
+<form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
+
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+<tr>
+  <td>
+  
+      <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+      <%
+      SexAnalysis mtDNA=new SexAnalysis();
+      String analysisIDString="";
+      %>
+      </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+      </td></tr>
+      <tr><td>
+      <%
+      String haplotypeString="";
+      try{
+      	if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
+      }
+      catch(NullPointerException npe34){}
+      %>
+      <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
+      </td><td><input name="sex" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" /> 
+		</td></tr>
+		
+		<tr><td>
+		 <%
+      String processingLabTaskID="";
+      if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+      %>
+      <%=encprops.getProperty("processingLabTaskID")%><br />
+      </td><td><input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" /> 
+	</td></tr>
+		
+		<tr><td>
+		 <%
+      String processingLabName="";
+      if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+      %>
+      <%=encprops.getProperty("processingLabName")%><br />
+      </td><td><input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" /> 
+</td></tr>
+		
+		<tr><td>
+ 		 <%
+      String processingLabContactName="";
+      if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+      %>
+      <%=encprops.getProperty("processingLabContactName")%><br />
+      </td><td><input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" /> 
+</td></tr>
+		
+		<tr><td>
+ 		 <%
+      String processingLabContactDetails="";
+      if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+      %>
+      <%=encprops.getProperty("processingLabContactDetails")%><br />
+      </td><td><input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" /> 
+</td></tr>
+		
+		<tr><td>
+		  <input name="sampleID" type="hidden" value="<%=thisSample.getSampleID()%>" /> 
+        <input name="number" type="hidden" value="<%=num%>" /> 
+        <input name="action" type="hidden" value="setSexAnalysis" /> 
+        <input name="EditTissueSampleSexAnalysis" type="submit" id="EditTissueSampleSexAnalysis" value="Set" />
+  
+  </td>
+</tr>
+</table>
+  </form>
+	
+</div>
+                         	
+<script>
+var dlgSexAdd<%=thisSample.getSampleID() %> = $("#dialogSex4<%=thisSample.getSampleID() %>").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#addSex<%=thisSample.getSampleID() %>").click(function() {
+  dlgSexAdd<%=thisSample.getSampleID() %>.dialog("open");
+  
+});
+</script>   
+<!-- end genetic sex popup --> 
+<%
+}
+%>
+		
+		
 		<p><span class="caption"><a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID() %>&edit=addBiologicalMeasurement#addBiologicalMeasurement"><%=encprops.getProperty("addBiologicalMeasurement") %></a></span></p>
 	
 	</td>
