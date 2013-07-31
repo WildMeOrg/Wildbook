@@ -2963,10 +2963,22 @@ $("a#inform").click(function() {
 		if(CommonConfiguration.useSpotPatternRecognition()){
 		%>
 
-<p class="para"><strong>Ready to scan</strong> <a
-  href="<%=CommonConfiguration.getWikiLocation()%>processing_a_new_encounter"
-  target="_blank"><img src="../images/information_icon_svg.gif"
-                       alt="Help" border="0" align="absmiddle"></a> <br/>
+<p class="para">  
+    
+    <%
+		//kick off a scan
+				if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
+		%> <br/>
+<table width="100%" border="0" cellpadding="1" cellspacing="0">
+  <tr>
+    <td align="left" valign="top">
+      <p class="para"><font color="#990000"><strong><img
+        align="absmiddle" src="../images/Crystal_Clear_action_find.gif"/>
+        Find Pattern Match</strong></font> <a
+          href="<%=CommonConfiguration.getWikiLocation()%>sharkgrid"
+          target="_blank"><img src="../images/information_icon_svg.gif"
+                               alt="Help" border="0" align="absmiddle"></a><br/>
+                               <br/><br/>
     <%
  				String ready="No. Please add spot data.";
  	  			if ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) {
@@ -2980,12 +2992,70 @@ $("a#inform").click(function() {
  	   		
  	  }
  		%>
-    <%=ready%>
+    <em><%=ready%></em><br />
+    
     <%
-		if((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) { %>
-  <br/><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=rmSpots#rmSpots">remove left or
+    if((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) { %>
+ <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=rmSpots#rmSpots">remove left or
     right spots</a>]</font> <%
 	  	}
+    %>
+    
+    
+     <br /><br />
+      </strong> Scan entire database on the <a href="http://www.sharkgrid.org">sharkGrid</a>
+        using the <a
+          href="http://www.blackwell-synergy.com/doi/pdf/10.1111/j.1365-2664.2005.01117.x">Modified
+          Groth</a> and <a
+          href="http://www.blackwell-synergy.com/doi/abs/10.1111/j.1365-2664.2006.01273.x?journalCode=jpe">I3S</a>
+        algorithms</font>
+
+      <div id="formDiv">
+        <form name="formSharkGrid" id="formSharkGrid" method="post"
+              action="../ScanTaskHandler"><input name="action" type="hidden"
+                                                 id="action" value="addTask"> <input
+          name="encounterNumber"
+          type="hidden" value=<%=num%>>
+
+          <table width="200">
+            <tr>
+              <%
+                if ((enc.getSpots() != null) && (enc.getSpots().size() > 0)) {
+              %>
+              <td class="para"><label> <input name="rightSide"
+                                              type="radio" value="false" checked> left-side</label>
+              </td>
+              <%
+                }
+              %>
+              <%
+                if ((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0) && (enc.getSpots() != null) && (enc.getSpots().size() == 0)) {
+              %>
+              <td class="para"><label> <input type="radio" name="rightSide" value="true" checked="checked" />right-side</label></td>
+              <%
+              } else if ((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {
+              %>
+              <td class="para"><label> 
+              <input type="radio" name="rightSide" value="true" /> right-side</label></td>
+              <%
+                }
+              %>
+            </tr>
+          </table>
+
+          <input name="writeThis" type="hidden" id="writeThis" value="true" />
+          <br/> <input name="scan" type="submit" id="scan" value="Start Scan" onclick="submitForm(document.getElementById('formSharkGrid'))" />
+          <input name="cutoff" type="hidden" value="0.02" /></form>
+      </p>
+</div>
+</td>
+</tr>
+</table>
+<br/>
+			<%}
+    
+
+		
 
     	File leftScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullScan.xml");
     	File rightScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightScan.xml");
