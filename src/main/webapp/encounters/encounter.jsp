@@ -2460,6 +2460,12 @@ $("a#sat").click(function() {
 
 </c:if>
 
+<p class="para"><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <strong><%=encprops.getProperty("dynamicProperties") %></strong>
+
+<a id="dynamicPropertyAdd" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>
+ 
+</p>
+ 
 <%
 
   if (enc.getDynamicProperties() != null) {
@@ -2471,16 +2477,56 @@ $("a#sat").click(function() {
       String nm = token.substring(0, (equalPlace));
       String vl = token.substring(equalPlace + 1);
 %>
-<p class="para"><img align="absmiddle" src="../images/lightning_dynamic_props.gif"> <strong><%=nm%>
-</strong><br/> <%=vl%>
+<p class="para"> <em><%=nm%></em>: <%=vl%>
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %>
-  <font size="-1">[<a
-    href="encounter.jsp?number=<%=num%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty">edit</a>]</font>
+  <a id="dynamicProperty<%=nm%>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+ 
   <%
     }
   %>
+  
+  <%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start depth popup -->  
+<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" style="display:none">  
+
+ <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr>
+      <td align="left" valign="top" class="para">
+        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">  
+			<p><em><%=encprops.getProperty("setDPMessage") %></em></p>
+			<input name="name" type="hidden" size="10" value="<%=nm %>" />
+          <%=encprops.getProperty("propertyValue")%>:<br/><input name="value" type="text" size="10" maxlength="500" value="<%=vl %>"/>
+          <input name="number" type="hidden" value="<%=num%>" />
+          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+	
+</div>
+
+<script>
+var dlgDP<%=nm %> = $("#dialogDP<%=nm %>").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#dynamicProperty<%=nm%>").click(function() {
+	dlgDP<%=nm %>.dialog("open");
+});
+</script>   
+
+<%
+}
+%>
+  
 </p>
 
 
@@ -2492,6 +2538,46 @@ $("a#sat").click(function() {
 
 <%
   }
+%>
+
+  <%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start depth popup -->  
+<div id="dialogDPAdd" title="<%=encprops.getProperty("addDynamicProperty")%>" style="display:none">  
+
+ <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr>
+      <td align="left" valign="top" class="para">
+        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">  
+			<%=encprops.getProperty("propertyName")%>:<br/><input name="name" type="text" size="10" maxlength="500" /><br />
+          
+          <%=encprops.getProperty("propertyValue")%>:<br/><input name="value" type="text" size="10" maxlength="500" /><br />
+          <input name="number" type="hidden" value="<%=num%>" />
+          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+	
+</div>
+
+<script>
+var dlgDPAdd = $("#dialogDPAdd").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#dynamicPropertyAdd").click(function() {
+	dlgDPAdd.dialog("open");
+});
+</script>   
+
+<%
+}
 %>
 
 <p class="para"><strong><%=encprops.getProperty("comments") %>
@@ -2836,6 +2922,7 @@ $("a#inform").click(function() {
 <%
 }
 %>
+ 
  
  <%
  
