@@ -2843,6 +2843,34 @@ $("a#inform").click(function() {
  
 		 if (isOwner) {
 %>
+<br />
+<table width="100%" border="0" cellpadding="1">
+    <tr>
+      <td height="30" class="para"><font color="#990000">&nbsp;<img
+        align="absmiddle" src="../images/interop.gif"/> <strong>TapirLink?</strong>
+        <a href="<%=CommonConfiguration.getWikiLocation()%>tapirlink"
+           target="_blank"><img src="../images/information_icon_svg.gif"
+                                alt="Help" border="0" align="absmiddle"/></a></font></td>
+    </tr>
+    <tr>
+      <td height="30" class="para">&nbsp; <%=encprops.getProperty("currentValue")%>
+        : <%=enc.getOKExposeViaTapirLink()%>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <form name="approve_form" method="post"
+              action="../EncounterSetTapirLinkExposure"><input name="action"
+                                                               type="hidden" id="action"
+                                                               value="tapirLinkExpose"> <input
+          name="number" type="hidden" value=<%=num%>> <input
+          name="approve" type="submit" id="approve" value="<%=encprops.getProperty("change")%>">
+        </form>
+      </td>
+    </tr>
+  </table>
+<br />
+
   <!-- Display spot patterning so long as show_spotpatterning is not false in commonCOnfiguration.properties-->
     <%
 		if(CommonConfiguration.useSpotPatternRecognition()){

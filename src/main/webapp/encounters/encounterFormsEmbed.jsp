@@ -381,34 +381,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 			if(CommonConfiguration.isCatalogEditable()){
 	  	  %>
 
-<br/> <a name="tapirlink"></a>
-  <table width="175" border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CECFCE">
-    <tr>
-      <td height="30" class="para"><font color="#990000">&nbsp;<img
-        align="absmiddle" src="../images/interop.gif"/> <strong>TapirLink?</strong>
-        <a href="<%=CommonConfiguration.getWikiLocation()%>tapirlink"
-           target="_blank"><img src="../images/information_icon_svg.gif"
-                                alt="Help" border="0" align="absmiddle"/></a></font></td>
-    </tr>
-    <tr>
-      <td height="30" class="para">&nbsp; <%=encprops.getProperty("currentValue")%>
-        : <%=enc.getOKExposeViaTapirLink()%>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <form name="approve_form" method="post"
-              action="../EncounterSetTapirLinkExposure"><input name="action"
-                                                               type="hidden" id="action"
-                                                               value="tapirLinkExpose"> <input
-          name="number" type="hidden" value=<%=num%>> <input
-          name="approve" type="submit" id="approve" value="<%=encprops.getProperty("change")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br/> <%
+<br/>  <%
 		}
 	  	//end isOwner permissions
 	  	  }
