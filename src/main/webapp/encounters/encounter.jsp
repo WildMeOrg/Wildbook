@@ -500,7 +500,7 @@ margin-bottom: 8px !important;
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
-      <font size="-1"><a id="identity" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
+      <font size="-1"><a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
       <%
         }
       %>
@@ -514,7 +514,7 @@ margin-bottom: 8px !important;
       </a>
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %><a id="identity" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+      %><a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
       <%
         }
         
@@ -523,7 +523,7 @@ margin-bottom: 8px !important;
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
-      <a id="matchedBy" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> 
+      <a id="matchedBy" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> 
         <div id="dialogMatchedBy" title="<%=encprops.getProperty("matchedBy")%>" style="display:none">  
   		<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
@@ -720,7 +720,7 @@ margin-bottom: 8px !important;
 
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
-      <font size="-1"><a id="occurrence" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
+      <font size="-1"><a id="occurrence" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
       <%
         }
       %>
@@ -848,7 +848,7 @@ $("a#occurrence").click(function() {
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
           <%=encprops.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>&nbsp;<%
             if (isOwner && CommonConfiguration.isCatalogEditable()) {
-          %><a id="taxon" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+          %><a id="taxon" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
             }
           %>
        </p>
@@ -922,7 +922,7 @@ $("a#taxon").click(function() {
        <%
     }
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %><a id="livingStatus" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+      %><a id="livingStatus" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
         }
       %>
     </p>
@@ -968,7 +968,7 @@ $("a#livingStatus").click(function() {
       <%
       if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
-      <a id="alternateID" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+      <a id="alternateID" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
       <%
         }
       %>
@@ -1014,7 +1014,7 @@ $("a#alternateID").click(function() {
         <%               
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       	%>
-      		<td><font size="-1"><a id="user" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font></td>
+      		<td><font size="-1"><a id="user" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font></td>
       	<%
         }
       %>
@@ -1044,7 +1044,7 @@ $("a#alternateID").click(function() {
                          		}
                          		%>
                      			<tr><td><center><div style="height: 50px">
-						<a id="username" style="color:blue;cursor: pointer;"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
+						<a id="username" class="launchPopup"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
 					</div></center></td></tr>
                      			<%
                          		String displayName="";
@@ -1052,7 +1052,7 @@ $("a#alternateID").click(function() {
                          			displayName=thisUser.getFullName();
                          		
                          		%>
-                         		<tr><td style="border:none"><center><a style="color:blue;cursor: pointer;" id="username" style="font-weight:normal;border:none"><%=displayName %></a></center></td></tr>
+                         		<tr><td style="border:none"><center><a class="launchPopup" id="username" style="font-weight:normal;border:none"><%=displayName %></a></center></td></tr>
                          		<tr><td><center><p class="caption">(click to learn more)</center></p></td></tr>
                          		<%	
                          		}
@@ -1238,7 +1238,7 @@ $("a#user").click(function() {
   </a>
     <%
 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- 					%><font size="-1"><a id="date" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
+ 					%><font size="-1"><a id="date" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
         		}
         		%>
        		
@@ -1257,7 +1257,7 @@ $("a#user").click(function() {
     <%
 				}
 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- 					%> <font size="-1"><a id="VBDate" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
+ 					%> <font size="-1"><a id="VBDate" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
         		}
         		%>
       		
@@ -1273,7 +1273,7 @@ $("a#user").click(function() {
   <br /><em><%=encprops.getProperty("releaseDate") %></em>:
     <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
     <c:if test="${editable}">
-        <font size="-1"><a id="releaseDate" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
+        <font size="-1"><a id="releaseDate" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
     </c:if>
   </p>
 </c:if>
@@ -1453,14 +1453,14 @@ if(enc.getLocation()!=null){
 
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %><font size="-1"><a id="location" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
+  %><font size="-1"><a id="location" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
   <%
     }
   %>
 <br /><em><%=encprops.getProperty("locationID") %></em>: <%=enc.getLocationCode()%>
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1"><a id="locationID" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
+  <font size="-1"><a id="locationID" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
   <a href="<%=CommonConfiguration.getWikiLocation()%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
@@ -1476,7 +1476,7 @@ if(enc.getLocation()!=null){
   <%
   }
     if (isOwner && CommonConfiguration.isCatalogEditable()) {%>
-  <font size="-1"><a id="country" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
+  <font size="-1"><a id="country" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
   <a href="<%=CommonConfiguration.getWikiLocation()%>country" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
     }
@@ -1684,7 +1684,7 @@ $("a#country").click(function() {
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %>
-&nbsp;<a id="depth" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+&nbsp;<a id="depth" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 <%
 }
 %>
@@ -1755,7 +1755,7 @@ $("a#depth").click(function() {
  <%
  if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %>
-<a id="elev" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<a id="elev" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
   <%
     }
   %>
@@ -1825,7 +1825,7 @@ $("a#elev").click(function() {
 <%
 if(isOwner&&CommonConfiguration.isCatalogEditable()) {	
  %>
- <a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+ <a id="sex" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 <%
 }
 %>
@@ -1883,7 +1883,7 @@ $("a#sex").click(function() {
 <%
 if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %>
-<a id="scar" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<a id="scar" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 <%
 }
 %>
@@ -1943,7 +1943,7 @@ $("a#scar").click(function() {
 <% 
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 	  %>
-<a id="behavior" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<a id="behavior" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 	  <%
 	    }
 %>
@@ -2020,7 +2020,7 @@ $("a#behavior").click(function() {
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %>
-  <a id="LifeStage" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+  <a id="LifeStage" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
   <%
     }
   %>
@@ -2107,7 +2107,7 @@ $("a#LifeStage").click(function() {
 %>
 <p class="para"><strong><c:out value="${measurementTitle}"></c:out></strong>
 <c:if test="${editable and !empty measurements}">
-  <a id="measure" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
+  <a id="measure" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
 </c:if>
 <table>
 <tr>
@@ -2217,7 +2217,7 @@ $("a#measure").click(function() {
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
-&nbsp;<a id="metal" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+&nbsp;<a id="metal" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 <%
 }
 %>
@@ -2298,7 +2298,7 @@ $("a#metal").click(function() {
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
-<a id="acoustic" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<a id="acoustic" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 <%
 }
 %>
@@ -2377,7 +2377,7 @@ $("a#acoustic").click(function() {
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
-&nbsp;<a id="sat" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+&nbsp;<a id="sat" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 <%
 }
 %>
@@ -2498,7 +2498,7 @@ $("a#sat").click(function() {
 </strong>
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %>&nbsp;<a id="comments" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+  %>&nbsp;<a id="comments" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
   <%
     }
   %>
@@ -2551,7 +2551,7 @@ $("a#comments").click(function() {
 <p class="para"><strong><%=encprops.getProperty("submitter") %>
 </strong> <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %><a id="submitter" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+ %><a id="submitter" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
     <%
  	}
  %> 
@@ -2712,7 +2712,7 @@ if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals("
 </strong> <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
  %>
- <a id="inform" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+ <a id="inform" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
     <%
  	}
  %><br/> <%
@@ -2889,7 +2889,7 @@ if(loggedIn){
 <a name="tissueSamples"></a>
 <p class="para"><img align="absmiddle" src="../images/microscope.gif">
     <strong><%=encprops.getProperty("tissueSamples") %></strong></p>
-    <p class="para"><a id="sample" style="color:blue;cursor: pointer;"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a id="sample" style="color:blue;cursor: pointer;"><%=encprops.getProperty("addTissueSample") %></a></p>
+    <p class="para"><a id="sample" class="launchPopup"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a id="sample" class="launchPopup"><%=encprops.getProperty("addTissueSample") %></a></p>
 
 
  <%
@@ -3160,7 +3160,7 @@ for(int j=0;j<numTissueSamples;j++){
 				%>
 				</span></td>
 				<td style="border-style: none;">
-					<a id="haplo<%=mito.getAnalysisID() %>" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+					<a id="haplo<%=mito.getAnalysisID() %>" class="launchPopup"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 				
 							<%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -3276,7 +3276,7 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a id="setSex<%=thisSample.getSampleID() %>" style="color:blue;cursor: pointer;" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				</span></td><td style="border-style: none;"><a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 				
 				<%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -3404,7 +3404,7 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 
 					
 				</td>
-				<td style="border-style: none;"><a style="color:blue;cursor: pointer;" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a>
+				<td style="border-style: none;"><a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a>
 				
 															<%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -3547,7 +3547,7 @@ $("a#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a style="color:blue;cursor: pointer;" id="setBioMeasure<%=thisSample.getSampleID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				</span></td><td style="border-style: none;"><a class="launchPopup" id="setBioMeasure<%=thisSample.getSampleID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 				
 						<%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -3738,7 +3738,7 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 		}
 		%>
 		</table>
-		<p><span class="caption"><a id="addHaplotype<%=thisSample.getSampleID() %>" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="addHaplotype<%=thisSample.getSampleID() %>" style="color:blue;cursor: pointer;"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+		<p><span class="caption"><a id="addHaplotype<%=thisSample.getSampleID() %>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="addHaplotype<%=thisSample.getSampleID() %>" class="launchPopup"><%=encprops.getProperty("addHaplotype") %></a></span></p>
 		<%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
@@ -3842,7 +3842,7 @@ $("a#addHaplotype<%=thisSample.getSampleID() %>").click(function() {
 %>
 		
 		
-		<p><span class="caption"><a id="msmarkersAdd<%=thisSample.getSampleID()%>" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="msmarkersAdd<%=thisSample.getSampleID()%>" style="color:blue;cursor: pointer;"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
+		<p><span class="caption"><a id="msmarkersAdd<%=thisSample.getSampleID()%>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="msmarkersAdd<%=thisSample.getSampleID()%>" class="launchPopup"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
@@ -3966,7 +3966,7 @@ $("a#msmarkersAdd<%=thisSample.getSampleID()%>").click(function() {
 	
 		
 		
-<p><span class="caption"><a id="addSex<%=thisSample.getSampleID() %>" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="addSex<%=thisSample.getSampleID() %>" style="color:blue;cursor: pointer;"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
+<p><span class="caption"><a id="addSex<%=thisSample.getSampleID() %>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="addSex<%=thisSample.getSampleID() %>" class="launchPopup"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
 		
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -4067,7 +4067,7 @@ $("a#addSex<%=thisSample.getSampleID() %>").click(function() {
 %>
 		
 		
-		<p><span class="caption"><a style="color:blue;cursor: pointer;" id="addBioMeasure<%=thisSample.getSampleID() %>"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a style="color:blue;cursor: pointer;" id="addBioMeasure<%=thisSample.getSampleID() %>"><%=encprops.getProperty("addBiologicalMeasurement") %></a></span></p>
+		<p><span class="caption"><a class="launchPopup" id="addBioMeasure<%=thisSample.getSampleID() %>"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a class="launchPopup" id="addBioMeasure<%=thisSample.getSampleID() %>"><%=encprops.getProperty("addBiologicalMeasurement") %></a></span></p>
 		
 		<%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {

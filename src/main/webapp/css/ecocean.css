@@ -68,6 +68,11 @@ a:focus,a.ecocean:focus {
   border: none;
 }
 
+a.launchPopup {
+  color:blue;
+  cursor: pointer;
+}
+
 /* Layout */
 #wrapper {
   margin: 0px;
