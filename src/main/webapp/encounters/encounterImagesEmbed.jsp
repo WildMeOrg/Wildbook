@@ -719,10 +719,49 @@ catch (Exception e) {
 								String filelocR="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(imageEncNum+"/"+imageEnc.getRightSpotImageFileName());
 					%>
 
-<p class="para"><strong>Spot data image files used for
-  matching</strong><br/> <font size="-1">[<a
-  href="encounter.jsp?number=<%=imageEncNum%>&edit=spotImage#spotImage">reset
-  left or right spot data image</a>]</font><br/> <br/> <%
+<p class="para"><strong>Spot data image files used for matching</strong><br/> 
+<font size="-1">[<a id="changespotimage" class="launchPopup">reset left or right spot data image</a>]</font><br/>
+  
+
+ 
+<div id="dialogChangeSpotImage" title="Set Spot Image File" style="display:none">  
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
+    <tr>
+      <td class="para">
+        <form action="../EncounterAddSpotFile" method="post"
+              enctype="multipart/form-data" name="addSpotsFile"><input
+          name="action" type="hidden" value="fileadder" id="action">
+          <input name="number" type="hidden" value="<%=imageEncNum%>" id="shark">
+          <font color="#990000"><strong><img align="absmiddle" src="../images/upload_small.gif"/></strong> 
+           </font><br/> <label><input name="rightSide" type="radio" value="false" />left</label><br/> <label>
+           
+           <input name="rightSide" type="radio" value="true" /> right</label><br/>
+          <br/> 
+          <input name="file2add" type="file" size="15" /><br/>
+          <input name="addtlFile" type="submit" id="addtlFile" value="Upload spot image" />
+          </form>
+      </td>
+    </tr>
+  </table>
+	
+</div>
+
+<script>
+var dlgChangeSpotImage = $("#dialogChangeSpotImage").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#changespotimage").click(function() {
+  dlgChangeSpotImage.dialog("open");
+});
+</script>   
+<!-- end reset spot image popup --> 
+
+  
+  <br/> <%
   if ((imageEnc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
 %> Left-side<em>.</em><em> Click the image to view the full size
   original. <a href="encounterSpotVisualizer.jsp?number=<%=imageEncNum%>">Click

@@ -168,35 +168,11 @@ if(!request.getParameter("loggedIn").equals("true")){
 	  	  if(request.getParameter("isOwner").equals("true")) {
 	  	  
 
-	  	  if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("spotImage"))){
-	  %> <a name="spotImage"></a>
-  <table border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td class="para">
-        <form action="../EncounterAddSpotFile" method="post"
-              enctype="multipart/form-data" name="addSpotsFile"><input
-          name="action" type="hidden" value="fileadder" id="action">
-          <input name="number" type="hidden" value="<%=num%>" id="shark">
-          <font color="#990000"><strong><img align="absmiddle"
-                                             src="../images/upload_small.gif"/></strong> <strong>Set
-            spot
-            image file:</strong></font><br/> <label><input name="rightSide"
-                                                           type="radio" value="false">
-            left</label><br/> <label><input
-            name="rightSide" type="radio" value="true"> right</label><br/>
-          <br/> <input name="file2add" type="file" size="15"><br/>
-          <input name="addtlFile" type="submit" id="addtlFile"
-                 value="Upload spot image"></form>
-      </td>
-    </tr>
-  </table>
-<br/> <%
-	  	  	}
+	  	  
 			if(CommonConfiguration.isCatalogEditable()){
 	  	  %>
 
-<br/>  <%
+  <%
 		}
 	  	//end isOwner permissions
 	  	  }
