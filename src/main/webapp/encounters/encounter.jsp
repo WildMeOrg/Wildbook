@@ -2679,7 +2679,8 @@ $("a#submitter").click(function() {
 <p class="para"><strong><%=encprops.getProperty("photographer") %>
 </strong> <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
-		 %><font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=contact#contact">edit</a>]</font>
+		 %>
+		 <a id="photographer" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
     	<%
  	}
  if(enc.getPhotographerName()!=null){	
@@ -2706,6 +2707,65 @@ if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals("
 }
 %>
 
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start submitter popup -->  
+<div id="dialogPhotographer" title="<%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("photographer")%>)" style="display:none">  
+<form action="../EncounterSetSubmitterPhotographerContactInfo" method="post">
+  <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr>
+      <td>
+       <input type="hidden" name="contact" value="photographer" />
+       
+          
+          <%=encprops.getProperty("name")%><br />
+          </td><td><input name="name" type="text" size="20" maxlength="100" /> 
+          </td></tr>
+          
+          <tr><td>
+          <%=encprops.getProperty("email")%><br />
+          </td><td><input name="email" type="text" size="20" /> 
+          </td></tr>
+          
+          <tr><td>
+          <%=encprops.getProperty("phone")%><br />
+          </td><td><input name="phone" type="text" size="20" maxlength="100" /> 
+          </td></tr>
+          
+          <tr><td>
+          <%=encprops.getProperty("address")%><br />
+          </td><td><input name="address" type="text" size="20" maxlength="100" /> 
+          </td></tr>
+          
+          <tr><td>
+            <input name="number" type="hidden" value="<%=num%>" /> 
+            <input name="action" type="hidden" value="editcontact" /> 
+            <input name="EditContact" type="submit" id="EditContact" value="Update" />
+       
+      </td>
+    </tr>
+  </table>
+	 </form>
+</div>
+
+<script>
+var dlgPhotographer = $("#dialogPhotographer").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#photographer").click(function() {
+  dlgPhotographer.dialog("open");
+});
+</script>   
+<!-- end photographer popup --> 
+<%
+}
+%>
 
 
 <p class="para"><strong><%=encprops.getProperty("inform_others") %>

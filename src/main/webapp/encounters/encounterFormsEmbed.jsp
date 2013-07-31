@@ -175,100 +175,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 <br /> <%
 		}
 
-  
-      	if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("gps"))){
-      		
-      		String longy="";
-      		String laty="";
-      		if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
-      		if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
-      		
-    		%> <a name="gps"></a>
-    		<table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    			<tr>
-    				<td align="left" valign="top" class="para"><span class="style3"><font
-    					color="#990000"><%=encprops.getProperty("resetGPS")%>:</font></span><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
-    				</td>
-    			</tr>
-    			<tr>
-    				<td>
-    				<form name="resetGPSform" method="post" action="../EncounterSetGPS">
-    				<input name="action" type="hidden" value="resetGPS" />
-    				<p><strong><%=encprops.getProperty("latitude")%>:</strong><br /> 
-    				<input type="text" size="7" maxlength="10" name="lat" id="lat" value="<%=laty %>"></input>
-    				 
-    				<br /> <strong><%=encprops.getProperty("longitude")%>:</strong><br> 
-    				<input type="text" size="7" maxlength="10" name="longitude" id="longitude" value="<%=longy %>"></input> 
-    				<input name="number" type="hidden" value=<%=num%> /> 
-    				<input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" />
-    				</p>
-    				</form>
-    				</td>
-    			</tr>
-    		</table>
-    		<br /> <%
-    			}
-				//set location for sighting
 
-
-//reset contact info
-if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("contact"))){
-		%> 
-
-<a name="contact"></a>
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000"><%=encprops.getProperty("editContactInfo")%>:</font></strong></td>
-    </tr>
-    <tr>
-      <td></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setPersonalDetails"
-              action="../EncounterSetSubmitterPhotographerContactInfo"
-              method="post"><label> <input type="radio"
-                                           name="contact"
-                                           value="submitter"><%=encprops.getProperty("submitter")%>
-        </label> <br /><label>
-          <input type="radio" name="contact"
-                 value="photographer"><%=encprops.getProperty("photographer")%>
-        </label>
-          <br /> 
-          
-          <%=encprops.getProperty("name")%><br />
-          <input name="name" type="text" size="20" maxlength="100" /> 
-          
-          <%=encprops.getProperty("email")%><br />
-          <input name="email" type="text" size="20" /> 
-          
-          <%=encprops.getProperty("phone")%><br />
-          <input name="phone" type="text" size="20" maxlength="100" /> 
-          
-          <%=encprops.getProperty("address")%><br />
-          <input name="address" type="text" size="20" maxlength="100" /> 
-          
-           <%=encprops.getProperty("submitterOrganization")%><br />
-          <input name="submitterOrganization" type="text" size="20" maxlength="100" /> 
-          
-          <%=encprops.getProperty("submitterProject")%><br />
-	  <input name="submitterProject" type="text" size="20" maxlength="100" /> 
-	            
-          
-            
-            
-            
-            <input name="number" type="hidden" value="<%=num%>" /> 
-            <input name="action" type="hidden" value="editcontact" /> 
-            <input name="EditContact" type="submit" id="EditContact" value="Update" />
-        </form>
-      </td>
-    </tr>
-  </table>
-
-<br /> 
-<%
 
 		//kick off a scan
 				if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))&&request.getParameter("isOwner").equals("true")) {
@@ -335,47 +242,10 @@ if(request.getParameter("isOwner").equals("true")&&(request.getParameter("edit")
 </td>
 </tr>
 </table>
-<br/> <!--
+<br/>
 			<%}
 			
-			if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))&&request.getParameter("isOwner").equals("true")) {%>
-			<table width="150" border="1" cellpadding="1" cellspacing="0" bgcolor="#CCCCCC">
-        		<tr>
-          			<td align="left" valign="top">
-		  				<form name="formSingleScan" method="get" action="appletScan.jsp">
-              				<p class="para"><font color="#990000"><strong>Groth:</strong> Scan against one other encounter</font>
-						    <table width="200">
-							  <tr>
-							    <%if(enc.getNumSpots()>0) {%>
-								<td width="93" class="para"><label>
-							      <input name="rightSide" type="radio" value="false" checked>
-							      left-side</label></td>
-						    <%}%>
-							<%if(enc.getNumRightSpots()>0) {%>
-							    <td width="95" class="para"><label>
-							      <input type="radio" name="rightSide" value="true">
-							      right-side</label></td>
-								  <%}%>
-						    </tr>
-							
-						  </table>
-							
-   						      <input name="singleComparison" type="text" size="15" maxlength="50">
-						      <input name="scan" type="submit" id="scan" value="Scan">
-  						      <input name="number" type="hidden" value=<%=num%>>
-  						      <input name="R" type="hidden" value="8">
-  						      <input name="Sizelim" type="hidden" value="0.85">
-								<input name="cutoff" type="hidden" value="0.02">
-  						      <input name="epsilon" type="hidden" value="0.01">
-						      <input name="C" type="hidden" value="0.99">
-						      <input name="maxTriangleRotation" type="hidden" value="10">
-							  
-				      </form>
-		  			</td>
-				</tr>
-			</table><br />
-			--> <%
-	  	}
+
 
 
 	  //reject encounter
