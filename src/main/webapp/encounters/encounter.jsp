@@ -2996,13 +2996,70 @@ $("a#inform").click(function() {
     
     <%
     if((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) { %>
- <font size="-1">[<a href="encounter.jsp?number=<%=num%>&edit=rmSpots#rmSpots">remove left or
-    right spots</a>]</font> <%
+ <font size="-1"><a id="rmspots" class="launchPopup"><img align="absmiddle" src="../images/cancel.gif"/></a> <a id="rmspots" class="launchPopup">Remove spots</a></font> 
+    
+     <%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+ 
+<div id="dialogRmSpots" title="<%=encprops.getProperty("removeSpotData")%>" style="display:none">  
+<form name="removeSpots" method="post" action="../EncounterRemoveSpots">
+           
+ <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top">
+        
+           <table width="200">
+              <tr>
+                <%
+                  if (enc.getSpots().size() > 0) {
+                %>
+                <td><label> <input name="rightSide" type="radio" value="false"> left-side</label></td>
+                <%
+                  }
+                  if (enc.getRightSpots().size() > 0) {
+                %>
+                <td><label> <input type="radio" name="rightSide" value="true"> right-side</label></td>
+                <%
+                  }
+                %>
+              </tr>
+              <tr><td><input name="number" type="hidden" value="<%=num%>" /> 
+            <input name="action" type="hidden" value="removeSpots" /> 
+            <input name="Remove3" type="submit" id="Remove3" value="Remove" />
+        </td></tr>
+            </table>
+            
+      </td>
+    </tr>
+  </table>
+  </form>
+	
+</div>
+
+<script>
+var dlgRmSpots = $("#dialogRmSpots").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#rmspots").click(function() {
+  dlgRmSpots.dialog("open");
+});
+</script>   
+<!-- end remove spots popup --> 
+<%
+}
+%>
+    
+    <%
 	  	}
     %>
     
     
-     <br /><br />
+    <br />
       </strong> Scan entire database on the <a href="http://www.sharkgrid.org">sharkGrid</a>
         using the <a
           href="http://www.blackwell-synergy.com/doi/pdf/10.1111/j.1365-2664.2005.01117.x">Modified

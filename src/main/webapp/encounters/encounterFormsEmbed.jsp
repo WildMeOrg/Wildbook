@@ -167,46 +167,7 @@ if(!request.getParameter("loggedIn").equals("true")){
 	  	  //remove spot data
 	  	  if(request.getParameter("isOwner").equals("true")) {
 	  	  
-	  	  if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("rmSpots"))){
-	  %> <a name="rmSpots"></a>
-  <table border="1" cellpadding="1" cellspacing="0"
-         bordercolor="#000000" bgcolor="#CCCCCC">
-    <tr>
-      <td align="left" valign="top" class="para"><strong><font
-        color="#990000">Remove spot data:</font></strong></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <center>
-          <form name="removeSpots" method="post"
-                action="../EncounterRemoveSpots">
-            <table width="200">
-              <tr>
-                <%
-                  if (enc.getSpots().size() > 0) {
-                %>
-                <td><label> <input name="rightSide" type="radio"
-                                   value="false"> left-side</label></td>
-                <%
-                  }
-                  if (enc.getRightSpots().size() > 0) {
-                %>
-                <td><label> <input type="radio" name="rightSide"
-                                   value="true"> right-side</label></td>
-                <%
-                  }
-                %>
-              </tr>
-            </table>
-            <input name="number" type="hidden" value=<%=num%>> <input
-            name="action" type="hidden" value="removeSpots"> <input
-            name="Remove3" type="submit" id="Remove3" value="Remove"></form>
-        </center>
-      </td>
-    </tr>
-  </table>
-<br/> <%
-	  	}
+
 	  	  if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("spotImage"))){
 	  %> <a name="spotImage"></a>
   <table border="1" cellpadding="1" cellspacing="0"
