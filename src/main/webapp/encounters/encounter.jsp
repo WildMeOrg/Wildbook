@@ -436,7 +436,6 @@ margin-bottom: 8px !important;
 %>
 <table width="720" border="0" cellpadding="3" cellspacing="5">
 <tr>
-  <td colspan="3">
     <%
       if ((enc.getState()!=null)&&(enc.getState().equals("unidentifiable"))) {%>
     <table width="810">
@@ -492,15 +491,79 @@ margin-bottom: 8px !important;
 </tr></table> 
 <br />
 <br />
+
+<table><tr><td width="560px" style="vertical-align:top">
+
+<%
+String state="";
+if (enc.getState()!=null){state=enc.getState();}
+%>
+<p><img align="absmiddle" width="50px" height="63px" style="border-style: none;" src="../images/workflow.png" /> <%=encprops.getProperty("workflowState") %> <%=state %> <a id="state" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></p>
+ <%
+        if (isOwner && CommonConfiguration.isCatalogEditable()) {
+      %>
+   <div id="dialogState" title="<%=encprops.getProperty("setWorkflowState")%>" style="display:none">  
+  	
+  	<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
+			
+						  <tr>
+						    <td align="left" valign="top">
+						      <form name="countryForm" action="../EncounterSetState" method="post">
+						            <select name="state" id="state">
+						       
+						       
+						       <%
+						       boolean hasMoreStates=true;
+						       int taxNum=0;
+						       while(hasMoreStates){
+						       	  String currentLifeState = "encounterState"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLifeState)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeState)%>"><%=CommonConfiguration.getProperty(currentLifeState)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreStates=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select> <input name="number" type="hidden" value="<%=num%>" id="number" />
+						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+						      </form>
+						    </td>
+						  </tr>
+						</table>
+  	
+  		</div>
+<script>
+  var dlgState = $("#dialogState").dialog({
+    autoOpen: false,
+    draggable: false,
+    resizable: false,
+    width: 600
+  });
+
+  $("a#state").click(function() {
+    dlgState.dialog("open");
+  });
+  </script> 
+        <%
+        }
+      %>
     <%
     if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
   %>
     <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="50px">
-      <%=encprops.getProperty("identified_as") %>: <%=enc.isAssignedToMarkedIndividual()%> 
+      <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%> 
       <%
         if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
-      <font size="-1"><a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
+      <a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
       <%
         }
       %>
@@ -743,7 +806,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
 	%>
 	<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
   	<tr>
-    	<td align="left" valign="top" class="para"><font color="#990000">
+    	<td align="left" valign="top" class="para">
       <table>
         <tr>
           <td><font color="#990000"><img align="absmiddle" src="../images/cancel.gif"/></font></td>
@@ -751,7 +814,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
           </strong></td>
         </tr>
       </table>
-    </font></td>
+    </td>
   </tr>
   <tr>
     <td align="left" valign="top">
@@ -1194,11 +1257,7 @@ $("a#user").click(function() {
     
     </tr></table></p>
     
-
-  </td>
-</tr>
-<tr>
-  <%
+      <%
 
   String isLoggedInValue="true";
   String isOwnerValue="true";
@@ -1206,30 +1265,10 @@ $("a#user").click(function() {
   if(!loggedIn){isLoggedInValue="false";}
   if(!isOwner){isOwnerValue="false";}
 
-	if(CommonConfiguration.isCatalogEditable()){
-	%>
-
- 
- 
-  <jsp:include page="encounterFormsEmbed.jsp" flush="true">
-    <jsp:param name="encounterNumber" value="<%=num%>" />
-
-    	<jsp:param name="isOwner" value="<%=isOwnerValue %>" />
-
-    	<jsp:param name="loggedIn" value="<%=isLoggedInValue %>" />
-
-  </jsp:include>
-
-
-  <%
-		}
-		%>
+%>
   
-<td align="left" valign="top">
-<table border="0" cellspacing="0" cellpadding="5">
 
-<tr>
-<td width="300" align="left" valign="top">
+
 <p class="para"><strong><%=encprops.getProperty("date") %>
 </strong><br/>
   <a
@@ -3145,8 +3184,21 @@ $("a#rmspots").click(function() {
 	  		%>
   <!-- End Display spot patterning so long as show_spotpatterning is not false in commonConfiguration.properties-->
 
+    
 
 </td>
+
+  <td style="vertical-align: top">
+    <jsp:include page="encounterImagesEmbed.jsp" flush="true">
+    	<jsp:param name="encounterNumber" value="<%=num%>" />
+    	<jsp:param name="isOwner" value="<%=isOwner %>" />
+    	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
+  	</jsp:include>
+  </td>
+</tr>
+</table>
+
+
 
 
 <td width="250" align="left" valign="top">
@@ -3158,14 +3210,7 @@ if(!loggedIn){isLoggedInValue="false";}
 if(!isOwner){isOwnerValue="false";}
 %>
 
-  <jsp:include page="encounterImagesEmbed.jsp" flush="true">
-    <jsp:param name="encounterNumber" value="<%=num%>" />
 
-    	<jsp:param name="isOwner" value="<%=isOwnerValue %>" />
-
-    	<jsp:param name="loggedIn" value="<%=isLoggedInValue %>" />
-
-  </jsp:include>
 
 
 
