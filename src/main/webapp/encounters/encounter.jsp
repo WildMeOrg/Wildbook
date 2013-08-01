@@ -383,7 +383,8 @@ margin-bottom: 8px !important;
   js = d.createElement(s); js.id = id;
   js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
   fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
+}(document, 'script', 'facebook-jssdk'));
+</script>
 
 <!-- GOOGLE PLUS-ONE BUTTON -->
 <script type="text/javascript">
@@ -397,217 +398,205 @@ margin-bottom: 8px !important;
 
 <body <%if (request.getParameter("noscript") == null) {%>
   onload="initialize()" <%}%>>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="../header.jsp" flush="true">
 
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-  
-</jsp:include>
-<div id="main">
-<%
-  myShepherd.beginDBTransaction();
+	<div id="wrapper">
+		<div id="page">
+			<jsp:include page="../header.jsp" flush="true">
+  				<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+			</jsp:include>
+			<div id="main">
+			<%
+  			myShepherd.beginDBTransaction();
 
+  			if (myShepherd.isEncounter(num)) {
+    			try {
 
-  if (myShepherd.isEncounter(num)) {
-
-    try {
-
-      Encounter enc = myShepherd.getEncounter(num);
-      pageContext.setAttribute("enc", enc);
-      String livingStatus = "";
-      if ((enc.getLivingStatus()!=null)&&(enc.getLivingStatus().equals("dead"))) {
-        livingStatus = " (deceased)";
-      }
-      //int numImages = enc.getAdditionalImageNames().size();
-	int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
+      			Encounter enc = myShepherd.getEncounter(num);
+      			pageContext.setAttribute("enc", enc);
+      			String livingStatus = "";
+      			if ((enc.getLivingStatus()!=null)&&(enc.getLivingStatus().equals("dead"))) {
+        			livingStatus = " (deceased)";
+      			}
+      			//int numImages = enc.getAdditionalImageNames().size();
+				int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
       
-//let's see if this user has ownership and can make edits
-      boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
-      pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable());
-      boolean loggedIn = false;
-      try{
-      	if(request.getUserPrincipal()!=null){loggedIn=true;}
-      }
-      catch(NullPointerException nullLogged){}
+				//let's see if this user has ownership and can make edits
+      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+      			pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable());
+      			boolean loggedIn = false;
+      			try{
+      				if(request.getUserPrincipal()!=null){loggedIn=true;}
+      			}
+      			catch(NullPointerException nullLogged){}
       
-
-
-%>
-<table width="720" border="0" cellpadding="3" cellspacing="5">
-<tr>
-    <%
-      if ((enc.getState()!=null)&&(enc.getState().equals("unidentifiable"))) {%>
-    <table width="810">
-      <tr>
-        <td bgcolor="#0033CC" colspan="3">
-          <p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unidentifiable_title") %>
-            : <%=num%><%=livingStatus %>
-          </font>
-        </td>
-      </tr>
-    </table>
-    </p>
-    <%
-
-    } 
-    else if ((enc.getState()!=null)&&(enc.getState().equals("unapproved"))) {%>
-    <table width="810">
-      <tr>
-        <td bgcolor="#CC6600" colspan="3">
-          <p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unapproved_title") %>
-            : <%=num%><%=livingStatus %>
-          </font>
-          </p>
-        </td>
-      </tr>
-    </table>
-    <%
-    } 
-    else {
-    %>
-
-    <p><font size="4"><strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %>
-    </font></p>
-<%
-    }
-%>
+				if ((enc.getState()!=null)&&(enc.getState().equals("unidentifiable"))) {
+      			%>
+    				<table width="810">
+      					<tr>
+        					<td bgcolor="#0033CC" colspan="3">
+          						<p>
+          							<font color="#FFFFFF" size="4"><%=encprops.getProperty("unidentifiable_title") %>: <%=num%><%=livingStatus %></font>
+          						</p>	
+        					</td>
+      					</tr>
+    				</table>	
+    			<%
+    			} 
+    			else if ((enc.getState()!=null)&&(enc.getState().equals("unapproved"))) {
+    			%>
+    			<table width="810">
+      				<tr>
+        				<td bgcolor="#CC6600" colspan="3">
+          					<p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unapproved_title") %>: <%=num%><%=livingStatus %>
+          						</font>
+          					</p>
+        				</td>
+      				</tr>
+    			</table>
+    			<%
+    			} 
+    			else {
+    			%>
+    			<p>
+    				<font size="4"><strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %>
+    				</font>
+    			</p>
+				<%
+    			}
+				%>
      
-    <p class="caption"><em><%=encprops.getProperty("description") %></em></p>
- <table><tr valign="middle">  
-  <td>
-    <!-- Google PLUS-ONE button -->
-<g:plusone size="small" annotation="none"></g:plusone>
-</td>
-<td>
-<!--  Twitter TWEET THIS button -->
-<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
-<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-</td>
-<td>
-<!-- Facebook LIKE button -->
-<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
-</td>
-</tr></table> 
-<br />
-<br />
-
-<table><tr><td width="560px" style="vertical-align:top">
-
-<%
-String state="";
-if (enc.getState()!=null){state=enc.getState();}
-%>
-<p><img align="absmiddle" width="50px" height="63px" style="border-style: none;" src="../images/workflow.png" /> <%=encprops.getProperty("workflowState") %> <%=state %> <a id="state" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></p>
- <%
-        if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %>
-   <div id="dialogState" title="<%=encprops.getProperty("setWorkflowState")%>" style="display:none">  
-  	
-  	<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
-			
-						  <tr>
-						    <td align="left" valign="top">
-						      <form name="countryForm" action="../EncounterSetState" method="post">
-						            <select name="state" id="state">
-						       
-						       
-						       <%
-						       boolean hasMoreStates=true;
-						       int taxNum=0;
-						       while(hasMoreStates){
-						       	  String currentLifeState = "encounterState"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLifeState)!=null){
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeState)%>"><%=CommonConfiguration.getProperty(currentLifeState)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreStates=false;
-						          }
+    			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
+ 					<table>
+ 						<tr valign="middle">  
+  							<td>
+    							<!-- Google PLUS-ONE button -->
+								<g:plusone size="small" annotation="none"></g:plusone>
+							</td>
+							<td>
+								<!--  Twitter TWEET THIS button -->
+								<a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
+								<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+							</td>
+							<td>
+								<!-- Facebook LIKE button -->
+								<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
+							</td>
+						</tr>
+					</table> 
+					<table>
+						<tr>
+							<td width="560px" style="vertical-align:top">
+								
+								
+								<!-- START WORKFLOW ATTRIBUTE -->
+ 								<%
+        						if (isOwner && CommonConfiguration.isCatalogEditable()) {
+									String state="";
+									if (enc.getState()!=null){state=enc.getState();}
+									%>
+									<p>
+										<img align="absmiddle" width="50px" height="50px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("workflowState") %> <%=state %> <a id="state" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+									</p>
+   									<div id="dialogState" title="<%=encprops.getProperty("setWorkflowState")%>" style="display:none">  
+  										<table class="popupForm">
+						  					<tr>
+						    					<td align="left" valign="top">
+						      						<form name="countryForm" action="../EncounterSetState" method="post">
+						            					<select name="state" id="state">
+															<%
+						       								boolean hasMoreStates=true;
+						       								int taxNum=0;
+						       								while(hasMoreStates){
+						       	  								String currentLifeState = "encounterState"+taxNum;
+						       	  								if(CommonConfiguration.getProperty(currentLifeState)!=null){
+						       	  									%>
+						       	  	  								<option value="<%=CommonConfiguration.getProperty(currentLifeState)%>"><%=CommonConfiguration.getProperty(currentLifeState)%></option>
+						       	  									<%
+						       										taxNum++;
+						          								}
+						          								else{
+						             								hasMoreStates=false;
+						          								}
 						          
-						       }
-						       %>
-						       
-						       
-						      </select> <input name="number" type="hidden" value="<%=num%>" id="number" />
-						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
-						      </form>
-						    </td>
-						  </tr>
-						</table>
-  	
-  		</div>
-<script>
-  var dlgState = $("#dialogState").dialog({
-    autoOpen: false,
-    draggable: false,
-    resizable: false,
-    width: 600
-  });
+						       								} //end while
+						       								%>
+						      						</select> 
+						      						<input name="number" type="hidden" value="<%=num%>" id="number" />
+						        					<input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+						      					</form>
+						    				</td>
+						  				</tr>
+									</table>
+  								</div>
+								<script>
+  									var dlgState = $("#dialogState").dialog({
+    									autoOpen: false,
+    									draggable: false,
+    									resizable: false,
+    									width: 600
+  									});
 
-  $("a#state").click(function() {
-    dlgState.dialog("open");
-  });
-  </script> 
-        <%
-        }
-      %>
-    <%
-    if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
-  %>
-    <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="50px">
-      <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%> 
-      <%
-        if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %>
-      <a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-      <%
-        }
-      %>
-    </p>
-    <%
-    } 
-    else {
-    %>
-    <p class="para"><img align="absmiddle" src="../images/tag_big.gif" width="50px" height="50px" />
-      <%=encprops.getProperty("identified_as") %>: <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%>
-      </a>
-      <%
-        if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %><a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-      <%
-        }
-        
-      %>
-      <br /> <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>: <%=enc.getMatchedBy()%>
-      <%
-        if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %>
-      <a id="matchedBy" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> 
-        <div id="dialogMatchedBy" title="<%=encprops.getProperty("matchedBy")%>" style="display:none">  
-  		<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td align="left" valign="top">
-        <form name="setMBT" action="../EncounterSetMatchedBy" method="post">
-          <select name="matchedBy" id="matchedBy">
-            <option
-              value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%>
-            </option>
-            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%>
-            </option>
-            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%>
-            </option>
-          </select> <input name="number" type="hidden" value="<%=num%>" />
-          <input name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-  		</div>
+  									$("a#state").click(function() {
+    									dlgState.dialog("open");
+  									});
+  								</script> 
+       							<%
+        						}
+      							%>
+								<!-- END WORKFLOW ATTRIBUTE -->      
+      
+      
+								<!-- START INDIVIDUALID ATTRIBUTE -->
+    							<%
+    							if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
+  								%>
+    							<p class="para">
+    								<img align="absmiddle" src="../images/tag_big.gif" width="50px" height="50px" /> <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%> 
+      								<%
+        							if (isOwner && CommonConfiguration.isCatalogEditable()) {
+     								%>
+      									<a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+      								<%
+        							}
+      								%>
+    							</p>
+    							<%
+    							} 
+    							else {
+    							%>
+    							<p class="para">
+    								<img align="absmiddle" src="../images/tag_big.gif" width="50px" height="50px" />
+      								<%=encprops.getProperty("identified_as") %>: <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a>
+      								<%
+        							if (isOwner && CommonConfiguration.isCatalogEditable()) {
+      								%>
+      									<a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+      								<%
+        							}
+      								%>
+      								<br /> 
+      								<img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>: <%=enc.getMatchedBy()%>
+      								<%
+        							if (isOwner && CommonConfiguration.isCatalogEditable()) {
+      								%>
+     								 <a id="matchedBy" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> 
+        							<div id="dialogMatchedBy" title="<%=encprops.getProperty("matchedBy")%>" style="display:none">  
+  										<table>
+    										<tr>
+      											<td align="left" valign="top">
+        											<form name="setMBT" action="../EncounterSetMatchedBy" method="post">
+          												<select name="matchedBy" id="matchedBy">
+            												<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+            												<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+            												<option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
+          												</select> 
+          												<input name="number" type="hidden" value="<%=num%>" />
+          												<input name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>" />
+        											</form>
+      											</td>
+    										</tr>
+  										</table>
+  									</div>
 <script>
   var dlgMatchedBy = $("#dialogMatchedBy").dialog({
     autoOpen: false,
@@ -749,15 +738,15 @@ if (enc.getState()!=null){state=enc.getState();}
   </script> 
   <%
   }
+%>    	  
+<!-- END INDIVIDUALID ATTRIBUTE -->    	  
     	  
     	  
     	  
     	  
     	  
-    	  
-    	  
-    	  
-    
+<!-- START EVENTID ATTRIBUTE -->    	  
+ <%   
     if (enc.getEventID() != null) {
   %>
   <p class="para"><%=encprops.getProperty("eventID") %>:
@@ -765,8 +754,11 @@ if (enc.getState()!=null){state=enc.getState();}
   </p>
   <%
     }
-  
   %>
+<!-- END EVENTID ATTRIBUTE -->  
+
+
+<!-- START OCCURRENCE ATTRIBUTE -->  
 	<p class="para">
 	<img width="24px" height="24px" align="absmiddle" src="../images/occurrence.png" />&nbsp;<%=encprops.getProperty("occurrenceID") %>:
 	<%
@@ -898,9 +890,11 @@ $("a#occurrence").click(function() {
 <!-- end set occurrenceID -->  
 <%
 }
-%>  
+%>
+<!-- END OCCURRENCE ATTRIBUTE -->    
   
   
+<!-- START TAXONOMY ATTRIBUTE -->    
 <%
     if(CommonConfiguration.showProperty("showTaxonomy")){
     
@@ -975,8 +969,11 @@ $("a#taxon").click(function() {
 
 }
 %>
-    
-    <p class="para"><img align="absmiddle" src="../images/life_icon.gif">
+<!-- END TAXONOMY ATTRIBUTE -->  
+
+
+<!-- START ALIVE-DEAD ATTRIBUTE -->      
+<p class="para"><img align="absmiddle" src="../images/life_icon.gif">
       <%=encprops.getProperty("status")%>: 
       <%
       if(enc.getLivingStatus()!=null){
@@ -1025,7 +1022,11 @@ $("a#livingStatus").click(function() {
 <%
     }
 %>
+<!-- END ALIVE-DEAD ATTRIBUTE -->  
 
+
+
+<!-- START ALTERNATEID ATTRIBUTE -->  
     <p class="para">
     	<img align="absmiddle" src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>: <%=enc.getAlternateID()%>
       <%
@@ -1068,7 +1069,11 @@ $("a#alternateID").click(function() {
 </script> 
 <%
 }
-    
+%>    
+<!-- END ALTERNATEID ATTRIBUTE -->    
+
+<!-- START USER ATTRIBUTE -->   
+<%    
  if((CommonConfiguration.showUsersToPublic())||(request.getUserPrincipal()!=null)){
  %>
     <p class="para">
@@ -1256,6 +1261,9 @@ $("a#user").click(function() {
 
     
     </tr></table></p>
+
+
+<!-- END USER ATTRIBUTE --> 
     
       <%
 
