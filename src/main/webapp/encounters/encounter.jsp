@@ -1571,6 +1571,59 @@ $("a#LifeStage").click(function() {
 <!--  END LIFESTAGE SECTION -->  
  
     
+<!-- START ADDITIONAL COMMENTS -->
+<p class="para"><%=encprops.getProperty("comments") %>
+  <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>&nbsp;<a id="comments" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+  <%
+    }
+  %>
+<br/> 
+<%
+String recordedComments="";
+if(enc.getComments()!=null){recordedComments=enc.getComments();}
+%>
+<%=recordedComments%><br/>
+
+</p>
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+
+<div id="dialogComments" title="<%=encprops.getProperty("editSubmittedComments")%>" style="display:none">  
+
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+ 
+      <td align="left" valign="top" cols="50">
+        <form name="setComments" action="../EncounterSetOccurrenceRemarks" method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%>
+</textarea>
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="editComments" /> 
+           <br /><input name="EditComm" type="submit" id="EditComm" value="<%=encprops.getProperty("submitEdit")%>" /></form>
+      </td>
+    </tr>
+  </table>
+	
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgComments = $("#dialogComments").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#comments").click(function() {
+  dlgComments.dialog("open");
+});
+</script>   
+<!-- end addtl comments popup --> 
+<%
+}
+%>
+<!-- END ADDITIONAL COMMENTS -->
       <%
 
   String isLoggedInValue="true";
@@ -2538,7 +2591,7 @@ $("a#sat").click(function() {
 
 </c:if>
 
-<p class="para"><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <strong><%=encprops.getProperty("dynamicProperties") %></strong>
+<p><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <strong><%=encprops.getProperty("dynamicProperties") %></strong>
 
 <a id="dynamicPropertyAdd" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>
  
@@ -2611,14 +2664,9 @@ $("a#dynamicProperty<%=nm%>").click(function() {
 <%
   }
 
-%>
 
-
-<%
   }
-%>
 
-  <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
 <!-- start depth popup -->  
@@ -2658,60 +2706,8 @@ $("a#dynamicPropertyAdd").click(function() {
 }
 %>
 
-<p class="para"><strong><%=encprops.getProperty("comments") %>
-</strong>
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %>&nbsp;<a id="comments" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
-  %>
-<br/> 
-<%
-String recordedComments="";
-if(enc.getComments()!=null){recordedComments=enc.getComments();}
-%>
-<%=recordedComments%><br/>
 
-</p>
-<%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
-%>
-<!-- start sat tag metadata popup -->  
-<div id="dialogComments" title="<%=encprops.getProperty("editSubmittedComments")%>" style="display:none">  
-
-<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
- 
-      <td align="left" valign="top" cols="50">
-        <form name="setComments" action="../EncounterSetOccurrenceRemarks" method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%>
-</textarea>
-          <input name="number" type="hidden" value="<%=num%>" /> 
-          <input name="action" type="hidden" value="editComments" /> 
-           <br /><input name="EditComm" type="submit" id="EditComm" value="<%=encprops.getProperty("submitEdit")%>" /></form>
-      </td>
-    </tr>
-  </table>
-	
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgComments = $("#dialogComments").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#comments").click(function() {
-  dlgComments.dialog("open");
-});
-</script>   
-<!-- end addtl comments popup --> 
-<%
-}
-%>
-
-
+<table><tr><td valign="top">
 <p class="para"><strong><%=encprops.getProperty("submitter") %>
 </strong> <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
@@ -2839,7 +2835,7 @@ $("a#submitter").click(function() {
 <%
 }
 %>
-
+</p></td><td valign="top">
 <p class="para"><strong><%=encprops.getProperty("photographer") %>
 </strong> <%
  	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
@@ -2930,7 +2926,8 @@ $("a#photographer").click(function() {
 <%
 }
 %>
-
+</p>
+</td></tr></table>
 
 <p class="para"><strong><%=encprops.getProperty("inform_others") %>
 </strong> <%
