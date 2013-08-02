@@ -713,8 +713,9 @@ catch (Exception e) {
   </di:img> <%
 						}
 								}
-								
-								
+									%>
+<!-- START Pattern recognition image pieces -->								
+					<%			
 								String fileloc="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(imageEncNum+"/"+imageEnc.getSpotImageFileName());
 								String filelocR="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(imageEncNum+"/"+imageEnc.getRightSpotImageFileName());
 					%>
@@ -781,7 +782,9 @@ $("a#changespotimage").click(function() {
       <%
       }
       //--
-
+%>
+<!-- END Pattern recognition image pieces -->		
+<%
 
     }
   %>
