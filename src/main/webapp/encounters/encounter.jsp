@@ -487,14 +487,13 @@ margin-bottom: 8px !important;
 						<tr>
 							<td width="560px" style="vertical-align:top">
 								
-								
 								<!-- START WORKFLOW ATTRIBUTE -->
  								<%
         						if (isOwner && CommonConfiguration.isCatalogEditable()) {
 									String state="";
 									if (enc.getState()!=null){state=enc.getState();}
 									%>
-									<p>
+									<p class="para">
 										<img align="absmiddle" width="50px" height="50px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("workflowState") %> <%=state %> <a id="state" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 									</p>
    									<div id="dialogState" title="<%=encprops.getProperty("setWorkflowState")%>" style="display:none">  
@@ -597,153 +596,151 @@ margin-bottom: 8px !important;
     										</tr>
   										</table>
   									</div>
-<script>
-  var dlgMatchedBy = $("#dialogMatchedBy").dialog({
-    autoOpen: false,
-    draggable: false,
-    resizable: false,
-    width: 600
-  });
+									<script>
+  										var dlgMatchedBy = $("#dialogMatchedBy").dialog({
+    										autoOpen: false,
+    										draggable: false,
+    										resizable: false,
+    										width: 600
+  										});
 
-  $("a#matchedBy").click(function() {
-    dlgMatchedBy.dialog("open");
-  });
-  </script> 
-        <%
-        }
-      %>
-    </p>
-    <%
-      } //end else
-	
-
-      if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %>
-      <!-- start  ID popup -->  
-  <div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" style="display:none">  
+  										$("a#matchedBy").click(function() {
+    										dlgMatchedBy.dialog("open");
+  										});
+  									</script> 
+        							<%
+       								 }
+      								%>
+    							</p>
+    							<%
+      							} //end else
+								
+      							if (isOwner && CommonConfiguration.isCatalogEditable()) {
+      							%>
+     							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" style="display:none">  
+  									<p><em><%=encprops.getProperty("identityMessage") %></em></p>	
   		
-  	<p><em><%=encprops.getProperty("identityMessage") %></em></p>	
+  									<%
+  									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+  									%>		
   		
-  <%
-  if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
-  %>		
-  		
-  <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
-    <tr>
-      <td align="left" valign="top" class="para"><font color="#990000">
-        <img align="absmiddle" src="../images/tag_small.gif"/><br />
-        <strong><%=encprops.getProperty("add2MarkedIndividual")%>:</strong></font></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="add2shark" action="../IndividualAddEncounter" method="post"><%=encprops.getProperty("individual")%>: 
-              <input name="individual" type="text" size="10" maxlength="50" /><br /> <%=encprops.getProperty("matchedBy")%>
-          :<br />
-          <select name="matchType" id="matchType">
-            <option
-              value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%>
-            </option>
-            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%>
-            </option>
-            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%>
-            </option>
-          </select> <br /> <input name="noemail" type="checkbox" value="noemail" />
-          <%=encprops.getProperty("suppressEmail")%><br /> 
-          <input name="number" type="hidden" value="<%=num%>" /> 
-          <input name="action" type="hidden" value="add" />
-          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-<br /> 
-<strong>--<%=encprops.getProperty("or") %>--</strong>
-<br /><br />
-<%
-  }
-  		 	  	  //Remove from MarkedIndividual if not unassigned
-		  	  if((!enc.isAssignedToMarkedIndividual().equals("Unassigned")) && CommonConfiguration.isCatalogEditable()) {
-		  %>
-<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-  <tr>
-    <td align="left" valign="top" class="para"><font color="#990000">
-      <table>
-        <tr>
-          <td><font color="#990000">
-          	<img align="absmiddle" src="../images/cancel.gif"/></font></td>
-          <td><strong><%=encprops.getProperty("removeFromMarkedIndividual")%>
-          </strong></td>
-        </tr>
-      </table>
-    </font></td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form action="../IndividualRemoveEncounter" method="post" name="removeShark"><input name="number" type="hidden" value="<%=num%>" /> 
-                <input name="action" type="hidden" value="remove" /> 
-                <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
-      </form>
-    </td>
-  </tr>
-</table>
-<br /> 
-<%
-   }
-		 
-	if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
-		
-%>	 
-  		 
-  		 
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-  <tr>
-    <td align="left" valign="top" class="para"><font color="#990000">
-      <img align="absmiddle" src="../images/tag_small.gif"/>
-      <strong><%=encprops.getProperty("createMarkedIndividual")%>:</strong>
-      </font>
-    </td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form name="createShark" method="post" action="../IndividualCreate">
-        <input name="number" type="hidden" value="<%=num%>" /> 
-        <input name="action" type="hidden" value="create" /> 
-        <input name="individual" type="text" id="individual" size="10" maxlength="50" value="<%=getNextIndividualNumber(enc, myShepherd)%>" /><br />
+  									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
+    									<tr>
+      										<td align="left" valign="top" class="para">
+      											<font color="#990000">
+        											<img align="absmiddle" src="../images/tag_small.gif"/><br />
+        											<strong><%=encprops.getProperty("add2MarkedIndividual")%>:</strong>
+        										</font>
+        									</td>
+    									</tr>
+    									<tr>
+      										<td align="left" valign="top">
+        										<form name="add2shark" action="../IndividualAddEncounter" method="post">
+        											<%=encprops.getProperty("individual")%>: 
+              											<input name="individual" type="text" size="10" maxlength="50" /><br /> <%=encprops.getProperty("matchedBy")%>:<br />
+          												<select name="matchType" id="matchType">
+            												<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+            												<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+            												<option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
+          												</select> 
+          												<br /> 
+          												<input name="noemail" type="checkbox" value="noemail" />
+          												<%=encprops.getProperty("suppressEmail")%><br /> 
+          												<input name="number" type="hidden" value="<%=num%>" /> 
+          												<input name="action" type="hidden" value="add" />
+          												<input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
+        										</form>
+     										 </td>
+    									</tr>
+  									</table>
+									<br /> 
+									<strong>--<%=encprops.getProperty("or") %>--</strong>
+									<br /><br />
+									<%
+  									}
+  		 	  	  					//Remove from MarkedIndividual if not unassigned
+		  	  						if((!enc.isAssignedToMarkedIndividual().equals("Unassigned")) && CommonConfiguration.isCatalogEditable()) {
+		  							%>
+									<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+ 										<tr>
+    										<td align="left" valign="top" class="para">		
+      											<table>
+        											<tr>
+          												<td>
+          													<font color="#990000">
+          														<img align="absmiddle" src="../images/cancel.gif"/>
+          													</font>
+          												</td>
+          												<td>
+          													<strong>
+          														<%=encprops.getProperty("removeFromMarkedIndividual")%>
+          													</strong>
+          												</td>
+        											</tr>
+      											</table>
+    										</td>
+  										</tr>
+  										<tr>
+    										<td align="left" valign="top">
+      											<form action="../IndividualRemoveEncounter" method="post" name="removeShark">
+      												<input name="number" type="hidden" value="<%=num%>" /> 
+                									<input name="action" type="hidden" value="remove" /> 
+                									<input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
+      											</form>
+    										</td>
+  										</tr>
+									</table>
+									<br /> 
+									<%
+   									}
+									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+									%>	 
+	 
+									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+  										<tr>
+    										<td align="left" valign="top" class="para">
+    											<font color="#990000">
+      												<img align="absmiddle" src="../images/tag_small.gif"/>
+      												<strong><%=encprops.getProperty("createMarkedIndividual")%>:</strong>
+      											</font>
+    										</td>
+  										</tr>
+  										<tr>
+    										<td align="left" valign="top">
+      											<form name="createShark" method="post" action="../IndividualCreate">
+        											<input name="number" type="hidden" value="<%=num%>" /> 
+        											<input name="action" type="hidden" value="create" /> 
+        											<input name="individual" type="text" id="individual" size="10" maxlength="50" value="<%=getNextIndividualNumber(enc, myShepherd)%>" /><br />
+													<input name="noemail" type="checkbox" value="noemail" />
+        											<%=encprops.getProperty("suppressEmail")%><br /> 
         
-        	<input name="noemail" type="checkbox" value="noemail" />
-        	<%=encprops.getProperty("suppressEmail")%><br /> 
-        
-      <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
-      </form>
-    </td>
-  </tr>
-</table>
-<%
-	}
-%>
-
-  </div>
+      												<input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
+      											</form>
+    										</td>
+  										</tr>
+									</table>
+								<%
+								}
+								%>
+							</div>
                            		
-  <script>
-  var dlgIdentity = $("#dialogIdentity").dialog({
-    autoOpen: false,
-    draggable: false,
-    resizable: false,
-    width: 600
-  });
+  							<script>
+  								var dlgIdentity = $("#dialogIdentity").dialog({
+    								autoOpen: false,
+    								draggable: false,
+    								resizable: false,
+    								width: 600
+  								});
 
-  $("a#identity").click(function() {
-    dlgIdentity.dialog("open");
-  });
-  </script> 
-  <%
-  }
-%>    	  
-<!-- END INDIVIDUALID ATTRIBUTE -->    	  
-    	  
-    	  
-    	  
-    	  
+  								$("a#identity").click(function() {
+    								dlgIdentity.dialog("open");
+  								});
+  							</script> 
+  						<%
+  						}
+						%>    	  
+						<!-- END INDIVIDUALID ATTRIBUTE -->    	  
+  
     	  
 <!-- START EVENTID ATTRIBUTE -->    	  
  <%   
@@ -4853,7 +4850,7 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
       <%
         if (enc.getRComments() != null) {
       %>
-      <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+      <div style="text-align:left;border:1px solid black;width:720px;height:400px;overflow-y:scroll;overflow-x:scroll;">
       
       <p class="para"><%=enc.getRComments().replaceAll("\n", "<br />")%>
       </p>
