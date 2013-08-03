@@ -2706,305 +2706,345 @@ $("a#dynamicPropertyAdd").click(function() {
 }
 %>
 
+<p><strong><%=encprops.getProperty("contactInformation") %></strong></p>
 
-<table><tr><td valign="top">
-<p class="para"><strong><%=encprops.getProperty("submitter") %>
-</strong> <%
- 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %><a id="submitter" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-    <%
- 	}
- %> 
- <%
- if(enc.getSubmitterName()!=null){
- %>
- <br/><%=enc.getSubmitterName()%>
- <%
- }
-     	if (isOwner) {
+<table>
+	<tr>
+		<td valign="top">
+			<p class="para"><em><%=encprops.getProperty("submitter") %></em> 
+				<%
+ 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+ 				%>
+ 					<a id="submitter" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+    			<%
+ 				}
+ 				%> 
+ 				<%
+ 				if(enc.getSubmitterName()!=null){
+ 				%>
+ 				<br/><%=enc.getSubmitterName()%>
+ 				<%
+ 				}
+     			if (isOwner) {
 			
-		if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))&&(enc.getSubmitterEmail().indexOf(",")!=-1)) {
-			//break up the string
-			StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");
-		
-			while(stzr.hasMoreTokens()) {
-				String nextie=stzr.nextToken();
-			
-			%> <br/><a href="mailto:<%=nextie%>?subject=Information%20Request%20for%20Stranding%20<%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=nextie%></a> <%
-			}
-				
-		}
-		else if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))) {
-			%> <br/>
-			<a href="mailto:<%=enc.getSubmitterEmail()%>?subject=Information%20Request%20for%20Stranding%20<%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=enc.getSubmitterEmail()%></a> 
-			<%
-		}
-		if((enc.getSubmitterPhone()!=null)&&(!enc.getSubmitterPhone().equals(""))){
-		%> 
-			<br/> <%=enc.getSubmitterPhone()%>
-		<%
-		}
-		if((enc.getSubmitterAddress()!=null)&&(!enc.getSubmitterAddress().equals(""))){
-		%>
-			<br /><%=enc.getSubmitterAddress()%>
-		<%
-		}
-		%>
-		<%
-		if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){%>
-			<br/><%=enc.getSubmitterOrganization()%>
-		<%
-		}
-		if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
-			<br/><%=enc.getSubmitterProject()%>
-		<%}%>
-		
-		
-    <%
-	}
-%>
-
-
-<%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
-%>
-<!-- start submitter popup -->  
-<div id="dialogSubmitter" title="<%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("submitter")%>)" style="display:none">  
-<form name="setPersonalDetails" action="../EncounterSetSubmitterPhotographerContactInfo" method="post">
-  <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td>
-       <input type="hidden" name="contact" value="submitter" />
-       
-          
-          <%=encprops.getProperty("name")%><br />
-          </td><td><input name="name" type="text" size="20" maxlength="100" /> 
-          </td></tr>
-          
-          <tr><td>
-          <%=encprops.getProperty("email")%><br />
-          </td><td><input name="email" type="text" size="20" /> 
-          </td></tr>
-          
-          <tr><td>
-          <%=encprops.getProperty("phone")%><br />
-          </td><td><input name="phone" type="text" size="20" maxlength="100" /> 
-          </td></tr>
-          
-          <tr><td>
-          <%=encprops.getProperty("address")%><br />
-          </td><td><input name="address" type="text" size="20" maxlength="100" /> 
-          </td></tr>
-          
-          <tr><td>
-           <%=encprops.getProperty("submitterOrganization")%><br />
-          </td><td><input name="submitterOrganization" type="text" size="20" maxlength="100" /> 
-          </td></tr>
-          
-          <tr><td>
-          <%=encprops.getProperty("submitterProject")%><br />
-	   </td><td><input name="submitterProject" type="text" size="20" maxlength="100" /> 
-	            </td></tr>
-          
-          <tr><td>
-
-            <input name="number" type="hidden" value="<%=num%>" /> 
-            <input name="action" type="hidden" value="editcontact" /> 
-            <input name="EditContact" type="submit" id="EditContact" value="Update" />
-       
-      </td>
-    </tr>
-  </table>
-	 </form>
-</div>
-
-<script>
-var dlgSubmitter = $("#dialogSubmitter").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#submitter").click(function() {
-  dlgSubmitter.dialog("open");
-});
-</script>   
-<!-- end submitter popup --> 
-<%
-}
-%>
-</p></td><td valign="top">
-<p class="para"><strong><%=encprops.getProperty("photographer") %>
-</strong> <%
- 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
-		 %>
-		 <a id="photographer" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-    	<%
- 	}
- if(enc.getPhotographerName()!=null){	
- %>
- 	<br/> <%=enc.getPhotographerName()%> <%
- }
- 
-if (isOwner) {
-
-if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
-%>
-	<br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=Information%20Request%20for%20Stranding%20<%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=enc.getPhotographerEmail()%></a> 
-<%
-}
-if((enc.getPhotographerPhone()!=null)&&(!enc.getPhotographerPhone().equals(""))){
-%>
-	<br/><%=enc.getPhotographerPhone()%>
-<%
-}
-if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals(""))){
-%>
-	<br/><%=enc.getPhotographerAddress()%>
-<%
-}
-%>
-
-<%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
-%>
-<!-- start submitter popup -->  
-<div id="dialogPhotographer" title="<%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("photographer")%>)" style="display:none">  
-<form action="../EncounterSetSubmitterPhotographerContactInfo" method="post">
-  <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td>
-       <input type="hidden" name="contact" value="photographer" />
-       
-          
-          <%=encprops.getProperty("name")%><br />
-          </td><td><input name="name" type="text" size="20" maxlength="100" /> 
-          </td></tr>
-          
-          <tr><td>
-          <%=encprops.getProperty("email")%><br />
-          </td><td><input name="email" type="text" size="20" /> 
-          </td></tr>
-          
-          <tr><td>
-          <%=encprops.getProperty("phone")%><br />
-          </td><td><input name="phone" type="text" size="20" maxlength="100" /> 
-          </td></tr>
-          
-          <tr><td>
-          <%=encprops.getProperty("address")%><br />
-          </td><td><input name="address" type="text" size="20" maxlength="100" /> 
-          </td></tr>
-          
-          <tr><td>
-            <input name="number" type="hidden" value="<%=num%>" /> 
-            <input name="action" type="hidden" value="editcontact" /> 
-            <input name="EditContact" type="submit" id="EditContact" value="Update" />
-       
-      </td>
-    </tr>
-  </table>
-	 </form>
-</div>
-
-<script>
-var dlgPhotographer = $("#dialogPhotographer").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#photographer").click(function() {
-  dlgPhotographer.dialog("open");
-});
-</script>   
-<!-- end photographer popup --> 
-<%
-}
-%>
-</p>
-</td></tr></table>
-
-<p class="para"><strong><%=encprops.getProperty("inform_others") %>
-</strong> <%
- 	if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %>
- <a id="inform" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-    <%
- 	}
- %><br/> <%
-    if(enc.getInformOthers()!=null){
-        		
-        		if(enc.getInformOthers().indexOf(",")!=-1) {
-        	//break up the string
-        	StringTokenizer stzr=new StringTokenizer(enc.getInformOthers(),",");
-        	
-        	while(stzr.hasMoreTokens()) {
-        %> <%=stzr.nextToken()%><br/> <%
-				}
+					if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))&&(enc.getSubmitterEmail().indexOf(",")!=-1)) {
+						//break up the string
+						StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");		
+						while(stzr.hasMoreTokens()) {
+							String nextie=stzr.nextToken();			
+							%> 
+							<br/><a href="mailto:<%=nextie%>?subject=Information%20Request%20for%20Stranding%20<%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=nextie%></a> 
+							<%
+						}
 				
 					}
-					else{
-			%> <%=enc.getInformOthers()%><br/> <%
-			}
+					else if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))) {
+					%> <br/>
+						<a href="mailto:<%=enc.getSubmitterEmail()%>?subject=Information%20Request%20for%20Stranding%20<%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=enc.getSubmitterEmail()%></a> 
+					<%
+					}
+					
+					if((enc.getSubmitterPhone()!=null)&&(!enc.getSubmitterPhone().equals(""))){
+					%> 
+						<br/> <%=enc.getSubmitterPhone()%>
+					<%
+					}
+					if((enc.getSubmitterAddress()!=null)&&(!enc.getSubmitterAddress().equals(""))){
+					%>
+					<br /><%=enc.getSubmitterAddress()%>
+					<%
+					}
+					
+					if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){%>
+						<br/><%=enc.getSubmitterOrganization()%>
+					<%
+					}
+					if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
+						<br/><%=enc.getSubmitterProject()%>
+					<%
+					}
+					
 				}
-				else {
-		%>
-  <%=encprops.getProperty("none") %>
-  <%
-			}
-		
- %>
- </p>
- <%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
-%>
-<!-- start sat tag metadata popup -->  
-<div id="dialogInform" title="<%=encprops.getProperty("setOthersToInform")%>" style="display:none">  
-<p><em><%=encprops.getProperty("separateEmails") %></em></p>
-  <table cellpadding="1" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top">
-        <form name="setOthers" action="../EncounterSetInformOthers" method="post">
-          <input name="encounter" type="hidden" value="<%=num%>" />
-          <input name="informothers" type="text" size="50" <%if(enc.getInformOthers()!=null){%>
-                 value="<%=enc.getInformOthers().trim()%>" <%}%> maxlength="1000" />
-          <br /> <input name="Set" type="submit" id="Set" value="<%=encprops.getProperty("set")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-	
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgInform = $("#dialogInform").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
+				
+				if (isOwner && CommonConfiguration.isCatalogEditable()) {
+				%>
+				</p>
+				<!-- start submitter popup -->  
+				<div id="dialogSubmitter" title="<%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("submitter")%>)" style="display:none">  
+					<form name="setPersonalDetails" action="../EncounterSetSubmitterPhotographerContactInfo" method="post">
+  						<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    						<tr>
+      							<td>
+       								<input type="hidden" name="contact" value="submitter" />
+									<%=encprops.getProperty("name")%><br />
+          						</td>
+          						<td>
+          							<input name="name" type="text" size="20" maxlength="100" /> 
+          						</td>
+          					</tr>          
+          					<tr>
+          						<td>
+          							<%=encprops.getProperty("email")%><br />
+          						</td>
+          						<td>
+          							<input name="email" type="text" size="20" /> 
+          						</td>
+          					</tr>
+          					<tr>
+          						<td>
+          							<%=encprops.getProperty("phone")%>
+          						</td>
+          						<td>
+          							<input name="phone" type="text" size="20" maxlength="100" /> 
+          						</td>
+          					</tr>
+          					<tr>
+          						<td>
+          							<%=encprops.getProperty("address")%>
+          						</td>
+          						<td>
+          							<input name="address" type="text" size="20" maxlength="100" /> 
+          						</td>
+          					</tr>
+          					<tr>
+          						<td>
+           							<%=encprops.getProperty("submitterOrganization")%>
+          						</td>
+          						<td>
+          							<input name="submitterOrganization" type="text" size="20" maxlength="100" /> 
+          						</td>
+          					</tr>
+          					<tr>
+          						<td>
+          							<%=encprops.getProperty("submitterProject")%>
+	   							</td>
+	   							<td>
+	   								<input name="submitterProject" type="text" size="20" maxlength="100" /> 
+	            				</td>
+	            			</tr>
+          					<tr>
+          						<td>
+            						<input name="number" type="hidden" value="<%=num%>" /> 
+            						<input name="action" type="hidden" value="editcontact" /> 
+            						<input name="EditContact" type="submit" id="EditContact" value="Update" />
+     							</td>
+    						</tr>
+  					</table>
+	 			</form>
+			</div>
 
-$("a#inform").click(function() {
-  dlgInform.dialog("open");
-});
-</script>   
-<!-- end inform others popup --> 
-<%
-}
-%>
+			<script>
+				var dlgSubmitter = $("#dialogSubmitter").dialog({
+  					autoOpen: false,
+  					draggable: false,
+  					resizable: false,
+  					width: 600
+				});
+
+				$("a#submitter").click(function() {
+  					dlgSubmitter.dialog("open");
+				});
+			</script>   
+			<!-- end submitter popup --> 
+		<%
+		}
+		%>
+		</td>
+		<td valign="top">
+			<p class="para">
+				<em><%=encprops.getProperty("photographer") %></em> 
+				<%
+ 				if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+		 		%>
+		 			<a id="photographer" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+    			<%
+ 				}
+ 				if(enc.getPhotographerName()!=null){	
+ 				%>
+ 					<br/> <%=enc.getPhotographerName()%> 
+ 				<%
+ 				}
  
+				if (isOwner) {
+
+					if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
+					%>
+						<br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=Information%20Request%20for%20Stranding%20<%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=enc.getPhotographerEmail()%></a> 
+					<%
+					}
+					if((enc.getPhotographerPhone()!=null)&&(!enc.getPhotographerPhone().equals(""))){
+					%>
+						<br/><%=enc.getPhotographerPhone()%>
+					<%
+					}
+					if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals(""))){
+					%>
+						<br/><%=enc.getPhotographerAddress()%>
+					<%
+					}
+					
+					if (isOwner && CommonConfiguration.isCatalogEditable()) {
+					%>
+						<!-- start submitter popup -->  
+						<div id="dialogPhotographer" title="<%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("photographer")%>)" style="display:none">  
+							<form action="../EncounterSetSubmitterPhotographerContactInfo" method="post">
+  								<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    								<tr>
+      									<td>
+       										<input type="hidden" name="contact" value="photographer" />
+          
+          									<%=encprops.getProperty("name")%><br />
+          								</td>
+          								<td>
+          									<input name="name" type="text" size="20" maxlength="100" /> 
+          								</td>
+          							</tr>
+          							<tr>
+          								<td>
+          									<%=encprops.getProperty("email")%><br />
+          								</td>
+          								<td>
+          									<input name="email" type="text" size="20" /> 
+          								</td>
+          							</tr>
+          							<tr>
+          								<td>
+          									<%=encprops.getProperty("phone")%>
+          								</td>
+          								<td>
+          									<input name="phone" type="text" size="20" maxlength="100" /> 
+          								</td>
+          							</tr>
+          							<tr>
+          								<td>
+          									<%=encprops.getProperty("address")%>
+          								</td>
+          								<td>
+          									<input name="address" type="text" size="20" maxlength="100" /> 
+          								</td>
+          							</tr>
+          							<tr>
+          								<td>
+            								<input name="number" type="hidden" value="<%=num%>" /> 
+            								<input name="action" type="hidden" value="editcontact" /> 
+            								<input name="EditContact" type="submit" id="EditContact" value="Update" />
+      									</td>
+    								</tr>
+  								</table>
+	 						</form>
+						</div>
+
+						<script>
+							var dlgPhotographer = $("#dialogPhotographer").dialog({
+  								autoOpen: false,
+  								draggable: false,
+ 								resizable: false,
+ 								width: 600
+							});
+
+							$("a#photographer").click(function() {
+  								dlgPhotographer.dialog("open");
+							});
+						</script>   
+						<!-- end photographer popup --> 
+					<%
+					}
+				}
+				%>
+				</p>
+				</td>
+			</tr>
+			<% 
+			if(isOwner){
+			%>
+			<tr>
+				<td colspan="2">
+					<p class="para">
+						<em>
+							<%=encprops.getProperty("inform_others") %>
+						</em> 
+						<%
+ 						if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+ 						%>
+ 							<a id="inform" class="launchPopup">
+ 								<img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
+ 							</a>
+    					<%
+ 						}
+ 						%>
+ 						<br/> 
+ 						<%
+    					if(enc.getInformOthers()!=null){
+        		
+        					if(enc.getInformOthers().indexOf(",")!=-1) {
+        						//break up the string
+        						StringTokenizer stzr=new StringTokenizer(enc.getInformOthers(),",");
+        	
+        						while(stzr.hasMoreTokens()) {
+        						%> 
+        							<%=stzr.nextToken()%><br/> 
+        						<%
+								}
+				
+							}
+							else{
+							%> 
+								<%=enc.getInformOthers()%><br/> <%
+							}
+						}
+						else {
+						%>
+  							<%=encprops.getProperty("none") %>
+  						<%
+						}
+ 						%>
+ 					</p>
+ 					<%
+					if (isOwner && CommonConfiguration.isCatalogEditable()) {
+					%>
  
- <%
+						<div id="dialogInform" title="<%=encprops.getProperty("setOthersToInform")%>" style="display:none">  
+							<p>
+								<em><%=encprops.getProperty("separateEmails") %></em>
+							</p>
+  							<table cellpadding="1" bordercolor="#FFFFFF">
+    							<tr>
+      								<td align="left" valign="top">
+        								<form name="setOthers" action="../EncounterSetInformOthers" method="post">
+          									<input name="encounter" type="hidden" value="<%=num%>" />
+          									<input name="informothers" type="text" size="50" <%if(enc.getInformOthers()!=null){%> value="<%=enc.getInformOthers().trim()%>" <%}%> maxlength="1000" />
+          									<br /> 
+          									<input name="Set" type="submit" id="Set" value="<%=encprops.getProperty("set")%>" />
+        								</form>
+      								</td>
+    							</tr>
+  							</table>
+						</div>
+                        <!-- popup dialog script -->
+						<script>
+							var dlgInform = $("#dialogInform").dialog({
+  								autoOpen: false,
+  								draggable: false,
+  								resizable: false,
+  								width: 600
+							});
+
+							$("a#inform").click(function() {
+  								dlgInform.dialog("open");
+							});
+						</script>   
+						<!-- end inform others popup --> 
+					<%
+					}
+					}
+					%>
  
-	}
- 
+ 				</td>
+ 			</tr>
+ 		</table>
+ 		<%
 		 if (isOwner) {
-%>
+		%>
 <br />
 <table width="100%" border="0" cellpadding="1">
     <tr>
