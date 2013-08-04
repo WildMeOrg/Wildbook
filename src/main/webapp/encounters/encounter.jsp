@@ -792,8 +792,56 @@ if (isOwner) {
       </td>
     </tr>
   </table>
-<br />
 <!-- END TAPIRLINK DISPLAY AND SETTER --> 
+
+
+<!-- START AUTOCOMMENTS --> 
+<p><%=encprops.getProperty("auto_comments")%> <a id="autocomments" class="launchPopup"><img height="30px" width="30px" align="middle" src="../images/Crystal_Clear_app_kaddressbook.gif" /></a></p>
+
+<!-- start autocomments popup -->  
+<div id="dialogAutoComments" title="<%=encprops.getProperty("auto_comments")%>" style="display:none">  
+<table>
+  <tr>
+    <td valign="top">
+      
+      <%
+      String rComments="";
+      if(enc.getRComments()!=null){rComments=enc.getRComments();}
+      %>
+      
+      <div style="text-align:left;border:1px solid black;width:575px;height:400px;overflow-y:scroll;overflow-x:scroll;">
+      
+      <p class="para"><%=rComments.replaceAll("\n", "<br />")%></p>
+      </div>
+      <form action="../EncounterAddComment" method="post" name="addComments">
+        <p class="para">
+          <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user" />
+          <input name="number" type="hidden" value="<%=enc.getEncounterNumber()%>" id="number" />
+          <input name="action" type="hidden" value="enc_comments" id="action" />
+		</p>
+        <p>
+          <textarea name="autocomments" cols="50" id="autocomments"></textarea> <br/>
+          <input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>" />
+        </p>
+      </form>
+    </td>
+  </tr>
+</table>
+</div>
+
+<script>
+var dlgAutoComments = $("#dialogAutoComments").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#autocomments").click(function() {
+  dlgAutoComments.dialog("open");
+});
+</script>   
+<!-- END AUTOCOMMENTS --> 
       
       <p><strong>Identity</strong></p>
       
@@ -1188,6 +1236,7 @@ $("a#occurrence").click(function() {
 %>
 <!-- END OCCURRENCE ATTRIBUTE -->    
   
+  <br />
   <p><strong>Observation Attributes</strong></p>
 <!-- START TAXONOMY ATTRIBUTE -->    
 <%
@@ -4847,51 +4896,9 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 } //end while for jspImports
 
 
-%>
 
-<br/>
-<hr />
-<table>
-  <tr>
-    <td valign="top">
-      <img align="absmiddle" src="../images/Crystal_Clear_app_kaddressbook.gif">
-    </td>
-    <td valign="top">
-      <%=encprops.getProperty("auto_comments")%>: </p>
-      <%
-        if (enc.getRComments() != null) {
-      %>
-      <div style="text-align:left;border:1px solid black;width:720px;height:400px;overflow-y:scroll;overflow-x:scroll;">
-      
-      <p class="para"><%=enc.getRComments().replaceAll("\n", "<br />")%>
-      </p>
-      </div>
-      <%
-        }
-        if (CommonConfiguration.isCatalogEditable()) {
-      %>
-      <form action="../EncounterAddComment" method="post" name="addComments">
-        <p class="para">
-          <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-          <input name="number" type="hidden" value="<%=enc.getEncounterNumber()%>" id="number">
-          <input name="action" type="hidden" value="enc_comments" id="action">
-
-        <p>
-          <textarea name="autocomments" cols="50" id="autocomments"></textarea> <br/>
-          <input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>">
-        </p>
-      </form>
-    </td>
-  </tr>
-</table>
-
-<%
-      }
-    }
-
-
-  //}
-
+  
+    			}
 %>
 
 </p>
@@ -4942,7 +4949,8 @@ catch(Exception e){
 <%
   }
 
-} else {
+} 
+    			else {
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 %>
@@ -4975,26 +4983,6 @@ catch(Exception e){
 
 <!--end wrapper -->
 
-
-<%
-if (request.getParameter("noscript") == null) {
-%>
-<script type="text/javascript">
-
-  function submitForm(oForm) {
-    // Hide the code in first div tag
-    document.getElementById('formDiv').style.display = 'none';
-
-    // Display code in second div tag
-    //document.getElementById('pleaseWaitDiv').style.display = 'block';
-
-    oForm.submit();
-  }
-
-</script>
-<%
-}
-%>
 
 
 </body>
