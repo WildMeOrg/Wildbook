@@ -772,6 +772,28 @@ $("a#user").click(function() {
 
 
 <!-- END USER ATTRIBUTE -->     
+
+<!-- START TAPIRLINK DISPLAY AND SETTER --> 		
+<%
+if (isOwner) {
+%>
+<table width="100%" border="0" cellpadding="1">
+    <tr>
+      <td height="30" class="para">   
+        <form name="setTapirLink" method="post" action="../EncounterSetTapirLinkExposure">
+              <input name="action" type="hidden" id="action" value="tapirLinkExpose" /> 
+              <input name="number" type="hidden" value="<%=num%>" /> 
+              <% 
+              String tapirCheckIcon="cancel.gif";
+              if(enc.getOKExposeViaTapirLink()){tapirCheckIcon="check_green.png";}
+              %>
+              TapirLink:&nbsp;<input align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="approve" value="<%=encprops.getProperty("change")%>" />&nbsp;<a href="<%=CommonConfiguration.getWikiLocation()%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
+        </form>
+      </td>
+    </tr>
+  </table>
+<br />
+<!-- END TAPIRLINK DISPLAY AND SETTER --> 
       
       <p><strong>Identity</strong></p>
       
@@ -1847,8 +1869,9 @@ $("a#date").click(function() {
 </script>   
 <!-- end date dialog -->  
 
-<p><strong><%=encprops.getProperty("location") %>
-</strong><br/> 
+<p>
+	<img src="../images/2globe_128.gif" width="30px" height="30px" align="absmiddle"/> <strong><%=encprops.getProperty("location") %> </strong>
+</p>	 
 <%
 if(enc.getLocation()!=null){
 %>
@@ -1888,35 +1911,163 @@ if(enc.getLocation()!=null){
     }
   %>
   
-  <br /><br /><em><%=encprops.getProperty("latitude") %></em>:
-  <%
-    if ((enc.getDWCDecimalLatitude() != null) && (!enc.getDWCDecimalLatitude().equals("-9999.0"))) {
-  %>
-  <br/> <%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLatitude()))%>
-    <%
+  <br /><br />
+ 	<!-- START MAP and GPS SETTER -->
 
-    }
-  %>
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  	%>
-  		<a href="encounter.jsp?number=<%=num%>&edit=gps#map"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  	<%
+    <script type="text/javascript">
+        var markers = [];
+        var latLng = new google.maps.LatLng(<%=enc.getDecimalLatitude()%>, <%=enc.getDecimalLongitude()%>);
+        //bounds.extend(latLng);
+         	<%  
+         	//currently unused programatically
+           	String markerText="";
+           
+           	String haploColor="CC0000";
+           	if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+        	   	haploColor=encprops.getProperty("defaultMarkerColor");
+           	}
+		   
+           
+           	%>
+       marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
+	   		<%
+	   		if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
+	   		%>
+	   			marker.setVisible(false);
+	   	
+	   		<%	
+	   		}
+ 			%>
+	   
+       markers.push(marker);
+       //map.fitBounds(bounds); 
+        
+      function fullScreen(){
+    		$("#map_canvas").addClass('full_screen_map');
+    		$('html, body').animate({scrollTop:0}, 'slow');
+    		//hide header
+    		$("#header_menu").hide();
+    		initialize();
+    		if(overlaysSet){overlaysSet=false;setOverlays();}
+    		//alert("Trying to execute fullscreen!");
     	}
-  %>
-  <br/> <em><%=encprops.getProperty("longitude") %></em>:
-  <%
-    if ((enc.getDWCDecimalLongitude() != null) && (!enc.getDWCDecimalLongitude().equals("-9999.0"))) {
-  %>
-  <br/> <%=gpsFormat.format(Double.parseDouble(enc.getDWCDecimalLongitude()))%>
-  <%
-    }
-  %>
-  <br/> 
 
-  <br/> <a href="#map"><%=encprops.getProperty("view_map") %></a>
+    	function exitFullScreen() {
+    		$("#header_menu").show();
+    		$("#map_canvas").removeClass('full_screen_map');
 
-</p>
+    		initialize();
+    		if(overlaysSet){overlaysSet=false;setOverlays();}
+    		//alert("Trying to execute exitFullScreen!");
+    	}
+
+
+    	//making the exit fullscreen button
+    	function FSControl(controlDiv, map) {
+
+    	  // Set CSS styles for the DIV containing the control
+    	  // Setting padding to 5 px will offset the control
+    	  // from the edge of the map
+    	  controlDiv.style.padding = '5px';
+
+    	  // Set CSS for the control border
+    	  var controlUI = document.createElement('DIV');
+    	  controlUI.style.backgroundColor = '#f8f8f8';
+    	  controlUI.style.borderStyle = 'solid';
+    	  controlUI.style.borderWidth = '1px';
+    	  controlUI.style.borderColor = '#a9bbdf';;
+    	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
+    	  controlUI.style.cursor = 'pointer';
+    	  controlUI.style.textAlign = 'center';
+    	  controlUI.title = 'Toggle the fullscreen mode';
+    	  controlDiv.appendChild(controlUI);
+
+    	  // Set CSS for the control interior
+    	  var controlText = document.createElement('DIV');
+    	  controlText.style.fontSize = '12px';
+    	  controlText.style.fontWeight = 'bold';
+    	  controlText.style.color = '#000000';
+    	  controlText.style.paddingLeft = '4px';
+    	  controlText.style.paddingRight = '4px';
+    	  controlText.style.paddingTop = '3px';
+    	  controlText.style.paddingBottom = '2px';
+    	  controlUI.appendChild(controlText);
+    	  //toggle the text of the button
+    	   if($("#map_canvas").hasClass("full_screen_map")){
+    	      controlText.innerHTML = 'Exit Fullscreen';
+    	    } else {
+    	      controlText.innerHTML = 'Fullscreen';
+    	    }
+
+    	  // Setup the click event listeners: toggle the full screen
+
+    	  google.maps.event.addDomListener(controlUI, 'click', function() {
+
+    	   if($("#map_canvas").hasClass("full_screen_map")){
+    	    exitFullScreen();
+    	    } else {
+    	    fullScreen();
+    	    }
+    	  });
+
+    	}
+
+      
+      
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+    
+ 	<%
+ 	if((request.getUserPrincipal()!=null) || ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
+ 	%>
+ 		<p><%=encprops.getProperty("map_note") %></p>
+ 		<div id="map_canvas" style="width: 510px; height: 350px; "></div>
+ 	<%
+ 	}
+ 	else {
+ 	%>
+ 	<p><%=encprops.getProperty("nomap") %></p>
+ 	<%
+ 	}
+ 	%>
+ 	<!-- adding ne submit GPS-->
+ 	<%
+ 	if(loggedIn && isOwner){
+ 		String longy="";
+       	String laty="";
+       	if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
+       	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
+       		
+     	%> 
+     	<a name="gps"></a>	
+     		<table>
+     			<tr>
+					<td>
+					<form name="resetGPSform" method="post" action="../EncounterSetGPS">
+				    	<input name="action" type="hidden" value="resetGPS" />
+    				
+						<strong><%=encprops.getProperty("latitude")%>:</strong>
+		
+						<input name="lat" type="text" id="lat" size="10" value="<%=laty%>" /> &deg;
+						<strong><%=encprops.getProperty("longitude")%>:</strong>
+						<input name="longitude" type="text" id="longitude" size="10" value="<%=longy%>" />&nbsp;&deg;
+						<br />
+						<input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" />
+    				
+						<br/>
+						<br/>
+						GPS coordinates are in the decimal degrees format. Do you have GPS coordinates in a different format? 
+						<a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
+						<input name="number" type="hidden" value=<%=num%> /> 
+				    				
+					</form>
+				</td>
+			</tr>
+     	</table>
+<br /> <br />    		
+ <!--end adding submit GPS-->
+ <!-- END MAP and GPS SETTER -->
+
 
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -3042,36 +3193,8 @@ $("a#dynamicPropertyAdd").click(function() {
  				</td>
  			</tr>
  		</table>
- 		<%
-		 if (isOwner) {
-		%>
-<br />
-<table width="100%" border="0" cellpadding="1">
-    <tr>
-      <td height="30" class="para"><font color="#990000">&nbsp;<img
-        align="absmiddle" src="../images/interop.gif"/> <strong>TapirLink?</strong>
-        <a href="<%=CommonConfiguration.getWikiLocation()%>tapirlink"
-           target="_blank"><img src="../images/information_icon_svg.gif"
-                                alt="Help" border="0" align="absmiddle"/></a></font></td>
-    </tr>
-    <tr>
-      <td height="30" class="para">&nbsp; <%=encprops.getProperty("currentValue")%>
-        : <%=enc.getOKExposeViaTapirLink()%>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <form name="approve_form" method="post"
-              action="../EncounterSetTapirLinkExposure"><input name="action"
-                                                               type="hidden" id="action"
-                                                               value="tapirLinkExpose"> <input
-          name="number" type="hidden" value=<%=num%>> <input
-          name="approve" type="submit" id="approve" value="<%=encprops.getProperty("change")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-<br />
+ 		
+
 
   <!-- Display spot patterning so long as show_spotpatterning is not false in commonCOnfiguration.properties-->
     <%
@@ -4694,193 +4817,10 @@ else {
 <%
 }
 } //end if loggedIn
+
+
+//if (request.getParameter("noscript")==null) {
 %>
-<p>
-    <%
-	  	  	  	if (request.getParameter("noscript")==null) {
-	  	  	  %>
-<hr />
-<p><a name="map"><strong><img src="../images/2globe_128.gif" width="56" height="56" align="absmiddle"/></a><%=encprops.getProperty("mapping") %></strong></p>
-
-
-
-
-
-    <script type="text/javascript">
-
-       
-
-    	  
-        var markers = [];
- 
- 
-
-          
-          var latLng = new google.maps.LatLng(<%=enc.getDecimalLatitude()%>, <%=enc.getDecimalLongitude()%>);
-          //bounds.extend(latLng);
-           <%
-
-           
-           //currently unused programatically
-           String markerText="";
-           
-           String haploColor="CC0000";
-           if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   haploColor=encprops.getProperty("defaultMarkerColor");
-           }
-		   
-           
-           %>
-           marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
-           
-           
-           
-	   
-	   <%
-	   if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
-	   %>
-	   	marker.setVisible(false);
-	   	
-	   <%	
-	   }
-	   
- 	%>
-	   
-          markers.push(marker);
-          //map.fitBounds(bounds); 
-          
-
-      
-      function fullScreen(){
-    		$("#map_canvas").addClass('full_screen_map');
-    		$('html, body').animate({scrollTop:0}, 'slow');
-    		//hide header
-    		$("#header_menu").hide();
-    		initialize();
-    		
-    		
-    		
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute fullscreen!");
-    	}
-
-
-    	function exitFullScreen() {
-    		$("#header_menu").show();
-    		$("#map_canvas").removeClass('full_screen_map');
-
-    		initialize();
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute exitFullScreen!");
-    	}
-
-
-    	//making the exit fullscreen button
-    	function FSControl(controlDiv, map) {
-
-    	  // Set CSS styles for the DIV containing the control
-    	  // Setting padding to 5 px will offset the control
-    	  // from the edge of the map
-    	  controlDiv.style.padding = '5px';
-
-    	  // Set CSS for the control border
-    	  var controlUI = document.createElement('DIV');
-    	  controlUI.style.backgroundColor = '#f8f8f8';
-    	  controlUI.style.borderStyle = 'solid';
-    	  controlUI.style.borderWidth = '1px';
-    	  controlUI.style.borderColor = '#a9bbdf';;
-    	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-    	  controlUI.style.cursor = 'pointer';
-    	  controlUI.style.textAlign = 'center';
-    	  controlUI.title = 'Toggle the fullscreen mode';
-    	  controlDiv.appendChild(controlUI);
-
-    	  // Set CSS for the control interior
-    	  var controlText = document.createElement('DIV');
-    	  controlText.style.fontSize = '12px';
-    	  controlText.style.fontWeight = 'bold';
-    	  controlText.style.color = '#000000';
-    	  controlText.style.paddingLeft = '4px';
-    	  controlText.style.paddingRight = '4px';
-    	  controlText.style.paddingTop = '3px';
-    	  controlText.style.paddingBottom = '2px';
-    	  controlUI.appendChild(controlText);
-    	  //toggle the text of the button
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = 'Exit Fullscreen';
-    	    } else {
-    	      controlText.innerHTML = 'Fullscreen';
-    	    }
-
-    	  // Setup the click event listeners: toggle the full screen
-
-    	  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	    exitFullScreen();
-    	    } else {
-    	    fullScreen();
-    	    }
-    	  });
-
-    	}
-
-      
-      
-      google.maps.event.addDomListener(window, 'load', initialize);
-    </script>
-    
-  <%
- if((request.getUserPrincipal()!=null) || ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
- %>
- <p><%=encprops.getProperty("map_note") %></p>
- <div id="map_canvas" style="width: 510px; height: 350px; "></div>
- <%
- }
- else {
- %>
- <p><%=encprops.getProperty("nomap") %></p>
- <%
- }
- %>
- <!-- adding ne submit GPS-->
- <%
- if(loggedIn && isOwner){
- String longy="";
-       		String laty="";
-       		if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
-       		if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
-       		
-     		%> <a name="gps"></a>
-     		
-     		
-     		<table>
-     		<tr>
-				<td>
-				<form name="resetGPSform" method="post" action="../EncounterSetGPS">
-				    <input name="action" type="hidden" value="resetGPS" />
-    				
-				<strong><%=encprops.getProperty("latitude")%>:</strong>
-		
-					<input name="lat" type="text" id="lat" size="10" value="<%=laty%>" /> &deg;
-					<strong><%=encprops.getProperty("longitude")%>:</strong>
-				<input name="longitude" type="text" id="longitude" size="10" value="<%=longy%>" />
-				&deg;
-				<br />
-				<input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" />
-    				
-				<br/>
-				<br/> GPS coordinates are in the decimal degrees
-				format. Do you have GPS coordinates in a different format? <a
-					href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click
-				here to find a converter.</a>
-				<input name="number" type="hidden" value=<%=num%> /> 
-				    				
-					</form></td>
-	</tr>
-     		</table>
-     		
- <!--end adding submit GPS-->
 
 <%
 }
@@ -4898,7 +4838,7 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 		<jsp:include page="<%=importName %>" flush="true">
 			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 			<jsp:param name="encounterNumber" value="<%=num%>" />
-    		<jsp:param name="isOwner" value="<%=isOwnerValue %>" />
+    		<jsp:param name="isOwner" value="<%=isOwner %>" />
 		</jsp:include>
 
     <%
@@ -4950,7 +4890,7 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
     }
 
 
-  }
+  //}
 
 %>
 
