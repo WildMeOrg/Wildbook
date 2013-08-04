@@ -71,7 +71,8 @@
 
       }
       return returnString;
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       e.printStackTrace();
       return returnString;
     }
@@ -133,7 +134,7 @@ File encounterDir = new File(encountersDir, num);
   pageContext.setAttribute("set", encprops.getProperty("set"));
 %>
 
-
+<html>
 
 <head>
   <title><%=encprops.getProperty("encounter") %> <%=num%>
@@ -564,7 +565,7 @@ margin-bottom: 8px !important;
 								<%    
  								if((CommonConfiguration.showUsersToPublic())||(request.getUserPrincipal()!=null)){
  								%>
-    							<p class="para">
+    							
     							<table>
     								<tr>
     									<td>
@@ -588,7 +589,7 @@ margin-bottom: 8px !important;
                         	 				String username=enc.getAssignedUsername();
                          					if(myShepherd.getUser(username)!=null){
                          					%>
-                                			<table align="middle">
+                                			<table>
                                 			<%
                          	
                          					User thisUser=myShepherd.getUser(username);
@@ -768,7 +769,7 @@ $("a#user").click(function() {
                         </td>
 
     
-    </tr></table></p>
+    </tr></table>
 
 
 <!-- END USER ATTRIBUTE -->     
@@ -793,7 +794,9 @@ if (isOwner) {
     </tr>
   </table>
 <!-- END TAPIRLINK DISPLAY AND SETTER --> 
-
+<%
+}
+%>
 
 <!-- START AUTOCOMMENTS --> 
 <p><%=encprops.getProperty("auto_comments")%> <a id="autocomments" class="launchPopup"><img height="30px" width="30px" align="middle" src="../images/Crystal_Clear_app_kaddressbook.gif" /></a></p>
@@ -873,6 +876,7 @@ $("a#autocomments").click(function() {
       								<%
         							}
       								%>
+      								<br /> 
       								<br /> 
       								<img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>: <%=enc.getMatchedBy()%>
       								<%
@@ -4872,9 +4876,8 @@ else {
 %>
 
 <%
-}
 
-if(loggedIn){
+
 
 //now iterate through the jspImport# declarations in encounter.properties and import those files locally
 int currentImportNum=0;
@@ -4896,9 +4899,6 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 } //end while for jspImports
 
 
-
-  
-    			}
 %>
 
 </p>
@@ -4907,28 +4907,6 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 
 </table>
 
-<br/>
-<table>
-  <tr>
-    <td>
-      <%
-      if(enc.getInterestedResearchers()!=null){
-        Vector trackers = enc.getInterestedResearchers();
-        if ((isOwner) && (trackers.size() > 0)) {%>
-
-      <p><font size="-1"><%=encprops.getProperty("trackingEmails")%>: <%
-
-        int numTrack = trackers.size();
-        for (int track = 0; track < numTrack; track++) {%> <a
-        href="mailto:<%=((String)trackers.get(track))%>"><%=((String) trackers.get(track))%>
-      </a></a>&nbsp;|&nbsp;
-        <%}%></font></p>
-
-      <%}
-      }%>
-    </td>
-  </tr>
-</table>
 
 <%
 
@@ -4941,33 +4919,32 @@ myShepherd=null;
 }
 catch(Exception e){
 	e.printStackTrace();
-%>
-<p>Hit an error.<br /> <%=e.toString()%>
-</p>
+	%>
+	<p>Hit an error.<br /> <%=e.toString()%></p>
+
 </body>
 </html>
 <%
-  }
+}
 
-} 
-    			else {
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-%>
-<p class="para">There is no encounter #<%=num%> in the database.
-  Please double-check the encounter number and try again.</p>
+	}  //end if this is an encounter
+    else {
+  		myShepherd.rollbackDBTransaction();
+  		myShepherd.closeDBTransaction();
+		%>
+		<p class="para">There is no encounter #<%=num%> in the database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
-  to encounter: </strong> <input name="number" type="text" value="<%=num%>"
-                                 size="20"> <input name="Go" type="submit" value="Submit"></form>
+  to encounter: </strong> <input name="number" type="text" value="<%=num%>" size="20"> <input name="Go" type="submit" value="Submit"></form>
 <p><font color="#990000"><a href="allEncounters.jsp">View
   all encounters</a></font></p>
 
-<p><font color="#990000"><a href="../allIndividuals.jsp">View
-  all individuals</a></font></p>
+<p><font color="#990000"><a href="../allIndividuals.jsp">View all individuals</a></font></p>
 
-<p></p>
-<%}%>
+
+<%
+}
+%>
 
 
 </div>
