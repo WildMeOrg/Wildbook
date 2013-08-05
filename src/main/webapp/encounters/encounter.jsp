@@ -491,14 +491,14 @@ margin-bottom: 8px !important;
 								
 								
       
-      <p><strong>Identity</strong></p>
+      <p><img align="absmiddle" src="../images/tag_big.gif" width="30px" height="30px" /> <strong>Identity</strong></p>
       
 								<!-- START INDIVIDUALID ATTRIBUTE -->
     							<%
     							if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
   								%>
     							<p class="para">
-    								<img align="absmiddle" src="../images/tag_big.gif" width="50px" height="50px" /> <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%> 
+    								 <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%> 
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable()) {
      								%>
@@ -512,8 +512,8 @@ margin-bottom: 8px !important;
     							else {
     							%>
     							<p class="para">
-    								<img align="absmiddle" src="../images/tag_big.gif" width="50px" height="50px" />
-      								<%=encprops.getProperty("identified_as") %>: <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a>
+    								
+      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable()) {
       								%>
@@ -886,8 +886,9 @@ $("a#occurrence").click(function() {
 <!-- END OCCURRENCE ATTRIBUTE -->    
   
 <br />
-<p><strong><%=encprops.getProperty("date") %>
-</strong><br/>
+
+<p><img align="absmiddle" src="../images/calendar.png" width="30px" height="30px" /> <strong><%=encprops.getProperty("date") %>
+</strong><br/><br/>
   <a
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
     <%=enc.getDate()%>
@@ -1024,7 +1025,7 @@ $("a#VBDate").click(function() {
           <%
             }
           %>
-        </select><br> <em>&nbsp;<%=encprops.getProperty("month")%>
+        </select><br /> <em>&nbsp;<%=encprops.getProperty("month")%>
         </em> <select name="month" id="month">
           <option value="-1">?</option>
           <%
@@ -1035,7 +1036,7 @@ $("a#VBDate").click(function() {
           <%
             }
           %>
-        </select><br> <em>&nbsp;<%=encprops.getProperty("year")%>
+        </select><br /> <em>&nbsp;<%=encprops.getProperty("year")%>
         </em> <select name="year" id="year">
           <option value="-1">?</option>
 
@@ -1047,7 +1048,7 @@ $("a#VBDate").click(function() {
           <%
             }
           %>
-        </select><br> <em>&nbsp;<%=encprops.getProperty("hour")%>
+        </select><br /> <em>&nbsp;<%=encprops.getProperty("hour")%>
         </em> <select name="hour" id="hour">
           <option value="-1" selected>?</option>
           <option value="6">6 am</option>
@@ -1065,18 +1066,16 @@ $("a#VBDate").click(function() {
           <option value="18">6 pm</option>
           <option value="19">7 pm</option>
           <option value="20">8 pm</option>
-        </select><br> <em>&nbsp;<%=encprops.getProperty("minutes")%>
+        </select><br /> <em>&nbsp;<%=encprops.getProperty("minutes")%>
         </em> <select name="minutes" id="minutes">
           <option value="00" selected>:00</option>
           <option value="15">:15</option>
           <option value="30">:30</option>
           <option value="45">:45</option>
-        </select><br> <input name="number" type="hidden" value="<%=num%>"
-                             id="number"> <input name="action" type="hidden"
-                                                 value="changeEncounterDate"> <input name="AddDate"
-                                                                                     type="submit"
-                                                                                     id="AddDate"
-                                                                                     value="<%=encprops.getProperty("setDate")%>">
+        </select><br /> 
+        <input name="number" type="hidden" value="<%=num%>" id="number" /> 
+        <input name="action" type="hidden" value="changeEncounterDate" /> 
+        <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setDate")%>" />
         </form>
       </td>
     </tr>
@@ -1097,465 +1096,6 @@ $("a#date").click(function() {
 </script>   
 <!-- end date dialog -->  
   
-  <br />
-  <p><strong>Observation Attributes</strong></p>
-<!-- START TAXONOMY ATTRIBUTE -->    
-<%
-    if(CommonConfiguration.showProperty("showTaxonomy")){
-    
-    String genusSpeciesFound=encprops.getProperty("notAvailable");
-    if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
-    %>
-    
-        <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>&nbsp;<%
-            if (isOwner && CommonConfiguration.isCatalogEditable()) {
-          %><a id="taxon" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
-            }
-          %>
-       </p>
-
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-    %>
-    <!-- start set taxonomy ID popup -->  
-<div id="dialogTaxon" title="<%=encprops.getProperty("resetTaxonomy")%>" style="display:none">  
-			<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-			  <tr>
-			    <td align="left" valign="top">
-			      <form name="taxonomyForm" action="../EncounterSetGenusSpecies" method="post">
-			           <img align="absmiddle" src="../images/taxontree.gif" /> <select name="genusSpecies" id="genusSpecies">
-			            	<option value="unknown"><%=encprops.getProperty("notAvailable")%></option>
-			       
-			       <%
-			       boolean hasMoreTax=true;
-			       int taxNum=0;
-			       while(hasMoreTax){
-			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
-			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
-			       	  	%>
-			       	  	 
-			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies).replaceAll("_"," ")%></option>
-			       	  	<%
-			       		taxNum++;
-			          }
-			          else{
-			             hasMoreTax=false;
-			          }
-			          
-			       }
-			       %>
-			       
-			       
-			      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
-			        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
-			      </form>
-			    </td>
-			  </tr>
-			</table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgTaxon = $("#dialogTaxon").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#taxon").click(function() {
-  dlgTaxon.dialog("open");
-});
-</script> 
-<%
-}
-
-
-}
-%>
-<!-- END TAXONOMY ATTRIBUTE -->  
-
-
-<!-- START ALIVE-DEAD ATTRIBUTE -->      
-<p class="para"><img align="absmiddle" src="../images/life_icon.gif">
-      <%=encprops.getProperty("status")%>: 
-      <%
-      if(enc.getLivingStatus()!=null){
-      %>
-      <%=enc.getLivingStatus()%>
-       <%
-    }
-        if (isOwner && CommonConfiguration.isCatalogEditable()) {
-      %><a id="livingStatus" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
-        }
-      %>
-    </p>
-    <%
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-    %>
-        <!-- start set living status popup -->  
-<div id="dialogLivingStatus" title="<%=encprops.getProperty("resetStatus")%>" style="display:none">  
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-  <tr>
-    <td align="left" valign="top">
-      <form name="livingStatusForm" action="../EncounterSetLivingStatus" method="post">    
-            <select name="livingStatus" id="livingStatus">
-        <option value="alive" selected><%=encprops.getProperty("alive")%></option>
-        <option value="dead"><%=encprops.getProperty("dead")%></option>
-      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number" />
-        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetStatus")%>" />
-      </form>
-    </td>
-  </tr>
-</table>
-</div>
-<!-- popup dialog script -->
-<script>
-var dlgLivingStatus = $("#dialogLivingStatus").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#livingStatus").click(function() {
-  dlgLivingStatus.dialog("open");
-});
-</script> 
-<%
-    }
-%>
-<!-- END ALIVE-DEAD ATTRIBUTE -->  
-
-<!--  START SEX SECTION --> 
-<p class="para"><%=encprops.getProperty("sex") %>&nbsp;<%=enc.getSex()%> 
-<%
-if(isOwner&&CommonConfiguration.isCatalogEditable()) {	
- %>
- <a id="sex" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-<%
-}
-%>
-</p>
-<%
-if(isOwner&&CommonConfiguration.isCatalogEditable()) {
-%>    
-<!-- start elevation popup -->  
-<div id="dialogSex" title="<%=encprops.getProperty("resetSex")%>" style="display:none">  
-
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-  <tr>
-    <td align="left" valign="top">
-      <form name="setxencshark" action="../EncounterSetSex" method="post">
-        <select name="selectSex" size="1" id="selectSex">
-          <option value="unknown" selected><%=encprops.getProperty("unknown")%>
-          </option>
-          <option value="male"><%=encprops.getProperty("male")%>
-          </option>
-          <option value="female"><%=encprops.getProperty("female")%>
-          </option>
-        </select> 
-        <input name="number" type="hidden" value="<%=num%>" id="number" />
-        <input name="action" type="hidden" value="setEncounterSex" />
-        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetSex")%>" />
-      </form>
-    </td>
-  </tr>
-</table>
-</div>
-
-<!-- popup dialog script -->
-<script>
-var dlgSex = $("#dialogSex").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#sex").click(function() {
-  dlgSex.dialog("open");
-});
-</script>   
-<!-- end sex popup --> 
-<%
- 	}
- %>
- <!--  END SEX SECTION --> 
-
-
-<!--  START SCARRING SECTION --> 
-<p class="para"><%=encprops.getProperty("scarring") %>&nbsp;
-
-<%
-String recordedScarring="";
-if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar();}
-%>
-<%=recordedScarring%>
-<%
-if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %>
-<a id="scar" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-<%
-}
-%>
-</p>
-<%
-if(isOwner&&CommonConfiguration.isCatalogEditable()) {
- %>    
-<div id="dialogScar" title="<%=encprops.getProperty("editScarring")%>" style="display:none">  
-
-  <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencsize" action="../EncounterSetScarring" method="post">
-          <textarea name="scars" size="15"><%=enc.getDistinguishingScar()%>
-          </textarea>
-          <input name="number" type="hidden" value="<%=num%>" id="number" />
-          <input name="action" type="hidden" value="setScarring" /> 
-          <br />
-          <input name="Add" type="submit" id="scar" value="<%=encprops.getProperty("resetScarring")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-
-<!-- popup dialog script -->
-<script>
-var dlgScar = $("#dialogScar").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#scar").click(function() {
-  dlgScar.dialog("open");
-});
-</script>   
-    
-    
-    <%
- 	}
- 	%>
-<!--  END SCARRING SECTION --> 
- 	
- 	
-<!--  START BEHAVIOR SECTION --> 
-<p class="para"><%=encprops.getProperty("behavior") %>&nbsp;
-
-  <%
-    if (enc.getBehavior() != null) {
-  %>
-  <%=enc.getBehavior()%>
-  <%
-  } else {
-  %>
-  <%=encprops.getProperty("none")%>
-  <%
-    }
-  
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
-	  %>
-<a id="behavior" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-	  <%
-	    }
-%>
-</p>
-
-
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-    %>
-    <!-- start set behavior popup -->  
-<div id="dialogBehavior" title="<%=encprops.getProperty("editBehaviorComments")%>" style="display:none">  
-			  <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top" class="para">
-      	<p><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></p>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setBehaviorComments" action="../EncounterSetBehavior" method="post">
-        <textarea name="behaviorComment" cols="50"><%
-        
-         if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
-         %>
-<%=enc.getBehavior().trim()%>
-        <%
-        }
-        %>
-        </textarea>
-          <input name="number" type="hidden" value="<%=num%>" /> 
-          <input name="action" type="hidden" value="editBehavior" /> <br />
-          <input name="EditBeh" type="submit" id="EditBeh" value="<%=encprops.getProperty("submitEdit")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-
-<!-- popup dialog script -->
-<script>
-var dlgBehavior = $("#dialogBehavior").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#behavior").click(function() {
-  dlgBehavior.dialog("open");
-});
-</script> 
-<%
-}
-%>
-<!--  END BEHAVIOR SECTION --> 
-
-
-<!--  START LIFESTAGE SECTION --> 
-<%
-  if (CommonConfiguration.showProperty("showLifestage")) {
-%>
-<p class="para"><%=encprops.getProperty("lifeStage")%>&nbsp;   
-
-  <%
-    if (enc.getLifeStage() != null) {
-  %>
-  <%=enc.getLifeStage()%>
-  <%
-  } 
- %>
- <%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %>
-  <a id="LifeStage" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
-  %>
-</p>
-
- <%
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-    %>
-    <!-- start set life stage popup -->  
-<div id="dialogLifeStage" title="<%=encprops.getProperty("resetLifeStage")%>" style="display:none">  
-	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-			
-						  <tr>
-						    <td align="left" valign="top">
-						      <form name="lifeStageForm" action="../EncounterSetLifeStage" method="post">
-						            <select name="lifeStage" id="lifeStage">
-						            	<option value=""></option>
-						       
-						       <%
-						       boolean hasMoreStages=true;
-						       int taxNum=0;
-						       while(hasMoreStages){
-						       	  String currentLifeStage = "lifeStage"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreStages=false;
-						          }
-						          
-						       }
-						       %>
-						       
-						       
-						      </select> 
-						      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
-						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
-						      </form>
-						    </td>
-						  </tr>
-						</table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgLifeStage = $("#dialogLifeStage").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#LifeStage").click(function() {
-  dlgLifeStage.dialog("open");
-});
-</script> 
-<%
-  }
-}
-  %>
-<!--  END LIFESTAGE SECTION -->  
- 
-    
-<!-- START ADDITIONAL COMMENTS -->
-<p class="para"><%=encprops.getProperty("comments") %>
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %>&nbsp;<a id="comments" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
-  %>
-<br/> 
-<%
-String recordedComments="";
-if(enc.getComments()!=null){recordedComments=enc.getComments();}
-%>
-<%=recordedComments%><br/>
-
-</p>
-<%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
-%>
-
-<div id="dialogComments" title="<%=encprops.getProperty("editSubmittedComments")%>" style="display:none">  
-
-<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
- 
-      <td align="left" valign="top" cols="50">
-        <form name="setComments" action="../EncounterSetOccurrenceRemarks" method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%>
-</textarea>
-          <input name="number" type="hidden" value="<%=num%>" /> 
-          <input name="action" type="hidden" value="editComments" /> 
-           <br /><input name="EditComm" type="submit" id="EditComm" value="<%=encprops.getProperty("submitEdit")%>" /></form>
-      </td>
-    </tr>
-  </table>
-	
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgComments = $("#dialogComments").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#comments").click(function() {
-  dlgComments.dialog("open");
-});
-</script>   
-<!-- end addtl comments popup --> 
-<%
-}
-%>
-<!-- END ADDITIONAL COMMENTS -->
       <%
 
   String isLoggedInValue="true";
@@ -1568,7 +1108,7 @@ $("a#comments").click(function() {
   
 
 
-
+<br />
 <p>
 	<img src="../images/2globe_128.gif" width="30px" height="30px" align="absmiddle"/> <strong><%=encprops.getProperty("location") %> </strong>
 </p>	 
@@ -2070,7 +1610,469 @@ $("a#elev").click(function() {
 <%
   }
 %>
-<!-- End Display maximumElevationInMeters -->
+<!-- End Display maximumElevationInMeters -->  
+  
+  
+  <br />
+  <p><strong>Observation Attributes</strong></p>
+<!-- START TAXONOMY ATTRIBUTE -->    
+<%
+    if(CommonConfiguration.showProperty("showTaxonomy")){
+    
+    String genusSpeciesFound=encprops.getProperty("notAvailable");
+    if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
+    %>
+    
+        <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
+          <%=encprops.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>&nbsp;<%
+            if (isOwner && CommonConfiguration.isCatalogEditable()) {
+          %><a id="taxon" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+            }
+          %>
+       </p>
+
+  <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    %>
+    <!-- start set taxonomy ID popup -->  
+<div id="dialogTaxon" title="<%=encprops.getProperty("resetTaxonomy")%>" style="display:none">  
+			<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+			  <tr>
+			    <td align="left" valign="top">
+			      <form name="taxonomyForm" action="../EncounterSetGenusSpecies" method="post">
+			           <img align="absmiddle" src="../images/taxontree.gif" /> <select name="genusSpecies" id="genusSpecies">
+			            	<option value="unknown"><%=encprops.getProperty("notAvailable")%></option>
+			       
+			       <%
+			       boolean hasMoreTax=true;
+			       int taxNum=0;
+			       while(hasMoreTax){
+			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
+			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
+			       	  	%>
+			       	  	 
+			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies).replaceAll("_"," ")%></option>
+			       	  	<%
+			       		taxNum++;
+			          }
+			          else{
+			             hasMoreTax=false;
+			          }
+			          
+			       }
+			       %>
+			       
+			       
+			      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
+			        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
+			      </form>
+			    </td>
+			  </tr>
+			</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgTaxon = $("#dialogTaxon").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#taxon").click(function() {
+  dlgTaxon.dialog("open");
+});
+</script> 
+<%
+}
+
+
+}
+%>
+<!-- END TAXONOMY ATTRIBUTE -->  
+
+
+<!-- START ALIVE-DEAD ATTRIBUTE -->      
+<p class="para"><img align="absmiddle" src="../images/life_icon.gif">
+      <%=encprops.getProperty("status")%>: 
+      <%
+      if(enc.getLivingStatus()!=null){
+      %>
+      <%=enc.getLivingStatus()%>
+       <%
+    }
+        if (isOwner && CommonConfiguration.isCatalogEditable()) {
+      %><a id="livingStatus" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
+        }
+      %>
+    </p>
+    <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    %>
+        <!-- start set living status popup -->  
+<div id="dialogLivingStatus" title="<%=encprops.getProperty("resetStatus")%>" style="display:none">  
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+  <tr>
+    <td align="left" valign="top">
+      <form name="livingStatusForm" action="../EncounterSetLivingStatus" method="post">    
+            <select name="livingStatus" id="livingStatus">
+        <option value="alive" selected><%=encprops.getProperty("alive")%></option>
+        <option value="dead"><%=encprops.getProperty("dead")%></option>
+      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number" />
+        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetStatus")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+</div>
+<!-- popup dialog script -->
+<script>
+var dlgLivingStatus = $("#dialogLivingStatus").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#livingStatus").click(function() {
+  dlgLivingStatus.dialog("open");
+});
+</script> 
+<%
+    }
+%>
+<!-- END ALIVE-DEAD ATTRIBUTE -->  
+
+<!--  START SEX SECTION --> 
+<p class="para"><%=encprops.getProperty("sex") %>&nbsp;<%=enc.getSex()%> 
+<%
+if(isOwner&&CommonConfiguration.isCatalogEditable()) {	
+ %>
+ <a id="sex" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%
+}
+%>
+</p>
+<%
+if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+%>    
+<!-- start elevation popup -->  
+<div id="dialogSex" title="<%=encprops.getProperty("resetSex")%>" style="display:none">  
+
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+  <tr>
+    <td align="left" valign="top">
+      <form name="setxencshark" action="../EncounterSetSex" method="post">
+        <select name="selectSex" size="1" id="selectSex">
+          <option value="unknown" selected><%=encprops.getProperty("unknown")%>
+          </option>
+          <option value="male"><%=encprops.getProperty("male")%>
+          </option>
+          <option value="female"><%=encprops.getProperty("female")%>
+          </option>
+        </select> 
+        <input name="number" type="hidden" value="<%=num%>" id="number" />
+        <input name="action" type="hidden" value="setEncounterSex" />
+        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetSex")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+</div>
+
+<!-- popup dialog script -->
+<script>
+var dlgSex = $("#dialogSex").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#sex").click(function() {
+  dlgSex.dialog("open");
+});
+</script>   
+<!-- end sex popup --> 
+<%
+ 	}
+ %>
+ <!--  END SEX SECTION --> 
+
+
+<!--  START SCARRING SECTION --> 
+<p class="para"><%=encprops.getProperty("scarring") %>&nbsp;
+
+<%
+String recordedScarring="";
+if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar();}
+%>
+<%=recordedScarring%>
+<%
+if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+ %>
+<a id="scar" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%
+}
+%>
+</p>
+<%
+if(isOwner&&CommonConfiguration.isCatalogEditable()) {
+ %>    
+<div id="dialogScar" title="<%=encprops.getProperty("editScarring")%>" style="display:none">  
+
+  <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr>
+      <td align="left" valign="top">
+        <form name="setencsize" action="../EncounterSetScarring" method="post">
+          <textarea name="scars" size="15"><%=enc.getDistinguishingScar()%>
+          </textarea>
+          <input name="number" type="hidden" value="<%=num%>" id="number" />
+          <input name="action" type="hidden" value="setScarring" /> 
+          <br />
+          <input name="Add" type="submit" id="scar" value="<%=encprops.getProperty("resetScarring")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- popup dialog script -->
+<script>
+var dlgScar = $("#dialogScar").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#scar").click(function() {
+  dlgScar.dialog("open");
+});
+</script>   
+    
+    
+    <%
+ 	}
+ 	%>
+<!--  END SCARRING SECTION --> 
+ 	
+ 	
+<!--  START BEHAVIOR SECTION --> 
+<p class="para"><%=encprops.getProperty("behavior") %>&nbsp;
+
+  <%
+    if (enc.getBehavior() != null) {
+  %>
+  <%=enc.getBehavior()%>
+  <%
+  } else {
+  %>
+  <%=encprops.getProperty("none")%>
+  <%
+    }
+  
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+	  %>
+<a id="behavior" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+	  <%
+	    }
+%>
+</p>
+
+
+  <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    %>
+    <!-- start set behavior popup -->  
+<div id="dialogBehavior" title="<%=encprops.getProperty("editBehaviorComments")%>" style="display:none">  
+			  <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top" class="para">
+      	<p><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></p>
+      </td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="setBehaviorComments" action="../EncounterSetBehavior" method="post">
+        <textarea name="behaviorComment" cols="50"><%
+        
+         if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
+         %>
+<%=enc.getBehavior().trim()%>
+        <%
+        }
+        %>
+        </textarea>
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="editBehavior" /> <br />
+          <input name="EditBeh" type="submit" id="EditBeh" value="<%=encprops.getProperty("submitEdit")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- popup dialog script -->
+<script>
+var dlgBehavior = $("#dialogBehavior").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#behavior").click(function() {
+  dlgBehavior.dialog("open");
+});
+</script> 
+<%
+}
+%>
+<!--  END BEHAVIOR SECTION --> 
+
+
+<!--  START LIFESTAGE SECTION --> 
+<%
+  if (CommonConfiguration.showProperty("showLifestage")) {
+%>
+<p class="para"><%=encprops.getProperty("lifeStage")%>&nbsp;   
+
+  <%
+    if (enc.getLifeStage() != null) {
+  %>
+  <%=enc.getLifeStage()%>
+  <%
+  } 
+ %>
+ <%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>
+  <a id="LifeStage" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+  <%
+    }
+  %>
+</p>
+
+ <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    %>
+    <!-- start set life stage popup -->  
+<div id="dialogLifeStage" title="<%=encprops.getProperty("resetLifeStage")%>" style="display:none">  
+	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+			
+						  <tr>
+						    <td align="left" valign="top">
+						      <form name="lifeStageForm" action="../EncounterSetLifeStage" method="post">
+						            <select name="lifeStage" id="lifeStage">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreStages=true;
+						       int taxNum=0;
+						       while(hasMoreStages){
+						       	  String currentLifeStage = "lifeStage"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreStages=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select> 
+						      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
+						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
+						      </form>
+						    </td>
+						  </tr>
+						</table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgLifeStage = $("#dialogLifeStage").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#LifeStage").click(function() {
+  dlgLifeStage.dialog("open");
+});
+</script> 
+<%
+  }
+}
+  %>
+<!--  END LIFESTAGE SECTION -->  
+ 
+    
+<!-- START ADDITIONAL COMMENTS -->
+<p class="para"><%=encprops.getProperty("comments") %>
+  <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>&nbsp;<a id="comments" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+  <%
+    }
+  %>
+<br/> 
+<%
+String recordedComments="";
+if(enc.getComments()!=null){recordedComments=enc.getComments();}
+%>
+<%=recordedComments%><br/>
+
+</p>
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+
+<div id="dialogComments" title="<%=encprops.getProperty("editSubmittedComments")%>" style="display:none">  
+
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+ 
+      <td align="left" valign="top" cols="50">
+        <form name="setComments" action="../EncounterSetOccurrenceRemarks" method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%>
+</textarea>
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="action" type="hidden" value="editComments" /> 
+           <br /><input name="EditComm" type="submit" id="EditComm" value="<%=encprops.getProperty("submitEdit")%>" /></form>
+      </td>
+    </tr>
+  </table>
+	
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgComments = $("#dialogComments").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#comments").click(function() {
+  dlgComments.dialog("open");
+});
+</script>   
+<!-- end addtl comments popup --> 
+<%
+}
+%>
+<!-- END ADDITIONAL COMMENTS -->
+
 
 <p><strong>Metadata</strong></p>
 								
@@ -3270,7 +3272,7 @@ $("a#dynamicPropertyAdd").click(function() {
 
 
 
-<td width="250" align="left" valign="top">
+<td width="250px" align="left" valign="top">
 <%
 //String isLoggedInValue="true";
 //String isOwnerValue="true";
