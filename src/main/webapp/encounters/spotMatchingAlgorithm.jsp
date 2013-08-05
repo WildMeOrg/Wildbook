@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -20,7 +20,9 @@
   --%>
 
 <%
-
+if(CommonConfiguration.useSpotPatternRecognition()){
+	
+	
 String encNum = request.getParameter("encounterNumber");
 
 
@@ -35,6 +37,12 @@ Shepherd myShepherd = new Shepherd();
 
 		
 try {
+	
+  	
+
+	
+	
+	
   //get the encounter number
  
   //set up the JDO pieces and Shepherd
@@ -47,6 +55,8 @@ try {
   if (session.getAttribute("langCode") != null) {
     langCode = (String) session.getAttribute("langCode");
   }
+
+  
   
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode);
 //handle translation
@@ -70,31 +80,22 @@ try {
 
 
 	<!-- Display spot patterning so long as show_spotpatterning is not false in commonCOnfiguration.properties-->
-  	<%
-	if(CommonConfiguration.useSpotPatternRecognition()){
-	%>
 
-	<p class="para">  
-  
+	
+  <p class="para"><strong><em>Extracted Spots</em></strong></p>
   		<%
 		//kick off a scan
 		if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
 		%> 
-		<br/>
+		
 		<table width="100%" border="0" cellpadding="1" cellspacing="0">
 			<tr>
   				<td align="left" valign="top">
     				<p class="para">
-    					<font color="#990000">
-    						<strong>
-    							<img align="absmiddle" src="../images/Crystal_Clear_action_find.gif"/>Find Pattern Match
-    						</strong>
-    					</font> 
-    					<a href="<%=CommonConfiguration.getWikiLocation()%>sharkgrid" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a><br/>
-                         <br/><br/>
+    					
   						<%
-						String ready="No. Please add spot data.";
-	  					if ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) {ready="Yes. ";
+						String ready="Please add spot data.";
+	  					if ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) {ready="";
 	   						if(enc.getNumSpots()>0) {
 	   							ready+=" "+enc.getNumSpots()+" left-side spots added.";
 	   						}
@@ -107,14 +108,11 @@ try {
   						<em><%=ready%></em><br />
   
   						<%
-  						if((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) { %>
+  						if(((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) && isOwner && CommonConfiguration.isCatalogEditable()) { %>
 							<font size="-1">
 								<a id="rmspots" class="launchPopup"><img align="absmiddle" src="../images/cancel.gif"/></a> <a id="rmspots" class="launchPopup">Remove spots</a>
 							</font> 
   
-   							<%
-							if (isOwner && CommonConfiguration.isCatalogEditable()) {
-							%>
 
 							<div id="dialogRmSpots" title="<%=encprops.getProperty("removeSpotData")%>" style="display:none">  
 								<form name="removeSpots" method="post" action="../EncounterRemoveSpots">
@@ -171,14 +169,241 @@ try {
 						</script>   
 						<!-- end remove spots popup --> 
 						<%
-						} //end if is owner
+						
 
 	  				} //end if has spots
   					%>
   
   
-  					<br />
-  					Scan entire database on the <a href="http://www.sharkgrid.org">sharkGrid</a> using the 
+				</td>
+			</tr>
+		</table>
+		<br/>
+			<%
+			
+  
+
+		
+
+  			File leftScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullScan.xml");
+  			File rightScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightScan.xml");
+  			File I3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullI3SScan.xml");
+  			File rightI3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightI3SScan.xml");
+
+  	
+	  		if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
+	  		%> 
+	  			<br/>
+	  			<br/>
+	  			<a href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>">Groth: Left-side scan results</a> 
+	  		<%
+	  		}
+	  		if((rightScanResults.exists())&&(enc.getNumRightSpots()>0)) {
+	  		%> 
+	  			<br/>
+	  			<br/>
+	  			<a href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true">Groth: Right-side scan results</a> 
+	  		<%
+	  		}
+	  		if((I3SScanResults.exists())&&(enc.getNumSpots()>0)) {
+	  		%> 
+	  			<br/>
+	  			<br/>
+	  			<a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&I3S=true">I3S: Left-side scan results</a> <%
+	  		}
+	  		if((rightI3SScanResults.exists())&&(enc.getNumRightSpots()>0)) {
+	  		%> 
+	  			<br/>
+	  			<br/>
+	  			<a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true&I3S=true">I3S: Right-side scan results</a> 
+	  			<%
+	  		}
+	  		
+	  		%>
+			<!-- End Display spot patterning so long as show_spotpatterning is not false in commonConfiguration.properties-->
+
+  
+
+
+<%
+		} //if use spot pattern reognition
+
+%>
+
+
+
+  	<p>
+    <%
+		 	if (request.getParameter("isOwner").equals("true")&&CommonConfiguration.useSpotPatternRecognition()&&((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
+		 	
+
+		 			
+		 			//File extractImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/extract"+imageEncNum+".jpg");
+		 			File extractImage=new File(encounterDir.getAbsolutePath()+"/extract"+encNum+".jpg");
+
+		 			//File extractRightImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/extractRight"+imageEncNum+".jpg");
+		 			File extractRightImage=new File(encounterDir.getAbsolutePath()+"/extractRight"+encNum+".jpg");
+
+		 			
+		 			//File uploadedFile=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/"+imageEnc.getSpotImageFileName());
+		 			File uploadedFile=new File(encounterDir.getAbsolutePath()+"/"+enc.getSpotImageFileName());
+
+		 			
+		 			//File uploadedRightFile=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/"+imageEnc.getRightSpotImageFileName());
+		 			File uploadedRightFile=new File(encounterDir.getAbsolutePath()+"/"+enc.getRightSpotImageFileName());
+
+		 			
+		 			String extractLocation="file-"+encounterDir.getAbsolutePath()+"/extract"+encNum+".jpg";
+		 			String extractRightLocation="file-"+encounterDir.getAbsolutePath()+"/extractRight"+encNum+".jpg";
+		 			String addText=encNum+"/"+enc.getSpotImageFileName();
+		 			String addTextRight=encNum+"/"+enc.getRightSpotImageFileName();
+		 			//System.out.println(addText);
+		 			String height="";
+		 			String width="";
+		 			String heightR="";
+		 			String widthR="";
+		 			
+		 			
+		 			if((uploadedFile.exists())&&(uploadedFile.isFile())&&(uploadedFile.length()>0)&&(enc.getNumSpots()>0)) {
+
+		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
+		 				
+		 				//iInfo.setInput(new FileInputStream(uploadedFile));
+		 				if (!extractImage.exists()) {
+		 					//System.out.println("Made it here.");
+		 					
+		 					height+=Double.toString(imageDimensions.getHeight());
+		 					width+=Double.toString(imageDimensions.getWidth());
+		 					//height+=iInfo.getHeight();
+		 					//width+=iInfo.getWidth();
+		 					
+		 					
+		 					
+		 					//System.out.println(height+"and"+width);
+		 					int intHeight=((new Double(height)).intValue());
+		 					int intWidth=((new Double(width)).intValue());
+		 					//System.out.println("Made it here: "+imageEnc.hasSpotImage+" "+imageEnc.hasRightSpotImage);
+		 					//System.gc();
+		 %>
+  <di:img width="<%=intWidth%>" height="<%=intHeight%>" imgParams="rendering=speed,quality=low" expAfter="0" border="0" threading="limited" output="<%=extractLocation%>">
+          <%
+          String src_ur_value=encountersDir.getAbsolutePath()+"/"+addText;
+          %>
+    <di:image srcurl="<%=src_ur_value%>"/>
+  </di:img> <%
+							}
+										}
+									//set the right file
+									
+						if((uploadedRightFile.exists())&&uploadedRightFile.isFile()&&(uploadedRightFile.length()>0)&&(enc.getNumRightSpots()>0)) {
+									
+									//iInfo=new ImageInfo();
+									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
+		 				
+									//iInfo.setInput(new FileInputStream(uploadedRightFile));
+									if (!extractRightImage.exists()) {
+										//System.out.println("Made it here.");
+										//heightR+=iInfo.getHeight();
+										//widthR+=iInfo.getWidth();
+										//System.out.println(height+"and"+width);
+										
+										heightR+=Double.toString(imageDimensions.getHeight());
+		 								widthR+=Double.toString(imageDimensions.getWidth());
+										
+										
+										int intHeightR=((new Double(heightR)).intValue());
+										int intWidthR=((new Double(widthR)).intValue());
+										System.gc();
+						%>
+  <di:img width="<%=intWidthR%>" height="<%=intHeightR%>"
+          imgParams="rendering=speed,quality=low" expAfter="0"
+          threading="limited" border="0" output="<%=extractRightLocation%>">
+          <%
+          String src_ur_value=encountersDir.getAbsolutePath()+"/"+addTextRight;
+          %>
+    <di:image srcurl="<%=src_ur_value%>"/>
+  </di:img> <%
+						}
+								}
+									
+								String fileloc="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(encNum+"/"+enc.getSpotImageFileName());
+								String filelocR="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(encNum+"/"+enc.getRightSpotImageFileName());
+					%>
+
+<p class="para"><strong><em>Spot data image files used for matching</em></strong><br/> 
+<font size="-1">[<a id="changespotimage" class="launchPopup">reset left or right spot data image</a>]</font><br/>
+  
+
+ 
+<div id="dialogChangeSpotImage" title="Set Spot Image File" style="display:none">  
+<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
+    <tr>
+      <td class="para">
+        <form action="../EncounterAddSpotFile" method="post"
+              enctype="multipart/form-data" name="addSpotsFile"><input
+          name="action" type="hidden" value="fileadder" id="action">
+          <input name="number" type="hidden" value="<%=encNum%>" id="shark">
+          <font color="#990000"><strong><img align="absmiddle" src="../images/upload_small.gif"/></strong> 
+           </font><br/> <label><input name="rightSide" type="radio" value="false" />left</label><br/> <label>
+           
+           <input name="rightSide" type="radio" value="true" /> right</label><br/>
+          <br/> 
+          <input name="file2add" type="file" size="15" /><br/>
+          <input name="addtlFile" type="submit" id="addtlFile" value="Upload spot image" />
+          </form>
+      </td>
+    </tr>
+  </table>
+	
+</div>
+
+<script>
+var dlgChangeSpotImage = $("#dialogChangeSpotImage").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#changespotimage").click(function() {
+  dlgChangeSpotImage.dialog("open");
+});
+</script>   
+<!-- end reset spot image popup --> 
+
+  
+  <br/> <%
+  if ((enc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
+%> Left-side<em>.</em><em> Click the image to view the full size
+  original. <a href="encounterSpotVisualizer.jsp?number=<%=encNum%>">Click
+    here to see the left-side spots mapped to the left-side image.</a> </em><br/>
+  <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image" width="250"></a> <%
+    }
+  %> <br/><br/> <%
+    //--
+    if ((enc.getNumRightSpots() > 0)&&(uploadedRightFile.exists())&&(uploadedRightFile.isFile())) {
+  %> Right-side<em>.</em><em> Click the image to view the full
+    size original. <a
+      href="encounterSpotVisualizer.jsp?number=<%=encNum%>&rightSide=true">Click
+      here to see the right-side spots mapped to the right-side image.</a> </em><br/>
+  
+  		<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image" width="250"></a> 
+                               
+      <%
+      }
+      //--
+%>
+<!-- END Pattern recognition image pieces -->		
+<%
+
+    }
+  %>
+
+				<%
+				if(isOwner){ 
+				%>
+  					  <p class="para"><strong><em>Scan for Matches</em></strong></p>
+  					<img align="absmiddle" src="../images/Crystal_Clear_action_find.gif"/> Scan entire database on the <a href="http://www.sharkgrid.org">sharkGrid</a> using the 
   					<a href="http://www.blackwell-synergy.com/doi/pdf/10.1111/j.1365-2664.2005.01117.x">Modified Groth</a> and 
   					<a href="http://www.blackwell-synergy.com/doi/abs/10.1111/j.1365-2664.2006.01273.x?journalCode=jpe">I3S</a> algorithms.
 
@@ -228,60 +453,11 @@ try {
         				</form>
 
 					</div>
-				</td>
-			</tr>
-		</table>
-		<br/>
-			<%
-			
-  
-
-		
-
-  			File leftScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullScan.xml");
-  			File rightScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightScan.xml");
-  			File I3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullI3SScan.xml");
-  			File rightI3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightI3SScan.xml");
-
-  	
-	  		if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
-	  		%> 
-	  			<br/>
-	  			<br/>
-	  			<a href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>">Groth: Left-side scan results</a> 
-	  		<%
-	  		}
-	  		if((rightScanResults.exists())&&(enc.getNumRightSpots()>0)) {
-	  		%> 
-	  			<br/>
-	  			<br/>
-	  			<a href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true">Groth: Right-side scan results</a> 
-	  		<%
-	  		}
-	  		if((I3SScanResults.exists())&&(enc.getNumSpots()>0)) {
-	  		%> 
-	  			<br/>
-	  			<br/>
-	  			<a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&I3S=true">I3S: Left-side scan results</a> <%
-	  		}
-	  		if((rightI3SScanResults.exists())&&(enc.getNumRightSpots()>0)) {
-	  		%> 
-	  			<br/>
-	  			<br/>
-	  			<a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true&I3S=true">I3S: Right-side scan results</a> 
-	  			<%
-	  		}
-	  		//} //end if-owner
+					<%
+					}
+					
 	
-	  		%>
-			<!-- End Display spot patterning so long as show_spotpatterning is not false in commonConfiguration.properties-->
 
-  
-
-
-<%
-		} //if use spot pattern reognition
-	}
 }	//end try
 catch(Exception e) {
   e.printStackTrace();
@@ -289,5 +465,7 @@ catch(Exception e) {
 finally {
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
+}
+
 }
 %>
