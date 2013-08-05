@@ -403,7 +403,7 @@ $("a#changespotimage").click(function() {
 				if(isOwner){ 
 				%>
   					  <p class="para"><strong><em>Scan for Matches</em></strong></p>
-  					<img align="absmiddle" src="../images/Crystal_Clear_action_find.gif"/> Scan entire database on the <a href="http://www.sharkgrid.org">sharkGrid</a> using the 
+  					<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" /> Scan entire database on the <a href="http://www.sharkgrid.org">sharkGrid</a> using the 
   					<a href="http://www.blackwell-synergy.com/doi/pdf/10.1111/j.1365-2664.2005.01117.x">Modified Groth</a> and 
   					<a href="http://www.blackwell-synergy.com/doi/abs/10.1111/j.1365-2664.2006.01273.x?journalCode=jpe">I3S</a> algorithms.
 

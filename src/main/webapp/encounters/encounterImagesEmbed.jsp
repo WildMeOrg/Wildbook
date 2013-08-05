@@ -95,8 +95,8 @@ int imageCount = 0;
   if (request.getParameter("isOwner").equals("true")) {
 %>
 <tr>
-  <td class="para"><img align="absmiddle"
-                        src="../images/Crystal_Clear_action_find.gif">
+  <td class="para">
+  	<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" />
     <strong><%=encprops.getProperty("image_commands") %>
     </strong>:<br/> <font size="-1">
       [<a

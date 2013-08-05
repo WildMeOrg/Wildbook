@@ -430,42 +430,22 @@ margin-bottom: 8px !important;
       			}
       			catch(NullPointerException nullLogged){}
       			
-				if ((enc.getState()!=null)&&(enc.getState().equals("unidentifiable"))) {
-      			%>
-      			
-    				<table width="810">
-      					<tr>
-        					<td bgcolor="#0033CC" colspan="3">
-          						<p>
-          							<font color="#FFFFFF" size="4"><%=encprops.getProperty("unidentifiable_title") %>: <%=num%><%=livingStatus %></font>
-          						</p>	
-        					</td>
-      					</tr>
-    				</table>	
-    			<%
-    			} 
-    			else if ((enc.getState()!=null)&&(enc.getState().equals("unapproved"))) {
+      			String headerBGColor="FFFFFC";
+      			//if(CommonConfiguration.getProperty(()){}
     			%>
-    			<table width="810">
-      				<tr>
-        				<td bgcolor="#CC6600" colspan="3">
-          					<p><font color="#FFFFFF" size="4"><%=encprops.getProperty("unapproved_title") %>: <%=num%><%=livingStatus %>
-          						</font>
-          					</p>
-        				</td>
-      				</tr>
+    			
+    			<table width="100%">
+    				<tr>
+    					<td bgcolor="#<%=headerBGColor %>">
+    						<img align="absmiddle" src="../images/Crystal_Clear_action_find.png" width="50px" height="50px" /> 
+    						<font size="4">
+    							<strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %>
+    						</font>
+    					</td>
+    				</tr>
     			</table>
-    			<%
-    			} 
-    			else {
-    			%>
-    			<p>
-    				<font size="4"><strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %>
-    				</font>
-    			</p>
-				<%
-    			}
-				%>
+    			
+				
      
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
  					<table>
@@ -1621,7 +1601,7 @@ $("a#elev").click(function() {
 <!-- End Display maximumElevationInMeters -->  
 
 <br />
-<p><strong><%=encprops.getProperty("contactInformation") %></strong></p>
+<p><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="30px" height="35px" /> <strong><%=encprops.getProperty("contactInformation") %></strong></p>
 
 <table>
 	<tr>
@@ -1962,7 +1942,7 @@ $("a#elev").click(function() {
   
   
   <br />
-  <p><strong>Observation Attributes</strong></p>
+  <p><img align="absmiddle" src="../images/Crystal_Clear_action_find.png" width="30px" height="30px" /> <strong>Observation Attributes</strong></p>
 <!-- START TAXONOMY ATTRIBUTE -->    
 <%
     if(CommonConfiguration.showProperty("showTaxonomy")){
@@ -2380,9 +2360,10 @@ $("a#LifeStage").click(function() {
 String recordedComments="";
 if(enc.getComments()!=null){recordedComments=enc.getComments();}
 %>
-<%=recordedComments%><br/>
+<em><%=recordedComments%></em>
 
 </p>
+<br/>
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
@@ -2422,7 +2403,7 @@ $("a#comments").click(function() {
 <!-- END ADDITIONAL COMMENTS -->
 
 <br />
-<p><strong>Metadata</strong></p>
+<p><img align="absmiddle" width="30px" height="30px" style="border-style: none;" src="../images/workflow_icon.gif" /> <strong>Metadata</strong></p>
 								
 								<!-- START WORKFLOW ATTRIBUTE -->
  								<%
@@ -2431,7 +2412,7 @@ $("a#comments").click(function() {
 									if (enc.getState()!=null){state=enc.getState();}
 									%>
 									<p class="para">
-										<img align="absmiddle" width="50px" height="50px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("workflowState") %> <%=state %> 
+										 <%=encprops.getProperty("workflowState") %> <%=state %> 
 										
 										<%
 										if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -2797,11 +2778,12 @@ $("a#autocomments").click(function() {
 %>
 
 <c:if test="${showMeasurements}">
+<br />
 <%
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
   pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode));
 %>
-<p><strong><c:out value="${measurementTitle}"></c:out></strong>
+<p><img align="absmiddle" width="30px" height="30px" style="border-style: none;" src="../images/ruler.png" /> <strong><c:out value="${measurementTitle}"></c:out></strong>
 <c:if test="${editable and !empty measurements}">
   <a id="measure" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
 </c:if>
@@ -2905,7 +2887,8 @@ $("a#measure").click(function() {
 </c:if>
 
 <c:if test="${showMetalTags}">
-<p><strong><%=encprops.getProperty("tagging") %></strong></p>
+<br />
+<p><img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="30px" height="30px" /> <strong><%=encprops.getProperty("tracking") %></strong></p>
 <%
   pageContext.setAttribute("metalTagTitle", encprops.getProperty("metalTags"));
   pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode));
