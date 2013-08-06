@@ -109,7 +109,7 @@
 		/encounters/thumbnailSearch.jsp = authc, roles[admin]
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[admin]
 		 /encounters/encounterSearch.jsp = authc, roles[admin]
-		 /encounters/searchResults.jsp = authc, roles[admin]
+		 /encounters/searchResults.jsp = anon
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[admin]
 		 /encounters/mappedSearchResults.jsp = authc, roles[admin]
 		 /encounters/mappedSearchResultsSex.jsp = authc, roles[admin]
