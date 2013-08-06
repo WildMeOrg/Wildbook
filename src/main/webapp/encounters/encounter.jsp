@@ -471,7 +471,7 @@ margin-bottom: 8px !important;
 								
 								
       
-      <p><img align="absmiddle" src="../images/tag_big.gif" width="30px" height="30px" /> <strong>Identity</strong></p>
+      <p><img align="absmiddle" src="../images/tag_big.gif" width="40px" height="40px" /> <strong>Identity</strong></p>
       
 								<!-- START INDIVIDUALID ATTRIBUTE -->
     							<%
@@ -867,7 +867,7 @@ $("a#occurrence").click(function() {
   
 <br />
 
-<p><img align="absmiddle" src="../images/calendar.png" width="30px" height="30px" /> <strong><%=encprops.getProperty("date") %>
+<p><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("date") %>
 </strong><br/><br/>
   <a
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
@@ -1090,7 +1090,7 @@ $("a#date").click(function() {
 
 <br />
 <p>
-	<img src="../images/2globe_128.gif" width="30px" height="30px" align="absmiddle"/> <strong><%=encprops.getProperty("location") %> </strong>
+	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/> <strong><%=encprops.getProperty("location") %> </strong>
 </p>	 
 <%
 if(enc.getLocation()!=null){
@@ -1601,7 +1601,7 @@ $("a#elev").click(function() {
 <!-- End Display maximumElevationInMeters -->  
 
 <br />
-<p><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="30px" height="35px" /> <strong><%=encprops.getProperty("contactInformation") %></strong></p>
+<p><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <strong><%=encprops.getProperty("contactInformation") %></strong></p>
 
 <table>
 	<tr>
@@ -1942,7 +1942,7 @@ $("a#elev").click(function() {
   
   
   <br />
-  <p><img align="absmiddle" src="../images/Crystal_Clear_action_find.png" width="30px" height="30px" /> <strong>Observation Attributes</strong></p>
+  <p><img align="absmiddle" src="../images/Note-Book-icon.png" width="40px" height="40px" /> <strong>Observation Attributes</strong></p>
 <!-- START TAXONOMY ATTRIBUTE -->    
 <%
     if(CommonConfiguration.showProperty("showTaxonomy")){
@@ -2403,7 +2403,7 @@ $("a#comments").click(function() {
 <!-- END ADDITIONAL COMMENTS -->
 
 <br />
-<p><img align="absmiddle" width="30px" height="30px" style="border-style: none;" src="../images/workflow_icon.gif" /> <strong>Metadata</strong></p>
+<p><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <strong>Metadata</strong></p>
 								
 								<!-- START WORKFLOW ATTRIBUTE -->
  								<%
@@ -2713,7 +2713,7 @@ if (isOwner) {
 %>
 
 <!-- START AUTOCOMMENTS --> 
-<p><%=encprops.getProperty("auto_comments")%> <a id="autocomments" class="launchPopup"><img height="30px" width="30px" align="middle" src="../images/Crystal_Clear_app_kaddressbook.gif" /></a></p>
+<p><%=encprops.getProperty("auto_comments")%> <a id="autocomments" class="launchPopup"><img height="40px" width="40px" align="middle" src="../images/Crystal_Clear_app_kaddressbook.gif" /></a></p>
 
 <!-- start autocomments popup -->  
 <div id="dialogAutoComments" title="<%=encprops.getProperty("auto_comments")%>" style="display:none">  
@@ -2783,7 +2783,7 @@ $("a#autocomments").click(function() {
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
   pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode));
 %>
-<p><img align="absmiddle" width="30px" height="30px" style="border-style: none;" src="../images/ruler.png" /> <strong><c:out value="${measurementTitle}"></c:out></strong>
+<p><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" /> <strong><c:out value="${measurementTitle}"></c:out></strong>
 <c:if test="${editable and !empty measurements}">
   <a id="measure" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
 </c:if>
@@ -2888,7 +2888,7 @@ $("a#measure").click(function() {
 
 <c:if test="${showMetalTags}">
 <br />
-<p><img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="30px" height="30px" /> <strong><%=encprops.getProperty("tracking") %></strong></p>
+<p><img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("tracking") %></strong></p>
 <%
   pageContext.setAttribute("metalTagTitle", encprops.getProperty("metalTags"));
   pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode));
@@ -3139,7 +3139,7 @@ $("a#sat").click(function() {
 %>
 
 </c:if>
-
+<br />
 <p><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <strong><%=encprops.getProperty("dynamicProperties") %></strong>
 <%
 if(isOwner){

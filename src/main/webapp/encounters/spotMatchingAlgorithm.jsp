@@ -372,36 +372,39 @@ $("a#changespotimage").click(function() {
 <!-- end reset spot image popup --> 
 
   
-  <br/> <%
+  <br/> 
+  <table border="0"><tr>
+  <%
   if ((enc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
-%> Left-side<em>.</em><em> Click the image to view the full size
+%> <td>Left-side<em>.</em><em> Click the image to view the full size
   original. <a href="encounterSpotVisualizer.jsp?number=<%=encNum%>">Click
     here to see the left-side spots mapped to the left-side image.</a> </em><br/>
-  <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image" width="250"></a> <%
+  <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image" width="250"></a></td> 
+  <%
     }
-  %> <br/><br/> <%
-    //--
+
     if ((enc.getNumRightSpots() > 0)&&(uploadedRightFile.exists())&&(uploadedRightFile.isFile())) {
-  %> Right-side<em>.</em><em> Click the image to view the full
+  %> <td>Right-side<em>.</em><em> Click the image to view the full
     size original. <a
       href="encounterSpotVisualizer.jsp?number=<%=encNum%>&rightSide=true">Click
       here to see the right-side spots mapped to the right-side image.</a> </em><br/>
   
   		<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image" width="250"></a> 
-                               
+           </td>                    
       <%
       }
       //--
 %>
+
+</tr></table>
 <!-- END Pattern recognition image pieces -->		
 <%
 
     }
-  %>
 
-				<%
 				if(isOwner){ 
 				%>
+				<br />
   					  <p class="para"><strong><em>Scan for Matches</em></strong></p>
   					<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" /> Scan entire database on the <a href="http://www.sharkgrid.org">sharkGrid</a> using the 
   					<a href="http://www.blackwell-synergy.com/doi/pdf/10.1111/j.1365-2664.2005.01117.x">Modified Groth</a> and 
