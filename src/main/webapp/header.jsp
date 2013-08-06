@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="org.apache.commons.lang.WordUtils,org.ecocean.CommonConfiguration, java.util.Properties" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
+  ~ Copyright (C) 2011-2013 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
   ~ modify it under the terms of the GNU General Public License
@@ -112,11 +112,34 @@
         <tr>
           <td><![endif]-->
       <ul>
-        <li><a
-          href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&amp;end=10"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;"><%=props.getProperty("viewEncounters")%>
-        </a></li>
+      
+      	<!-- list encounters by state -->
+      						<%
+      						boolean moreStates=true;
+      						int cNum=0;
+							while(moreStates){
+	  								String currentLifeState = "encounterState"+cNum;
+	  								if(CommonConfiguration.getProperty(currentLifeState)!=null){
+	  									%>
+										<li>
+        									<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState) %>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;">
+        										<%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState))+" "))%>
+        									</a>
+        								</li>
+										<%
+										cNum++;
+  									}
+  									else{
+     									moreStates=false;
+  									}
+  
+							} //end while
+      						%>
+        <li>
+        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&amp;end=10" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;">
+        		<%=props.getProperty("viewEncounters")%>
+        	</a>
+        </li>
 
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/thumbnailSearchResults.jsp?noQuery=true"
@@ -131,33 +154,14 @@
         </a></li>
 
 
-        <li><a
-          href="http://<%=CommonConfiguration.getURLLocation(request)
-          %>/encounters/allEncountersUnapproved.jsp?start=1&amp;end=10&amp;sort=nosort"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewUnapproved")%>
-        </a></li>
 
-        <%
-          if ((request.getParameter("isAdmin") != null) && (request.getParameter("isAdmin").equals("true"))) {
-        %>
-        <li><a
-          href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&amp;end=10&amp;sort=nosort&amp;user=<%=request.getRemoteUser()%>"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewMySubmissions")%>
-        </a>
-        </li>
-        <%
-          }
-        %>
-
+      
         <li>
-          <a
-            href="http://<%=CommonConfiguration.getURLLocation(request)
-            %>/encounters/allEncounters.jsp?start=1&amp;end=10&amp;sort=nosort&amp;rejects=true"
-            class="enclose"
-            style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewUnidentifiable")%>
-          </a></li>
+        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">
+        		<%=props.getProperty("viewMySubmissions")%>
+        	</a>
+        </li>
+     
 
 
       </ul>
