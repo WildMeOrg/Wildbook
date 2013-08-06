@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
-
+<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2013 Jason Holmberg
@@ -284,15 +284,18 @@ try {
 		 					int intWidth=((new Double(width)).intValue());
 		 					//System.out.println("Made it here: "+imageEnc.hasSpotImage+" "+imageEnc.hasRightSpotImage);
 		 					//System.gc();
-		 %>
-  <di:img width="<%=intWidth%>" height="<%=intHeight%>" imgParams="rendering=speed,quality=low" expAfter="0" border="0" threading="limited" output="<%=extractLocation%>">
-          <%
-          String src_ur_value=encountersDir.getAbsolutePath()+"/"+addText;
-          %>
-    <di:image srcurl="<%=src_ur_value%>"/>
-  </di:img> <%
+		 					%>
+  							<di:img width="<%=intWidth%>" height="<%=intHeight%>" imgParams="rendering=speed,quality=low" expAfter="0" border="0" threading="limited" output="<%=extractLocation%>">
+          						<%
+          						String src_ur_value=encountersDir.getAbsolutePath()+"/"+addText;
+          			
+          						%>
+    							<di:image srcurl="<%=src_ur_value%>"/>
+  							</di:img> 
+  							
+  							<%
 							}
-										}
+						}
 									//set the right file
 									
 						if((uploadedRightFile.exists())&&uploadedRightFile.isFile()&&(uploadedRightFile.length()>0)&&(enc.getNumRightSpots()>0)) {
@@ -314,16 +317,15 @@ try {
 										int intHeightR=((new Double(heightR)).intValue());
 										int intWidthR=((new Double(widthR)).intValue());
 										System.gc();
-						%>
-  <di:img width="<%=intWidthR%>" height="<%=intHeightR%>"
-          imgParams="rendering=speed,quality=low" expAfter="0"
-          threading="limited" border="0" output="<%=extractRightLocation%>">
-          <%
-          String src_ur_value=encountersDir.getAbsolutePath()+"/"+addTextRight;
-          %>
-    <di:image srcurl="<%=src_ur_value%>"/>
-  </di:img> <%
-						}
+										%>
+  										<di:img width="<%=intWidthR%>" height="<%=intHeightR%>" imgParams="rendering=speed,quality=low" expAfter="0" threading="limited" border="0" output="<%=extractRightLocation%>">
+          									<%
+          									String src_ur_value=encountersDir.getAbsolutePath()+"/"+addTextRight;
+          									%>
+    										<di:image srcurl="<%=src_ur_value%>"/>
+  										</di:img> 
+  									<%
+									}
 								}
 									
 								String fileloc="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(encNum+"/"+enc.getSpotImageFileName());
@@ -373,10 +375,10 @@ $("a#changespotimage").click(function() {
 
   
   <br/> 
-  <table border="0"><tr>
+  <table border="0" cellpadding="5"><tr>
   <%
   if ((enc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
-%> <td>Left-side<em>.</em><em> Click the image to view the full size
+%> <td valign="top">Left-side<em>.</em><em> Click the image to view the full size
   original. <a href="encounterSpotVisualizer.jsp?number=<%=encNum%>">Click
     here to see the left-side spots mapped to the left-side image.</a> </em><br/>
   <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image" width="250"></a></td> 
@@ -384,7 +386,7 @@ $("a#changespotimage").click(function() {
     }
 
     if ((enc.getNumRightSpots() > 0)&&(uploadedRightFile.exists())&&(uploadedRightFile.isFile())) {
-  %> <td>Right-side<em>.</em><em> Click the image to view the full
+  %> <td valign="top">Right-side<em>.</em><em> Click the image to view the full
     size original. <a
       href="encounterSpotVisualizer.jsp?number=<%=encNum%>&rightSide=true">Click
       here to see the right-side spots mapped to the right-side image.</a> </em><br/>
