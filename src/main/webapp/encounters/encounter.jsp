@@ -437,10 +437,37 @@ margin-bottom: 8px !important;
     			<table width="100%">
     				<tr>
     					<td bgcolor="#<%=headerBGColor %>">
-    						<img align="absmiddle" src="../images/Crystal_Clear_action_find.png" width="50px" height="50px" /> 
-    						<font size="4">
-    							<strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %>
-    						</font>
+    						<%
+    						//int stateInt=-1;
+    						String classColor="approved_encounters";
+							boolean moreStates=true;
+							int cNum=0;
+							while(moreStates){
+	  								String currentLifeState = "encounterState"+cNum;
+	  								if(CommonConfiguration.getProperty(currentLifeState)!=null){
+	  									
+										if(CommonConfiguration.getProperty(currentLifeState).equals(enc.getState())){
+											//stateInt=taxNum;
+											moreStates=false;
+											if(CommonConfiguration.getProperty(("encounterStateCSSClass"+cNum))!=null){
+												classColor=CommonConfiguration.getProperty(("encounterStateCSSClass"+cNum));
+											}
+										}
+										cNum++;
+  									}
+  									else{
+     									moreStates=false;
+  									}
+  
+								} //end while
+								
+    						
+    						%>
+    						
+    						
+    							<p class="<%=classColor%>"><img align="absmiddle" src="../images/Crystal_Clear_action_find.png" width="50px" height="50px" /> 
+    						 <strong><%=encprops.getProperty("title") %></strong>: <%=num%><%=livingStatus %></p>
+    						
     					</td>
     				</tr>
     			</table>
@@ -1131,6 +1158,146 @@ if(enc.getLocation()!=null){
     }
   %>
   
+  
+  <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
+    <%
+		if(CommonConfiguration.showProperty("maximumDepthInMeters")){
+		%>
+
+<em><%=encprops.getProperty("depth") %>
+
+  <%
+    if (enc.getDepthAsDouble() !=null) {
+  %> 
+  <%=enc.getDepth()%> <%=encprops.getProperty("meters")%> <%
+  } else {
+  %> <%=encprops.getProperty("unknown") %>
+  <%
+    }
+ 
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>
+&nbsp;<a id="depth" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%
+}
+%>
+</em>
+<%
+  }
+%>
+<!-- End Display maximumDepthInMeters -->
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start depth popup -->  
+<div id="dialogDepth" title="<%=encprops.getProperty("setDepth")%>" style="display:none">  
+
+	<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+    <tr>
+      <td align="left" valign="top">
+        <form name="setencdepth" action="../EncounterSetMaximumDepth" method="post">
+          <input name="depth" type="text" id="depth" size="10"> <%=encprops.getProperty("meters")%>
+          <input name="lengthUnits" type="hidden"
+                 id="lengthUnits" value="Meters"> <input name="number"
+                                                         type="hidden" value="<%=num%>" id="number">
+          <input
+            name="action" type="hidden" value="setEncounterDepth"> <input
+          name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>">
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgDepth = $("#dialogDepth").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#depth").click(function() {
+  dlgDepth.dialog("open");
+});
+</script>   
+<!-- end depth popup --> 
+<%
+}
+%>
+
+
+<!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
+<%
+  if (CommonConfiguration.showProperty("maximumElevationInMeters")) {
+%>
+<p class="para"><%=encprops.getProperty("elevation") %>
+&nbsp;
+<%
+    if (enc.getMaximumElevationInMeters()!=null) {
+  %> 
+    <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%> <%
+  } else {
+  %> 
+  <%=encprops.getProperty("unknown") %>
+  <%
+    }
+
+ if (isOwner && CommonConfiguration.isCatalogEditable()) {
+  %>
+<a id="elev" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+  <%
+    }
+  %>
+</p>
+
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<!-- start elevation popup -->  
+<div id="dialogElev" title="<%=encprops.getProperty("setElevation")%>" style="display:none">  
+
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top">
+        <form name="setencelev" action="../EncounterSetMaximumElevation" method="post">
+          <input name="elevation" type="text" id="elevation" size="10" /> Meters <input
+          name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
+          <input name="number" type="hidden" value="<%=num%>" id="number" />
+          <input name="action" type="hidden" value="setEncounterElevation" /><br />
+          <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- popup dialog script -->
+<script>
+var dlgElev = $("#dialogElev").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#elev").click(function() {
+  dlgElev.dialog("open");
+});
+</script>   
+<!-- end elevation popup --> 
+<%
+}
+%>
+
+<%
+  }
+%>
+<!-- End Display maximumElevationInMeters -->  
+  
+  
   <br /><br />
  	<!-- START MAP and GPS SETTER -->
 
@@ -1462,143 +1629,6 @@ $("a#country").click(function() {
 <%
     }
 %>
-
-  <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
-    <%
-		if(CommonConfiguration.showProperty("maximumDepthInMeters")){
-		%>
-
-<p class="para"><%=encprops.getProperty("depth") %>
-
-  <%
-    if (enc.getDepthAsDouble() !=null) {
-  %> 
-  <%=enc.getDepth()%> <%=encprops.getProperty("meters")%> <%
-  } else {
-  %> <%=encprops.getProperty("unknown") %><%
-    }
- 
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %>
-&nbsp;<a id="depth" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-<%
-}
-%>
-</p>
-<%
-  }
-%>
-<!-- End Display maximumDepthInMeters -->
-
-<%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
-%>
-<!-- start depth popup -->  
-<div id="dialogDepth" title="<%=encprops.getProperty("setDepth")%>" style="display:none">  
-
-	<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencdepth" action="../EncounterSetMaximumDepth" method="post">
-          <input name="depth" type="text" id="depth" size="10"> <%=encprops.getProperty("meters")%>
-          <input name="lengthUnits" type="hidden"
-                 id="lengthUnits" value="Meters"> <input name="number"
-                                                         type="hidden" value="<%=num%>" id="number">
-          <input
-            name="action" type="hidden" value="setEncounterDepth"> <input
-          name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>">
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgDepth = $("#dialogDepth").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#depth").click(function() {
-  dlgDepth.dialog("open");
-});
-</script>   
-<!-- end depth popup --> 
-<%
-}
-%>
-
-
-<!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
-<%
-  if (CommonConfiguration.showProperty("maximumElevationInMeters")) {
-%>
-<p class="para"><%=encprops.getProperty("elevation") %>
-&nbsp;
-<%
-    if (enc.getMaximumElevationInMeters()!=null) {
-  %> 
-    <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%> <%
-  } else {
-  %> 
-  <%=encprops.getProperty("unknown") %>
-  <%
-    }
-
- if (isOwner && CommonConfiguration.isCatalogEditable()) {
-  %>
-<a id="elev" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
-  %>
-</p>
-
-<%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
-%>
-<!-- start elevation popup -->  
-<div id="dialogElev" title="<%=encprops.getProperty("setElevation")%>" style="display:none">  
-
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencelev" action="../EncounterSetMaximumElevation" method="post">
-          <input name="elevation" type="text" id="elevation" size="10" /> Meters <input
-          name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
-          <input name="number" type="hidden" value="<%=num%>" id="number" />
-          <input name="action" type="hidden" value="setEncounterElevation" /><br />
-          <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-
-<!-- popup dialog script -->
-<script>
-var dlgElev = $("#dialogElev").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#elev").click(function() {
-  dlgElev.dialog("open");
-});
-</script>   
-<!-- end elevation popup --> 
-<%
-}
-%>
-
-<%
-  }
-%>
-<!-- End Display maximumElevationInMeters -->  
 
 <br />
 <p><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <strong><%=encprops.getProperty("contactInformation") %></strong></p>
