@@ -106,6 +106,38 @@
  	sexHashtable.put("female", new Integer(0));
  	sexHashtable.put("unknown", new Integer(0));
  	
+ 	//let's prep the HashTable for the species pie chart
+ 	  ArrayList<String> allSpecies2=CommonConfiguration.getSequentialPropertyValues("genusSpecies"); 
+ 	  int numSpecies2 = allSpecies2.size();
+ 	  Hashtable<String,Integer> speciesHashtable = new Hashtable<String,Integer>();
+ 		for(int gg=0;gg<numSpecies2;gg++){
+ 			String thisSpecies=allSpecies2.get(gg);
+ 			
+ 			StringTokenizer tokenizer=new StringTokenizer(thisSpecies," ");
+ 	  		if(tokenizer.countTokens()>=2){
+
+ 	  			thisSpecies=tokenizer.nextToken()+" "+tokenizer.nextToken().replaceAll(",","").replaceAll("_"," ");
+ 	          	//enc.setGenus(tokenizer.nextToken());
+ 	          	//enc.setSpecificEpithet();
+
+ 	  	    }
+ 			
+ 			speciesHashtable.put(thisSpecies, new Integer(0));
+ 		}
+ 		
+ 		
+ 		//let's prep the HashTable for the country pie chart
+ 		  ArrayList<String> allCountries=myShepherd.getAllCountries(); 
+ 		  int numCountries= allCountries.size();
+ 		  Hashtable<String,Integer> countriesHashtable = new Hashtable<String,Integer>();
+ 			for(int gg=0;gg<numCountries;gg++){
+ 				String thisCountry=allCountries.get(gg);
+ 				if(thisCountry!=null){
+ 					countriesHashtable.put(thisCountry, new Integer(0));
+ 				}
+ 				
+ 			}
+ 	
  	
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
@@ -135,6 +167,29 @@
  	    	Integer thisInt = sexHashtable.get("unknown")+1;
    		    sexHashtable.put("unknown", thisInt);
  	    }
+ 	    
+ 		//check the encounter species
+		 
+		 if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
+			 String encGenusSpecies=thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet();
+			 if(speciesHashtable.containsKey(encGenusSpecies)){
+	      		   Integer thisInt = speciesHashtable.get(encGenusSpecies)+1;
+	      		   speciesHashtable.put(encGenusSpecies, thisInt);
+	      		   //numSpeciesEntries++;
+	      	   }
+			 
+		 }
+		 
+		 
+		 //check the Encounter country
+		 
+		 if(thisEnc.getCountry()!=null){
+			 if(countriesHashtable.containsKey(thisEnc.getCountry())){
+	      		   Integer thisInt = countriesHashtable.get(thisEnc.getCountry())+1;
+	      		   countriesHashtable.put(thisEnc.getCountry(), thisInt);
+	      	 		//numCountryEntries++;  
+			 }
+		 }
  	    
  		//measurement
 		for(int b=0;b<numMeasurementTypes;b++){
@@ -368,6 +423,78 @@
         chart.draw(data, options);
       }
       
+      google.setOnLoadCallback(drawSpeciesChart);
+      function drawSpeciesChart() {
+        var speciesData = new google.visualization.DataTable();
+        speciesData.addColumn('string', 'Species');
+        speciesData.addColumn('number', 'No. Recorded');
+        speciesData.addRows([
+          <%
+          ArrayList<String> allSpecies=CommonConfiguration.getSequentialPropertyValues("genusSpecies"); 
+          int numSpecies = speciesHashtable.size();
+          Enumeration<String> speciesKeys=speciesHashtable.keys();
+
+          while(speciesKeys.hasMoreElements()){
+        	  String keyName=speciesKeys.nextElement();
+        	  //System.out.println(keyName);
+          %>
+          ['<%=keyName%>',    <%=speciesHashtable.get(keyName) %>]
+		  <%
+		  if(speciesKeys.hasMoreElements()){
+		  %>
+		  ,
+		  <%
+		  }
+         }
+		 %>
+          
+        ]);
+     var speciesOptions = {
+          width: 450, height: 300,
+          title: 'Species Distribution of Reported Strandings',
+          //colors: ['#0000FF','#FF00FF']
+        };
+      var speciesChart = new google.visualization.PieChart(document.getElementById('specieschart_div'));
+        speciesChart.draw(speciesData, speciesOptions);
+      }
+      
+      
+      //countries chart
+       google.setOnLoadCallback(drawCountriesChart);
+      function drawCountriesChart() {
+        var countriesData = new google.visualization.DataTable();
+        countriesData.addColumn('string', 'Country');
+        countriesData.addColumn('number', 'No. Recorded');
+        countriesData.addRows([
+          <%
+          //ArrayList<String> allCountries=myShepherd.getAllCountries(); 
+          //int numSpecies = speciesHashtable.size();
+          Enumeration<String> countriesKeys=countriesHashtable.keys();
+
+          while(countriesKeys.hasMoreElements()){
+        	  String keyName=countriesKeys.nextElement();
+        	  //System.out.println(keyName);
+          %>
+          ['<%=keyName%>',    <%=countriesHashtable.get(keyName) %>]
+		  <%
+		  if(countriesKeys.hasMoreElements()){
+		  %>
+		  ,
+		  <%
+		  }
+         }
+		 %>
+          
+        ]);
+     var countriesOptions = {
+          width: 450, height: 300,
+          title: 'Distribution by Country of Reported Strandings',
+          //colors: ['#0000FF','#FF00FF']
+        };
+      var countriesChart = new google.visualization.PieChart(document.getElementById('countrieschart_div'));
+        countriesChart.draw(countriesData, countriesOptions);
+      }
+      
       
 </script>
 
@@ -500,6 +627,21 @@
  <div id="chart_div"></div>
 
 <div id="sexchart_div"></div>
+
+ <%
+        if(CommonConfiguration.showProperty("showTaxonomy")){
+        %>
+		<div id="specieschart_div"></div>
+		<%
+        }
+		%>
+ <%
+        if(CommonConfiguration.showProperty("showCountry")){
+        %>
+		<div id="countrieschart_div"></div>
+		<%
+        }
+		%>
  
  <%
  

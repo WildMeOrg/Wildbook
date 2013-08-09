@@ -512,9 +512,14 @@ function FSControl(controlDiv, map) {
 if(CommonConfiguration.showProperty("showCountry")){
 
 %>
-<p><strong><%=encprops.getProperty("country")%>:</strong>
+<table><tr><td valign="top">
+<strong><%=encprops.getProperty("country")%>:</strong><br />
+<em><%=encprops.getProperty("leaveBlank")%>
+        </em>
+
+</td></tr><tr><td>
   
-  <select name="country" id="country">
+  <select name="country" id="country" multiple="multiple" size="5">
   	<option value="None" selected="selected"></option>
   <%
   			       boolean hasMoreCountries=true;
@@ -535,11 +540,14 @@ if(CommonConfiguration.showProperty("showCountry")){
   			          
 			       }
 			       if(stageNum==0){%>
-			    	   <p><em><%=encprops.getProperty("noCountries")%></em></p>
-			       <% }
+			    	   <em><%=encprops.getProperty("noCountries")%></em>
+			       <% 
+			       }
+			       %>
 			       
- %>
-  </select></p>
+
+  </select>
+  </td></tr></table>
 <%
 }
 %>
