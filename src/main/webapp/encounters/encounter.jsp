@@ -1122,7 +1122,7 @@ $("a#date").click(function() {
 <%
 if(enc.getLocation()!=null){
 %>
-<%=encprops.getProperty("locationDescription")%> <%=enc.getLocation()%>
+<em><%=encprops.getProperty("locationDescription")%> <%=enc.getLocation()%></em>
 <%
 }
 %>
@@ -1163,7 +1163,7 @@ if(enc.getLocation()!=null){
     <%
 		if(CommonConfiguration.showProperty("maximumDepthInMeters")){
 		%>
-
+<br />
 <em><%=encprops.getProperty("depth") %>
 
   <%
@@ -1233,7 +1233,8 @@ $("a#depth").click(function() {
 <%
   if (CommonConfiguration.showProperty("maximumElevationInMeters")) {
 %>
-<p class="para"><%=encprops.getProperty("elevation") %>
+<br />
+<em><%=encprops.getProperty("elevation") %></em>
 &nbsp;
 <%
     if (enc.getMaximumElevationInMeters()!=null) {
@@ -1251,7 +1252,7 @@ $("a#depth").click(function() {
   <%
     }
   %>
-</p>
+
 
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {

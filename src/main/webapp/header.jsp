@@ -104,7 +104,7 @@
       </ul>
       <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
     <li class="drop"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp"
+      
       style="margin: 0px 0 0px 0px; position: relative; width: 100px; height: 25px; z-index: 100;"><strong><%=props.getProperty("encounters")%>
     </strong><!--[if IE 7]><!--></a><!--<![endif]-->
       <!--[if lte IE 6]>
@@ -135,11 +135,7 @@
   
 							} //end while
       						%>
-        <li>
-        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;">
-        		<%=props.getProperty("viewEncounters")%>
-        	</a>
-        </li>
+        
 
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/thumbnailSearchResults.jsp?noQuery=true"
