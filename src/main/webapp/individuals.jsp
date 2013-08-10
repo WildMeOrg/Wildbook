@@ -1566,7 +1566,7 @@ else {
     name="sharky_button" type="submit" id="sharky_button"
     value="<%=getRecord %>"></form>
 </p>
-<p><font color="#990000"><a href="encounters/allEncounters.jsp"><%=allEncounters %>
+<p><font color="#990000"><a href="encounters/searchResults.jsp"><%=allEncounters %>
 </a></font></p>
 
 <p><font color="#990000"><a href="allIndividuals.jsp"><%=allIndividuals %>

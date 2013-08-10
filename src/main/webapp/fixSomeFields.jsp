@@ -116,7 +116,6 @@ myShepherd.commitDBTransaction();
 } 
 catch(Exception ex) {
 
-	System.out.println("!!!An error occurred on page allEncounters.jsp. The error was:");
 	ex.printStackTrace();
 	//System.out.println("fixSomeFields.jsp page is attempting to rollback a transaction because of an exception...");
 	//encQuery.closeAll();

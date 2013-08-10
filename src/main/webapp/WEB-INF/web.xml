@@ -95,7 +95,6 @@
                 /appadmin/** = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[admin]
-                /encounters/allEncountersUnapproved.jsp = authc, roles[admin]
                 /InterconnectSubmitSpots = authc, roles[admin]
 		/interconnectSubmitSpots= authc, roles[admin]
 		/GenePopExport = authc, roles[admin]
