@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.Calendar, org.ecocean.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.apache.commons.lang.WordUtils,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.Calendar, org.ecocean.*" %>
 
 <%
 
@@ -222,30 +222,65 @@ z-index:99;
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 </li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:82px; height:25px; z-index:100;"><strong>Encounters</strong><!--[if IE 7]><!--></a><!--<![endif]-->
-	<!--[if lte IE 6]><table><tr><td><![endif]-->
-	<ul>
-	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Encounters</a></li>
-	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/xcalendar/calendar.jsp?scDate=<%=dato%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">Encounter Calendar</a></li>
-	
-		
-		<%
-		if(request.getRemoteUser()!=null) {
-		%>			
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncountersUnapproved.jsp?start=1&end=10&sort=nosort&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Unapproved Encounters</a></li>
-	
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&user=<%=request.getRemoteUser()%>&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View My Submissions</a></li>
-		
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&end=10&sort=nosort&rejects=true&langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:210px; height:25px;z-index:99;">View Unidentifiable Encounters</a></li>
-		<%
-		}
-		%>
+<li class="drop"><a
+      
+      style="margin: 0px 0 0px 0px; position: relative; width: 100px; height: 25px; z-index: 100;"><strong><%=props.getProperty("encounters")%>
+    </strong><!--[if IE 7]><!--></a><!--<![endif]-->
+      <!--[if lte IE 6]>
+      <table>
+        <tr>
+          <td><![endif]-->
+      <ul>
+      
+      	<!-- list encounters by state -->
+      						<%
+      						boolean moreStates=true;
+      						int cNum=0;
+							while(moreStates){
+	  								String currentLifeState = "encounterState"+cNum;
+	  								if(CommonConfiguration.getProperty(currentLifeState)!=null){
+	  									%>
+										<li>
+        									<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState) %>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;">
+        										<%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState))+" "))%>
+        									</a>
+        								</li>
+										<%
+										cNum++;
+  									}
+  									else{
+     									moreStates=false;
+  									}
+  
+							} //end while
+      						%>
+        
+
+        <li><a
+          href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/thumbnailSearchResults.jsp?noQuery=true"
+          class="enclose"
+          style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewImages")%>
+        </a></li>
+
+        <li><a
+          href="http://<%=CommonConfiguration.getURLLocation(request) %>/xcalendar/calendar.jsp"
+          class="enclose"
+          style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("encounterCalendar")%>
+        </a></li>
 
 
 
-	</ul>
-	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
-</li>
+      
+        <li>
+        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">
+        		<%=props.getProperty("viewMySubmissions")%>
+        	</a>
+        </li>
+     
+
+
+      </ul>
+      <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 <li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong>Search</strong>
 
 <!--[if IE 7]><!--></a><!--<![endif]-->
