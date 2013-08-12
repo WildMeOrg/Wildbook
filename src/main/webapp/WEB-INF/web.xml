@@ -108,7 +108,7 @@
 		 /UserDelete = authc, roles[admin]
 		 /ResetCommonConfiguration = authc, roles[admin]
 		 /xcalendar/** = authc, roles[researcher]
-                /encounters/allEncountersUnapproved.jsp = authc, roles[researcher]
+
                 /InterconnectSubmitSpots = authc, roles[imageProcessor]
 		/interconnectSubmitSpots= authc, roles[imageProcessor]
 		/GenePopExport = authc, roles[researcher]
@@ -121,7 +121,7 @@
 		/encounters/thumbnailSearch.jsp = authc, roles[researcher]
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
 		 /encounters/encounterSearch.jsp = authc, roles[researcher]
-		 /encounters/searchResults.jsp = authc, roles[researcher]
+		 /encounters/searchResults.jsp = anon
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
 		 /encounters/mappedSearchResults.jsp = authc, roles[researcher]
 		 /encounters/mappedSearchResultsSex.jsp = authc, roles[researcher]
