@@ -33,7 +33,7 @@ response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility
 	}
 	
 	//set up the file input stream
-	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/overview.properties"));
+	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/header.properties"));
 	
 	//test comment
 	
@@ -224,7 +224,7 @@ z-index:99;
 </li>
 <li class="drop"><a
       
-      style="margin: 0px 0 0px 0px; position: relative; width: 100px; height: 25px; z-index: 100;"><strong><%=props.getProperty("encounters")%>
+      style="margin: 0px 0 0px 0px; position: relative; width: 90px; height: 25px; z-index: 100;"><strong><%=props.getProperty("encounters")%>
     </strong><!--[if IE 7]><!--></a><!--<![endif]-->
       <!--[if lte IE 6]>
       <table>
@@ -361,7 +361,7 @@ z-index:99;
 				 </li>
                  
                  
-                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/provateSector.jsp?langCode=<%=langCode%> style="margin:0px 0 0px 0px; position:relative; width:180px; height:25px; z-index:100;"><strong>People and Partners </strong>
+                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/provateSector.jsp" style="margin:0px 0 0px 0px; position:relative; width:195 px; height:25px; z-index:100;"><strong>People/Partners </strong>
             <!--[if IE 7]><!--></a><!--<![endif]-->
 
 
@@ -392,9 +392,9 @@ z-index:99;
            
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/contactus.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px; z-index:100;"><strong>Contact Us</strong></a></li>
 <%if(request.getRemoteUser()==null) {%>
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong>Login</strong></a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:65px; height:25px; z-index:100;"><strong>Login</strong></a></li>
 <%} else {%>
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong>Logout</strong></a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:65 px; height:25px; z-index:100;"><strong>Logout</strong></a></li>
 <%}%>
 
 </ul>
