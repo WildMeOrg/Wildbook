@@ -193,28 +193,24 @@ try {
   	
 	  		if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
-	  			<br/>
-	  			<br/>
+	  			
 	  			<a href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>">Groth: Left-side scan results</a> 
 	  		<%
 	  		}
 	  		if((rightScanResults.exists())&&(enc.getNumRightSpots()>0)) {
 	  		%> 
-	  			<br/>
-	  			<br/>
+	  			
 	  			<a href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true">Groth: Right-side scan results</a> 
 	  		<%
 	  		}
 	  		if((I3SScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
-	  			<br/>
-	  			<br/>
+	  			
 	  			<a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&I3S=true">I3S: Left-side scan results</a> <%
 	  		}
 	  		if((rightI3SScanResults.exists())&&(enc.getNumRightSpots()>0)) {
 	  		%> 
-	  			<br/>
-	  			<br/>
+	  			
 	  			<a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true&I3S=true">I3S: Right-side scan results</a> 
 	  			<%
 	  		}
