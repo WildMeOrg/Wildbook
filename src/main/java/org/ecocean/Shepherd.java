@@ -2380,6 +2380,14 @@ public class Shepherd {
     Collection results = (Collection) q.execute();
     return (new ArrayList(results));
   }
+  
+  public ArrayList<String> getAllCountries() {
+    Query q = pm.newQuery(Encounter.class);
+    q.setResult("distinct country");
+    q.setOrdering("country ascending");
+    Collection results = (Collection) q.execute();
+    return (new ArrayList(results));
+  }
 
   public ArrayList<String> getAllHaplotypes() {
     Query q = pm.newQuery(MitochondrialDNAAnalysis.class);

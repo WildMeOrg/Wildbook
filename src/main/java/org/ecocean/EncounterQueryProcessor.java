@@ -39,6 +39,18 @@ public class EncounterQueryProcessor {
     }
     //end location filter--------------------------------------------------------------------------------------
 
+    //filter for username------------------------------------------
+    if((request.getParameter("username")!=null)&&(!request.getParameter("username").equals(""))) {
+      String locString=request.getParameter("username").toLowerCase().replaceAll("%20", " ").trim();
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+        filter+="(submitterID == \""+locString+"\")";
+      }
+      else{filter+=" && (submitterID == \""+locString+"\")";}
+      prettyPrint.append("Username contains \""+locString+"\".<br />");
+    }
+    //end username filter--------------------------------------------------------------------------------------
+
+    
     
     //filter for resighted encounter------------------------------------------
     if(request.getParameter("resightOnly")!=null) {
@@ -838,15 +850,17 @@ public class EncounterQueryProcessor {
      */
 
     //filter by alive/dead status------------------------------------------
-    if(request.getParameter("alive")==null) {
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('alive')";}
-      else{filter+=" && !livingStatus.startsWith('alive')";}
-      prettyPrint.append("Not alive.<br />");
-    }
-    if(request.getParameter("dead")==null) {
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('dead')";}
-      else{filter+=" && !livingStatus.startsWith('dead')";}
-      prettyPrint.append("Not dead.<br />");
+    if((request.getParameter("alive")!=null)||(request.getParameter("dead")!=null)){  
+      if(request.getParameter("alive")==null) {
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('alive')";}
+        else{filter+=" && !livingStatus.startsWith('alive')";}
+        prettyPrint.append("Not alive.<br />");
+      }
+      if(request.getParameter("dead")==null) {
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('dead')";}
+        else{filter+=" && !livingStatus.startsWith('dead')";}
+        prettyPrint.append("Not dead.<br />");
+      }
     }
     //filter by alive/dead status--------------------------------------------------------------------------------------
 

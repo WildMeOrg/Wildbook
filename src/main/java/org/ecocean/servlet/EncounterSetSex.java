@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 
 public class EncounterSetSex extends HttpServlet {
@@ -113,7 +114,14 @@ public class EncounterSetSex extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Success:</strong> encounter sex has been updated from " + oldSex + " to " + request.getParameter("selectSex") + ".");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
+            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+            int allStatesSize=allStates.size();
+            if(allStatesSize>0){
+              for(int i=0;i<allStatesSize;i++){
+                String stateName=allStates.get(i);
+                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+              }
+            }
             out.println("<p><a href=\"allIndividuals.jsp\">View all sharks</a></font></p>");
             out.println(ServletUtilities.getFooter());
             String message = "The sex for encounter #" + request.getParameter("number") + "has been updated from " + oldSex + " to " + request.getParameter("selectSex") + ".";
@@ -123,7 +131,14 @@ public class EncounterSetSex extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter sex was NOT updated because another user is currently modifying the record for this encounter.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
+            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+            int allStatesSize=allStates.size();
+            if(allStatesSize>0){
+              for(int i=0;i<allStatesSize;i++){
+                String stateName=allStates.get(i);
+                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+              }
+            }
             out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
             out.println(ServletUtilities.getFooter());
 
@@ -132,7 +147,14 @@ public class EncounterSetSex extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-          out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
+          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+          int allStatesSize=allStates.size();
+          if(allStatesSize>0){
+            for(int i=0;i<allStatesSize;i++){
+              String stateName=allStates.get(i);
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            }
+          }
           out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
           out.println(ServletUtilities.getFooter());
 

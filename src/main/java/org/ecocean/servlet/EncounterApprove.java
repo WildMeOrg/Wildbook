@@ -19,9 +19,7 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -30,6 +28,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import java.util.ArrayList;
 
 
 //Set alternateID for this encounter/sighting
@@ -108,9 +108,16 @@ public class EncounterApprove extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> I have approved this encounter " + request.getParameter("number") + " for inclusion in the database.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-        out.println("<p><a href=\"encounters/allEncountersUnapproved.jsp?start=1&end=10&sort=nosort\">View all unapproved encounters</a></font></p>");
-        out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+        
+        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+        int allStatesSize=allStates.size();
+        if(allStatesSize>0){
+          for(int i=0;i<allStatesSize;i++){
+            String stateName=allStates.get(i);
+            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+          }
+        }
+        
         out.println(ServletUtilities.getFooter());
         String message = "Encounter " + request.getParameter("number") + " was approved for inclusion in the visual database.";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
@@ -118,9 +125,7 @@ public class EncounterApprove extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> I have NOT approved this encounter " + request.getParameter("number") + " for the visual database. This new encounter is currently being modified by another user.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-        out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
-
+        
         out.println(ServletUtilities.getFooter());
       }
     } else {
