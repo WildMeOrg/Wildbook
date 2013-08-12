@@ -895,9 +895,12 @@ public class Encounter implements java.io.Serializable {
   //----------------
 
 
-  public void setSubmitterID(String name) {
-    submitterID = name;
+  public void setSubmitterID(String username) {
+    if(username!=null){submitterID = username;}
+    else{submitterID=null;}
   }
+  
+
 
   //old method. use getAssignedUser() instead
   public String getSubmitterID() {

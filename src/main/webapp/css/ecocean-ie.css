@@ -297,4 +297,7 @@ table.tissueSample td {
     background-color: white;
     -moz-border-radius: ;
 }
-
+a.launchPopup {
+  color:blue;
+  cursor: pointer;
+}

@@ -335,26 +335,20 @@ table.tissueSample td {
 <a name="alternateid"></a>
 
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
-  <%=sharky.getAlternateID()%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
-    href="individuals.jsp?number=<%=name%>&edit=alternateid#alternateid"><%=edit%>
-  </a>]<%}%>
+  <%=sharky.getAlternateID()%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 
   
 </p>
-<%
-  if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("alternateid"))) {%>
-<br>
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-       bgcolor="#99CCFF">
-  <tr>
-    <td align="left" valign="top"><span class="style1"><%=setAlternateID %>:</span></td>
-  </tr>
+
+
+<!-- Now prep the popup dialog -->
+<div id="dialogAlternateID" title="<%=setAlternateID %>" style="display:none">
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
   <tr>
     <td align="left" valign="top">
-      <form name="set_alternateid" method="post"
-            action="IndividualSetAlternateID"><input name="individual"
-                                                     type="hidden"
-                                                     value="<%=request.getParameter("number")%>"> <%=alternateID %>
+      <form name="set_alternateid" method="post" action="IndividualSetAlternateID">
+      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>"> <%=alternateID %>
         :
         <input name="alternateid" type="text" id="alternateid" size="15"
                maxlength="150"><br> <input name="Name" type="submit"
@@ -362,7 +356,23 @@ table.tissueSample td {
     </td>
   </tr>
 </table>
-</a><br> <%}%>
+
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlg = $("#dialogAlternateID").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#alternateID").click(function() {
+  dlg.dialog("open");
+});
+</script>
+
+
 </p>
 <%
     if(CommonConfiguration.showProperty("showTaxonomy")){
@@ -393,25 +403,25 @@ table.tissueSample td {
       }
 
   %>
-  <%=nickname %>: <%=myNickname%>
-  <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
-  href="individuals.jsp?number=<%=name%>&edit=nickname#nickname"><%=edit %>
-</a>]<%}%>
-  <br/>
+  <table border="0"><tr><td>
+  <%=nickname %>: <%=myNickname%></td>
+  <td>
+  <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  </td>
+  </tr>
+  <tr><td>
   <%=nicknamer %>: <%=myNicknamer%>
-
-  <br/>
+</td><td>&nbsp;</td>
+</tr>
+</table>
   <%
     }
 
+%>
+  <!-- Now prep the popup dialog -->
+<div id="dialogNickname" title="<%=setNickname %>" style="display:none">
+    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
-    if (CommonConfiguration.isCatalogEditable() && isOwner && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("nickname"))) {%>
-  <br/><br/>
-  <a name="nickname">
-    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
-      <tr>
-        <td align="left" valign="top"><span class="style1"><%=setNickname %>:</span></td>
-      </tr>
       <tr>
         <td align="left" valign="top">
           <form name="nameShark" method="post" action="IndividualSetNickName">
@@ -425,22 +435,33 @@ table.tissueSample td {
         </td>
       </tr>
     </table>
-  </a>
-  <br/> <%}%>
+    </div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgNick = $("#dialogNickname").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 500
+});
+
+$("a#nickname").click(function() {
+  dlgNick.dialog("open");
+});
+</script>
+
 
 </p>
-<p><%=sex %>: <%=sharky.getSex()%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%>[<a
-  href="individuals.jsp?number=<%=name%>&edit=sex#sex"><%=edit %>
-</a>]<%}%><br>
+<p><%=sex %>: <%=sharky.getSex()%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
   <%
     //edit sex
-    if (CommonConfiguration.isCatalogEditable() && isOwner && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("sex"))) {%>
-  <br><a name="sex">
-    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000"
-           bgcolor="#99CCFF">
-      <tr>
-        <td align="left" valign="top"><span class="style1"><%=setsex %>:</span></td>
-      </tr>
+    if (CommonConfiguration.isCatalogEditable() && isOwner) {%>
+  
+    <!-- Now prep the popup dialog -->
+<div id="dialogSex" title="<%=setsex %>" style="display:none">
+  
+    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
       <tr>
         <td align="left" valign="top">
           <form name="setxsexshark" action="IndividualSetSex" method="post">
@@ -456,7 +477,23 @@ table.tissueSample td {
         </td>
       </tr>
     </table>
-  </a><br> <%}%>
+    
+        </div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgSex = $("#dialogSex").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 500
+});
+
+$("a#sex").click(function() {
+  dlgSex.dialog("open");
+});
+</script>
+    
+   <%}%>
 
 </p>
 
@@ -476,8 +513,8 @@ table.tissueSample td {
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %>
-  <font size="-1">[<a
-    href="individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty">edit</a>]</font>
+  <font size="-1"><a
+    href="individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
   <%
     }
   %>
@@ -1082,7 +1119,7 @@ if(CommonConfiguration.showUsersToPublic()){
                          		}
                          		%>
                      			<tr><td><center><div style="height: 50px">
-						<a id="username<%=userNum%>"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
+						<a style="color:blue;cursor: pointer;" id="username<%=userNum%>"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
 					</div></center></td></tr>
                      			<%
                          		String displayName="";
@@ -1090,8 +1127,7 @@ if(CommonConfiguration.showUsersToPublic()){
                          			displayName=thisUser.getFullName();
                          		
                          		%>
-                         		<tr><td style="border:none"><center><a id="username<%=userNum%>" style="font-weight:normal;border:none"><%=displayName %></a></center></td></tr>
-                         		
+                         		<tr><td style="border:none"><center><a style="color:blue;cursor: pointer;" id="username<%=userNum%>" style="font-weight:normal;border:none"><%=displayName %></a></center></td></tr>
                          		<%	
                          		}
                          		
@@ -1144,8 +1180,6 @@ if(CommonConfiguration.showUsersToPublic()){
 					    
 					    $("a#username<%=userNum%>").click(function() {
 					      dlg<%=userNum%>.dialog("open");
-					    }).mouseout(function() {
-					      //dlg.dialog("close");
 					    });
 					</script>
 
@@ -1532,7 +1566,7 @@ else {
     name="sharky_button" type="submit" id="sharky_button"
     value="<%=getRecord %>"></form>
 </p>
-<p><font color="#990000"><a href="encounters/allEncounters.jsp"><%=allEncounters %>
+<p><font color="#990000"><a href="encounters/searchResults.jsp"><%=allEncounters %>
 </a></font></p>
 
 <p><font color="#990000"><a href="allIndividuals.jsp"><%=allIndividuals %>

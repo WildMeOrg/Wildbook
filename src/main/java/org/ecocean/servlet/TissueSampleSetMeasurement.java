@@ -71,6 +71,8 @@ public class TissueSampleSetMeasurement extends HttpServlet {
               }
             
               measurement = new BiologicalMeasurement(sampleID, analysisID, encNum, request.getParameter("measurementType"), (new Double(request.getParameter("value"))), units, request.getParameter("samplingProtocol"));
+              if(request.getParameter("measurementType")!=null){measurement.setMeasurementType(request.getParameter("measurementType"));}
+              
               if(request.getParameter("processingLabTaskID")!=null){measurement.setProcessingLabTaskID(request.getParameter("processingLabTaskID"));}
               if(request.getParameter("processingLabName")!=null){measurement.setProcessingLabName(request.getParameter("processingLabName"));}
               if(request.getParameter("processingLabContactName")!=null){measurement.setProcessingLabContactName(request.getParameter("processingLabContactName"));}

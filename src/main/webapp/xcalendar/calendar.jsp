@@ -145,7 +145,7 @@ calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.pro
 <div id="maincol-calendar" style='overflow: auto; z-index: 0;'>
 <div id="maintext" style='overflow: auto; z-index: 0;'>
 
-<h1><%=calprops.getProperty("title") %></h1>
+<h1><img src="../images/calendar.png" width="75px" height="75px" align="absmiddle"/> <%=calprops.getProperty("title") %></h1>
 
 <div align="center" id="scheduler_here" class="dhx_cal_container"
 	style='width: 810px; height: 800px; overflow: auto; margin-left: auto; margin-right: auto; position: relative; z-index: 0;'>
