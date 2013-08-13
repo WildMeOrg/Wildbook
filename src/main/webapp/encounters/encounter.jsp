@@ -3253,12 +3253,18 @@ $("a#dynamicProperty<%=nm%>").click(function() {
 <%
   }
     if(numDynProps==0){
-  %>
-  <p><%=encprops.getProperty("none")%></p>
-  <%  
-    }
+    	  %>
+    	  <p><%=encprops.getProperty("none")%></p>
+    	  <%  
+   	}
 
   }
+//display a message if none are defined
+else{
+	  %>
+	  <p><%=encprops.getProperty("none")%></p>
+	  <%  
+	    }
 
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
