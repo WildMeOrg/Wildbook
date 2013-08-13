@@ -239,6 +239,8 @@ z-index:99;
 							while(moreStates){
 	  								String currentLifeState = "encounterState"+cNum;
 	  								if(CommonConfiguration.getProperty(currentLifeState)!=null){
+	  									
+	  									if((!CommonConfiguration.getProperty(currentLifeState).equals("unapproved"))||(request.getUserPrincipal()!=null)){
 	  									%>
 										<li>
         									<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState) %>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;">
@@ -246,6 +248,7 @@ z-index:99;
         									</a>
         								</li>
 										<%
+	  									}
 										cNum++;
   									}
   									else{
@@ -361,7 +364,8 @@ z-index:99;
 				 </li>
                  
                  
-                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/provateSector.jsp" style="margin:0px 0 0px 0px; position:relative; width:195 px; height:25px; z-index:100;"><strong>People/Partners </strong>
+                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/provateSector.jsp" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px; z-index:100;"><strong>People/Partners </strong>
+  
             <!--[if IE 7]><!--></a><!--<![endif]-->
 
 
@@ -392,9 +396,10 @@ z-index:99;
            
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/contactus.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px; z-index:100;"><strong>Contact Us</strong></a></li>
 <%if(request.getRemoteUser()==null) {%>
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:65px; height:25px; z-index:100;"><strong>Login</strong></a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:50px; height:25px; z-index:100;"><strong>Login</strong></a></li>
 <%} else {%>
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:65 px; height:25px; z-index:100;"><strong>Logout</strong></a></li>
+
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:50px; height:25px; z-index:100;"><strong>Logout</strong></a></li>
 <%}%>
 
 </ul>
