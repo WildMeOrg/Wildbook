@@ -60,7 +60,7 @@ Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
 %>
 
 
-<p class="para"><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px"
+<p><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px"
                      height="25px"><strong>&nbsp;<%=encprops.getProperty("images")%>
 </strong><br/> <%
   if (session.getAttribute("logged") != null) {
@@ -88,8 +88,12 @@ int imageCount = 0;
 <td>
 <table>
 <tr>
-  <td class="para"><em><%=encprops.getProperty("image") %> <%=imageCount%>
-  </em></td>
+  <td class="para">
+  <br />
+  	<strong>
+  		<%=encprops.getProperty("image") %> <%=imageCount%>
+  	</strong>
+  </td>
 </tr>
 <%
   if (request.getParameter("isOwner").equals("true")) {
@@ -97,8 +101,9 @@ int imageCount = 0;
 <tr>
   <td class="para">
   	<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" />
-    <strong><%=encprops.getProperty("image_commands") %>
-    </strong>:<br/> <font size="-1">
+    <em>
+    	<%=encprops.getProperty("image_commands") %>
+    </em>:<br/> <font size="-1">
       [<a
       href="encounterSearch.jsp?referenceImageName=<%=(imageEncNum+"/"+(addTextFile.replaceAll(" ","%20")))%>"><%=encprops.getProperty("look4photos") %>
     </a>] </font></td>
@@ -117,8 +122,8 @@ int imageCount = 0;
 
     
     <br />
-    <strong><img align="absmiddle" src="../images/keyword_icon_small.gif" /> <%=encprops.getProperty("matchingKeywords") %>
-    </strong>
+    <em><img align="absmiddle" src="../images/keyword_icon_small.gif" /> <%=encprops.getProperty("matchingKeywords") %>
+    </em>
 
   
     
@@ -177,9 +182,10 @@ int imageCount = 0;
     <table>
       <tr>
         <td class="para">
-          <strong><%=encprops.getProperty("add_keyword") %> <a
-            href="<%=CommonConfiguration.getWikiLocation()%>photo_keywords" target="_blank">
-            <img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a></strong>
+          <em><%=encprops.getProperty("add_keyword") %> 
+          	<a href="<%=CommonConfiguration.getWikiLocation()%>photo_keywords" target="_blank">
+            	<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
+            </em>
         </td>
       </tr>
       <tr>
@@ -203,9 +209,10 @@ int imageCount = 0;
               %>
 
             </select>
-            <input name="number" type="hidden" value=<%=imageEncNum%>>
-            <input name="photoName" type="hidden" value="<%=images.get(myImage).getDataCollectionEventID()%>">
-            <input name="AddKW" type="submit" id="AddKW" value="<%=encprops.getProperty("add") %>">
+            <input name="number" type="hidden" value="<%=imageEncNum%>" />
+            <input name="photoName" type="hidden" value="<%=images.get(myImage).getDataCollectionEventID()%>" />
+            <br />
+            <input name="AddKW" type="submit" id="AddKW" value="<%=encprops.getProperty("add") %>" />
           </form>
           <%
           } else {
