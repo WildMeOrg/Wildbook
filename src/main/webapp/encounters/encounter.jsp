@@ -3189,11 +3189,13 @@ if(isOwner){
   if (enc.getDynamicProperties() != null) {
     //let's create a TreeMap of the properties
     StringTokenizer st = new StringTokenizer(enc.getDynamicProperties(), ";");
+    int numDynProps=0;
     while (st.hasMoreTokens()) {
       String token = st.nextToken();
       int equalPlace = token.indexOf("=");
       String nm = token.substring(0, (equalPlace));
       String vl = token.substring(equalPlace + 1);
+      numDynProps++;
 %>
 <p class="para"> <em><%=nm%></em>: <%=vl%>
   <%
@@ -3250,7 +3252,11 @@ $("a#dynamicProperty<%=nm%>").click(function() {
 
 <%
   }
-
+    if(numDynProps==0){
+  %>
+  <p><%=encprops.getProperty("none")%></p>
+  <%  
+    }
 
   }
 
