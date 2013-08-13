@@ -1135,6 +1135,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     filter=queryStringBuilder(request, prettyPrint, paramMap);
 
     Query query=myShepherd.getPM().newQuery(filter);
+    if(!order.equals("")){query.setOrdering(order);}
 
     if(!filter.trim().equals("")){
         //filter="("+filter+")";
