@@ -129,7 +129,7 @@
       			<%
       			if(!user.getUsername().equals(request.getUserPrincipal().getName())){
       			%>
-      			<a href="../UserDelete?username=<%=user.getUsername()%>"><img  width="20px" height="20px" src="../images/cancel.gif" /></a>
+      			<form onsubmit="return confirm('Are you sure you want to delete this user?');" action="../UserDelete?username=<%=user.getUsername()%>" method="post"><input type="image"  width="20px" height="20px" src="../images/cancel.gif" /></form>
       			<%
       			}
       			else {

@@ -178,7 +178,7 @@ try {
 				</td>
 			</tr>
 		</table>
-		<br/>
+		
 			<%
 			
   
@@ -194,24 +194,24 @@ try {
 	  		if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
 	  			
-	  			<a href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>">Groth: Left-side scan results</a> 
+	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>">Groth: Left-side scan results</a><br />
 	  		<%
 	  		}
 	  		if((rightScanResults.exists())&&(enc.getNumRightSpots()>0)) {
 	  		%> 
 	  			
-	  			<a href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true">Groth: Right-side scan results</a> 
+	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true">Groth: Right-side scan results</a><br /> 
 	  		<%
 	  		}
 	  		if((I3SScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
 	  			
-	  			<a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&I3S=true">I3S: Left-side scan results</a> <%
+	  			<a class="para" href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&I3S=true">I3S: Left-side scan results</a><br /> <%
 	  		}
 	  		if((rightI3SScanResults.exists())&&(enc.getNumRightSpots()>0)) {
 	  		%> 
 	  			
-	  			<a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true&I3S=true">I3S: Right-side scan results</a> 
+	  			<a class="para" href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true&I3S=true">I3S: Right-side scan results</a><br /> 
 	  			<%
 	  		}
 	  		
@@ -223,6 +223,11 @@ try {
 
 <%
 		} //if use spot pattern reognition
+		else{
+		%>
+		<p>No spots have been added.</p>
+		<%	
+		}
 
 %>
 
@@ -400,11 +405,11 @@ $("a#changespotimage").click(function() {
 
     }
 
-				if(isOwner){ 
+				if(isOwner && ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))){ 
 				%>
 				<br />
   					  <p class="para"><strong><em>Scan for Matches</em></strong></p>
-  					<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" /> Scan entire database on the <a href="http://www.sharkgrid.org">sharkGrid</a> using the 
+  					<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" /> Scan entire database using the 
   					<a href="http://www.blackwell-synergy.com/doi/pdf/10.1111/j.1365-2664.2005.01117.x">Modified Groth</a> and 
   					<a href="http://www.blackwell-synergy.com/doi/abs/10.1111/j.1365-2664.2006.01273.x?journalCode=jpe">I3S</a> algorithms.
 
