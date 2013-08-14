@@ -2743,6 +2743,28 @@ if (isOwner) {
 }
 %>
 
+<!-- START DELETE ENCOUNTER FORM --> 		
+<%
+if (isOwner) {
+%><br />
+<table width="100%" border="0" cellpadding="1">
+    <tr>
+      <td height="30" class="para">   
+        <form onsubmit="return confirm('Are you sure you want to delete this encounter?');" name="deleteEncounter" method="post" action="../EncounterDelete">
+              <input name="number" type="hidden" value="<%=num%>" /> 
+              <% 
+              String deleteIcon="cancel.gif";
+              %>
+              <img src="../images/Warning_icon_small.png" align="absmiddle" />&nbsp;Delete Encounter? <input align="absmiddle" name="approve" type="image" src="../images/<%=deleteIcon %>" id="deleteButton" />
+        </form>
+      </td>
+    </tr>
+  </table>
+<!-- END DELETE ENCOUNTER FORM --> 
+<%
+}
+%>
+
 <!-- START AUTOCOMMENTS --> 
 <p><%=encprops.getProperty("auto_comments")%> <a id="autocomments" class="launchPopup"><img height="40px" width="40px" align="middle" src="../images/Crystal_Clear_app_kaddressbook.gif" /></a></p>
 
