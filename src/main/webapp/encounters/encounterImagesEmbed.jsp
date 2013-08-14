@@ -597,11 +597,11 @@ catch (Exception e) {
 <table width="250" bgcolor="#99CCFF">
   <tr>
     <td class="para">
-      <form action="../EncounterRemoveImage" method="post"
-            name="encounterRemoveImage"><input name="action"
-                                               type="hidden" value="imageremover" id="action">
+      <form onsubmit="return confirm('Are you sure you want to delete this image?');"  action="../EncounterRemoveImage" method="post"
+            name="encounterRemoveImage">
+            <input name="action" type="hidden" value="imageremover" id="action" />
         <input
-          name="number" type="hidden" value=<%=imageEncNum%>> <strong><img
+          name="number" type="hidden" value="<%=imageEncNum%>" /> <strong><img
           align="absmiddle" src="../images/cancel.gif"/> <%=encprops.getProperty("removefile") %>:
         </strong> <select name="dcID">
           <%
@@ -613,8 +613,7 @@ catch (Exception e) {
           %>
         </select><br/>
 
-        <p><input name="rmFile" type="submit" id="rmFile"
-                  value="Remove"></p></form>
+        <p><input name="rmFile" type="submit" id="rmFile" value="Remove" /></p></form>
 
     </td>
   </tr>
