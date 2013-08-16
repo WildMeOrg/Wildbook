@@ -1659,14 +1659,14 @@ $("a#country").click(function() {
 						while(stzr.hasMoreTokens()) {
 							String nextie=stzr.nextToken();			
 							%> 
-							<br/><a href="mailto:<%=nextie%>?subject=Information%20Request%20for%20Stranding%20<%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=nextie%></a> 
+							<br/><a href="mailto:<%=nextie%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=nextie%></a> 
 							<%
 						}
 				
 					}
 					else if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))) {
 					%> <br/>
-						<a href="mailto:<%=enc.getSubmitterEmail()%>?subject=Information%20Request%20for%20Stranding%20<%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=enc.getSubmitterEmail()%></a> 
+						<a href="mailto:<%=enc.getSubmitterEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=enc.getSubmitterEmail()%></a> 
 					<%
 					}
 					
@@ -1795,7 +1795,7 @@ $("a#country").click(function() {
 
 					if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
 					%>
-						<br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=Information%20Request%20for%20Stranding%20<%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=enc.getPhotographerEmail()%></a> 
+						<br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle")%>"><%=enc.getPhotographerEmail()%></a> 
 					<%
 					}
 					if((enc.getPhotographerPhone()!=null)&&(!enc.getPhotographerPhone().equals(""))){
