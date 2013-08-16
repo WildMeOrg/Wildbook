@@ -83,13 +83,14 @@ div.scroll {
 
 -->
 </style>
+<hr width="100%"/>
+  <p><strong>Adopters</strong></p>
 
-<h3 style="width: 250px">Adopters</h3>
 
 <%
   ArrayList adoptions = adoptShepherd.getAllAdoptionsForEncounter(num);
   int numAdoptions = adoptions.size();
-
+if(numAdoptions>0){
   for (int ia = 0; ia < numAdoptions; ia++) {
     Adoption ad = (Adoption) adoptions.get(ia);
 %>
@@ -131,7 +132,7 @@ div.scroll {
   <%
     }
 
-    if (request.isUserInRole("admin")) {
+    if (request.getUserPrincipal()!=null) {
   %>
   <tr>
     <td>&nbsp;</td>
@@ -166,12 +167,20 @@ div.scroll {
 <p>&nbsp;</p>
 <%
   }
+  }
+  else {
+	%>
+	<p>No adoptions defined.</p>  
+<%	  
+  }
+
+
 
   //add adoption
-  if (request.isUserInRole("admin")) {
+  if (request.getUserPrincipal()!=null) {
 %>
 <p><a
-  href="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/adoption.jsp?encounter=<%=num%>#create">[+]
+  href="../adoptions/adoption.jsp?encounter=<%=num%>#create">[+]
   Add adoption</a></p>
 <%
   }

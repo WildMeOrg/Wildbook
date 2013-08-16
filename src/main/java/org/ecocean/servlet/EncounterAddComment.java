@@ -83,13 +83,13 @@ public class EncounterAddComment extends HttpServlet {
 
 
     myShepherd.beginDBTransaction();
-    if ((request.getParameter("number") != null) && (request.getParameter("user") != null) && (request.getParameter("comments") != null) && (myShepherd.isEncounter(request.getParameter("number")))) {
+    if ((request.getParameter("number") != null) && (request.getParameter("user") != null) && (request.getParameter("autocomments") != null) && (myShepherd.isEncounter(request.getParameter("number")))) {
 
       Encounter commentMe = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(commentMe);
       try {
 
-        commentMe.addComments("<p><em>" + request.getParameter("user") + " on " + (new java.util.Date()).toString() + "</em><br>" + request.getParameter("comments") + "</p>");
+        commentMe.addComments("<p><em>" + request.getParameter("user") + " on " + (new java.util.Date()).toString() + "</em><br>" + request.getParameter("autocomments") + "</p>");
       } catch (Exception le) {
         locked = true;
         le.printStackTrace();
@@ -102,7 +102,7 @@ public class EncounterAddComment extends HttpServlet {
         myShepherd.commitDBTransaction();
         out.println("<strong>Success:</strong> I have successfully added your comments.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        String message = "A new comment has been added to encounter #" + request.getParameter("number") + ". The new comment is: \n" + request.getParameter("comments");
+        String message = "A new comment has been added to encounter #" + request.getParameter("number") + ". The new comment is: \n" + request.getParameter("autocomments");
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
       } else {
         out.println("<strong>Failure:</strong> I did NOT add your comments. Another user is currently modifying the entry for this encounter. Please try to add your comments again in a few seconds.");

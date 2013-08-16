@@ -8,6 +8,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.Date;
+
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.UnknownAccountException;
@@ -109,6 +111,13 @@ import org.ecocean.*;
 			//authentication fails (e.g. incorrect password, no username found)
 
 			subject.login(token);
+		   myShepherd.beginDBTransaction();
+		    if(myShepherd.getUser(username)!=null){
+		      User user=myShepherd.getUser(username);
+		      user.setLastLogin((new Date()).getTime());
+		    }
+		    myShepherd.commitDBTransaction();
+		    myShepherd.closeDBTransaction();
 			
 			
 			//clear the information stored in the token

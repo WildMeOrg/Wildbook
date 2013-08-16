@@ -169,7 +169,6 @@ myShepherd.commitDBTransaction();
 } 
 catch(Exception ex) {
 
-	System.out.println("!!!An error occurred on page allEncounters.jsp. The error was:");
 	ex.printStackTrace();
 	%>
 	!!!An error occurred on page allEncounters.jsp.

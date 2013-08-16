@@ -54,8 +54,8 @@ public class CommonConfiguration {
       return loadProps();
   }
   
-  private static synchronized boolean loadProps() {
-    if (propsSize == 0) {
+  
+  public static synchronized boolean reloadProps() {
       InputStream resourceAsStream = null;
       try {
         resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
@@ -77,6 +77,13 @@ public class CommonConfiguration {
       if((props.getProperty("dataDirectoryName")!=null)&&(!props.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=props.getProperty("dataDirectoryName");}
       loadOverrideProps(shepherdDataDir);
       propsSize = props.size();
+
+    return true;
+  }
+  
+  private static synchronized boolean loadProps() {
+    if (propsSize == 0) {
+      return reloadProps();
     }
     return true;
   }
@@ -86,11 +93,11 @@ public class CommonConfiguration {
     
     //sometimes this ends up being the "bin" directory of the J2EE container
     //we need to fix that
-    if(configDir.getAbsolutePath().contains("/bin/")){
-      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "");
+    if((configDir.getAbsolutePath().contains("/bin/"))||(configDir.getAbsolutePath().contains("\\bin\\"))){
+      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
       configDir=new File(fixedPath);
-      System.out.println("Fixng the bin issue in CommonCOnfiguration. ");
-      System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+      System.out.println("Fixing the bin issue in CommonConfiguration.");
+      System.out.println("The fix absolute path is: "+configDir.getAbsolutePath());
     }
     
     if(!configDir.exists()){configDir.mkdirs();}
@@ -495,6 +502,20 @@ public class CommonConfiguration {
     String dataDirectoryName="shepherd_data_dir";
     if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
     return dataDirectoryName;
+  }
+  
+  /**
+   * This configuration option defines whether information about User objects associated with Encounters and MarkedIndividuals will be displayed to web site viewers.
+   *
+   * @return true if edits are allows. False otherwise.
+   */
+  public static boolean showUsersToPublic() {
+    initialize();
+    boolean showUsersToPublic = true;
+    if ((props.getProperty("showUsersToPublic") != null) && (props.getProperty("showUsersToPublic").equals("false"))) {
+      showUsersToPublic = false;
+    }
+    return showUsersToPublic;
   }
   
 }

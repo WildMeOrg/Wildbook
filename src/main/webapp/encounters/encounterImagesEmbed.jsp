@@ -53,16 +53,15 @@ if (session.getAttribute("langCode") != null) {
 Properties encprops = new Properties();
 encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
-
-
 Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
+
 
 
 %>
 
 
-<p class="para"><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px"
-                     height="*"><strong>&nbsp;<%=encprops.getProperty("images")%>
+<p><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px"
+                     height="25px"><strong>&nbsp;<%=encprops.getProperty("images")%>
 </strong><br/> <%
   if (session.getAttribute("logged") != null) {
 %> <em><%=encprops.getProperty("click2view")%>
@@ -89,17 +88,22 @@ int imageCount = 0;
 <td>
 <table>
 <tr>
-  <td class="para"><em><%=encprops.getProperty("image") %> <%=imageCount%>
-  </em></td>
+  <td class="para">
+  <br />
+  	<strong>
+  		<%=encprops.getProperty("image") %> <%=imageCount%>
+  	</strong>
+  </td>
 </tr>
 <%
   if (request.getParameter("isOwner").equals("true")) {
 %>
 <tr>
-  <td class="para"><img align="absmiddle"
-                        src="../images/Crystal_Clear_action_find.gif">
-    <strong><%=encprops.getProperty("image_commands") %>
-    </strong>:<br/> <font size="-1">
+  <td class="para">
+  	<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" />
+    <em>
+    	<%=encprops.getProperty("image_commands") %>
+    </em>:<br/> <font size="-1">
       [<a
       href="encounterSearch.jsp?referenceImageName=<%=(imageEncNum+"/"+(addTextFile.replaceAll(" ","%20")))%>"><%=encprops.getProperty("look4photos") %>
     </a>] </font></td>
@@ -118,8 +122,8 @@ int imageCount = 0;
 
     
     <br />
-    <strong><img align="absmiddle" src="../images/keyword_icon_small.gif" /> <%=encprops.getProperty("matchingKeywords") %>
-    </strong>
+    <em><img align="absmiddle" src="../images/keyword_icon_small.gif" /> <%=encprops.getProperty("matchingKeywords") %>
+    </em>
 
   
     
@@ -178,9 +182,10 @@ int imageCount = 0;
     <table>
       <tr>
         <td class="para">
-          <strong><%=encprops.getProperty("add_keyword") %> <a
-            href="<%=CommonConfiguration.getWikiLocation()%>photo_keywords" target="_blank">
-            <img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a></strong>
+          <em><%=encprops.getProperty("add_keyword") %> 
+          	<a href="<%=CommonConfiguration.getWikiLocation()%>photo_keywords" target="_blank">
+            	<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
+            </em>
         </td>
       </tr>
       <tr>
@@ -204,9 +209,10 @@ int imageCount = 0;
               %>
 
             </select>
-            <input name="number" type="hidden" value=<%=imageEncNum%>>
-            <input name="photoName" type="hidden" value="<%=images.get(myImage).getDataCollectionEventID()%>">
-            <input name="AddKW" type="submit" id="AddKW" value="<%=encprops.getProperty("add") %>">
+            <input name="number" type="hidden" value="<%=imageEncNum%>" />
+            <input name="photoName" type="hidden" value="<%=images.get(myImage).getDataCollectionEventID()%>" />
+            <br />
+            <input name="AddKW" type="submit" id="AddKW" value="<%=encprops.getProperty("add") %>" />
           </form>
           <%
           } else {
@@ -558,15 +564,44 @@ catch (Exception e) {
     </td>
   </tr>
 </table>
+<br />
+<table width="250" bgcolor="#99CCFF">
+  <tr>
+    <td align="left" valign="top" class="para">
+      <font color="#990000"><img
+        align="absmiddle" src="../images/thumbnail_image.gif"/></font>
+      <strong><%=encprops.getProperty("resetThumbnail")%>
+      </strong>&nbsp;</font></td>
+  </tr>
+  <tr>
+    <td align="left">
+      <form action="../resetThumbnail.jsp" method="get" enctype="multipart/form-data"
+            name="resetThumbnail">
+        <input name="number" type="hidden" value="<%=imageEncNum%>" id="numreset"><br/>
+        <%=encprops.getProperty("useImage")%>: <select name="imageNum">
+        <%
+          for (int rmi2 = 1; rmi2 <= numImagesHere; rmi2++) {
+        %>
+        <option value="<%=rmi2%>"><%=rmi2%>
+        </option>
+        <%
+          }
+        %>
+      </select><br/>
+        <input name="resetSubmit" type="submit" id="resetSubmit"
+               value="<%=encprops.getProperty("resetThumbnail")%>"></form>
+    </td>
+  </tr>
+</table>
 <br/>
 <table width="250" bgcolor="#99CCFF">
   <tr>
     <td class="para">
-      <form action="../EncounterRemoveImage" method="post"
-            name="encounterRemoveImage"><input name="action"
-                                               type="hidden" value="imageremover" id="action">
+      <form onsubmit="return confirm('Are you sure you want to delete this image?');"  action="../EncounterRemoveImage" method="post"
+            name="encounterRemoveImage">
+            <input name="action" type="hidden" value="imageremover" id="action" />
         <input
-          name="number" type="hidden" value=<%=imageEncNum%>> <strong><img
+          name="number" type="hidden" value="<%=imageEncNum%>" /> <strong><img
           align="absmiddle" src="../images/cancel.gif"/> <%=encprops.getProperty("removefile") %>:
         </strong> <select name="dcID">
           <%
@@ -578,8 +613,7 @@ catch (Exception e) {
           %>
         </select><br/>
 
-        <p><input name="rmFile" type="submit" id="rmFile"
-                  value="Remove"></p></form>
+        <p><input name="rmFile" type="submit" id="rmFile" value="Remove" /></p></form>
 
     </td>
   </tr>
@@ -587,141 +621,7 @@ catch (Exception e) {
 
 <%
   }
-%>
 
-
-<p>
-    <%
-		 	if (request.getParameter("isOwner").equals("true")&&CommonConfiguration.useSpotPatternRecognition()&&((imageEnc.getNumSpots()>0)||(imageEnc.getNumRightSpots()>0))) {
-		 	
-
-		 			
-		 			//File extractImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/extract"+imageEncNum+".jpg");
-		 			File extractImage=new File(thisEncounterDir.getAbsolutePath()+"/extract"+imageEncNum+".jpg");
-
-		 			//File extractRightImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/extractRight"+imageEncNum+".jpg");
-		 			File extractRightImage=new File(thisEncounterDir.getAbsolutePath()+"/extractRight"+imageEncNum+".jpg");
-
-		 			
-		 			//File uploadedFile=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/"+imageEnc.getSpotImageFileName());
-		 			File uploadedFile=new File(thisEncounterDir.getAbsolutePath()+"/"+imageEnc.getSpotImageFileName());
-
-		 			
-		 			//File uploadedRightFile=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/"+imageEnc.getRightSpotImageFileName());
-		 			File uploadedRightFile=new File(thisEncounterDir.getAbsolutePath()+"/"+imageEnc.getRightSpotImageFileName());
-
-		 			
-		 			String extractLocation="file-"+thisEncounterDir.getAbsolutePath()+"/extract"+imageEncNum+".jpg";
-		 			String extractRightLocation="file-"+thisEncounterDir.getAbsolutePath()+"/extractRight"+imageEncNum+".jpg";
-		 			String addText=imageEncNum+"/"+imageEnc.getSpotImageFileName();
-		 			String addTextRight=imageEncNum+"/"+imageEnc.getRightSpotImageFileName();
-		 			//System.out.println(addText);
-		 			String height="";
-		 			String width="";
-		 			String heightR="";
-		 			String widthR="";
-		 			
-		 			
-		 			if((uploadedFile.exists())&&(uploadedFile.isFile())&&(uploadedFile.length()>0)&&(imageEnc.getNumSpots()>0)) {
-
-		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
-		 				
-		 				//iInfo.setInput(new FileInputStream(uploadedFile));
-		 				if (!extractImage.exists()) {
-		 					//System.out.println("Made it here.");
-		 					
-		 					height+=Double.toString(imageDimensions.getHeight());
-		 					width+=Double.toString(imageDimensions.getWidth());
-		 					//height+=iInfo.getHeight();
-		 					//width+=iInfo.getWidth();
-		 					
-		 					
-		 					
-		 					//System.out.println(height+"and"+width);
-		 					int intHeight=((new Double(height)).intValue());
-		 					int intWidth=((new Double(width)).intValue());
-		 					//System.out.println("Made it here: "+imageEnc.hasSpotImage+" "+imageEnc.hasRightSpotImage);
-		 					//System.gc();
-		 %>
-  <di:img width="<%=intWidth%>" height="<%=intHeight%>"
-          imgParams="rendering=speed,quality=low" expAfter="0" border="0"
-          threading="limited" output="<%=extractLocation%>">
-          <%
-          String src_ur_value=encountersDir.getAbsolutePath()+"/"+addText;
-          %>
-    <di:image srcurl="<%=src_ur_value%>"/>
-  </di:img> <%
-							}
-										}
-									//set the right file
-									
-						if((uploadedRightFile.exists())&&uploadedRightFile.isFile()&&(uploadedRightFile.length()>0)&&(imageEnc.getNumRightSpots()>0)) {
-									
-									//iInfo=new ImageInfo();
-									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
-		 				
-									//iInfo.setInput(new FileInputStream(uploadedRightFile));
-									if (!extractRightImage.exists()) {
-										//System.out.println("Made it here.");
-										//heightR+=iInfo.getHeight();
-										//widthR+=iInfo.getWidth();
-										//System.out.println(height+"and"+width);
-										
-										heightR+=Double.toString(imageDimensions.getHeight());
-		 								widthR+=Double.toString(imageDimensions.getWidth());
-										
-										
-										int intHeightR=((new Double(heightR)).intValue());
-										int intWidthR=((new Double(widthR)).intValue());
-										System.gc();
-						%>
-  <di:img width="<%=intWidthR%>" height="<%=intHeightR%>"
-          imgParams="rendering=speed,quality=low" expAfter="0"
-          threading="limited" border="0" output="<%=extractRightLocation%>">
-          <%
-          String src_ur_value=encountersDir.getAbsolutePath()+"/"+addTextRight;
-          %>
-    <di:image srcurl="<%=src_ur_value%>"/>
-  </di:img> <%
-						}
-								}
-								
-								
-								String fileloc="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(imageEncNum+"/"+imageEnc.getSpotImageFileName());
-								String filelocR="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(imageEncNum+"/"+imageEnc.getRightSpotImageFileName());
-					%>
-
-<p class="para"><strong>Spot data image files used for
-  matching</strong><br/> <font size="-1">[<a
-  href="encounter.jsp?number=<%=imageEncNum%>&edit=spotImage#spotImage">reset
-  left or right spot data image</a>]</font><br/> <br/> <%
-  if ((imageEnc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
-%> Left-side<em>.</em><em> Click the image to view the full size
-  original. <a href="encounterSpotVisualizer.jsp?number=<%=imageEncNum%>">Click
-    here to see the left-side spots mapped to the left-side image.</a> </em><br/>
-  <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image" width="250"></a> <%
-    }
-  %> <br/><br/> <%
-    //--
-    if ((imageEnc.getNumRightSpots() > 0)&&(uploadedRightFile.exists())&&(uploadedRightFile.isFile())) {
-  %> Right-side<em>.</em><em> Click the image to view the full
-    size original. <a
-      href="encounterSpotVisualizer.jsp?number=<%=imageEncNum%>&rightSide=true">Click
-      here to see the right-side spots mapped to the right-side image.</a> </em><br/>
-  
-  		<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image" width="250"></a> 
-                               
-      <%
-      }
-      //--
-
-
-    }
-  %>
-
-</p>
-
-<%
 }
 catch(Exception e){
 	e.printStackTrace();

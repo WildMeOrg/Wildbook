@@ -119,7 +119,7 @@
                         <tr>
                             <td colspan="5">
                                 <h1><span class="intro"><img src="images/tag_big.gif" width="50px"
-                                                             height="*"
+                                                             height="50px"
                                                              align="absmiddle"/></span> <%=see_all_sharks%>
                                 </h1>
                             </td>

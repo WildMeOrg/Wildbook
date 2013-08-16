@@ -40,7 +40,8 @@
     map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
 
     Properties haploprops = new Properties();
-    haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
 
     Properties localeprops = new Properties();
    localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));

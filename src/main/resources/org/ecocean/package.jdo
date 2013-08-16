@@ -183,6 +183,11 @@
             <field name="photographerName" persistence-modifier="persistent">
                 <column length="256" />
             </field>
+            
+            <field name="guid" persistence-modifier="persistent">
+	                    <column length="256" />
+            </field>
+            
             <field name="recordedBy" persistence-modifier="persistent">
                 <column length="256" />
             </field>
@@ -420,6 +425,7 @@
 		</class>
 		
 		
+		
 		<class name="User" identity-type="application" table="USERS">
 		            
 					 
@@ -465,9 +471,29 @@
 			</field>
 			            <field name="salt" persistence-modifier="persistent">
 			                <column jdbc-type="LONGVARCHAR" />
+			                
+			                
+			<field name="userStatement">
+									<column jdbc-type="LONGVARCHAR" />
+			</field>
+			
+			<field name="userProject">
+				<column length="256"/>
+		        </field>
+		        
+		        <field name="userURL">	
+		        	<column length="256"/>
+		        </field>
+		        <field name="userImage" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo"/>
+		 					
+			<field name="lastLogin" persistence-modifier="persistent">
+				<column jdbc-type="BIGINT" allows-null="true" />
+		        </field>
+			                
             </field>
 					
 		 </class>
+		 
 		 
 		 		<class name="Role" identity-type="datastore" table="USER_ROLES">
 		 		            
@@ -480,7 +506,7 @@
 							 			    				<column length="100"/>
 		 			</field>
 		 		
-		 					
+		 		
 		 </class>
         
 

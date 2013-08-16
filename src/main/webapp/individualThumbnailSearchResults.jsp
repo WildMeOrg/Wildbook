@@ -133,7 +133,7 @@
 
     //block right-click user copying if no permissions available
     <%
-    if(!request.isUserInRole("imageProcessor")){
+    if(request.getUserPrincipal()==null){
     %>
     hs.blockRightClick = true;
     <%

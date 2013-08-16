@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -121,11 +122,15 @@ public class EncounterDelete extends HttpServlet {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have removed encounter " + request.getParameter("number") + " from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter " + request.getParameter("number") + " to have it restored.");
-          out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-          out.println("<p><a href=\"encounters/allEncountersUnapproved.jsp\">View all unapproved encounters</a></font></p>");
-
-          out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
-
+          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+          int allStatesSize=allStates.size();
+          if(allStatesSize>0){
+            for(int i=0;i<allStatesSize;i++){
+              String stateName=allStates.get(i);
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            }
+          }
+          
           out.println(ServletUtilities.getFooter());
           Vector e_images = new Vector();
           NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), CommonConfiguration.getNewSubmissionEmail(), ("Removed encounter " + request.getParameter("number")), "Encounter " + request.getParameter("number") + " has been removed from the database by user " + request.getRemoteUser() + ".", e_images);
@@ -139,9 +144,14 @@ public class EncounterDelete extends HttpServlet {
         } else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I have NOT removed encounter " + request.getParameter("number") + " from the database. This encounter is currently being modified by another user.");
-          out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-          out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
-
+          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+          int allStatesSize=allStates.size();
+          if(allStatesSize>0){
+            for(int i=0;i<allStatesSize;i++){
+              String stateName=allStates.get(i);
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            }
+          }
           out.println(ServletUtilities.getFooter());
 
 

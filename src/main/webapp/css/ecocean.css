@@ -36,14 +36,31 @@ h1 {
 
 }
 
-h1.unapproved_encounters {
+.unapproved_encounters {
   font-size: 1.2em;
   line-height: 1.2em;
   margin-top: 0px;
   padding-top: 0px;
-  border-top: 1px solid #09F;
-  border-bottom: 1px solid #09F;
+  color: #FFFFFF;
   background-color: #CC6600;
+}
+
+.unidentifiable_encounters {
+  font-size: 1.2em;
+  line-height: 1.2em;
+  margin-top: 0px;
+  padding-top: 0px;
+  color: #FFFFFF;	
+  background-color: #0000FF;
+}
+
+.approved_encounters {
+  font-size: 1.2em;
+  line-height: 1.2em;
+  margin-top: 0px;
+  padding-top: 0px;
+  color: #000000;	
+  background-color: #FFFFFF;
 }
 
 p.caption, .caption {
@@ -52,15 +69,25 @@ p.caption, .caption {
   font-size: 0.8em;
 }
 
-a {
+a,a.ecocean {
   text-decoration: none;
   font-weight: bold;
   border: none;
 }
 
-a:hover {
+a:hover,a.ecocean:hover {
   text-decoration: underline;
   border: none;
+}
+
+a:focus,a.ecocean:focus {
+  text-decoration: none;
+  border: none;
+}
+
+a.launchPopup {
+  color:blue;
+  cursor: pointer;
 }
 
 /* Layout */
@@ -207,6 +234,7 @@ a:hover {
 img {
   padding: 0px;
   margin: 0px;
+  
 }
 
 #banner {
