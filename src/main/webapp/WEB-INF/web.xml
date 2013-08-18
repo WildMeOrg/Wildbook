@@ -104,7 +104,8 @@
 		                /logs/** = authc, roles[admin]
 		                /UserCreate = authc, roles[admin]
 				 /UserDelete = authc, roles[admin]
-				/BatchUpload/** = authc, roles[admin]
+                /BatchUpload/** = authc, roles[manager]
+                /appadmin/batch* = authc, roles[manager]
 
 				 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
 		                /xcalendar/** = authc, roles[researcher]

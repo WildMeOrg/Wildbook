@@ -676,6 +676,21 @@ public final class BatchUpload extends DispatchServlet {
         errors.add(MessageFormat.format(msg, protocol));
       }
     }
+    // Check user has permission to import for specified regions.
+    List<Role> roles = shepherd.getAllRolesForUser(req.getRemoteUser());
+    for (String locID : locIDs) {
+      boolean hasLocationPermission = false;
+      for (Role r : roles) {
+        if (r.getRolename().equals(locID)) {
+          hasLocationPermission = true;
+          break;
+        }
+      }
+      if (!hasLocationPermission) {
+        String msg = bundle.getString("batchUpload.verifyError.encounterInvalidLocationPermission");
+        errors.add(MessageFormat.format(msg, locID));
+      }
+    }
 
     // Check that each individual has encounters.
     for (MarkedIndividual x : listInd) {
