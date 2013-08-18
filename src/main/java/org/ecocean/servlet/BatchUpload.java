@@ -848,17 +848,19 @@ public final class BatchUpload extends HttpServlet {
           List<String> listKWALC = new ArrayList<String>();
           for (Keyword kw : listKWA)
             listKWALC.add(kw.getReadableName().toLowerCase(Locale.US));
-          List<String> keywords = Arrays.asList(bm.getKeywords());
-          for (ListIterator iter = keywords.listIterator(); iter.hasNext();) {
-            String s = (String)iter.next();
+          List<String> keywords = new ArrayList<String>();
+          for (String s : bm.getKeywords())
+            keywords.add(s);
+          for (int i = 0; i < keywords.size(); i++) {
+            String s = keywords.get(i);
             int idx = listKWALC.indexOf(s.toLowerCase(Locale.US));
             if (idx >= 0) {
-              iter.set(listKWA.get(idx).getReadableName());
+              keywords.set(i, listKWA.get(idx).getReadableName());
             } else {
-              badMedInvalidKeyword.add(s); // NOTE: Comment this line to ignore bad keywords.
-              iter.remove();
+              badMedInvalidKeyword.add(s);
             }
           }
+          keywords.removeAll(badMedInvalidKeyword);
           bm.setKeywords(keywords.isEmpty() ? null : keywords.toArray(new String[keywords.size()]));
         }
         // Create/check filename for media item.
@@ -894,18 +896,6 @@ public final class BatchUpload extends HttpServlet {
             if (bm.getCopyrightStatement() != null && !"".equals(bm.getCopyrightStatement())) {
               spv.setCopyrightStatement(bm.getCopyrightStatement());
             }
-            // Assign keywords.
-            String[] bmkw = bm.getKeywords();
-            if (bmkw != null) {
-              for (String s : bmkw) {
-                for (Keyword kw : listKWA) {
-                  if (kw.getReadableName().equals(s)) {
-                    spv.addKeyword(kw);
-                    break;
-                  }
-                }
-              }
-            }
             // Now map the two for further processing.
             map.put(spv, bm);
           }
@@ -931,6 +921,7 @@ public final class BatchUpload extends HttpServlet {
         String msg = bundle.getString("batchUpload.verifyError.mediaInvalidURL");
         errors.add(MessageFormat.format(msg, s));
       }
+      // NOTE: Comment this section to ignore bad keywords.
       for (String s : badMedInvalidKeyword) {
         String msg = bundle.getString("batchUpload.verifyError.mediaInvalidKeyword");
         errors.add(MessageFormat.format(msg, s));

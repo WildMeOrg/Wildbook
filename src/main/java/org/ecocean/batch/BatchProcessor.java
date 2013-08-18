@@ -42,14 +42,15 @@ import javax.servlet.ServletContext;
 import org.apache.sanselan.ImageReadException;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.util.MediaUtilities;
+import org.ecocean.Keyword;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Measurement;
-import org.ecocean.ShepherdPMF;
+import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.servlet.BatchUpload;
 import org.ecocean.util.FileUtilities;
+import org.ecocean.util.MediaUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -345,9 +346,10 @@ public final class BatchProcessor implements Runnable {
       }
 
       phase = Phase.PERSISTENCE;
-      PersistenceManager pm = ShepherdPMF.getPMF().getPersistenceManager();
+      Shepherd shepherd = new Shepherd();
+      PersistenceManager pm = shepherd.getPM();
       try {
-        pm.currentTransaction().begin();
+        shepherd.beginDBTransaction();
         // Persist all encounters (assigned/unassigned) to the database.
         // Assigned encounters must also be processed to assign unique IDs,
         // otherwise JDO barfs at primary key persistence problem.
@@ -410,6 +412,21 @@ public final class BatchProcessor implements Runnable {
               }
             }
           }
+          // Assign keywords to media.
+          if (media != null && !media.isEmpty()) {
+            for (SinglePhotoVideo spv : media.toArray(new SinglePhotoVideo[0])) {
+              BatchMedia bp = mapMedia.get(spv);
+              String[] keywords = bp.getKeywords();
+              if (keywords != null && keywords.length > 0) {
+                for (String kw : keywords) {
+                  Keyword x = shepherd.getKeyword(kw);
+                  if (x != null)
+                    spv.addKeyword(x);
+                }
+              }
+            }
+          }
+          // (must be done within current transaction to ensure referntial integrity in database).
           // Set submitterID for later reference.
           enc.setSubmitterID(user);
           // Add comment to reflect batch upload.
@@ -445,7 +462,7 @@ public final class BatchProcessor implements Runnable {
         }
 
         // Commit changes to store.
-        pm.currentTransaction().commit();
+        shepherd.commitDBTransaction();
 
         // TODO: Nasty hack to get resources from a language folder.
         // Should be using the standard ResourceBundle lookup mechanism to find
@@ -534,14 +551,10 @@ public final class BatchProcessor implements Runnable {
           }
         }
       } catch (Exception ex) {
-        if (pm != null && pm.currentTransaction().isActive()) {
-            pm.currentTransaction().rollback();
-        }
+        shepherd.rollbackDBTransaction();
         throw ex;
       } finally {
-        if (pm != null && !pm.isClosed()) {
-          pm.close();
-        }
+        shepherd.closeDBTransaction();
       }
 
       // Remove temporary attributes from ServletContext.
