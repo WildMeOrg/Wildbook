@@ -214,10 +214,10 @@ z-index:99;
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
 </li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/allIndividuals.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;"><strong>View Sharks</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;"><strong>View Sharks</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/allIndividuals.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px;z-index:99;">View All Sharks</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px;z-index:99;">View All Sharks</a></li>
 
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->

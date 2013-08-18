@@ -113,7 +113,7 @@
 		/interconnectSubmitSpots= authc, roles[imageProcessor]
 		/GenePopExport = authc, roles[researcher]
 		/individualSearch.jsp = authc, roles[researcher]
-		/individualSearchResults.jsp = authc, roles[researcher]
+		/individualSearchResults.jsp = anon
 		/individualSearchResultsExport.jsp = authc, roles[researcher]
 		/individualSearchResultsAnalysis.jsp = authc, roles[researcher]
 		/individualMappedSearchResults.jsp = authc, roles[researcher]
