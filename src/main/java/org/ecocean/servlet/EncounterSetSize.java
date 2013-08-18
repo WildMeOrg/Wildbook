@@ -123,7 +123,7 @@ public class EncounterSetSize extends HttpServlet {
                 out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
               }
             }
-            out.println("<p><a href=\"allIndividuals.jsp\">View all sharks</a></font></p>");
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all sharks</a></font></p>");
             out.println(ServletUtilities.getFooter());
             String message = "Encounter #" + request.getParameter("number") + " size has been updated from " + oldSize + " " + oldUnits + "(" + oldGuess + ")" + " to " + request.getParameter("lengthField") + " " + request.getParameter("lengthUnits") + "(" + request.getParameter("guessList") + ").";
             ServletUtilities.informInterestedParties(request, request.getParameter("number"),
@@ -140,7 +140,7 @@ public class EncounterSetSize extends HttpServlet {
                 out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
               }
             }
-            out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
             out.println(ServletUtilities.getFooter());
           } else {
             out.println(ServletUtilities.getHeader(request));
@@ -154,7 +154,7 @@ public class EncounterSetSize extends HttpServlet {
                 out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
               }
             }
-            out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
             out.println(ServletUtilities.getFooter());
 
 
@@ -171,7 +171,7 @@ public class EncounterSetSize extends HttpServlet {
               out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
             }
           }
-          out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+          out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
           out.println(ServletUtilities.getFooter());
 
         }

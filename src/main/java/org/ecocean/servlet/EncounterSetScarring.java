@@ -119,7 +119,7 @@ public class EncounterSetScarring extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }
-        out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter());
         String message = "Encounter #" + request.getParameter("number") + " scarring has been updated from " + oldScar + " to " + scar + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
@@ -135,7 +135,7 @@ public class EncounterSetScarring extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }
-        out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter());
 
       }
@@ -151,7 +151,7 @@ public class EncounterSetScarring extends HttpServlet {
           out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
         }
       }
-      out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+      out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
       out.println(ServletUtilities.getFooter());
 
     }

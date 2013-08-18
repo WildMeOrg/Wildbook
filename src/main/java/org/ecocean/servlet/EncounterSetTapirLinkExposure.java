@@ -117,7 +117,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
                 out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
               }
             }
-            out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
 
             out.println(ServletUtilities.getFooter());
           } else {
@@ -132,7 +132,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
                 out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
               }
             }
-            out.println("<p><a href=\"allIndividuals.jsp\">View all individual</a></font></p>");
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individual</a></font></p>");
             out.println(ServletUtilities.getFooter());
 
 
