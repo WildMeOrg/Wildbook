@@ -4,8 +4,8 @@
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
-  <artifactId>shepherd</artifactId>
-  <version>3.3.1-RELEASE</version>
+  <artifactId>wildbook</artifactId>
+  <version>4.0.0-RELEASE</version>
   <packaging>war</packaging>
 
   <properties>

@@ -4824,7 +4824,7 @@ catch(Exception e){
   to encounter: </strong> <input name="number" type="text" value="<%=num%>" size="20"> <input name="Go" type="submit" value="Submit" /></form>
 
 
-<p><font color="#990000"><a href="../allIndividuals.jsp">View all individuals</a></font></p>
+<p><font color="#990000"><a href="../individualSearchResults.jsp">View all individuals</a></font></p>
 
 
 <%

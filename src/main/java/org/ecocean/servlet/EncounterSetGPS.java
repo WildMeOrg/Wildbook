@@ -137,7 +137,7 @@ public class EncounterSetGPS extends HttpServlet {
                 out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
               }
             }
-            out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
                 out.println(ServletUtilities.getFooter());
             String message="The recorded GPS location for encounter #"+request.getParameter("number")+" has been updated from "+oldGPS+" to "+newGPS+".";
             ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
@@ -155,7 +155,7 @@ public class EncounterSetGPS extends HttpServlet {
                 out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
               }
             }
-            out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
                 out.println(ServletUtilities.getFooter());
             
             }
@@ -174,7 +174,7 @@ public class EncounterSetGPS extends HttpServlet {
               out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
             }
           }
-          out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+          out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
               out.println(ServletUtilities.getFooter());  
             
           }

@@ -165,7 +165,7 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }
-        out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter());
         String message = "The photographer or submitter contact information for encounter #" + request.getParameter("number") + "has been updated from " + oldContact + " to " + newContact + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
@@ -181,7 +181,7 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }
-        out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter());
 
       }
@@ -197,7 +197,7 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
           out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
         }
       }
-      out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+      out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
       out.println(ServletUtilities.getFooter());
 
     }

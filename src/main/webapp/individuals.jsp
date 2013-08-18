@@ -1569,7 +1569,7 @@ else {
 <p><font color="#990000"><a href="encounters/searchResults.jsp"><%=allEncounters %>
 </a></font></p>
 
-<p><font color="#990000"><a href="allIndividuals.jsp"><%=allIndividuals %>
+<p><font color="#990000"><a href="individualSearchResults.jsp"><%=allIndividuals %>
 </a></font></p>
 <%
       }

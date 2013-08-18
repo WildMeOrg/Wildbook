@@ -97,10 +97,24 @@
 	}
 	
 	//retrieve dates from the URL
-	int year1=(new Integer(request.getParameter("year1"))).intValue();
-	int year2=(new Integer(request.getParameter("year2"))).intValue();
-	int month1=(new Integer(request.getParameter("month1"))).intValue();
-	int month2=(new Integer(request.getParameter("month2"))).intValue();
+ int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
+    try {
+      month1 = (new Integer(request.getParameter("month1"))).intValue();
+    } catch (NumberFormatException nfe) {
+    }
+    try {
+      month2 = (new Integer(request.getParameter("month2"))).intValue();
+    } catch (NumberFormatException nfe) {
+    }
+    try {
+      year1 = (new Integer(request.getParameter("year1"))).intValue();
+    } catch (NumberFormatException nfe) {
+    }
+    try {
+      year2 = (new Integer(request.getParameter("year2"))).intValue();
+    } catch (NumberFormatException nfe) {
+    }
+
 	
 	
     //kick off the transaction
@@ -193,7 +207,7 @@
 					}
 					
 					//first sights vs resights analysis
-					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,month1,day1)).getTimeInMillis()){
 						 measurementValuesResights[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
 							
 				 		   
@@ -231,7 +245,7 @@
 					}
 					
 					//first sights vs resights analysis
-					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,month1,day1)).getTimeInMillis()){
 						 bioMeasurementValuesResights[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
 							
 				 		   
@@ -277,7 +291,7 @@
 		 resightingYearsArray[thisEnc.getMaxNumYearsBetweenSightings()]++;
 		 
 		 //firstSightings distribution
-		 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+		 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,month1,day1)).getTimeInMillis()){
 	 		   Integer thisInt = firstSightingsHashtable.get("Previously sighted")+1;
 	  		   firstSightingsHashtable.put("Previously sighted", thisInt);
 	 		   
@@ -563,16 +577,22 @@
  <div id="main">
  
  <ul id="tabmenu">
+ <%
+String queryString = "";
+if (request.getQueryString() != null) {
+  queryString = request.getQueryString();
+}
+%>
  
-  <li><a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
-   <li><a href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+   <li><a href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a class="active"><%=encprops.getProperty("analysis")%>
   </a></li>
-    <li><a href="individualSearchResultsExport.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("export")%>
+    <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("export")%>
   </a></li>
  
  </ul>
