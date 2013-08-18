@@ -100,7 +100,7 @@
 		/GenePopExport = authc, roles[admin]
 		/ResetCommonConfiguration = authc, roles[admin]
 		/individualSearch.jsp = authc, roles[admin]
-		/individualSearchResults.jsp = authc, roles[admin]
+		/individualSearchResults.jsp = anon
 		/individualSearchResultsExport.jsp = authc, roles[admin]
 		/individualSearchResultsAnalysis.jsp = authc, roles[admin]
 		/individualMappedSearchResults.jsp = authc, roles[admin]
