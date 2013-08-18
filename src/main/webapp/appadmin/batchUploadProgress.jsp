@@ -16,15 +16,16 @@
 	~ along with this program; if not, write to the Free Software
 	~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 --%>
-<%@page import="java.text.MessageFormat"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@page contentType="text/html; charset=iso-8859-1" language="java"
 				 import="org.ecocean.CommonConfiguration"
 				 import="org.ecocean.Shepherd"
 				 import="org.ecocean.batch.BatchProcessor"
+				 import="org.ecocean.servlet.BatchUpload"
 				 import="java.io.File"
 				 import="java.io.PrintWriter"
+				 import="java.text.MessageFormat"
          import="java.util.Enumeration"
          import="java.util.List"
          import="java.util.Locale"
@@ -52,18 +53,14 @@
   Properties bundle = new Properties();
   bundle.load(getClass().getResourceAsStream("/bundles/batchUpload_" + langCode + ".properties"));
 
-  BatchProcessor proc = (BatchProcessor)session.getAttribute("BatchTask");
+  BatchProcessor proc = (BatchProcessor)session.getAttribute(BatchUpload.SESSION_KEY_TASK);
   if (proc == null) {
-    for (Enumeration e = session.getAttributeNames(); e.hasMoreElements();) {
-      String s = (String)e.nextElement();
-      if (s.toLowerCase().startsWith("batch"))
-        session.removeAttribute(s);
-    }
-    response.sendRedirect("batchUpload.jsp");
+    BatchUpload.flushSessionInfo(request);
+    response.sendRedirect(BatchUpload.JSP_MAIN);
   }
 
-  List<String> errors = (List<String>)session.getAttribute("batchErrors");
-  List<String> warnings = (List<String>)session.getAttribute("batchWarnings");
+  List<String> errors = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_ERRORS);
+  List<String> warnings = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_WARNINGS);
   boolean isFinished = proc.getStatus() == BatchProcessor.Status.FINISHED;
   boolean hasErrors = errors != null && !errors.isEmpty() || proc.getStatus() == BatchProcessor.Status.ERROR;
   boolean hasWarnings = warnings != null && !warnings.isEmpty();
@@ -79,7 +76,7 @@
 	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
 	<link href="../css/batchUpload.css" rel="stylesheet" type="text/css"/>
 	<link href="../css/gui-meter.css" rel="stylesheet" type="text/css"/>
-  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 <%  if (!isFinished && !hasErrors) { %>
   <script language="javascript" type="text/javascript">
     var INTERVAL = 1000 * <%=CommonConfiguration.getBatchUploadProgressRefresh()%>;

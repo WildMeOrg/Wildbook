@@ -16,23 +16,17 @@
 	~ along with this program; if not, write to the Free Software
 	~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 --%>
-<%@page import="java.text.MessageFormat"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@page contentType="text/html; charset=iso-8859-1" language="java"
 				 import="org.ecocean.CommonConfiguration"
 				 import="org.ecocean.Shepherd"
 				 import="org.ecocean.Keyword"
+				 import="org.ecocean.servlet.BatchUpload"
 				 import="java.io.File"
 				 import="java.io.IOException"
-         import="java.util.Enumeration"
-         import="java.util.Iterator"
-         import="java.util.List"
-         import="java.util.ArrayList"
-         import="java.util.Locale"
-         import="java.util.Properties"
-         import="java.util.ResourceBundle"
-         import="java.util.TreeSet"
+				 import="java.text.MessageFormat"
+				 import="java.util.*"
          import="org.slf4j.Logger"
          import="org.slf4j.LoggerFactory"
 %>
@@ -63,23 +57,19 @@
   bundle.load(getClass().getResourceAsStream("/bundles/batchUpload_" + langCode + ".properties"));
   // --------------------------------------------------------------------------
 
-  List<String> errors = (List<String>)session.getAttribute("batchErrors");
+  List<String> errors = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_ERRORS);
   boolean hasErrors = errors != null && !errors.isEmpty();
 
   // If landed directly on page without forwarding, reset ready for use.
   String uri = (String)request.getAttribute("javax.servlet.forward.request_uri");
-  if (uri == null || "".equals(uri)) {
-    for (Enumeration e = session.getAttributeNames(); e.hasMoreElements();) {
-      String s = (String)e.nextElement();
-      if (s.toLowerCase().startsWith("batch"))
-        session.removeAttribute(s);
-    }
-  }
+  if (uri == null || "".equals(uri))
+    BatchUpload.flushSessionInfo(request);
+
   // Define template/data types.
   final String[] TYPES = {"Ind", "Enc", "Mea", "Med", "Sam"};
 %>
 <%!
-  private static Logger log = LoggerFactory.getLogger(org.ecocean.batch.BatchParser.class);
+  private static Logger log = LoggerFactory.getLogger(org.ecocean.servlet.BatchUpload.class);
 
   private final String createOptionsList(int i, String langCode) throws IOException {
     List<String> list = new ArrayList<String>();
@@ -207,7 +197,7 @@
 			<h2><%=bundle.getProperty("gui.step2.title")%></h2>
 			<p><%=bundle.getProperty("gui.step2.text")%></p>
       <ul id="rules">
-      <% for (int i = 0; i <= 16; i++) { %>
+      <% for (int i = 0; i <= 15; i++) { %>
         <li><%=bundle.getProperty("gui.step2.list" + i)%></li>
       <% } %>
       <li><%=MessageFormat.format(bundle.getProperty("gui.step2.maxMediaSize"), CommonConfiguration.getMaxMediaSizeInMegabytes())%></li>

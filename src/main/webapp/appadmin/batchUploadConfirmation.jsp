@@ -23,6 +23,7 @@
 				 import="org.ecocean.Shepherd"
 				 import="org.ecocean.batch.BatchData"
 				 import="org.ecocean.batch.BatchProcessor"
+				 import="org.ecocean.servlet.BatchUpload"
 				 import="java.io.File"
          import="java.text.MessageFormat"
          import="java.util.List"
@@ -45,19 +46,16 @@
     Locale loc = request.getLocale();
     langCode = loc.getLanguage();
   }
-  Locale locale = new Locale("es");
-//  ResourceBundle bundle = ResourceBundle.getBundle("/bundles/batchUpload", locale);
   Properties bundle = new Properties();
   bundle.load(getClass().getResourceAsStream("/bundles/batchUpload_" + langCode + ".properties"));
 
-  List<String> warnings = (List<String>)session.getAttribute("batchWarnings");
+  List<String> warnings = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_WARNINGS);
   boolean hasWarnings = warnings != null && !warnings.isEmpty();
 
-  BatchData data = (BatchData)session.getAttribute("BatchData");
+  BatchData data = (BatchData)session.getAttribute(BatchUpload.SESSION_KEY_DATA);
   if (data == null) {
     session.removeAttribute("BatchTaskFuture");
     session.removeAttribute("BatchTask");
-//    session.removeAttribute("batchErrors");
     response.sendRedirect("batchUpload.jsp");
   }
 %>

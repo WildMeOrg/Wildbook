@@ -22,6 +22,7 @@
 				 import="org.ecocean.CommonConfiguration"
 				 import="org.ecocean.Shepherd"
 				 import="org.ecocean.batch.BatchProcessor"
+         import="org.ecocean.servlet.BatchUpload"
          import="java.io.PrintWriter"
          import="java.util.List"
          import="java.util.Locale"
@@ -55,10 +56,10 @@
   bundle.load(getClass().getResourceAsStream("/bundles/batchUpload_" + langCode + ".properties"));
   // --------------------------------------------------------------------------
 
-  BatchProcessor proc = (BatchProcessor)session.getAttribute("BatchTask");
+  BatchProcessor proc = (BatchProcessor)session.getAttribute(BatchUpload.SESSION_KEY_TASK);
   Throwable throwable = proc == null ? null : proc.getThrown();
-  List<String> errors = (List<String>)session.getAttribute("batchErrors");
-  List<String> warnings = (List<String>)session.getAttribute("batchWarnings");
+  List<String> errors = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_ERRORS);
+  List<String> warnings = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_WARNINGS);
   boolean hasErrors = errors != null && !errors.isEmpty();
   boolean hasWarnings = warnings != null && !warnings.isEmpty();
 %>

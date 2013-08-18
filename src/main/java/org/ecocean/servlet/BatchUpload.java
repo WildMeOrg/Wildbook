@@ -26,8 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -35,11 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -90,12 +84,28 @@ import org.slf4j.LoggerFactory;
  *
  * @author Giles Winstanley
  */
-public final class BatchUpload extends HttpServlet {
+public final class BatchUpload extends DispatchServlet {
   private static final long serialVersionUID = 1L;
   /** SLF4J logger instance for writing log entries. */
   private static Logger log = LoggerFactory.getLogger(BatchUpload.class);
-  /** Class references for reflection. */
-  private static final Class[] SERVLET_ARGS = {HttpServletRequest.class, HttpServletResponse.class};
+  /** Session key for referencing batch upload data. */
+  public static final String SESSION_KEY_DATA = "BatchData";
+  /** Session key for referencing existing matching task. */
+  public static final String SESSION_KEY_TASK = "BatchTask";
+  /** Session key for referencing existing matching task's {@code Future}. */
+  public static final String SESSION_KEY_TASKFUTURE = "BatchTaskFuture";
+  /** Session key for referencing existing matching task. */
+  public static final String SESSION_KEY_ERRORS = "batchErrors";
+  /** Session key for referencing existing matching task. */
+  public static final String SESSION_KEY_WARNINGS = "batchWarnings";
+  /** Path for referencing JSP page for main batch upload page. */
+  public static final String JSP_MAIN = "/appadmin/batchUpload.jsp";
+  /** Path for referencing JSP page for batch task confirmation. */
+  private static final String JSP_CONFIRM = "/appadmin/batchUploadConfirmation.jsp";
+  /** Path for referencing JSP page for batch task progress. */
+  private static final String JSP_PROGRESS = "/appadmin/batchUploadProgress.jsp";
+  /** Path for referencing JSP page for error display. */
+  private static final String JSP_ERROR = "/appadmin/batchErrorDisplay.jsp";
   /** Name of batch template files. */
   private static final String[] BTF = {
     "batchIndividuals.csv",
@@ -104,16 +114,12 @@ public final class BatchUpload extends HttpServlet {
     "batchMedia.csv",
     "batchSamples.csv"
   };
-  /** Resources for internationalization. */
-  private static final String RESOURCES = "bundles";
   /** DateFormat instance for generating unique filenames for batch upload data. */
   private static final DateFormat DF = new SimpleDateFormat("yyyyMMddHHmmssSSS");
   /** DateFormat instance for creating encounters' verbatim dates. */
   private static final DateFormat DFD = new SimpleDateFormat("yyyy-MM-dd");
   /** DateFormat instance for creating encounters' verbatim dates. */
   private static final DateFormat DFDT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-  /** Regex for matching dynamic properties during parsing. */
-  private static final Pattern REGEX_DP = Pattern.compile("^\\s*([^=]+)\\s*=\\s*([^=]+)\\s*$");
   // TODO: Enhance regex for URL matching.
   /** Regex for matching image download URLs. */
   private static final String REGEX_URL = "^(https?|ftp|file)://.+$";
@@ -129,8 +135,17 @@ public final class BatchUpload extends HttpServlet {
   }
 
   @Override
-  public void init(ServletConfig config) throws ServletException {
-    super.init(config);
+  public void init() throws ServletException {
+    super.init();
+    try {
+      registerMethodGET("templateInd", "templateEnc", "templateMea", "templateMed", "templateSam");
+      registerMethodGET("getBatchProgress");
+      registerMethodPOST("uploadBatchData", "confirmBatchDataUpload");
+      registerMethodGET("confirmBatchDataUpload"); // Needs both GET/POST due to forwarding idiosyncracies.
+    }
+    catch (DelegateNotFoundException ex) {
+      throw new ServletException(ex);
+    }
   }
 
   @Override
@@ -140,79 +155,24 @@ public final class BatchUpload extends HttpServlet {
       taskExecutor.shutdownNow();
   }
 
-  /**
-   * Processes GET request, which is delegated to another method based on path.
-   */
-  @Override
-  public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-    try {
-      // Added as request attribute for extra JSP support.
-      req.setAttribute("servletPath", req.getServletPath());
-      dispatchToDelegate(this, getDelegateMethod(parseDelegateMethodName(req)), req, res);
-    } catch (DelegateNotFoundException cnfx) {
-      handleDelegateNotFound(req, res);
-    }
+  private final boolean checkPermission(HttpServletRequest req) {
+    return (req.isUserInRole("admin"));
+  }
+
+  private ResourceBundle getResources(Locale loc) {
+    return ResourceBundle.getBundle("bundles/batchUpload", loc);
   }
 
   /**
-   * Processes POST request, which is delegated to another method based on path.
+   * Removes all batch upload session variables.
    */
-  @Override
-  public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-    try {
-      // Added as request attribute for extra JSP support.
-      req.setAttribute("servletPath", req.getServletPath());
-      dispatchToDelegate(this, getDelegateMethod(parseDelegateMethodName(req)), req, res);
-    } catch (DelegateNotFoundException cnfx) {
-      handleDelegateNotFound(req, res);
-    }
-  }
-
-  /**
-   * Gets the name of the delegate dispatch method from the servlet request.
-   */
-  private final String parseDelegateMethodName(HttpServletRequest req) {
-    final Pattern p = Pattern.compile("^[^/]*/([^/]+)");
-    final String def = "handleRequest";
-    Matcher m = p.matcher(req.getPathInfo());
-    return m.matches() ? m.group(1) : def;
-  }
-
-  /**
-   * Returns the delegate {@code Method} of the class instance with the
-   * specified method name. The delegate method must have the standard
-   * request/response parameter arguments.
-   *
-   * @param methodName name of delegate method
-   */
-  private Method getDelegateMethod(String methodName) throws DelegateNotFoundException {
-    try {
-      return getClass().getMethod(methodName, SERVLET_ARGS);
-    } catch (NoSuchMethodException nsmx) {
-      throw new DelegateNotFoundException("Couldn't locate method: " + methodName, nsmx);
-    }
-  }
-
-  /**
-   * Dispatches control to the supplied method.
-   *
-   * @param target servlet in which to look for target method
-   * @param method delegate method to which to dispatch control
-   * @param req servlet request
-   * @param res servlet response
-   */
-  private void dispatchToDelegate(HttpServlet target, Method method, HttpServletRequest req, HttpServletResponse res) throws DelegateNotFoundException {
-    try {
-      method.invoke(target, new Object[]{ req, res });
-    } catch (IllegalAccessException iax) {
-      throw new DelegateNotFoundException("Couldn't access method", iax);
-    } catch (InvocationTargetException itx) {
-      itx.getTargetException().printStackTrace();
-      try {
-        PrintWriter pw = res.getWriter();
-        itx.getTargetException().printStackTrace(pw);
-        pw.flush();
-      } catch (IOException iox) {
+  public static void flushSessionInfo(HttpServletRequest req) {
+    HttpSession session = req.getSession(false);
+    if (session != null) {
+      for (Enumeration e = session.getAttributeNames(); e.hasMoreElements();) {
+        String s = (String)e.nextElement();
+        if (s.toLowerCase().startsWith("batch"))
+          session.removeAttribute(s);
       }
     }
   }
@@ -222,15 +182,14 @@ public final class BatchUpload extends HttpServlet {
     return "BatchUpload, Copyright 2013 Giles Winstanley / Project Shepherd / ecocean.org";
   }
 
-  /**
-   * @return The data directory used for web application storage.
-   * This should really be in a shared data storage location, not simply
-   * alongside all webapps as it is currently.
-   */
-  private File getDataDir() {
-    String webappRoot = getServletContext().getRealPath("/");
-    File dataDir = new File(webappRoot).getParentFile();
-    return new File(dataDir, CommonConfiguration.getDataDirectoryName());
+  protected void handleDelegateNotFound(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unsupported delegate method specified.");
+  }
+
+  private void handleException(HttpServletRequest req, HttpServletResponse res, Throwable t) throws ServletException, IOException {
+    log.warn(t.getMessage(), t);
+    req.setAttribute("thrown", t);
+    res.sendRedirect("//" + CommonConfiguration.getURLLocation(req) + JSP_ERROR);
   }
 
   /**
@@ -314,27 +273,23 @@ public final class BatchUpload extends HttpServlet {
   public void uploadBatchData(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       HttpSession session = req.getSession();
-      if (!req.isUserInRole("admin")) {
-        for (Enumeration e = session.getAttributeNames(); e.hasMoreElements(); ) {
-          String s = (String)e.nextElement();
-          if (s.toLowerCase(Locale.US).startsWith("batch"))
-            session.removeAttribute(s);
-        }
+      if (!checkPermission(req)) {
+        flushSessionInfo(req);
         getServletConfig().getServletContext().getRequestDispatcher("/").forward(req, res);
       }
 
       Locale loc = req.getLocale();
-      ResourceBundle bundle = ResourceBundle.getBundle(RESOURCES + "/batchUpload", loc);
+      ResourceBundle bundle = getResources(loc);
       List<String> errors = new ArrayList<String>();
-      session.setAttribute("batchErrors", errors);
+      session.setAttribute(SESSION_KEY_ERRORS, errors);
 
       // Check for batch processor already assigned for this user.
-      BatchProcessor proc = (BatchProcessor)session.getAttribute("BatchTask");
+      BatchProcessor proc = (BatchProcessor)session.getAttribute(SESSION_KEY_TASK);
       if (proc == null) {
         proc = processMap.get(req.getRemoteUser());
       }
       if (proc != null) {
-        getServletConfig().getServletContext().getRequestDispatcher("/appadmin/batchUploadProgress.jsp").forward(req, res);
+        getServletConfig().getServletContext().getRequestDispatcher(JSP_PROGRESS).forward(req, res);
         return;
       }
 
@@ -441,7 +396,7 @@ public final class BatchUpload extends HttpServlet {
           batchData.setListSam(listSam);
           log.debug("Parsed batch data: {}", batchData);
           if (errors.isEmpty()) {
-            session.setAttribute("BatchData", batchData);
+            session.setAttribute(SESSION_KEY_DATA, batchData);
           }
         } else {
           errors.addAll(bp.getErrors());
@@ -461,12 +416,13 @@ public final class BatchUpload extends HttpServlet {
 
       // Return to the view to ask user if they really want to proceed.
       if (errors.isEmpty()) {
-        getServletConfig().getServletContext().getRequestDispatcher("/appadmin/batchUploadConfirmation.jsp").forward(req, res);
+        getServletConfig().getServletContext().getRequestDispatcher(JSP_CONFIRM).forward(req, res);
       } else {
-        getServletConfig().getServletContext().getRequestDispatcher("/appadmin/batchUpload.jsp").forward(req, res);
+        getServletConfig().getServletContext().getRequestDispatcher(JSP_MAIN).forward(req, res);
       }
 
     } catch (Throwable th) {
+      log.warn(th.getMessage(), th);
       handleException(req, res, th);
     }
   }
@@ -493,36 +449,31 @@ public final class BatchUpload extends HttpServlet {
   public void confirmBatchDataUpload(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       HttpSession session = req.getSession(false);
-      // Security check.
-      if (!req.isUserInRole("admin")) {
-        for (Enumeration e = session.getAttributeNames(); e.hasMoreElements(); ) {
-          String s = (String)e.nextElement();
-          if (s.toLowerCase(Locale.US).startsWith("batch"))
-            session.removeAttribute(s);
-        }
+      if (!checkPermission(req)) {
+        flushSessionInfo(req);
         getServletContext().getRequestDispatcher("/").forward(req, res);
       }
 
       Locale loc = req.getLocale();
-      ResourceBundle bundle = ResourceBundle.getBundle(RESOURCES + "/batchUpload", loc);
+      ResourceBundle bundle = getResources(loc);
       List<String> errors = new ArrayList<String>();
-      session.setAttribute("batchErrors", errors);
+      session.setAttribute(SESSION_KEY_ERRORS, errors);
       List<String> warnings = new ArrayList<String>();
-      session.setAttribute("batchWarnings", warnings);
+      session.setAttribute(SESSION_KEY_WARNINGS, warnings);
 
       // Find any currently running batch tasks assigned by this user.
-      BatchProcessor proc = (BatchProcessor)session.getAttribute("BatchTask");
+      BatchProcessor proc = (BatchProcessor)session.getAttribute(SESSION_KEY_TASK);
       if (proc == null) {
         proc = processMap.get(req.getRemoteUser());
       }
       if (proc != null) {
-        getServletConfig().getServletContext().getRequestDispatcher("/appadmin/batchUploadProgress.jsp").forward(req, res);
+        getServletConfig().getServletContext().getRequestDispatcher(JSP_PROGRESS).forward(req, res);
         return;
       }
 
       // VALIDATE INPUT.
 
-      BatchData data = (BatchData)session.getAttribute("BatchData");
+      BatchData data = (BatchData)session.getAttribute(SESSION_KEY_DATA);
       if (data == null) {
         errors.add(bundle.getString("batchUpload.error.DataTransferErr"));
         log.error("No batch data found in session");
@@ -546,17 +497,13 @@ public final class BatchUpload extends HttpServlet {
 
         // OUTPUT RESULT.
 
-        session.setAttribute("BatchTask", proc);
-        session.setAttribute("BatchTaskFuture", taskExecutor.submit(proc));
-        getServletConfig().getServletContext().getRequestDispatcher("/appadmin/batchUploadProgress.jsp").forward(req, res);
+        session.setAttribute(SESSION_KEY_TASK, proc);
+        session.setAttribute(SESSION_KEY_TASKFUTURE, taskExecutor.submit(proc));
+        getServletConfig().getServletContext().getRequestDispatcher(JSP_PROGRESS).forward(req, res);
 
       } else {
-        for (Enumeration e = session.getAttributeNames(); e.hasMoreElements(); ) {
-          String s = (String)e.nextElement();
-          if (s.toLowerCase(Locale.US).startsWith("batchData"))
-            session.removeAttribute(s);
-        }
-        getServletConfig().getServletContext().getRequestDispatcher("/appadmin/batchUpload.jsp").forward(req, res);
+        flushSessionInfo(req);
+        getServletConfig().getServletContext().getRequestDispatcher(JSP_MAIN).forward(req, res);
       }
     } catch (Throwable th) {
       handleException(req, res, th);
@@ -570,18 +517,13 @@ public final class BatchUpload extends HttpServlet {
   public void getBatchProgress(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       HttpSession session = req.getSession(false);
-      // Security check.
-      if (!req.isUserInRole("admin")) {
-        for (Enumeration e = session.getAttributeNames(); e.hasMoreElements(); ) {
-          String s = (String)e.nextElement();
-          if (s.toLowerCase(Locale.US).startsWith("batch"))
-            session.removeAttribute(s);
-        }
+      if (!checkPermission(req)) {
+        flushSessionInfo(req);
         getServletContext().getRequestDispatcher("/").forward(req, res);
       }
 
       // Find BatchProcessor in session.
-      BatchProcessor proc = (BatchProcessor)session.getAttribute("BatchTask");
+      BatchProcessor proc = (BatchProcessor)session.getAttribute(SESSION_KEY_TASK);
       if (proc == null) {
         proc = processMap.get(req.getRemoteUser());
       }
@@ -975,31 +917,6 @@ public final class BatchUpload extends HttpServlet {
   }
 
   /**
-   * Default method which redirects to main page.
-   * @param req servlet request
-   * @param res servlet response
-   * @throws ServletException
-   * @throws IOException
-   */
-  protected void handleRequest(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-    // Redirect back to batch upload JSP page.
-    getServletConfig().getServletContext().getRequestDispatcher("/appadmin/batchUpload.jsp").forward(req, res);
-  }
-
-  protected void handleDelegateNotFound(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-    res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unsupported delegate method specified.");
-  }
-
-  /**
-   * Handles exceptions for the servlet.
-   */
-  private void handleException(HttpServletRequest req, HttpServletResponse res, Throwable t) throws ServletException, IOException {
-    log.warn(t.getMessage(), t);
-    req.setAttribute("thrown", t);
-    res.sendRedirect("//" + CommonConfiguration.getURLLocation(req) + "/appadmin/batchErrorDisplay.jsp");
-  }
-
-  /**
    * Parses data from parsed CSV files into individuals.
    * @param dataInd map of parsed CSV data
    * @return a list of {@code MarkedIndividual}
@@ -1066,7 +983,7 @@ public final class BatchUpload extends HttpServlet {
 
     for (Map<String, Object> map : dataEnc) {
       Encounter x = new Encounter();
-      x.setState("approved"); // NOTE: Encounters are pre-approved by admin.
+      x.setState("approved"); // NOTE: Encounters are pre-approved.
 
       x.setEventID(map.get(pre + "eventID").toString());
       x.setIndividualID((String)map.get(pre + "individualID"));
@@ -1265,18 +1182,5 @@ public final class BatchUpload extends HttpServlet {
     }
 
     return list;
-  }
-}
-
-/**
- * Exception class thrown when the the servlet cannot find a delegate method.
- */
-class DelegateNotFoundException extends ServletException {
-  DelegateNotFoundException(String s, Throwable t) {
-    super(s, t);
-  }
-
-  DelegateNotFoundException(String s) {
-    super(s);
   }
 }
