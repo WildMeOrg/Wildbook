@@ -78,7 +78,7 @@
             href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/searchResults.jsp">All
             Encounters</a></li>
           <li><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/allIndividuals.jsp">All
+            href="http://<%=CommonConfiguration.getURLLocation(request)%>/individualSearchResults.jsp">All
             Marked Individuals</a></li>
           <li><a
             href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/thumbnailSearchResults.jsp?noQuery=true">Image

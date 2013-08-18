@@ -109,7 +109,7 @@ public class EncounterSetIdentifiable extends HttpServlet {
             String stateName=allStates.get(i);
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
-        }out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+        }out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         ArrayList<String> allStates2=CommonConfiguration.getSequentialPropertyValues("encounterState");
         int allStatesSize2=allStates2.size();
         if(allStatesSize2>0){
@@ -132,7 +132,7 @@ public class EncounterSetIdentifiable extends HttpServlet {
             String stateName=allStates.get(i);
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
-        }out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+        }out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         ArrayList<String> allStates5=CommonConfiguration.getSequentialPropertyValues("encounterState");
         int allStatesSize5=allStates5.size();
         if(allStatesSize5>0){
@@ -155,7 +155,7 @@ public class EncounterSetIdentifiable extends HttpServlet {
           out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
         }
       }
-      out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+      out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
       ArrayList<String> allStates3=CommonConfiguration.getSequentialPropertyValues("encounterState");
       int allStatesSize3=allStates3.size();
       if(allStatesSize3>0){
