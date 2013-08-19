@@ -304,7 +304,7 @@ if (myShepherd.isEncounter(num)) {
 </form>
 
 
-<p><font color="#990000"><a href="../allIndividuals.jsp">View
+<p><font color="#990000"><a href="../individualSearchResults.jsp">View
   all marked individuals</a></font></p>
 
 <p></p>

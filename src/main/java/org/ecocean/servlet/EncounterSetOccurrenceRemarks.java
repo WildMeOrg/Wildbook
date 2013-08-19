@@ -118,7 +118,7 @@ public class EncounterSetOccurrenceRemarks extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }
-        out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter());
         String message = "Encounter #" + request.getParameter("number") + " submitted comments have been updated from \"" + oldComment + "\" to \"" + comment + "\".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
@@ -134,7 +134,7 @@ public class EncounterSetOccurrenceRemarks extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }
-        out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter());
 
       }
@@ -150,7 +150,7 @@ public class EncounterSetOccurrenceRemarks extends HttpServlet {
           out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
         }
       }
-      out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+      out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
       out.println(ServletUtilities.getFooter());
 
     }
