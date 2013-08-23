@@ -179,12 +179,9 @@ try {
 			</tr>
 		</table>
 		
-			<%
 			
-  
-
-		
-
+			<p class="para"><strong><em>Pattern Matching Results</em></strong></p>
+			<%
   			File leftScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullScan.xml");
   			File rightScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightScan.xml");
   			File I3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullI3SScan.xml");
@@ -374,8 +371,6 @@ $("a#changespotimage").click(function() {
 </script>   
 <!-- end reset spot image popup --> 
 
-  
-  <br/> 
   <table border="0" cellpadding="5"><tr>
   <%
   if ((enc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
