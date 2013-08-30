@@ -38,10 +38,10 @@
     used in this framework are listed <a
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/thirdparty.jsp">here</a>. This is version <%=CommonConfiguration.getVersion()%>.</p>
 
-  <p><a href="http://www.ecoceanusa.org/shepherd" target="_blank">
-    <img border="0" src="http://<%=CommonConfiguration.getURLLocation(request)%>/images/lib_bottom.gif"
-                                                                       alt="Powered by ECOCEAN USA"
-    /></a>
+  <p>
+  	<a href="http://www.wildme.org/shepherd" target="_blank">
+    		<img border="0" src="http://<%=CommonConfiguration.getURLLocation(request)%>/images/lib_bottom.gif" alt="Powered by Wildbook"/>
+    	</a>
   </p>
 
 
