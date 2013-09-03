@@ -159,20 +159,7 @@ table.adopter td.image {
 	 <div id="leftcol">
 		 <div id="menu">
 		 		
-		 
-	<%
-	//check what language is requested
-	if(request.getParameter("langCode")!=null){
-		if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
-		if(request.getParameter("langCode").equals("de")) {langCode="de";}
-		if(request.getParameter("langCode").equals("es")) {langCode="es";}
-	}
-	%>
-<jsp:include page="language.jsp" flush="true">
 
-	<jsp:param name="langCode" value="<%=langCode%>"/>
-
-</jsp:include>
 		
 
 <!--
