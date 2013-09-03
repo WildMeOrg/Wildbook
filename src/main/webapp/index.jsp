@@ -175,7 +175,7 @@ table.adopter td.image {
 </jsp:include>
 		
 
-
+<!--
 			 
 			 		 	    <div class="module">
 		 <h3>Latest News </h3>
@@ -234,6 +234,7 @@ table.adopter td.image {
 </noscript>
 
         </div>
+        -->
 
 								 
 			 <div class="module">
@@ -270,11 +271,11 @@ table.adopter td.image {
 				 
 		 
 		 		 <p>
-		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />47000+ photos collected<br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />22000+  sighting reports</strong><br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />4300+ whale sharks collaboratively tagged</strong><br />
+		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />50000+ photos collected<br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />23000+  sighting reports</strong><br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />4600+ whale sharks collaboratively tagged</strong><br />
 			   
-			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3600+ data contributors</strong></strong></span><br />
+			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3800+ data contributors</strong></strong></span><br />
 		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />365 research days/year</strong><br />
 		       
 			   <p align="center"><strong><a href="adoptashark.jsp">Please consider adopting a shark to support our mission!</a></strong></p>

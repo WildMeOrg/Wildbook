@@ -96,17 +96,20 @@
 		<div id="maintext">
 		  <h1 class="intro">Publications</h1>
 		  <ul>
-		  <li><a href="#brochure">Brochure</a></li>
 		  <li><a href="#scipubs">Scientific publications</a></li>
-		  <li><a href="#press">Past press clippings</a></li>
 		  </ul>
 		</div>
 		
-		<a name="brochure"></a><strong>Brochure</strong>
-		<p>The <a href="ECOCEAN_Brochure.pdf">ECOCEAN brochure</a> provides more information about the mission of ECOCEAN.</a></p>
-		
+	
 		<a name="scipubs"></a><strong>Scientific publications</strong>
-		<p><em>The following reports and publications have either directly used data from the ECOCEAN Library or contributed to its ultimate development and launch in 2003.</em></p>
+		<p><em>The following reports and publications have either directly used data from whaleshark.org or contributed to its ultimate development and launch in 2003.</em></p>
+		
+		<p>Hueter RE, Tyminski JP, de la Parra R (2013) Horizontal Movements, Migration Patterns, and Population Structure of Whale Sharks in the Gulf of Mexico and Northwestern Caribbean Sea. PLoS ONE 8(8): e71883. doi:10.1371/journal.pone.0071883
+		<br /><a href="http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0071883">Web link</a>
+		</p>
+		
+		<p>Fox S, Foisy I, De La Parra Venegas R, Galvan Pastoriza BE, Graham RT, Hoffmayer ER, Holmberg J, Pierce SJ. (2013) Population structure and residency of whale sharks Rhincodon typus at Utila, Bay Islands, Honduras. Journal of Fish Biology
+Volume 83, Issue 3, pages 574-587, September 2013 <br /><a href="http://onlinelibrary.wiley.com/doi/10.1111/jfb.12195/abstract">Web link</a></p>
 		
 		<p> Robinson DP, Jaidah MY, Jabado RW, Lee-Brooks K, Nour El-Din NM, et al. (2013) Whale Sharks, Rhincodon typus, Aggregate around Offshore Platforms in Qatari Waters of the Arabian Gulf to Feed on Fish Spawn. PLoS ONE 8(3): e58255. doi:10.1371/journal.pone.0058255
 		<br /><a href="http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0058255">Web link</a>
@@ -153,13 +156,7 @@ Volume 13, Issue 4.</p>
 		<p>Gunn JS, Stevens JD, Davis TLO &amp; Norman BM (1999) Observations on the short-term movements and behaviour of whale sharks ( <em>Rhincodon typus </em>) at Ningaloo Reef, Western Australia. <em>Mar. Biol </em>. 135: 553-559. <a href="http://www.springerlink.com/content/68mmnfxa2vprhp7a/"><br />
 	    Web link</a>. </p>
 		
-		<p><a name="press"></a><strong>Past press clippings</strong>		    </p>
-		<p><span class="caption"><strong>Maneuvering "like fighter pilots"</strong><br />
-	      <br>
-          <a href="http://www.esajournals.org/perlserv/?request=get-abstract&doi=10.1890%2F07-0315.1"><img src="images/news_flying.jpg" alt="Ecological Applications publication" width="77" height="77" hspace="3" vspace="3" border="0" align="left" title="Latest scientific publication" /></a> Rolex Laureates and ECOCEAN take <a href="http://www.sciencealert.com.au/news/20081706-17506-2.html">a new look at whale shark motion</a>. <br />
-          </span>
-	        <br />
-        </p>
+		
 		<p>&nbsp;</p>
 	</div>
 	<!-- end maintext -->
