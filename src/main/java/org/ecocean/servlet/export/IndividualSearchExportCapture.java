@@ -42,7 +42,7 @@ public class IndividualSearchExportCapture extends HttpServlet{
     int numIndividuals=rIndividuals.size();
     int numSharks=0;
     out.println("<pre>");
-    out.println("title='DirectExport of Marked Individuals from the Shepherd Project'");
+    out.println("title='Example CAPTURE Export of Marked Individuals from the "+CommonConfiguration.getHTMLTitle()+"'");
  
  
     try {
