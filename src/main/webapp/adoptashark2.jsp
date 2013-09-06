@@ -27,7 +27,7 @@
 <body>
 <div id="wrapper">
 <div id="page">
-<jsp:include page="header2.jsp" flush="true">
+<jsp:include page="header.jsp" flush="true">
 	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
 	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
 	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
@@ -39,7 +39,10 @@
 
 <table class="myTableText">
   <tr>
-  <td align="left" bgcolor="#000000" >
+  <td align="left" bgcolor="#000000" style="padding-top:25px;
+padding-bottom:25px;
+padding-right:50px;
+padding-left:50px;">
 
     <p><center>We need YOUR support.</center></p>
     <p>Whaleshark.org is one of a kind. It enables global scientific research on a beloved, gentle species, the biggest fish in the sea.  </p>
