@@ -1,52 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-        <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
-<%
-
+        <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,java.util.Properties,java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
 	
-	//language setup
-	String langCode="en";
-	if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
-	if(request.getParameter("langCode")!=null){
-		if(request.getParameter("langCode").equals("en")) {langCode="en";}
-		if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
-		if(request.getParameter("langCode").equals("de")) {langCode="de";}
-		if(request.getParameter("langCode").equals("es")) {langCode="es";}
-	}
-	Properties props=new Properties();
-	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
-
 	
-	//load our variables for the submit page
-	String title=props.getProperty("submit_title");
-	String submit_maintext=props.getProperty("submit_maintext");
-	String submit_reportit=props.getProperty("reportit");
-	String submit_language=props.getProperty("language");
-	String what_do=props.getProperty("what_do");
-	String read_overview=props.getProperty("read_overview");
-	String see_all_encounters=props.getProperty("see_all_encounters");
-	String see_all_sharks=props.getProperty("see_all_sharks");
-	String report_encounter=props.getProperty("report_encounter");
-	String log_in=props.getProperty("log_in");
-	String contact_us=props.getProperty("contact_us");
-	String search=props.getProperty("search");
-	String encounter=props.getProperty("encounter");
-	String shark=props.getProperty("shark");
-	String join_the_dots=props.getProperty("join_the_dots");
-	String menu=props.getProperty("menu");
-	String last_sightings=props.getProperty("last_sightings");
-	String more=props.getProperty("more");
-	String ws_info=props.getProperty("ws_info");
-	String about=props.getProperty("about");
-	String contributors=props.getProperty("contributors");
-	String forum=props.getProperty("forum");
-	String blog=props.getProperty("blog");
-	String area=props.getProperty("area");
-	String match=props.getProperty("match");
-	
-	//link path to submit page with appropriate language
-	String submitPath="submit.jsp?langCode="+langCode;
-	
-%>
 
 <html>
 <head>
@@ -57,6 +12,15 @@
 <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
 <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>" rel="stylesheet" type="text/css" />
 <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
+
+<style>
+.myTableText td { color:#FFFFFF; }
+.myTableText td a:link { color:#0000FF;text-decoration:none; }
+.myTableText td a:visited { color:#0000FF; }
+.myTableText td a:hover { color:#0000FF;text-decoration:underline; }
+.myTableText td a:active { color:#0000FF; }
+
+</style>
 
 </head>
 
@@ -69,33 +33,34 @@
 	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
 </jsp:include>	
-<div id="main">
-	<div id="leftcol">
-		<div id="menu">
+<div id="main" style="padding-top:0px">
+	
+	<div id="maincol-wide-solo">
 
-						
-			<div class="module">
-				<img src="images/area.jpg" width="190" height="115" border="0" title="Area to photograph" alt="Area to photograph" />
-				<p class="caption"><%=area%></p>
-			</div>
-						
-			<div class="module">
-				<img src="images/match.jpg" width="190" height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-				<p class="caption"><%=match%></p>
-			</div>
-						
+<table class="myTableText">
+  <tr>
+  <td align="left" bgcolor="#000000" style="padding-top:25px;
+padding-bottom:25px;
+padding-right:50px;
+padding-left:50px;">
 
-<jsp:include page="awards.jsp" flush="true" />	
-		</div><!-- end menu -->
-	</div><!-- end leftcol -->
-	<div id="maincol-wide">
+    <p><center>Thanks for clicking through! Scroll down to adopt a shark!</center></p>
+    <p>Whaleshark.org is one of a kind. It enables global scientific research on a beloved, gentle species, the biggest fish in the sea.  </p>
+    <p>But it is not funded by any government. It is not funded by any for-profit corporation.  </p>
+    <p>Whaleshark.org is run by a non-profit charity that relies on donations to host and manage  one of the world's most sophisticated wildlife databases, to make it available to researchers,  citizen scientists, and the general public. Without a steady flow of financial contributions, the  site can't continue to operate.  </p>
+    <p>If whaleshark.org goes dark, a vital research capability is lost. There's nothing else like it. </p>
+    <p>If you're a visitor to our site, please consider a donation or adoption. (Adoptions for children  cost just $25/year, and you get to nickname a shark!) If you're in the ecotourism business,  consider what whaleshark.org adds to your clients' experience, and help us keep alive their  continued fascination with whale sharks. If you're a researcher who uses and depends  on the photo-ID library, help us help you by budgeting for this precious resource in your  research grant applications and contributing your vital financial support. We're all in this  together! </p>
+    <p>Your contribution supports research that directly informs conservation practices. To see  the difference we’re already making, visit our <a href="publications.jsp">Publications page</a>. And we have exciting new  developments on the horizon.  </p>
+    <p>Every little bit helps. Like giant whale sharks thriving on a diet of microscopic life (in  vast quantities!), many small contributions from our dedicated community can keep  whaleshark.org flourishing. Please help in any way you can. And thank you!</p></td></tr></table>
 
+<p>&nbsp;</p>
 		<div id="maintext">
-		  <h1 class="intro"><img src="images/adoption.gif" width="56" height="48" align="absmiddle" />Adopt a Shark </h1>
+		  <h1 class="intro"><img src="images/adoption.gif" width="56" height="48" align="absmiddle" />Adopt a Shark</h1>
 		</div>
 			<table><tr>
-			<td valign="top"><p>You can support the ongoing research of the ECOCEAN Whale Shark Photo-identification Library by adopting a whale shark. A whale shark adoption allows you to: <ul>
-			  <li>support cutting-edge whale shark research through the ECOCEAN Library </li>
+			<td valign="top"><p>You can support the ongoing research of the Whale Shark Photo-identification Library by adopting a whale shark. A whale shark adoption allows you to: 
+			<ul>
+			  <li>support cutting-edge whale shark research</li>
 	    <li> receive email updates of resightings of your adopted shark</li>
 		<li>display your photo and a quote from you on the shark's page in our library</li>
 		</ul>

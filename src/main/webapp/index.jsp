@@ -149,7 +149,7 @@ table.adopter td.image {
 <body>
 <div id="wrapper">
 <div id="page">
-<jsp:include page="header.jsp" flush="true">
+<jsp:include page="header2.jsp" flush="true">
 	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
 	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
 	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
