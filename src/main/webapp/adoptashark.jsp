@@ -15,10 +15,10 @@
 
 <style>
 .myTableText td { color:#FFFFFF; }
-.myTableText td a:link { color:#0000FF;text-decoration:none; }
-.myTableText td a:visited { color:#0000FF; }
-.myTableText td a:hover { color:#0000FF;text-decoration:underline; }
-.myTableText td a:active { color:#0000FF; }
+.myTableText td a:link { color:#FFFFFF;text-decoration:underline; }
+.myTableText td a:visited { color:#FFFFFF; }
+.myTableText td a:hover { color:#FFFFFF;text-decoration:underline; }
+.myTableText td a:active { color:#FFFFFF; }
 
 </style>
 
