@@ -145,7 +145,7 @@ public class IndividualSearchExportCapture extends HttpServlet{
     out.println("task closure test<br/>task model selection");
     //out.println("task population estimate ALL");
     //out.println("task population estimate NULL JACKKNIFE REMOVAL ZIPPEN MT-CH MH-CH MTH-CH");
-    out.println("task population estimate APPROPRIATE");
+    out.println("task population estimate ALL");
     out.close();
   }
 
