@@ -42,7 +42,7 @@ public class IndividualSearchExportCapture extends HttpServlet{
     int numIndividuals=rIndividuals.size();
     int numSharks=0;
     out.println("<pre>");
-    out.println("title='DirectExport of Marked Individuals from the Shepherd Project'");
+    out.println("title='Example CAPTURE Export of Marked Individuals from the "+CommonConfiguration.getHTMLTitle()+"'");
  
  
     try {
@@ -145,7 +145,7 @@ public class IndividualSearchExportCapture extends HttpServlet{
     out.println("task closure test<br/>task model selection");
     //out.println("task population estimate ALL");
     //out.println("task population estimate NULL JACKKNIFE REMOVAL ZIPPEN MT-CH MH-CH MTH-CH");
-    out.println("task population estimate APPROPRIATE");
+    out.println("task population estimate ALL");
     out.close();
   }
 
