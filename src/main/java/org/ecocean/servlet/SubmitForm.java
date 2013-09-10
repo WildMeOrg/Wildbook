@@ -32,6 +32,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.upload.FormFile;
 import org.apache.struts.upload.MultipartRequestHandler;
+import org.ecocean.util.DataUtilities;
 
 
 public class SubmitForm extends ActionForm {
@@ -44,7 +45,7 @@ public class SubmitForm extends ActionForm {
   //define the variables for encounter submission
   private String mailList = "no";
   private Calendar date = Calendar.getInstance();
-  private String uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
+  private String uniqueID = DataUtilities.createUniqueEncounterId();
   private String releaseDate = "";
   private String size="", depth="";
   private String elevation="";
@@ -109,7 +110,7 @@ public class SubmitForm extends ActionForm {
     writeFile = false;
     mailList = "no";
     date = Calendar.getInstance();
-    uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
+    uniqueID = DataUtilities.createUniqueEncounterId();
     releaseDate = null;
     size = "";
     depth = "";

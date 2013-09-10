@@ -35,6 +35,7 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.Calendar;
 import java.util.Random;
+import org.ecocean.util.DataUtilities;
 
 
 public class AdoptionAction extends Action {
@@ -97,7 +98,7 @@ public class AdoptionAction extends Action {
       if (isEdit) {
         id = number;
       } else {
-        id = "adpt" + (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
+        id = DataUtilities.createUniqueAdoptionId();
       }
 
       String encoding = request.getCharacterEncoding();

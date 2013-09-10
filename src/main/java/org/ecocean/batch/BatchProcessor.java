@@ -49,6 +49,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.servlet.BatchUpload;
+import org.ecocean.util.DataUtilities;
 import org.ecocean.util.FileUtilities;
 import org.ecocean.util.MediaUtilities;
 import org.slf4j.Logger;
@@ -360,7 +361,7 @@ public final class BatchProcessor implements Runnable {
           String uid = null;
           Object testEnc = null;
           do {
-            uid = createUniqueEncounterId();
+            uid = DataUtilities.createUniqueEncounterId();
             try {
               testEnc = pm.getObjectById(pm.newObjectIdInstance(Encounter.class, uid));
               log.trace("Unable to use UID for encounter; already exists: {}", uid);
@@ -645,29 +646,6 @@ public final class BatchProcessor implements Runnable {
     BufferedImage img = MediaUtilities.loadImage(src);
     BufferedImage out = MediaUtilities.rescaleImageWithTextOverlay(img, w, h, text);
     MediaUtilities.saveImageJPEG(out, dst, false, 0.6f, false);
-  }
-
-  /**
-   * Creates a unique ID string for encounters.
-   * Current implementation is a based on that in the SubmitAction class;
-   * this version improves on it by increasing specification to millisecond
-   * precision, but still doesn't guarantee uniqueness.
-   * FIXME: Improve UID generation algorithm (UUID class?)
-   * @return unique ID string
-   */
-  private String createUniqueEncounterId() {
-    // SubmitAction uses the following:
-    // DAY_OF_MONTH + MONTH + YEAR + HOUR_OF_DAY + MINUTE + SECOND + ran.nextInt(99);
-    StringBuilder sb = new StringBuilder();
-    Calendar cal = Calendar.getInstance();
-    sb.append(String.format("%04d", cal.get(Calendar.YEAR)));
-    sb.append(String.format("%02d", cal.get(Calendar.MONTH)));
-    sb.append(String.format("%02d", cal.get(Calendar.DAY_OF_MONTH)));
-    sb.append(String.format("%02d", cal.get(Calendar.HOUR_OF_DAY)));
-    sb.append(String.format("%02d", cal.get(Calendar.MINUTE)));
-    sb.append(String.format("%02d", cal.get(Calendar.SECOND)));
-    sb.append(String.format("%03d", cal.get(Calendar.MILLISECOND)));
-    return sb.toString();
   }
 
   /**

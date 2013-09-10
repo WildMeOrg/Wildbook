@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import org.ecocean.util.DataUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,7 @@ public class SubmitAction extends Action {
 		  String mailList = "no";
 		  Calendar date = Calendar.getInstance();
 		  Random ran = new Random();
-		  String uniqueID = (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString() + (new Integer(ran.nextInt(99))).toString();
+		  String uniqueID = DataUtilities.createUniqueEncounterId();
 		  String size = "";
 		  String elevation = "";
 		  String depth = "";
