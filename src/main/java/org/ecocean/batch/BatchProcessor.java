@@ -31,6 +31,7 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -351,6 +352,30 @@ public final class BatchProcessor implements Runnable {
       PersistenceManager pm = shepherd.getPM();
       try {
         shepherd.beginDBTransaction();
+
+        // Find all encounters related to existing individuals, creating a map
+        // of Encounter-to-IndividualID for later reference. IndividualID is
+        // reset to null for initial commit to database, then reassigned to
+        // the correct individual later.
+        Map<Encounter, String> mapEncInd = new HashMap<Encounter, String>();
+        for (Encounter enc : listEnc) {
+          String iid = enc.getIndividualID();
+          if (iid != null) {
+            boolean found = false;
+            for (MarkedIndividual mi : listInd) {
+              if (iid.equals(mi.getIndividualID())) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              mapEncInd.put(enc, iid);
+              enc.setIndividualID(null);
+            }
+          }
+        }
+
+
         // Persist all encounters (assigned/unassigned) to the database.
         // Assigned encounters must also be processed to assign unique IDs,
         // otherwise JDO barfs at primary key persistence problem.
@@ -448,7 +473,7 @@ public final class BatchProcessor implements Runnable {
           counter++;
         }
 
-        // Persist all individuals to the database.
+        // Persist all new individuals to the database.
         for (MarkedIndividual ind : listInd) {
           try {
             pm.makePersistent(ind);
@@ -460,6 +485,21 @@ public final class BatchProcessor implements Runnable {
             throw ex;
           }
           counter++;
+        }
+
+        // Persist encounters for existing individuals.
+        // (This is not progress tracked, as should be comparatively quick.)
+        for (Map.Entry<Encounter, String> me : mapEncInd.entrySet()) {
+          try {
+            MarkedIndividual ind = shepherd.getMarkedIndividual(me.getValue());
+            ind.addEncounter(me.getKey());
+            pm.makePersistent(ind);
+          } catch (Exception ex) {
+            String msg = bundle.getString("batchUpload.processError.assignEncounter");
+            msg = MessageFormat.format(msg, me.getKey().getCatalogNumber(), me.getValue());
+            errors.add(msg);
+            throw ex;
+          }
         }
 
         // Commit changes to store.

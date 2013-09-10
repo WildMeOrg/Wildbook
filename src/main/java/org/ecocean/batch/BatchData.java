@@ -96,6 +96,31 @@ public final class BatchData {
     return count;
   }
 
+  /**
+   * @return The count of encounters that are assigned to individuals
+   */
+  public int getAssignedToExistingIndividualCount()
+  {
+    if (listEnc == null)
+      return 0;
+    int count = 0;
+    for (Encounter enc : listEnc) {
+      String iid = enc.getIndividualID();
+      if (iid != null) {
+        boolean found = false;
+        for (MarkedIndividual ind : listInd) {
+          if (iid.equals(ind.getIndividualID())) {
+            found = true;
+            break;
+          }
+        }
+        if (!found)
+          count++;
+      }
+    }
+    return count;
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

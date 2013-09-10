@@ -611,6 +611,9 @@ public final class BatchUpload extends DispatchServlet {
         mapEnc.put(x.getEventID(), x);
       }
       // Check/assign individual.
+      // Individuals created on import have their Encounters assigned to them.
+      // Encounters for existing Individuals are left unassigned, but with the
+      // IndividualID specified, so they can be processed by the BatchProcessor.
       String indID = x.getIndividualID();
       if (indID != null)
         indID = indID.trim();
@@ -619,8 +622,11 @@ public final class BatchUpload extends DispatchServlet {
         // but this would break the logic here; should be done in BatchProcessor.
         x.setIndividualID(null);
       } else if (!indIDs.contains(x.getIndividualID())) {
-        String msg = bundle.getString("batchUpload.verifyError.encounterUnknownIndividual");
-        errors.add(MessageFormat.format(msg, x.getEventID(), x.getIndividualID()));
+        // Check for existing individual in database.
+        if (!shepherd.isMarkedIndividual(x.getIndividualID())) {
+          String msg = bundle.getString("batchUpload.verifyError.encounterUnknownIndividual");
+          errors.add(MessageFormat.format(msg, x.getEventID(), x.getIndividualID()));
+        }
       } else {
         MarkedIndividual ind = listInd.get(indIDs.indexOf(indID));
         ind.addEncounter(x);

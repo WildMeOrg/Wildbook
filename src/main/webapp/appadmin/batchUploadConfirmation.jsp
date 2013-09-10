@@ -91,7 +91,7 @@
           </tr>
           <tr>
             <th><%=bundle.getProperty("gui.summary.label.enc")%></th>
-            <td><%=MessageFormat.format(bundle.getProperty("gui.summary.value.enc"), data.listEnc.size(), data.getUnassignedEncounterCount())%></td>
+            <td><%=MessageFormat.format(bundle.getProperty("gui.summary.value.enc"), data.listEnc.size(), data.getUnassignedEncounterCount(), data.getAssignedToExistingIndividualCount())%></td>
           </tr>
           <tr>
             <th><%=bundle.getProperty("gui.summary.label.mea")%></th>
