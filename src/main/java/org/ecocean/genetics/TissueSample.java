@@ -24,14 +24,14 @@ public class TissueSample extends DataCollectionEvent {
   private String sampleID;
   private String alternateSampleID;
   private List<GeneticAnalysis> analyses;
-  
+
 
   /**
    * Empty constructor required for JDO persistence.
    * DO NOT USE
    */
   public TissueSample(){}
-  
+
   /*
    * Required constructor for instance creation
    */
@@ -40,52 +40,52 @@ public class TissueSample extends DataCollectionEvent {
     this.sampleID=sampleID;
     analyses=new ArrayList<GeneticAnalysis>();
   }
-  
+
   public TissueSample(String correspondingEncounterNumber, String sampleID, HttpServletRequest request) {
     super(correspondingEncounterNumber, type, request);
     this.sampleID=sampleID;
     analyses=new ArrayList<GeneticAnalysis>();
   }
-  
+
   public void addGeneticAnalysis(GeneticAnalysis ga){
     if(!analyses.contains(ga)){analyses.add(ga);}
   }
-  
+
   public void removeGeneticAnalysis(GeneticAnalysis ga){
     if(analyses.contains(ga)){analyses.remove(ga);}
   }
-  
+
   public void removeGeneticAnalysis(int ga){
     if(analyses.size()>ga){analyses.remove(ga);}
   }
-  
+
   public List<GeneticAnalysis> getGeneticAnalyses(){return analyses;}
 
   public String getTissueType(){return tissueType;}
   public void setTissueType(String newType){this.tissueType=newType;}
-  
+
   public String getPreservationMethod(){return preservationMethod;}
   public void setPreservationMethod(String newMethod){this.preservationMethod=newMethod;}
-  
+
   public String getStorageLabID(){return storageLabID;}
   public void setStorageLabID(String newLab){this.storageLabID=newLab;}
-  
+
   public String getSampleID(){return sampleID;}
 
   public String getAlternateSampleID(){return alternateSampleID;}
   public void setAlternateSampleID(String newID){this.alternateSampleID=newID;}
 
   public int getNumAnalyses(){return analyses.size();}
-  
+
   public String getHTMLString(){
     String paramValues=super.getHTMLString();
     if((this.getAlternateSampleID()!=null)&&(!this.getAlternateSampleID().equals(""))){paramValues+="     Alternate Sample ID: "+this.getAlternateSampleID()+"<br />";}
     if((this.getPreservationMethod()!=null)&&(!this.getPreservationMethod().equals(""))){paramValues+="     Preservation method: "+this.getPreservationMethod()+"<br />";}
     if((this.getStorageLabID()!=null)&&(!this.getStorageLabID().equals(""))){paramValues+="     Storage lab ID: "+this.getStorageLabID()+"<br />";}
     if((this.getTissueType()!=null)&&(!this.getTissueType().equals(""))){paramValues+="     Tissue type: "+this.getTissueType()+"<br />";}
-    return paramValues; 
+    return paramValues;
   }
-  
+
   public boolean hasMeasurements(){
     if((analyses!=null)&&(analyses.size()>0)){
       int numMeasurements=analyses.size();
@@ -99,7 +99,7 @@ public class TissueSample extends DataCollectionEvent {
     }
     return false;
   }
-  
+
   public boolean hasMeasurement(String measurementType){
     if((analyses!=null)&&(analyses.size()>0)){
       int numMeasurements=analyses.size();
@@ -113,7 +113,7 @@ public class TissueSample extends DataCollectionEvent {
     }
     return false;
   }
-  
+
   public List<BiologicalMeasurement> getBiologicalMeasurements(){
     ArrayList<BiologicalMeasurement> measures=new ArrayList<BiologicalMeasurement>();
     if((analyses!=null)&&(analyses.size()>0)){
@@ -128,7 +128,7 @@ public class TissueSample extends DataCollectionEvent {
     }
     return measures;
   }
-  
+
   public BiologicalMeasurement getBiologicalMeasurement(String type){
     if((analyses!=null)&&(analyses.size()>0)){
       int numMeasurements=analyses.size();
@@ -136,11 +136,11 @@ public class TissueSample extends DataCollectionEvent {
         GeneticAnalysis m=analyses.get(i);
         if(m.getAnalysisType().equals("BiologicalMeasurement")){
           BiologicalMeasurement f=(BiologicalMeasurement)m;
-          if(f.getValue()!=null){return f;}
+          if((f.getValue()!=null)&&(f.getMeasurementType()!=null)&&(f.getMeasurementType().equals(type))){return f;}
         }
       }
     }
     return null;
   }
-  
+
 }
