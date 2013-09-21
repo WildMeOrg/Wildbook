@@ -24,7 +24,7 @@ import net.sourceforge.jwebunit.junit.WebTestCase;
 public class IndexIT extends WebTestCase {
   public void setUp() throws Exception {
     super.setUp();
-    setBaseUrl("http://localhost:9090/shepherd");
+    setBaseUrl("http://localhost:9090/wildbook");
   }
   public void testHome() throws Exception {
     beginAt("/");
