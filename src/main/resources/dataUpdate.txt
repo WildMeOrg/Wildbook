@@ -1,6 +1,14 @@
 Hello! 
 
-Just a quick e-mail to let you know of a change in data for an encounter that you have marked for tracking. See the text below to learn more.
+Just a quick e-mail to let you know of a change in data for an encounter or manta that you have marked for tracking in the ECOCEAN MantaMatcher. See the text below to learn more.
 
 Change:
 INSERTTEXT
+
+
+
+LEGAL STATEMENT
+The ECOCEAN MantaMatcher is copyrighted 2011. Individual contributors to this resource retain copyrights for   
+submitted images. All manta identifications as listed in this email and in the ECOCEAN MantaMatcher represent
+derived data and are the intellectual property of ECOCEAN USA. No reproduction or usage of material in this Library is permitted without the
+express permission of the copyright holders.

@@ -129,27 +129,18 @@ public class RemoveEmailAddress extends HttpServlet {
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> I removed " + numInstances + " instances of your email in our database.");
-        //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
-        //out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-        //  out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter());
         //String message="Encounter #"+request.getParameter("number")+" location code has been updated from "+oldCode+" to "+request.getParameter("code")+".";
         //ServletUtilities.informInterestedParties(request.getParameter("number"), message);
       } else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> I could not find your email address in the database.");
-        //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
-        //out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-        //  out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter());
 
       }
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-      //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter #"+request.getParameter("number")+"</a></p>\n");
-      //out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-      //  out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
       out.println(ServletUtilities.getFooter());
 
     }

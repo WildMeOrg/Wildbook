@@ -31,7 +31,7 @@ import net.sourceforge.jwebunit.junit.WebTestCase;
 public class AdminIT extends WebTestCase {
   public void setUp() throws Exception {
     super.setUp();
-    setBaseUrl("http://localhost:9090/shepherd");
+    setBaseUrl("http://localhost:9090/wildbook");
   }
 
   public void testResourcesAreProtected() {
@@ -54,7 +54,7 @@ public class AdminIT extends WebTestCase {
     assertTextPresent("Username");
   }
 */
-  
+
   protected void login() {
     beginAt("/index.jsp");
     clickLinkWithExactText("Log in");

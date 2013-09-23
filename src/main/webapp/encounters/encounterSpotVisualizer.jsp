@@ -298,13 +298,13 @@ if (myShepherd.isEncounter(num)) {
   database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
-  to encounter: </strong> <input name="number" type="text"
-                                 value="<%=request.getParameter("number")%>" size="20"> <input
-  name="Go" type="submit" value="Submit"></form>
-<p><font color="#990000"><a href="allEncounters.jsp">View
-  all encounters</a></font></p>
+  to encounter: </strong> 
+  <input name="number" type="text" value="<%=request.getParameter("number")%>" size="20" /> 
+            <input name="Go" type="submit" value="Submit" />
+</form>
 
-<p><font color="#990000"><a href="../allIndividuals.jsp">View
+
+<p><font color="#990000"><a href="../individualSearchResults.jsp">View
   all marked individuals</a></font></p>
 
 <p></p>

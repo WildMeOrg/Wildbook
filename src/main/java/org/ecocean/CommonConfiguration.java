@@ -23,7 +23,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
@@ -294,6 +296,11 @@ public class CommonConfiguration {
     return props.getProperty(name);
   }
   
+  public static Enumeration<?> getPropertyNames() {
+    initialize();
+    return props.propertyNames();
+  }
+
   public static ArrayList<String> getSequentialPropertyValues(String propertyPrefix){
     initialize();
     ArrayList<String> returnThese=new ArrayList<String>();
@@ -495,6 +502,20 @@ public class CommonConfiguration {
     String dataDirectoryName="shepherd_data_dir";
     if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
     return dataDirectoryName;
+  }
+  
+  /**
+   * This configuration option defines whether information about User objects associated with Encounters and MarkedIndividuals will be displayed to web site viewers.
+   *
+   * @return true if edits are allows. False otherwise.
+   */
+  public static boolean showUsersToPublic() {
+    initialize();
+    boolean showUsersToPublic = true;
+    if ((props.getProperty("showUsersToPublic") != null) && (props.getProperty("showUsersToPublic").equals("false"))) {
+      showUsersToPublic = false;
+    }
+    return showUsersToPublic;
   }
   
 }

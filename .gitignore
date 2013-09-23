@@ -2,6 +2,9 @@ target
 bin
 out
 .idea*
+*.ipr
+*.iml
+*.iws
 *.log
 shepherd_derby_database
 /mvnCleanInstallOutput
@@ -11,6 +14,7 @@ src/main/webapp/encounters/*20*
 /log
 /changed
 /changedfiles.txt
-/.classpath
-/shepherd_sqllite_database
 /buildExam.txt
+/shepherd_sqllite_database
+/buildOut.txt
+/src/main/shepherd_data_dir

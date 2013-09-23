@@ -70,7 +70,7 @@
       isOwner = true;
     }
   }
-  *//
+  */
 
   if (request.getParameter("number") != null) {
     tempAD = myShepherd.getAdoption(request.getParameter("number"));

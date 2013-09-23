@@ -183,6 +183,11 @@
             <field name="photographerName" persistence-modifier="persistent">
                 <column length="256" />
             </field>
+            
+            <field name="guid" persistence-modifier="persistent">
+	                    <column length="256" />
+            </field>
+            
             <field name="recordedBy" persistence-modifier="persistent">
                 <column length="256" />
             </field>
@@ -481,7 +486,9 @@
 		        </field>
 		        <field name="userImage" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo"/>
 		 					
-			
+			<field name="lastLogin" persistence-modifier="persistent">
+				<column jdbc-type="BIGINT" allows-null="true" />
+		        </field>
 			                
             </field>
 					

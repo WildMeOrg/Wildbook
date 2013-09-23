@@ -95,13 +95,12 @@
                 /appadmin/** = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[admin]
-                /encounters/allEncountersUnapproved.jsp = authc, roles[admin]
                 /InterconnectSubmitSpots = authc, roles[admin]
 		/interconnectSubmitSpots= authc, roles[admin]
 		/GenePopExport = authc, roles[admin]
 		/ResetCommonConfiguration = authc, roles[admin]
 		/individualSearch.jsp = authc, roles[admin]
-		/individualSearchResults.jsp = authc, roles[admin]
+		/individualSearchResults.jsp = anon
 		/individualSearchResultsExport.jsp = authc, roles[admin]
 		/individualSearchResultsAnalysis.jsp = authc, roles[admin]
 		/individualMappedSearchResults.jsp = authc, roles[admin]
@@ -109,7 +108,7 @@
 		/encounters/thumbnailSearch.jsp = authc, roles[admin]
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[admin]
 		 /encounters/encounterSearch.jsp = authc, roles[admin]
-		 /encounters/searchResults.jsp = authc, roles[admin]
+		 /encounters/searchResults.jsp = anon
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[admin]
 		 /encounters/mappedSearchResults.jsp = authc, roles[admin]
 		 /encounters/mappedSearchResultsSex.jsp = authc, roles[admin]
@@ -171,6 +170,8 @@
       			/DeleteAllDataPermanently = authc, roles[destroyer]
       			/encounters/searchExport = authc, roles[admin]
       			/welcome.jsp = authc
+      			
+      			/EncounterSetSubmitterID = authc, roles[admin]
                
 
             </param-value>

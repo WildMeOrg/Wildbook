@@ -4,6 +4,8 @@ import java.util.Date;
 import java.io.Serializable;
 import org.ecocean.SinglePhotoVideo;
 
+import org.joda.time.DateTime;
+
 /**
  * <code>User</code> stores information about a contact/user.
  * Examples: photographer, submitter
@@ -35,6 +37,7 @@ public class User implements java.io.Serializable {
   private long dateInMilliseconds;
   private long userID;
 
+  private long lastLogin=-1;
   
   	private String username;
   	private String password ;
@@ -51,12 +54,16 @@ public class User implements java.io.Serializable {
   	  setPhoneNumber(phoneNumber);
   	  setAffiliation(affiliation);
   	  setNotes(notes);
+  	  RefreshDate();
+  	  this.lastLogin=-1;
   	}
   	
   	public User(String username,String password, String salt){
   	  setUsername(username);
   	  setPassword(password);
   	  setSalt(salt);
+  	  RefreshDate();
+  	  this.lastLogin=-1;
   	}
 
   public void RefreshDate()
@@ -194,5 +201,16 @@ public class User implements java.io.Serializable {
     }
     public String getUserURL(){return userURL;}
   	
+    public long getLastLogin(){
+      return lastLogin;
+    }
+    
+    public String getLastLoginAsDateString(){
+      if(lastLogin==-1) return null;
+      return (new DateTime(this.lastLogin)).toString();
+    }
+    
+    public void setLastLogin(long lastie){this.lastLogin=lastie;}
+    
 
 }

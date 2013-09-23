@@ -58,7 +58,7 @@
 
 
   boolean isOwner = false;
-  if (request.getUserPrincipal()!=null {
+  if (request.getUserPrincipal()!=null) {
     isOwner = true;
   }
 
@@ -156,6 +156,11 @@
     });
 
   </script>
+  
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>
+  
 
 <!--  FACEBOOK LIKE BUTTON -->
 <div id="fb-root"></div>
@@ -208,7 +213,7 @@
 <table><tr>
 
 <td valign="middle">
- <h1><strong><%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
+ <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
  <table><tr valign="middle">  
   <td>
@@ -234,19 +239,14 @@ if(sharky.getGroupBehavior()!=null){
 <%
 }
 %>
-&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
-    href="occurrence.jsp?number=<%=name%>&edit=groupBehavior#groupBehavior"><%=props.getProperty("edit")%>
-  </a>]<%}%>
+&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a id="groupB" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
-<%
-  if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("groupBehavior"))) {
-%>
-<br />
-<a name="setGroupBehavior">
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
-  <tr>
-    <td align="left" valign="top"><span class="style1"><%=props.getProperty("setGroupBehavior") %></span></td>
-  </tr>
+
+
+<div id="dialogGroupB" title="<%=props.getProperty("setGroupBehavior") %>" style="display:none">
+                         			
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
   <tr>
     <td align="left" valign="top">
       <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
@@ -294,8 +294,23 @@ if(sharky.getGroupBehavior()!=null){
     </td>
   </tr>
 </table>
-</a><br /> 
-<%}%>
+
+                         		</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgGroupB = $("#dialogGroupB").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#groupB").click(function() {
+  dlgGroupB.dialog("open");
+});
+</script>
+
+
 <p><%=props.getProperty("numMarkedIndividuals") %>: <%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 
 <p><%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
@@ -306,21 +321,16 @@ if(sharky.getIndividualCount()!=null){
 <%
 }
 %>
-&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%>[<a
-    href="occurrence.jsp?number=<%=name%>&edit=individualCount#individualCount"><%=props.getProperty("edit")%>
-  </a>]<%}%>
+&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a id="indies" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
-<%
-  if (hasAuthority && (request.getParameter("edit") != null) && (request.getParameter("edit").equals("individualCount"))) {
-%>
 
 
-<a name="individualCount">
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#000000" bgcolor="#99CCFF">
-  <tr>
-    <td align="left" valign="top"><span class="style1"><%=props.getProperty("setIndividualCount") %></span></td>
-  </tr>
+
+<div id="dialogIndies" title="<%=props.getProperty("setIndividualCount") %>" style="display:none">
+            
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
+
   <tr>
     <td align="left" valign="top">
       <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
@@ -333,12 +343,25 @@ if(sharky.getIndividualCount()!=null){
     </td>
   </tr>
 </table>
-</a><br />
+
+                         		</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgIndies = $("#dialogIndies").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#indies").click(function() {
+  dlgIndies.dialog("open");
+});
+</script>
 
 
-<%
-  }
-%>
+
+
 <p><%=props.getProperty("locationID") %>: 
 <%
 if(sharky.getLocationID()!=null){

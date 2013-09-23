@@ -87,6 +87,7 @@
       		<th><strong>Roles</strong></th>
       		<th width="40px"><strong>Edit?</strong></th>
       		<th><strong>Delete?</strong></th>
+      		<th><strong>Last Login</strong></th>
       	</tr>
       
       <%
@@ -120,7 +121,7 @@
       		</td>
       		<td><%=user.getUsername()%></td>
       		<td><%=fullName%></td>
-      		<td><%=emailAddress%></td>
+      		<td><a href="mailto:<%=emailAddress%>"><img height="20px" width="20px" src="../images/Crystal_Clear_app_email.png" /></a></td>
       		<td><%=affiliation%></td>
       		<td><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()) %></em></td>
       		<td><a href="users.jsp?username=<%=user.getUsername()%>&isEdit=true#editUser"><img width="20px" height="20px" src="../images/Crystal_Clear_action_edit.png" /></a></td>   	
@@ -128,7 +129,7 @@
       			<%
       			if(!user.getUsername().equals(request.getUserPrincipal().getName())){
       			%>
-      			<a href="../UserDelete?username=<%=user.getUsername()%>"><img  width="20px" height="20px" src="../images/cancel.gif" /></a>
+      			<form onsubmit="return confirm('Are you sure you want to delete this user?');" action="../UserDelete?username=<%=user.getUsername()%>" method="post"><input type="image"  width="20px" height="20px" src="../images/cancel.gif" /></form>
       			<%
       			}
       			else {
@@ -137,6 +138,15 @@
       			<%
       			}
       			%>
+      		</td>
+      		<td>
+      		<% 
+      		if(user.getLastLoginAsDateString()!=null){
+      		%>
+      			<em><%=user.getLastLoginAsDateString().substring(0,user.getLastLoginAsDateString().indexOf("T")) %></em>
+      		<%
+      		}
+      		%>
       		</td>
       	</tr>
       	<%
@@ -292,7 +302,7 @@
                      <tr><td colspan="4">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
                           
                     <tr><td colspan="4">Project URL: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
-		     <tr><td colspan="4" valign="top">User Statement: <textarea name="userStatement" size="100"><%=userStatement%></textarea></td></tr>                  
+		     <tr><td colspan="4" valign="top">User Statement (255 char. max): <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
                     
                     <tr><td colspan="4"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
             </table>

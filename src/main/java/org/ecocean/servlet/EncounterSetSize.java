@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 
 public class EncounterSetSize extends HttpServlet {
@@ -114,8 +115,15 @@ public class EncounterSetSize extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Success:</strong> Encounter size has been updated from " + oldSize + " " + oldUnits + " (" + oldGuess + ")" + " to "+newValue+".");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-            out.println("<p><a href=\"allIndividuals.jsp\">View all sharks</a></font></p>");
+            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+            int allStatesSize=allStates.size();
+            if(allStatesSize>0){
+              for(int i=0;i<allStatesSize;i++){
+                String stateName=allStates.get(i);
+                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+              }
+            }
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all sharks</a></font></p>");
             out.println(ServletUtilities.getFooter());
             String message = "Encounter #" + request.getParameter("number") + " size has been updated from " + oldSize + " " + oldUnits + "(" + oldGuess + ")" + " to " + request.getParameter("lengthField") + " " + request.getParameter("lengthUnits") + "(" + request.getParameter("guessList") + ").";
             ServletUtilities.informInterestedParties(request, request.getParameter("number"),
@@ -124,17 +132,29 @@ public class EncounterSetSize extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter size was NOT updated because I did not understand the value that you entered. The value must be zero or greater. A value of zero indicates an unknown length.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-            out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
-            //out.println("<p><a href=\"encounters/allEncounters.jsp?rejects=true\">View all rejected encounters</a></font></p>");
+            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+            int allStatesSize=allStates.size();
+            if(allStatesSize>0){
+              for(int i=0;i<allStatesSize;i++){
+                String stateName=allStates.get(i);
+                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+              }
+            }
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
             out.println(ServletUtilities.getFooter());
           } else {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter size was NOT updated because another user is currently modifying the record for this encounter.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-            out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
-            //out.println("<p><a href=\"encounters/allEncounters.jsp?rejects=true\">View all rejected encounters</a></font></p>");
+            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+            int allStatesSize=allStates.size();
+            if(allStatesSize>0){
+              for(int i=0;i<allStatesSize;i++){
+                String stateName=allStates.get(i);
+                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+              }
+            }
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
             out.println(ServletUtilities.getFooter());
 
 
@@ -143,8 +163,15 @@ public class EncounterSetSize extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-          out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-          out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+          int allStatesSize=allStates.size();
+          if(allStatesSize>0){
+            for(int i=0;i<allStatesSize;i++){
+              String stateName=allStates.get(i);
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            }
+          }
+          out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
           out.println(ServletUtilities.getFooter());
 
         }

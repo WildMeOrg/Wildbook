@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.ecocean.CommonConfiguration;
+import org.ecocean.ShepherdProperties;
 
 public class MitochondrialDNAAnalysis extends GeneticAnalysis{
 
@@ -36,8 +37,9 @@ public class MitochondrialDNAAnalysis extends GeneticAnalysis{
     //set up the file input stream
     if (haploColorProps.size() == 0) {
       try {
-        haploColorProps.load(CommonConfiguration.class.getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-      } catch (IOException ioe) {
+        //haploColorProps.load(CommonConfiguration.class.getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+        haploColorProps=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+      } catch (Exception ioe) {
         ioe.printStackTrace();
       }
     }
