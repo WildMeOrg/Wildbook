@@ -1269,7 +1269,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 	//end photo filename filtering
 
-
+  	query.closeAll();
     return (new EncounterQueryResult(rEncounters,filter,prettyPrint.toString()));
 
   }
