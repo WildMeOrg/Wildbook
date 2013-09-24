@@ -1178,6 +1178,7 @@ public class IndividualQueryProcessor {
 
     }
     
+    query.closeAll();
 		return (new MarkedIndividualQueryResult(rIndividuals,filter,prettyPrint.toString()));
 
   }

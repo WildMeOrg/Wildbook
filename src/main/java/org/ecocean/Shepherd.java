@@ -959,10 +959,10 @@ public class Shepherd {
   }
   */
 
-  public Iterator getAvailableScanWorkItems(int pageSize, long timeout) {
+  public Iterator getAvailableScanWorkItems(Query query,int pageSize, long timeout) {
     Collection c;
-    Extent encClass = getPM().getExtent(ScanWorkItem.class, true);
-    Query query = getPM().newQuery(encClass);
+    //Extent encClass = getPM().getExtent(ScanWorkItem.class, true);
+    //Query query = getPM().newQuery(encClass);
     long timeDiff = System.currentTimeMillis() - timeout;
     query.setFilter("!this.done && this.startTime < " + timeDiff);
     query.setRange(0, pageSize);
@@ -970,6 +970,7 @@ public class Shepherd {
       c = (Collection) (query.execute());
       ArrayList list = new ArrayList(c);
       Iterator it = list.iterator();
+      //query.closeAll();
       return it;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
@@ -978,10 +979,10 @@ public class Shepherd {
     }
   }
 
-  public Iterator getAvailableScanWorkItems(int pageSize, String taskID, long timeout) {
+  public Iterator getAvailableScanWorkItems(Query query,int pageSize, String taskID, long timeout) {
     Collection c;
-    Extent encClass = getPM().getExtent(ScanWorkItem.class, true);
-    Query query = getPM().newQuery(encClass);
+    //Extent encClass = getPM().getExtent(ScanWorkItem.class, true);
+    //Query query = getPM().newQuery(encClass);
     long timeDiff = System.currentTimeMillis() - timeout;
     String filter = "!this.done && this.taskID == \"" + taskID + "\" && this.startTime < " + timeDiff;
     query.setFilter(filter);
@@ -1061,10 +1062,10 @@ public class Shepherd {
     }
   }
 
-  public ArrayList getAdopterEmailsForMarkedIndividual(String shark) {
+  public ArrayList getAdopterEmailsForMarkedIndividual(Query query,String shark) {
     Collection c;
-    Extent encClass = getPM().getExtent(Adoption.class, true);
-    Query query = getPM().newQuery(encClass);
+    //Extent encClass = getPM().getExtent(Adoption.class, true);
+    //Query query = getPM().newQuery(encClass);
     query.setResult("adopterEmail");
     String filter = "this.individual == '" + shark + "'";
     query.setFilter(filter);
@@ -1228,13 +1229,13 @@ public class Shepherd {
   }
 
 
-  public Iterator getAllOccurrencesForMarkedIndividual(String indie) {
+  public Iterator getAllOccurrencesForMarkedIndividual(Query query,String indie) {
     //Query acceptedEncounters = pm.newQuery(encClass, filter2use);
-    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
-    Query query=getPM().newQuery(filter);
+
     Collection c = (Collection) (query.execute());
     //System.out.println("getAllOccurrencesForMarkedIndividual size: "+c.size());
     Iterator it = c.iterator();
+    query.closeAll();
     return it;
   }
   
@@ -1243,8 +1244,11 @@ public class Shepherd {
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     Iterator it = c.iterator();
+    
     while(it.hasNext()){
-      return ((Occurrence)it.next());
+      Occurrence occur=(Occurrence)it.next();
+      query.closeAll();
+      return occur;
     }
     return null;
   }
@@ -1254,7 +1258,9 @@ public class Shepherd {
     //TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
    //TreeMap<String, Integer> map=new TreeMap<String, Integer>(cmp);
    TreeMap<String, Integer> map=new TreeMap<String, Integer>();
-      Iterator it=getAllOccurrencesForMarkedIndividual(indie);
+   String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
+   Query query=getPM().newQuery(filter);
+      Iterator it=getAllOccurrencesForMarkedIndividual(query,indie);
       while(it.hasNext()){
          Occurrence oc=(Occurrence)it.next();
          ArrayList<MarkedIndividual> alreadyCounted=new ArrayList<MarkedIndividual>();
@@ -1294,6 +1300,7 @@ public class Shepherd {
       IndividualOccurrenceNumComparator cmp=new IndividualOccurrenceNumComparator();
       Collections.sort( as , cmp);  
       Collections.reverse(as);
+      query.closeAll();
       return as;
   }
 
@@ -1580,7 +1587,9 @@ public class Shepherd {
     query.setFilter(filter);
     query.setResult("count(this)");
     try {
-      return ((Long) query.execute()).intValue();
+      Long myValue=(Long) query.execute();
+      query.closeAll();
+      return myValue.intValue();
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute shepherd.getNumUnfinishedScanTasks(). Returning an zero value.");
       npe.printStackTrace();
