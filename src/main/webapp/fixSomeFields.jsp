@@ -53,8 +53,9 @@ int numLogEncounters=0;
 while(allEncs.hasNext()){
 	
 	//change state
-	Encounter sharky=(Encounter)allEncs.next();
+	//Encounter sharky=(Encounter)allEncs.next();
 	
+	/*
 	if((sharky.getAssignedUsername()==null)||(sharky.getAssignedUsername().trim().replaceAll("NONE", "").equals(""))){
 		
 		String autoText=sharky.getRComments();
@@ -71,6 +72,7 @@ while(allEncs.hasNext()){
 		}
 		
 	}
+	*/
 	
 	//if(sharky.getSex().equals("unsure")){sharky.setSex("unknown");}
 	
@@ -169,8 +171,8 @@ catch(Exception ex) {
 	System.out.println("!!!An error occurred on page allEncounters.jsp. The error was:");
 	ex.printStackTrace();
 	//System.out.println("fixSomeFields.jsp page is attempting to rollback a transaction because of an exception...");
-	//encQuery.closeAll();
-	//encQuery=null;
+	encQuery.closeAll();
+	encQuery=null;
 	sharkQuery.closeAll();
 	sharkQuery=null;
 	myShepherd.rollbackDBTransaction();
