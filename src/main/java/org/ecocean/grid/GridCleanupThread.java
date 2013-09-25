@@ -101,7 +101,7 @@ public class GridCleanupThread implements Runnable {
         myShepherd.beginDBTransaction();
       }
     }
-
+	query.closeAll();
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
   }

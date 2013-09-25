@@ -83,7 +83,7 @@ public class UpdateEmailAddress extends HttpServlet {
 
 
       myShepherd.beginDBTransaction();
-      Iterator it = myShepherd.getAllEncountersAndUnapproved();
+      Iterator it = myShepherd.getAllEncounters();
       while (it.hasNext()) {
 
         Encounter tempEnc = (Encounter) it.next();
