@@ -169,7 +169,11 @@ public class IVECRequestThread implements Runnable, ISharkGridThread {
 
 			/* Close this session */
 
+			outStreamWriter.close();
+			stdout.close();
 			sess.close();
+
+
 
 			/* Close the connection */
 
