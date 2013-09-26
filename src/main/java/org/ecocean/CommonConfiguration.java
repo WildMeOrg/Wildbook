@@ -23,7 +23,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
@@ -294,6 +296,11 @@ public class CommonConfiguration {
     return props.getProperty(name);
   }
   
+  public static Enumeration<?> getPropertyNames() {
+    initialize();
+    return props.propertyNames();
+  }
+
   public static ArrayList<String> getSequentialPropertyValues(String propertyPrefix){
     initialize();
     ArrayList<String> returnThese=new ArrayList<String>();

@@ -75,7 +75,10 @@ public class EncounterSetBehavior extends HttpServlet {
       try {
 
         oldComment = changeMe.getBehavior();
-        changeMe.setBehavior(comment);
+        if(request.getParameter("behaviorComment").trim().equals("")){changeMe.setBehavior(null);}
+        else{
+          changeMe.setBehavior(request.getParameter("behaviorComment"));
+        }
         changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed behavior observation from:<br><i>" + oldComment + "</i><br>to:<br><i>" + comment + "</i></p>");
       }
       catch (Exception le) {

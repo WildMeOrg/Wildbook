@@ -19,10 +19,7 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
-
+import org.ecocean.*;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -100,6 +97,15 @@ public class EncounterResetDate extends HttpServlet {
         newDate = fixMe.getDate();
         fixMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed encounter date from " + oldDate + " to " + newDate + ".</p>");
 
+        if((fixMe.getIndividualID()!=null)&&(!fixMe.getIndividualID().equals("Unassigned"))){
+          String indieName=fixMe.getIndividualID();
+          if(myShepherd.isMarkedIndividual(indieName)){
+            MarkedIndividual indie=myShepherd.getMarkedIndividual(indieName);
+            indie.resetMaxNumYearsBetweenSightings();
+          }
+        }
+        
+        
       } catch (Exception le) {
         locked = true;
         le.printStackTrace();
