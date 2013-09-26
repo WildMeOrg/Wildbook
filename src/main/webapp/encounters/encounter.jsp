@@ -3766,7 +3766,7 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				</span></td><td style="border-style: none;"><a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 				
 				<%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -3900,7 +3900,7 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
 <!-- start ms marker popup -->  
-<div id="dialogMSMarkersSet<%=thisSample.getSampleID()%>.replaceAll("[-+.^:,]","")" title="<%=encprops.getProperty("setMsMarkers")%>" style="display:none">  
+<div id="dialogMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>" title="<%=encprops.getProperty("setMsMarkers")%>" style="display:none">  
 
 <form id="setMsMarkers" action="../TissueSampleSetMicrosatelliteMarkers" method="post">
 
@@ -3985,7 +3985,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
  				%>
  			
 		  <%
- 		  }  //end for loci loop
+ 		  }  //end for loci looping
 		  %> 
 		  
 		  <tr><td colspan="2">
@@ -4001,7 +4001,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
 </div>
    
 <script>
-var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("#dialogMSMarkersSet<%=thisSample.getSampleID()%>.replaceAll("[-+.^:,]","")").dialog({
+var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("#dialogMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").dialog({
   autoOpen: false,
   draggable: false,
   resizable: false,
@@ -4009,12 +4009,13 @@ var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("
 });
 
 $("a#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
-  dlgMSMarkersSet<%=thisSample.getSampleID()%>.replaceAll("[-+.^:,]","").dialog("open");
+  dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>.dialog("open");
 });
 </script>   
 <!-- end ms markers popup --> 
 <%
 }
+
 %>
 				
 				</td></tr>
