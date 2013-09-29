@@ -495,12 +495,15 @@ margin-bottom: 8px !important;
 					<table>
 						<tr>
 							<td width="560px" style="vertical-align:top">
-								
-								
+
+
+
+<!-- START IDENTITY ATTRIBUTE -->								
+
+  <p><img align="absmiddle" src="../images/tag_big.gif" width="40px" height="40px" /> <strong>Identity</strong></p>
       
-      <p><img align="absmiddle" src="../images/tag_big.gif" width="40px" height="40px" /> <strong>Identity</strong></p>
       
-								<!-- START INDIVIDUALID ATTRIBUTE -->
+								
     							<%
     							if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
   								%>
@@ -695,7 +698,8 @@ margin-bottom: 8px !important;
   						<%
   						}
 						%>    	  
-						<!-- END INDIVIDUALID ATTRIBUTE --> 
+
+<!-- END INDIVIDUALID ATTRIBUTE --> 
 						
 						<!-- START ALTERNATEID ATTRIBUTE -->  
     <p class="para">
@@ -893,6 +897,11 @@ $("a#occurrence").click(function() {
 <!-- END OCCURRENCE ATTRIBUTE -->    
   
 <br />
+
+<!-- start DATE section -->
+<table>
+<tr>
+<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
 
 <p><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("date") %>
 </strong><br/><br/>
@@ -1102,6 +1111,13 @@ $("a#date").click(function() {
 });
 </script>   
 <!-- end date dialog -->  
+
+</td>
+</tr>
+</table>
+
+
+
   
       <%
 
@@ -1632,6 +1648,11 @@ $("a#country").click(function() {
 %>
 
 <br />
+
+<table>
+<tr>
+<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
+
 <p><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <strong><%=encprops.getProperty("contactInformation") %></strong></p>
 
 <table>
@@ -1970,7 +1991,9 @@ $("a#country").click(function() {
  		</table>
  		
 
-  
+  </td>
+  </tr>
+  </table>
   
   <br />
   <p><img align="absmiddle" src="../images/Note-Book-icon.png" width="40px" height="40px" /> <strong>Observation Attributes</strong></p>
@@ -2053,7 +2076,7 @@ $("a#taxon").click(function() {
 
 
 <!-- START ALIVE-DEAD ATTRIBUTE -->      
-<p class="para"><img align="absmiddle" src="../images/life_icon.gif">
+<p class="para">
       <%=encprops.getProperty("status")%>: 
       <%
       if(enc.getLivingStatus()!=null){
@@ -2434,6 +2457,10 @@ $("a#comments").click(function() {
 <!-- END ADDITIONAL COMMENTS -->
 
 <br />
+<table>
+<tr>
+<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
+
 <p><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <strong>Metadata</strong></p>
 								
 								<!-- START WORKFLOW ATTRIBUTE -->
@@ -2829,6 +2856,9 @@ $("a#autocomments").click(function() {
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
 %>
+</td>
+</tr>
+</table>
 
 <c:if test="${showMeasurements}">
 <br />
@@ -2939,8 +2969,14 @@ $("a#measure").click(function() {
 
 </c:if>
 
+<table>
+<tr>
+<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
+
+
+
 <c:if test="${showMetalTags}">
-<br />
+
 <p><img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("tracking") %></strong></p>
 <%
   pageContext.setAttribute("metalTagTitle", encprops.getProperty("metalTags"));
@@ -3101,6 +3137,7 @@ $("a#acoustic").click(function() {
 
 </c:if>
 
+
 <c:if test="${showSatelliteTag}">
 <%
   pageContext.setAttribute("satelliteTagTitle", encprops.getProperty("satelliteTag"));
@@ -3190,6 +3227,10 @@ $("a#sat").click(function() {
 <%
 }
 %>
+</td>
+</tr>
+</table>
+
 
 </c:if>
 <br />

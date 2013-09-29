@@ -38,8 +38,8 @@ import java.io.PrintWriter;
 
 
 /**
- * 
- * This servlet allows the user to upload an extracted, processed patterning file that corresponds to 
+ *
+ * This servlet allows the user to upload an extracted, processed patterning file that corresponds to
  * a previously uploaded set of spots. This file is then used for visualization of the extracted pattern
  * and visualizations of potentially matched spots.
  * @author jholmber
@@ -60,7 +60,7 @@ public class EncounterAddSpotFile extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     Shepherd myShepherd = new Shepherd();
-    
+
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -68,7 +68,7 @@ public class EncounterAddSpotFile extends HttpServlet {
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdir();}
-    
+
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -183,7 +183,7 @@ public class EncounterAddSpotFile extends HttpServlet {
           }
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Step 2 Confirmed:</strong> I have successfully uploaded your " + side + "-side spot data image file.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "#spotpatternmatching\">Return to encounter " + encounterNumber + "</a></p>\n");
           out.println(ServletUtilities.getFooter());
         } else {
           out.println(ServletUtilities.getHeader(request));
@@ -212,5 +212,5 @@ public class EncounterAddSpotFile extends HttpServlet {
 
 
 }
-	
-	
+
+
