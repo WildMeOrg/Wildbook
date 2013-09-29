@@ -334,14 +334,47 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
 </tr>
 <%
 }
+//test comment
 %>
 
 <tr class="form_row">
-  <td class="form_label" rowspan="4"><strong><font
+  <td class="form_label" rowspan="5"><strong><font
     color="#CC0000"><%=props.getProperty("submit_location")%>:</font></strong></td>
   <td colspan="2"><input name="location" type="text" id="location" size="40"/></td>
 </tr>
+<%
+//add locationID to fields selectable
+%>
 
+<tr class="form_row">
+			<td class="form_label1"><strong><%=props.getProperty("locationID")%>:</strong></td>
+		<td>
+	  		<select name="locationID" id="locationID">
+	  			<option value="" selected="selected"></option>
+	  			<%
+	  			       boolean hasMoreLocationsIDs=true;
+	  			       int locNum=0;
+	  			       
+	  			       while(hasMoreLocationsIDs){
+	  			       	  String currentLocationID = "locationID"+locNum;
+	  			       	  if(CommonConfiguration.getProperty(currentLocationID)!=null){
+	  			       	  	%>
+	  			       	  	 
+	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLocationID)%>"><%=CommonConfiguration.getProperty(currentLocationID)%></option>
+	  			       	  	<%
+	  			       		locNum++;
+	  			          }
+	  			          else{
+	  			             hasMoreLocationsIDs=false;
+	  			          }
+	  			          
+				       }
+				       
+	 %>
+	  </select>
+	
+</td>
+	</tr>
 <%
 
 

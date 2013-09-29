@@ -234,10 +234,12 @@ public class Util {
           }
         }
 
-
+        query.closeAll();
       }
+      
       return coords;
-    } catch (Exception jdo) {
+    } 
+    catch (Exception jdo) {
       jdo.printStackTrace();
       System.out.println("I hit an error trying to populate the cached GPS coordinates in Util.java.");
       return new ArrayList<Point2D>();

@@ -133,6 +133,8 @@
 		   /TissueSampleSetMeasurement = authc, roles[admin]
 		  /TissueSampleRemoveHaplotype = authc, roles[admin]
 		   /TissueSampleRemoveBiologicalMeasurement = authc, roles[admin]
+		   /TissueSampleSetMicrosatelliteMarkers  = authc, roles[admin]
+		   /TissueSampleRemoveMicrosatelliteMarkers  = authc, roles[admin]
 		   /ImportSRGD = authc, roles[admin]
 		        /IndividualCreate = authc, roles[admin]
 		        /OccurrenceCreate = authc, roles[admin]

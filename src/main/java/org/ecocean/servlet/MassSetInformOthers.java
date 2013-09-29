@@ -114,6 +114,7 @@ public class MassSetInformOthers extends HttpServlet {
         myShepherd.closeDBTransaction();
       }
       //success!!!!!!!!
+      query.closeAll();
       if (!locked) {
 
         out.println(ServletUtilities.getHeader(request));
@@ -136,5 +137,5 @@ public class MassSetInformOthers extends HttpServlet {
   }
 
 }
-	
-	
+
+

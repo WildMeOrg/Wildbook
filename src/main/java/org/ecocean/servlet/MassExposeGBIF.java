@@ -83,6 +83,7 @@ public class MassExposeGBIF extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }
+    query.closeAll();
     if (!madeChanges) {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
@@ -107,5 +108,5 @@ public class MassExposeGBIF extends HttpServlet {
   }
 
 }
-	
-	
+
+

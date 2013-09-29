@@ -8,6 +8,7 @@
 	
 		
 				<class name="Locus" identity-type="datastore" table="LOCUS">
+				<datastore-identity strategy="increment"/>
 					<field name="name">
 						<column length="100"/>
 					</field>
