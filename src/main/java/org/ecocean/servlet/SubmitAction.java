@@ -83,6 +83,7 @@ public class SubmitAction extends Action {
 		  String livingStatus = "";
 		  String genusSpecies="";
 		  String country="";
+		  String locationID="";
   		  Shepherd myShepherd;
 
 
@@ -147,7 +148,7 @@ public class SubmitAction extends Action {
       genusSpecies = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getGenusSpecies());
       informothers = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getInformothers().replaceAll(";", ",").replaceAll(" ", ""));
       country = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getCountry());
-
+	  locationID = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getLocationID());
 
       //check for spamBots
       boolean spamBot = false;
@@ -174,30 +175,37 @@ public class SubmitAction extends Action {
       //else if((theForm.getSubmitterID()!=null)&&(theForm.getSubmitterID().equals("N%2FA"))) {spamBot=true;}
 
 
-      //see if the location code can be determined and set based on the location String reported
+
       locCode = "";
-      String locTemp = location.toLowerCase().trim();
-      Properties props = new Properties();
+      if((locationID!=null)&&(!locationID.trim().equals(""))){
+		locCode=locationID;
+	  }
+	  //see if the location code can be determined and set based on the location String reported
+      else{
+      	String locTemp = location.toLowerCase().trim();
+      	Properties props = new Properties();
 
 
-      int numAllowedPhotos = 4;
+      	int numAllowedPhotos = 4;
 
 
-      try {
-        props.load(getClass().getResourceAsStream("/bundles/submitActionClass.properties"));
+      	try {
+        	props.load(getClass().getResourceAsStream("/bundles/submitActionClass.properties"));
 
-        Enumeration m_enum = props.propertyNames();
-        while (m_enum.hasMoreElements()) {
-          String aLocationSnippet = ((String) m_enum.nextElement()).trim();
-          if (locTemp.indexOf(aLocationSnippet) != -1) {
-            locCode = props.getProperty(aLocationSnippet);
-          }
-        }
-      } catch (Exception props_e) {
-        props_e.printStackTrace();
-      }
-      //end location code setter
+        	Enumeration m_enum = props.propertyNames();
+        	while (m_enum.hasMoreElements()) {
+          	String aLocationSnippet = ((String) m_enum.nextElement()).trim();
+          	if (locTemp.indexOf(aLocationSnippet) != -1) {
+            	locCode = props.getProperty(aLocationSnippet);
+          	}
+        	}
+      	}
+      	catch (Exception props_e) {
+        	props_e.printStackTrace();
+      	}
 
+  	} //end else
+	//end location code setter
 
       day = theForm.getDay();
       month = theForm.getMonth();
