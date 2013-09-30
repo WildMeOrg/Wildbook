@@ -18,10 +18,11 @@ import org.joda.time.DateTime;
 import org.joda.time.format.*;
 
 //import jackcess
-//import com.healthmarketscience.*;
 import com.healthmarketscience.jackcess.*;
-//import com.healthmarketscience.jackcess.query.*;
-//import com.healthmarketscience.jackcess.scsu.*;
+
+//import jexcel
+import jxl.*;
+import jxl.read.biff.BiffException;
 
 import java.util.TreeMap;
 
@@ -39,16 +40,14 @@ public class CaribwhaleMigratorApp {
 
 	public static void main(String[] args) {
 
-		//a necessary primary key iterator for genetic analyses
-		Integer myKey=new Integer(0);
 
 		//initial environment config
+		//these eventually need to be loaded from a .properties file in the classpath
 		String pathToAccessFile="C:/caribwhale/atlantic/AtlanticCatalogue.mdb";
-
-		//String pathToUpdateFile="C:\\splash\\CRC SPLASHID additional sightings.mdb";
-
 		String encountersDirPath="C:/apache-tomcat-7.0.32/webapps/shepherd_data_dir";
 		String splashImagesDirPath="C:/caribwhale/TIFs";
+		String pathToExcel = "C:/caribwhale/more_files_from_Shane/All Individuals SUPINFO 20130624.xlsx";
+		String pathToExcel2 = "C:/caribwhale/more_files_from_Shane/allIDN19842012 20130624.xslx";
 		
 		
 		/**
@@ -61,22 +60,26 @@ public class CaribwhaleMigratorApp {
 		//let's get our Shepherd Project structures built
 		//Shepherd myShepherd = new Shepherd();
 
-		//let's load our Access database
-		File accessDB=new File(pathToAccessFile);
-		//File updateDB=new File(pathToUpdateFile);
+		
 
 		try{
 
 			//lets' get to work!!!!!!!
-			Database db=Database.open(accessDB);
-			System.out.println("I have loaded the database!");
+			
 			//Database uDB=Database.open(updateDB);
 			File copyImagesFromDir=new File(splashImagesDirPath);
 			File encountersRootDir=new File(encountersDirPath);
 
-			//update changes
-			Table atlanticTable=db.getTable("AtlanticSpermCatalogue");
+			
 	
+			
+			
+			//STEP 1: Get the individual IDs and the best filename from the Access database
+			//let's load our Access database
+	    File accessDB=new File(pathToAccessFile);
+			Database db=Database.open(accessDB);
+      System.out.println("I have loaded the database!");
+      Table atlanticTable=db.getTable("AtlanticSpermCatalogue");
 			Iterator<Map<String,Object>> atlanticTableIterator = atlanticTable.iterator();
 			TreeMap<String,String> idMap = new TreeMap<String,String>();
 			while(atlanticTableIterator.hasNext()){
@@ -96,8 +99,39 @@ public class CaribwhaleMigratorApp {
 				}
 			}
 
+			//STEP 2 - let's create or individuals
+			ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
+			
+			
+			//STEP 3 - obtain data about each MarkedIndividual from Excel2
+			File excel2File=new File(pathToExcel2);
+			 Workbook w;
+		    try {
+		      w = Workbook.getWorkbook(inputWorkbook);
+		      // Get the first sheet
+		      Sheet sheet = w.getSheet(0);
+		      // Loop over first 10 column and lines
 
+		      for (int j = 0; j < sheet.getColumns(); j++) {
+		        for (int i = 0; i < sheet.getRows(); i++) {
+		          Cell cell = sheet.getCell(j, i);
+		          CellType type = cell.getType();
+		          if (type == CellType.LABEL) {
+		            System.out.println("I got a label "
+		                + cell.getContents());
+		          }
 
+		          if (type == CellType.NUMBER) {
+		            System.out.println("I got a number "
+		                + cell.getContents());
+		          }
+
+		        }
+		      }
+		    } catch (BiffException e) {
+		      e.printStackTrace();
+		    }
+			
 
 
 		}
