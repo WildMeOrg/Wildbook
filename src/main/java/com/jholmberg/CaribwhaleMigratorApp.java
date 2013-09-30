@@ -46,8 +46,8 @@ public class CaribwhaleMigratorApp {
 		String pathToAccessFile="C:/caribwhale/atlantic/AtlanticCatalogue.mdb";
 		String encountersDirPath="C:/apache-tomcat-7.0.32/webapps/shepherd_data_dir";
 		String splashImagesDirPath="C:/caribwhale/TIFs";
-		String pathToExcel = "C:/caribwhale/more_files_from_Shane/All Individuals SUPINFO 20130624.xlsx";
-		String pathToExcel2 = "C:/caribwhale/more_files_from_Shane/allIDN19842012 20130624.xslx";
+		String pathToExcel = "C:/caribwhale/atlantic/All_Individuals_SUPINFO_20130624.xls";
+		String pathToExcel2 = "C:\\caribwhale\\atlantic\\allIDN19842012_20130624.xls";
 		
 		
 		/**
@@ -101,33 +101,99 @@ public class CaribwhaleMigratorApp {
 
 			//STEP 2 - let's create or individuals
 			ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
+			Set<String> indieKeys=idMap.keySet();
+			Iterator<String> itKeys=indieKeys.iterator();
+			while(itKeys.hasNext()){
+			  String individualID=itKeys.next();
+			  MarkedIndividual thisIndie=new MarkedIndividual();
+			  thisIndie.setIndividualID(individualID);
+			  indies.add(thisIndie);
+			}
+			int numIndies=indies.size();
 			
 			
 			//STEP 3 - obtain data about each MarkedIndividual from Excel2
-			File excel2File=new File(pathToExcel2);
-			 Workbook w;
+			//File excel2File=new File(pathToExcel2);
+			Workbook w;
 		    try {
-		      w = Workbook.getWorkbook(inputWorkbook);
+		      File path=new File(pathToExcel2);
+		      w = Workbook.getWorkbook(path);
 		      // Get the first sheet
-		      Sheet sheet = w.getSheet(0);
-		      // Loop over first 10 column and lines
+		      Sheet sheet = w.getSheet("Pix");
+		      
+		      
+		      
+		      for(int y=0;y<numIndies;y++){
+		        MarkedIndividual indie=indies.get(y);
+		        //for (int j = 0; j < sheet.getColumns(); j++) {
+		          for (int i = 0; i < sheet.getRows(); i++) {
+		            Cell IDcell = sheet.getCell(21, i);
+		            
+		            if((IDcell.getContents()!=null)&&(IDcell.getContents().trim().equals(indie.getIndividualID()))){
+		              
+		              //OK, we have a matching Encounter row
+		              //System.out.println("WE HAVE A MATCH!!!!!!!!!");
+		              Encounter enc=new Encounter();
+		              
+		              Cell yearCell = sheet.getCell(24, i);
+		              if(yearCell.getContents()!=null){
+		                int year=(new Integer(yearCell.getContents())).intValue();
+		                enc.setYear(year);
+		              }
+		              
+		              Cell monthCell = sheet.getCell(26, i);
+		              if(monthCell.getContents()!=null){
+                    int month=(new Integer(monthCell.getContents())).intValue();
+                    enc.setMonth(month);
+                  }
+		              
+		              Cell dayCell = sheet.getCell(27, i);
+		              if(dayCell.getContents()!=null){
+                    int day=(new Integer(dayCell.getContents())).intValue();
+                    enc.setDay(day);
+                  }
+                  
+                  
+		              Cell hourCell = sheet.getCell(29, i);
+		              if(hourCell.getContents()!=null){
+                    int hour=(new Integer(hourCell.getContents())).intValue();
+                    enc.setHour(hour);
+                  }
+		              
+		              Cell minutesCell = sheet.getCell(30, i);
+		              if(minutesCell.getContents()!=null){
+                    String mins=minutesCell.getContents();
+                    enc.setMinutes(mins);
+                  }
+		              
+		              
 
-		      for (int j = 0; j < sheet.getColumns(); j++) {
-		        for (int i = 0; i < sheet.getRows(); i++) {
-		          Cell cell = sheet.getCell(j, i);
-		          CellType type = cell.getType();
-		          if (type == CellType.LABEL) {
-		            System.out.println("I got a label "
-		                + cell.getContents());
+                  
+                  String catNumber=Integer.toString(i);
+		              enc.setCatalogNumber(catNumber);
+		              
+                  //let's check for the photo assignment
+                  String indiesFilename=idMap.get(indie.getIndividualID());
+                  String sYear=Integer.toString(enc.getYear());
+                  String sMonth=Integer.toString(enc.getMonth());
+                  if(sMonth.length()<2){sMonth="0"+sMonth;}
+                  String sDay=Integer.toString(enc.getDay());
+                  if(sDay.length()<2){sDay="0"+sDay;}
+                  if(indiesFilename.indexOf((sYear+sMonth+sDay))!=-1){
+         
+                    SinglePhotoVideo sing = new SinglePhotoVideo(catNumber, indiesFilename, (splashImagesDirPath+"/"+indiesFilename));
+                    enc.addSinglePhotoVideo(sing);
+                  }
+                  
+		              indie.addEncounter(enc);
+		            }
+		            
 		          }
-
-		          if (type == CellType.NUMBER) {
-		            System.out.println("I got a number "
-		                + cell.getContents());
-		          }
-
-		        }
-		      }
+		        System.out.println("Found "+indie.getEncounters().size()+" encounters for the indie "+indie.getIndividualID());
+		      } //end for
+		      
+		      
+		      
 		    } catch (BiffException e) {
 		      e.printStackTrace();
 		    }
