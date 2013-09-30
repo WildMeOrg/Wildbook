@@ -166,6 +166,11 @@ public class CaribwhaleMigratorApp {
                     enc.setMinutes(mins);
                   }
 		              
+		              Cell countryCell = sheet.getCell(35, i);
+                  if(countryCell.getContents()!=null){
+                    String country=countryCell.getContents();
+                    enc.setCountry(country);
+                  }
 		              
 
                   
@@ -188,8 +193,38 @@ public class CaribwhaleMigratorApp {
 		              indie.addEncounter(enc);
 		            }
 		            
+		            
+		         
+		            
 		          }
 		        System.out.println("Found "+indie.getEncounters().size()+" encounters for the indie "+indie.getIndividualID());
+		        //STEP 4 - obtain data about each MarkedIndividual from Excel
+            
+            Workbook w2;
+            File path1=new File(pathToExcel);
+            w2 = Workbook.getWorkbook(path1);
+            // Get the first sheet
+            Sheet sheet1 = w2.getSheet(0);
+            for (int f = 0; f < sheet1.getRows(); f++) {
+              Cell IDcell1 = sheet1.getCell(0, f);
+              String id="";
+              if(sheet1.getCell(0, f).getContents()!=null){
+                id=sheet1.getCell(0, f).getContents().trim();
+                
+                if(id.equals(indie.getIndividualID())){
+                  
+                  //alright, now we have the row we need in the Excel file to oopulate attributes of the MarkedIndividual
+                  
+                  
+                  
+                  
+                }
+                
+              }
+            }
+            
+            System.out.println("End step 4...");
+		      
 		      } //end for
 		      
 		      
