@@ -218,7 +218,44 @@ public class CaribwhaleMigratorApp {
                 
                 if(id.equals(indie.getIndividualID())){
                   
-                  //alright, now we have the row we need in the Excel file to oopulate attributes of the MarkedIndividual
+                  //alright, now we have the row we need in the Excel file to populate attributes of the MarkedIndividual
+                  
+                  
+                  //let's get sex
+                  if(sheet1.getCell(9, f)!=null){
+                    Cell sexCell=sheet1.getCell(9, f);
+                    if(sexCell.getContents()!=null){
+                      String thisSex=sexCell.getContents();
+                      if(!thisSex.trim().equals("")){
+                        indie.setSex(thisSex);
+                        System.out.println("     Set sex for indie "+indie.getIndividualID()+" to "+indie.getSex());
+                      }
+                    }
+                  }
+                  
+                  //let's get nickname
+                  if(sheet1.getCell(1, f)!=null){
+                    Cell nicknameCell=sheet1.getCell(1, f);
+                    if(nicknameCell.getContents()!=null){
+                      String thisnickname=nicknameCell.getContents();
+                      if(!thisnickname.trim().equals("")){
+                        indie.setNickName(thisnickname);
+                        System.out.println("     Set nickname for indie "+indie.getIndividualID()+" to "+indie.getNickName());
+                      }
+                    }
+                  }
+                  
+                  //let's get additional indie comments
+                  if(sheet1.getCell(61, f)!=null){
+                    Cell addCommentsCell=sheet1.getCell(61, f);
+                    if(addCommentsCell.getContents()!=null){
+                      String thisaddComments=addCommentsCell.getContents();
+                      if(!thisaddComments.trim().equals("")){
+                        indie.addComments(thisaddComments);
+                        System.out.println("     Set additional comments for indie "+indie.getIndividualID()+" to "+indie.getComments());
+                      }
+                    }
+                  }
                   
                   
                   
