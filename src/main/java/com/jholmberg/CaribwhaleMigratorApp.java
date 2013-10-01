@@ -59,7 +59,7 @@ public class CaribwhaleMigratorApp {
 
 		//let's get our Shepherd Project structures built
 		//Shepherd myShepherd = new Shepherd();
-
+		ArrayList<String> missingPhotos=new ArrayList<String>();
 		
 
 		try{
@@ -188,6 +188,11 @@ public class CaribwhaleMigratorApp {
          
                     SinglePhotoVideo sing = new SinglePhotoVideo(catNumber, indiesFilename, (splashImagesDirPath+"/"+indiesFilename));
                     enc.addSinglePhotoVideo(sing);
+                    
+                    //now check if the photo even exists
+                    File singFile = new File(splashImagesDirPath+"/"+indiesFilename);
+                    if(!singFile.exists()){missingPhotos.add(singFile.getName());}
+                    
                   }
                   
 		              indie.addEncounter(enc);
@@ -223,7 +228,7 @@ public class CaribwhaleMigratorApp {
               }
             }
             
-            System.out.println("End step 4...");
+            //System.out.println("End step 4...");
 		      
 		      } //end for
 		      
@@ -241,6 +246,13 @@ public class CaribwhaleMigratorApp {
 		}
 		//myShepherd.closeDBTransaction();
 
+		//now print out the missingImages
+		int numMissingPhotos=missingPhotos.size();
+		for(int k=0;k<numMissingPhotos;k++){
+		  System.out.println("Missing photo: "+missingPhotos.get(k));
+		}
+		
+		
 		//pause to let the user fire up the Tomcat web server
 		System.out.println("Please start Tomcat and then press ENTER to continue...");
 		char c='0';
