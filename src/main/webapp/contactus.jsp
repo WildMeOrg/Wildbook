@@ -53,11 +53,11 @@
 
 <html>
 <head>
-<title>ECOCEAN - Contact Us</title>
+<title>Wild Me - Contact Us</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description" content="The ECOCEAN Whale Shark Photo-identification Library is a visual database of whale shark (Rhincodon typus) encounters and of individually catalogued whale sharks. The library is maintained and used by marine biologists to collect and analyse whale shark encounter data to learn more about these amazing creatures." />
-<meta name="Keywords" content="whale shark,whale,shark,Rhincodon typus,requin balleine,Rhineodon,Rhiniodon,big fish,ECOCEAN,Brad Norman, fish, coral, sharks, elasmobranch, mark, recapture, photo-identification, identification, conservation, citizen science" />
-<meta name="Author" content="ECOCEAN - info@ecocean.org" />
+<meta name="Description" content="The Wildbook for Whale Sharks photo-identification library is a visual database of whale shark (Rhincodon typus) encounters and of individually catalogued whale sharks. The library is maintained and used by marine biologists to collect and analyze whale shark encounter data to learn more about these amazing creatures." />
+<meta name="Keywords" content="whale shark,whale,shark,Rhincodon typus,requin balleine,Rhineodon,Rhiniodon,big fish,Wild Me,Brad Norman, fish, coral, sharks, elasmobranch, mark, recapture, photo-identification, identification, conservation, citizen science" />
+<meta name="Author" content="Wild Me - info@whaleshark.org" />
 <link href="css/ecocean.css" rel="stylesheet" type="text/css" />
 <link rel="shortcut icon" href="images/favicon.ico" />
 
@@ -99,7 +99,7 @@
 		<p>We welcome your comments and questions, though we are currently unable to respond to every email.</p>
 		<p><strong>Media questions</strong></p>
 		<p>If you are a journalist, writer or documentary filmmaker, we want to hear from you.</p>
-		<p>ECOCEAN USA is always hoping for opportunities to better tell the story of whale sharks and the growing body of research and discoveries made possible by dedicated scientists, volunteers, and the general public.</p>
+		<p>Wild Me is always hoping for opportunities to better tell the story of whale sharks and the growing body of research and discoveries made possible by dedicated scientists, volunteers, and the general public.</p>
 		<p>Please contact us at <em>media at whaleshark dot org</em>.</p>
 		<p><strong>Web site questions</strong></p>
 		<p>If you have technical questions about this web site, please contact <em>webmaster at whaleshark dot org</em>. </p>

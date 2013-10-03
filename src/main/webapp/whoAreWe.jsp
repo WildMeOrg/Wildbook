@@ -114,7 +114,7 @@
 <p><img src="images/AndreaGiantManta2.jpg" width="450" height="300" border="1" /> </p>
 			<p>&nbsp;</p>
 			<p><strong>MARK MCBRIDE, Director</strong></p>
-			<p>Mark McBride is a software developer at Twitter Inc., building APIs that allow developers to access Twitter capabilities. He is also on the board of ECOCEAN USA. He is interested in all aspects of software development, as well as sustainability and conservation.</p>
+			<p>Mark McBride is a software developer at Twitter Inc., building APIs that allow developers to access Twitter capabilities. He is also on the board of Wild Me. He is interested in all aspects of software development, as well as sustainability and conservation.</p>
 <p><img src="images/mcbride.jpg" width="450" height="300" border="1" /> </p>
 			<p>&nbsp;</p>
 			<p><strong>BRAD NORMAN, Co-founder</strong></p>
@@ -135,7 +135,7 @@
 				
 			<p>&nbsp;</p>
 			<p><strong>ZAID ZAID, Director</strong><br />
-			  Zaid A. Zaid is a senior associate in the Litigation/Controversy Department, and a member of the Investigations and Criminal Litigation Practice Group. Zaid completed a summer clerkship in the Office of the Legal Advisor at the United States Department of State, where he drafted memos concerning the Iran-US Claims Tribunal and researched for NAFTA Chapter 11 investment claims against the US Government. Zaid was a political officer in the Foreign Service from 1999 to 2006, and he worked at US embassies in Syria, Tunis, Cairo, the US Mission to the United Nations, and with the Coalition Provisional Authority in Iraq as the liaison to the Iraqi Governing Council as well as at the US Embassy in Baghdad. He is a member of the New York State Bar Association, the American Bar Association. He is the chair of the Fletcher Alumni Club of Washington DC, a board member of ECOCEAN USA, a member of the American Constitution Society, a term member with the Council on Foreign Relations, and a fellow with the Truman National Security Project. <br />
+			  Zaid A. Zaid is a senior associate in the Litigation/Controversy Department, and a member of the Investigations and Criminal Litigation Practice Group. Zaid completed a summer clerkship in the Office of the Legal Advisor at the United States Department of State, where he drafted memos concerning the Iran-US Claims Tribunal and researched for NAFTA Chapter 11 investment claims against the US Government. Zaid was a political officer in the Foreign Service from 1999 to 2006, and he worked at US embassies in Syria, Tunis, Cairo, the US Mission to the United Nations, and with the Coalition Provisional Authority in Iraq as the liaison to the Iraqi Governing Council as well as at the US Embassy in Baghdad. He is a member of the New York State Bar Association, the American Bar Association. He is the chair of the Fletcher Alumni Club of Washington DC, a board member of Wild Me, a member of the American Constitution Society, a term member with the Council on Foreign Relations, and a fellow with the Truman National Security Project. <br />
 			  1875 Pennsylvania Avenue NW<br />
 			  Washington, DC 20006<br />
 			  USA<br />

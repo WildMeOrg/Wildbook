@@ -79,7 +79,7 @@
 
 						
 			<div class="module">
-				<img src="images/logo.gif" width="190" height="115" border="0" title="Ecocean" alt="www.whaleshark.org" />
+				<img src="images/Logo-Final_whitebackground.png" width="190" height="115" border="0" title="Wild Me" alt="www.wildme.org" />
 				
 			</div>
 						
@@ -143,7 +143,7 @@
 <p>Researcher: <strong>David David, Embet Guadamor<br />
 </strong>Donsol, Philippines</p>
 <p><a href="http://www.wwf.org.ph/newsfacts.php?pg=det&amp;id=102">http://www.wwf.org.ph/newsfacts.php?pg=det&amp;id=102<br />
-</a>WWF is documenting the sharks through a simple, but effective tool. Every day, WWF researcher Dave David dives with the sharks and photographs their gills. He then enters the photographs into a global whale shark database and compares each photograph with others by carefully aligning the gills and then comparing the spot patterns.&nbsp; He then determines if it is a new sighting or an existing one because a whale shark’s distinctive spots are like a human fingerprint – no two are alike. In fact, anybody who photographs a whale shark can enter their photo into the <a href="http://www.whaleshark.org/" >ECOCEAN</a> database.</p>
+</a>WWF is documenting the sharks through a simple, but effective tool. Every day, WWF researcher Dave David dives with the sharks and photographs their gills. He then enters the photographs into a global whale shark database and compares each photograph with others by carefully aligning the gills and then comparing the spot patterns.&nbsp; He then determines if it is a new sighting or an existing one because a whale shark’s distinctive spots are like a human fingerprint – no two are alike. In fact, anybody who photographs a whale shark can enter their photo into the <a href="http://www.whaleshark.org/" >Wildbook</a> database.</p>
 <p>&nbsp;</p>
 <h2>Partner Individuals</h2>
 <p>Researcher: <strong>Alan Duncan<br />

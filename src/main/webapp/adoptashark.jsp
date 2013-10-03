@@ -58,7 +58,7 @@ padding-left:50px;">
 		  <h1 class="intro"><img src="images/adoption.gif" width="56" height="48" align="absmiddle" />Adopt a Shark</h1>
 		</div>
 			<table><tr>
-			<td valign="top"><p>You can support the ongoing research of the Whale Shark Photo-identification Library by adopting a whale shark. A whale shark adoption allows you to: 
+			<td valign="top"><p>You can support the ongoing research of the Wildbook for Whale Sharks photo-identification library by adopting a whale shark. A whale shark adoption allows you to: 
 			<ul>
 			  <li>support cutting-edge whale shark research</li>
 	    <li> receive email updates of resightings of your adopted shark</li>
@@ -72,7 +72,7 @@ padding-left:50px;">
 	    <li>Group adoption = USD $200/year </li>
 	          <li>Corporate adoption = USD $1000/year</li>
 		</ul>
-			<p>The cost of your adoption is tax deductible in the United States through ECOCEAN USA, a 501(c)(3) non-profit organization.</p>
+			<p>The cost of your adoption is tax deductible in the United States through Wild Me, a 501(c)(3) non-profit organization.</p>
 			</td>
 			<td width="200" align="left">
 				<p align="center"><a href="http://www.whaleshark.org/individuals.jsp?number=A-001"><img src="images/sample_adoption.gif" border="0" /></a>	
@@ -90,7 +90,7 @@ padding-left:50px;">
 <table cellpadding="5">
 
 <tr>
-	<td width="250px" valign="top"><em>Use the button below if you would like your Adoption funds directed to ECOCEAN USA. ECOCEAN USA offers tax deductability in the United States as a 501(c)(3) nonprofit organization.</em></td>
+	<td width="250px" valign="top"><em>Use the button below if you would like your Adoption funds directed to Wild Me. Wild Me offers tax deductability in the United States as a 501(c)(3) nonprofit organization.</em></td>
 	
 	<!--
 	<td width="250px" valign="top"><em>Use the button on the right if you would like your Adoption funds directed to ECOCEAN (Australia).</em></td>

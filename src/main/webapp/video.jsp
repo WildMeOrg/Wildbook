@@ -96,7 +96,7 @@
 			<p>The following videos provide additional information about whale sharks and whale shark-related research. </p>
 			<ul>
 			  <li><strong><a href="#general">General videos</a> (ECOCEAN, whale sharks, etc.) </strong></li>
-			  <li><strong><a href="#tutorials">User tutorials</a> (Using the ECOCEAN Library) </strong></li>
+			  <li><strong><a href="#tutorials">User tutorials</a> (Using the Wildbook for Whale Sharks) </strong></li>
 	    </ul>
 			<h3 class="contentheading"><strong><a name="general" id="general"></a>General videos</strong></h3>
 			<p><strong>ECOCEAN and National Geographic's CritterCam </strong></p>

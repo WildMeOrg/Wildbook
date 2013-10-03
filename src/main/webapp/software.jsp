@@ -78,7 +78,7 @@
 		</div>
 		<p>Click on a link below to download the appropriate software client.</p>
 			<p><a href="interconnect/mac/Interconnect.jar"><strong>Interconnect</strong></a><br />
-			  <em>Purpose</em>: Spot mapping and submission to the ECOCEAN Library<br />
+			  <em>Purpose</em>: Spot mapping and submission to the Wildbook library<br />
 		    <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 1.5</a> or higher </p>
 			<p><a href="http://www.getpaint.net/"><strong>Paint.NET</strong> (Windows only, external link) </a><br />
               <em>Purpose</em>: Image pre-processing <br />
