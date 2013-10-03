@@ -110,7 +110,7 @@ a.launchPopup {
   padding: 5px;
   margin: 0 auto 0 auto;
   background-color: #fff;
-  min-height: 800px;
+  
 }
 
 #pathway {
@@ -149,6 +149,12 @@ a.launchPopup {
   clear: both;
   width: 810px;
   min-height: 500px;
+  background-color: #FFFFFF;
+  margin-left: 0px;
+  margin-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  
 }
 
 #leftcol {
@@ -157,6 +163,8 @@ a.launchPopup {
   background: #fff;
   overflow: hidden;
 }
+
+
 
 #maincol {
   float: left;
@@ -167,7 +175,8 @@ a.launchPopup {
 #maincol-wide {
   float: left;
   width: 605px;
-  overflow: hidden;
+  
+  
 }
 
 #maincol-wide-solo {
