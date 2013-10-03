@@ -87,19 +87,19 @@ way to fit your requirements.
 #pmenu, #pmenu ul {padding:0; margin:0; list-style-type: none;z-index:99;}
 
 /* Set up the link size, color and borders */
-#pmenu a, #pmenu a:visited {display:block; font-size:11px; color:#fff; height:25px; line-height:24px; text-decoration:none; text-indent:5px; border:1px solid #000; border-width:1px 0 1px 1px;z-index:99;}
+#pmenu a, #pmenu a:visited {display:block; font-size:11px; color:#FFFFFF height:25px; line-height:24px; text-decoration:none; text-indent:5px; border:2px solid #FFFFFF; border-width:1px 0 1px 1px;z-index:99;}
 
 /* Set up the sub level borders */
 #pmenu li ul li a, #pmenu li ul li a:visited {border-width:0 1px 1px 1px;z-index:99;}
 #pmenu li a.enclose, #pmenu li a.enclose:visited {border-width:1px;z-index:99;}
 
 /* Set up the list items */
-#pmenu li {float:left; background:#7484ad;z-index:99;}
+#pmenu li {float:left; background:#909090;z-index:99;}
 
 /* For Non-IE browsers and IE7 */
 #pmenu li:hover {position:relative;z-index:99;}
 /* Make the hovered list color persist */
-#pmenu li:hover > a {background:#dfd7ca; color:#c00;z-index:99;}
+#pmenu li:hover > a {background:#0082CC; color:#FFFFFF;z-index:99;}
 /* Set up the sublevel lists with a position absolute for flyouts and overrun padding. The transparent gif is for IE to work */
 #pmenu li ul {display:none;z-index:99;}
 /* For Non-IE and IE7 make the sublevels visible on list hover. This is all it needs */
@@ -111,14 +111,14 @@ way to fit your requirements.
 #pmenu table {position:absolute; border-collapse:collapse; top:0; left:0; z-index:100; font-size:1em;}
 
 /* For IE5.5 and IE6 give the hovered links a position relative and a change of background and foreground color. This is needed to trigger IE to show the sub levels */
-* html #pmenu li a:hover {position:relative; background:#dfd7ca; color:#c00;z-index:99;}
+* html #pmenu li a:hover {position:relative; background:#909090; color:#FFFFFF;z-index:99;}
 
 /* For accessibility of the top level menu when tabbing */
-#pmenu li a:active, #pmenu li a:focus {background:#dfd7ca; color:#c00;z-index:99;}
+#pmenu li a:active, #pmenu li a:focus {background:#90900; color:#FFFFFF;z-index:99;}
 
 /* Set up the pointers for the sub level indication */
-#pmenu li.fly {background:#7484ad;z-index:99;}
-#pmenu li.drop {background:#7484ad;z-index:99;}
+#pmenu li.fly {background:#909090;z-index:99;}
+#pmenu li.drop {background:#909090;z-index:99;}
 
 
 /* This lot is for IE5.5 and IE6 ONLY and is necessary to make the sublevels appear */
@@ -181,7 +181,7 @@ z-index:99;
 
 
 
-	<div id="header"><img name="masthead" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/masthead.jpg" width="810" height="150" border="0" usemap="#m_masthead" alt="">
+	<div id="header"><img name="masthead" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/masthead.jpg" width="810px" height="300px" border="0" usemap="#m_masthead" alt="">
 
 <map name="m_masthead">
 <area shape="poly" coords="-5,150,141,0,-6,0" href="http://apps.facebook.com/causes/283829?m=de0957a2" alt="" >
@@ -190,7 +190,7 @@ z-index:99;
 </div>
 <div id="header_menu">
 <ul id="pmenu">
-<li style="background:#000066;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>" style="margin:0px 0 0px 0px; position:relative; width:50px; height:25px; z-index:100;"><strong>Home</strong></a></li>
+<li style="background:#909090;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>" style="margin:0px 0 0px 0px; position:relative; width:50px; height:25px; z-index:100;"><strong>Home</strong></a></li>
 <li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:45px; height:25px;z-index:100;"><strong>Learn</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
