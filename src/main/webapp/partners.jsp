@@ -91,7 +91,7 @@
 	<div id="maincol-wide">
 
 		<div id="maintext">
-		  <h2>Partner Organisations</h2>
+		  <h2>Partner Organizations</h2>
 		</div>
 			
 <p>&nbsp;</p>
