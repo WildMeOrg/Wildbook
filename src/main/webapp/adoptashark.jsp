@@ -37,22 +37,6 @@
 	
 	<div id="maincol-wide-solo">
 
-<table class="myTableText">
-  <tr>
-  <td align="left" bgcolor="#000000" style="padding-top:25px;
-padding-bottom:25px;
-padding-right:50px;
-padding-left:50px;">
-
-    <p><center>Thanks for clicking through! Scroll down to adopt a shark!</center></p>
-    <p>Whaleshark.org is one of a kind. It enables global scientific research on a beloved, gentle species, the biggest fish in the sea.  </p>
-    <p>But it is not funded by any government. It is not funded by any for-profit corporation.  </p>
-    <p>Whaleshark.org is run by a non-profit charity that relies on donations to host and manage  one of the world's most sophisticated wildlife databases, to make it available to researchers,  citizen scientists, and the general public. Without a steady flow of financial contributions, the  site can't continue to operate.  </p>
-    <p>If whaleshark.org goes dark, a vital research capability is lost. There's nothing else like it. </p>
-    <p>If you're a visitor to our site, please consider a donation or adoption. (Adoptions for children  cost just $25/year, and you get to nickname a shark!) If you're in the ecotourism business,  consider what whaleshark.org adds to your clients' experience, and help us keep alive their  continued fascination with whale sharks. If you're a researcher who uses and depends  on the photo-ID library, help us help you by budgeting for this precious resource in your  research grant applications and contributing your vital financial support. We're all in this  together! </p>
-    <p>Your contribution supports research that directly informs conservation practices. To see  the difference we’re already making, visit our <a href="publications.jsp">Publications page</a>. And we have exciting new  developments on the horizon.  </p>
-    <p>Every little bit helps. Like giant whale sharks thriving on a diet of microscopic life (in  vast quantities!), many small contributions from our dedicated community can keep  whaleshark.org flourishing. Please help in any way you can. And thank you!</p></td></tr></table>
-
 <p>&nbsp;</p>
 		<div id="maintext">
 		  <h1 class="intro"><img src="images/adoption.gif" width="56" height="48" align="absmiddle" />Adopt a Shark</h1>
