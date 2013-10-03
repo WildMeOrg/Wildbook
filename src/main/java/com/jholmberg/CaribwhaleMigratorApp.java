@@ -96,6 +96,11 @@ public class CaribwhaleMigratorApp {
 				if(!idMap.containsKey(id)){
 					idMap.put(id, imageFilename);
 					System.out.println("     Placing "+id+" for "+imageFilename+"...");
+					
+				//now check if the photo even exists
+          File singFile = new File(splashImagesDirPath+"/"+imageFilename);
+          if(!singFile.exists()){missingPhotos.add(singFile.getName());}
+					
 				}
 			}
 
@@ -189,9 +194,7 @@ public class CaribwhaleMigratorApp {
                     SinglePhotoVideo sing = new SinglePhotoVideo(catNumber, indiesFilename, (splashImagesDirPath+"/"+indiesFilename));
                     enc.addSinglePhotoVideo(sing);
                     
-                    //now check if the photo even exists
-                    File singFile = new File(splashImagesDirPath+"/"+indiesFilename);
-                    if(!singFile.exists()){missingPhotos.add(singFile.getName());}
+                    
                     
                   }
                   
@@ -202,6 +205,14 @@ public class CaribwhaleMigratorApp {
 		         
 		            
 		          }
+		          
+		          
+		          Encounter placeholder=new Encounter();
+		          placeholder.setCatalogNumber(indie.getIndividualID()+"_DATASTORE");
+		          indie.addEncounter(placeholder);
+		          
+		          
+		          
 		        System.out.println("Found "+indie.getEncounters().size()+" encounters for the indie "+indie.getIndividualID());
 		        //STEP 4 - obtain data about each MarkedIndividual from Excel
             
@@ -229,6 +240,21 @@ public class CaribwhaleMigratorApp {
                       if(!thisSex.trim().equals("")){
                         indie.setSex(thisSex);
                         System.out.println("     Set sex for indie "+indie.getIndividualID()+" to "+indie.getSex());
+                      }
+                    }
+                  }
+                  
+                  //let's get haplotype
+                  if(sheet1.getCell(12, f)!=null){
+                    Cell haploCell=sheet1.getCell(12, f);
+                    if(haploCell.getContents()!=null){
+                      String thisHaplo=haploCell.getContents();
+                      if(!thisHaplo.trim().equals("")){
+
+                        
+                        
+
+                        System.out.println("     Set haplo for indie "+indie.getIndividualID()+" to "+indie.getHaplotype());
                       }
                     }
                   }
