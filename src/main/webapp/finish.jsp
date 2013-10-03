@@ -53,11 +53,11 @@
 
 <html>
 <head>
-<title>ECOCEAN - Finish Finning!</title>
+<title>Wild Me - Finish Finning!</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description" content="The ECOCEAN Whale Shark Photo-identification Library is a visual database of whale shark (Rhincodon typus) encounters and of individually catalogued whale sharks. The library is maintained and used by marine biologists to collect and analyse whale shark encounter data to learn more about these amazing creatures." />
-<meta name="Keywords" content="whale shark,whale,shark,Rhincodon typus,requin balleine,Rhineodon,Rhiniodon,big fish,ECOCEAN,Brad Norman, fish, coral, sharks, elasmobranch, mark, recapture, photo-identification, identification, conservation, citizen science" />
-<meta name="Author" content="ECOCEAN - info@ecocean.org" />
+<meta name="Description" content="The Wildbook for Whale Sharks photo-identification library is a visual database of whale shark (Rhincodon typus) encounters and of individually catalogued whale sharks. The library is maintained and used by marine biologists to collect and analyse whale shark encounter data to learn more about these amazing creatures." />
+<meta name="Keywords" content="whale shark,whale,shark,Rhincodon typus,requin balleine,Rhineodon,Rhiniodon,big fish,Wild Me,Brad Norman, fish, coral, sharks, elasmobranch, mark, recapture, photo-identification, identification, conservation, citizen science" />
+<meta name="Author" content="Wild Me - info@whaleshark.org" />
 <link href="css/ecocean.css" rel="stylesheet" type="text/css" />
 <link rel="shortcut icon" href="images/favicon.ico" />
 
@@ -101,7 +101,7 @@
 		  <li><strong>Potentially thousands of whale sharks are hunted each year, </strong><strong>mainly for their fins </strong></li>
 		  <li><strong>Whale sharks are just one of over 500 species of shark threatened by the multi billion dollar, </strong><strong>international shark fin trade.</strong></li>
 	    </ul>
-		<p align="left"><img src="images/dead%20sharks.jpg" width="150" height="131" hspace="5" vspace="5" border="1" align="right" />Sharks have been roaming our oceans for over 400 million years. Now, as a result of human ignorance and arrogance all shark species are under threat. Do you want to be responsible for their disappearance? Join us in our campaign to put an end to the slaughter. Join ECOCEAN in our campaign to FINISH FINNING!</p>
+		<p align="left"><img src="images/dead%20sharks.jpg" width="150" height="131" hspace="5" vspace="5" border="1" align="right" />Sharks have been roaming our oceans for over 400 million years. Now, as a result of human ignorance and arrogance all shark species are under threat. Do you want to be responsible for their disappearance? Join us in our campaign to put an end to the slaughter. Join Wild Me in our campaign to FINISH FINNING!</p>
 	    <ul>
 	      <li>Tens of millions of sharks are killed each year to supply the fin trade, corresponding to over 2 million tons of shark. </li>
 	      <li>Shark populations around the world are in decline by between 70 and over 90 percent. 20 species of shark are listed as endangered by the World Conservation Union (IUCN). One third of all open ocean sharks are listed as threatened or vulnerable to extinction by the IUCN. This includes the whale shark. </li>

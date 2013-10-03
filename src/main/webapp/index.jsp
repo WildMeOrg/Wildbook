@@ -279,12 +279,12 @@ table.adopter td.image {
 
 		 <div>
 		   <h1 class="intro">Data Contributors</h1>
-			<p class="caption">Many individuals and organizations actively contribute and manage data in the ECOCEAN Library. We will be featuring them here soon. </p>
+			<p class="caption">Many individuals and organizations actively contribute and manage data in this Wildbook. We will be featuring them here soon. </p>
 		</div>
 		
 		<div id="maintext"><h1 class="intro">Contact us</h1>
-		<p class="caption">ECOCEAN USA is always hoping for opportunities to better tell the story of whale sharks and the growing body of research and discoveries made possible by dedicated scientists, volunteers, and the general public.</p>
-		<p class="caption"><a href="contactus.jsp">Please contact us with you questions.</a></p>
+		<p class="caption">Wild Me is always looking for opportunities to better tell the story of whale sharks and the growing body of research and discoveries made possible by dedicated scientists, volunteers, and the general public.</p>
+		<p class="caption"><a href="contactus.jsp">Please contact us with your questions.</a></p>
 	</div>
 		
 		
@@ -335,7 +335,7 @@ if(ad!=null){
 			 <tr><td><table cellpadding="1" border="0"><tr><td>Why are shark research and conservation important?</td></tr></table></td></tr>
 			 <tr><td><table cellpadding="1" border="0"><tr><td><em>"<%=ad.getAdopterQuote()%>"</em></td></tr></table></td></tr>
 			 <tr><td>&nbsp;</td></tr>
-			 <tr><td><table cellpadding="1" border="0"><tr><td><span class="caption">Your adoption gift to ECOCEAN USA is tax deductible in the United States. <a href="adoptashark.jsp">Click here to learn more.</a></span></td></tr></table></td></tr>
+			 <tr><td><table cellpadding="1" border="0"><tr><td><span class="caption">Your adoption gift to Wild Me is tax deductible in the United States. <a href="adoptashark.jsp">Click here to learn more.</a></span></td></tr></table></td></tr>
 			 
 			 <%
 			 }
@@ -376,8 +376,8 @@ if(ad!=null){
 				 <div class="module">
 			 <h3>In the Press</h3>
 			 			 <table align="left" cellpadding="2">
-			   <tr><td align="left" valign="top"><a href="http://www.bbc.co.uk/oceans/locations/spiceislands/mafia_whalesharks.shtml"><img src="images/BBC_logo.jpg" alt="ECOCEAN Library in BBC Oceans TV series" width="75" height="61" border="1" align="top" title="BBC Oceans"/></a></td>
-		   <td><span class="caption"> The ECOCEAN Library was used in support of the <a href="http://www.bbc.co.uk/oceans/locations/spiceislands/mafia_whalesharks.shtml">BBC Oceans</a> television series. </span></td>
+			   <tr><td align="left" valign="top"><a href="http://www.bbc.co.uk/oceans/locations/spiceislands/mafia_whalesharks.shtml"><img src="images/BBC_logo.jpg" alt="Whale Shark Library in BBC Oceans TV series" width="75" height="61" border="1" align="top" title="BBC Oceans"/></a></td>
+		   <td><span class="caption"> The Whale Shark Library was used in support of the <a href="http://www.bbc.co.uk/oceans/locations/spiceislands/mafia_whalesharks.shtml">BBC Oceans</a> television series. </span></td>
 			   </tr></table>
 			   <br>
 			 

@@ -121,7 +121,7 @@
 				  <td>This visible caudal (tail) fin scar helps to identify shark <a href="http://www.whaleshark.org/individuals.jsp?shark=A-001">A-001</a> (&quot;Stumpy&quot;) at Ningaloo Marine Park in Western Australia. </td>
 				</tr>
 		</table>
-			<p>Once you have your whale shark photographs or frame grabs from video, you can submit them directly to the ECOCEAN Whale Shark Photo-identification Library at:<br />
+			<p>Once you have your whale shark photographs or frame grabs from video, you can submit them directly to the Wildbook for Whale Sharks at:<br />
 			  <a href="http://www.whaleshark.org/submit.jsp">http://www.whaleshark.org/submit.jsp
             </a></p>
 			<p>Using  the email address you supply in your encounter report, our database can automatically keep you informed of how your data is used and can notify you whenever an identified shark that you reported is resighted.</p>
