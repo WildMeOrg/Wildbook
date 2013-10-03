@@ -98,10 +98,11 @@ a.launchPopup {
 #wrapper {
   margin-left: 3px;
   padding-left: 5px;
-  height: auto;
+
   width: auto;
   /* background-color: #fff; */
-  background-color: #D55500
+  background-color: #D55500;
+  
 }
 
 #page {
@@ -109,7 +110,11 @@ a.launchPopup {
   text-align: left;
   padding: 5px;
   margin: 0 auto 0 auto;
-  background-color: #fff;
+  background-color: #FFFFFF;
+      min-height: 100%; /* min. height for modern browser */
+      height:auto !important; /* important rule for modern Browser */
+      height:100%; /* min. height for IE */
+    overflow: hidden !important; /* FF scroll-bar */
   
 }
 
