@@ -71,27 +71,11 @@
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
 </jsp:include>	
 <div id="main">
-	<div id="leftcol">
-		<div id="menu">
-						
-			<div class="module">
-				<img src="images/area.jpg" width="190" height="115" border="0" title="Area to photograph" alt="Area to photograph" />
-				<p class="caption"><%=area%></p>
-			</div>
-						
-			<div class="module">
-				<img src="images/match.jpg" width="190" height="94" border="0" title="We Have A Match!" alt="We Have A Match!" />
-				<p class="caption"><%=match%></p>
-			</div>
-						
-
-<jsp:include page="awards.jsp" flush="true" />
-		</div><!-- end menu -->
-	</div><!-- end leftcol -->
+	
 	<div id="maincol-wide">
 
 		<div id="maintext">
-		  <h1 class="intro"><img src="video_camera.gif" width="42" height="42" border="0" align="middle" />&nbsp;Whale Shark Video</h1>
+		  <h1 class="intro">Whale Shark Video</h1>
 		</div>
 			<p>The following videos provide additional information about whale sharks and whale shark-related research. </p>
 			<ul>
