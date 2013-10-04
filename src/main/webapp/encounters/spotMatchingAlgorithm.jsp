@@ -76,7 +76,7 @@ try {
   //File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
 
 %>
-  <p><a name="spotpatternmatching" /><strong>Spot Matching Algorithms (Modified Groth and I3S)</strong></p>
+  <p><a name="spotpatternmatching"></a><strong>Spot Matching Algorithms (Modified Groth and I3S)</strong></p>
 
 
 	<!-- Display spot patterning so long as show_spotpatterning is not false in commonCOnfiguration.properties-->
