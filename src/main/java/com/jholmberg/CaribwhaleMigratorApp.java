@@ -3,7 +3,7 @@
  */
 package com.jholmberg;
 
-//import the Shepherd Project Framework
+//import the Wildbook Framework
 import org.ecocean.*;
 import org.ecocean.servlet.*;
 import org.ecocean.genetics.*;
@@ -44,11 +44,13 @@ public class CaribwhaleMigratorApp {
 		//initial environment config
 		//these eventually need to be loaded from a .properties file in the classpath
 		String pathToAccessFile="C:/caribwhale/atlantic/AtlanticCatalogue.mdb";
-		String encountersDirPath="C:/apache-tomcat-7.0.32/webapps/shepherd_data_dir";
+		String encountersDirPath="C:/apache-tomcat-7.0.32/webapps/shepherd_data_dir/encounters";
 		String splashImagesDirPath="C:/caribwhale/TIFs";
 		String pathToExcel = "C:/caribwhale/atlantic/All_Individuals_SUPINFO_20130624.xls";
 		String pathToExcel2 = "C:\\caribwhale\\atlantic\\allIDN19842012_20130624.xls";
-		
+		File encountersDirFile=new File(encountersDirPath);
+		if(!encountersDirFile.exists()){encountersDirFile.mkdir();}
+		File sourceImagesDir=new File(splashImagesDirPath);
 		
 		/**
 		 * For thumbnail generation
@@ -130,6 +132,17 @@ public class CaribwhaleMigratorApp {
 		      
 		      for(int y=0;y<numIndies;y++){
 		        MarkedIndividual indie=indies.get(y);
+		        String indiesFilename=idMap.get(indie.getIndividualID());
+		        File thisFile=new File(sourceImagesDir,indiesFilename);
+		        
+		        //set up the placeholder encounter
+		        Encounter placeholder=new Encounter();
+            String pCatNumber=indie.getIndividualID()+"_DATASTORE";
+            placeholder.setCatalogNumber(pCatNumber);
+            indie.addEncounter(placeholder);
+            File placeholderFileDir=new File(encountersDirFile,pCatNumber);
+            if(!placeholderFileDir.exists()){placeholderFileDir.mkdir();}
+            
 		        //for (int j = 0; j < sheet.getColumns(); j++) {
 		          for (int i = 0; i < sheet.getRows(); i++) {
 		            Cell IDcell = sheet.getCell(21, i);
@@ -183,7 +196,7 @@ public class CaribwhaleMigratorApp {
 		              enc.setCatalogNumber(catNumber);
 		              
                   //let's check for the photo assignment
-                  String indiesFilename=idMap.get(indie.getIndividualID());
+                  
                   String sYear=Integer.toString(enc.getYear());
                   String sMonth=Integer.toString(enc.getMonth());
                   if(sMonth.length()<2){sMonth="0"+sMonth;}
@@ -191,9 +204,20 @@ public class CaribwhaleMigratorApp {
                   if(sDay.length()<2){sDay="0"+sDay;}
                   if(indiesFilename.indexOf((sYear+sMonth+sDay))!=-1){
          
-                    SinglePhotoVideo sing = new SinglePhotoVideo(catNumber, indiesFilename, (splashImagesDirPath+"/"+indiesFilename));
-                    enc.addSinglePhotoVideo(sing);
                     
+                    
+                    //copy this image over to the encounterDir too
+                    File thisEncounterDir=new File(encountersDirFile,enc.getCatalogNumber());
+                    if(!thisEncounterDir.exists()){thisEncounterDir.mkdir();}
+                    File encounterDir=new File(encountersDirFile,enc.getCatalogNumber());
+                    if(!encounterDir.exists()){encounterDir.mkdir();}
+                    File outputFile=new File(encounterDir,indiesFilename);
+                    if(!outputFile.exists()){
+                      copyFile(thisFile, outputFile);
+                    }
+                    
+                    SinglePhotoVideo sing = new SinglePhotoVideo(catNumber, indiesFilename, (encounterDir.getAbsolutePath()+"/"+indiesFilename));
+                    enc.addSinglePhotoVideo(sing);
                     
                     
                   }
@@ -207,10 +231,18 @@ public class CaribwhaleMigratorApp {
 		          }
 		          
 		          
-		          Encounter placeholder=new Encounter();
-		          placeholder.setCatalogNumber(indie.getIndividualID()+"_DATASTORE");
-		          indie.addEncounter(placeholder);
 		          
+		          
+		          //if the MarkedIndividual does not have a SinglePhoto video assigned to an Encounter, then assign the image here and create/copy the directories and files
+		          if((indie.getAllSinglePhotoVideo()==null)||(indie.getAllSinglePhotoVideo().size()==0)){
+		            SinglePhotoVideo sing = new SinglePhotoVideo(placeholder.getCatalogNumber(), indiesFilename, (placeholderFileDir.getAbsolutePath()+"/"+indiesFilename));
+                placeholder.addSinglePhotoVideo(sing);
+               
+                File outputFile=new File(placeholderFileDir,indiesFilename);
+                if(!outputFile.exists()){
+                  copyFile(thisFile,outputFile);
+                }
+		          }
 		          
 		          
 		        System.out.println("Found "+indie.getEncounters().size()+" encounters for the indie "+indie.getIndividualID());
@@ -250,7 +282,9 @@ public class CaribwhaleMigratorApp {
                     if(haploCell.getContents()!=null){
                       String thisHaplo=haploCell.getContents();
                       if(!thisHaplo.trim().equals("")){
-
+                         
+                          //haplotype gets added to the placeholderEncounter
+                          //add the tissue sample
                         
                         
 
@@ -381,7 +415,28 @@ public class CaribwhaleMigratorApp {
 
 
 
+private static void copyFile(File thisFile, File outputFile){
+  String indiesFilename=thisFile.getName();
+  try{
 
+    
+    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(thisFile), 4096);
+    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFile), 4096);
+    int theChar;
+    while ((theChar = bis.read()) != -1) {
+      bos.write(theChar);
+    }
+    bos.close();
+    bis.close();
+    System.out.println(" !@@!@!#!@Completed copy of "+indiesFilename);
+
+
+    }
+    catch(IOException ioe){
+      System.out.println("IOException on file transfer for: "+indiesFilename);
+      ioe.printStackTrace();
+    }
+}
 
 
 
