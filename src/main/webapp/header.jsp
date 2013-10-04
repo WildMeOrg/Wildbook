@@ -184,11 +184,15 @@ z-index:99;
 	<div id="header"><img name="masthead" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/masthead.jpg" width="810px" height="300px" border="0" usemap="#m_masthead" alt="">
 
 <map name="m_masthead">
-<area shape="poly" coords="-5,150,141,0,-6,0" href="http://apps.facebook.com/causes/283829?m=de0957a2" alt="" >
+	<area shape="rect" coords="649,156,785,295" href="http://www.wildme.org" alt="Sun" />
+	<area shape="rect" coords="12,218,380,288" href="http://www.wildme.org/wildbook" alt="Sun" />
 </map>
 
 </div>
 <div id="header_menu">
+
+
+
 <ul id="pmenu">
 <li style="background:#909090;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>" style="margin:0px 0 0px 0px; position:relative; width:50px; height:25px; z-index:100;"><strong>Home</strong></a></li>
 <li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:45px; height:25px;z-index:100;"><strong>Learn</strong><!--[if IE 7]><!--></a><!--<![endif]-->
