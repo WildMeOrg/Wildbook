@@ -270,8 +270,18 @@ public class CaribwhaleMigratorApp {
                     if(sexCell.getContents()!=null){
                       String thisSex=sexCell.getContents();
                       if(!thisSex.trim().equals("")){
-                        indie.setSex(thisSex);
+                        indie.setSex(thisSex.trim());
                         System.out.println("     Set sex for indie "+indie.getIndividualID()+" to "+indie.getSex());
+                        
+                        //if genetic sex (Fg or Mg), create the correct data structures
+                        if((indie.getSex().toLowerCase().equals("Mg"))||(indie.getSex().toLowerCase().equals("Fg"))){
+                          TissueSample ts=new TissueSample(placeholder.getCatalogNumber(),(indie.getIndividualID()+"_SAMPLE"));
+                          if((placeholder.getTissueSamples()!=null)&&(placeholder.getTissueSamples().size()>0)){
+                            ts=placeholder.getTissueSamples().get(0);
+                          }
+                          SexAnalysis sa=new SexAnalysis((indie.getIndividualID()+"_SEX"), thisSex, placeholder.getCatalogNumber(), ts.getSampleID());
+                          ts.addGeneticAnalysis(sa);
+                        }
                       }
                     }
                   }
@@ -287,6 +297,10 @@ public class CaribwhaleMigratorApp {
                           //add the tissue sample
                         
                           TissueSample ts=new TissueSample(placeholder.getCatalogNumber(),(indie.getIndividualID()+"_SAMPLE"));
+                          if((placeholder.getTissueSamples()!=null)&&(placeholder.getTissueSamples().size()>0)){
+                            ts=placeholder.getTissueSamples().get(0);
+                          }
+                          
                           placeholder.addTissueSample(ts);
                           MitochondrialDNAAnalysis haplo=new MitochondrialDNAAnalysis((indie.getIndividualID()+"_HAPLOTYPE"),thisHaplo,placeholder.getCatalogNumber(),ts.getSampleID());
                           ts.addGeneticAnalysis(haplo);
@@ -297,7 +311,31 @@ public class CaribwhaleMigratorApp {
                     }
                   }
                   
-                  //let's get nickname
+                  //let's get class/lifestage
+                  if(sheet1.getCell(10, f)!=null){
+                    Cell classCell=sheet1.getCell(10, f);
+                    if(classCell.getContents()!=null){
+                      String thisClass=classCell.getContents();
+                      if(!thisClass.trim().equals("")){
+                        placeholder.setLifeStage(thisClass);
+                        System.out.println("     Set lifestage for indie "+indie.getIndividualID()+" to "+placeholder.getLifeStage());
+                      }
+                    }
+                  }
+                  
+                  //let's get locationID
+                  if(sheet1.getCell(19, f)!=null){
+                    Cell locIDCell=sheet1.getCell(19, f);
+                    if(locIDCell.getContents()!=null){
+                      String thisLocID=locIDCell.getContents();
+                      if(!thisLocID.trim().equals("")){
+                        placeholder.setLocation(thisLocID);
+                        System.out.println("     Set locationID for indie "+indie.getIndividualID()+" to "+placeholder.getLocationID());
+                      }
+                    }
+                  }
+                  
+                //let's get nickname
                   if(sheet1.getCell(1, f)!=null){
                     Cell nicknameCell=sheet1.getCell(1, f);
                     if(nicknameCell.getContents()!=null){
@@ -308,6 +346,7 @@ public class CaribwhaleMigratorApp {
                       }
                     }
                   }
+                  
                   
                   //let's get additional indie comments
                   if(sheet1.getCell(61, f)!=null){
