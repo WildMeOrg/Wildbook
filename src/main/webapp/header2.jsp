@@ -373,7 +373,7 @@ z-index:99;
 	<ul>
 	
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/whoAreWe.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px z-index:99;">Who We Are</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/partners.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px; z-index:99;">Partner Organisations & Individuals</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/partners.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px; z-index:99;">Partner Organizations & Individuals</a></li>
 		
 	</ul>
     
