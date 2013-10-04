@@ -286,7 +286,11 @@ public class CaribwhaleMigratorApp {
                           //haplotype gets added to the placeholderEncounter
                           //add the tissue sample
                         
-                        
+                          TissueSample ts=new TissueSample(placeholder.getCatalogNumber(),(indie.getIndividualID()+"_SAMPLE"));
+                          placeholder.addTissueSample(ts);
+                          MitochondrialDNAAnalysis haplo=new MitochondrialDNAAnalysis((indie.getIndividualID()+"_HAPLOTYPE"),thisHaplo,placeholder.getCatalogNumber(),ts.getSampleID());
+                          ts.addGeneticAnalysis(haplo);
+                          
 
                         System.out.println("     Set haplo for indie "+indie.getIndividualID()+" to "+indie.getHaplotype());
                       }
