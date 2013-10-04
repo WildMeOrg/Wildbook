@@ -151,7 +151,7 @@
 <p><a href="http://bit.ly/hYcmwV?r=bb" target="_blank">www.the-diveinn.com/categoryspecies/whale-sharks-identified-ecocean-project<br />
 </a>Alan Duncan works to identify all whale shark reported from the Gulf of Thailand and the Andaman Sea.</p>
 <p>&nbsp;</p>
-<p>Researcher: <strong>: <strong>Dr. Eric Hoffmayer</strong><br />
+<p>Researcher: <strong>Dr. Eric Hoffmayer</strong><br />
 </strong>Northern Gulf of Mexico, USA</p>
 <p><a href="http://www.usm.edu/gcrl/whaleshark/index.php" target="_blank">www.usm.edu/gcrl/whaleshark/index.php<br />
 </a>Dr. Hoffmayer heads a research effort to understand the basic biology, behavior, and movement patterns of whale shark in the northern Gulf of Mexico.
