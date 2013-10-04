@@ -63,6 +63,11 @@ public class CaribwhaleMigratorApp {
 		//Shepherd myShepherd = new Shepherd();
 		ArrayList<String> missingPhotos=new ArrayList<String>();
 		
+		//well, we need a shepherd for sure!
+		
+		Shepherd myShepherd=new Shepherd();
+		myShepherd.beginDBTransaction();
+		
 
 		try{
 
@@ -117,7 +122,9 @@ public class CaribwhaleMigratorApp {
 			  indies.add(thisIndie);
 			}
 			int numIndies=indies.size();
-			
+			myShepherd.getPM().makePersistentAll(indies);
+			myShepherd.commitDBTransaction();
+			myShepherd.beginDBTransaction();
 			
 			//STEP 3 - obtain data about each MarkedIndividual from Excel2
 			//File excel2File=new File(pathToExcel2);
@@ -131,7 +138,7 @@ public class CaribwhaleMigratorApp {
 		      
 		      
 		      for(int y=0;y<numIndies;y++){
-		        MarkedIndividual indie=indies.get(y);
+		        MarkedIndividual indie=myShepherd.getMarkedIndividual(indies.get(y).getIndividualID());
 		        String indiesFilename=idMap.get(indie.getIndividualID());
 		        File thisFile=new File(sourceImagesDir,indiesFilename);
 		        
@@ -139,7 +146,10 @@ public class CaribwhaleMigratorApp {
 		        Encounter placeholder=new Encounter();
             String pCatNumber=indie.getIndividualID()+"_DATASTORE";
             placeholder.setCatalogNumber(pCatNumber);
+            myShepherd.getPM().makePersistent(placeholder);
             indie.addEncounter(placeholder);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
             File placeholderFileDir=new File(encountersDirFile,pCatNumber);
             if(!placeholderFileDir.exists()){placeholderFileDir.mkdir();}
             
@@ -195,6 +205,10 @@ public class CaribwhaleMigratorApp {
                   String catNumber=Integer.toString(i);
 		              enc.setCatalogNumber(catNumber);
 		              
+		              myShepherd.getPM().makePersistent(enc);
+		              myShepherd.commitDBTransaction();
+		              myShepherd.beginDBTransaction();
+		              
                   //let's check for the photo assignment
                   
                   String sYear=Integer.toString(enc.getYear());
@@ -217,12 +231,17 @@ public class CaribwhaleMigratorApp {
                     }
                     
                     SinglePhotoVideo sing = new SinglePhotoVideo(catNumber, indiesFilename, (encounterDir.getAbsolutePath()+"/"+indiesFilename));
-                    enc.addSinglePhotoVideo(sing);
+                    myShepherd.getPM().makePersistent(sing);
                     
+                    enc.addSinglePhotoVideo(sing);
+                    myShepherd.commitDBTransaction();
+                    myShepherd.beginDBTransaction();
                     
                   }
                   
 		              indie.addEncounter(enc);
+		              myShepherd.commitDBTransaction();
+		              myShepherd.beginDBTransaction();
 		            }
 		            
 		            
@@ -236,7 +255,10 @@ public class CaribwhaleMigratorApp {
 		          //if the MarkedIndividual does not have a SinglePhoto video assigned to an Encounter, then assign the image here and create/copy the directories and files
 		          if((indie.getAllSinglePhotoVideo()==null)||(indie.getAllSinglePhotoVideo().size()==0)){
 		            SinglePhotoVideo sing = new SinglePhotoVideo(placeholder.getCatalogNumber(), indiesFilename, (placeholderFileDir.getAbsolutePath()+"/"+indiesFilename));
-                placeholder.addSinglePhotoVideo(sing);
+                myShepherd.getPM().makePersistent(sing);
+		            placeholder.addSinglePhotoVideo(sing);
+		            myShepherd.commitDBTransaction();
+		            myShepherd.beginDBTransaction();
                
                 File outputFile=new File(placeholderFileDir,indiesFilename);
                 if(!outputFile.exists()){
@@ -279,8 +301,16 @@ public class CaribwhaleMigratorApp {
                           if((placeholder.getTissueSamples()!=null)&&(placeholder.getTissueSamples().size()>0)){
                             ts=placeholder.getTissueSamples().get(0);
                           }
+                          else{
+                            myShepherd.getPM().makePersistent(ts);
+                            myShepherd.commitDBTransaction();
+                            myShepherd.beginDBTransaction();
+                          }
                           SexAnalysis sa=new SexAnalysis((indie.getIndividualID()+"_SEX"), thisSex, placeholder.getCatalogNumber(), ts.getSampleID());
+                          myShepherd.getPM().makePersistent(sa);
                           ts.addGeneticAnalysis(sa);
+                          myShepherd.commitDBTransaction();
+                          myShepherd.beginDBTransaction();
                         }
                       }
                     }
@@ -300,11 +330,18 @@ public class CaribwhaleMigratorApp {
                           if((placeholder.getTissueSamples()!=null)&&(placeholder.getTissueSamples().size()>0)){
                             ts=placeholder.getTissueSamples().get(0);
                           }
+                          else{
+                            myShepherd.getPM().makePersistent(ts);
+                            myShepherd.commitDBTransaction();
+                            myShepherd.beginDBTransaction();
+                          }
                           
                           placeholder.addTissueSample(ts);
                           MitochondrialDNAAnalysis haplo=new MitochondrialDNAAnalysis((indie.getIndividualID()+"_HAPLOTYPE"),thisHaplo,placeholder.getCatalogNumber(),ts.getSampleID());
+                          myShepherd.getPM().makePersistent(haplo);
                           ts.addGeneticAnalysis(haplo);
-                          
+                          myShepherd.commitDBTransaction();
+                          myShepherd.beginDBTransaction();
 
                         System.out.println("     Set haplo for indie "+indie.getIndividualID()+" to "+indie.getHaplotype());
                       }
@@ -359,7 +396,8 @@ public class CaribwhaleMigratorApp {
                       }
                     }
                   }
-                  
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
                   
                   
                   
@@ -391,6 +429,10 @@ public class CaribwhaleMigratorApp {
 		for(int k=0;k<numMissingPhotos;k++){
 		  System.out.println("Missing photo: "+missingPhotos.get(k));
 		}
+		
+		myShepherd.commitDBTransaction();
+		myShepherd.closeDBTransaction();
+		myShepherd=null;
 		
 		
 		//pause to let the user fire up the Tomcat web server
