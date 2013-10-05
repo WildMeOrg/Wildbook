@@ -45,7 +45,7 @@ public class CaribwhaleMigratorApp {
 		//these eventually need to be loaded from a .properties file in the classpath
 		String pathToAccessFile="C:/caribwhale/atlantic/AtlanticCatalogue.mdb";
 		String encountersDirPath="C:/apache-tomcat-7.0.32/webapps/shepherd_data_dir/encounters";
-		String splashImagesDirPath="C:/caribwhale/TIFs";
+		String splashImagesDirPath="C:/caribwhale/JPGs";
 		String pathToExcel = "C:/caribwhale/atlantic/All_Individuals_SUPINFO_20130624.xls";
 		String pathToExcel2 = "C:\\caribwhale\\atlantic\\allIDN19842012_20130624.xls";
 		File encountersDirFile=new File(encountersDirPath);
@@ -98,7 +98,7 @@ public class CaribwhaleMigratorApp {
 				}
 				String imageFilename="";
 				if((thisIndexRow.get("Roll")!=null)&&(thisIndexRow.get("Frame")!=null)){
-				  imageFilename=((String)thisIndexRow.get("Roll"))+"-"+((String)thisIndexRow.get("Frame"))+".tif";
+				  imageFilename=((String)thisIndexRow.get("Roll"))+"-"+((String)thisIndexRow.get("Frame"))+".jpg";
 				}
 				if(!idMap.containsKey(id)){
 					idMap.put(id, imageFilename);
@@ -144,6 +144,8 @@ public class CaribwhaleMigratorApp {
 		        
 		        //set up the placeholder encounter
 		        Encounter placeholder=new Encounter();
+		        placeholder.setSubmitterName("Shane Gero");
+		        placeholder.setSubmitterEmail("geroshane@gmail.com");
             String pCatNumber=indie.getIndividualID()+"_DATASTORE";
             placeholder.setCatalogNumber(pCatNumber);
             myShepherd.getPM().makePersistent(placeholder);
@@ -204,6 +206,8 @@ public class CaribwhaleMigratorApp {
                   
                   String catNumber=Integer.toString(i);
 		              enc.setCatalogNumber(catNumber);
+		              enc.setSubmitterName("Shane Gero");
+		              enc.setSubmitterEmail("geroshane@gmail.com");
 		              
 		              myShepherd.getPM().makePersistent(enc);
 		              myShepherd.commitDBTransaction();
