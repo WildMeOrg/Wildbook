@@ -244,6 +244,7 @@ public class CaribwhaleMigratorApp {
                     myShepherd.getPM().makePersistent(sing);
                     
                     enc.addSinglePhotoVideo(sing);
+                    thumbnailTheseImages.add(enc.getCatalogNumber());
                     myShepherd.commitDBTransaction();
                     myShepherd.beginDBTransaction();
                     
@@ -267,6 +268,7 @@ public class CaribwhaleMigratorApp {
 		            SinglePhotoVideo sing = new SinglePhotoVideo(placeholder.getCatalogNumber(), indiesFilename, (placeholderFileDir.getAbsolutePath()+"/"+indiesFilename));
                 myShepherd.getPM().makePersistent(sing);
 		            placeholder.addSinglePhotoVideo(sing);
+		            thumbnailTheseImages.add(placeholder.getCatalogNumber());
 		            myShepherd.commitDBTransaction();
 		            myShepherd.beginDBTransaction();
                
@@ -469,8 +471,8 @@ public class CaribwhaleMigratorApp {
 		    try
 		    {
 
-		    	System.out.println("Trying to render a thumbnail for: "+IDKey+ "as "+thumbnailTheseImages.get(q));
-		    	String urlString=urlToThumbnailJSPPage+"?number="+IDKey+"&imageNum=1&imageName="+thumbnailTheseImages.get(q);
+		    	System.out.println("Trying to render a thumbnail for: "+thumbnailTheseImages.get(q));
+		    	String urlString=urlToThumbnailJSPPage+"?number="+IDKey+"&imageNum=1";
 		    	System.out.println("     "+urlString);
 		    	URL url = new URL(urlString);
 
