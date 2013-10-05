@@ -513,7 +513,7 @@ private static void copyFile(File thisFile, File outputFile){
     }
     bos.close();
     bis.close();
-    System.out.println(" !@@!@!#!@Completed copy of "+indiesFilename);
+    //System.out.println(" !@@!@!#!@Completed copy of "+indiesFilename);
 
 
     }
