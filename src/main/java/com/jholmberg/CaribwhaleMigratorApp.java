@@ -144,6 +144,8 @@ public class CaribwhaleMigratorApp {
 		        
 		        //set up the placeholder encounter
 		        Encounter placeholder=new Encounter();
+		        placeholder.setGenus("Physeter");
+		        placeholder.setSpecificEpithet("macrocephalus");
 		        placeholder.setState("approved");
 		        placeholder.setSubmitterName("Shane Gero");
 		        placeholder.setSubmitterEmail("geroshane@gmail.com");
@@ -204,6 +206,9 @@ public class CaribwhaleMigratorApp {
                   }
 		              
                   enc.setState("approved");
+                  
+                  enc.setGenus("Physeter");
+                  enc.setSpecificEpithet("macrocephalus");
                   
                   String catNumber=Integer.toString(i);
 		              enc.setCatalogNumber(catNumber);
@@ -297,11 +302,14 @@ public class CaribwhaleMigratorApp {
                     if(sexCell.getContents()!=null){
                       String thisSex=sexCell.getContents();
                       if(!thisSex.trim().equals("")){
-                        indie.setSex(thisSex.trim());
+                        
+                        if(thisSex.toLowerCase().startsWith("m")){indie.setSex("male");}
+                        else if(thisSex.toLowerCase().startsWith("f")){indie.setSex("female");}
+                        
                         System.out.println("     Set sex for indie "+indie.getIndividualID()+" to "+indie.getSex());
                         
                         //if genetic sex (Fg or Mg), create the correct data structures
-                        if((indie.getSex().toLowerCase().equals("Mg"))||(indie.getSex().toLowerCase().equals("Fg"))){
+                        if((indie.getSex().toLowerCase().equals("mg"))||(indie.getSex().toLowerCase().equals("fg"))){
                           TissueSample ts=new TissueSample(placeholder.getCatalogNumber(),(indie.getIndividualID()+"_SAMPLE"));
                           if((placeholder.getTissueSamples()!=null)&&(placeholder.getTissueSamples().size()>0)){
                             ts=placeholder.getTissueSamples().get(0);
