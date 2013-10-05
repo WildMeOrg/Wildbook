@@ -646,7 +646,7 @@ public class Encounter implements java.io.Serializable {
   public String getDate() {
     String date = "";
     String time = "";
-    if (year == -1) {
+    if (year <= 0) {
       return "Unknown";
     } else if (month == -1) {
       return (new Integer(year)).toString();
@@ -670,7 +670,7 @@ public class Encounter implements java.io.Serializable {
 
   public String getShortDate() {
     String date = "";
-    if (year == -1) {
+    if (year <= 0) {
       return "Unknown";
     } else if (month == -1) {
       return (new Integer(year)).toString();
