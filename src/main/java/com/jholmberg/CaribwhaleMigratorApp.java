@@ -144,6 +144,7 @@ public class CaribwhaleMigratorApp {
 		        
 		        //set up the placeholder encounter
 		        Encounter placeholder=new Encounter();
+		        placeholder.setState("approved");
 		        placeholder.setSubmitterName("Shane Gero");
 		        placeholder.setSubmitterEmail("geroshane@gmail.com");
             String pCatNumber=indie.getIndividualID()+"_DATASTORE";
@@ -202,7 +203,7 @@ public class CaribwhaleMigratorApp {
                     enc.setCountry(country);
                   }
 		              
-
+                  enc.setState("approved");
                   
                   String catNumber=Integer.toString(i);
 		              enc.setCatalogNumber(catNumber);
