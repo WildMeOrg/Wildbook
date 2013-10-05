@@ -1560,7 +1560,13 @@ $("a#locationID").click(function() {
     <tr>
       <td align="left" valign="top">
         <form name="setLocation" action="../EncounterSetLocation" method="post">
-        <textarea name="location" size="15"><%=enc.getLocation().trim()%></textarea>
+        <%
+        String thisLocation="";
+        if(enc.getLocation()!=null){
+        	thisLocation=enc.getLocation().trim();
+        }
+        %>
+        <textarea name="location" size="15"><%=thisLocation%></textarea>
           <input name="number" type="hidden" value="<%=num%>" /> 
           <input name="action" type="hidden" value="setLocation" /> 
           <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setLocation")%>" />
