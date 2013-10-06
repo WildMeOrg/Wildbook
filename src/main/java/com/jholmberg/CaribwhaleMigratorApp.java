@@ -415,92 +415,7 @@ public class CaribwhaleMigratorApp {
                   myShepherd.commitDBTransaction();
                   myShepherd.beginDBTransaction();
                   
-                  //now check FlukestoMatch for additional encounters
-                  File flukesToMatchDB=new File(flukesToMatchPath);
-                  Database flukesDB=Database.open(flukesToMatchDB);
-                  
-                  Set<String> tableNames=flukesDB.getTableNames();
-                  int numTableNames=tableNames.size();
-                  //let's iterate the tables
-                  Iterator names=tableNames.iterator();
-                  while(names.hasNext()){
-                    String localName=(String)names.next();
-                    Table thisTable=flukesDB.getTable(localName);
-                    Iterator<Map<String,Object>> tableIterator = thisTable.iterator();
-                    int rowNum=0;
-                    while(tableIterator.hasNext()){
-                      Map<String,Object> thisIndexRow=tableIterator.next();
-                      if(thisIndexRow.get("IDN")!=null){
-                        String localID=((Integer)thisIndexRow.get("IDN")).toString();
-                        if(localID.trim().equals(indie.getIndividualID())){
-                      
-                          //hooray we have a match in a table in flukes to match
-                          System.out.println("     Found a match in FlukestoMatch:"+thisTable.getName());
-                          
-                          //let's create an encounter and set the date
-                          Encounter flukesEnc=new Encounter();
-                          flukesEnc.setCatalogNumber(indie.getIndividualID()+":FlukestoMatch:"+thisTable.getName()+":"+rowNum);
-                      
-                          myShepherd.getPM().makePersistent(flukesEnc);
-                          myShepherd.commitDBTransaction();
-                          myShepherd.beginDBTransaction();
-                          
-                          if((thisIndexRow.get("Year")!=null)){
-                            int year=(new Integer((String)thisIndexRow.get("Year"))).intValue();
-                            flukesEnc.setYear(year);
-                          }
-                          if((thisIndexRow.get("Month")!=null)){
-                            int month=(new Integer((String)thisIndexRow.get("Month"))).intValue();
-                            flukesEnc.setMonth(month);
-                          }
-                          if((thisIndexRow.get("Day")!=null)){
-                            int day=(new Integer((String)thisIndexRow.get("Day"))).intValue();
-                            flukesEnc.setDay(day);
-                          }
-                          if((thisIndexRow.get("Hour")!=null)){
-                            int hour=(new Integer((String)thisIndexRow.get("Hour"))).intValue();
-                            flukesEnc.setHour(hour);
-                          }
-                          if((thisIndexRow.get("Minute")!=null)){
-                            String min=(String)thisIndexRow.get("Minute");
-                            flukesEnc.setMinutes(min);
-                          }
-                          
-                          if((thisIndexRow.get("Comments")!=null)){
-                            String comm=(String)thisIndexRow.get("Comments");
-                            flukesEnc.addComments(comm);
-                          }
-                          
-                          if((thisIndexRow.get("Class")!=null)){
-                            String classy=(String)thisIndexRow.get("Class");
-                            flukesEnc.setLifeStage(classy);
-                          }
-                          
-                          //set tissue sample if taken
-                          if((thisIndexRow.get("Sample")!=null)){
-                            String sample=(String)thisIndexRow.get("Sample");
-                            StringTokenizer str=new StringTokenizer(sample,",");
-                            while(str.hasMoreTokens()){
-                              String token=str.nextToken();
-                              TissueSample ts=new TissueSample(flukesEnc.getCatalogNumber(),token);
-                              flukesEnc.addTissueSample(ts);
-                              myShepherd.commitDBTransaction();
-                              myShepherd.beginDBTransaction();
-                            }
-                          }
-                          
-                          myShepherd.commitDBTransaction();
-                          myShepherd.beginDBTransaction();
-                        
-                        }
-                      }
-                        
-                      rowNum++;  
-                      }
-                    
-                    
-                  }
-                  
+             
                   
                   
                   
@@ -512,6 +427,124 @@ public class CaribwhaleMigratorApp {
             }
             
             //System.out.println("End step 4...");
+            
+            //now check FlukestoMatch for additional encounters
+            File flukesToMatchDB=new File(flukesToMatchPath);
+            Database flukesDB=Database.open(flukesToMatchDB);
+            //System.out.println("     Entering FlukestoMatch...");
+            Set<String> tableNames=flukesDB.getTableNames();
+            int numTableNames=tableNames.size();
+            //let's iterate the tables
+            Iterator names=tableNames.iterator();
+            while(names.hasNext()){
+              String localName=(String)names.next();
+              Table thisTable=flukesDB.getTable(localName);
+              //System.out.println("          Entering FlukestoMatch:"+localName);
+              Iterator<Map<String,Object>> tableIterator = thisTable.iterator();
+              int rowNum=0;
+              while(tableIterator.hasNext()){
+                Map<String,Object> thisIndexRow=tableIterator.next();
+                if(thisIndexRow.get("IDN")!=null){
+                  String localID="";
+                  try{
+                    localID=((Integer)thisIndexRow.get("IDN")).toString();
+                  }
+                  catch(ClassCastException cce){
+                    //cce.printStackTrace();
+                  }
+                  
+                  if(localID.trim().equals(indie.getIndividualID())){
+                
+                    //hooray we have a match in a table in flukes to match
+                    System.out.println("     %%%%Found a match in FlukestoMatch:"+thisTable.getName());
+                    
+                    //let's create an encounter and set the date
+                    Encounter flukesEnc=new Encounter();
+                    flukesEnc.setCatalogNumber(indie.getIndividualID()+":FlukestoMatch:"+thisTable.getName()+":"+rowNum);
+                
+                    myShepherd.getPM().makePersistent(flukesEnc);
+                    myShepherd.commitDBTransaction();
+                    myShepherd.beginDBTransaction();
+                    
+                    if((thisIndexRow.get("Year")!=null)){
+                      int year=((Integer)thisIndexRow.get("Year")).intValue();
+                      flukesEnc.setYear(year);
+                    }
+                    if((thisIndexRow.get("year")!=null)){
+                      int year=((Integer)thisIndexRow.get("year")).intValue();
+                      flukesEnc.setYear(year);
+                    }
+                    if((thisIndexRow.get("Month")!=null)){
+                      int month=((Integer)thisIndexRow.get("Month")).intValue();
+                      flukesEnc.setMonth(month);
+                    }
+                    if((thisIndexRow.get("month")!=null)){
+                      int month=((Integer)thisIndexRow.get("month")).intValue();
+                      flukesEnc.setMonth(month);
+                    }
+                    if((thisIndexRow.get("Day")!=null)){
+                      int day=((Integer)thisIndexRow.get("Day")).intValue();
+                      flukesEnc.setDay(day);
+                    }
+                    if((thisIndexRow.get("day")!=null)){
+                      int day=((Integer)thisIndexRow.get("day")).intValue();
+                      flukesEnc.setDay(day);
+                    }
+                    if((thisIndexRow.get("Hour")!=null)){
+                      int hour=((Integer)thisIndexRow.get("Hour")).intValue();
+                      flukesEnc.setHour(hour);
+                    }
+                    if((thisIndexRow.get("hour")!=null)){
+                      int hour=((Integer)thisIndexRow.get("hour")).intValue();
+                      flukesEnc.setHour(hour);
+                    }
+                    if((thisIndexRow.get("Minute")!=null)){
+                      int mins=((Integer)thisIndexRow.get("Minute")).intValue();
+                      flukesEnc.setMinutes(Integer.toString(mins));
+                    }
+                    if((thisIndexRow.get("minute")!=null)){
+                      int mins=((Integer)thisIndexRow.get("minute")).intValue();
+                      flukesEnc.setMinutes(Integer.toString(mins));
+                    }
+                    
+                    if((thisIndexRow.get("Comments")!=null)){
+                      String comm=(String)thisIndexRow.get("Comments");
+                      flukesEnc.addComments(comm);
+                    }
+                    
+                    if((thisIndexRow.get("Class")!=null)){
+                      String classy=(String)thisIndexRow.get("Class");
+                      flukesEnc.setLifeStage(classy);
+                    }
+                    
+                    //set tissue sample if taken
+                    if((thisIndexRow.get("Sample")!=null)){
+                      String sample=(String)thisIndexRow.get("Sample");
+                      StringTokenizer str=new StringTokenizer(sample,",");
+                      while(str.hasMoreTokens()){
+                        String token=str.nextToken();
+                        TissueSample ts=new TissueSample(flukesEnc.getCatalogNumber(),token);
+                        flukesEnc.addTissueSample(ts);
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
+                      }
+                    }
+                    
+                    myShepherd.commitDBTransaction();
+                    myShepherd.beginDBTransaction();
+                  
+                  }
+                }
+                //}
+                //}
+            
+                rowNum++;  
+                }
+              
+              
+            }
+            
+            
 		      
 		      } //end for
 		      
