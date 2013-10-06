@@ -317,7 +317,7 @@ public class CaribwhaleMigratorApp {
                         System.out.println("     Set sex for indie "+indie.getIndividualID()+" to "+indie.getSex());
                         
                         //if genetic sex (Fg or Mg), create the correct data structures
-                        if((indie.getSex().toLowerCase().equals("mg"))||(indie.getSex().toLowerCase().equals("fg"))){
+                        if((thisSex.toLowerCase().equals("mg"))||(thisSex.toLowerCase().equals("fg"))){
                           TissueSample ts=new TissueSample(placeholder.getCatalogNumber(),(indie.getIndividualID()+"_SAMPLE"));
                           if((placeholder.getTissueSamples()!=null)&&(placeholder.getTissueSamples().size()>0)){
                             ts=placeholder.getTissueSamples().get(0);
@@ -327,7 +327,7 @@ public class CaribwhaleMigratorApp {
                             myShepherd.commitDBTransaction();
                             myShepherd.beginDBTransaction();
                           }
-                          SexAnalysis sa=new SexAnalysis((indie.getIndividualID()+"_SEX"), thisSex, placeholder.getCatalogNumber(), ts.getSampleID());
+                          SexAnalysis sa=new SexAnalysis((indie.getIndividualID()+"_SEX"), thisSex.trim(), placeholder.getCatalogNumber(), ts.getSampleID());
                           myShepherd.getPM().makePersistent(sa);
                           ts.addGeneticAnalysis(sa);
                           myShepherd.commitDBTransaction();
