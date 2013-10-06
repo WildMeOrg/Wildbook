@@ -465,58 +465,72 @@ public class CaribwhaleMigratorApp {
                     myShepherd.getPM().makePersistent(flukesEnc);
                     myShepherd.commitDBTransaction();
                     myShepherd.beginDBTransaction();
-                    
+                    try{
                     if((thisIndexRow.get("Year")!=null)){
-                      int year=((Integer)thisIndexRow.get("Year")).intValue();
-                      flukesEnc.setYear(year);
+                      int year=((Double)thisIndexRow.get("Year")).intValue();
+                      if(year>0)flukesEnc.setYear(year);
                     }
                     if((thisIndexRow.get("year")!=null)){
-                      int year=((Integer)thisIndexRow.get("year")).intValue();
-                      flukesEnc.setYear(year);
+                      int year=((Double)thisIndexRow.get("year")).intValue();
+                      if(year>0)flukesEnc.setYear(year);
                     }
+                    System.out.println("          Found a year!");
                     if((thisIndexRow.get("Month")!=null)){
                       int month=((Integer)thisIndexRow.get("Month")).intValue();
-                      flukesEnc.setMonth(month);
+                      if(month>0)flukesEnc.setMonth(month);
                     }
                     if((thisIndexRow.get("month")!=null)){
                       int month=((Integer)thisIndexRow.get("month")).intValue();
-                      flukesEnc.setMonth(month);
+                      if(month>0)flukesEnc.setMonth(month);
                     }
+                    System.out.println("          Found a month!");
                     if((thisIndexRow.get("Day")!=null)){
                       int day=((Integer)thisIndexRow.get("Day")).intValue();
-                      flukesEnc.setDay(day);
+                      if(day>0)flukesEnc.setDay(day);
                     }
                     if((thisIndexRow.get("day")!=null)){
                       int day=((Integer)thisIndexRow.get("day")).intValue();
-                      flukesEnc.setDay(day);
+                      if(day>0)flukesEnc.setDay(day);
                     }
+                    System.out.println("          Found a day!");
                     if((thisIndexRow.get("Hour")!=null)){
-                      int hour=((Integer)thisIndexRow.get("Hour")).intValue();
-                      flukesEnc.setHour(hour);
+                      int hour=-1;
+                      try{hour=(new Integer((String)thisIndexRow.get("Hour"))).intValue();}
+                      catch(ClassCastException here){}
+                      if(hour>-1){flukesEnc.setHour(hour);}
                     }
                     if((thisIndexRow.get("hour")!=null)){
-                      int hour=((Integer)thisIndexRow.get("hour")).intValue();
-                      flukesEnc.setHour(hour);
+                      int hour=-1;
+                      try{hour=(new Integer((String)thisIndexRow.get("hour"))).intValue();}
+                      catch(ClassCastException here){}
+                      if(hour>-1){flukesEnc.setHour(hour);}
                     }
+                    System.out.println("          Found an hour!");
                     if((thisIndexRow.get("Minute")!=null)){
-                      int mins=((Integer)thisIndexRow.get("Minute")).intValue();
-                      flukesEnc.setMinutes(Integer.toString(mins));
+                      String mins="";
+                      try{mins=(String)thisIndexRow.get("Minute");}
+                      catch(ClassCastException here){}
+                      if(!mins.equals("")){flukesEnc.setMinutes(mins);}
                     }
                     if((thisIndexRow.get("minute")!=null)){
-                      int mins=((Integer)thisIndexRow.get("minute")).intValue();
-                      flukesEnc.setMinutes(Integer.toString(mins));
+                      String mins="";
+                      try{mins=(String)thisIndexRow.get("minute");}
+                      catch(ClassCastException here){}
+                      if(!mins.equals("")){flukesEnc.setMinutes(mins);}
                     }
+                    System.out.println("          Found a minute!");
                     
                     if((thisIndexRow.get("Comments")!=null)){
                       String comm=(String)thisIndexRow.get("Comments");
                       flukesEnc.addComments(comm);
                     }
+                    System.out.println("          Found comments!");
                     
                     if((thisIndexRow.get("Class")!=null)){
                       String classy=(String)thisIndexRow.get("Class");
                       flukesEnc.setLifeStage(classy);
                     }
-                    
+                    System.out.println("          Found a class!");
                     //set tissue sample if taken
                     if((thisIndexRow.get("Sample")!=null)){
                       String sample=(String)thisIndexRow.get("Sample");
@@ -527,9 +541,11 @@ public class CaribwhaleMigratorApp {
                         flukesEnc.addTissueSample(ts);
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
+                        System.out.println("          Found a tissue sample!");
                       }
                     }
-                    
+                    }
+                    catch(ClassCastException cce2){cce2.printStackTrace();}
                     myShepherd.commitDBTransaction();
                     myShepherd.beginDBTransaction();
                   
