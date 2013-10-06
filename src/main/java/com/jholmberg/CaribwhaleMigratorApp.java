@@ -463,6 +463,7 @@ public class CaribwhaleMigratorApp {
                     flukesEnc.setCatalogNumber(indie.getIndividualID()+":FlukestoMatch:"+thisTable.getName()+":"+rowNum);
                 
                     myShepherd.getPM().makePersistent(flukesEnc);
+                    indie.addEncounter(flukesEnc);
                     myShepherd.commitDBTransaction();
                     myShepherd.beginDBTransaction();
                     try{
