@@ -561,6 +561,7 @@ public class CaribwhaleMigratorApp {
               
             }
             
+            indie.resetMaxNumYearsBetweenSightings();
             
 		      
 		      } //end for
