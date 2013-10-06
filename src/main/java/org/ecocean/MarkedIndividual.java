@@ -650,7 +650,7 @@ public class MarkedIndividual implements java.io.Serializable {
     int lowestYear = 5000;
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if ((temp.getYear() < lowestYear)&&(temp.getYear()>-1)){ 
+      if ((temp.getYear() < lowestYear)&&(temp.getYear()>0)){ 
         lowestYear = temp.getYear();
       }
     }
@@ -661,7 +661,7 @@ public class MarkedIndividual implements java.io.Serializable {
     long lowestTime = GregorianCalendar.getInstance().getTimeInMillis();
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if (temp.getDateInMilliseconds() < lowestTime) lowestTime = temp.getDateInMilliseconds();
+      if ((temp.getDateInMilliseconds() < lowestTime)&&(temp.getYear()>0)) lowestTime = temp.getDateInMilliseconds();
     }
     return lowestTime;
   }

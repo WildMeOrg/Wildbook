@@ -277,11 +277,13 @@
       %> <br /><font size="-1"><%=props.getProperty("alternateID")%>: <%=indie.getAlternateID()%>
       </font> <%
         }
+      if(temp.getYear()>0){
       %>
       <br /><font size="-1"><%=props.getProperty("firstIdentified")%>: <%=temp.getMonth() %>
         /<%=temp.getYear() %>
       </font>
       <%
+      }
       if(CommonConfiguration.showProperty("showTaxonomy")){
       	if(indie.getGenusSpecies()!=null){
       %>
