@@ -120,6 +120,7 @@ public class CaribwhaleMigratorApp {
 			  String individualID=itKeys.next();
 			  MarkedIndividual thisIndie=new MarkedIndividual();
 			  thisIndie.setIndividualID(individualID);
+			  thisIndie.setDateTimeCreated(ServletUtilities.getDate());
 			  indies.add(thisIndie);
 			}
 			int numIndies=indies.size();
@@ -145,6 +146,8 @@ public class CaribwhaleMigratorApp {
 		        
 		        //set up the placeholder encounter
 		        Encounter placeholder=new Encounter();
+		       placeholder.setDWCDateAdded(ServletUtilities.getDate());
+		       placeholder.setDWCDateLastModified(ServletUtilities.getDate());
 		        placeholder.setGenus("Physeter");
 		        placeholder.setSpecificEpithet("macrocephalus");
 		        placeholder.setState("approved");
@@ -168,6 +171,8 @@ public class CaribwhaleMigratorApp {
 		              //OK, we have a matching Encounter row
 		              //System.out.println("WE HAVE A MATCH!!!!!!!!!");
 		              Encounter enc=new Encounter();
+		              enc.setDWCDateAdded(ServletUtilities.getDate());
+		              enc.setDWCDateLastModified(ServletUtilities.getDate());
 		              
 		              Cell yearCell = sheet.getCell(24, i);
 		              if(yearCell.getContents()!=null){
@@ -461,7 +466,9 @@ public class CaribwhaleMigratorApp {
                     //let's create an encounter and set the date
                     Encounter flukesEnc=new Encounter();
                     flukesEnc.setCatalogNumber(indie.getIndividualID()+":FlukestoMatch:"+thisTable.getName()+":"+rowNum);
-                
+                    flukesEnc.setDWCDateAdded(ServletUtilities.getDate());
+                    flukesEnc.setDWCDateLastModified(ServletUtilities.getDate());
+                    
                     myShepherd.getPM().makePersistent(flukesEnc);
                     indie.addEncounter(flukesEnc);
                     myShepherd.commitDBTransaction();
@@ -539,6 +546,7 @@ public class CaribwhaleMigratorApp {
                       while(str.hasMoreTokens()){
                         String token=str.nextToken();
                         TissueSample ts=new TissueSample(flukesEnc.getCatalogNumber(),token);
+                        myShepherd.getPM().makePersistent(ts);
                         flukesEnc.addTissueSample(ts);
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
