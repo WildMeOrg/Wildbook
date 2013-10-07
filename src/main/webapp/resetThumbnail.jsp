@@ -70,7 +70,8 @@
 
         <div id="maintext">
           <%
-
+          Shepherd myShepherd = new Shepherd();
+          try {
             String addText = "";
             if (request.getParameter("imageName") != null) {
               addText = request.getParameter("imageName");
@@ -78,7 +79,7 @@
 
             } 
             else {
-              Shepherd myShepherd = new Shepherd();
+              
               myShepherd.beginDBTransaction();
               Encounter enc = myShepherd.getEncounter(number);
               addText = (String) enc.getAdditionalImageNames().get((imageNum - 1));
@@ -99,7 +100,7 @@
 
             File file2process = new File(addText);
 
-            try {
+            
 
 
               //ImageInfo iInfo=new ImageInfo();
@@ -134,14 +135,7 @@
 
 
               }
-            } catch (Exception e) {
-              e.printStackTrace();
-          %>
-
-          <p>Hit an error trying to use Sanselan to determine image size and scaling factors.</p>
-
-          <%
-            }
+            
 
 
             String thumbLocation = "file-"+encountersDir.getAbsolutePath()+"/" + number + "/thumb.jpg";
@@ -164,6 +158,20 @@
 
 
         </div>
+        <%
+        } catch (Exception e) {
+              //e.printStackTrace();
+          %>
+
+          <p>Hit an error trying to generate the thumbnail. Either the specified encounter or image does not exist.</p>
+	</div>
+	
+          <%
+            }
+          myShepherd.rollbackDBTransaction();
+                  myShepherd.closeDBTransaction();
+        		  myShepherd=null;
+          %>
         <!-- end maintext --></div>
       <!-- end maincol -->
       <jsp:include page="footer.jsp" flush="true"/>
