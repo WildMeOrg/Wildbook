@@ -610,6 +610,11 @@ public class CaribwhaleMigratorApp {
 				ioe.printStackTrace();
 			}
 		}
+		
+		
+		System.out.println("\n\nDONE!!!!!");
+
+		/**
 		System.out.println("\n\nStarting thumbnail work!");
 
 		int numThumbnailsToGenerate=thumbnailThese.size();
@@ -644,6 +649,7 @@ public class CaribwhaleMigratorApp {
 
 
 		}
+		*/
 
 
 	}
