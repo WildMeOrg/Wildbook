@@ -1238,6 +1238,15 @@ public String getHaplotype(){
 
 }
 
+public String getGeneticSex(){
+  for (int c = 0; c < encounters.size(); c++) {
+    Encounter temp = (Encounter) encounters.get(c);
+    if(temp.getGeneticSex()!=null){return temp.getGeneticSex();}
+  }
+return null;
+
+}
+
 public boolean hasLocusAndAllele(String locus, Integer alleleValue){
   ArrayList<TissueSample> samples=getAllTissueSamples();
   int numSamples=samples.size();
