@@ -308,30 +308,42 @@ public class CaribwhaleMigratorApp {
                   if(sheet1.getCell(9, f)!=null){
                     Cell sexCell=sheet1.getCell(9, f);
                     if(sexCell.getContents()!=null){
-                      String thisSex=sexCell.getContents();
-                      if(!thisSex.trim().equals("")){
+                      String thisSex=sexCell.getContents().trim();
+                      if(!thisSex.equals("")){
                         
                         if(thisSex.toLowerCase().startsWith("m")){indie.setSex("male");}
                         else if(thisSex.toLowerCase().startsWith("f")){indie.setSex("female");}
+                        else{indie.setSex("unknown");}
                         
                         System.out.println("     Set sex for indie "+indie.getIndividualID()+" to "+indie.getSex());
                         
                         //if genetic sex (Fg or Mg), create the correct data structures
-                        if((thisSex.toLowerCase().equals("mg"))||(thisSex.toLowerCase().equals("fg"))){
+                        if((thisSex.toLowerCase().trim().equals("mg"))||(thisSex.toLowerCase().trim().equals("fg"))){
                           TissueSample ts=new TissueSample(placeholder.getCatalogNumber(),(indie.getIndividualID()+"_SAMPLE"));
                           if((placeholder.getTissueSamples()!=null)&&(placeholder.getTissueSamples().size()>0)){
                             ts=placeholder.getTissueSamples().get(0);
                           }
                           else{
                             myShepherd.getPM().makePersistent(ts);
+                            placeholder.addTissueSample(ts);
+                            System.out.println("     Adding a new tissue sample!!!");
                             myShepherd.commitDBTransaction();
                             myShepherd.beginDBTransaction();
+                            System.out.println("     SampleID is: "+ts.getSampleID());
                           }
                           SexAnalysis sa=new SexAnalysis((indie.getIndividualID()+"_SEX"), thisSex.trim(), placeholder.getCatalogNumber(), ts.getSampleID());
+                          
                           myShepherd.getPM().makePersistent(sa);
-                          ts.addGeneticAnalysis(sa);
                           myShepherd.commitDBTransaction();
                           myShepherd.beginDBTransaction();
+                          ts.addGeneticAnalysis(sa);
+                          
+                          
+                          myShepherd.commitDBTransaction();
+                          myShepherd.beginDBTransaction();
+                          System.out.println("     Adding a GENETIC SEX: "+sa.getSex());
+                          System.out.println("     Placeholder confirms: "+placeholder.getGeneticSex());
+                          System.out.println("     Indie confirms: "+indie.getGeneticSex());
                         }
                       }
                     }
@@ -353,11 +365,14 @@ public class CaribwhaleMigratorApp {
                           }
                           else{
                             myShepherd.getPM().makePersistent(ts);
+                            placeholder.addTissueSample(ts);
+                            System.out.println("     Adding a new tissue sample!!!");
+                            
                             myShepherd.commitDBTransaction();
                             myShepherd.beginDBTransaction();
                           }
                           
-                          placeholder.addTissueSample(ts);
+                         
                           MitochondrialDNAAnalysis haplo=new MitochondrialDNAAnalysis((indie.getIndividualID()+"_HAPLOTYPE"),thisHaplo,placeholder.getCatalogNumber(),ts.getSampleID());
                           myShepherd.getPM().makePersistent(haplo);
                           ts.addGeneticAnalysis(haplo);
