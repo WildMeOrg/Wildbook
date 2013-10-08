@@ -33,17 +33,17 @@ public class EncounterLoader {
 		
 		System.out.println("\n\n");
 		
-		int numThumbnailsToGenerate=17712;
+		int numThumbnailsToGenerate=6195;
 		String IDKey="";
-		for(int q=1;q<numThumbnailsToGenerate;q++){
+		for(int q=5930;q<numThumbnailsToGenerate;q++){
 			System.out.println(q);
 			//ping a URL to thumbnail generator - Tomcat must be up and running
 		    try 
 		    {
 		        
 		    	//System.out.println("Trying to render a thumbnail for: "+IDKey+ "as "+thumbnailTheseImages.get(q));
-		    	String urlString=urlToThumbnailJSPPage+"resetThumbnail.jsp?number="+q+"&imageNum=1";
-		    	String urlString2=urlToThumbnailJSPPage+"encounters/encounter.jsp?number="+q+"&imageNum=1";
+		    	String urlString=urlToThumbnailJSPPage+"resetThumbnail.jsp?number="+q+"_DATASTORE&imageNum=1";
+		    	String urlString2=urlToThumbnailJSPPage+"encounters/encounter.jsp?number="+q+"_DATASTORE&imageNum=1";
 		    	URL url = new URL(urlString);
 		    	URL url2 = new URL(urlString2);
 		        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
