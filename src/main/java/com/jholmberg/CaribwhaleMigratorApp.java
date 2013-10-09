@@ -143,6 +143,7 @@ public class CaribwhaleMigratorApp {
 		        MarkedIndividual indie=myShepherd.getMarkedIndividual(indies.get(y).getIndividualID());
 		        String indiesFilename=idMap.get(indie.getIndividualID());
 		        File thisFile=new File(sourceImagesDir,indiesFilename);
+		        boolean haveAssignedPhoto=false;
 		        
 		        //set up the placeholder encounter
 		        Encounter placeholder=new Encounter();
@@ -247,10 +248,15 @@ public class CaribwhaleMigratorApp {
                     }
                     
                     SinglePhotoVideo sing = new SinglePhotoVideo(catNumber, indiesFilename, (encounterDir.getAbsolutePath()+"/"+indiesFilename));
-                    myShepherd.getPM().makePersistent(sing);
                     
-                    enc.addSinglePhotoVideo(sing);
-                    thumbnailTheseImages.add(enc.getCatalogNumber());
+                    
+                    if(!haveAssignedPhoto){
+                      myShepherd.getPM().makePersistent(sing);
+                      enc.addSinglePhotoVideo(sing);
+                      haveAssignedPhoto=true;
+                      thumbnailTheseImages.add(enc.getCatalogNumber());
+                    }
+                    
                     myShepherd.commitDBTransaction();
                     myShepherd.beginDBTransaction();
                     
@@ -272,9 +278,14 @@ public class CaribwhaleMigratorApp {
 		          //if the MarkedIndividual does not have a SinglePhoto video assigned to an Encounter, then assign the image here and create/copy the directories and files
 		          if((indie.getAllSinglePhotoVideo()==null)||(indie.getAllSinglePhotoVideo().size()==0)){
 		            SinglePhotoVideo sing = new SinglePhotoVideo(placeholder.getCatalogNumber(), indiesFilename, (placeholderFileDir.getAbsolutePath()+"/"+indiesFilename));
-                myShepherd.getPM().makePersistent(sing);
-		            placeholder.addSinglePhotoVideo(sing);
-		            thumbnailTheseImages.add(placeholder.getCatalogNumber());
+               
+		            if(!!haveAssignedPhoto){
+		              myShepherd.getPM().makePersistent(sing);
+		              placeholder.addSinglePhotoVideo(sing);
+		              thumbnailTheseImages.add(placeholder.getCatalogNumber());
+		              haveAssignedPhoto=true;
+		            }
+		            
 		            myShepherd.commitDBTransaction();
 		            myShepherd.beginDBTransaction();
                
@@ -403,6 +414,18 @@ public class CaribwhaleMigratorApp {
                       String thisLocID=locIDCell.getContents();
                       if(!thisLocID.trim().equals("")){
                         placeholder.setLocation(thisLocID);
+                        
+                        /*
+                         * 
+                         * 1=Caribbean,2=Sargasso,3=Gully,4=GOM,5=Azores,6=Other'
+                         */
+                        if(placeholder.getLocationID().equals("1")){placeholder.setVerbatimLocality("Caribbean");}
+                        else if(placeholder.getLocationID().equals("2")){placeholder.setVerbatimLocality("Sargasso");}
+                        else if(placeholder.getLocationID().equals("3")){placeholder.setVerbatimLocality("Gully");}
+                        else if(placeholder.getLocationID().equals("4")){placeholder.setVerbatimLocality("Gulf of Mexico");}
+                        else if(placeholder.getLocationID().equals("5")){placeholder.setVerbatimLocality("Azores");}
+                        else if(placeholder.getLocationID().equals("6")){placeholder.setVerbatimLocality("Other");}
+                        
                         System.out.println("     Set locationID for indie "+indie.getIndividualID()+" to "+placeholder.getLocationID());
                       }
                     }

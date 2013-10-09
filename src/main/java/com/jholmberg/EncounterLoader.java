@@ -11,7 +11,7 @@ package com.jholmberg;
 import java.io.*;
 //import java.util.*;
 import java.net.*;
-
+import java.lang.Thread;
 
 
 
@@ -35,7 +35,9 @@ public class EncounterLoader {
 		
 		int numThumbnailsToGenerate=6195;
 		String IDKey="";
-		for(int q=5930;q<numThumbnailsToGenerate;q++){
+		
+		/*
+		for(int q=5000;q<numThumbnailsToGenerate;q++){
 			System.out.println(q);
 			//ping a URL to thumbnail generator - Tomcat must be up and running
 		    try 
@@ -48,28 +50,57 @@ public class EncounterLoader {
 		    	URL url2 = new URL(urlString2);
 		        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
 		        in.close();
-		        
+		        Thread.sleep(100);
 		        BufferedReader in2 = new BufferedReader(new InputStreamReader(url2.openStream()));
             in2.close();
+            Thread.sleep(100);
 		    } 
-		    catch (MalformedURLException e) {
+		    catch (Exception e) {
 		    	
 		    	System.out.println("Error trying to render the thumbnail for "+IDKey+".");
 		    	e.printStackTrace();
 		    	
 		    }
-		    catch (IOException ioe) {
-		    	
-		    	System.out.println("Error trying to render the thumbnail for "+IDKey+".");
-		    	ioe.printStackTrace();
-		    	
-		    } 
+		    
 		    
 			
 			
 		}
+		*/
 		
-
+		int numEncounters=18000;
+	  for(int q=9500;q<numEncounters;q++){
+      System.out.println(q);
+      //ping a URL to thumbnail generator - Tomcat must be up and running
+        try 
+        {
+            
+          //System.out.println("Trying to render a thumbnail for: "+IDKey+ "as "+thumbnailTheseImages.get(q));
+          String urlString=urlToThumbnailJSPPage+"resetThumbnail.jsp?number="+q+"&imageNum=1";
+          String urlString2=urlToThumbnailJSPPage+"encounters/encounter.jsp?number="+q+"&imageNum=1";
+          URL url = new URL(urlString);
+          URL url2 = new URL(urlString2);
+            BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+            in.close();
+            Thread.sleep(100);
+            BufferedReader in2 = new BufferedReader(new InputStreamReader(url2.openStream()));
+            in2.close();
+            Thread.sleep(100);
+        } 
+        catch (Exception e) {
+          
+          System.out.println("Error trying to render the thumbnail for "+IDKey+".");
+          e.printStackTrace();
+          
+        }
+        
+        
+      
+      
+    }
+		
+		
+		
 	}
 	
 	
