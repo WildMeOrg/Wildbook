@@ -1502,8 +1502,10 @@ public long getMaxTimeBetweenTwoSightings(){
     Encounter thisEnc=(Encounter)encounters.get(y);
     for(int z=(y+1);z<numEncs;z++){
       Encounter nextEnc=(Encounter)encounters.get(z);
-      long tempMaxTime=Math.abs(thisEnc.getDateInMilliseconds()-nextEnc.getDateInMilliseconds());
-      if(tempMaxTime>maxTime){maxTime=tempMaxTime;}
+      if(thisEnc.getDateInMilliseconds()>0){
+        long tempMaxTime=Math.abs(thisEnc.getDateInMilliseconds()-nextEnc.getDateInMilliseconds());
+        if(tempMaxTime>maxTime){maxTime=tempMaxTime;}
+      }
     }
   }
   }
