@@ -1171,7 +1171,7 @@ public class MarkedIndividual implements java.io.Serializable {
     int highestYear=0;
     for(int c=0;c<encounters.size();c++) {
       Encounter temp=(Encounter)encounters.get(c);
-      if((temp.getYear()<lowestYear)&&(temp.getYear()>-1)) lowestYear=temp.getYear();
+      if((temp.getYear()<lowestYear)&&(temp.getYear()>0)) lowestYear=temp.getYear();
       if(temp.getYear()>highestYear) highestYear=temp.getYear();
       maxYears=highestYear-lowestYear;
       }
