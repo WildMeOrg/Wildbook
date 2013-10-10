@@ -90,6 +90,7 @@ public class CaribwhaleMigratorApp {
       Table atlanticTable=db.getTable("AtlanticSpermCatalogue");
 			Iterator<Map<String,Object>> atlanticTableIterator = atlanticTable.iterator();
 			TreeMap<String,String> idMap = new TreeMap<String,String>();
+			TreeMap<String,String> locIDMap = new TreeMap<String,String>();
 			while(atlanticTableIterator.hasNext()){
 				Map<String,Object> thisIndexRow=atlanticTableIterator.next();
 				//String index=(new Integer(((Double)thisIndexRow.get("IDN")).intValue())).toString();
@@ -101,6 +102,12 @@ public class CaribwhaleMigratorApp {
 				if((thisIndexRow.get("Roll")!=null)&&(thisIndexRow.get("Frame")!=null)){
 				  imageFilename=((String)thisIndexRow.get("Roll"))+"-"+((String)thisIndexRow.get("Frame"))+".jpg";
 				}
+				
+				String localLocID="";
+				if(thisIndexRow.get("Area")!=null){
+				  localLocID=((Integer)thisIndexRow.get("Area")).toString();
+        }
+				
 				if(!idMap.containsKey(id)){
 					idMap.put(id, imageFilename);
 					System.out.println("     Placing "+id+" for "+imageFilename+"...");
@@ -110,6 +117,11 @@ public class CaribwhaleMigratorApp {
           if(!singFile.exists()){missingPhotos.add(singFile.getName());}
 					
 				}
+				
+        if(!locIDMap.containsKey(id)){
+          locIDMap.put(id, localLocID);
+          
+        }
 			}
 
 			//STEP 2 - let's create or individuals
@@ -142,8 +154,9 @@ public class CaribwhaleMigratorApp {
 		      for(int y=0;y<numIndies;y++){
 		        MarkedIndividual indie=myShepherd.getMarkedIndividual(indies.get(y).getIndividualID());
 		        String indiesFilename=idMap.get(indie.getIndividualID());
+		        String indiesArea=locIDMap.get(indie.getIndividualID());
 		        File thisFile=new File(sourceImagesDir,indiesFilename);
-		        boolean haveAssignedPhoto=false;
+		        //boolean haveAssignedPhoto=false;
 		        
 		        //set up the placeholder encounter
 		        Encounter placeholder=new Encounter();
@@ -156,6 +169,7 @@ public class CaribwhaleMigratorApp {
 		        placeholder.setSubmitterEmail("geroshane@gmail.com");
             String pCatNumber=indie.getIndividualID()+"_DATASTORE";
             placeholder.setCatalogNumber(pCatNumber);
+            placeholder.setLocationID(indiesArea);
             myShepherd.getPM().makePersistent(placeholder);
             indie.addEncounter(placeholder);
             myShepherd.commitDBTransaction();
@@ -250,12 +264,12 @@ public class CaribwhaleMigratorApp {
                     SinglePhotoVideo sing = new SinglePhotoVideo(catNumber, indiesFilename, (encounterDir.getAbsolutePath()+"/"+indiesFilename));
                     
                     
-                    if(!haveAssignedPhoto){
+                    //if(!haveAssignedPhoto){
                       myShepherd.getPM().makePersistent(sing);
                       enc.addSinglePhotoVideo(sing);
-                      haveAssignedPhoto=true;
+                     // haveAssignedPhoto=true;
                       thumbnailTheseImages.add(enc.getCatalogNumber());
-                    }
+                   // }
                     
                     myShepherd.commitDBTransaction();
                     myShepherd.beginDBTransaction();
@@ -279,12 +293,12 @@ public class CaribwhaleMigratorApp {
 		          if((indie.getAllSinglePhotoVideo()==null)||(indie.getAllSinglePhotoVideo().size()==0)){
 		            SinglePhotoVideo sing = new SinglePhotoVideo(placeholder.getCatalogNumber(), indiesFilename, (placeholderFileDir.getAbsolutePath()+"/"+indiesFilename));
                
-		            if(!!haveAssignedPhoto){
+		            //if(!!haveAssignedPhoto){
 		              myShepherd.getPM().makePersistent(sing);
 		              placeholder.addSinglePhotoVideo(sing);
 		              thumbnailTheseImages.add(placeholder.getCatalogNumber());
-		              haveAssignedPhoto=true;
-		            }
+		             // haveAssignedPhoto=true;
+		           // }
 		            
 		            myShepherd.commitDBTransaction();
 		            myShepherd.beginDBTransaction();
@@ -407,13 +421,106 @@ public class CaribwhaleMigratorApp {
                     }
                   }
                   
+                  //let's get  previous names
+                  if(sheet1.getCell(3, f)!=null){
+                    Cell classCell=sheet1.getCell(3, f);
+                    if(classCell.getContents()!=null){
+                      String thisClass=classCell.getContents();
+                      if(!thisClass.trim().equals("")){
+                        //placeholder.setDynamicProperty("AETcode", thisClass.trim());
+                        String existingAltIDs="";
+                        if(indie.getAlternateID()!=null){
+                          existingAltIDs=indie.getAlternateID();
+                          if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
+                        }
+                        indie.setAlternateID(existingAltIDs+thisClass.trim());
+                       
+                        System.out.println("     Set pre for indie "+indie.getAlternateID());
+                      }
+                    }
+                  }
+                  
+                //let's get AETcode
+                  if(sheet1.getCell(4, f)!=null){
+                    Cell classCell=sheet1.getCell(4, f);
+                    if(classCell.getContents()!=null){
+                      String thisClass=classCell.getContents();
+                      if(!thisClass.trim().equals("")){
+                        placeholder.setDynamicProperty("AETcode", thisClass.trim());
+                        String existingAltIDs="";
+                        if(indie.getAlternateID()!=null){
+                          existingAltIDs=indie.getAlternateID();
+                          if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
+                        }
+                        indie.setAlternateID(existingAltIDs+"AET:"+thisClass.trim());
+                       
+                        System.out.println("     Set AET code for indie "+indie.getAlternateID());
+                      }
+                    }
+                  }
+                  
+                //let's get IFAWcode
+                  if(sheet1.getCell(5, f)!=null){
+                    Cell classCell=sheet1.getCell(5, f);
+                    if(classCell.getContents()!=null){
+                      String thisClass=classCell.getContents();
+                      if(!thisClass.trim().equals("")){
+                        placeholder.setDynamicProperty("IFAWcode", thisClass.trim());
+                        String existingAltIDs="";
+                        if(indie.getAlternateID()!=null){
+                          existingAltIDs=indie.getAlternateID();
+                          if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
+                        }
+                        indie.setAlternateID(existingAltIDs+"IFAW:"+thisClass.trim());
+                        System.out.println("     Set IFAW code for indie "+indie.getAlternateID());
+                      }
+                    }
+                  }
+                  
+                  
+                  //let's get STEFFENname
+                  if(sheet1.getCell(6, f)!=null){
+                    Cell classCell=sheet1.getCell(6, f);
+                    if(classCell.getContents()!=null){
+                      String thisClass=classCell.getContents();
+                      if(!thisClass.trim().equals("")){
+                        placeholder.setDynamicProperty("STEFFENname", thisClass.trim());
+                        String existingAltIDs="";
+                        if(indie.getAlternateID()!=null){
+                          existingAltIDs=indie.getAlternateID();
+                          if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
+                        }
+                        indie.setAlternateID(existingAltIDs+"STEFFEN:"+thisClass.trim());
+                        System.out.println("     Set STEFFEN name for indie "+indie.getAlternateID());
+                      }
+                    }
+                  }
+                  
+                  //let's get PERNELnames
+                  if(sheet1.getCell(7, f)!=null){
+                    Cell classCell=sheet1.getCell(7, f);
+                    if(classCell.getContents()!=null){
+                      String thisClass=classCell.getContents();
+                      if(!thisClass.trim().equals("")){
+                        placeholder.setDynamicProperty("PERNELnames", thisClass.trim());
+                        String existingAltIDs="";
+                        if(indie.getAlternateID()!=null){
+                          existingAltIDs=indie.getAlternateID();
+                          if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
+                        }
+                        indie.setAlternateID(existingAltIDs+"PERNEL:"+thisClass.trim());
+                        System.out.println("     Set PERNEL name for indie "+indie.getAlternateID());
+                      }
+                    }
+                  }
+                  
                   //let's get locationID
                   if(sheet1.getCell(19, f)!=null){
                     Cell locIDCell=sheet1.getCell(19, f);
                     if(locIDCell.getContents()!=null){
                       String thisLocID=locIDCell.getContents();
                       if(!thisLocID.trim().equals("")){
-                        placeholder.setLocation(thisLocID);
+                        placeholder.setLocationID(thisLocID);
                         
                         /*
                          * 

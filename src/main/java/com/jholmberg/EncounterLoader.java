@@ -69,7 +69,7 @@ public class EncounterLoader {
 		*/
 		
 		int numEncounters=18000;
-	  for(int q=9500;q<numEncounters;q++){
+	  for(int q=17000;q<numEncounters;q++){
       System.out.println(q);
       //ping a URL to thumbnail generator - Tomcat must be up and running
         try 
