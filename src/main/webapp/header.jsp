@@ -199,8 +199,7 @@ z-index:99;
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Introduction</a></li>
-	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/video.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Videos</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/photographing.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">How to Photograph</a></li>
+	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/photographing.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">How to Photograph</a></li>
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/publications.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Publications</a></li>
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
