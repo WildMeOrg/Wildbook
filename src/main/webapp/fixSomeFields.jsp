@@ -64,6 +64,7 @@ int numLogEncounters=0;
 while(allSharks.hasNext()){
 
 	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	sharky.setAlternateID(sharky.getAlternateID().replaceAll("None,","").replaceAll("None",""));
 	
 	sharky.resetMaxNumYearsBetweenSightings();
 	
