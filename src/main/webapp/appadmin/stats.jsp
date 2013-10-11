@@ -348,7 +348,7 @@ for(int y=0;y<yearDiff;y++){%>
 	Sharks newly identified in year <%=(2003+y)%>*: <%=sharkNumArray[y]%><br>
 
 <%}%>
-<p><em>*These are sharks newly identified in that year but NOT necessarily reported or resighted for that year (i.e. a shark sighted in 2006 but identified by ECOCEAN Library members in 2008 is added to the 2008 value). </em></p>
+<p><em>*These are sharks newly identified in that year but NOT necessarily reported or resighted for that year (i.e. a shark sighted in 2006 but identified by members in 2008 is added to the 2008 value). </em></p>
 <br>
 <p>Number of photos in the library: <%=numPhotos%></p>
 <p>Number of left-side patterns in the library: <%=numLeftPatterns%></p>
