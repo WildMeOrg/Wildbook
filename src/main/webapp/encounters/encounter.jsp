@@ -703,7 +703,13 @@ margin-bottom: 8px !important;
 						
 						<!-- START ALTERNATEID ATTRIBUTE -->  
     <p class="para">
-    	<img align="absmiddle" src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>: <%=enc.getAlternateID()%>
+    <%
+    String alternateID="";
+    if(enc.getAlternateID()!=null){
+    	alternateID=enc.getAlternateID();
+    }
+    %>
+    	<img align="absmiddle" src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>: <%=alternateID%>
       <%
       if (isOwner && CommonConfiguration.isCatalogEditable()) {
       %>
