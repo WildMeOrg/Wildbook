@@ -1202,7 +1202,7 @@ public class Encounter implements java.io.Serializable {
 
   public String getAlternateID() {
     if (otherCatalogNumbers == null) {
-      return "None";
+      return null;
     }
     return otherCatalogNumbers;
   }
