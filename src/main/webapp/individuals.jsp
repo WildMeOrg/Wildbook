@@ -333,9 +333,15 @@ table.tissueSample td {
 </td>
 </tr></table></p>
 <a name="alternateid"></a>
+<%
+String altID="";
+if(sharky.getAlternateID()!=null){
+	altID=sharky.getAlternateID();
+}
 
+%>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
-  <%=sharky.getAlternateID()%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%=altID%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 
   
 </p>
@@ -348,11 +354,8 @@ table.tissueSample td {
   <tr>
     <td align="left" valign="top">
       <form name="set_alternateid" method="post" action="IndividualSetAlternateID">
-      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>"> <%=alternateID %>
-        :
-        <input name="alternateid" type="text" id="alternateid" size="15"
-               maxlength="150"><br> <input name="Name" type="submit"
-                                           id="Name" value="<%=update %>"></form>
+      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> <%=alternateID %>:
+        <input name="alternateid" type="text" id="alternateid" size="15" maxlength="150" value="<%=altID %>" /><br /> <input name="Name" type="submit" id="Name" value="<%=update %>"></form>
     </td>
   </tr>
 </table>
@@ -630,7 +633,7 @@ $("a#sex").click(function() {
     <%
     } else {
     %>
-    <td class="lineitem"><%=none%>
+    <td class="lineitem">
     </td>
     <%
       }
