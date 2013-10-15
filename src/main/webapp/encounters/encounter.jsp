@@ -2330,6 +2330,108 @@ $("a#behavior").click(function() {
 <!--  END BEHAVIOR SECTION --> 
 
 
+<!--  START PATTERNING CODE SECTION --> 
+<p class="para"><%=encprops.getProperty("patterningCode") %>&nbsp;
+
+  <%
+    if (enc.getPatterningCode() != null) {
+  %>
+  <%=enc.getPatterningCode()%>
+  <%
+  } else {
+  %>
+  <%=encprops.getProperty("none")%>
+  <%
+    }
+  
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+	  %>
+<a id="patterningCode" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+	  <%
+	    }
+%>
+</p>
+
+
+  <%
+    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    %>
+    <!-- start set patterning code popup -->  
+<div id="dialogPatterningCode" title="<%=encprops.getProperty("editPatterningCode")%>" style="display:none">  
+			  <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top" class="para">
+      	<p><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></p>
+      </td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="setPatterningCode" action="../EncounterSetPatterningCode" method="post">
+         <%
+              if(CommonConfiguration.getProperty("patterningCode0")==null){
+              %>
+              <input name="patterningCode" type="text" size="10" maxlength="50" /> 
+              <%
+              }
+              else{
+            	  //iterate and find the locationID options
+            	  %>
+            	  <select name="patterningCode" id="colorCode">
+						            	<option value=""></option>
+						       
+						       <%
+						       boolean hasMoreLocs=true;
+						       int taxNum=0;
+						       while(hasMoreLocs){
+						       	  String currentLoc = "patterningCode"+taxNum;
+						       	  if(CommonConfiguration.getProperty(currentLoc)!=null){
+						       	  	%>
+						       	  	 
+						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc)%>"><%=CommonConfiguration.getProperty(currentLoc)%></option>
+						       	  	<%
+						       		taxNum++;
+						          }
+						          else{
+						             hasMoreLocs=false;
+						          }
+						          
+						       }
+						       %>
+						       
+						       
+						      </select>  
+            	  
+            	  
+            <% 	  
+              }
+              %>
+          <input name="number" type="hidden" value="<%=num%>" /> 
+          <input name="EditPC" type="submit" id="EditPC" value="<%=encprops.getProperty("submitEdit")%>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- popup dialog script -->
+<script>
+var dlgPatterningCode = $("#dialogPatterningCode").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#patterningCode").click(function() {
+	dlgPatterningCode.dialog("open");
+});
+</script> 
+<%
+}
+%>
+<!--  END PATTERNING CODE SECTION --> 
+
+
 <!--  START LIFESTAGE SECTION --> 
 <%
   if (CommonConfiguration.showProperty("showLifestage")) {
