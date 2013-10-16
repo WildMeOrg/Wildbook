@@ -2330,7 +2330,10 @@ $("a#behavior").click(function() {
 <!--  END BEHAVIOR SECTION --> 
 
 
-<!--  START PATTERNING CODE SECTION --> 
+<!--  START PATTERNING CODE SECTION -->
+<%
+  if (CommonConfiguration.showProperty("showPatterningCode")) {
+%>
 <p class="para"><%=encprops.getProperty("patterningCode") %>&nbsp;
 
   <%
@@ -2428,6 +2431,7 @@ $("a#patterningCode").click(function() {
 </script> 
 <%
 }
+  }  
 %>
 <!--  END PATTERNING CODE SECTION --> 
 
