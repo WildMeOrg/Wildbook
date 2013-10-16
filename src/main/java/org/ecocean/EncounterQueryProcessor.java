@@ -169,9 +169,9 @@ public class EncounterQueryProcessor {
     
   //------------------------------------------------------------------
     //patterningCode filters-------------------------------------------------
-    String[] patterningCodes=request.getParameterValues("patterningCode");
+    String[] patterningCodes=request.getParameterValues("patterningCodeField");
     if((patterningCodes!=null)&&(!patterningCodes[0].equals("None"))){
-          prettyPrint.append("Color code is one of the following: ");
+          prettyPrint.append("Patterning code is one of the following: ");
           int kwLength=patterningCodes.length;
             String patterningCodeFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -1111,7 +1111,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     filter+=jdoqlVariableDeclaration;
     
     filter += parameterDeclaration;
-
+    
     return filter;
 
   }
