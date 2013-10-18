@@ -490,7 +490,7 @@
         %>
         var options = {
           width: 450, height: 300,
-          title: 'Sex Distribution in Matched Encounters',
+          title: 'Sex Distribution in Matched Individuals',
           colors: ['#0000FF','#FF00FF','<%=haploColor%>']
         };
 

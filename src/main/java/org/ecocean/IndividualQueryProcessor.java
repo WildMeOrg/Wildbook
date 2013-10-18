@@ -1037,7 +1037,7 @@ public class IndividualQueryProcessor {
 		}
 		if(request.getParameter("unknown")==null) {
 			filter+=" && !sex.startsWith('unknown')";
-			prettyPrint.append("Sex is unknown.<br />");
+			prettyPrint.append("Sex is not unknown.<br />");
 		}
 	}
     //filter by sex--------------------------------------------------------------------------------------

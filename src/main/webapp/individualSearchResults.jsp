@@ -273,7 +273,7 @@
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
     </a>
       <%
-        if ((indie.getAlternateID() != null) && (!indie.getAlternateID().equals("None"))) {
+        if ((indie.getAlternateID() != null) && (!indie.getAlternateID().equals("None")) && (!indie.getAlternateID().equals(""))) {
       %> <br /><font size="-1"><%=props.getProperty("alternateID")%>: <%=indie.getAlternateID()%>
       </font> <%
         }
