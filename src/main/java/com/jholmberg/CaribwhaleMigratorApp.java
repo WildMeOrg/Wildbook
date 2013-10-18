@@ -340,6 +340,9 @@ public class CaribwhaleMigratorApp {
                         else if(thisSex.toLowerCase().startsWith("f")){indie.setSex("female");}
                         else{indie.setSex("unknown");}
                         
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
+                        
                         System.out.println("     Set sex for indie "+indie.getIndividualID()+" to "+indie.getSex());
                         
                         //if genetic sex (Fg or Mg), create the correct data structures
@@ -416,6 +419,8 @@ public class CaribwhaleMigratorApp {
                       String thisClass=classCell.getContents();
                       if(!thisClass.trim().equals("")){
                         placeholder.setLifeStage(thisClass);
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                         System.out.println("     Set lifestage for indie "+indie.getIndividualID()+" to "+placeholder.getLifeStage());
                       }
                     }
@@ -434,7 +439,8 @@ public class CaribwhaleMigratorApp {
                           if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
                         }
                         indie.setAlternateID(existingAltIDs+thisClass.trim());
-                       
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                         System.out.println("     Set pre for indie "+indie.getAlternateID());
                       }
                     }
@@ -453,7 +459,8 @@ public class CaribwhaleMigratorApp {
                           if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
                         }
                         indie.setAlternateID(existingAltIDs+"AET:"+thisClass.trim());
-                       
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                         System.out.println("     Set AET code for indie "+indie.getAlternateID());
                       }
                     }
@@ -472,6 +479,8 @@ public class CaribwhaleMigratorApp {
                           if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
                         }
                         indie.setAlternateID(existingAltIDs+"IFAW:"+thisClass.trim());
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                         System.out.println("     Set IFAW code for indie "+indie.getAlternateID());
                       }
                     }
@@ -491,6 +500,8 @@ public class CaribwhaleMigratorApp {
                           if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
                         }
                         indie.setAlternateID(existingAltIDs+"STEFFEN:"+thisClass.trim());
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                         System.out.println("     Set STEFFEN name for indie "+indie.getAlternateID());
                       }
                     }
@@ -509,6 +520,8 @@ public class CaribwhaleMigratorApp {
                           if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
                         }
                         indie.setAlternateID(existingAltIDs+"PERNEL:"+thisClass.trim());
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                         System.out.println("     Set PERNEL name for indie "+indie.getAlternateID());
                       }
                     }
@@ -521,7 +534,8 @@ public class CaribwhaleMigratorApp {
                       String thisLocID=locIDCell.getContents();
                       if(!thisLocID.trim().equals("")){
                         placeholder.setLocationID(thisLocID);
-                        
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                         /*
                          * 
                          * 1=Caribbean,2=Sargasso,3=Gully,4=GOM,5=Azores,6=Other'
@@ -532,7 +546,8 @@ public class CaribwhaleMigratorApp {
                         else if(placeholder.getLocationID().equals("4")){placeholder.setVerbatimLocality("Gulf of Mexico");}
                         else if(placeholder.getLocationID().equals("5")){placeholder.setVerbatimLocality("Azores");}
                         else if(placeholder.getLocationID().equals("6")){placeholder.setVerbatimLocality("Other");}
-                        
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                         System.out.println("     Set locationID for indie "+indie.getIndividualID()+" to "+placeholder.getLocationID());
                       }
                     }
@@ -545,6 +560,8 @@ public class CaribwhaleMigratorApp {
                       String thisnickname=nicknameCell.getContents();
                       if(!thisnickname.trim().equals("")){
                         indie.setNickName(thisnickname);
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                         System.out.println("     Set nickname for indie "+indie.getIndividualID()+" to "+indie.getNickName());
                       }
                     }
@@ -558,6 +575,8 @@ public class CaribwhaleMigratorApp {
                       String thisaddComments=addCommentsCell.getContents();
                       if(!thisaddComments.trim().equals("")){
                         indie.addComments(thisaddComments);
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                         System.out.println("     Set additional comments for indie "+indie.getIndividualID()+" to "+indie.getComments());
                       }
                     }
