@@ -374,7 +374,9 @@ public class CaribwhaleMigratorApp {
                           System.out.println("     Indie confirms: "+indie.getGeneticSex());
                         }
                       }
+                      else{indie.setSex("unknown");}
                     }
+                    else{indie.setSex("unknown");}
                   }
                   
                   //let's get haplotype
