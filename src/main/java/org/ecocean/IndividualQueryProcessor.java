@@ -1029,14 +1029,17 @@ public class IndividualQueryProcessor {
 	if((request.getParameter("male")!=null)||(request.getParameter("female")!=null)||(request.getParameter("unknown")!=null)){
 		if(request.getParameter("male")==null) {
 			filter+=" && !sex.startsWith('male')";
+			//if(filter.indexOf("sex!=null")==-1){filter+=" && sex!=null";}
 			prettyPrint.append("Sex is not male.<br />");
 		}
 		if(request.getParameter("female")==null) {
 			filter+=" && !sex.startsWith('female')";
+			//if(filter.indexOf("sex!=null")==-1){filter+=" && sex!=null";}
 			prettyPrint.append("Sex is not female.<br />");
 		}
 		if(request.getParameter("unknown")==null) {
-			filter+=" && !sex.startsWith('unknown')";
+			filter+=" && !sex.startsWith('unknown') && sex != null";
+			//if(filter.indexOf("sex!=null")==-1){filter+=" && sex!=null";}
 			prettyPrint.append("Sex is not unknown.<br />");
 		}
 	}

@@ -46,7 +46,7 @@ public class MarkedIndividual implements java.io.Serializable {
   private String comments = "None";
 
   //sex of the MarkedIndividual
-  private String sex = "Unknown";
+  private String sex = "unknown";
 
   //unused String that allows groups of MarkedIndividuals by optional parameters
   private String seriesCode = "None";
