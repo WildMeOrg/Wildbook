@@ -977,7 +977,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       prettyPrint.append("Sex is not female.<br />");
     }
     if(request.getParameter("unknown")==null) {
-      filter+=" && !sex.startsWith('unknown')";
+      filter+=" && !sex.startsWith('unknown') && sex != null";
       prettyPrint.append("Sex is not unknown.<br />");
     }
 
