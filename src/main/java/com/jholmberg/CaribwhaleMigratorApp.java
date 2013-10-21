@@ -170,6 +170,17 @@ public class CaribwhaleMigratorApp {
             String pCatNumber=indie.getIndividualID()+"_DATASTORE";
             placeholder.setCatalogNumber(pCatNumber);
             placeholder.setLocationID(indiesArea);
+            /*
+             * 
+             * 1=Caribbean,2=Sargasso,3=Gully,4=GOM,5=Azores,6=Other'
+             */
+            if(placeholder.getLocationID().equals("1")){placeholder.setVerbatimLocality("Caribbean");}
+            else if(placeholder.getLocationID().equals("2")){placeholder.setVerbatimLocality("Sargasso");}
+            else if(placeholder.getLocationID().equals("3")){placeholder.setVerbatimLocality("Gully");}
+            else if(placeholder.getLocationID().equals("4")){placeholder.setVerbatimLocality("Gulf of Mexico");}
+            else if(placeholder.getLocationID().equals("5")){placeholder.setVerbatimLocality("Azores");}
+            else if(placeholder.getLocationID().equals("6")){placeholder.setVerbatimLocality("Other");}
+            
             myShepherd.getPM().makePersistent(placeholder);
             indie.addEncounter(placeholder);
             myShepherd.commitDBTransaction();
@@ -378,6 +389,7 @@ public class CaribwhaleMigratorApp {
                     }
                     else{indie.setSex("unknown");}
                   }
+                  else{indie.setSex("unknown");}
                   
                   //let's get haplotype
                   if(sheet1.getCell(12, f)!=null){
@@ -535,7 +547,7 @@ public class CaribwhaleMigratorApp {
                     if(locIDCell.getContents()!=null){
                       String thisLocID=locIDCell.getContents();
                       if(!thisLocID.trim().equals("")){
-                        placeholder.setLocationID(thisLocID);
+                        placeholder.setLocationID(thisLocID.trim());
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
                         /*
