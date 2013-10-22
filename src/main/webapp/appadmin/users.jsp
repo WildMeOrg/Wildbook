@@ -74,9 +74,16 @@
     </jsp:include>
     <div id="main">
      
+     <%
+     
+     myShepherd.beginDBTransaction();
+     ArrayList<User> allUsers=myShepherd.getAllUsers();
+     int numUsers=allUsers.size();
+     
+     %>
 
       <h1 class="intro">User Management</h1>
-      <h4 class="intro">Existing Users</h4>
+      <h4 class="intro">Existing Users (<%=numUsers %>)</h4>
       <table width="810px" class="tissueSample">
       	<tr>
       		<th>&nbsp;</th>
@@ -91,9 +98,7 @@
       	</tr>
       
       <%
-      myShepherd.beginDBTransaction();
-      ArrayList<User> allUsers=myShepherd.getAllUsers();
-      int numUsers=allUsers.size();
+      
       for(int i=0;i<numUsers;i++){
       	User user=allUsers.get(i);
       	String affiliation="&nbsp;";
