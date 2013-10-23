@@ -53,35 +53,14 @@
 
   //set up the file input stream
   //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/removeEmailAddress.properties"));
 
 
   //load our variables for the submit page
-  String title = props.getProperty("submit_title");
-  String submit_maintext = props.getProperty("submit_maintext");
-  String submit_reportit = props.getProperty("reportit");
-  String submit_language = props.getProperty("language");
-  String what_do = props.getProperty("what_do");
-  String read_overview = props.getProperty("read_overview");
-  String see_all_encounters = props.getProperty("see_all_encounters");
-  String see_all_sharks = props.getProperty("see_all_sharks");
-  String report_encounter = props.getProperty("report_encounter");
-  String log_in = props.getProperty("log_in");
-  String contact_us = props.getProperty("contact_us");
-  String search = props.getProperty("search");
-  String encounter = props.getProperty("encounter");
-  String shark = props.getProperty("shark");
-  String join_the_dots = props.getProperty("join_the_dots");
-  String menu = props.getProperty("menu");
-  String last_sightings = props.getProperty("last_sightings");
-  String more = props.getProperty("more");
-  String ws_info = props.getProperty("ws_info");
-  String about = props.getProperty("about");
-  String contributors = props.getProperty("contributors");
-  String forum = props.getProperty("forum");
-  String blog = props.getProperty("blog");
-  String area = props.getProperty("area");
-  String match = props.getProperty("match");
+  String warning = props.getProperty("warning");
+	String hashedEmail="NONE";
+	if(request.getParameter("hashedEmail")!=null){hashedEmail=request.getParameter("hashedEmail");}	  
+
 
 
 %>
@@ -92,61 +71,36 @@
       <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
     <div id="main">
-      <div id="leftcol">
-        <div id="menu"></div>
-        <!-- end menu --></div>
-      <!-- end leftcol -->
-      <div id="maincol-wide">
+     
+      <div id="maincol-wide-solo">
 
         <div id="maintext">
           <table border="0">
             <tr>
               <td>
-                <h1 class="intro">Remove an Email Address</h1>
+                <h1 class="intro"><%=props.getProperty("removeTitle") %></h1>
 
-                <p>You are about to <strong>REJECT</strong> a submitted encounter
-                  from the visual database. Choose <strong>Save as
-                    Unidentifiable</strong> if this encounter is not valid for photographic
-                  mark-recapture but may contain valuable data for future use. If you
-                  choose <strong>Permanently delete</strong>, all data contained within
-                  this encounter will be removed from the database<em>. However,
-                    the webmaster can restore the encounter in case you accidentally
-                    delete it </em>. Choose <strong>Cancel</strong> to retain the encounter in
-                  the visual database as is.</p>
+                <p><%=warning %></p>
+                <p></p>
               </td>
             </tr>
             <tr>
               <td>
                 <p>&nbsp;</p>
 
-                <p>Do you want to reject encounter <%=request.getParameter("number")%>?</p>
-                <table width="400" border="0" cellpadding="5" cellspacing="0">
+              
+                <table width="720" border="0" cellpadding="5" cellspacing="0">
                   <tr>
                     <td align="right" valign="top">
-                      <form name="rej_save_form" method="post"
-                            action="../EncounterSetAsUnidentifiable"><input name="action"
-                                                                            type="hidden"
-                                                                            id="action"
-                                                                            value="rej_but_save">
-                        <input
-                          name="number" type="hidden"
-                          value=<%=request.getParameter("number")%>> <input
-                          name="yes" type="submit" id="yes" value="Save as Unidentifiable"></form>
+                      <form name="remove_email" method="post" action="/RemoveEmailAddress">
+                        <input name="hashedEmail" type="hidden" value="<%=hashedEmail%>" /> 
+                        <input name="yes" type="submit" id="yes" value="<%=props.getProperty("remove") %>" />
+                       </form>
                     </td>
-                    <td align="center" valign="top">
-                      <form name="reject_form" method="post" action="../EncounterDelete">
-                        <input name="action" type="hidden" id="action" value="reject">
-                        <input name="number" type="hidden"
-                               value=<%=request.getParameter("number")%>> <input
-                        name="yes" type="submit" id="yes" value="Permanently delete"></form>
-                    </td>
+                 
                     <td align="left" valign="top">
-                      <form name="form2" method="post" action="encounter.jsp">
-                        <input name="number" type="hidden"
-                               value=<%=request.getParameter("number")%>> <input name="no"
-                                                                                 type="submit"
-                                                                                 id="no"
-                                                                                 value="Cancel">
+                      <form name="form2" method="post" action="/index.jsp">
+                               <input name="no" type="submit" id="no" value="Cancel" />
                       </form>
                     </td>
                   </tr>
