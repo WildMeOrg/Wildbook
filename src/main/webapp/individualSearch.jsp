@@ -780,6 +780,44 @@ if(CommonConfiguration.showProperty("showLifestage")){
 </tr>
 <%
 }
+        
+        
+        if(CommonConfiguration.showProperty("showPatterningCode")){
+
+        	%>
+        	<tr valign="top">
+        	  <td><strong><%=props.getProperty("patterningCode")%></strong>
+        	  
+        	  <select name="patterningCodeField" id="patterningCodeField">
+        	  	<option value="None" selected="selected"></option>
+        	  <%
+        	  			       boolean hasMorePatterningCodes=true;
+        	  			       int stageNum=0;
+        	  			       
+        	  			       while(hasMorePatterningCodes){
+        	  			       	  String currentLifeStage = "patterningCode"+stageNum;
+        	  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+        	  			       	  	%>
+        	  			       	  	 
+        	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+        	  			       	  	<%
+        	  			       		stageNum++;
+        	  			          }
+        	  			          else{
+        	  			        	hasMorePatterningCodes=false;
+        	  			          }
+        	  			          
+        				       }
+        				       if(stageNum==0){%>
+        				    	   <p><em><%=props.getProperty("noPatterningCodes")%></em></p>
+        				       <% }
+        				       
+        	 %>
+        	  </select></td>
+        	</tr>
+        	<%
+        	}        
+        
 
   pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements());
 %>

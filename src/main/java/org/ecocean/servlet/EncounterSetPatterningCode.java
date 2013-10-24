@@ -28,12 +28,12 @@ public class EncounterSetPatterningCode extends HttpServlet {
 
 
 
-    encNum=request.getParameter("encounter");
+    encNum=request.getParameter("number");
     String colorCode="";
     myShepherd.beginDBTransaction();
     if ((myShepherd.isEncounter(encNum))&&(request.getParameter("patterningCode")!=null)) {
       Encounter enc=myShepherd.getEncounter(encNum);
-      colorCode=request.getParameter("colorCode").trim();
+      colorCode=request.getParameter("patterningCode").trim();
       try{
 
         if(colorCode.equals("None")){enc.setPatterningCode(null);}

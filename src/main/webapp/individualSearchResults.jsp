@@ -277,15 +277,17 @@
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
     </a>
       <%
-        if ((indie.getAlternateID() != null) && (!indie.getAlternateID().equals("None"))) {
+        if ((indie.getAlternateID() != null) && (!indie.getAlternateID().equals("None")) && (!indie.getAlternateID().equals(""))) {
       %> <br /><font size="-1"><%=props.getProperty("alternateID")%>: <%=indie.getAlternateID()%>
       </font> <%
         }
+      if(temp.getYear()>0){
       %>
       <br /><font size="-1"><%=props.getProperty("firstIdentified")%>: <%=temp.getMonth() %>
         /<%=temp.getYear() %>
       </font>
       <%
+      }
       if(CommonConfiguration.showProperty("showTaxonomy")){
       	if(indie.getGenusSpecies()!=null){
       %>

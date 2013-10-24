@@ -1615,6 +1615,22 @@ public class Shepherd {
     q.closeAll();
     return num;
   }
+  
+  public int getNumUsers() {
+    int num = 0;
+    Query q = pm.newQuery(User.class); // no filter, so all instances match
+
+    try {
+      Collection results = (Collection) q.execute();
+      num = results.size();
+
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return num;
+    }
+    q.closeAll();
+    return num;
+  }
 
 
   public int getNumScanTasks() {
