@@ -445,7 +445,7 @@ public class CommonConfiguration {
                                                    originalString, String emailAddress) {
     initialize();
     if (props.getProperty("removeEmailString") != null) {
-      originalString += "\n\n" + props.getProperty("removeEmailString") + "\nhttp://" + getURLLocation(request) + "/RemoveEmailAddress?hashedEmail=" + Encounter.getHashOfEmailString(emailAddress);
+      originalString += "\n\n" + props.getProperty("removeEmailString") + "\nhttp://" + getURLLocation(request) + "/removeEmailAddress.jsp?hashedEmail=" + Encounter.getHashOfEmailString(emailAddress);
     }
     return originalString;
   }

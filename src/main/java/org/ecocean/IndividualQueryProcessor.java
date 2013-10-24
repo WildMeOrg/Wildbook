@@ -83,9 +83,9 @@ public class IndividualQueryProcessor {
 
   //------------------------------------------------------------------
     //patterningCode filters-------------------------------------------------
-    String[] patterningCodes=request.getParameterValues("patterningCode");
+    String[] patterningCodes=request.getParameterValues("patterningCodeField");
     if((patterningCodes!=null)&&(!patterningCodes[0].equals("None"))){
-          prettyPrint.append("Color code is one of the following: ");
+          prettyPrint.append("Patterning code is one of the following: ");
           int kwLength=patterningCodes.length;
             String patterningCodeFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -105,8 +105,8 @@ public class IndividualQueryProcessor {
             patterningCodeFilter+=" )";
 
 
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=("encounters.contains(enc97)"+ patterningCodeFilter);}
-            else{filter+=(" && "+patterningCodeFilter+" &&  encounters.contains(enc97)");}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=("encounters.contains(enc97) &&"+ patterningCodeFilter);}
+            else{filter+=(" && "+patterningCodeFilter+" &&  encounters.contains(enc97) &&");}
             if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc97")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc97";}
             
             prettyPrint.append("<br />");
@@ -143,7 +143,7 @@ public class IndividualQueryProcessor {
     //lifeStage filters-------------------------------------------------
     String[] stages=request.getParameterValues("lifeStageField");
     if((stages!=null)&&(!stages[0].equals("None"))&&(!stages[0].equals(""))){
-          prettyPrint.append("lifeStage is one of the following: ");
+          prettyPrint.append("Life stage is one of the following: ");
           int kwLength=stages.length;
             String stageFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -1029,15 +1029,18 @@ public class IndividualQueryProcessor {
 	if((request.getParameter("male")!=null)||(request.getParameter("female")!=null)||(request.getParameter("unknown")!=null)){
 		if(request.getParameter("male")==null) {
 			filter+=" && !sex.startsWith('male')";
+			//if(filter.indexOf("sex!=null")==-1){filter+=" && sex!=null";}
 			prettyPrint.append("Sex is not male.<br />");
 		}
 		if(request.getParameter("female")==null) {
 			filter+=" && !sex.startsWith('female')";
+			//if(filter.indexOf("sex!=null")==-1){filter+=" && sex!=null";}
 			prettyPrint.append("Sex is not female.<br />");
 		}
 		if(request.getParameter("unknown")==null) {
-			filter+=" && !sex.startsWith('unknown')";
-			prettyPrint.append("Sex is unknown.<br />");
+			filter+=" && !sex.startsWith('unknown') && sex != null";
+			//if(filter.indexOf("sex!=null")==-1){filter+=" && sex!=null";}
+			prettyPrint.append("Sex is not unknown.<br />");
 		}
 	}
     //filter by sex--------------------------------------------------------------------------------------
@@ -1053,7 +1056,7 @@ public class IndividualQueryProcessor {
     filter+=jdoqlVariableDeclaration;
     filter += parameterDeclaration;
     myShepherd=null;
-    //System.out.println("IndividualQueryProcessor filter: "+filter);
+    System.out.println("IndividualQueryProcessor filter: "+filter);
     return filter;
     
   }
