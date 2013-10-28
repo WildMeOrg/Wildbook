@@ -79,11 +79,18 @@
 		<div id="maintext">
 		  <h1 class="intro">Publications</h1>
 		  <ul>
-		  <li><a href="#scipubs">Scientific publications</a></li>
 		  <li><a href="#acknowl">Acknowledging Wildbook for Whale Sharks in a publication</a></li>
+		  <li><a href="#scipubs">Scientific publications</a></li>
 		  </ul>
 		</div>
 		
+		<p>&nbsp;</p>
+	
+		<a name="acknowl"></a><strong>Acknowledging Wildbook for Whale Sharks in a publication</strong>
+		<p><em>If use of the Wildbook for Whale Sharks library made a significant contribution to a research project, please make the following acknowledgement in any resulting publication: </em></p>
+		<p>This research has made use of data and software tools provided by <em>Wildbook for Whale Sharks</em>, an online mark-recapture database operated by the non-profit scientific organization <em>Wild Me</em> with funding derived from public donations.</p>
+		
+		<p>&nbsp;</p>
 	
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from whaleshark.org or contributed to its ultimate development and launch in 2003.</em></p>
@@ -142,12 +149,6 @@ Volume 13, Issue 4.</p>
 		<p>Gunn JS, Stevens JD, Davis TLO &amp; Norman BM (1999) Observations on the short-term movements and behaviour of whale sharks ( <em>Rhincodon typus </em>) at Ningaloo Reef, Western Australia. <em>Mar. Biol </em>. 135: 553-559. <a href="http://www.springerlink.com/content/68mmnfxa2vprhp7a/"><br />
 	    Web link</a>. </p>
 		
-		
-		<p>&nbsp;</p>
-
-		<a name="acknowl"></a><strong>Acknowledging Wildbook for Whale Sharks in a publication</strong>
-		<p><em>If use of the Wildbook for Whale Sharks library made a significant contribution to a research project, please make the following acknowledgement in any resulting publication: </em></p>
-		<p>This research has made use of data and software tools provided by <em>Wildbook for Whale Sharks</em>, an online mark-recapture database operated by the non-profit scientific organization <em>Wild Me</em> with funding derived from public donations.</p>
 
 	</div>
 	<!-- end maintext -->
