@@ -33,7 +33,7 @@
 
   </div>
   <p class="credit">All Wildbook for Whale Sharks photo-identification library contents copyright Wild Me and respective individual contributors. Unauthorized usage of any material for any purpose is strictly prohibited. </p>
-      <p class="credit">For more information about intellectual property protection and our terms of usage, please read our <a href="http://www.whaleshark.org/wiki/doku.php?id=visitor_agreement" target="_blank">Visitor Agreement</a>.</p>
+      <p class="credit">For more information about intellectual property protection and our terms of usage, please read our <a href="http://www.whaleshark.org/wiki/doku.php?id=visitor_agreement" target="_blank">Visitor Agreement</a>. To acknowledge Wildbook for Whale Sharks data usage in a paper, please visit our <a href="publications.jsp/#acknowl" target="_blank">Publications page</a>. </p>
 		
   <p class="credit">This software is distributed under the <a
     href="http://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPL v3 license</a> and is
