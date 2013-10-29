@@ -6,36 +6,40 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class ShepherdProperties {
-  
+
   public static Properties getProperties(String fileName){
     return getProperties(fileName, "en");
   }
-  
+
   public static Properties getProperties(String fileName, String langCode){
     Properties props=new Properties();
-    
+
     String shepherdDataDir="shepherd_data_dir";
+    if(!langCode.equals("")){
+		langCode=langCode+"/";
+	}
     if((CommonConfiguration.getProperty("dataDirectoryName")!=null)&&(!CommonConfiguration.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=CommonConfiguration.getProperty("dataDirectoryName");}
     Properties overrideProps=loadOverrideProps(shepherdDataDir, fileName, langCode);
     //System.out.println(overrideProps);
-    
+
     if(overrideProps.size()>0){props=overrideProps;}
     else {
       //otherwise load the embedded commonConfig
-      
+
       try {
-        props.load(ShepherdProperties.class.getResourceAsStream("/bundles/"+langCode+"/"+fileName));
-      } 
+        props.load(ShepherdProperties.class.getResourceAsStream("/bundles/"+langCode+fileName));
+      }
       catch (IOException ioe) {
         ioe.printStackTrace();
       }
     }
-    
+
     return props;
   }
-  
+
   private static Properties loadOverrideProps(String shepherdDataDir, String fileName, String langCode) {
     //System.out.println("Starting loadOverrideProps");
+
     Properties myProps=new Properties();
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
     //System.out.println(configDir.getAbsolutePath());

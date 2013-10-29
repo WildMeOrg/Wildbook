@@ -59,19 +59,19 @@
     int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
     try {
       month1 = (new Integer(request.getParameter("month1"))).intValue();
-    } catch (NumberFormatException nfe) {
+    } catch (Exception nfe) {
     }
     try {
       month2 = (new Integer(request.getParameter("month2"))).intValue();
-    } catch (NumberFormatException nfe) {
+    } catch (Exception nfe) {
     }
     try {
       year1 = (new Integer(request.getParameter("year1"))).intValue();
-    } catch (NumberFormatException nfe) {
+    } catch (Exception nfe) {
     }
     try {
       year2 = (new Integer(request.getParameter("year2"))).intValue();
-    } catch (NumberFormatException nfe) {
+    } catch (Exception nfe) {
     }
 
 
@@ -169,13 +169,17 @@
 
   <li><a class="active"><%=props.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
+  <%
+  String queryString="";
+  if(request.getQueryString()!=null){queryString=("?"+request.getQueryString());}
+  %>
+  <li><a href="individualThumbnailSearchResults.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
   </a></li>
-   <li><a href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
+   <li><a href="individualMappedSearchResults.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
   </a></li>
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
   </a></li>
-    <li><a href="individualSearchResultsExport.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("export")%>
+    <li><a href="individualSearchResultsExport.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("export")%>
   </a></li>
 
 </ul>
@@ -269,15 +273,17 @@
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
     </a>
       <%
-        if ((indie.getAlternateID() != null) && (!indie.getAlternateID().equals("None"))) {
+        if ((indie.getAlternateID() != null) && (!indie.getAlternateID().equals("None")) && (!indie.getAlternateID().equals(""))) {
       %> <br /><font size="-1"><%=props.getProperty("alternateID")%>: <%=indie.getAlternateID()%>
       </font> <%
         }
+      if(temp.getYear()>0){
       %>
       <br /><font size="-1"><%=props.getProperty("firstIdentified")%>: <%=temp.getMonth() %>
         /<%=temp.getYear() %>
       </font>
       <%
+      }
       if(CommonConfiguration.showProperty("showTaxonomy")){
       	if(indie.getGenusSpecies()!=null){
       %>
@@ -388,10 +394,10 @@
     <td align="left">
       <p>
         <a
-          href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><img
+          href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>"><img
           src="images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
           title="<%=props.getProperty("seePreviousResults")%>"/></a> <a
-        href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><%=(startNum - 20)%>
+        href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>"><%=(startNum - 20)%>
         - <%=(startNum - 11)%>
       </a>
       </p>
@@ -404,10 +410,10 @@
     <td align="right">
       <p>
         <a
-          href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><%=startNum%>
+          href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=startNum%>
           - <%=endNum%>
         </a> <a
-        href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><img
+        href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img
         src="images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=props.getProperty("seeNextResults")%>"/></a>
       </p>

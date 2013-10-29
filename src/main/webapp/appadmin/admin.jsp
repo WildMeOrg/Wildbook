@@ -207,7 +207,7 @@
             Shepherd Project instances that have transient data (i.e., the Shepherd Project is not the primary data store).</em>
             </p>
 
-            <form name="deleteAll" method="post" action="../DeleteAllDataPermanently">
+            <form onsubmit="return confirm('Are you sure you want to delete all encounters? WARNING! This will cause complete data loss!');" name="deleteAll" method="post" action="../DeleteAllDataPermanently">
 
               <input name="deleteAllData" type="submit" id="deleteAllData" value="Delete All Data PERMANENTLY">
               </p></form>

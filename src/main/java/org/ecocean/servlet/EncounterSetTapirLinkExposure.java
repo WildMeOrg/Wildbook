@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 
 public class EncounterSetTapirLinkExposure extends HttpServlet {
@@ -108,16 +109,30 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Success:</strong> I have changed encounter " + request.getParameter("number") + " TapirLink exposure status.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a>.</p>\n");
-            out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-            out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+            int allStatesSize=allStates.size();
+            if(allStatesSize>0){
+              for(int i=0;i<allStatesSize;i++){
+                String stateName=allStates.get(i);
+                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+              }
+            }
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
 
             out.println(ServletUtilities.getFooter());
           } else {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> I have NOT changed encounter " + request.getParameter("number") + " TapirLink status. This encounter is currently being modified by another user, or an unknown error occurred.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-            out.println("<p><a href=\"allIndividuals.jsp\">View all individual</a></font></p>");
+            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+            int allStatesSize=allStates.size();
+            if(allStatesSize>0){
+              for(int i=0;i<allStatesSize;i++){
+                String stateName=allStates.get(i);
+                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+              }
+            }
+            out.println("<p><a href=\"individualSearchResults.jsp\">View all individual</a></font></p>");
             out.println(ServletUtilities.getFooter());
 
 

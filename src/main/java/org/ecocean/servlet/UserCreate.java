@@ -138,7 +138,7 @@ public class UserCreate extends HttpServlet {
         }
         else if(isEdit&&(request.getParameter("userURL")!=null)&&(request.getParameter("userURL").trim().equals(""))){newUser.setUserURL(null);}
         
-
+        newUser.RefreshDate();
         
         
         

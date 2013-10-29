@@ -34,6 +34,8 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import javax.jdo.*;
+
 
 public class IndividualAddEncounter extends HttpServlet {
 
@@ -239,7 +241,9 @@ public class IndividualAddEncounter extends HttpServlet {
 
 
               //notify adopters
-              ArrayList adopters = myShepherd.getAdopterEmailsForMarkedIndividual(request.getParameter("individual"));
+	            Extent encClass = myShepherd.getPM().getExtent(Adoption.class, true);
+	            Query query = myShepherd.getPM().newQuery(encClass);
+              ArrayList adopters = myShepherd.getAdopterEmailsForMarkedIndividual(query,request.getParameter("individual"));
               for (int t = 0; t < adopters.size(); t++) {
                 String adEmail = (String) adopters.get(t);
                 if ((allAssociatedEmails.indexOf(adEmail) == -1)) {
@@ -247,6 +251,7 @@ public class IndividualAddEncounter extends HttpServlet {
                   allAssociatedEmails.add(adEmail);
                 }
               }
+              query.closeAll();
 
               String rssTitle = request.getParameter("individual") + " Resight";
               String rssLink = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number");

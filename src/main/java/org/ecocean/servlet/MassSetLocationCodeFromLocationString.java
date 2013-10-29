@@ -80,10 +80,10 @@ public class MassSetLocationCodeFromLocationString extends HttpServlet {
           Encounter tempEnc = (Encounter) it.next();
           if (tempEnc.getLocation().toLowerCase().indexOf(matchString) != -1) {
             tempEnc.setLocationCode(locCode);
-            
+
             tempEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set location ID: " + locCode + ".");
 
-            
+
             madeChanges = true;
             count++;
           }
@@ -101,6 +101,7 @@ public class MassSetLocationCodeFromLocationString extends HttpServlet {
         myShepherd.closeDBTransaction();
       }
       //success!!!!!!!!
+      query.closeAll();
       if (!locked) {
         //myShepherd.commitDBTransaction();
         //myShepherd.closeDBTransaction();
@@ -124,5 +125,5 @@ public class MassSetLocationCodeFromLocationString extends HttpServlet {
   }
 
 }
-	
-	
+
+

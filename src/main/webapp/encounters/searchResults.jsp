@@ -249,7 +249,7 @@
 </tr>
 
 <%
-  Vector haveGPSData = new Vector();
+  //Vector haveGPSData = new Vector();
   int count = 0;
 
   for (int f = 0; f < rEncounters.size(); f++) {
@@ -257,9 +257,9 @@
     Encounter enc = (Encounter) rEncounters.get(f);
     count++;
     numResults++;
-    if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
-      haveGPSData.add(enc);
-    }
+    //if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
+    //  haveGPSData.add(enc);
+    //}
 
 
     if ((numResults >= startNum) && (numResults <= endNum)) {
@@ -269,7 +269,7 @@
   <%
    if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
    %>
-  	<img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>">
+  	<img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>" />
   <%
    }
   %>

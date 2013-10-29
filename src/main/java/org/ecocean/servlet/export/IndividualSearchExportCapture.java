@@ -42,7 +42,7 @@ public class IndividualSearchExportCapture extends HttpServlet{
     int numIndividuals=rIndividuals.size();
     int numSharks=0;
     out.println("<pre>");
-    out.println("title='DirectExport of Marked Individuals from the Shepherd Project'");
+    out.println("title='Example CAPTURE Export of Marked Individuals from the "+CommonConfiguration.getHTMLTitle()+"'");
  
  
     try {
@@ -58,14 +58,22 @@ public class IndividualSearchExportCapture extends HttpServlet{
       if(startMonth>endMonth) {wrapsYear=1;}
 
       int numYearsCovered=endYear-startYear-wrapsYear+1;
-      out.println("task read captures occasions="+numYearsCovered+" x matrix");
-      out.println("format='(a6,1x,"+numYearsCovered+"f1.0)'");
-      out.println("read input data");
-      
+      out.println("task read captures x matrix occasions="+numYearsCovered);
+
       //now, let's print out our capture histories
 
       //out.println("<br><br>Capture histories for live recaptures modeling: "+startYear+"-"+endYear+", months "+startMonth+"-"+endMonth+"<br><br><pre>");
     
+      
+      int maxLengthID=0;
+      for(int p=0;p<numIndividuals;p++) {
+        MarkedIndividual s=rIndividuals.get(p);
+        if(s.getIndividualID().length()>maxLengthID){maxLengthID=s.getIndividualID().length();}
+      }
+      
+      out.println("format='(a"+maxLengthID+","+numYearsCovered+"f1.0)'");
+      out.println("read input data");
+      
       
       for(int i=0;i<numIndividuals;i++) {
         MarkedIndividual s=rIndividuals.get(i);
@@ -109,8 +117,11 @@ public class IndividualSearchExportCapture extends HttpServlet{
           }
           if(wasReleased) {
 
-
-              out.println(s.getIndividualID()+" "+sb.toString());
+              
+              String adjustedID=s.getIndividualID();
+              while(adjustedID.length()<maxLengthID){adjustedID+="X";}
+            
+              out.println(adjustedID+sb.toString());
        
             numSharks++;
           }
@@ -132,9 +143,9 @@ public class IndividualSearchExportCapture extends HttpServlet{
     }
     
     out.println("task closure test<br/>task model selection");
+    //out.println("task population estimate ALL");
+    //out.println("task population estimate NULL JACKKNIFE REMOVAL ZIPPEN MT-CH MH-CH MTH-CH");
     out.println("task population estimate ALL");
-    out.println("task population estimate NULL JACKKNIFE REMOVAL ZIPPEN MT-CH MH-CH MTH-CH");
-    out.println("task population estimate APPROPRIATE");
     out.close();
   }
 

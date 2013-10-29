@@ -106,7 +106,9 @@ public class Encounter implements java.io.Serializable {
   private String researcherComments = "None";
 
   //username of the logged in researcher assigned to the encounter
+  //this STring is matched to an org.ecocean.User object to obtain more information
   private String submitterID;
+  
   //name, email, phone, address of the encounter reporter
   private String submitterEmail, submitterPhone, submitterAddress;
   private String hashedSubmitterEmail;
@@ -124,6 +126,9 @@ public class Encounter implements java.io.Serializable {
   private String minutes = "00";
   
   private String state="";
+  
+  //the globally unique identifier (GUID) for this Encounter
+  private String guid;
 
   private long dateInMilliseconds=0;
   //describes how the shark was measured
@@ -641,7 +646,7 @@ public class Encounter implements java.io.Serializable {
   public String getDate() {
     String date = "";
     String time = "";
-    if (year == -1) {
+    if (year <= 0) {
       return "Unknown";
     } else if (month == -1) {
       return (new Integer(year)).toString();
@@ -665,7 +670,7 @@ public class Encounter implements java.io.Serializable {
 
   public String getShortDate() {
     String date = "";
-    if (year == -1) {
+    if (year <= 0) {
       return "Unknown";
     } else if (month == -1) {
       return (new Integer(year)).toString();
@@ -890,11 +895,19 @@ public class Encounter implements java.io.Serializable {
   //----------------
 
 
-  public void setSubmitterID(String name) {
-    submitterID = name;
+  public void setSubmitterID(String username) {
+    if(username!=null){submitterID = username;}
+    else{submitterID=null;}
   }
+  
 
+
+  //old method. use getAssignedUser() instead
   public String getSubmitterID() {
+    return getAssignedUsername();
+  }
+  
+  public String getAssignedUsername() {
     return submitterID;
   }
 
@@ -1102,12 +1115,13 @@ public class Encounter implements java.io.Serializable {
     numSpotsRight = numspots;
   }
 
+  
   public void setDWCGlobalUniqueIdentifier(String guid) {
-    occurrenceID = guid;
+    this.guid = guid;
   }
 
   public String getDWCGlobalUniqueIdentifier() {
-    return occurrenceID;
+    return guid;
   }
 
   public void setDWCImageURL(String link) {
@@ -1188,7 +1202,7 @@ public class Encounter implements java.io.Serializable {
 
   public String getAlternateID() {
     if (otherCatalogNumbers == null) {
-      return "None";
+      return null;
     }
     return otherCatalogNumbers;
   }
@@ -1789,5 +1803,13 @@ public class Encounter implements java.io.Serializable {
       if(newCountry!=null){country = newCountry;}
       else{country=null;}
     }
+    
+    public void setOccurrenceID(String vet) {
+      if(vet!=null){this.occurrenceID = vet;}
+      else{this.occurrenceID=null;}
+  }
+    
+    public String getOccurrenceID(){return occurrenceID;}
+    
 }
 

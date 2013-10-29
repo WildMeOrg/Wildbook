@@ -173,8 +173,18 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
             sheet.addCell(lNumberx3);
             Label lNumberx4 = new Label(4, count, ("http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + enc.getEncounterNumber()));
             sheet.addCell(lNumberx4);
-            Label lNumberx5 = new Label(5, count, (CommonConfiguration.getProperty("genus") + " " + CommonConfiguration.getProperty("species")));
-            sheet.addCell(lNumberx5);
+            
+            if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){
+              Label lNumberx5 = new Label(5, count, (enc.getGenus() + " " + enc.getSpecificEpithet()));
+              sheet.addCell(lNumberx5);
+            }
+            else if(CommonConfiguration.getProperty("genusSpecies0")!=null){
+              Label lNumberx5 = new Label(5, count, (CommonConfiguration.getProperty("genusSpecies0")));
+              sheet.addCell(lNumberx5);
+            }
+            
+            
+            
             Label lNumberx6 = new Label(6, count, "P");
             sheet.addCell(lNumberx6);
             Calendar toDay = Calendar.getInstance();
@@ -192,18 +202,21 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
             Label lNumberx13 = new Label(12, count, CommonConfiguration.getProperty("family"));
             sheet.addCell(lNumberx13);
             
-            if(CommonConfiguration.getProperty("genusSpecies0") == null){        
-              Label lNumberx14 = new Label(13, count, CommonConfiguration.getProperty("genus"));
-              sheet.addCell(lNumberx14);
-              Label lNumberx15 = new Label(14, count, CommonConfiguration.getProperty("species"));
-              sheet.addCell(lNumberx15);
-            }
-            else{
-                    Label lNumberx14 = new Label(13, count, enc.getGenus());
-              sheet.addCell(lNumberx14);
-              Label lNumberx15 = new Label(14, count, enc.getSpecificEpithet());
-              sheet.addCell(lNumberx15);
-            }
+              if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){
+                Label lNumberx14 = new Label(13, count, enc.getGenus());
+                sheet.addCell(lNumberx14);
+                Label lNumberx15 = new Label(14, count, enc.getSpecificEpithet());
+                sheet.addCell(lNumberx15);
+              }
+              else if(CommonConfiguration.getProperty("genusSpecies0")!=null){
+                StringTokenizer str=new StringTokenizer(CommonConfiguration.getProperty("genusSpecies0")," ");
+                if(str.countTokens()>1){
+                  Label lNumberx14 = new Label(13, count, str.nextToken());
+                  sheet.addCell(lNumberx14);
+                  Label lNumberx15 = new Label(14, count, str.nextToken());
+                  sheet.addCell(lNumberx15);
+                }
+              }
             
             if (enc.getYear() > 0) {
               Label lNumberx16 = new Label(15, count, Integer.toString(enc.getYear()));

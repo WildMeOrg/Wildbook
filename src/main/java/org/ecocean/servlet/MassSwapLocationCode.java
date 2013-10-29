@@ -88,6 +88,7 @@ public class MassSwapLocationCode extends HttpServlet {
         myShepherd.closeDBTransaction();
       }
       //success!!!!!!!!
+
       else if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
@@ -102,6 +103,7 @@ public class MassSwapLocationCode extends HttpServlet {
         out.println("<strong>Failure!</strong> An encounter is currently being modified by another user. Please wait a few seconds before trying to remove this data file again.");
         out.println(ServletUtilities.getFooter());
       }
+      query.closeAll();
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the location code as requested due to missing parameter values.");

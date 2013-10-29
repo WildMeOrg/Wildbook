@@ -60,7 +60,7 @@ public class EncounterSetSubmitterID extends HttpServlet {
     boolean locked = false;
 
     String encounterNumber = "None", submitter = "N/A";
-    String prevSubmitter = "N/A";
+    String prevSubmitter = "null";
     myShepherd.beginDBTransaction();
 
 
@@ -76,7 +76,10 @@ public class EncounterSetSubmitterID extends HttpServlet {
           prevSubmitter = sharky.getSubmitterID();
         }
 
-        sharky.setSubmitterID(submitter);
+        if(submitter.trim().equals("")){sharky.setSubmitterID(null);}
+        else{
+          sharky.setSubmitterID(submitter);
+        }
         sharky.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Changed Library submitter ID from " + prevSubmitter + " to " + submitter + ".</p>");
 
       } catch (Exception le) {

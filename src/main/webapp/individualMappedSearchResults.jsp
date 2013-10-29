@@ -40,7 +40,8 @@
     map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
 
     Properties haploprops = new Properties();
-    haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
 
     Properties localeprops = new Properties();
    localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
@@ -494,18 +495,23 @@ myShepherd.rollbackDBTransaction();
  <div id="main">
  
 <ul id="tabmenu">
+<%
+String queryString = "";
+if (request.getQueryString() != null) {
+  queryString = request.getQueryString();
+}
+%>
 
-
-  <li><a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("matchingImages")%>
   </a></li>
   <li><a class="active"><%=map_props.getProperty("mappedResults")%>
   </a></li>
      
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("analysis")%>
   </a></li>
-    <li><a href="individualSearchResultsExport.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("export")%>
+    <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("export")%>
   </a></li>
 </ul>
  <table width="810px" border="0" cellspacing="0" cellpadding="0">
@@ -538,7 +544,7 @@ myShepherd.rollbackDBTransaction();
  <p><%=map_props.getProperty("resultsNote")%></p>
  
  <p>
- <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=generalStyle %>" href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=sexStyle%>" href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>&showBy=sex"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=haplotypeStyle %>" href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>&showBy=haplotype"><%=map_props.getProperty("displayAspectName1") %></a>
+ <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=generalStyle %>" href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=sexStyle%>" href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>&showBy=sex"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=haplotypeStyle %>" href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>&showBy=haplotype"><%=map_props.getProperty("displayAspectName1") %></a>
  </p>
  
 <p><%=map_props.getProperty("mapNote")%></p>

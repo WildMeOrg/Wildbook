@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.text.DecimalFormat,javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics" %>
+         import="java.text.DecimalFormat,javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SynchronizedSummaryStatistics" %>
 
 
 
@@ -41,8 +41,8 @@
     encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsAnalysis.properties"));
 
     Properties haploprops = new Properties();
-    haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-
+    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd();
@@ -58,19 +58,19 @@
 	//prep for measurements summary
 	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
 	int numMeasurementTypes=measurementTypes.size();
-	SummaryStatistics[] measurementValues=new SummaryStatistics[numMeasurementTypes];
-	SummaryStatistics[] measurementValuesMales=new SummaryStatistics[numMeasurementTypes];
-	SummaryStatistics[] measurementValuesFemales=new SummaryStatistics[numMeasurementTypes];
-	SummaryStatistics[] measurementValuesNew=new SummaryStatistics[numMeasurementTypes];
-	SummaryStatistics[] measurementValuesResights=new SummaryStatistics[numMeasurementTypes];
+	SynchronizedSummaryStatistics[] measurementValues=new SynchronizedSummaryStatistics[numMeasurementTypes];
+	SynchronizedSummaryStatistics[] measurementValuesMales=new SynchronizedSummaryStatistics[numMeasurementTypes];
+	SynchronizedSummaryStatistics[] measurementValuesFemales=new SynchronizedSummaryStatistics[numMeasurementTypes];
+	SynchronizedSummaryStatistics[] measurementValuesNew=new SynchronizedSummaryStatistics[numMeasurementTypes];
+	SynchronizedSummaryStatistics[] measurementValuesResights=new SynchronizedSummaryStatistics[numMeasurementTypes];
 	String[] smallestIndies=new String[numMeasurementTypes];
 	String[] largestIndies=new String[numMeasurementTypes];
 	for(int b=0;b<measurementValues.length;b++){
-		measurementValues[b]=new SummaryStatistics();
-		measurementValuesMales[b]=new SummaryStatistics();
-		measurementValuesFemales[b]=new SummaryStatistics();
-		measurementValuesNew[b]=new SummaryStatistics();
-		measurementValuesResights[b]=new SummaryStatistics();
+		measurementValues[b]=new SynchronizedSummaryStatistics();
+		measurementValuesMales[b]=new SynchronizedSummaryStatistics();
+		measurementValuesFemales[b]=new SynchronizedSummaryStatistics();
+		measurementValuesNew[b]=new SynchronizedSummaryStatistics();
+		measurementValuesResights[b]=new SynchronizedSummaryStatistics();
 		smallestIndies[b]="";
 		largestIndies[b]="";
 	}
@@ -79,28 +79,42 @@
 	//prep for biomeasurements summary
 	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en");
 	int numBioMeasurementTypes=bioMeasurementTypes.size();
-	SummaryStatistics[] bioMeasurementValues=new SummaryStatistics[numBioMeasurementTypes];
-	SummaryStatistics[] bioMeasurementValuesMales=new SummaryStatistics[numBioMeasurementTypes];
-	SummaryStatistics[] bioMeasurementValuesFemales=new SummaryStatistics[numBioMeasurementTypes];
-	SummaryStatistics[] bioMeasurementValuesNew=new SummaryStatistics[numBioMeasurementTypes];
-	SummaryStatistics[] bioMeasurementValuesResights=new SummaryStatistics[numBioMeasurementTypes];
+	SynchronizedSummaryStatistics[] bioMeasurementValues=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
+	SynchronizedSummaryStatistics[] bioMeasurementValuesMales=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
+	SynchronizedSummaryStatistics[] bioMeasurementValuesFemales=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
+	SynchronizedSummaryStatistics[] bioMeasurementValuesNew=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
+	SynchronizedSummaryStatistics[] bioMeasurementValuesResights=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
 	String[] bioSmallestIndies=new String[numBioMeasurementTypes];
 	String[] bioLargestIndies=new String[numBioMeasurementTypes];
 	for(int b=0;b<bioMeasurementValues.length;b++){
-		bioMeasurementValues[b]=new SummaryStatistics();
-		bioMeasurementValuesMales[b]=new SummaryStatistics();
-		bioMeasurementValuesFemales[b]=new SummaryStatistics();
-		bioMeasurementValuesNew[b]=new SummaryStatistics();
-		bioMeasurementValuesResights[b]=new SummaryStatistics();
+		bioMeasurementValues[b]=new SynchronizedSummaryStatistics();
+		bioMeasurementValuesMales[b]=new SynchronizedSummaryStatistics();
+		bioMeasurementValuesFemales[b]=new SynchronizedSummaryStatistics();
+		bioMeasurementValuesNew[b]=new SynchronizedSummaryStatistics();
+		bioMeasurementValuesResights[b]=new SynchronizedSummaryStatistics();
 		bioSmallestIndies[b]="";
 		bioLargestIndies[b]="";
 	}
 	
 	//retrieve dates from the URL
-	int year1=(new Integer(request.getParameter("year1"))).intValue();
-	int year2=(new Integer(request.getParameter("year2"))).intValue();
-	int month1=(new Integer(request.getParameter("month1"))).intValue();
-	int month2=(new Integer(request.getParameter("month2"))).intValue();
+ int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
+    try {
+      month1 = (new Integer(request.getParameter("month1"))).intValue();
+    } catch (NumberFormatException nfe) {
+    }
+    try {
+      month2 = (new Integer(request.getParameter("month2"))).intValue();
+    } catch (NumberFormatException nfe) {
+    }
+    try {
+      year1 = (new Integer(request.getParameter("year1"))).intValue();
+    } catch (NumberFormatException nfe) {
+    }
+    try {
+      year2 = (new Integer(request.getParameter("year2"))).intValue();
+    } catch (NumberFormatException nfe) {
+    }
+
 	
 	
     //kick off the transaction
@@ -193,7 +207,7 @@
 					}
 					
 					//first sights vs resights analysis
-					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,month1,day1)).getTimeInMillis()){
 						 measurementValuesResights[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
 							
 				 		   
@@ -212,32 +226,34 @@
 		for(int b=0;b<numBioMeasurementTypes;b++){
 			if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType())!=null){
 				
-					bioMeasurementValues[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
-					
+					double val=thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue();
+				
+					bioMeasurementValues[b].addValue(val);
+					//System.out.println(bioMeasurementTypes.get(b).getType()+":"+val);
 					//smallest vs largest analysis
-					if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue()<=bioMeasurementValues[b].getMin()){
+					if(val<=bioMeasurementValues[b].getMin()){
 						bioSmallestIndies[b]=thisEnc.getIndividualID();
 					}
-					else if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue()>=bioMeasurementValues[b].getMax()){
+					else if(val>=bioMeasurementValues[b].getMax()){
 						bioLargestIndies[b]=thisEnc.getIndividualID();
 					}
 					
 					//males versus females analysis
 					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
-						bioMeasurementValuesMales[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+						bioMeasurementValuesMales[b].addValue(val);
 					}
 					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
-						bioMeasurementValuesFemales[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+						bioMeasurementValuesFemales[b].addValue(val);
 					}
 					
 					//first sights vs resights analysis
-					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
-						 bioMeasurementValuesResights[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,month1,day1)).getTimeInMillis()){
+						 bioMeasurementValuesResights[b].addValue(val);
 							
 				 		   
 					 }
 					 else{
-						 bioMeasurementValuesNew[b].addValue(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue());
+						 bioMeasurementValuesNew[b].addValue(val);
 							
 					 }
 					
@@ -277,7 +293,7 @@
 		 resightingYearsArray[thisEnc.getMaxNumYearsBetweenSightings()]++;
 		 
 		 //firstSightings distribution
-		 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(Integer.parseInt(request.getParameter("year1")),Integer.parseInt(request.getParameter("month1")),Integer.parseInt(request.getParameter("day1")))).getTimeInMillis()){
+		 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,month1,day1)).getTimeInMillis()){
 	 		   Integer thisInt = firstSightingsHashtable.get("Previously sighted")+1;
 	  		   firstSightingsHashtable.put("Previously sighted", thisInt);
 	 		   
@@ -474,7 +490,7 @@
         %>
         var options = {
           width: 450, height: 300,
-          title: 'Sex Distribution in Matched Encounters',
+          title: 'Sex Distribution in Matched Individuals',
           colors: ['#0000FF','#FF00FF','<%=haploColor%>']
         };
 
@@ -563,16 +579,22 @@
  <div id="main">
  
  <ul id="tabmenu">
+ <%
+String queryString = "";
+if (request.getQueryString() != null) {
+  queryString = request.getQueryString();
+}
+%>
  
-  <li><a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
-   <li><a href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+   <li><a href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a class="active"><%=encprops.getProperty("analysis")%>
   </a></li>
-    <li><a href="individualSearchResultsExport.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("export")%>
+    <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("export")%>
   </a></li>
  
  </ul>

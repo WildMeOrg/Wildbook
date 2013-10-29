@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -92,8 +93,14 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have set encounter " + request.getParameter("number") + " as unidentifiable in the database.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/allIndividuals.jsp\">View all individuals</a></font></p>");
+          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+          int allStatesSize=allStates.size();
+          if(allStatesSize>0){
+            for(int i=0;i<allStatesSize;i++){
+              String stateName=allStates.get(i);
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            }
+          }
           out.println(ServletUtilities.getFooter());
           String message = "Encounter " + request.getParameter("number") + " was set as unidentifiable in the database.";
           ServletUtilities.informInterestedParties(request, request.getParameter("number"),
@@ -119,8 +126,14 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I have NOT modified encounter " + request.getParameter("number") + " in the database because another user is currently modifying its entry. Please try this operation again in a few seconds.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
-          out.println("<p><a href=\"encounters/allEncounters.jsp\">View all encounters</a></font></p>");
-          out.println("<p><a href=\"allIndividuals.jsp\">View all individuals</a></font></p>");
+          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+          int allStatesSize=allStates.size();
+          if(allStatesSize>0){
+            for(int i=0;i<allStatesSize;i++){
+              String stateName=allStates.get(i);
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            }
+          }
           out.println(ServletUtilities.getFooter());
 
         }

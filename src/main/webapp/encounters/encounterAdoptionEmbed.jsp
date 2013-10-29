@@ -83,13 +83,14 @@ div.scroll {
 
 -->
 </style>
+<hr width="100%"/>
+  <p><strong>Adopters</strong></p>
 
-<h3 style="width: 250px">Adopters</h3>
 
 <%
   ArrayList adoptions = adoptShepherd.getAllAdoptionsForEncounter(num);
   int numAdoptions = adoptions.size();
-
+if(numAdoptions>0){
   for (int ia = 0; ia < numAdoptions; ia++) {
     Adoption ad = (Adoption) adoptions.get(ia);
 %>
@@ -166,6 +167,14 @@ div.scroll {
 <p>&nbsp;</p>
 <%
   }
+  }
+  else {
+	%>
+	<p>No adoptions defined.</p>  
+<%	  
+  }
+
+
 
   //add adoption
   if (request.getUserPrincipal()!=null) {

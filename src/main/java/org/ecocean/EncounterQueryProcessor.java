@@ -39,6 +39,18 @@ public class EncounterQueryProcessor {
     }
     //end location filter--------------------------------------------------------------------------------------
 
+    //filter for username------------------------------------------
+    if((request.getParameter("username")!=null)&&(!request.getParameter("username").equals(""))) {
+      String locString=request.getParameter("username").toLowerCase().replaceAll("%20", " ").trim();
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+        filter+="(submitterID == \""+locString+"\")";
+      }
+      else{filter+=" && (submitterID == \""+locString+"\")";}
+      prettyPrint.append("Username contains \""+locString+"\".<br />");
+    }
+    //end username filter--------------------------------------------------------------------------------------
+
+    
     
     //filter for resighted encounter------------------------------------------
     if(request.getParameter("resightOnly")!=null) {
@@ -157,9 +169,9 @@ public class EncounterQueryProcessor {
     
   //------------------------------------------------------------------
     //patterningCode filters-------------------------------------------------
-    String[] patterningCodes=request.getParameterValues("patterningCode");
+    String[] patterningCodes=request.getParameterValues("patterningCodeField");
     if((patterningCodes!=null)&&(!patterningCodes[0].equals("None"))){
-          prettyPrint.append("Color code is one of the following: ");
+          prettyPrint.append("Patterning code is one of the following: ");
           int kwLength=patterningCodes.length;
             String patterningCodeFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -838,15 +850,17 @@ public class EncounterQueryProcessor {
      */
 
     //filter by alive/dead status------------------------------------------
-    if(request.getParameter("alive")==null) {
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('alive')";}
-      else{filter+=" && !livingStatus.startsWith('alive')";}
-      prettyPrint.append("Not alive.<br />");
-    }
-    if(request.getParameter("dead")==null) {
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('dead')";}
-      else{filter+=" && !livingStatus.startsWith('dead')";}
-      prettyPrint.append("Not dead.<br />");
+    if((request.getParameter("alive")!=null)||(request.getParameter("dead")!=null)){  
+      if(request.getParameter("alive")==null) {
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('alive')";}
+        else{filter+=" && !livingStatus.startsWith('alive')";}
+        prettyPrint.append("Not alive.<br />");
+      }
+      if(request.getParameter("dead")==null) {
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('dead')";}
+        else{filter+=" && !livingStatus.startsWith('dead')";}
+        prettyPrint.append("Not dead.<br />");
+      }
     }
     //filter by alive/dead status--------------------------------------------------------------------------------------
 
@@ -963,7 +977,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       prettyPrint.append("Sex is not female.<br />");
     }
     if(request.getParameter("unknown")==null) {
-      filter+=" && !sex.startsWith('unknown')";
+      filter+=" && !sex.startsWith('unknown') && sex != null";
       prettyPrint.append("Sex is not unknown.<br />");
     }
 
@@ -1097,7 +1111,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     filter+=jdoqlVariableDeclaration;
     
     filter += parameterDeclaration;
-
+    
     return filter;
 
   }
@@ -1121,6 +1135,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     filter=queryStringBuilder(request, prettyPrint, paramMap);
 
     Query query=myShepherd.getPM().newQuery(filter);
+    if(!order.equals("")){query.setOrdering(order);}
 
     if(!filter.trim().equals("")){
         //filter="("+filter+")";
@@ -1254,7 +1269,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 	//end photo filename filtering
 
-
+  	query.closeAll();
     return (new EncounterQueryResult(rEncounters,filter,prettyPrint.toString()));
 
   }

@@ -166,14 +166,20 @@
 <div id="main">
 <ul id="tabmenu">
 
+<%
+String queryString = "";
+    if (request.getQueryString() != null) {
+      queryString = queryString;
+    }
+%>
 
-  <li><a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
   </a></li>
-   <li><a href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
+   <li><a href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
   </a></li>
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
   </a></li>
     <li><a class="active"><%=props.getProperty("export")%>
   </a></li>
@@ -195,8 +201,8 @@
 
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
-	<tr><td bgcolor="#CCCCCC"><strong>CAPTURE with annual seasons (example only)</strong></td></tr>
-	<tr><td bgcolor="#FFFFFF"><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=request.getQueryString()%>">
+	<tr><td bgcolor="#CCCCCC"><strong>CAPTURE with annual seasons (example only)</strong><br/>For use with the web version available <a href="http://www.mbr-pwrc.usgs.gov/software/capture.html">here.</a></td></tr>
+	<tr><td bgcolor="#FFFFFF"><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/IndividualSearchExportCapture?<%=queryString%>">
 		Click here</a>
         </td></tr>
 </table>
@@ -205,14 +211,14 @@
 	<p>	<table border="1" bordercolor="black" cellspacing="0">
 			<tr><td bgcolor="#CCCCCC"><strong>SOCPROG Excel File Export</strong></td></tr>
 			<tr><td bgcolor="#FFFFFF">
-		<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/SOCPROGExport?<%=request.getQueryString()%>">
+		<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/SOCPROGExport?<%=queryString%>">
 Click here</a>
 </td></tr>
 </table>
 </p>
 
 <p>
-<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMRSpecifySessions.jsp?<%=request.getQueryString()%>" method="post">
+<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMRSpecifySessions.jsp?<%=queryString%>" method="post">
 		<table border="1" bordercolor="black" cellspacing="0">
 			<tr>
 			  <td bgcolor="#CCCCCC"><strong>Simple Mark-Recapture History File Export (single site, single state)</strong></td></tr>
@@ -248,10 +254,10 @@ Click here</a>
     <td align="left">
       <p>
         <a
-          href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><img
+          href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><img
           src="images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
           title="<%=props.getProperty("seePreviousResults")%>"/></a> <a
-        href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><%=(startNum - 20)%>
+        href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><%=(startNum - 20)%>
         - <%=(startNum - 11)%>
       </a>
       </p>
@@ -264,10 +270,10 @@ Click here</a>
     <td align="right">
       <p>
         <a
-          href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><%=startNum%>
+          href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><%=startNum%>
           - <%=endNum%>
         </a> <a
-        href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><img
+        href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><img
         src="images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=props.getProperty("seeNextResults")%>"/></a>
       </p>

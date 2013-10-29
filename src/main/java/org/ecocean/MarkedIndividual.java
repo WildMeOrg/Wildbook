@@ -46,7 +46,7 @@ public class MarkedIndividual implements java.io.Serializable {
   private String comments = "None";
 
   //sex of the MarkedIndividual
-  private String sex = "Unknown";
+  private String sex = "unknown";
 
   //unused String that allows groups of MarkedIndividuals by optional parameters
   private String seriesCode = "None";
@@ -650,7 +650,7 @@ public class MarkedIndividual implements java.io.Serializable {
     int lowestYear = 5000;
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if ((temp.getYear() < lowestYear)&&(temp.getYear()>-1)){ 
+      if ((temp.getYear() < lowestYear)&&(temp.getYear()>0)){ 
         lowestYear = temp.getYear();
       }
     }
@@ -661,7 +661,7 @@ public class MarkedIndividual implements java.io.Serializable {
     long lowestTime = GregorianCalendar.getInstance().getTimeInMillis();
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if (temp.getDateInMilliseconds() < lowestTime) lowestTime = temp.getDateInMilliseconds();
+      if ((temp.getDateInMilliseconds() < lowestTime)&&(temp.getYear()>0)) lowestTime = temp.getDateInMilliseconds();
     }
     return lowestTime;
   }
@@ -1171,9 +1171,10 @@ public class MarkedIndividual implements java.io.Serializable {
     int highestYear=0;
     for(int c=0;c<encounters.size();c++) {
       Encounter temp=(Encounter)encounters.get(c);
-      if((temp.getYear()<lowestYear)&&(temp.getYear()>-1)) lowestYear=temp.getYear();
+      if((temp.getYear()<lowestYear)&&(temp.getYear()>0)) lowestYear=temp.getYear();
       if(temp.getYear()>highestYear) highestYear=temp.getYear();
       maxYears=highestYear-lowestYear;
+      if(maxYears<0){maxYears=0;}
       }
     maxYearsBetweenResightings=maxYears;
     }
@@ -1235,6 +1236,15 @@ public String getHaplotype(){
         if(temp.getHaplotype()!=null){return temp.getHaplotype();}
       }
     return null;
+
+}
+
+public String getGeneticSex(){
+  for (int c = 0; c < encounters.size(); c++) {
+    Encounter temp = (Encounter) encounters.get(c);
+    if(temp.getGeneticSex()!=null){return temp.getGeneticSex();}
+  }
+return null;
 
 }
 
@@ -1493,13 +1503,27 @@ public long getMaxTimeBetweenTwoSightings(){
     Encounter thisEnc=(Encounter)encounters.get(y);
     for(int z=(y+1);z<numEncs;z++){
       Encounter nextEnc=(Encounter)encounters.get(z);
-      long tempMaxTime=Math.abs(thisEnc.getDateInMilliseconds()-nextEnc.getDateInMilliseconds());
-      if(tempMaxTime>maxTime){maxTime=tempMaxTime;}
+      if(thisEnc.getDateInMilliseconds()>0){
+        long tempMaxTime=Math.abs(thisEnc.getDateInMilliseconds()-nextEnc.getDateInMilliseconds());
+        if(tempMaxTime>maxTime){maxTime=tempMaxTime;}
+      }
     }
   }
   }
   return maxTime;
 }
 
+public ArrayList<String> getAllAssignedUsers(){
+  ArrayList<String> allIDs = new ArrayList<String>();
+
+   //add an alt IDs for the individual's encounters
+   int numEncs=encounters.size();
+   for(int c=0;c<numEncs;c++) {
+     Encounter temp=(Encounter)encounters.get(c);
+     if((temp.getAssignedUsername()!=null)&&(!allIDs.contains(temp.getAssignedUsername()))) {allIDs.add(temp.getAssignedUsername());}
+   }
+
+   return allIDs;
+ }
 
 }

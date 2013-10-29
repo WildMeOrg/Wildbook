@@ -62,17 +62,18 @@ public class SubmitForm extends ActionForm {
   private String behavior="";
   private String lifeStage="";
   private String country="";
-  
+  private String locationID="";
+
   private Map<String, Object> measurements = new HashMap<String, Object>();
-  
+
   private Map<String, Object> metalTags = new HashMap<String, Object>();
   private String acousticTagSerial = "";
   private String acousticTagId = "";
   private String satelliteTagSerial = "";
   private String satelliteTagArgosPttNumber = "";
   private String satelliteTagName = "";
-  
-  
+
+
   /**
    * The value of the text the user has sent as form data
    */
@@ -160,6 +161,7 @@ public class SubmitForm extends ActionForm {
     satelliteTagArgosPttNumber = "";
     satelliteTagName = "";
     country="";
+    locationID="";
   }
 
 
@@ -178,11 +180,11 @@ public class SubmitForm extends ActionForm {
   public void setDate(Calendar date) {
     this.date = date;
   }
-  
+
   public void setReleaseDate(String releaseDate) {
     this.releaseDate = releaseDate;
   }
-  
+
   public String getReleaseDate() {
     return releaseDate;
   }
@@ -325,14 +327,19 @@ public class SubmitForm extends ActionForm {
   public void setSubmitterOrganization(String submitterOrganization) {
       this.submitterOrganization = submitterOrganization;
   }
-  
+
   public String getCountry() {
     return this.country;
+}
+  public String getLocationID() {
+    return this.locationID;
 }
 public void setCountry(String newCountry) {
     this.country = newCountry;
 }
-
+public void setLocationID(String newLocationID) {
+    this.locationID = newLocationID;
+}
   public String getSubmitterProject() {
         return this.submitterProject;
   }
@@ -507,7 +514,7 @@ public void setCountry(String newCountry) {
     public void setBehavior(String behavior) {
       this.behavior = behavior;
   }
-    
+
     public String getLifeStage() {
       return this.lifeStage;
     }
@@ -515,15 +522,15 @@ public void setCountry(String newCountry) {
     public void setLifeStage(String lifeStage) {
       this.lifeStage = lifeStage;
   }
-    
+
   public Object getMeasurement(String key) {
     return measurements.get(key);
   }
-  
+
   public void setMeasurement(String key, Object measurement) {
     measurements.put(key, measurement);
   }
-  
+
   public Map<String, Object> getMeasurements() {
     return measurements;
   }

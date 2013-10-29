@@ -40,7 +40,7 @@ public class LoginIT extends WebTestCase {
 
   public void setUp() throws Exception {
     super.setUp();
-    setBaseUrl("http://localhost:9090/shepherd");
+    setBaseUrl("http://localhost:9090/wildbook");
   }
   public void testLogin() {
     beginAt("/index.jsp");
