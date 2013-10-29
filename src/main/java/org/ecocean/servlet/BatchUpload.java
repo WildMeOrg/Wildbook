@@ -1026,7 +1026,7 @@ public final class BatchUpload extends DispatchServlet {
           int m = time.getMinutes();
           x.setHour(h);
           // NOTE: Why minutes as string in Encounter?!
-          x.setMinutes(Integer.toString(m));
+          x.setMinutes(String.format("%02d", m));
           x.setVerbatimEventDate(DFDT.format(new Date(yy - 1900, mm - 1, dd, h, m)));
         } else {
           x.setVerbatimEventDate(DFD.format(date));
