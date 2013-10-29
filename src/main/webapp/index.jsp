@@ -186,7 +186,7 @@
 
           <p class="caption">Manta Matcher represents the first global manta ray database. This site was
 specifically designed to manage manta ray sightings and identifications across their
-distribution. After the success of the Ecocean whale shark database, Manta Matcher
+distribution. After the success of the <a href="http://www.whaleshark.org">Wildbook for Whale Sharks</a> database, Manta Matcher
 was a logical follow-up. Manta rays are widely distributed, migratory, and have
 unique spot patterning on their ventral surface that can be used to permanently
 identify individuals. At the present time, this database will enable researchers to
