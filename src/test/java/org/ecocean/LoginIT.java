@@ -52,7 +52,7 @@ public class LoginIT extends WebTestCase {
     clickLinkWithExactText("Home");
     assertLinkPresentWithExactText("Log out");
     clickLinkWithExactText("Log out");
-    assertTextPresent("Overview");
+    assertTextPresent("Learn");
   }
 
   public void testUnsuccessfulLogin() {
