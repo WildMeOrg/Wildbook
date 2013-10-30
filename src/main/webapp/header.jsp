@@ -102,7 +102,7 @@
       </ul>
       <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
     <li class="drop">
-      <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/allIndividuals.jsp"
+      <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp"
          style="margin: 0px 0 0px 0px; position: relative; width: 100px; height: 25px; z-index: 100;">
         <strong><%=props.getProperty("individuals")%>
         </strong></a><!--[if lte IE 6]>
@@ -110,7 +110,7 @@
         <tr>
           <td><![endif]-->
       <ul>
-        <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/allIndividuals.jsp"
+        <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp"
                class="enclose"
                style="margin: 0px 0 0px 0px; position: relative; width: 130px; height: 25px;"><%=props.getProperty("viewAll")%>
         </a></li>
