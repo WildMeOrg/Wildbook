@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="org.apache.commons.lang.WordUtils,org.ecocean.CommonConfiguration, java.util.Properties" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -64,16 +64,17 @@
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/overview.jsp"
           class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index:
+          style="margin: 0px 0 0px 0px; position: relative; width: 200px; height: 25px; z-index:
           100;"><strong>Overview</strong></a>
         </li>
                 <li><a
 	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/photographing.jsp"
 	          class="enclose"
-	          style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index:
+	          style="margin: 0px 0 0px 0px; position: relative; width: 200px; height: 25px; z-index:
 	          100;"><strong>How to Photograph</strong></a>
 	        </li>
-
+	<li><a href="http://www.wildme.org/wildbook" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;">Learn about Wildbook</a></li>
+	
 
       </ul>
       <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
@@ -117,20 +118,42 @@
 
       </ul>
       <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
-    <li class="drop"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&amp;end=10"
-      style="margin: 0px 0 0px 0px; position: relative; width: 100px; height: 25px; z-index: 100;"><strong><%=props.getProperty("encounters")%>
+<li class="drop"><a
+      
+      style="margin: 0px 0 0px 0px; position: relative; width: 90px; height: 25px; z-index: 100;"><strong><%=props.getProperty("encounters")%>
     </strong><!--[if IE 7]><!--></a><!--<![endif]-->
       <!--[if lte IE 6]>
       <table>
         <tr>
           <td><![endif]-->
       <ul>
-        <li><a
-          href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&amp;end=10"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;"><%=props.getProperty("viewEncounters")%>
-        </a></li>
+      
+      	<!-- list encounters by state -->
+      						<%
+      						boolean moreStates=true;
+      						int cNum=0;
+							while(moreStates){
+	  								String currentLifeState = "encounterState"+cNum;
+	  								if(CommonConfiguration.getProperty(currentLifeState)!=null){
+	  									
+	  									if((!CommonConfiguration.getProperty(currentLifeState).equals("unapproved"))||(request.getUserPrincipal()!=null)){
+	  									%>
+										<li>
+        									<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState) %>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;">
+        										<%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState))+" "))%>
+        									</a>
+        								</li>
+										<%
+	  									}
+										cNum++;
+  									}
+  									else{
+     									moreStates=false;
+  									}
+  
+							} //end while
+      						%>
+        
 
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/thumbnailSearchResults.jsp?noQuery=true"
@@ -145,35 +168,14 @@
         </a></li>
 
 
-        <li><a
-          href="http://<%=CommonConfiguration.getURLLocation(request)
-          %>/encounters/allEncountersUnapproved.jsp?start=1&amp;end=10&amp;sort=nosort"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewUnapproved")%>
-        </a></li>
 
       
-      <%
-      //test comment
-      if(request.getUserPrincipal()!=null){
-      %>
-        <li><a
-          href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/allEncounters.jsp?start=1&amp;end=10&amp;sort=nosort&amp;user=<%=request.getRemoteUser()%>"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewMySubmissions")%>
-        </a>
-        </li>
-	<%
-	}
-	%>
-
         <li>
-          <a
-            href="http://<%=CommonConfiguration.getURLLocation(request)
-            %>/encounters/allEncounters.jsp?start=1&amp;end=10&amp;sort=nosort&amp;rejects=true"
-            class="enclose"
-            style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;"><%=props.getProperty("viewUnidentifiable")%>
-          </a></li>
+        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">
+        		<%=props.getProperty("viewMySubmissions")%>
+        	</a>
+        </li>
+     
 
 
       </ul>
