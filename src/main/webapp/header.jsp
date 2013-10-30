@@ -198,9 +198,9 @@ z-index:99;
 <li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:45px; height:25px;z-index:100;"><strong>Learn</strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
-	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Introduction</a></li>
-	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/photographing.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">How to Photograph</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/publications.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Publications</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/photographing.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;">How to Photograph</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/publications.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;">Publications</a></li>
+		<li><a href="http://www.wildme.org/wildbook" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;">Learn about Wildbook</a></li>
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
