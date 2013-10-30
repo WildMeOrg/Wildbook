@@ -43,9 +43,9 @@
 		  <h1 class="intro">Adopt a Manta</h1>
 		</div>
 			
-			<p>You can support the ongoing research of the ECOCEAN MantaMatcher by adopting a manta ray. A manta adoption allows you to:</p>
+			<p>You can support the ongoing research of MantaMatcher by adopting a manta ray. A manta adoption allows you to:</p>
 			<ul>
-			  <li>support cutting-edge manta research through the ECOCEAN MantaMatcher</li>
+			  <li>support cutting-edge manta research through MantaMatcher</li>
 	    <li> receive email updates of resightings of your adopted manta</li>
 		<li>display your photo and a quote from you on the manta's page in our library</li>
 		</ul>
@@ -57,7 +57,7 @@
 	    <li>Group adoption = USD $200/year </li>
 	          <li>Corporate adoption = USD $1000/year</li>
 		</ul>
-			<p>The cost of your adoption is tax deductible in the United States through ECOCEAN USA, a 501(c)(3) non-profit organization.</p>
+			<p>The cost of your adoption is tax deductible in the United States through Wild Me, a 501(c)(3) non-profit organization.</p>
 			
 			<table><tr><td>
 			<h3>Creating an adoption</h3>
