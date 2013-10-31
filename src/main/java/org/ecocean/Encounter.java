@@ -673,9 +673,9 @@ public class Encounter implements java.io.Serializable {
       return Integer.toString(year);
     }
     if (day > 0) {
-      date = String.format("%02d/%02d/%04d %s", day, month, year);
+      date = String.format("%02d/%02d/%04d", day, month, year);
     } else {
-      date = String.format("%02d/%04d %s", month, year);
+      date = String.format("%02d/%04d", month, year);
     }
 
     return date;
