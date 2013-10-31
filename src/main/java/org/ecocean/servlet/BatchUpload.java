@@ -155,10 +155,6 @@ public final class BatchUpload extends DispatchServlet {
       taskExecutor.shutdownNow();
   }
 
-  private final boolean checkPermission(HttpServletRequest req) {
-    return (req.isUserInRole("admin"));
-  }
-
   private ResourceBundle getResources(Locale loc) {
     return ResourceBundle.getBundle("bundles/batchUpload", loc);
   }
@@ -273,10 +269,6 @@ public final class BatchUpload extends DispatchServlet {
   public void uploadBatchData(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       HttpSession session = req.getSession();
-      if (!checkPermission(req)) {
-        flushSessionInfo(req);
-        getServletConfig().getServletContext().getRequestDispatcher("/").forward(req, res);
-      }
 
       Locale loc = req.getLocale();
       ResourceBundle bundle = getResources(loc);
@@ -449,10 +441,6 @@ public final class BatchUpload extends DispatchServlet {
   public void confirmBatchDataUpload(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       HttpSession session = req.getSession(false);
-      if (!checkPermission(req)) {
-        flushSessionInfo(req);
-        getServletContext().getRequestDispatcher("/").forward(req, res);
-      }
 
       Locale loc = req.getLocale();
       ResourceBundle bundle = getResources(loc);
@@ -517,10 +505,6 @@ public final class BatchUpload extends DispatchServlet {
   public void getBatchProgress(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       HttpSession session = req.getSession(false);
-      if (!checkPermission(req)) {
-        flushSessionInfo(req);
-        getServletContext().getRequestDispatcher("/").forward(req, res);
-      }
 
       // Find BatchProcessor in session.
       BatchProcessor proc = (BatchProcessor)session.getAttribute(SESSION_KEY_TASK);
@@ -1029,6 +1013,8 @@ public final class BatchUpload extends DispatchServlet {
           x.setMinutes(String.format("%02d", m));
           x.setVerbatimEventDate(DFDT.format(new Date(yy - 1900, mm - 1, dd, h, m)));
         } else {
+          // NOTE: Must set hour=-1 due to odd design of Encounter implementation.
+          x.setHour(-1);
           x.setVerbatimEventDate(DFD.format(date));
         }
       }

@@ -60,7 +60,7 @@ public class MantaMatcherUtilities {
 
   /**
    * Converts the specified file to a map of files, keyed by string for easy
-   * referencing, comprising five elements in order:
+   * referencing, comprising five elements:
    * <ul>
    * <li>Original file (key: O).</li>
    * <li>File representing MantaMatcher &quot;candidate region&quot; photo (key: CR).</li>

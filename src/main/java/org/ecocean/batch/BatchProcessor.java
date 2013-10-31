@@ -648,7 +648,6 @@ public final class BatchProcessor implements Runnable {
       while ((len = is.read(b)) != -1)
         os.write(b, 0, len);
       os.flush();
-      os.flush();
     } finally {
       if (os != null)
         os.close();

@@ -589,7 +589,9 @@ public class BatchParser {
       // and date fields set to parsed date.
       for (DateFormat df : dateFormat) {
         try {
-          return df.parse(trim);
+          Date d = df.parse(trim);
+          if (d != null)
+            return d;
         } catch (ParseException ex) {
           // Ignore; gets flagged by null value.
         }
@@ -599,7 +601,9 @@ public class BatchParser {
       // and time fields set to parsed time.
       for (DateFormat df : timeFormat) {
         try {
-          return df.parse(trim);
+          Date d = df.parse(trim);
+          if (d != null)
+            return d;
         } catch (ParseException ex) {
           // Ignore; gets flagged by null value.
         }
