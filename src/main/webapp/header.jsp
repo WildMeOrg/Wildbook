@@ -275,14 +275,19 @@ z-index:99;
         </a></li>
 
 
-
+<%
+if(request.getUserPrincipal()!=null){
+%>
       
         <li>
         	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">
         		<%=props.getProperty("viewMySubmissions")%>
         	</a>
         </li>
-     
+<%
+}
+%>
+
 
 
       </ul>
