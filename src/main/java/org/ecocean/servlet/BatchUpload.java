@@ -580,6 +580,7 @@ public final class BatchUpload extends DispatchServlet {
     List<String> listSex = CommonConfiguration.getSequentialPropertyValues("sex");
     List<String> listTax = CommonConfiguration.getSequentialPropertyValues("genusSpecies");
     List<String> listLS = CommonConfiguration.getSequentialPropertyValues("lifeStage");
+    List<String> listPC = CommonConfiguration.getSequentialPropertyValues("patterningCode");
     List<String> listLoc = CommonConfiguration.getSequentialPropertyValues("locationID");
     List<String> listSP = CommonConfiguration.getSequentialPropertyValues("samplingProtocol");
 
@@ -635,6 +636,13 @@ public final class BatchUpload extends DispatchServlet {
       if (lifeStage != null && !listLS.isEmpty() && !listLS.contains(lifeStage)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidLifeStage");
         errors.add(MessageFormat.format(msg, x.getEventID(), lifeStage));
+      }
+
+      // Check patterning code.
+      String patterningCode = x.getPatterningCode();
+      if (patterningCode != null && !listPC.isEmpty() && !listPC.contains(patterningCode)) {
+        String msg = bundle.getString("batchUpload.verifyError.encounterInvalidPatterningCode");
+        errors.add(MessageFormat.format(msg, x.getEventID(), patterningCode));
       }
 
       // Check location.
@@ -1033,6 +1041,7 @@ public final class BatchUpload extends DispatchServlet {
       x.setReleaseDate((Date)map.get(pre + "releaseDate"));
       x.setSize((Double)map.get(pre + "size"));
       x.setSizeGuess((String)map.get(pre + "sizeGuess"));
+      x.setPatterningCode((String)map.get(pre + "patterningCode"));
       x.setDistinguishingScar((String)map.get(pre + "distinguishingScar"));
       x.setCatalogNumber((String)map.get(pre + "catalogNumber"));
       x.setOtherCatalogNumbers((String)map.get(pre + "otherCatalogNumbers"));

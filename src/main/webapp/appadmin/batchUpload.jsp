@@ -71,6 +71,12 @@
 <%!
   private static Logger log = LoggerFactory.getLogger(org.ecocean.servlet.BatchUpload.class);
 
+  /*
+   * This method populates the option descriptions for the BatchUpload JSP page.
+   * Each indexed item refers to the same indexed item in the properties file
+   * (e.g. gui.step2.enums.list0), and the {0} parameter is filled with the
+   * resulting string from this method.
+   */
   private final String createOptionsList(int i, String langCode) throws IOException {
     List<String> list = new ArrayList<String>();
     List<String> temp = new ArrayList<String>();
@@ -104,32 +110,35 @@
         list = CommonConfiguration.getSequentialPropertyValues("lifeStage");
         break;
       case 7:
+        list = CommonConfiguration.getSequentialPropertyValues("patterningCode");
+        break;
+      case 8:
         Properties props = new Properties();
         props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
         list.add(props.getProperty("unmatchedFirstEncounter"));
         list.add(props.getProperty("visualInspection"));
         list.add(props.getProperty("patternMatch"));
         break;
-      case 8:
+      case 9:
         list = CommonConfiguration.getSequentialPropertyValues("measurement");
         break;
-      case 9:
+      case 10:
         list = CommonConfiguration.getSequentialPropertyValues("measurementUnits");
         break;
-      case 10:
+      case 11:
         list = CommonConfiguration.getSequentialPropertyValues("samplingProtocol");
         break;
-      case 11:
+      case 12:
         Shepherd shep = new Shepherd();
         for (Iterator iter = shep.getAllKeywords(); iter.hasNext();)
           list.add(((Keyword)iter.next()).getReadableName());
         shep.closeDBTransaction();
         shep = null;
         break;
-      case 12:
+      case 13:
         list = CommonConfiguration.getSequentialPropertyValues("tissueType");
         break;
-      case 13: // FIXME
+      case 14: // FIXME
         list = CommonConfiguration.getSequentialPropertyValues("preservationMethod");
         break;
       default:
@@ -201,7 +210,7 @@
         <li><%=bundle.getProperty("gui.step2.list" + i)%></li>
       <% } %>
       <li><%=MessageFormat.format(bundle.getProperty("gui.step2.maxMediaSize"), CommonConfiguration.getMaxMediaSizeInMegabytes())%></li>
-      <% for (int i = 0; i <= 13; i++) { %>
+      <% for (int i = 0; i <= 14; i++) { %>
       <li><%=MessageFormat.format(bundle.getProperty("gui.step2.enums.list" + i), createOptionsList(i, langCode))%></li>
       <% } %>
       </ul>
