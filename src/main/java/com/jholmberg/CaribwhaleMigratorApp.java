@@ -43,12 +43,12 @@ public class CaribwhaleMigratorApp {
 
 		//initial environment config
 		//these eventually need to be loaded from a .properties file in the classpath
-		String pathToAccessFile="C:/caribwhale/atlantic/AtlanticCatalogue.mdb";
-		String encountersDirPath="C:/apache-tomcat-7.0.32/webapps/shepherd_data_dir/encounters";
-		String splashImagesDirPath="C:/caribwhale/JPGs";
-		String pathToExcel = "C:/caribwhale/atlantic/All_Individuals_SUPINFO_20130624.xls";
-		String pathToExcel2 = "C:\\caribwhale\\atlantic\\allIDN19842012_20130624.xls";
-		String flukesToMatchPath="C:/caribwhale/more_files_from_Shane/FlukestoMatch.mdb";
+		String pathToAccessFile="/home/webadmin/caribwhale/AtlanticCatalogue.mdb";
+		String encountersDirPath="/opt/tomcat7/webapps/caribwhale_data_dir/encounters";
+		String splashImagesDirPath="/home/webadmin/caribwhale/JPGs";
+		String pathToExcel = "/home/webadmin/caribwhale/All_Individuals_SUPINFO_20130624.xls";
+		String pathToExcel2 = "/home/webadmin/caribwhale/allIDN19842012_20130624.xls";
+		String flukesToMatchPath="/home/webadmin/caribwhale/FlukestoMatch.mdb";
 		File encountersDirFile=new File(encountersDirPath);
 		if(!encountersDirFile.exists()){encountersDirFile.mkdir();}
 		File sourceImagesDir=new File(splashImagesDirPath);
