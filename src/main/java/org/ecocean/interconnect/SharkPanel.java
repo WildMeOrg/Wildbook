@@ -202,7 +202,7 @@ class SharkPanel extends JPanel {
   }
 
 
-  //send data points to the ECOCEAN Library
+  //send data points to the Wildbook library
   public boolean send2library(StringBuffer mess, String transmitToURL) {
     if (img == null) {
       mess.append("Nothing to transmit. You must open an image first.");
