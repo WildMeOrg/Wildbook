@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, java.util.Properties, java.util.Vector" %>
+         import="org.ecocean.*, java.util.Properties,java.util.Enumeration, java.util.Vector" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -167,10 +167,24 @@
 <ul id="tabmenu">
 
 <%
-String queryString = "";
-    if (request.getQueryString() != null) {
-      queryString = queryString;
-    }
+String queryString="";
+if(request.getQueryString()!=null){
+	queryString=request.getQueryString();
+
+
+	Enumeration params=request.getParameterNames();
+	while(params.hasMoreElements()){
+
+		String name=(String)params.nextElement();
+		String value=request.getParameter(name);
+		
+		queryString+=("&"+name+"="+value);
+		
+	}
+	
+	
+}
+
 %>
 
   <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("table")%>
@@ -218,7 +232,7 @@ Click here</a>
 </p>
 
 <p>
-<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMRSpecifySessions.jsp?<%=queryString%>" method="post">
+<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMRSpecifySessions.jsp?<%=queryString%>" method="GET">
 		<table border="1" bordercolor="black" cellspacing="0">
 			<tr>
 			  <td bgcolor="#CCCCCC"><strong>Simple Mark-Recapture History File Export (single site, single state)</strong></td></tr>
@@ -228,12 +242,23 @@ Click here</a>
 			for each individual animal. The options below also allow you to include details of this search within the .inp file. These comments in the /* ... */ format are acceptable within Program MARK but may not be readable by other applications.</em></td></tr>
 			
 			
-			<tr><td bgcolor="#FFFFFF">Number of capture sessions: <input type="text" name="numberSessions" size="3" maxLength="3"/></td></tr>
+			<tr><td bgcolor="#FFFFFF">Number of capture sessions: <input type="text" name="numberSessions" size="3" maxLength="3" value="3"/></td></tr>
 			<tr><td bgcolor="#FFFFFF">Include marked individual ID as a comment at the end of each line (Program MARK only): <input type="checkbox" name="includeIndividualID" /></td></tr>
             <tr><td bgcolor="#FFFFFF">Include search query summary as a comment and URL at the start of the file (Program MARK only): <input type="checkbox" name="includeQueryComments" /></td></tr>
             
             <tr><td bgcolor="#FFFFFF"><input type="submit" value="Next"></td></tr>
 		</table>
+		<%
+Enumeration params=request.getParameterNames();
+while(params.hasMoreElements()){
+
+	String name=(String)params.nextElement();
+	String value=request.getParameter(name);
+%>
+	<input type="hidden" id="<%=name %>" name="<%=name %>" value="<%=value %>" />
+<%
+}
+%>
 	<form>
 </p>
 

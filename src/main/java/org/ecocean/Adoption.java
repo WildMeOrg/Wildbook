@@ -114,7 +114,10 @@ public class Adoption implements java.io.Serializable {
   }
 
   public void setAdopterImage(String img) {
-    this.adopterImage = img;
+    if(img==null){ img=null;}
+    else{
+    	this.adopterImage = img;
+	}
   }
 
   public void setAdoptionStartDate(String date) {

@@ -66,9 +66,9 @@ public class Point2D implements java.io.Serializable {
    * Point2D class can be considered as only a Value Object access to the
    * data is required by the processor objects.  The getters are actually not
    * needed since the protected x and y values are accessible to all classes
-   * in the ecocean package, but to maintain the code base they are
+   * in the Wildbook package, but to maintain the code base they are
    * retained.  However we should restrict data getting only to within the
-   * ecocean package.  Thus the getter methods are set for package
+   * Wildbook package.  Thus the getter methods are set for package
    * level access (i.e. the default for undeclared method types) rather than
    * public.
    */
