@@ -108,7 +108,7 @@ public class SOCPROGExport extends HttpServlet{
 
       //let's write out headers for the OBIS export file
         WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile);
-        WritableSheet sheet = workbookOBIS.createSheet("Shepherd Project SOCPROG Data Export", 0);
+        WritableSheet sheet = workbookOBIS.createSheet("Wildbook SOCPROG Data Export", 0);
         WritableSheet sheet2 = workbookOBIS.createSheet("Additional data", 1);
 
 
