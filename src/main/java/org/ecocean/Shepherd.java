@@ -2025,6 +2025,19 @@ public class Shepherd {
     }
     return it;
   }
+  
+  public String getAllUserEmailAddressesForLocationID(String locationID){
+    String addresses="";
+    ArrayList<User> users = getAllUsers();
+    int numUsers=users.size();
+    for(int i=0;i<numUsers;i++){
+      User user=users.get(i);
+      if(doesUserHaveRole(user.getUsername(), locationID.trim())){
+        if((user.getReceiveEmails())&&(user.getEmailAddress()!=null)){addresses+=(user.getEmailAddress()+",");}
+      }
+    }
+    return addresses;
+  }
 
   public Iterator getAllOccurrences() {
     Extent allOccurs = null;
