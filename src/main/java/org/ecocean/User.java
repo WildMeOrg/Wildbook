@@ -39,10 +39,11 @@ public class User implements java.io.Serializable {
 
   private long lastLogin=-1;
   
-  	private String username;
-  	private String password ;
-  	private String salt;
+  private String username;
+  private String password ;
+  private String salt;
   
+  private boolean receiveEmails=true; 
   	
   	//JDOQL required empty instantiator
   	public User(){}
@@ -212,5 +213,8 @@ public class User implements java.io.Serializable {
     
     public void setLastLogin(long lastie){this.lastLogin=lastie;}
     
-
+    public boolean getReceiveEmails(){return receiveEmails;}
+    public void setReceiveEmails(boolean receive){this.receiveEmails=receive;}
+    
+    
 }
