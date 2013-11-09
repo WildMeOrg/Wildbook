@@ -29,7 +29,7 @@
 //setup our Properties object to hold all properties
   Properties props = new Properties();
   String langCode = "en";
-  Properties email_props = new Properties();
+  //Properties email_props = new Properties();
 
   //check what language is requested
   if (session.getAttribute("langCode") != null) {
@@ -40,7 +40,7 @@
   props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
 
 
-  email_props.load(getClass().getResourceAsStream("/bundles/confirmSubmitEmails.properties"));
+  //email_props.load(getClass().getResourceAsStream("/bundles/confirmSubmitEmails.properties"));
 
 
   //link path to submit page with appropriate language
@@ -112,7 +112,15 @@
         addText = (String)enc.getAdditionalImageNames().get(0);
       }
       if ((enc.getLocationCode() != null) && (!enc.getLocationCode().equals("None"))) {
-        informMe = email_props.getProperty(enc.getLocationCode());
+        
+    	  
+    	  //the old way was to load a list of email addresses from a properties files using the locationID as the property key
+    	  //informMe = email_props.getProperty(enc.getLocationCode());
+        
+        //the new way loads email addresses based on User object roles matching location ID
+        informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID());
+        
+        
       } else {
         hasImages = false;
       }

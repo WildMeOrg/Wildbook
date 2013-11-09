@@ -198,6 +198,7 @@
     		    String userProject="";
     		    String userStatement="";
     		    String userURL="";
+    		    String receiveEmails="checked=\"checked\"";
     		    boolean hasProfilePhoto=false;
     		    
     		    if((request.getParameter("isEdit")!=null)&&(myShepherd.getUser(request.getParameter("username").trim())!=null)){
@@ -209,6 +210,7 @@
     		    	if(thisUser.getEmailAddress()!=null){
     		    		localEmail=thisUser.getEmailAddress();
     		    	}
+    		    	if(!thisUser.getReceiveEmails()){receiveEmails="";}
     		    	if(thisUser.getFullName()!=null){
     		    		localFullName=thisUser.getFullName();
     		    	}
@@ -302,7 +304,7 @@
                         </td>	
             		</tr>
                     <tr><td colspan="4">Full name: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
-                    <tr><td colspan="4">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td></tr>
+                    <tr><td colspan="3">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
                     <tr><td colspan="4">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
                      <tr><td colspan="4">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
                           
