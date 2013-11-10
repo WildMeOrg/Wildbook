@@ -1,6 +1,9 @@
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
+  ~ Copyright (C) 2013 \
+  
+  
+  Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
   ~ modify it under the terms of the GNU General Public License
@@ -138,21 +141,44 @@
  				
  			}
  	
- 	
+ 			
+ 			//let's prep the data structures for the discovery curve
+ 			Hashtable<Integer,Integer> discoveryCurveInflectionPoints= new Hashtable<Integer,Integer>();
+ 			ArrayList<String> dailyDuplicates=new ArrayList<String>();
+ 					
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
+ 	int numUniqueEncounters=0;
  	 for(int y=0;y<resultSize;y++){
  		 
  		 
  		 Encounter thisEnc=(Encounter)rEncounters.get(y);
- 		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){markedIndividuals.add(thisEnc.getIndividualID().trim());}
+ 		numUniqueEncounters++;
+ 		 //markedIndividual tabulation
+ 		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){
+ 			 
+ 			 //add this individual to the list
+ 			 markedIndividuals.add(thisEnc.getIndividualID().trim());
+ 			
+ 			 //check for a daily duplicate
+ 			 String dailyDuplicateUniqueID=thisEnc.getIndividualID()+":"+thisEnc.getYear()+":"+thisEnc.getMonth()+":"+thisEnc.getDay();
+ 			 if(!dailyDuplicates.contains(dailyDuplicateUniqueID)){
+ 				dailyDuplicates.add(dailyDuplicateUniqueID);
+ 				 //set a discovery curve inflection point
+ 				discoveryCurveInflectionPoints.put(numUniqueEncounters, markedIndividuals.size());
+ 			 }
+ 			 else{numUniqueEncounters--;}
+
+ 		 }
+ 		 	
+ 		 
  		 //haplotype ie chart prep
- 		 if(thisEnc.getHaplotype()!=null){
-      	   if(pieHashtable.containsKey(thisEnc.getHaplotype().trim())){
-      		   Integer thisInt = pieHashtable.get(thisEnc.getHaplotype().trim())+1;
-      		   pieHashtable.put(thisEnc.getHaplotype().trim(), thisInt);
-      	   }
- 	 	}
+ 		 	if(thisEnc.getHaplotype()!=null){
+      	   		if(pieHashtable.containsKey(thisEnc.getHaplotype().trim())){
+      		   		Integer thisInt = pieHashtable.get(thisEnc.getHaplotype().trim())+1;
+      		   		pieHashtable.put(thisEnc.getHaplotype().trim(), thisInt);
+      	   		}
+ 	 		}
  		 
  	    //sex pie chart 	 
  		if(thisEnc.getSex().equals("male")){
@@ -488,12 +514,49 @@
         ]);
      var countriesOptions = {
           width: 450, height: 300,
-          title: 'Distribution by Country of Reported Strandings',
+          title: 'Distribution by Country of Reported Encounters',
           //colors: ['#0000FF','#FF00FF']
         };
       var countriesChart = new google.visualization.PieChart(document.getElementById('countrieschart_div'));
         countriesChart.draw(countriesData, countriesOptions);
       }
+      
+      
+      //discovery curve
+      google.setOnLoadCallback(drawDiscoveryCurve);
+     function drawDiscoveryCurve() {
+       var discoveryCurveData = new google.visualization.DataTable();
+       discoveryCurveData.addColumn('number', 'No. Encounters');
+       discoveryCurveData.addColumn('number', 'No. Marked Individuals');
+       discoveryCurveData.addRows([
+         <%
+         Enumeration<Integer> discoveryKeys=discoveryCurveInflectionPoints.keys();
+
+         while(discoveryKeys.hasMoreElements()){
+       	  Integer keyName=discoveryKeys.nextElement();
+       	  //System.out.println(keyName);
+         %>
+         [<%=keyName.toString()%>,<%=discoveryCurveInflectionPoints.get(keyName).toString() %>]
+		  <%
+		  if(discoveryKeys.hasMoreElements()){
+		  %>
+		  ,
+		  <%
+		  }
+        }
+		 %>
+         
+       ]);
+    var discoveryCurveOptions = {
+         width: 450, height: 300,
+         title: 'Discovery Curve of Marked Individuals (n=<%=markedIndividuals.size()%>)',
+         hAxis: {title: 'No. Encounters (daily duplicates removed)'},
+         vAxis: {title: 'No. Marked Individuals'},
+         pointSize: 3,
+       };
+     var discoveryCurveChart = new google.visualization.ScatterChart(document.getElementById('discoveryCurve_div'));
+     discoveryCurveChart.draw(discoveryCurveData, discoveryCurveOptions);
+     }
       
       
 </script>
@@ -634,15 +697,14 @@
 		<div id="specieschart_div"></div>
 		<%
         }
-		%>
- <%
+		
         if(CommonConfiguration.showProperty("showCountry")){
         %>
 		<div id="countrieschart_div"></div>
 		<%
         }
 		%>
- 
+ 	<div id="discoveryCurve_div"></div>
  <%
  
      } 
