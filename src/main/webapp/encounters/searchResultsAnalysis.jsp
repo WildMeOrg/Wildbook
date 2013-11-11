@@ -146,6 +146,14 @@
  			Hashtable<Integer,Integer> discoveryCurveInflectionPoints= new Hashtable<Integer,Integer>();
  			ArrayList<String> dailyDuplicates=new ArrayList<String>();
  					
+ 			//let's prep the data structures for weekly frequency
+ 			Hashtable<Integer,Integer> frequencyWeeks = new Hashtable<Integer,Integer>();
+ 			ArrayList<String> dailyDuplicates2=new ArrayList<String>();
+ 			for(int p=1;p<=53;p++){
+ 				frequencyWeeks.put(p, 0);
+ 			}	
+ 					
+ 					
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
  	int numUniqueEncounters=0;
@@ -169,6 +177,14 @@
  			 }
  			 else{numUniqueEncounters--;}
 
+ 		 }
+ 		 
+ 		 //weekly frequency tabulation
+ 		 if((thisEnc.getYear()>0)&&(thisEnc.getMonth()>0)&&(thisEnc.getDay()>0)){
+ 			 GregorianCalendar cal=new GregorianCalendar(thisEnc.getYear(),thisEnc.getMonth(), thisEnc.getDay());
+ 			 int weekOfYear=cal.get(Calendar.WEEK_OF_YEAR);
+ 			 Integer valueForWeek=frequencyWeeks.get(weekOfYear)+1;
+ 			 frequencyWeeks.put(weekOfYear, valueForWeek);
  		 }
  		 	
  		 
@@ -557,6 +573,41 @@
      var discoveryCurveChart = new google.visualization.ScatterChart(document.getElementById('discoveryCurve_div'));
      discoveryCurveChart.draw(discoveryCurveData, discoveryCurveOptions);
      }
+     
+   //frequency chart
+     google.setOnLoadCallback(drawFrequencyChart);
+    function drawFrequencyChart() {
+      var frequencyData = new google.visualization.DataTable();
+      frequencyData.addColumn('number', 'Week No.');
+      frequencyData.addColumn('number', 'No. Encounters');
+      frequencyData.addRows([
+        <%
+        //Enumeration<Integer> discoveryKeys=discoveryCurveInflectionPoints.keys();
+
+        for(int q=1;q<=53;q++){
+      	  //Integer keyName=discoveryKeys.nextElement();
+      	  //System.out.println(keyName);
+        %>
+        [<%=q%>,<%=frequencyWeeks.get(new Integer(q)).toString() %>]
+		  <%
+		  if(q<53){
+		  %>
+		  ,
+		  <%
+		  }
+       }
+		 %>
+        
+      ]);
+   var frequencyChartOptions = {
+        width: 450, height: 300,
+        title: 'Weekly Frequency of Encounters (Seasonality)',
+        hAxis: {title: 'Annual Week No.'},
+        vAxis: {title: 'No. Encounters'},
+      };
+    var frequencyChart = new google.visualization.ColumnChart(document.getElementById('frequency_div'));
+    frequencyChart.draw(frequencyData, frequencyChartOptions);
+    }
       
       
 </script>
@@ -705,6 +756,7 @@
         }
 		%>
  	<div id="discoveryCurve_div"></div>
+ 	<div id="frequency_div"></div>
  <%
  
      } 
