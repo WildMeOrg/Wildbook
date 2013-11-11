@@ -34,7 +34,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * workApplet3 is a client-side application used to shift spot pattern matching in the ECOCEAN Library to the client-side in a grid.
+ * workApplet3 is a client-side application used to shift spot pattern matching in the whaleshark.org Wildbook to the client-side in a grid.
  * workApplet3 also attempts to use multiple client cores for parallel processing where available.
  * The applet downloads a Vector of comparisons (scanWorkItem objects) to make, spins each comparison off into a separate thread, and uses a ThreadPoolExecutor
  * to manage the worker threads, limiting the number of executing threads to the number of available processors on the client.

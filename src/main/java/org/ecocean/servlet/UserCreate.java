@@ -112,6 +112,10 @@ public class UserCreate extends HttpServlet {
         }
         else if(isEdit&&(request.getParameter("fullName")!=null)&&(request.getParameter("fullName").trim().equals(""))){newUser.setFullName(null);}
         
+        if(request.getParameter("receiveEmails")!=null){
+          newUser.setReceiveEmails(true);
+        }
+        else{newUser.setReceiveEmails(false);}
         
         if((request.getParameter("emailAddress")!=null)&&(!request.getParameter("emailAddress").trim().equals(""))){
           newUser.setEmailAddress(request.getParameter("emailAddress").trim());

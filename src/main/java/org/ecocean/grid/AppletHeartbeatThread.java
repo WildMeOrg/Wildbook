@@ -83,7 +83,7 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
   private void sendHeartbeat(String appletID) {
     try {
       System.out.println("...sending heartbeat...thump...thump...");
-      URL u = new URL(rootURL + "/GridHeartbeatReceiver?nodeIdentifier=" + appletID + "&numProcessors=" + numProcessors + "&version=" + version);
+      URL u = new URL("http://"+rootURL + "/GridHeartbeatReceiver?nodeIdentifier=" + appletID + "&numProcessors=" + numProcessors + "&version=" + version);
       URLConnection finishConnection = u.openConnection();
 
       InputStream inputStreamFromServlet = finishConnection.getInputStream();
