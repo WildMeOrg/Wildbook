@@ -98,7 +98,7 @@ public class Interconnect extends JPanel {
     //final String Item2_1 = "I3S Quick search";
     final String Item2_2 = "I3S Exhaustive search";
     final String Item3 = "Database";
-    final String Item3_3 = "Submit online to ECOCEAN Library";
+    final String Item3_3 = "Submit online to Wildbook library";
     final String Item3_1 = "Insert in local database";
     final String Item3_2 = "Update local database";
     final String Item4 = "ImageOps";
@@ -228,7 +228,7 @@ public class Interconnect extends JPanel {
           if (sp.updateImage(filename, mess) == false)
             JOptionPane.showMessageDialog(frame, mess);
           else
-            frame.setTitle("ECOCEAN Interconnect (v1.2)      File: " + filename);
+            frame.setTitle("Wild Me Interconnect (v1.2)      File: " + filename);
           sp.setSide("left");
         }
       }
@@ -240,7 +240,7 @@ public class Interconnect extends JPanel {
           if (sp.updateImage(filename, mess) == false)
             JOptionPane.showMessageDialog(frame, mess);
           else
-            frame.setTitle("ECOCEAN Interconnect (v1.2)      File: " + filename);
+            frame.setTitle("Wild Me Interconnect (v1.2)      File: " + filename);
           sp.setSide("right");
         }
       }
@@ -261,7 +261,7 @@ public class Interconnect extends JPanel {
       }
       if (source.getText() == Item1_4) {
         saveResultsPrompt();
-        frame.setTitle("ECOCEAN Interconnect (v1.2)");
+        frame.setTitle("Wild Me Interconnect (v1.2)");
         sp.close();
       }
       if (source.getText() == Item1_6) {
@@ -282,7 +282,7 @@ public class Interconnect extends JPanel {
 
       //new in Interconnect
 
-      //send spot pattern to the ECOCEAN Library
+      //send spot pattern to the Wildbook library
       if (source.getText() == Item3_3) {
         if (sp.send2library(mess, transmitToURL) == false)
           JOptionPane.showMessageDialog(frame, mess);
@@ -338,7 +338,7 @@ public class Interconnect extends JPanel {
 
     Splash splash = new Splash();
 
-    frame = new JFrame("ECOCEAN Interconnect (v1.2)");
+    frame = new JFrame("Wild Me Interconnect (v1.2)");
     SharkMenu sharkmenu = new SharkMenu();
     final Interconnect controller = new Interconnect();
 

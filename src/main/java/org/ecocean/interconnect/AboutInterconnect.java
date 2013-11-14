@@ -34,7 +34,7 @@ public class AboutInterconnect extends JPanel implements ActionListener {
   public AboutInterconnect() {
     if (frame != null)
       frame.dispose();
-    frame = new JFrame("About ECOCEAN Interconnect");
+    frame = new JFrame("About Wild Me Interconnect");
     frame.setContentPane(this);
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
