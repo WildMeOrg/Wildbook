@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, java.util.Properties, java.util.Vector" %>
+         import="org.ecocean.*, java.util.*, java.util.Vector" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -47,7 +47,23 @@ if(request.getParameter("numberSessions")!=null){
 	catch(NumberFormatException nfe){nfe.printStackTrace();}
 }
 
+String queryString="";
+if(request.getQueryString()!=null){
+	queryString=request.getQueryString();
 
+
+	Enumeration params=request.getParameterNames();
+	while(params.hasMoreElements()){
+
+		String name=(String)params.nextElement();
+		String value=request.getParameter(name);
+		
+		queryString+=("&"+name+"="+value);
+		
+	}
+	
+	
+}
 
   %>
   <title><%=CommonConfiguration.getHTMLTitle() %>
@@ -143,13 +159,13 @@ if(request.getParameter("numberSessions")!=null){
 <ul id="tabmenu">
 
 
-  <li><a href="individualSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
   </a></li>
-   <li><a href="individualMappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
+   <li><a href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
   </a></li>
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
   </a></li>
     <li><a class="active"><%=props.getProperty("export")%>
   </a></li>
@@ -206,7 +222,20 @@ if(request.getParameter("includeQueryComments")!=null){
 
 
 <p>
-<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=request.getQueryString()%><%=additionalParameters %>" method="POST">
+<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=additionalParameters %>" method="GET">
+
+<%
+Enumeration params=request.getParameterNames();
+while(params.hasMoreElements()){
+
+	String name=(String)params.nextElement();
+	String value=request.getParameter(name);
+%>
+	<input type="hidden" id="<%=name %>" name="<%=name %>" value="<%=value %>" />
+<%
+}
+%>
+
 <table>
 <%
 for(int i=0;i<numSessions;i++){

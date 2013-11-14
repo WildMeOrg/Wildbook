@@ -16,6 +16,8 @@ import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 
+import org.apache.shiro.web.util.WebUtils;
+
 import org.ecocean.*;
 
 
@@ -169,9 +171,12 @@ import org.ecocean.*;
 		
 		
 	     // forward the request and response to the view
-        RequestDispatcher dispatcher =
-        getServletContext().getRequestDispatcher(url);
-        dispatcher.forward(request, response);   
+        //RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
+        
+        //dispatcher.forward(request, response);   
+		
+		WebUtils.redirectToSavedRequest(request, response, url);
+
 	
 		
 	}   	  	    

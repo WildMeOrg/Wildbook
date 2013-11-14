@@ -45,6 +45,7 @@ public class User implements java.io.Serializable {
   	
   	private boolean acceptedUserAgreement=false;
   
+  private boolean receiveEmails=true; 
   	
   	//JDOQL required empty instantiator
   	public User(){}
@@ -214,8 +215,14 @@ public class User implements java.io.Serializable {
     
     public void setLastLogin(long lastie){this.lastLogin=lastie;}
     
+
     public boolean getAcceptedUserAgreement(){return acceptedUserAgreement;}
     
     public void setAcceptedUserAgreement(boolean accept){this.acceptedUserAgreement=accept;}
+
+    public boolean getReceiveEmails(){return receiveEmails;}
+    public void setReceiveEmails(boolean receive){this.receiveEmails=receive;}
+    
+    
 
 }
