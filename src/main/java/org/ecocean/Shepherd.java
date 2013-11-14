@@ -2011,19 +2011,19 @@ public class Shepherd {
   }
 
   public ArrayList<User> getAllUsers() {
-    Extent allKeywords = null;
-    ArrayList<User> it = new ArrayList<User>();
+    Collection c;
+    Extent userClass = pm.getExtent(User.class, true);
+    Query users = pm.newQuery(userClass);
     try {
-      allKeywords = pm.getExtent(User.class, true);
-      Query acceptedKeywords = pm.newQuery(allKeywords);
-      acceptedKeywords.setOrdering("username descending");
-      Collection c = (Collection) (acceptedKeywords.execute());
-      it=new ArrayList<User>(c);
-    } catch (javax.jdo.JDOException x) {
-      x.printStackTrace();
-      return it;
+      c = (Collection) (users.execute());
+      ArrayList<User> list = new ArrayList<User>(c);
+      users.closeAll();
+      return list;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute Shepherd.getAllUsers. Returning a null collection because I didn't have a transaction to use.");
+      npe.printStackTrace();
+      return null;
     }
-    return it;
   }
   
   public String getAllUserEmailAddressesForLocationID(String locationID){

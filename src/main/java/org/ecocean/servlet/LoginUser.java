@@ -175,8 +175,12 @@ import org.ecocean.*;
         
         //dispatcher.forward(request, response);   
 		
-		WebUtils.redirectToSavedRequest(request, response, url);
+		//WebUtils.redirectToSavedRequest(request, response, url);
 
+    // forward the request and response to the view
+    RequestDispatcher dispatcher =
+    getServletContext().getRequestDispatcher(url);
+    dispatcher.forward(request, response);   
 	
 		
 	}   	  	    

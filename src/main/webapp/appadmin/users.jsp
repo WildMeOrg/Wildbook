@@ -24,9 +24,9 @@
 
 
 <%
-  	//get our Shepherd for data retrieval and persistence
-  	Shepherd myShepherd = new Shepherd();
-  
+  	
+  	
+  Shepherd myShepherd = new Shepherd();
   	//get the available user roles
   	ArrayList<String> roles=CommonConfiguration.getSequentialPropertyValues("role");
 	ArrayList<String> roleDefinitions=CommonConfiguration.getSequentialPropertyValues("roleDefinition");
@@ -318,7 +318,26 @@
             </table>
     	
     </p>
-	
+    <%
+    if((CommonConfiguration.getProperty("showUserAgreement")!=null)&&(CommonConfiguration.getProperty("showUserAgreement").equals("true"))){
+    %>
+            <p>&nbsp;</p>
+      <table class="tissueSample" style="border: 1px solid black;" width="100%" border="1">
+        <tr>
+          <td>
+            <p><font size="+1">Reset User Agreement Acceptance for All Users</font></p>
+            <p>This command resets all User accounts such that each user must reaccept the User Agreement upon the next login.</p>
+
+            <form name="UserResetAcceptedUserAgreement" method="post" action="../UserResetAcceptedUserAgreement">
+
+              <input name="UserResetAcceptedUserAgreementButton" type="submit" id="UserResetAcceptedUserAgreementButton" value="Reset">
+              </p></form>
+          </td>
+        </tr>
+      </table>
+	<%
+	}
+	%>
       <jsp:include page="../footer.jsp" flush="true"/>
     </div>
   </div>
