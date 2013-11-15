@@ -117,9 +117,26 @@
       <div id="maincol-wide-solo">
 
         <div id="maintext">
+        
+        <%
+          if((request.getParameter("username")!=null)&&(request.getParameter("password")!=null)){
+          %>
+          
+          <strong><em>Our records indicate that you have not yet accepted the User Agreement. Acceptance is required to use this resource. Please read the agreement below and click the "Accept" button to proceed or "Reject" to decline and return to the home page. </em></strong>
+          <%
+          }
+          %>
+        <br />
+        <br />
           <h1 class="intro">User Agreement</h1>
+          
+          
 
           <p class="caption">This is our user agreement. Do you agree?</p>
+          
+          <%
+          if((request.getParameter("username")!=null)&&(request.getParameter("password")!=null)){
+          %>
           <p><table cellpadding="5"><tr><td>
           	<form name="accept_agreement" action="LoginUser" method="post">
           		<input type="hidden" name="username" value="<%=request.getParameter("username")%>" />
@@ -132,6 +149,9 @@
           	</form></td>
           </tr></table>
           </p>
+          <%
+          }
+          %>
         </div>
 
   
