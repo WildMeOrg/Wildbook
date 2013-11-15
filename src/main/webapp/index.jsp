@@ -175,7 +175,8 @@ Since 2005 the Dominican Sperm Whale Project has worked to unravel mysteries sur
           <p class="caption">
           <table>
           <tr><td style="padding:5px;"><img src="images/logo_WHMSI.jpg" /></td><td style="padding:5px;"><img src="images/OAS_Seal_ENG_Principal.gif" /></td></tr>
-          <tr><td colspan="2"><img src="images/caribwhale-logo.jpg" /></td></tr>
+          <tr><td><img src="images/caribwhale-logo.jpg" /></td>
+          <td><img src="images/DSWPlogoLongText.png" /></td></tr>
           
           </table>
           
