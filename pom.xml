@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>4.0.3-EXPERIMENTAL</version>
+  <version>4.0.4-EXPERIMENTAL</version>
   <packaging>war</packaging>
 
   <properties>
