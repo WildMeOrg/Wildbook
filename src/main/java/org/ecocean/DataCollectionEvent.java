@@ -93,7 +93,14 @@ public DataCollectionEvent(String correspondingEncounterNumber, String type, Htt
 }
 
 public String getCorrespondingEncounterNumber(){return correspondingEncounterNumber;}
-public void setCorrespondingEncounterNumber(String encounterNumber){this.correspondingEncounterNumber=encounterNumber;}
+public void setCorrespondingEncounterNumber(String encounterNumber){
+  if(encounterNumber!=null){
+    this.correspondingEncounterNumber=encounterNumber;
+  }
+  else{
+    this.correspondingEncounterNumber=null;
+  }
+}
 
 public String getDataCollectionEventID(){return dataCollectionEventID;}
 public void setDataCollectionEventID(String id){this.dataCollectionEventID=id;}

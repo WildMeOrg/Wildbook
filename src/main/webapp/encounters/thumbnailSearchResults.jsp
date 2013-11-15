@@ -97,10 +97,9 @@
     rEncounters=myShepherd.getThumbnails(request, queryResult.getResult().iterator(), startNum, endNum, keywords);
     }
     else{
-    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo");
+    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo WHERE correspondingUsername == null");    	
     	rEncounters=new ArrayList<SinglePhotoVideo>((Collection<SinglePhotoVideo>)allQuery.execute());
    }
-
 
   %>
   <title><%=CommonConfiguration.getHTMLTitle() %>
@@ -449,61 +448,116 @@
                         </em></span></td>
                       </tr>
                       <tr>
-                        <td><span
-                          class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span>
+                        <td>
+                        	<span class="caption"><%=encprops.getProperty("location") %>: 
+                          			<%
+  			try{
+  				if(thisEnc.getLocation()!=null){
+  				%>
+  				<em><%=thisEnc.getLocation() %></em>
+  				<%
+  				}
+  			}
+  			catch(Exception e){}
+  			%>
+                          	</span>
                         </td>
                       </tr>
                       <tr>
                         <td><span
-                          class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span>
+                          class="caption"><%=encprops.getProperty("locationID") %>: 
+                          <%
+  			try{
+  				if(thisEnc.getLocationID()!=null){
+  				%>
+  				<em><%=thisEnc.getLocationID() %></em>
+  				<%
+  				}
+  			}
+  			catch(Exception e){}
+  			%>
+                          </span>
                         </td>
                       </tr>
                       <tr>
-                        <td><span
-                          class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span>
+                        <td><span class="caption">
+                        	<%=encprops.getProperty("date") %>: 
+                        	<%
+                        	try{
+                        		if(thisEnc.getDate()!=null){
+                        		%>
+                        			<%=thisEnc.getDate() %>
+                        		<%
+                        		}
+                        	}
+                        	catch(Exception e){}
+                        	%>
+                          </span>
                         </td>
                       </tr>
                       <tr>
                         <td><span class="caption"><%=encprops.getProperty("individualID") %>: 
                         	<%
-                        	if(!thisEnc.getIndividualID().equals("Unassigned")){
+                        	try{
+                        	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))){
                         	%>
                         	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>">
-                        	<%
-            				}
-                        	%>
+                        	
                         	<%=thisEnc.getIndividualID() %>
-                        	<%
-                        	if(!thisEnc.getIndividualID().equals("Unassigned")){
-                        	%>
+                        	
                         	</a>
                         	<%
-            				}
+                        	}
+                        	}
+                        catch(Exception e){}
                         	%>
                         	
                         </span></td>
                       </tr>
                         <%
 		            			if(CommonConfiguration.showProperty("showTaxonomy")){
-		            				if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
-		            		      %>
+		            				%>
 		                            <tr>
 		                            <td>
 		                              <span class="caption">
-		                            		<em><%=encprops.getProperty("taxonomy") %>: <%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
+		                            		<em><%=encprops.getProperty("taxonomy") %>: 
+		                            		<%
+		                            		try{
+		                            		if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
+		      		            		      
+		                            		%>
+		                            		<%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%>
+		                            		<%
+		                            		}
+		                            		}
+		                            		catch(Exception e){}
+		                            		%>
+		                            		</em>
 		                            	</span>
 		                            </td>
 		                            </tr>
 		                           <%
-		                           }
+		            			
 		      		     }
                       %>
                       <tr>
-                        <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a
-                          href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
-                        </a></span></td>
+                        <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: 
+                        <%
+                        try{
+                        if(thisEnc.getCatalogNumber()!=null){
+                        %>
+                        <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>">
+                          <%=thisEnc.getCatalogNumber() %>
+                        </a>
+                        <%
+                        }
+                        }
+                        catch(Exception e){}
+                        %>
+                        </span></td>
                       </tr>
                       <%
+                      try{
                         if (thisEnc.getVerbatimEventDate() != null) {
                       %>
                       <tr>
@@ -515,6 +569,8 @@
                       <%
                         
                         }
+                      }
+                      catch(Exception e){}
 
                         if (request.getParameter("keyword") != null) {
                       %>
@@ -624,38 +680,75 @@
 
 
 <tr>
-  <td><span
-    class="caption"><%=encprops.getProperty("location") %>: <%=thisEnc.getLocation() %></span></td>
-</tr>
-<tr>
-  <td><span
-    class="caption"><%=encprops.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span>
+  <td>
+  		<span class="caption">
+  			<%=encprops.getProperty("location") %>: 
+  			<%
+  			try{
+  				if(thisEnc.getLocation()!=null){
+  				%>
+  				<em><%=thisEnc.getLocation() %></em>
+  				<%
+  				}
+  			}
+  			catch(Exception e){}
+  			%>
+  		</span>
   </td>
 </tr>
 <tr>
-  <td><span class="caption"><%=encprops.getProperty("date") %>: <%=thisEnc.getDate() %></span></td>
+  <td><span
+    class="caption"><%=encprops.getProperty("locationID") %>: 
+    <%
+  			try{
+  				if(thisEnc.getLocationID()!=null){
+  				%>
+  				<em><%=thisEnc.getLocationID() %></em>
+  				<%
+  				}
+  			}
+  			catch(Exception e){}
+  			%>
+    </span>
+  </td>
+</tr>
+<tr>
+  <td>
+  	<span class="caption"><%=encprops.getProperty("date") %>: 
+  		<%
+        try{
+  			if(thisEnc.getDate()!=null){
+                        	%>
+                        		<%=thisEnc.getDate() %>
+                        	<%
+                        	}
+        }
+  	catch(Exception e){}
+                        	%>
+  	</span>
+  </td>
 </tr>
 <tr>
   <td><span class="caption"><%=encprops.getProperty("individualID") %>: 
       						<%
-                        	if(!thisEnc.getIndividualID().equals("Unassigned")){
+      						try{
+                        	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))){
                         	%>
                         	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>">
-                        	<%
-            				}
-                        	%>
+                        	
                         	<%=thisEnc.getIndividualID() %>
-                        	<%
-                        	if(!thisEnc.getIndividualID().equals("Unassigned")){
-                        	%>
+                        	
                         	</a>
                         	<%
             				}
+      						}
+  							catch(Exception e){}
                         	%>
   </span></td>
 </tr>
  <%
 		            			if(CommonConfiguration.showProperty("showTaxonomy")){
+		            				try{
 		            				if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
 		            		      %>
 		                            <tr>
@@ -667,12 +760,24 @@
 		                            </tr>
 		                           <%
 		                           }
+		            				}
+		            				catch(Exception e){}
 		      		     }
                       %>
 <tr>
-  <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a
-    href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
-  </a></span></td>
+  <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: 
+  <%
+  try{
+  if(thisEnc.getCatalogNumber()!=null){
+  %>
+  <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
+  </a>
+  <%
+  }
+  }
+  catch(Exception e){}
+  %>
+  </span></td>
 </tr>
 <tr>
   <td><span class="caption">
