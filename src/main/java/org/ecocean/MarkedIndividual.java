@@ -1187,11 +1187,12 @@ public class MarkedIndividual implements java.io.Serializable {
     int startMonth = m_startMonth;
     int startDay = m_startDay;
 
-    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth, startDay);
-    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, endDay);
+    GregorianCalendar gcMin=new GregorianCalendar(startYear, startMonth-1, startDay);
+    GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth-1, endDay);
 
     boolean left=false;
     boolean right=false;
+    boolean leftRightTogether=false;
 
 
     for (int c = 0; c < encounters.size(); c++) {
@@ -1202,10 +1203,12 @@ public class MarkedIndividual implements java.io.Serializable {
         if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
           if(temp.getNumRightSpots()>0){right=true;}
           if(temp.getNumSpots()>0){left=true;}
+          if((temp.getNumRightSpots()>0)&&(temp.getNumSpots()>0)){leftRightTogether=true;}
         }
       }
     }
-    if(left&&right){return "3";}
+    if(leftRightTogether){return "3";}
+    else if(left&&right){return "4";}
     else if(left){return "1";}
     else if(right){return "2";}
     else{
