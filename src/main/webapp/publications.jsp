@@ -95,6 +95,11 @@
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from whaleshark.org or contributed to its ultimate development and launch in 2003.</em></p>
 		
+		<p>McKinney J, Hoffmayer ER, Holmberg J, Graham R, de la Parra R et al. (2013) Regional connectivity of whale sharks demonstrated using photo-identification - Western Atlantic, 1999 - 2013. PeerJ PrePrints 1:e98v1
+		<br />
+		<a href="http://dx.doi.org/10.7287/peerj.preprints.98v1">Web link</a>
+		</p>
+		
 		<p>J Bonner, S. and Holmberg, J. (2013), Mark-Recapture with Multiple, Non-Invasive Marks. Biometrics. doi: 10.1111/biom.12045<br /><a href="http://onlinelibrary.wiley.com/doi/10.1111/biom.12045/abstract">Web link</a></p>
 		
 		<p>Hueter RE, Tyminski JP, de la Parra R (2013) Horizontal Movements, Migration Patterns, and Population Structure of Whale Sharks in the Gulf of Mexico and Northwestern Caribbean Sea. PLoS ONE 8(8): e71883. doi:10.1371/journal.pone.0071883
