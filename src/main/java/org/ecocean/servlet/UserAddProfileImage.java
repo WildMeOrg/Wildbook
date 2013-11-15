@@ -122,6 +122,7 @@ public class UserAddProfileImage extends HttpServlet {
 
           SinglePhotoVideo spv=new SinglePhotoVideo(username,(new File(fullPathFilename)));
           spv.setCorrespondingUsername(username);
+          spv.setCorrespondingEncounterNumber(null);
           enc.setUserImage(spv);
           //enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Submitted new encounter image graphic: " + fileName + ".</p>");
           //positionInList = enc.getAdditionalImageNames().size();
