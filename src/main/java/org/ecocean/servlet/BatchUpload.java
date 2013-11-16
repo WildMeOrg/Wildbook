@@ -1019,11 +1019,15 @@ public final class BatchUpload extends DispatchServlet {
           x.setHour(h);
           // NOTE: Why minutes as string in Encounter?!
           x.setMinutes(String.format("%02d", m));
-          x.setVerbatimEventDate(DFDT.format(new Date(yy - 1900, mm - 1, dd, h, m)));
+          synchronized(DFDT) {
+            x.setVerbatimEventDate(DFDT.format(new Date(yy - 1900, mm - 1, dd, h, m)));
+          }
         } else {
           // NOTE: Must set hour=-1 due to odd design of Encounter implementation.
           x.setHour(-1);
-          x.setVerbatimEventDate(DFD.format(date));
+          synchronized(DFD) {
+            x.setVerbatimEventDate(DFD.format(date));
+          }
         }
       }
 

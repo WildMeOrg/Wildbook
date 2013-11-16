@@ -452,7 +452,7 @@ public final class BatchProcessor implements Runnable {
               }
             }
           }
-          // (must be done within current transaction to ensure referntial integrity in database).
+          // (must be done within current transaction to ensure referential integrity in database).
           // Set submitterID for later reference.
           enc.setSubmitterID(user);
           // Add comment to reflect batch upload.
