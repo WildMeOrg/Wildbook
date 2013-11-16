@@ -234,7 +234,7 @@
           if (CommonConfiguration.getWikiLocation()!=null) {
         %>
         <li><a
-          href="<%=CommonConfiguration.getWikiLocation() %>ecocean_library_access_policy"
+          href="<%=CommonConfiguration.getWikiLocation() %>mantamatcher_library_access_policy"
           target="_blank" class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("accessPolicy")%>
         </a></li>
