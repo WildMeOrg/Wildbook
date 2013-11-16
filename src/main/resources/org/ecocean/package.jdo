@@ -471,7 +471,7 @@
 			</field>
 			            <field name="salt" persistence-modifier="persistent">
 			                <column jdbc-type="LONGVARCHAR" />
-			                
+			            </field>    
 			                
 			<field name="userStatement">
 									<column jdbc-type="LONGVARCHAR" />
@@ -490,7 +490,7 @@
 				<column jdbc-type="BIGINT" allows-null="true" />
 		        </field>
 			                
-            </field>
+            
 					
 		 </class>
 		 
@@ -509,6 +509,8 @@
 		 		
 		 </class>
         
+        
+
 
         
 		
