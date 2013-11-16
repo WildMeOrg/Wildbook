@@ -184,7 +184,7 @@
       			/welcome.jsp = authc
       			
       			/EncounterSetSubmitterID = authc, roles[admin]
-               
+               		/UserResetAcceptedUserAgreement = authc, roles[admin]
 
             </param-value>
         </init-param>
@@ -363,6 +363,12 @@
   <servlet>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSubmitterPhotographerContactInfo</servlet-class>
+  </servlet>
+  
+  
+    <servlet>
+      <servlet-name>UserResetAcceptedUserAgreement</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserResetAcceptedUserAgreement</servlet-class>
   </servlet>
 
 
@@ -1087,6 +1093,11 @@
   <servlet-mapping>
     <servlet-name>EncounterAddComment</servlet-name>
     <url-pattern>/EncounterAddComment</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>UserResetAcceptedUserAgreement</servlet-name>
+      <url-pattern>/UserResetAcceptedUserAgreement</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
