@@ -97,7 +97,7 @@
     rEncounters=myShepherd.getThumbnails(request, queryResult.getResult().iterator(), startNum, endNum, keywords);
     }
     else{
-    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo WHERE correspondingUsername == null");    	
+    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo WHERE correspondingEncounterNumber != null");    	
     	rEncounters=new ArrayList<SinglePhotoVideo>((Collection<SinglePhotoVideo>)allQuery.execute());
    }
 
