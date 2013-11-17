@@ -145,6 +145,33 @@ File encounterDir = new File(encountersDir, num);
   <meta name="Keywords"
         content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
   <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
+  
+  
+<!-- social meta start -->
+<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle() %>" />
+<meta itemprop="name" content="<%=encprops.getProperty("encounter")%> <%=request.getParameter("number")%>" />
+<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+<%
+if (request.getParameter("number")!=null) {
+	
+		if(myShepherd.isEncounter(num)){
+			Encounter metaEnc = myShepherd.getEncounter(num);
+			if((metaEnc.getImages()!=null)&&(metaEnc.getImages().size()>0)){
+				SinglePhotoVideo metaSPV=metaEnc.getImages().get(0);
+%>
+<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getDataCollectionEventID()+".jpg")%>" />
+<%
+			}
+		}
+}
+%>
+
+<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle() %>" />
+<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+<meta property="og:type" content="article" />
+<!-- social meta end -->
+
+  
   <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
