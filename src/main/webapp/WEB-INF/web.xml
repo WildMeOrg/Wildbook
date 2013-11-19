@@ -379,6 +379,14 @@
         <servlet-name>UserRemoveProfileImage</servlet-name>
         <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
   </servlet>
+  
+   <servlet>
+          <servlet-name>GenerateQRCodeImage</servlet-name>
+          <servlet-class>org.ecocean.servlet.GenerateQRCodeImage</servlet-class>
+    </servlet>
+  
+  
+  
 
   <servlet>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
@@ -1266,6 +1274,14 @@
     <servlet-name>IndividualAddEncounter</servlet-name>
     <url-pattern>/IndividualAddEncounter</url-pattern>
   </servlet-mapping>
+  
+  
+    <servlet-mapping>
+      <servlet-name>GenerateQRCodeImage</servlet-name>
+      <url-pattern>/GenerateQRCodeImage</url-pattern>
+  </servlet-mapping>
+  
+  
   
     <servlet-mapping>
       <servlet-name>OccurrenceAddEncounter</servlet-name>
