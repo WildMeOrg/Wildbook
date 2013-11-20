@@ -37,9 +37,9 @@ if (myShepherd.isEncounter(num)) {
     if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){
     	MarkedIndividual indie=myShepherd.getMarkedIndividual(enc.getIndividualID());
     	if(indie!=null){
-    		individualID=indie.getIndividualID();
+    		individualID=indie.getIndividualID().trim();
     		if((indie.getNickName()!=null)&&(!indie.getNickName().trim().equals(""))){
-    			nickname=indie.getNickName();
+    			nickname=indie.getNickName().trim();
     		}
     	}
     }
@@ -48,11 +48,7 @@ if (myShepherd.isEncounter(num)) {
     if(individualID.trim().equals("")){
     	individualID=enc.getCatalogNumber();
     }
-    else{
-    	if(!nickname.trim().equals("")){
-    		individualID=nickname.trim()+" ()"+individualID+")";
-    	}
-    }
+
     
 
   if ((side.equals("Right")) && (enc.getRightSpots() == null)) {
@@ -111,12 +107,16 @@ if (myShepherd.isEncounter(num)) {
   	int encImageWidth = (int) imageDimensions.getWidth();
   	int encImageHeight = (int) imageDimensions.getHeight();
   	
-  	int allowedWidth=1400;
-  	int allowedHeight=1200;
+  	//allowed width
+  	int allowedWidth=325;
+  	int offsetLeft=1350;
+  	int offsetRight=445;
+ 
   	
   	int leftAdjustmentFactor=0;
   	int topAdjustmentFactor=0;
   	
+  	/**
   	if((request.getParameter("allowedWidth")!=null)&&(request.getParameter("allowedHeight")!=null)){
   		String maxWidthString=request.getParameter("allowedWidth");
   		String maxHeightString=request.getParameter("allowedHeight");
@@ -126,6 +126,7 @@ if (myShepherd.isEncounter(num)) {
   		}
   		catch(Exception e){e.printStackTrace();}
   	}
+  	*/
 
   	int numSpots = 0;
  	 if (side.equals("Right")) {
@@ -149,17 +150,30 @@ if (myShepherd.isEncounter(num)) {
         
         String src_url="..";
         %>
-  	<di:image x="1800" y="1500" srcurl="../images/wild-me-logo-high-resolution.png" width="300" height="300"  />
+
+  	<di:image x="0" y="0" srcurl="../images/zazzle/shirt_horizontal-side-right.png" width="2100" height="1800"  />
   	
-  	  <di:text font="Arial-bold-120" fillPaint="#0000FF" >These Spots Run Deep</di:text>
+  	<di:image x="260" y="966" srcurl="http://www.whaleshark.org/GenerateQRCodeImage?number=<%=individualID %>" width="250" height="250"  />
   	
-  	<di:text x="0" y="200" font="Arial-bold-90" fillPaint="#000000" >Whale Shark: <%=individualID %></di:text>
-  	
-  	<di:text x="950" y="1500" font="Arial-bold-30" fillPaint="#000000" >Help us track this shark at whaleshark.org.</di:text>
-  	
-  	
+  	 <!-- indie ID and nickname rendering -->
+  	<di:text x="710" y="975" font="Dakota Regular-plain-90" fillPaint="#000000" ><%=individualID %></di:text>
+  	<di:text x="710" y="1095" font="Dakota Regular-plain-90" fillPaint="#000000" ><%=nickname %></di:text>
+ 
   	<%
 
+  	
+  	//lets prep the spot colors
+  	String[] colors=new String[9];
+  	colors[0]="#5F2C91";
+  	colors[1]="#85318B";
+  	colors[2]="#EC1C23";
+  	colors[3]="#F05A21";
+  	colors[4]="#FFC50A";
+  	colors[5]="#FFF100";
+  	colors[6]="#B1D235";
+  	colors[7]="#39B549";
+  	colors[8]="#2C9937";
+  
 
   //now calculate the multiples
   	double xMultiple=1;
@@ -202,7 +216,10 @@ if (myShepherd.isEncounter(num)) {
         else{topAdjustmentFactor=(int)enc.getHighestSpot();}
         
         
-        xMultiple=allowedWidth/(theX2-theX1);
+        double maxDiff=Math.abs(theX2-theX1);
+        if((Math.abs(theY2-theY1))>maxDiff){maxDiff=maxDiff*maxDiff/Math.abs(theY2-theY1);}
+        
+        xMultiple=allowedWidth/(maxDiff);
         
       }
     } catch (Exception e) {
@@ -210,7 +227,7 @@ if (myShepherd.isEncounter(num)) {
     }
   	
     
-    
+    int currentSpotNum=0;
     for (int numIter2 = 0; numIter2 < numSpots; numIter2++) {
       int theX = (int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidX();
       theX=(int)(theX*xMultiple);
@@ -218,9 +235,11 @@ if (myShepherd.isEncounter(num)) {
       theY=(int)(theY*xMultiple);
       
   %>
-  <di:circle x="<%=(theX-((int)(leftAdjustmentFactor*xMultiple))+100)%>" y="<%=(theY-((int)(topAdjustmentFactor*xMultiple))+400)%>" radius="40" fillPaint="#000000"></di:circle>
-
+  <di:circle x="<%=(theX-((int)(leftAdjustmentFactor*xMultiple))+offsetLeft)%>" y="<%=(theY-((int)(topAdjustmentFactor*xMultiple))+offsetRight)%>" radius="10" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
+ 
   <%
+  	currentSpotNum++;
+  	if(currentSpotNum==9){currentSpotNum=0;}
     } //end for now
 
 

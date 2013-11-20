@@ -23,11 +23,11 @@ public class GenerateQRCodeImage extends HttpServlet {
   }
 
 
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    doPost(request, response);
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    doGet(request, response);
   }
   
-  public void doPost(HttpServletRequest request,
+  public void doGet(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
  
         String myURL = "http://www.whaleshark.org/individuals.jsp?number="+request.getParameter("number");
