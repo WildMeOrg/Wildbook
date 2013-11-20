@@ -152,8 +152,10 @@ if (myShepherd.isEncounter(num)) {
         %>
 
   	<di:image x="0" y="0" srcurl="../images/zazzle/shirt_horizontal-side-right.png" width="2100" height="1800"  />
-  	
-  	<di:image x="260" y="966" srcurl="http://www.whaleshark.org/GenerateQRCodeImage?number=<%=individualID %>" width="250" height="250"  />
+  	<%
+  	String sharkURL="http://www.whaleshark.org/GenerateQRCodeImage?number="+individualID;
+  	%>
+  	<di:image x="260" y="966" srcurl="<%=sharkURL %>" width="250" height="250"  />
   	
   	 <!-- indie ID and nickname rendering -->
   	<di:text x="710" y="975" font="Dakota Regular-plain-90" fillPaint="#000000" ><%=individualID %></di:text>
