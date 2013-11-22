@@ -74,38 +74,6 @@ if (myShepherd.isEncounter(num)) {
 } else {
 
 
-  //now let's set up the image mapping variables as needed
-  String fileloc = "";
-  if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-    fileloc = (enc.getEncounterNumber() + "/extractRight" + num + ".jpg");
-  } else {
-    fileloc = (enc.getEncounterNumber() + "/extract" + num + ".jpg");
-  }
-  InputStream encStream = null;
-  boolean canDirectMap = true;
-  Dimension imageDimensions = null;
-  FileInputStream fip=new FileInputStream(new File(encountersDir.getAbsolutePath()+"/" + fileloc));
-  try {
-    //connEnc = encURL.openConnection();
-    //System.out.println("Opened new encounter connection");
-    //encStream = connEnc.getInputStream();
-    imageDimensions = org.apache.sanselan.Sanselan.getImageSize(fip, ("extract" + num + ".jpg"));
-
-  } 
-  catch (IOException ioe) {
-    System.out.println("I failed to get the image input stream while using the spotVisualizer");
-    canDirectMap = false;
-	%>
-	<p>I could not connect to and find the spot image at: <%=(encountersDir.getAbsolutePath()+"/" + fileloc) %></p>
-
-	<%
-  }
-  fip.close();
-  fip=null;
-
-  if (canDirectMap) {
-  	int encImageWidth = (int) imageDimensions.getWidth();
-  	int encImageHeight = (int) imageDimensions.getHeight();
   	
   	//allowed width
   	int allowedWidth=325;
@@ -116,17 +84,7 @@ if (myShepherd.isEncounter(num)) {
   	int leftAdjustmentFactor=0;
   	int topAdjustmentFactor=0;
   	
-  	/**
-  	if((request.getParameter("allowedWidth")!=null)&&(request.getParameter("allowedHeight")!=null)){
-  		String maxWidthString=request.getParameter("allowedWidth");
-  		String maxHeightString=request.getParameter("allowedHeight");
-  		try{
-  			allowedWidth=(new Integer(maxWidthString)).intValue();
-  			allowedHeight=(new Integer(maxWidthString)).intValue();
-  		}
-  		catch(Exception e){e.printStackTrace();}
-  	}
-  	*/
+
 
   	int numSpots = 0;
  	 if (side.equals("Right")) {
@@ -178,7 +136,7 @@ if (myShepherd.isEncounter(num)) {
   
 
   //now calculate the multiples
-  	double xMultiple=1;
+  	//double xMultiple=1;
   	//double yMultiple=1;
 
     ArrayList spots = enc.getSpots();
@@ -197,47 +155,60 @@ if (myShepherd.isEncounter(num)) {
       }
     }
     
-    //now map reference spots if they exist
-    try {
-      if (refSpots != null) {
-        
-    	//5th top
-    	int theX1 = ((int) (((SuperSpot) refSpots.get(0)).getTheSpot().getCentroidX()));
-        int theY1 = ((int) (((SuperSpot) refSpots.get(0)).getTheSpot().getCentroidY()));
-       
-        //posterior pectoral
-        int theX2 = ((int) (((SuperSpot) refSpots.get(1)).getTheSpot().getCentroidX()));
-        int theY2 = ((int) (((SuperSpot) refSpots.get(1)).getTheSpot().getCentroidY()));
-        
-        //5th bottom
-        int theX3 = ((int) (((SuperSpot) refSpots.get(2)).getTheSpot().getCentroidX()));
-        int theY3 = ((int) (((SuperSpot) refSpots.get(2)).getTheSpot().getCentroidY()));
-  
-        leftAdjustmentFactor=theX1;
-        if (side.equals("Right")) {topAdjustmentFactor=(int)enc.getHighestRightSpot();}
-        else{topAdjustmentFactor=(int)enc.getHighestSpot();}
-        
-        
-        double maxDiff=Math.abs(theX2-theX1);
-        if((Math.abs(theY2-theY1))>maxDiff){maxDiff=maxDiff*maxDiff/Math.abs(theY2-theY1);}
-        
-        xMultiple=allowedWidth/(maxDiff);
-        
-      }
-    } catch (Exception e) {
-    	e.printStackTrace();
-    }
+
+    
+    int xmin = (int)enc.getLeftmostSpot();
+    int xmax = (int)enc.getRightmostSpot();
+    int ymin = (int)enc.getLowestSpot();
+    int ymax = (int)enc.getHighestSpot();
+
+    double origxcenter = (xmin+xmax)/2.0;
+    double origycenter = (ymin+ymax)/2.0;
+    double origaspect = (ymax-ymin)/(xmax-xmin);
+
+    // My estimation of where spots can go without running outside shark
+    // silhouette in shirt_horizontal-side.png
+    int boxleft = 1250;
+    int boxright = 1700;
+    int boxtop = 785;
+    int boxbot = 435;
+    
+    double boxxcenter = (boxleft+boxright)/2.0;
+    double boxycenter = (boxtop+boxbot)/2.0;
+    double boxaspect = (boxtop-boxbot)/(boxright-boxleft);
+
+    double factor=1;
+    
+    if (boxaspect > origaspect) {
+       // original image fills output box horizontally; vertical scales accordingly
+       int outwidth = boxright-boxleft;
+       int origwidth = xmax-xmin;
+       factor = outwidth/origwidth;
+     } 
+    else {
+       // original image fills output box vertically; horizontal scales accordingly
+       int outheight = boxtop-boxbot;
+       int origheight = ymax-ymin;
+       factor = outheight/origheight;
+     }
+
+    //int xout = (int)((xorig-origxcenter)*factor+boxxcenter); // array operation
+    //int yout = (yorig-origycenter)*factor+boxycenter; // array operation
   	
     
     int currentSpotNum=0;
     for (int numIter2 = 0; numIter2 < numSpots; numIter2++) {
-      int theX = (int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidX();
-      theX=(int)(theX*xMultiple);
-      int theY = (int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidY();
-      theY=(int)(theY*xMultiple);
+      //int theX = (int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidX();
+      //theX=(int)(theX*xMultiple);
+      //int theY = (int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidY();
+      //theY=(int)(theY*xMultiple);
+      
+          int theX = (int)((((int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidX())-origxcenter)*factor+boxxcenter); // array operation
+    	int myY=(int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidY();
+          int theY = (int)((myY-origycenter)*factor+boxycenter); // array operation
       
   %>
-  <di:circle x="<%=(theX-((int)(leftAdjustmentFactor*xMultiple))+offsetLeft)%>" y="<%=(theY-((int)(topAdjustmentFactor*xMultiple))+offsetRight)%>" radius="10" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
+  <di:circle x="<%=theX %>" y="<%=theY %>" radius="10" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
  
   <%
   	currentSpotNum++;
@@ -257,7 +228,7 @@ if (myShepherd.isEncounter(num)) {
 
 
 
-<% }
+<% 
 
 
 }
