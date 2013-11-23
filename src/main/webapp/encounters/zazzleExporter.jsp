@@ -119,6 +119,7 @@ if (myShepherd.isEncounter(num)) {
   	<di:text x="710" y="975" font="Dakota Regular-plain-90" fillPaint="#000000" ><%=individualID %></di:text>
   	<di:text x="710" y="1095" font="Dakota Regular-plain-90" fillPaint="#000000" ><%=nickname %></di:text>
  
+
   	<%
 
   	
@@ -159,8 +160,8 @@ if (myShepherd.isEncounter(num)) {
     
     int xmin = (int)enc.getLeftmostSpot();
     int xmax = (int)enc.getRightmostSpot();
-    int ymin = (int)enc.getLowestSpot();
-    int ymax = (int)enc.getHighestSpot();
+    int ymin = (int)enc.getHighestSpot();
+    int ymax = (int)enc.getLowestSpot();
 
     double origxcenter = (xmin+xmax)/2.0;
     double origycenter = (ymin+ymax)/2.0;
@@ -168,33 +169,45 @@ if (myShepherd.isEncounter(num)) {
 
     // My estimation of where spots can go without running outside shark
     // silhouette in shirt_horizontal-side.png
-    int boxleft = 1250;
-    int boxright = 1700;
-    int boxtop = 785;
+    int boxleft = 1258;
+    int boxright = 1637;
+    int boxtop = 759;
     int boxbot = 435;
+    
     
     double boxxcenter = (boxleft+boxright)/2.0;
     double boxycenter = (boxtop+boxbot)/2.0;
-    double boxaspect = (boxtop-boxbot)/(boxright-boxleft);
+    double boxaspect = Math.abs((boxtop-boxbot)/(boxright-boxleft));
 
-    double factor=1;
+    double factor=1.0;
+    String visualAspect="horizontal";
     
     if (boxaspect > origaspect) {
        // original image fills output box horizontally; vertical scales accordingly
-       int outwidth = boxright-boxleft;
-       int origwidth = xmax-xmin;
-       factor = outwidth/origwidth;
+       int outwidth = Math.abs(boxright-boxleft);
+       int origwidth = Math.abs(xmax-xmin);
+       factor = (float)outwidth/origwidth;
      } 
     else {
        // original image fills output box vertically; horizontal scales accordingly
-       int outheight = boxtop-boxbot;
-       int origheight = ymax-ymin;
-       factor = outheight/origheight;
+       int outheight = Math.abs(boxtop-boxbot);
+       int origheight = Math.abs(ymax-ymin);
+       factor = (float)outheight/origheight;
+       %>
+       <!-- helpers -->
+ 	<di:text x="1490" y="160" font="Dakota Regular-plain-20" fillPaint="#000000" >outheight: <%=outheight %></di:text>
+ 	<di:text x="1490" y="200" font="Dakota Regular-plain-20" fillPaint="#000000" >origheight: <%=origheight %></di:text>
+ 	 <%
+       visualAspect="vertical";
      }
 
     //int xout = (int)((xorig-origxcenter)*factor+boxxcenter); // array operation
     //int yout = (yorig-origycenter)*factor+boxycenter; // array operation
-  	
+  	 %>
+ <!-- helpers -->
+ 	<di:text x="1490" y="240" font="Dakota Regular-plain-20" fillPaint="#000000" >factor: <%=factor %></di:text>
+ 	<di:text x="1490" y="280" font="Dakota Regular-plain-20" fillPaint="#000000" >aspect: <%=visualAspect %></di:text>
+ <%
     
     int currentSpotNum=0;
     for (int numIter2 = 0; numIter2 < numSpots; numIter2++) {
@@ -203,7 +216,8 @@ if (myShepherd.isEncounter(num)) {
       //int theY = (int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidY();
       //theY=(int)(theY*xMultiple);
       
-          int theX = (int)((((int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidX())-origxcenter)*factor+boxxcenter); // array operation
+      int myX=(int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidX();
+          int theX = (int)((myX-origxcenter)*factor+boxxcenter); // array operation
     	int myY=(int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidY();
           int theY = (int)((myY-origycenter)*factor+boxycenter); // array operation
       
@@ -211,6 +225,19 @@ if (myShepherd.isEncounter(num)) {
   <di:circle x="<%=theX %>" y="<%=theY %>" radius="10" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
  
   <%
+  
+  if(myX==xmin){%>
+  	<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >xmin</di:text>
+  <%}
+  if(myX==xmax){%>
+	<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >xmax</di:text>
+<%}
+  if(myY==ymin){%>
+	<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >ymin</di:text>
+<%}
+  if(myY==ymax){%>
+	<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >ymax</di:text>
+<%}
   	currentSpotNum++;
   	if(currentSpotNum==9){currentSpotNum=0;}
     } //end for now
