@@ -193,22 +193,26 @@ if (myShepherd.isEncounter(num)) {
        int outheight = Math.abs(boxtop-boxbot);
        int origheight = Math.abs(ymax-ymin);
        factor = (float)outheight/origheight;
+       
+       if(request.getParameter("debug")!=null){
        %>
        <!-- helpers -->
  	<di:text x="1490" y="160" font="Dakota Regular-plain-20" fillPaint="#000000" >outheight: <%=outheight %></di:text>
  	<di:text x="1490" y="200" font="Dakota Regular-plain-20" fillPaint="#000000" >origheight: <%=origheight %></di:text>
  	 <%
+       }
        visualAspect="vertical";
      }
 
     //int xout = (int)((xorig-origxcenter)*factor+boxxcenter); // array operation
     //int yout = (yorig-origycenter)*factor+boxycenter; // array operation
+    if(request.getParameter("debug")!=null){
   	 %>
  <!-- helpers -->
  	<di:text x="1490" y="240" font="Dakota Regular-plain-20" fillPaint="#000000" >factor: <%=factor %></di:text>
  	<di:text x="1490" y="280" font="Dakota Regular-plain-20" fillPaint="#000000" >aspect: <%=visualAspect %></di:text>
  <%
-    
+    }
     int currentSpotNum=0;
     for (int numIter2 = 0; numIter2 < numSpots; numIter2++) {
       //int theX = (int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidX();
@@ -225,19 +229,22 @@ if (myShepherd.isEncounter(num)) {
   <di:circle x="<%=theX %>" y="<%=theY %>" radius="10" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
  
   <%
+  if(request.getParameter("debug")!=null){
+  	if(myX==xmin){%>
+  		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >xmin</di:text>
+  	<%}
+  	if(myX==xmax){%>
+		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >xmax</di:text>
+	<%}
+  	if(myY==ymin){%>
+		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >ymin</di:text>
+	<%}
+  	if(myY==ymax){%>
+		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >ymax</di:text>
+	<%}
+  }
   
-  if(myX==xmin){%>
-  	<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >xmin</di:text>
-  <%}
-  if(myX==xmax){%>
-	<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >xmax</di:text>
-<%}
-  if(myY==ymin){%>
-	<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >ymin</di:text>
-<%}
-  if(myY==ymax){%>
-	<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=colors[currentSpotNum] %>" >ymax</di:text>
-<%}
+  	//track spot number to set from the color palette
   	currentSpotNum++;
   	if(currentSpotNum==9){currentSpotNum=0;}
     } //end for now
