@@ -685,12 +685,12 @@ public class IndividualQueryProcessor {
 
     //filter for alternate ID------------------------------------------
     if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
-      String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim();
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc99) && enc99.otherCatalogNumbers.startsWith('"+altID+"')";}
-      else{filter+=" && encounters.contains(enc99) && enc99.otherCatalogNumbers.startsWith('"+altID+"')";}
+      String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim().toLowerCase();
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(alternateid.toLowerCase().indexOf('"+altID+"') != -1 || (encounters.contains(enc99) && enc99.otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1))";}
+      else{filter+=" && (alternateid.toLowerCase().indexOf('"+altID+"') != -1 || (encounters.contains(enc99) && enc99.otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1))";}
       if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc99")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc99";}
 
-      prettyPrint.append("alternateIDField starts with \""+altID+"\".<br />");
+      prettyPrint.append("alternateID field contains \""+altID+"\".<br />");
     }
 
     //------------------------------------------------------------------
