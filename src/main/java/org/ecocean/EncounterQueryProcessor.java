@@ -698,10 +698,10 @@ public class EncounterQueryProcessor {
 
     //filter for alternate ID------------------------------------------
     if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
-      String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim();
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="otherCatalogNumbers.startsWith('"+altID+"')";}
-      else{filter+=" && otherCatalogNumbers.startsWith('"+altID+"')";}
-      prettyPrint.append("alternateIDField starts with \""+altID+"\".<br />");
+      String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim().toLowerCase();
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1";}
+      else{filter+=" && otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1";}
+      prettyPrint.append("alternateID field contains \""+altID+"\".<br />");
     }
 
     //------------------------------------------------------------------
