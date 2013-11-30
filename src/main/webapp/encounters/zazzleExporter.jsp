@@ -116,10 +116,9 @@ if (myShepherd.isEncounter(num)) {
   	<di:image x="260" y="966" srcurl="<%=sharkURL %>" width="250" height="250"  />
   	
   	 <!-- indie ID and nickname rendering -->
-  	<di:text x="710" y="975" font="Dakota Regular-plain-90" fillPaint="#000000" ><%=individualID %></di:text>
-  	<di:text x="710" y="1095" font="Dakota Regular-plain-90" fillPaint="#000000" ><%=nickname %></di:text>
+  	<di:text x="710" y="975" font="Dakota Regular-plain-75" fillPaint="#000000" ><%=individualID %></di:text>
+  	<di:text x="710" y="1105" font="Dakota Regular-plain-75" fillPaint="#000000" ><%=nickname %></di:text>
  
-
   	<%
 
   	
@@ -226,7 +225,8 @@ if (myShepherd.isEncounter(num)) {
           int theY = (int)((myY-origycenter)*factor+boxycenter); // array operation
       
   %>
-  <di:circle x="<%=theX %>" y="<%=theY %>" radius="10" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
+  
+<di:circle x="<%=theX %>" y="<%=theY %>" radius="15" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
  
   <%
   if(request.getParameter("debug")!=null){
