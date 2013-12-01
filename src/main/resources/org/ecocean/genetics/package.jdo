@@ -99,7 +99,7 @@
 		  		<class name="GeneticAnalysis" identity-type="application" table="GENETICANALYSIS">
 						
 						<field name="analysisID" primary-key="true">
-							<column jdbc-type="VARCHAR" length="256"/>
+							<column jdbc-type="VARCHAR" length="192"/>
 						</field>
 						
 						<field name="analysisType" persistence-modifier="persistent">
