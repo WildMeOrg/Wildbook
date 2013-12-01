@@ -253,23 +253,25 @@ public class CaribwhaleMigratorApp {
                         String gpsFileNameString = gpsFilenameCell.getContents().trim();
                         if(gpsFileNameString.equals(filename)){
                           
-                          //we have a photo match, and we can now get the GPS coordinates
-                          Cell latCell = sheet.getCell(10, d);
-                          if(latCell.getContents()!=null){
-                            Double lat=(new Double(latCell.getContents()));
-                            enc.setDecimalLatitude(lat);
-                          }
+                          try{
+                            //we have a photo match, and we can now get the GPS coordinates
+                            Cell latCell = sheet.getCell(10, d);
+                            if(latCell.getContents()!=null){
+                              Double lat=(new Double(latCell.getContents()));
+                              enc.setDecimalLatitude(lat);
+                            }
                           
-                          Cell longCell = sheet.getCell(11, d);
-                          if(longCell.getContents()!=null){
-                            Double localLong=(new Double(longCell.getContents()));
-                            enc.setDecimalLongitude(localLong);
-                          }
+                            Cell longCell = sheet.getCell(11, d);
+                            if(longCell.getContents()!=null){
+                              Double localLong=(new Double(longCell.getContents()));
+                              enc.setDecimalLongitude(localLong);
+                            }
                           
-                          if((enc.getDecimalLatitude()!=null)&&(enc.getDecimalLongitude()!=null)){
-                            System.out.println("     GPS!!!!  FOUND and SET GPS!!!!");
+                            if((enc.getDecimalLatitude()!=null)&&(enc.getDecimalLongitude()!=null)){
+                              System.out.println("     GPS!!!!  FOUND and SET GPS!!!!");
+                            }
                           }
-                          
+                          catch(NumberFormatException nfe99){}
                           
                         }
                       }
