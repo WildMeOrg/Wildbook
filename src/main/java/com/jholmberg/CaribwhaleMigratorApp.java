@@ -49,6 +49,7 @@ public class CaribwhaleMigratorApp {
 		String pathToExcel = "/home/webadmin/caribwhale/All_Individuals_SUPINFO_20130624.xls";
 		String pathToExcel2 = "/home/webadmin/caribwhale/allIDN19842012_20130624.xls";
 		String flukesToMatchPath="/home/webadmin/caribwhale/FlukestoMatch.mdb";
+		String pathToGPSExcel = "/home/webadmin/caribwhale/All_Pics_with_GPS_20130909.xls";
 		File encountersDirFile=new File(encountersDirPath);
 		if(!encountersDirFile.exists()){encountersDirFile.mkdir();}
 		File sourceImagesDir=new File(splashImagesDirPath);
@@ -82,7 +83,7 @@ public class CaribwhaleMigratorApp {
 	
 			
 			
-			//STEP 1: Get the individual IDs and the best filename from the Access database
+//STEP 1: Get the individual IDs and the best filename from the Access database
 			//let's load our Access database
 	    File accessDB=new File(pathToAccessFile);
 			Database db=Database.open(accessDB);
@@ -123,8 +124,10 @@ public class CaribwhaleMigratorApp {
           
         }
 			}
-
-			//STEP 2 - let's create or individuals
+			
+			
+			
+//STEP 2 - let's create our individuals
 			ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
 			Set<String> indieKeys=idMap.keySet();
 			Iterator<String> itKeys=indieKeys.iterator();
@@ -140,17 +143,22 @@ public class CaribwhaleMigratorApp {
 			myShepherd.commitDBTransaction();
 			myShepherd.beginDBTransaction();
 			
-			//STEP 3 - obtain data about each MarkedIndividual from Excel2
+			
+			
+			
+//STEP 3 - obtain data about each MarkedIndividual from Excel2
 			//File excel2File=new File(pathToExcel2);
 			Workbook w;
+			Workbook gpsW;
 		    try {
 		      File path=new File(pathToExcel2);
 		      w = Workbook.getWorkbook(path);
+		      File gpsPath=new File(pathToGPSExcel);
+          gpsW = Workbook.getWorkbook(gpsPath);
 		      // Get the first sheet
 		      Sheet sheet = w.getSheet("Pix");
-		      
-		      
-		      
+		      Sheet gpsSheet=gpsW.getSheet(0);
+
 		      for(int y=0;y<numIndies;y++){
 		        MarkedIndividual indie=myShepherd.getMarkedIndividual(indies.get(y).getIndividualID());
 		        String indiesFilename=idMap.get(indie.getIndividualID());
@@ -199,6 +207,75 @@ public class CaribwhaleMigratorApp {
 		              Encounter enc=new Encounter();
 		              enc.setDWCDateAdded(ServletUtilities.getDate());
 		              enc.setDWCDateLastModified(ServletUtilities.getDate());
+		              
+		              Cell filenameCell = sheet.getCell(1, i);
+                  if(filenameCell.getContents()!=null){
+                    String filename=filenameCell.getContents().trim();
+                    
+                    //let's check for the file
+                  //copy this image over to the encounterDir too
+                    File thisEncounterDir=new File(encountersDirFile,enc.getCatalogNumber());
+                    if(!thisEncounterDir.exists()){thisEncounterDir.mkdir();}
+                    File encounterDir=new File(encountersDirFile,enc.getCatalogNumber());
+                    if(!encounterDir.exists()){encounterDir.mkdir();}
+                    File outputFile=new File(encounterDir,(filename+".JPG"));
+                    if(!outputFile.exists()){
+                      outputFile=new File(encounterDir,(filename+".jpg"));
+                    }
+                    File inputFile=new File(sourceImagesDir, (filename+".JPG"));
+                    if(!inputFile.exists()){
+                      inputFile=new File(sourceImagesDir, (filename+".jpg"));
+                    }
+                    
+                  //copy it in and add the singlephotovideo object
+                    
+                    if((!outputFile.exists())&&(inputFile.exists())){
+                      copyFile(inputFile, outputFile);
+                    }
+                    
+                    SinglePhotoVideo sing = new SinglePhotoVideo(enc.getCatalogNumber(), indiesFilename, (encounterDir.getAbsolutePath()+"/"+indiesFilename));
+                    myShepherd.getPM().makePersistent(sing);
+                    enc.addSinglePhotoVideo(sing);
+                    thumbnailTheseImages.add(enc.getCatalogNumber());
+                  
+                    
+                    myShepherd.commitDBTransaction();
+                    myShepherd.beginDBTransaction();
+                    
+                    
+                    
+                    
+                    //let's check the filename against the GPS coordinate file
+                    
+                    for (int d = 0; d < gpsSheet.getRows(); d++) {
+                      Cell gpsFilenameCell = gpsSheet.getCell(1, d);
+                      if(gpsFilenameCell.getContents()!=null){
+                        String gpsFileNameString = gpsFilenameCell.getContents().trim();
+                        if(gpsFileNameString.equals(filename)){
+                          
+                          //we have a photo match, and we can now get the GPS coordinates
+                          Cell latCell = sheet.getCell(10, d);
+                          if(latCell.getContents()!=null){
+                            Double lat=(new Double(latCell.getContents()));
+                            enc.setDecimalLatitude(lat);
+                          }
+                          
+                          Cell longCell = sheet.getCell(11, d);
+                          if(longCell.getContents()!=null){
+                            Double localLong=(new Double(longCell.getContents()));
+                            enc.setDecimalLongitude(localLong);
+                          }
+                          
+                          if((enc.getDecimalLatitude()!=null)&&(enc.getDecimalLongitude()!=null)){
+                            System.out.println("     GPS!!!!  FOUND and SET GPS!!!!");
+                          }
+                          
+                          
+                        }
+                      }
+                    }
+                  }
+		              
 		              
 		              Cell yearCell = sheet.getCell(24, i);
 		              if(yearCell.getContents()!=null){
@@ -258,9 +335,10 @@ public class CaribwhaleMigratorApp {
                   if(sMonth.length()<2){sMonth="0"+sMonth;}
                   String sDay=Integer.toString(enc.getDay());
                   if(sDay.length()<2){sDay="0"+sDay;}
+                  
+                  //method below replaced by availability of broader photo catalog
+                  /**
                   if(indiesFilename.indexOf((sYear+sMonth+sDay))!=-1){
-         
-                    
                     
                     //copy this image over to the encounterDir too
                     File thisEncounterDir=new File(encountersDirFile,enc.getCatalogNumber());
@@ -286,6 +364,7 @@ public class CaribwhaleMigratorApp {
                     myShepherd.beginDBTransaction();
                     
                   }
+                  */
                   
 		              indie.addEncounter(enc);
 		              myShepherd.commitDBTransaction();
