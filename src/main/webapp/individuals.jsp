@@ -856,13 +856,39 @@ $("a#sex").click(function() {
                       
 
                       <tr>
-                        <td><span
-                          class="caption"><%=props.getProperty("location") %>: <%=thisEnc.getLocation() %></span>
+                        <td>
+                        	<span class="caption"><%=props.getProperty("location") %>: 
+                        		<%
+                        		if(thisEnc.getLocation()!=null){
+                        		%>
+                        			<%=thisEnc.getLocation() %>
+                        		<%
+                        		}
+                        		else {
+                        		%>
+                        			&nbsp;
+                        		<%
+                        		}
+                        		%>
+                        	</span>
                         </td>
                       </tr>
                       <tr>
-                        <td><span
-                          class="caption"><%=props.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span>
+                        <td>
+                        	<span class="caption"><%=props.getProperty("locationID") %>: 
+				                        		<%
+				                        		if(thisEnc.getLocationID()!=null){
+				                        		%>
+				                        			<%=thisEnc.getLocationID() %>
+				                        		<%
+				                        		}
+				                        		else {
+				                        		%>
+				                        			&nbsp;
+				                        		<%
+				                        		}
+				                        		%>
+                        	</span>
                         </td>
                       </tr>
                       <tr>
@@ -987,12 +1013,40 @@ $("a#sex").click(function() {
             if(!thumbLink.endsWith("video.jpg")){
  %>
 <tr>
-  <td><span class="caption"><%=props.getProperty("location") %>: <%=thisEnc.getLocation() %></span>
+  <td>
+  	<span class="caption"><%=props.getProperty("location") %>: 
+	                        		<%
+	                        		if(thisEnc.getLocation()!=null){
+	                        		%>
+	                        			<%=thisEnc.getLocation() %>
+	                        		<%
+	                        		}
+	                        		else {
+	                        		%>
+	                        			&nbsp;
+	                        		<%
+	                        		}
+	                        		%>
+                        	</span>
   </td>
 </tr>
 <tr>
-  <td><span
-    class="caption"><%=props.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td>
+  <td>
+ 	<span class="caption"><%=props.getProperty("locationID") %>: 
+                        		<%
+                        		if(thisEnc.getLocationID()!=null){
+                        		%>
+                        			<%=thisEnc.getLocationID() %>
+                        		<%
+                        		}
+                        		else {
+                        		%>
+                        			&nbsp;
+                        		<%
+                        		}
+                        		%>
+                        	</span> 
+   </td>
 </tr>
 <tr>
   <td><span class="caption"><%=props.getProperty("date") %>: <%=thisEnc.getDate() %></span></td>
