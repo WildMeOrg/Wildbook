@@ -207,6 +207,14 @@ public class CaribwhaleMigratorApp {
 		              Encounter enc=new Encounter();
 		              enc.setDWCDateAdded(ServletUtilities.getDate());
 		              enc.setDWCDateLastModified(ServletUtilities.getDate());
+		              String catNumber=Integer.toString(i);
+                  enc.setCatalogNumber(catNumber);
+                  
+                  myShepherd.getPM().makePersistent(enc);
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
+                  
+                  enc=myShepherd.getEncounter(catNumber);
 		              
 		              Cell filenameCell = sheet.getCell(1, i);
                   if(filenameCell.getContents()!=null){
@@ -214,9 +222,7 @@ public class CaribwhaleMigratorApp {
                     
                     //let's check for the file
                   //copy this image over to the encounterDir too
-                    File thisEncounterDir=new File(encountersDirFile,enc.getCatalogNumber());
-                    if(!thisEncounterDir.exists()){thisEncounterDir.mkdir();}
-                    File encounterDir=new File(encountersDirFile,enc.getCatalogNumber());
+                   File encounterDir=new File(encountersDirFile,enc.getCatalogNumber());
                     if(!encounterDir.exists()){encounterDir.mkdir();}
                     File outputFile=new File(encounterDir,(filename+".JPG"));
                     if(!outputFile.exists()){
@@ -230,11 +236,15 @@ public class CaribwhaleMigratorApp {
                   //copy it in and add the singlephotovideo object
                     
                     if((!outputFile.exists())&&(inputFile.exists())){
+                      System.out.println("     I found the file and I am copying it: "+outputFile.getName());
                       copyFile(inputFile, outputFile);
                     }
                     
-                    SinglePhotoVideo sing = new SinglePhotoVideo(enc.getCatalogNumber(), indiesFilename, (encounterDir.getAbsolutePath()+"/"+indiesFilename));
+                    //test comment
+                    
+                    SinglePhotoVideo sing = new SinglePhotoVideo(enc.getCatalogNumber(), (outputFile.getName()), (encounterDir.getAbsolutePath()+"/"+outputFile.getName()));
                     myShepherd.getPM().makePersistent(sing);
+                    
                     enc.addSinglePhotoVideo(sing);
                     thumbnailTheseImages.add(enc.getCatalogNumber());
                   
@@ -242,6 +252,7 @@ public class CaribwhaleMigratorApp {
                     myShepherd.commitDBTransaction();
                     myShepherd.beginDBTransaction();
                     
+                    System.out.println("   Checking post image persist. Encounter "+enc.getCatalogNumber()+" now has #encs: "+enc.getImages().size());
                     
                     
                     
@@ -255,20 +266,20 @@ public class CaribwhaleMigratorApp {
                           
                           try{
                             //we have a photo match, and we can now get the GPS coordinates
-                            Cell latCell = sheet.getCell(10, d);
+                            Cell latCell = gpsSheet.getCell(10, d);
                             if(latCell.getContents()!=null){
                               Double lat=(new Double(latCell.getContents()));
                               enc.setDecimalLatitude(lat);
                             }
                           
-                            Cell longCell = sheet.getCell(11, d);
+                            Cell longCell = gpsSheet.getCell(11, d);
                             if(longCell.getContents()!=null){
                               Double localLong=(new Double(longCell.getContents()));
                               enc.setDecimalLongitude(localLong);
                             }
                           
                             if((enc.getDecimalLatitude()!=null)&&(enc.getDecimalLongitude()!=null)){
-                              System.out.println("     GPS!!!!  FOUND and SET GPS!!!!");
+                              System.out.println("     GPS!!!!  FOUND and SET GPS: "+latCell.getContents()+" "+longCell.getContents());
                             }
                           }
                           catch(NumberFormatException nfe99){}
@@ -321,8 +332,7 @@ public class CaribwhaleMigratorApp {
                   enc.setGenus("Physeter");
                   enc.setSpecificEpithet("macrocephalus");
                   
-                  String catNumber=Integer.toString(i);
-		              enc.setCatalogNumber(catNumber);
+                  
 		              enc.setSubmitterName("Shane Gero");
 		              enc.setSubmitterEmail("geroshane@gmail.com");
 		              
