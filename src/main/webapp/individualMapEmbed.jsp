@@ -123,7 +123,7 @@ margin-bottom: 8px !important;
 
     <script type="text/javascript">
       function initialize() {
-        var center = new google.maps.LatLng(0,0);
+        var center = new google.maps.LatLng(15,-61);
         var mapZoom = 1;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
     	var bounds = new google.maps.LatLngBounds();

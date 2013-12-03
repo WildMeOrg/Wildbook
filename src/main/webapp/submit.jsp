@@ -175,7 +175,7 @@ margin-bottom: 8px !important;
 
 <script type="text/javascript">
 //alert("Prepping map functions.");
-var center = new google.maps.LatLng(10.8, 160.8);
+var center = new google.maps.LatLng(15, -61);
 
 var map;
 
