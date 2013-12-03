@@ -2459,8 +2459,9 @@ public class Shepherd {
     return al;
   }
 
+  //get earliest sighting year for setting search parameters
   public int getEarliestSightingYear() {
-    Query q = pm.newQuery("SELECT min(year) FROM org.ecocean.Encounter where year > -1");
+    Query q = pm.newQuery("SELECT min(year) FROM org.ecocean.Encounter where year > 0");
     int value=((Integer) q.execute()).intValue();
     q.closeAll();
     return value;
