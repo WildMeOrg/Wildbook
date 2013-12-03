@@ -3344,13 +3344,12 @@ $("a#sat").click(function() {
 <!-- end sat tag popup --> 
 <%
 }
-%>
+%></c:if>
 </td>
 </tr>
 </table>
 
 
-</c:if>
 <br />
 <p><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <strong><%=encprops.getProperty("dynamicProperties") %></strong>
 <%
