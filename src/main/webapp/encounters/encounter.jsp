@@ -3005,6 +3005,10 @@ $("a#autocomments").click(function() {
 </tr>
 </table>
 
+
+<%
+if(request.getUserPrincipal()!=null){
+%>
 <c:if test="${showMeasurements}">
 <br />
 <%
@@ -3113,7 +3117,11 @@ $("a#measure").click(function() {
 
 
 </c:if>
+<%
+}
 
+if(request.getUserPrincipal()!=null){
+%>
 <table>
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8">
@@ -3283,11 +3291,13 @@ $("a#acoustic").click(function() {
 </c:if>
 
 
+
 <c:if test="${showSatelliteTag}">
 <%
   pageContext.setAttribute("satelliteTagTitle", encprops.getProperty("satelliteTag"));
   pageContext.setAttribute("satelliteTag", enc.getSatelliteTag());
 %>
+
 <p class="para"><em><c:out value="${satelliteTagTitle}"></c:out></em>
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
@@ -3372,12 +3382,17 @@ $("a#sat").click(function() {
 <%
 }
 %>
+</c:if>
+
 </td>
 </tr>
 </table>
+<%
+}
+%>
 
 
-</c:if>
+
 <br />
 <p><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <strong><%=encprops.getProperty("dynamicProperties") %></strong>
 <%
