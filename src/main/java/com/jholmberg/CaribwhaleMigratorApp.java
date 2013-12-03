@@ -239,6 +239,9 @@ public class CaribwhaleMigratorApp {
                       System.out.println("     I found the file and I am copying it: "+outputFile.getName());
                       copyFile(inputFile, outputFile);
                     }
+                    else if(!inputFile.exists()){
+                      missingPhotos.add(inputFile.getName());
+                    }
                     
                     //test comment
                     
