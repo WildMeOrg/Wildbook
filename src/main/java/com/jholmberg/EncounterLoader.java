@@ -29,7 +29,7 @@ public class EncounterLoader {
 	public static void main(String[] args) {
 		
 		
-		String urlToThumbnailJSPPage="http://www.oceansmart.org/caribwhale/";
+		String urlToThumbnailJSPPage="http://www.oceansmart.org/";
 		
 		System.out.println("\n\n");
 		
@@ -68,24 +68,24 @@ public class EncounterLoader {
 		}
 		*/
 		
-		int numEncounters=6200;
-	  for(int q=5000;q<numEncounters;q++){
+		int numEncounters=18000;
+	  for(int q=1;q<numEncounters;q++){
       System.out.println(q);
       //ping a URL to thumbnail generator - Tomcat must be up and running
         try 
         {
             
           //System.out.println("Trying to render a thumbnail for: "+IDKey+ "as "+thumbnailTheseImages.get(q));
-          String urlString=urlToThumbnailJSPPage+"resetThumbnail.jsp?number="+q+"_DATASTORE&imageNum=1";
-          String urlString2=urlToThumbnailJSPPage+"encounters/encounter.jsp?number="+q+"_DATASTORE&imageNum=1";
+          String urlString=urlToThumbnailJSPPage+"resetThumbnail.jsp?number="+q+"&imageNum=1";
+          String urlString2=urlToThumbnailJSPPage+"encounters/encounter.jsp?number="+q+"&imageNum=1";
           URL url = new URL(urlString);
           URL url2 = new URL(urlString2);
             BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
             in.close();
-            Thread.sleep(300);
+            Thread.sleep(500);
             BufferedReader in2 = new BufferedReader(new InputStreamReader(url2.openStream()));
             in2.close();
-            Thread.sleep(300);
+            Thread.sleep(500);
         } 
         catch (Exception e) {
           
