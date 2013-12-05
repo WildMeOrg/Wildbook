@@ -235,15 +235,21 @@ public class CaribwhaleMigratorApp {
                     
                   //copy it in and add the singlephotovideo object
                     
-                    if((!outputFile.exists())&&(inputFile.exists())){
+                    
+                    if((!outputFile.exists())||(outputFile.length()<1)&&(inputFile.exists()) && (!filename.trim().equals(""))){
                       System.out.println("     I found the file and I am copying it: "+outputFile.getName());
                       copyFile(inputFile, outputFile);
                     }
-                    else if(!inputFile.exists()){
+                    else if(!inputFile.exists() && (!filename.trim().equals(""))){
                       missingPhotos.add(inputFile.getName());
                     }
+                   
+                    boolean bogusFile=false;
+                    if(filename.trim().equals(""))bogusFile=true;
                     
-                    //test comment
+                    
+                    if(!bogusFile){
+                      
                     
                     SinglePhotoVideo sing = new SinglePhotoVideo(enc.getCatalogNumber(), (outputFile.getName()), (encounterDir.getAbsolutePath()+"/"+outputFile.getName()));
                     myShepherd.getPM().makePersistent(sing);
@@ -289,6 +295,7 @@ public class CaribwhaleMigratorApp {
                           
                         }
                       }
+                    } //end for loop
                     }
                   }
 		              
