@@ -245,7 +245,7 @@ public class CaribwhaleMigratorApp {
                     }
                    
                     boolean bogusFile=false;
-                    if(filename.trim().equals(""))bogusFile=true;
+                    if((filename.trim().equals(""))||(filename.trim().toLowerCase().replaceAll(" ", "").indexOf("nopic")!=-1))bogusFile=true;
                     
                     
                     if(!bogusFile){
