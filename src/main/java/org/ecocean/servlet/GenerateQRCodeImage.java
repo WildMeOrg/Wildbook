@@ -32,7 +32,8 @@ public class GenerateQRCodeImage extends HttpServlet {
  
         String myURL = "http://www.whaleshark.org/individuals.jsp?number="+request.getParameter("number");
  
-        ByteArrayOutputStream out = QRCode.from(myURL).withSize(250, 250).to(
+        //reset code size to 238x238
+        ByteArrayOutputStream out = QRCode.from(myURL).withSize(238, 238).to(
                 ImageType.PNG).stream();
          
         response.setContentType("image/png");
