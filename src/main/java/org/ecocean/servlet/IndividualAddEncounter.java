@@ -26,9 +26,15 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -91,6 +97,29 @@ public class IndividualAddEncounter extends HttpServlet {
             enc2add.setMatchedBy(request.getParameter("matchType"));
             enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + request.getParameter("individual") + ".</p>");
             addToMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + request.getParameter("number") + ".</p>");
+            
+            
+            //let's call out to the Zazzle exporter
+            if(enc2add.getNumSpots()>0){
+              try{
+                URL u = new URL("http://"+CommonConfiguration.getURLLocation(request) + "/encounters/zazzleExporter.jsp?number=" + enc2add.getCatalogNumber());
+                URLConnection finishConnection = u.openConnection();
+                InputStream inputStreamFromServlet = finishConnection.getInputStream();
+                BufferedReader in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));
+                //String line = in.readLine();
+                in.close();
+                in=null;
+                inputStreamFromServlet.close();
+                inputStreamFromServlet=null;
+                finishConnection=null;
+                u=null;
+              }
+              catch(Exception e){e.printStackTrace();}
+            }
+            //let's do the zazzle exporter image in the background
+            
+            
+            
             if (!(addToMe.getSex().equals(enc2add.getSex()))) {
               if (addToMe.getSex().equals("Unknown")) {
                 addToMe.setSex(enc2add.getSex());
