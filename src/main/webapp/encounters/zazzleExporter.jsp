@@ -109,19 +109,18 @@ if (myShepherd.isEncounter(num)) {
         String src_url="..";
         %>
 
-  	<di:image x="0" y="0" srcurl="../images/zazzle/shirt_horizontal-side-right.png" width="2100" height="1800"  />
+  	<di:image x="0" y="0" srcurl="../images/zazzle/shirt_horizontal-sid2.png" width="2100" height="1800"  />
   	<%
   	String sharkURL="http://www.whaleshark.org/GenerateQRCodeImage?number="+individualID;
   	%>
-  	<di:image x="260" y="966" srcurl="<%=sharkURL %>" width="250" height="250"  />
+  	<di:image x="271" y="896" srcurl="<%=sharkURL %>" width="238" height="238"  />
   	
   	 <!-- indie ID and nickname rendering -->
-  	<di:text x="710" y="975" font="Dakota Regular-plain-75" fillPaint="#000000" ><%=individualID %></di:text>
-  	<di:text x="710" y="1105" font="Dakota Regular-plain-75" fillPaint="#000000" ><%=nickname %></di:text>
+  	<di:text x="710" y="906" font="Dakota Regular-plain-65" fillPaint="#000000" ><%=individualID %></di:text>
+  	<di:text x="710" y="1036" font="Dakota Regular-plain-65" fillPaint="#000000" ><%=nickname %></di:text>
  
   	<%
 
-  	
   	//lets prep the spot colors
   	String[] colors=new String[9];
   	colors[0]="#5F2C91";
@@ -167,11 +166,11 @@ if (myShepherd.isEncounter(num)) {
     double origaspect = (ymax-ymin)/(xmax-xmin);
 
     // My estimation of where spots can go without running outside shark
-    // silhouette in shirt_horizontal-side.png
-    int boxleft = 1258;
-    int boxright = 1637;
-    int boxtop = 759;
-    int boxbot = 435;
+    // silhouette in image file from James Weyenberg
+    int boxleft = 1275;
+    int boxright = 1615;
+    int boxtop = 702;
+    int boxbot = 400;
     
     
     double boxxcenter = (boxleft+boxright)/2.0;
@@ -226,7 +225,7 @@ if (myShepherd.isEncounter(num)) {
       
   %>
   
-<di:circle x="<%=theX %>" y="<%=theY %>" radius="15" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
+<di:circle x="<%=theX %>" y="<%=theY %>" radius="12" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
  
   <%
   if(request.getParameter("debug")!=null){
