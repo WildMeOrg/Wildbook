@@ -169,6 +169,13 @@
 </dependency>
 
 <dependency>
+	<groupId>org.json</groupId>
+	<artifactId>json</artifactId>
+	<version>20131018</version>
+</dependency>
+            
+
+<dependency>
 	<groupId>com.healthmarketscience.jackcess</groupId>
 	<artifactId>jackcess</artifactId>
 	<version>1.2.14.2</version>
