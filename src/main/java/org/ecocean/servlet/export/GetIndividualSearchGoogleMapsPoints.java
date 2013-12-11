@@ -128,10 +128,9 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName());
              point.put("date",enc.getDate());
              
-             //build color
+             
              String haploColor="C0C0C0";
-             //String sexStyle="";
-             //String generalStyle="";
+             
              //now check if we should show by sex
              if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("sex"))){
                if(indie.getSex().equals("male")){
