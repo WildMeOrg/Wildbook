@@ -772,6 +772,12 @@
     <servlet-name>EncounterSetMeasurements</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetMeasurements</servlet-class>
   </servlet>
+  
+  
+    <servlet>
+      <servlet-name>GetIndividualSearchGoogleMapsPoints</servlet-name>
+      <servlet-class>org.ecocean.servlet.export.GetIndividualSearchGoogleMapsPoints</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetTags</servlet-name>
@@ -1111,6 +1117,12 @@
       <servlet-mapping>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
         <url-pattern>/EncounterSearchExportShapefile</url-pattern>
+  </servlet-mapping>
+  
+  
+        <servlet-mapping>
+          <servlet-name>GetIndividualSearchGoogleMapsPoints</servlet-name>
+          <url-pattern>/GetIndividualSearchGoogleMapsPoints</url-pattern>
   </servlet-mapping>
   
       <servlet-mapping>
