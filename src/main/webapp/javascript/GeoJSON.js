@@ -1,19 +1,22 @@
-var GeoJSON = function( geojson, options, map ){
+var GeoJSON = function( geojson, options, map, bounds ){
 
 	var _geometryToGoogleMaps = function( geojsonGeometry, opts, geojsonProperties ){
 		
 		var googleObj;
+		
 		
 		switch ( geojsonGeometry.type ){
 			case "Point":
 				opts.position = new google.maps.LatLng(geojsonGeometry.coordinates[1], geojsonGeometry.coordinates[0]);
 				googleObj = new google.maps.Marker(opts);
 				googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.color);
-					        	   
-
+					 
+				//reset bounds
+				bounds.extend(googleObj.getPosition());
+				map.fitBounds(bounds);
 				google.maps.event.addListener(googleObj,'click', function() {
 					(new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/individuals.jsp?number='+geojsonGeometry.individualID+'\">'+geojsonGeometry.individualID+'</a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/'+geojsonGeometry.dataDirectoryName+'/encounters/'+geojsonGeometry.catalogNumber+'/thumb.jpg\"></td><td>Date: '+geojsonGeometry.date+'<br /><br /><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/encounters/encounter.jsp?number='+geojsonGeometry.catalogNumber+'\" >Go to encounter</a></td></tr></table>'})).open(map, this);		
-					//alert("Popup!");
+					
 				});
 
 

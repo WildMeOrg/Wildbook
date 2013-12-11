@@ -198,6 +198,7 @@ margin-bottom: 8px !important;
 	});
      
     var map;
+    var bounds = new google.maps.LatLngBounds();
     
       function initialize() {
     	  
@@ -333,7 +334,7 @@ function loadIndividualMapData(results){
 			  strokeWeight: 1
 			};
 	  //alert(results);
-	  var currentFeature_or_Features = new GeoJSON(jQuery.parseJSON(results), googleOptions, map);
+	  var currentFeature_or_Features = new GeoJSON(jQuery.parseJSON(results), googleOptions, map, bounds);
 	  	if (currentFeature_or_Features.type && currentFeature_or_Features.type == "Error"){
 			alert("GeoJSON read error: "+ currentFeature_or_Features.message);
 			//return;
