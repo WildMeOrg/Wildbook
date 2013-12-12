@@ -199,6 +199,16 @@ margin-bottom: 8px !important;
      
     var map;
     var bounds = new google.maps.LatLngBounds();
+    var currentFeature_or_Features;
+    var geoJSONResults;
+    //aspect options: sex, haplotype, none
+    var aspect="none";
+    
+    var filename = "http://<%=CommonConfiguration.getURLLocation(request)%>/GetIndividualSearchGoogleMapsPoints?<%=request.getQueryString()%>";
+    var overlays = [];
+    var overlaysSet=false;
+    
+
     
       function initialize() {
     	  
@@ -319,9 +329,9 @@ margin-bottom: 8px !important;
 
 
 
-function loadIndividualMapData(results){
+function loadIndividualMapData(localResults,aspect){
 	
-	//alert("Entering function loadIndividualMapData");
+	alert("Entering function loadIndividualMapData");
 	
 	  //for (var i = 0; i < results.length; i++) {
 		//    var geoJsonObject = results.features[i];
@@ -333,13 +343,14 @@ function loadIndividualMapData(results){
 			  strokeColor: '#CCC',
 			  strokeWeight: 1
 			};
-	  //alert(results);
-	  var currentFeature_or_Features = new GeoJSON(jQuery.parseJSON(results), googleOptions, map, bounds);
+	  alert("Results: "+localResults);
+	  alert("Aspect is: "+aspect);
+	  currentFeature_or_Features = new GeoJSON(jQuery.parseJSON(localResults), googleOptions, map, bounds,aspect);
 	  	if (currentFeature_or_Features.type && currentFeature_or_Features.type == "Error"){
 			alert("GeoJSON read error: "+ currentFeature_or_Features.message);
 			//return;
 		}
-	  	//alert("No error");
+	  	alert("No error");
 		if (currentFeature_or_Features.length){
 			//alert("Iterating through detected features: "  +currentFeature_or_Features.length);
 			for (var i = 0; i < currentFeature_or_Features.length; i++){
@@ -370,6 +381,54 @@ function loadIndividualMapData(results){
 		}
 }
 
+
+function clearMap(){
+	if (!currentFeature_or_Features) {
+		alert("There is nothing to clear!");
+		return;
+	}
+	if (currentFeature_or_Features.length){
+		alert("Iterating and clearing map...");
+		for (var i = 0; i < currentFeature_or_Features.length; i++){
+			if(currentFeature_or_Features[i].length){
+				for(var j = 0; j < currentFeature_or_Features[i].length; j++){
+					currentFeature_or_Features[i][j].setMap(null);
+				}
+			}
+			else{
+				currentFeature_or_Features[i].setMap(null);
+			}
+		}
+	}else{
+		alert("Clearing map...");
+		currentFeature_or_Features.setMap(null);
+	}
+	//if (infowindow.getMap()){
+	//	infowindow.close();
+	//}
+}
+function useNoAspect(){
+	alert("In useNoAspect");
+	aspect="none";
+	clearMap();
+	loadIndividualMapData(geoJSONResults,aspect);
+}
+function useSexAspect(){
+	alert("In useSexAspect");
+	aspect="sex";
+	clearMap();
+	loadIndividualMapData(geoJSONResults,aspect);
+}
+function useHaplotypeAspect(){
+	alert("In useHaplotypeAspect");
+	aspect="haplotype";
+	clearMap();
+	loadIndividualMapData(geoJSONResults,aspect);
+}
+
+
+
+
 function setInfoWindow (feature) {
 	google.maps.event.addListener(feature, "click", function(event) {
 		var content = "<div id='infoBox'><strong>GeoJSON Feature Properties</strong><br />";
@@ -387,24 +446,29 @@ function setOverlays() {
 	  
 	  if(!overlaysSet){
 
-		
-		//alert("read in request!!!");
-		
-		
-    	
-    	
-    	
-    	
-		//read in the GeoJSON 
-		var xhr = new XMLHttpRequest();
-		xhr.open('GET', filename, true);
+    	if(!geoJSONResults){
+			//read in the GeoJSON 
+			alert("Reading GeoJSON...");
+			var xhr = new XMLHttpRequest();
+			alert("Filename is: "+filename);
+			xhr.open('GET', filename, true);
+			alert("xhr is open...");
 			xhr.onload = function() {
-				//alert(this.responseText);
+				alert(this.responseText);
 				iw.close();
-  				loadIndividualMapData(this.responseText);
+				geoJSONResults=this.responseText;
+				loadIndividualMapData(geoJSONResults,aspect);
+				
+				
+				
+  				
 			};
-		xhr.send();
-		
+			xhr.send();
+	  	}
+    	else{
+    		loadIndividualMapData(geoJSONResults,aspect);
+    	}
+    	
 		
 		//alert("done loading!!!");
     	
@@ -416,9 +480,6 @@ function setOverlays() {
 	    
    }
 
-var filename = "http://<%=CommonConfiguration.getURLLocation(request)%>/GetIndividualSearchGoogleMapsPoints?<%=request.getQueryString()%>";
-var overlays = [];
-var overlaysSet=false;
 
 
 </script>
@@ -481,7 +542,7 @@ if (request.getQueryString() != null) {
  <p><%=map_props.getProperty("resultsNote")%></p>
  
  <p>
- <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=generalStyle %>" href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=sexStyle%>" href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>&showBy=sex"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=haplotypeStyle %>" href="individualMappedSearchResults.jsp?<%=queryString.replaceAll("showBy=sex","").replaceAll("showBy=haplotype","") %>&showBy=haplotype"><%=map_props.getProperty("displayAspectName1") %></a>
+ <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=generalStyle %>" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=sexStyle%>" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=haplotypeStyle %>" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>
  </p>
  
 <p><%=map_props.getProperty("mapNote")%></p>
