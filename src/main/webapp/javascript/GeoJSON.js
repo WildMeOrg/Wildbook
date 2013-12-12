@@ -1,6 +1,6 @@
-var GeoJSON = function( geojson, options, map, bounds ){
+var GeoJSON = function( geojson, options, map, bounds,aspect ){
 
-	var _geometryToGoogleMaps = function( geojsonGeometry, opts, geojsonProperties ){
+	var _geometryToGoogleMaps = function( geojsonGeometry, opts, geojsonProperties,aspect ){
 		
 		var googleObj;
 		
@@ -9,7 +9,18 @@ var GeoJSON = function( geojson, options, map, bounds ){
 			case "Point":
 				opts.position = new google.maps.LatLng(geojsonGeometry.coordinates[1], geojsonGeometry.coordinates[0]);
 				googleObj = new google.maps.Marker(opts);
-				googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.color);
+				
+				if(aspect == "sex"){
+					googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.sexColor);
+				}
+				else if(aspect == "haplotype"){
+					googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.haplotypeColor);
+				}
+				else{
+					googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.color);
+				}
+				
+				
 					 
 				//reset bounds
 				bounds.extend(googleObj.getPosition());
@@ -201,7 +212,7 @@ var GeoJSON = function( geojson, options, map, bounds ){
 			}else{
 				obj = [];
 				for (var i = 0; i < geojson.features.length; i++){
-					obj.push(_geometryToGoogleMaps(geojson.features[i].geometry, opts, geojson.features[i].properties));
+					obj.push(_geometryToGoogleMaps(geojson.features[i].geometry, opts, geojson.features[i].properties,aspect));
 				}
 			}
 			break;
@@ -212,7 +223,7 @@ var GeoJSON = function( geojson, options, map, bounds ){
 			}else{
 				obj = [];
 				for (var i = 0; i < geojson.geometries.length; i++){
-					obj.push(_geometryToGoogleMaps(geojson.geometries[i], opts));
+					obj.push(_geometryToGoogleMaps(geojson.geometries[i], opts,aspect));
 				}
 			}
 			break;
@@ -221,13 +232,13 @@ var GeoJSON = function( geojson, options, map, bounds ){
 			if (!( geojson.properties && geojson.geometry )){
 				obj = _error("Invalid GeoJSON object: Feature object missing \"properties\" or \"geometry\" member.");
 			}else{
-				obj = _geometryToGoogleMaps(geojson.geometry, opts, geojson.properties);
+				obj = _geometryToGoogleMaps(geojson.geometry, opts, geojson.properties,aspect);
 			}
 			break;
 		
 		case "Point": case "MultiPoint": case "LineString": case "MultiLineString": case "Polygon": case "MultiPolygon":
 			obj = geojson.coordinates
-				? obj = _geometryToGoogleMaps(geojson, opts)
+				? obj = _geometryToGoogleMaps(geojson, opts, aspect)
 				: _error("Invalid GeoJSON object: Geometry object missing \"coordinates\" member.");
 			break;
 		

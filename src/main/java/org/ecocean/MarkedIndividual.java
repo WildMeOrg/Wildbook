@@ -74,6 +74,9 @@ public class MarkedIndividual implements java.io.Serializable {
   private Vector interestedResearchers = new Vector();
 
   private String dateTimeCreated;
+  
+  //FOR FAST QUERY PURPOSES ONLY - DO NOT MANUALLY SET
+  private String localHaplotypeReflection;
 
   private String dynamicProperties;
 
@@ -107,8 +110,11 @@ public class MarkedIndividual implements java.io.Serializable {
 
   public boolean addEncounter(Encounter newEncounter) {
 
-    newEncounter.assignToMarkedIndividual(individualID);
-    
+      newEncounter.assignToMarkedIndividual(individualID);
+   
+      //get and therefore set the haplotype if necessary
+      getHaplotype();
+      
       boolean ok=encounters.add(newEncounter);
       numberEncounters++;
       resetMaxNumYearsBetweenSightings();
@@ -124,6 +130,9 @@ public class MarkedIndividual implements java.io.Serializable {
   public boolean removeEncounter(Encounter getRidOfMe){
 
       numberEncounters--;
+      
+      
+      
       boolean changed=false;
       for(int i=0;i<encounters.size();i++) {
         Encounter tempEnc=(Encounter)encounters.get(i);
@@ -134,6 +143,11 @@ public class MarkedIndividual implements java.io.Serializable {
           }
         }
       resetMaxNumYearsBetweenSightings();
+      
+      //reset haplotype
+      localHaplotypeReflection=null;
+      getHaplotype();
+      
       return changed;
   }
   
@@ -1234,13 +1248,20 @@ Returns the first haplotype found in the Encounter objects for this MarkedIndivi
 @return a String if found or null if no haplotype is found
 */
 public String getHaplotype(){
-      for (int c = 0; c < encounters.size(); c++) {
+      
+    if(localHaplotypeReflection!=null){return localHaplotypeReflection;}
+    for (int c = 0; c < encounters.size(); c++) {
         Encounter temp = (Encounter) encounters.get(c);
-        if(temp.getHaplotype()!=null){return temp.getHaplotype();}
+        if(temp.getHaplotype()!=null){
+          localHaplotypeReflection=temp.getHaplotype();
+          return temp.getHaplotype();
+        }
       }
     return null;
-
 }
+
+
+
 
 public String getGeneticSex(){
   for (int c = 0; c < encounters.size(); c++) {
@@ -1528,5 +1549,6 @@ public ArrayList<String> getAllAssignedUsers(){
 
    return allIDs;
  }
+
 
 }
