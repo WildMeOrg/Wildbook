@@ -129,27 +129,27 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              point.put("date",enc.getDate());
              
              
+             String baseColor="C0C0C0";
+             String sexColor="C0C0C0";
              String haploColor="C0C0C0";
              
              //now check if we should show by sex
-             if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("sex"))){
-               if(indie.getSex().equals("male")){
-                 haploColor="0000FF";
+             if(indie.getSex().equals("male")){
+                 sexColor="0000FF";
                }
                else if(indie.getSex().equals("female")){
-                 haploColor="FF00FF";
+                 sexColor="FF00FF";
                }
-             }
-             else if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("haplotype"))){
                
 
-                      if((indie.getHaplotype()!=null)&&(haploprops.getProperty(indie.getHaplotype())!=null)){
-                       if(!haploprops.getProperty(indie.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(indie.getHaplotype());}
-                       }
+             if((indie.getHaplotype()!=null)&&(haploprops.getProperty(indie.getHaplotype())!=null)){
+                 if(!haploprops.getProperty(indie.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(indie.getHaplotype());}
+             }
              
-             } 
              //end color
-             point.put("color",haploColor);
+             point.put("color",baseColor);
+             point.put("sexColor",sexColor);
+             point.put("haplotypeColor",haploColor);
              
              JSONObject feature = new JSONObject();
              feature.put("type", "Feature");
@@ -170,7 +170,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
         } //end for
    
 
-      myShepherd.rollbackDBTransaction();
+      myShepherd.commitDBTransaction();
       myShepherd.closeDBTransaction();
 
       
