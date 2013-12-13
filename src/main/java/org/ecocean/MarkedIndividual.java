@@ -1249,17 +1249,9 @@ Returns the first haplotype found in the Encounter objects for this MarkedIndivi
 */
 public String getHaplotype(){
       
-    if(localHaplotypeReflection!=null){return localHaplotypeReflection;}
-    for (int c = 0; c < encounters.size(); c++) {
-        Encounter temp = (Encounter) encounters.get(c);
-        if(temp.getHaplotype()!=null){
-          localHaplotypeReflection=temp.getHaplotype();
-          return temp.getHaplotype();
-        }
-      }
-    return null;
+    return localHaplotypeReflection;
+    
 }
-
 
 
 
@@ -1549,6 +1541,16 @@ public ArrayList<String> getAllAssignedUsers(){
 
    return allIDs;
  }
+
+/**
+ * DO NOT SET DIRECTLY!!
+ * 
+ * @param myDepth
+ */
+public void doNotSetLocalHaplotypeReflection(String myHaplo) {
+  if(myHaplo!=null){localHaplotypeReflection = myHaplo;}
+  else{localHaplotypeReflection = null;}
+}
 
 
 }

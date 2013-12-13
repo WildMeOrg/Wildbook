@@ -81,6 +81,10 @@ public class IndividualQueryProcessor {
     }
     //end locationID filters-----------------------------------------------
 
+    
+    
+    
+    
   //------------------------------------------------------------------
     //patterningCode filters-------------------------------------------------
     String[] patterningCodes=request.getParameterValues("patterningCodeField");
@@ -113,6 +117,35 @@ public class IndividualQueryProcessor {
     }
     //end patterningCode filters-----------------------------------------------
 
+    //------------------------------------------------------------------
+    //haplotype filters-------------------------------------------------
+    String[] haplos=request.getParameterValues("haplotypeField");
+    if((haplos!=null)&&(!haplos[0].equals("None"))){
+          prettyPrint.append("Haplotype is one of the following: ");
+          int kwLength=haplos.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              String kwParam=haplos[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" localHaplotypeReflection == \""+kwParam+"\"";
+                }
+                else{
+                  locIDFilter+=" || localHaplotypeReflection == \""+kwParam+"\"";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end haplotype filters-----------------------------------------------
+
+    
+    
+    
       //------------------------------------------------------------------
 	    //username filters-------------------------------------------------
 	    String[] usernames=request.getParameterValues("username");
@@ -692,9 +725,11 @@ public class IndividualQueryProcessor {
 
       prettyPrint.append("alternateID field contains \""+altID+"\".<br />");
     }
+    
 
     //------------------------------------------------------------------
     //haplotype filters-------------------------------------------------
+    /*
     String[] haplotypes=request.getParameterValues("haplotypeField");
     if((haplotypes!=null)&&(!haplotypes[0].equals("None"))){
           prettyPrint.append("Haplotype is one of the following: ");
@@ -731,6 +766,7 @@ public class IndividualQueryProcessor {
 
 
       }
+    */
 
     //end haplotype filters-----------------------------------------------
 
@@ -849,7 +885,7 @@ public class IndividualQueryProcessor {
     if((request.getParameter("alive")!=null)||(request.getParameter("dead")!=null)){
 		if(request.getParameter("alive")==null) {
 			if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="!enc.livingStatus.startsWith('alive')";}
-			else{filter+=" && !livingStatus.startsWith('alive')";}
+			else{filter+=" && !enc.livingStatus.startsWith('alive')";}
 			prettyPrint.append("Alive.<br />");
 		}
 		if(request.getParameter("dead")==null) {
