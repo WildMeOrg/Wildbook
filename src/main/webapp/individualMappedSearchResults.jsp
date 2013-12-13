@@ -73,10 +73,10 @@
 
     ArrayList<String> allHaplos2=new ArrayList<String>(); 
     int numHaplos2 = 0;
-    if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("haplotype"))){
+    //if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("haplotype"))){
     	allHaplos2=myShepherd.getAllHaplotypes(); 
     	numHaplos2=allHaplos2.size();
-    }
+    //}
 %>
 
   <title><%=CommonConfiguration.getHTMLTitle()%>
@@ -331,7 +331,7 @@ margin-bottom: 8px !important;
 
 function loadIndividualMapData(localResults,aspect){
 	
-	alert("Entering function loadIndividualMapData");
+	//alert("Entering function loadIndividualMapData");
 	
 	  //for (var i = 0; i < results.length; i++) {
 		//    var geoJsonObject = results.features[i];
@@ -343,14 +343,14 @@ function loadIndividualMapData(localResults,aspect){
 			  strokeColor: '#CCC',
 			  strokeWeight: 1
 			};
-	  alert("Results: "+localResults);
-	  alert("Aspect is: "+aspect);
+	  //alert("Results: "+localResults);
+	  //alert("Aspect is: "+aspect);
 	  currentFeature_or_Features = new GeoJSON(jQuery.parseJSON(localResults), googleOptions, map, bounds,aspect);
 	  	if (currentFeature_or_Features.type && currentFeature_or_Features.type == "Error"){
 			alert("GeoJSON read error: "+ currentFeature_or_Features.message);
 			//return;
 		}
-	  	alert("No error");
+	  	//alert("No error");
 		if (currentFeature_or_Features.length){
 			//alert("Iterating through detected features: "  +currentFeature_or_Features.length);
 			for (var i = 0; i < currentFeature_or_Features.length; i++){
@@ -384,11 +384,11 @@ function loadIndividualMapData(localResults,aspect){
 
 function clearMap(){
 	if (!currentFeature_or_Features) {
-		alert("There is nothing to clear!");
+		//alert("There is nothing to clear!");
 		return;
 	}
 	if (currentFeature_or_Features.length){
-		alert("Iterating and clearing map...");
+		//alert("Iterating and clearing map...");
 		for (var i = 0; i < currentFeature_or_Features.length; i++){
 			if(currentFeature_or_Features[i].length){
 				for(var j = 0; j < currentFeature_or_Features[i].length; j++){
@@ -400,30 +400,58 @@ function clearMap(){
 			}
 		}
 	}else{
-		alert("Clearing map...");
+		//alert("Clearing map...");
 		currentFeature_or_Features.setMap(null);
 	}
 	//if (infowindow.getMap()){
 	//	infowindow.close();
 	//}
 }
+
+function hideTable(myID) {
+    var lTable = document.getElementById(myID);
+    lTable.style.display = "none";
+}
+
+function showTable(myID) {
+    var lTable = document.getElementById(myID);
+    lTable.style.display = "table";
+}
 function useNoAspect(){
-	alert("In useNoAspect");
-	aspect="none";
-	clearMap();
-	loadIndividualMapData(geoJSONResults,aspect);
+	//alert("In useNoAspect");
+	if(aspect != "none"){
+		aspect="none";
+		hideTable("haplotable");
+		clearMap();
+		loadIndividualMapData(geoJSONResults,aspect);
+		
+		
+	}
 }
 function useSexAspect(){
-	alert("In useSexAspect");
-	aspect="sex";
-	clearMap();
-	loadIndividualMapData(geoJSONResults,aspect);
+	//alert("In useSexAspect");
+	hideTable("haplotable");
+	if(aspect != "sex"){
+		aspect="sex";
+		
+		
+		clearMap();
+		loadIndividualMapData(geoJSONResults,aspect);
+	
+	}
 }
 function useHaplotypeAspect(){
-	alert("In useHaplotypeAspect");
-	aspect="haplotype";
-	clearMap();
-	loadIndividualMapData(geoJSONResults,aspect);
+	//alert("In useHaplotypeAspect");
+	showTable("haplotable");
+	if(aspect != "haplotype"){
+		aspect="haplotype";
+		
+		
+		clearMap();
+		loadIndividualMapData(geoJSONResults,aspect);
+		
+		
+	}
 }
 
 
@@ -448,13 +476,13 @@ function setOverlays() {
 
     	if(!geoJSONResults){
 			//read in the GeoJSON 
-			alert("Reading GeoJSON...");
+			//alert("Reading GeoJSON...");
 			var xhr = new XMLHttpRequest();
-			alert("Filename is: "+filename);
+			//alert("Filename is: "+filename);
 			xhr.open('GET', filename, true);
-			alert("xhr is open...");
+			//alert("xhr is open...");
 			xhr.onload = function() {
-				alert(this.responseText);
+				//alert(this.responseText);
 				iw.close();
 				geoJSONResults=this.responseText;
 				loadIndividualMapData(geoJSONResults,aspect);
@@ -542,7 +570,7 @@ if (request.getQueryString() != null) {
  <p><%=map_props.getProperty("resultsNote")%></p>
  
  <p>
- <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=generalStyle %>" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=sexStyle%>" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="<%=haplotypeStyle %>" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>
+ <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer; color:blue" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>
  </p>
  
 <p><%=map_props.getProperty("mapNote")%></p>
@@ -556,11 +584,9 @@ if (request.getQueryString() != null) {
 <div id="map_canvas" style="width: 770px; height: 510px; "> </div>
  </td>
  
- <%
- if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("haplotype"))){
- %>
+
  <td valign="top">
- <table>
+ <table id="haplotable" style="display:none">
  <tr><th>Haplotype Color Key</th></tr>
                     <%
                     String haploColor="CC0000";
@@ -587,9 +613,7 @@ if (request.getQueryString() != null) {
 
  </table>
  </td>
- <%
-     }
- %>
+
  
  
  </tr>
