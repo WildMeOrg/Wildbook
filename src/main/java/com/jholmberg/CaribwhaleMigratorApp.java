@@ -519,6 +519,7 @@ public class CaribwhaleMigratorApp {
                           MitochondrialDNAAnalysis haplo=new MitochondrialDNAAnalysis((indie.getIndividualID()+"_HAPLOTYPE"),thisHaplo,placeholder.getCatalogNumber(),ts.getSampleID());
                           myShepherd.getPM().makePersistent(haplo);
                           ts.addGeneticAnalysis(haplo);
+                          indie.doNotSetLocalHaplotypeReflection(haplo.getHaplotype());
                           myShepherd.commitDBTransaction();
                           myShepherd.beginDBTransaction();
 
