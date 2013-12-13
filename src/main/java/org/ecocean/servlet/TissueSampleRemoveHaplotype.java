@@ -60,7 +60,15 @@ public class TissueSampleRemoveHaplotype extends HttpServlet {
         genSample.removeGeneticAnalysis(mtDNA);
         enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Removed haplotype analysis ID "+request.getParameter("analysisID")+".<br />");
 
-        myShepherd.throwAwayGeneticAnalysis(mtDNA);          
+        
+        myShepherd.throwAwayGeneticAnalysis(mtDNA);  
+        
+      //check if this affects the MarkedIndividual.localHaplotypeReflection
+        if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){
+            MarkedIndividual indie=myShepherd.getMarkedIndividual(enc.getIndividualID());
+            indie.doNotSetLocalHaplotypeReflection(null);
+            indie.getHaplotype();
+        }
         
       } 
       catch (Exception le) {
