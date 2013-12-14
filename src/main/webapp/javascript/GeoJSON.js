@@ -16,6 +16,9 @@ var GeoJSON = function( geojson, options, map, bounds,aspect ){
 				else if(aspect == "haplotype"){
 					googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.haplotypeColor);
 				}
+				else if(aspect == "species"){
+									googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.speciesColor);
+				}
 				else{
 					googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.color);
 				}
