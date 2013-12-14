@@ -70,13 +70,16 @@
 
 
 
-
     ArrayList<String> allHaplos2=new ArrayList<String>(); 
     int numHaplos2 = 0;
-    //if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("haplotype"))){
-    	allHaplos2=myShepherd.getAllHaplotypes(); 
-    	numHaplos2=allHaplos2.size();
-    //}
+    allHaplos2=myShepherd.getAllHaplotypes(); 
+    numHaplos2=allHaplos2.size();
+    
+    List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies");
+    int numSpecies=allSpecies.size();
+   
+    List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor");
+    int numSpeciesColors=allSpeciesColors.size();
 %>
 
   <title><%=CommonConfiguration.getHTMLTitle()%>
@@ -422,15 +425,16 @@ function useNoAspect(){
 	if(aspect != "none"){
 		aspect="none";
 		hideTable("haplotable");
+		hideTable("speciestable");
 		clearMap();
 		loadIndividualMapData(geoJSONResults,aspect);
-		
-		
+
 	}
 }
 function useSexAspect(){
 	//alert("In useSexAspect");
 	hideTable("haplotable");
+	hideTable("speciestable");
 	if(aspect != "sex"){
 		aspect="sex";
 		
@@ -442,15 +446,27 @@ function useSexAspect(){
 }
 function useHaplotypeAspect(){
 	//alert("In useHaplotypeAspect");
+	hideTable("speciestable");
 	showTable("haplotable");
 	if(aspect != "haplotype"){
 		aspect="haplotype";
-		
-		
+
 		clearMap();
 		loadIndividualMapData(geoJSONResults,aspect);
 		
 		
+	}
+}
+
+function useSpeciesAspect(){
+	//alert("In useHaplotypeAspect");
+	hideTable("speciestable");
+	hideTable("haplotable");
+	showTable("speciestable");
+	if(aspect != "species"){
+		aspect="species";
+		clearMap();
+		loadIndividualMapData(geoJSONResults,aspect);
 	}
 }
 
@@ -570,7 +586,7 @@ if (request.getQueryString() != null) {
  <p><%=map_props.getProperty("resultsNote")%></p>
  
  <p>
- <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer; color:blue" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>
+ <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer; color:blue" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSpeciesAspect(); return false;"><%=map_props.getProperty("displayAspectName3") %></a>
  </p>
  
 <p><%=map_props.getProperty("mapNote")%></p>
@@ -610,10 +626,41 @@ if (request.getQueryString() != null) {
                    }  
                    
                    %>
-
  </table>
  </td>
-
+ <%
+ if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+ %>
+  <td valign="top">
+ <table id="speciestable" style="display:none">
+ <tr><th>Species Color Key</th></tr>
+                    <%
+                    String speciesColor="CC0000";
+                   if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
+                	  speciesColor=map_props.getProperty("defaultMarkerColor");
+                   }   
+                   for(int yy=0;yy<numSpecies;yy++){
+                       String specie=allSpecies.get(yy);
+                       if(numSpeciesColors>yy){
+                     	  speciesColor = allSpeciesColors.get(yy);
+                        }
+					%>
+					<tr bgcolor="#<%=speciesColor%>"><td><strong><%=specie %></strong></td></tr>
+					<%
+                   }
+                   if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
+                	   speciesColor=map_props.getProperty("defaultMarkerColor");
+                	   %>
+                	   <tr bgcolor="#<%=speciesColor%>"><td><strong>Unknown</strong></td></tr>
+                	   <%
+                   }  
+                   
+                   %>
+ </table>
+ </td>
+<%
+ }
+%>
  
  
  </tr>
