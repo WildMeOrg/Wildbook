@@ -10,6 +10,8 @@ import java.util.Vector;
 import java.util.Random;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.List;
+import java.util.Hashtable;
 
 import org.json.*;
 
@@ -48,6 +50,18 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     Properties localeprops = new Properties();
    localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
 
+   List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies");
+   int numSpecies=allSpecies.size();
+  
+   List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor");
+   int numSpeciesColors=allSpeciesColors.size();
+   
+   Hashtable<String, String> speciesTable=new Hashtable<String,String>();
+   for(int i=0;i<numSpecies;i++){ 
+     if(i<numSpeciesColors){
+       speciesTable.put(allSpecies.get(i),allSpeciesColors.get(i));
+     }
+   }
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd();
@@ -132,6 +146,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              String baseColor="C0C0C0";
              String sexColor="C0C0C0";
              String haploColor="C0C0C0";
+             String speciesColor="C0C0C0";
              
              //now check if we should show by sex
              if(indie.getSex().equals("male")){
@@ -141,15 +156,21 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
                  sexColor="FF00FF";
                }
                
-
+             //set the haplotype color
              if((indie.getHaplotype()!=null)&&(haploprops.getProperty(indie.getHaplotype())!=null)){
                  if(!haploprops.getProperty(indie.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(indie.getHaplotype());}
              }
+             //set the species color
+             if(indie.getGenusSpecies()!=null){
+               speciesColor=speciesTable.get(indie.getGenusSpecies());
+             }
+             
              
              //end color
              point.put("color",baseColor);
              point.put("sexColor",sexColor);
              point.put("haplotypeColor",haploColor);
+             point.put("speciesColor",speciesColor);
              
              JSONObject feature = new JSONObject();
              feature.put("type", "Feature");
