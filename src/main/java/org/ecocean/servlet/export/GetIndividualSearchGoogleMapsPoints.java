@@ -99,7 +99,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
       
       for(int i=0;i<numIndividuals;i++) {
         MarkedIndividual indie=(MarkedIndividual)rIndividuals.get(i);
-        Vector rEncounters=indie.returnEncountersWithGPSData(true,true); 
+        Vector rEncounters=indie.returnEncountersWithGPSData(false,true); 
         int numEncs=rEncounters.size();
         boolean showMovePath=false;
         for(int yh=0;yh<numEncs;yh++){
@@ -107,6 +107,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
           Double thisEncLat=null;
           Double thisEncLong=null;
        
+          //
         //first check if the Encounter object has lat and long values
           if((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null)){
             thisEncLat=enc.getLatitudeAsDouble();
