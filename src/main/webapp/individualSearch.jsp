@@ -442,6 +442,12 @@ function FSControl(controlDiv, map) {
       <%
         }
       %>
+      <p>
+       	<input name="useLocales" type="checkbox" id="useLocales" value="true" /> <%=props.getProperty("useLocales")%>
+      </p>               
+        	
+        
+      
     </div>
   </td>
 
@@ -1293,6 +1299,9 @@ else {
             </p>
           </td>
         </tr>
+        
+        
+
 
       </table>
   </td>

@@ -231,6 +231,17 @@ Click here</a>
 </table>
 </p>
 
+<p>	<table border="1" bordercolor="black" cellspacing="0">
+			<tr><td bgcolor="#CCCCCC"><strong>GeoJSON Export</strong></td></tr>
+			<tr><td bgcolor="#FFFFFF">
+		<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GetIndividualSearchGoogleMapsPoints?<%=queryString%>">
+Click here</a>
+</td></tr>
+</table>
+</p>
+
+
+
 <p>
 <form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMRSpecifySessions.jsp?<%=queryString%>" method="GET">
 		<table border="1" bordercolor="black" cellspacing="0">
