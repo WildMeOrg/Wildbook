@@ -1,6 +1,6 @@
 /*
- * The Shepherd Project - A Mark-Recapture Framework
- * Copyright (C) 2011 Jason Holmberg
+ * Wildbook - A Mark-Recapture Framework
+ * Copyright (C) 2011-2013 Jason Holmberg
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -83,6 +83,10 @@ public class MarkedIndividual implements java.io.Serializable {
   private String patterningCode;
 
   private int maxYearsBetweenResightings;
+  
+  private long timeOfBirth=0;
+  
+  private long timeOfDeath=0;
 
   public MarkedIndividual(String individualID, Encounter enc) {
 
@@ -1551,6 +1555,12 @@ public void doNotSetLocalHaplotypeReflection(String myHaplo) {
   if(myHaplo!=null){localHaplotypeReflection = myHaplo;}
   else{localHaplotypeReflection = null;}
 }
+
+public long getTimeOfBirth(){return timeOfBirth;}
+public long getTimeofDeath(){return timeOfDeath;}
+
+public void setTimeOfBirth(long newTime){timeOfBirth=newTime;}
+public void setTimeOfDeath(long newTime){timeOfDeath=newTime;}
 
 
 }
