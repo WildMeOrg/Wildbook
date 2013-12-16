@@ -172,9 +172,10 @@
       			/DeleteAllDataPermanently = authc, roles[destroyer]
       			/encounters/searchExport = authc, roles[admin]
       			/welcome.jsp = authc
-      			
       			/EncounterSetSubmitterID = authc, roles[admin]
                		/UserResetAcceptedUserAgreement = authc, roles[admin]
+               		/IndividualSetYearOfBirth = authc, roles[admin]
+               		/IndividualSetYearOfDeath = authc, roles[admin]
 
             </param-value>
         </init-param>
@@ -828,6 +829,19 @@
     <servlet-name>EncounterSetSubmitterID</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSubmitterID</servlet-class>
   </servlet>
+  
+  
+    <servlet>
+      <servlet-name>IndividualSetYearOfDeath</servlet-name>
+      <servlet-class>org.ecocean.servlet.IndividualSetYearOfDeath</servlet-class>
+  </servlet>
+  
+      <servlet>
+        <servlet-name>IndividualSetYearOfBirth</servlet-name>
+        <servlet-class>org.ecocean.servlet.IndividualSetYearOfBirth</servlet-class>
+  </servlet>
+  
+  
   <servlet>
     <servlet-name>EncounterSetMatchedBy</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetMatchedBy</servlet-class>
@@ -1185,6 +1199,16 @@
   <servlet-mapping>
     <servlet-name>ResurrectDeletedEncounter</servlet-name>
     <url-pattern>/ResurrectDeletedEncounter</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+      <servlet-name>IndividualSetYearOfDeath</servlet-name>
+      <url-pattern>/IndividualSetYearOfDeath</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+        <servlet-name>IndividualSetYearOfBirth</servlet-name>
+        <url-pattern>/IndividualSetYearOfBirth</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
