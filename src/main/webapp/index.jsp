@@ -156,119 +156,49 @@ table.adopter td.image {
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
 </jsp:include>
 <div id="main">
-	 <div id="leftcol">
-		 <div id="menu">
-		 		
 
-		
-
-<!--
-			 
-			 		 	    <div class="module">
-		 <h3>Latest News </h3>
-<style>
-/* begin styles for RSS Feed 
-     This is the most basic style to use for a list with no bullets */
-
-
-
-.rss-item  {
-
-  margin-bottom: 1em;;
-}
-
-
-	} 
-/* buttons modeled from http://www.wellstyled.com/css-inline-buttons.html */
-
-.pod-play {
-   
-   margin: 0 0em; padding: 0em 0; _padding:0;
-   
-   white-space:nowrap;
-   text-decoration: none;
-   
-   background: #fb6;
-   color: black;
-   }
-.pod-play em {
-   _width:0em; _cursor:hand;
-   font-style: normal;
-   margin:0; padding: 0em 0em;
-   background: white;
-   color: #222;
-   }
-.pod-play span {
-   _width:0em; _cursor:hand;
-   margin:0; padding: 0em 0em 0em 0em;
-   }
-.pod-play:hover {
-   background: #666;
-   color: white;
-   }
-.pod-play:hover em {
-   background: black;
-   color: white
-   }
-
-
-</style>
-
-<script language="JavaScript" src="http://feed2js.org//feed2js.php?src=http%3A%2F%2Fwhalesharknews.wordpress.com%2Ffeed%2F&num=2&utf=y&html=a"  charset="UTF-8" type="text/javascript"></script>
-
-<noscript>
-<a href="http://feed2js.org//feed2js.php?src=http%3A%2F%2Fwhalesharknews.wordpress.com%2Ffeed%2F&num=2&utf=y&html=y">View RSS feed</a>
-</noscript>
-
-        </div>
-        -->
-
-								 
-			 <div class="module">
-			 <h3>Photographing</h3>
-				 <a href="photographing.jsp?langCode=<%=langCode%>"><img src="images/area.jpg" width="190" height="115" border="0" title="Area to photograph" alt="Area to photograph on a whale shark" /></a>
-				 <p class="caption"><a href="photographing.jsp?langCode=<%=langCode%>"><%=area%></a></p>
-		   </div>
-						 
-			 <div class="module">
-				 <a href="photographing.jsp?langCode=<%=langCode%>"><img src="images/match.jpg" width="190" height="94" border="0" title="We Have A Match!" alt="We Have A Whale Shark Match!" /></a>
-				 <p class="caption"><a href="photographing.jsp?langCode=<%=langCode%>"><%=match%></a></p>
-		   </div>
-						<jsp:include page="awards.jsp" flush="true" /> 
-
-		<div class="module">
-    	<h3>Data Sharing</h3>
-    	<p><a href="http://data.gbif.org/datasets/provider/261"><center><img src="images/gbif.gif" border="0" alt="Data sharing with the Global Biodiversity Information Facility"/></center></a></p>
-		<p><a href="http://ecovision.mit.edu/~ecovision/"><center><img src="http://web.mit.edu/img/google/google-mithome-logo.gif" alt="Data sharing with the Massachusetts Institute of Technology" border="0" />
-		</center></a></p>
-		<p><a href="http://www.iobis.org/"><center><img src="images/OBIS_logo.gif" alt="Data sharing with the Ocean Biogeographic Information System" border="0" />
-		</center></a></p>
-		<p><a href="ttp://www.coml.org/"><center><img src="images/coml.gif" alt="Data sharing with the census of marine life" border="0" />
-		</center></a></p>
-	</div>
-			
-		</div><!-- end menu -->
-	</div><!-- end leftcol -->
-	<div id="maincol">
-		 <div id="reportit">
-		 <h3><a href="<%=submitPath%>"><%=overview_reportit%></a></h3>
-		 <a href="<%=submitPath%>"><img src="images/filming_flip.jpg" title="Report a whale shark encounter!" alt="Report a whale shark encounter! - photograph courtesy of Wags &amp; Kelly" width="400" height="130" border="0" /></a>
-		 </div>
-	    <div id="maintext"><%=overview_maintext%>
-				 
+	<div id="maincol-wide">
 		 
+		 <div>
+		 	<a href="<%=submitPath%>"><img src="images/stumpy_banner.png" title="Report a whale shark encounter!" alt="Report a whale shark encounter! - photograph courtesy of Amber Triglone" border="0" />
+			</a>
+		 </div>
+		 <br />
+		 <table>
+		 <tr>
+		 	<td>
+				<a href="http://www.indiegogo.com/projects/wild-me-bringing-wildlife-into-social-media/x/5776235">
+		 			<img align="center" src="http://www.indiegogo.com/assets/igg_logo_color_print_black_v.jpg" width="50px" height="50px" />
+				</a>
+			</td>
+			<td><strong>Wild Me</strong><br /><em>Bringing Whale Sharks and Other Species into Social Media</em></td>
+		 </tr>
+		 
+		 </table>
+		 
+		 <p>
+		  <a href="http://www.indiegogo.com/projects/wild-me-bringing-wildlife-into-social-media/x/5776235">Can you help us crowdfund our newest project?</a>
+		</p>
+		
+		
+		<iframe width="605" height="340" src="//www.youtube.com/embed/Q_v2mXnbQP0" frameborder="0" allowfullscreen></iframe>
+<p><a href="http://www.indiegogo.com/projects/wild-me-bringing-wildlife-into-social-media">Click here to learn more!</a></p>
+<p />
+	    <div id="maintext"><%=overview_maintext%>
 		 		 <p>
-		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />50000+ photos collected<br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />23000+  sighting reports</strong><br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />4600+ whale sharks collaboratively tagged</strong><br />
+		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />53000+ photos collected<br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />25000+  sighting reports</strong><br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />4800+ whale sharks collaboratively tagged</strong><br />
 			   
-			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />3800+ data contributors</strong></strong></span><br />
+			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />4000+ data contributors</strong></strong></span><br />
 		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />365 research days/year</strong><br />
 		       
 			   <p align="center"><strong><a href="adoptashark.jsp">Please consider adopting a shark to support our mission!</a></strong></p>
 		       </strong></span></p>
 		 
 	    </div>
+        
+        
 		 
 		 <div id="1000tagged">
 		   <h1 class="intro">Growing Success </h1>
@@ -276,26 +206,45 @@ table.adopter td.image {
 
 		 </div>
 
-
-		 <div>
-		   <h1 class="intro">Data Contributors</h1>
-			<p class="caption">Many individuals and organizations actively contribute and manage data in this Wildbook. We will be featuring them here soon. </p>
-		</div>
 		
 		<div id="maintext"><h1 class="intro">Contact us</h1>
 		<p class="caption">Wild Me is always looking for opportunities to better tell the story of whale sharks and the growing body of research and discoveries made possible by dedicated scientists, volunteers, and the general public.</p>
 		<p class="caption"><a href="contactus.jsp">Please contact us with your questions.</a></p>
 	</div>
 		
+	
+								
 		
-		
+				<div class="module">
+		    	<p><strong>Data Sharing</strong></p>
+		    	<p><a href="http://data.gbif.org/datasets/provider/261"><img src="images/gbif.gif" border="0" alt="Data sharing with the Global Biodiversity Information Facility"/></a>
+				<a href="http://ecovision.mit.edu/~ecovision/"><img src="http://web.mit.edu/img/google/google-mithome-logo.gif" alt="Data sharing with the Massachusetts Institute of Technology" border="0" />
+				</a>
+				<a href="http://www.iobis.org/"><img src="images/OBIS_logo.gif" alt="Data sharing with the Ocean Biogeographic Information System" border="0" />
+				</a>
+				<a href="ttp://www.coml.org/"><img src="images/coml.gif" alt="Data sharing with the census of marine life" border="0" />
+				</a></p>
+			</div>
+					
+
 	  </div><!-- end maincol -->
 	 <div id="rightcol">
 
 
-
 			 <div class="module">
-				
+				 
+		 <div class="module">
+		 	<h3>Find Record</h3>
+		   
+		 	<form name="form2" method="get" action="individuals.jsp">
+		 	<em>Enter a shark number, encounter number, shark nickname, or alternate ID.</em><br/>
+		 	<input name="number" type="text" id="shark" size="25" />
+		 	<input type="hidden" name="langCode" value="<%=langCode%>" /><br/>
+		 	<input name="Go" type="submit" id="Go2" value="Go" />
+		 	</form>
+			
+		 </div>
+         
 				
 <%
 Adoption ad=myShepherd.getRandomAdoption();
@@ -354,52 +303,8 @@ if(ad!=null){
 
 </div>
 
-		<div class="module">
-		<%
-			String status = "diving";
-			if(numWorkItems>0){status = "swimming";}
-		%>
-    	<span class="caption"><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/wiki/doku.php?id=how_to_join_sharkgrid"><img src="images/sharkGrid_small.gif" border="0" alt="sharkGrid"/></a><br />
-    	sharkGrid is: <%=status%><br> 
-    	<%if(numProcessors<8){ %>
-		Processors: 120 on demand<br>
-		<%} else { %>
-		Processors: <%=numProcessors%><br>
-		<%
-		}
-		%>
-		<br />
-		<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/wiki/doku.php?id=how_to_join_sharkgrid">Is your computer unused part of the day? Click here to learn how to help our research!</a></span>
-		 <br />
-		</div>
 
-				 <div class="module">
-			 <h3>In the Press</h3>
-			 			 <table align="left" cellpadding="2">
-			   <tr><td align="left" valign="top"><a href="http://www.bbc.co.uk/oceans/locations/spiceislands/mafia_whalesharks.shtml"><img src="images/BBC_logo.jpg" alt="Whale Shark Library in BBC Oceans TV series" width="75" height="61" border="1" align="top" title="BBC Oceans"/></a></td>
-		   <td><span class="caption"> The Whale Shark Library was used in support of the <a href="http://www.bbc.co.uk/oceans/locations/spiceislands/mafia_whalesharks.shtml">BBC Oceans</a> television series. </span></td>
-			   </tr></table>
-			   <br>
-			 
-			 <table align="left" cellpadding="2">
-			   <tr><td align="left" valign="top"><a href="http://www.smithsonianmag.com/science-nature/wild-things-200803.html"><img src="images/NationalGeographic_logo.jpg" width="75" height="75" border="1" align="top" title="National Geographic November 2007"/></a></td>
-		   <td><span class="caption"> Tracking whale sharks and polar bears in <a href="http://news.nationalgeographic.com/news/2008/08/080825-whale-sharks-missions.html">National Geographic News</a>. </span></td>
-			   </tr></table>
-			 <br />
-			 <br />
-		 </div>
-		 
-		 <div class="module">
-		 	<h3>Find Record</h3>
-		   
-		 	<form name="form2" method="get" action="individuals.jsp">
-		 	<em>Enter a shark number, encounter number, shark nickname, or alternate ID.</em><br/>
-		 	<input name="number" type="text" id="shark" size="25" />
-		 	<input type="hidden" name="langCode" value="<%=langCode%>" /><br/>
-		 	<input name="Go" type="submit" id="Go2" value="Go" />
-		 	</form>
-			
-		 </div>
+		
 	    <div class="module">
 			 <h3><%=last_sightings%></h3>
 			 <script language="JavaScript" src="http://feed2js.org//feed2js.php?src=http%3A%2F%2F<%=CommonConfiguration.getURLLocation(request)%>%2Frss.xml&amp;utf=y" type="text/javascript"></script>
@@ -410,17 +315,7 @@ if(ad!=null){
 			 <p align="left">
 			 <a href="atom.xml"><img src="images/atom-feed-icon.gif" border="0" alt="ATOM News Feed" /></a></p>
 	    </div>
-		 	<div class="module">
-    	<h3>In-kind Supporters</h3>
-    	<p><a href="http://www.murdoch.edu.au/"><center><img src="images/Murdoch_land_RGB_small.gif" border="0" /></center></a></p>
-		<p><a href="http://www.google.com/"><center><img src="http://www.google.com/logos/Logo_40wht.gif" border="0" /></center></a></p>
-		<p><center>
-		  <a href="http://www.olympus.com"><img src="images/olympusblack.gif" width="150" height="33" border="0" /></a>
-		</center></p>
-				<p><center>
-				  <a href="http://www.pny.com"><img src="images/PNYlogoBlk_registration%20copy.gif" width="150" height="35" border="0" /></a>
-		                </center></p>
-	</div>
+		 	<jsp:include page="awards.jsp" flush="true" /> 
  
 	
 
