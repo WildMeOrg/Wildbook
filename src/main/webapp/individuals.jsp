@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, 	   
-		 com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
+		 org.joda.time.DateTime,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
 
 <%
 
@@ -508,6 +508,54 @@ $("a#sex").click(function() {
    <%}%>
 
 </p>
+
+<!-- start birth date -->
+<a name="birthdate"></a>
+<%
+String timeOfBirth="";
+if(sharky.getTimeOfBirth()>0){
+	timeOfBirth=(new DateTime(timeOfBirth)).toString();
+}
+
+%>
+<p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
+  <%=altID%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+
+  
+</p>
+
+
+<!-- Now prep the popup dialog -->
+<div id="dialogAlternateID" title="<%=setAlternateID %>" style="display:none">
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+  <tr>
+    <td align="left" valign="top">
+      <form name="set_alternateid" method="post" action="IndividualSetAlternateID">
+      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> <%=alternateID %>:
+        <input name="alternateid" type="text" id="alternateid" size="15" maxlength="150" value="<%=altID %>" /><br /> <input name="Name" type="submit" id="Name" value="<%=update %>"></form>
+    </td>
+  </tr>
+</table>
+
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlg = $("#dialogAlternateID").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#alternateID").click(function() {
+  dlg.dialog("open");
+});
+</script>
+
+
+</p>
+<!-- end birth date -->
 
 <%
 
