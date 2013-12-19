@@ -34,9 +34,9 @@ Iterator allEncs;
 
 
 
-Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
-Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
-Iterator allSharks;
+//Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
+//Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
+//Iterator allSharks;
 
 //empty comment
 
@@ -44,13 +44,38 @@ Iterator allSharks;
 
 try{
 
+	int numEmptyChildren=0;
+	File encountersDataDir=new File("/opt/tomcat6/webapps/shepherd_data_dir/encounters");
+	File[] children=encountersDataDir.listFiles();
+	int numChildren=children.length;
+	%>
+	<p>Total number of directories: <%=numChildren %></p><p>
+	<%
+	
+	for(int i=0;i<numChildren;i++){
+		File thisFile=children[i];
+		String filename=thisFile.getName();
+		if((thisFile.isDirectory())&&(!myShepherd.isEncounter(filename))){
+			%>
+			<%=filename %>:<%=thisFile.listFiles().length %><br />
+			<%
+			numEmptyChildren++;
+			if(thisFile.listFiles().length==0){thisFile.delete();}
+		}
+	}
+	
+	%>
+	</p>
+	<p>Num empty children=<%=numEmptyChildren %></p>
+	<%
+	
+	
+//allEncs=myShepherd.getAllEncounters(encQuery);
+//allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
 
-allEncs=myShepherd.getAllEncounters(encQuery);
-allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
+//int numLogEncounters=0;
 
-int numLogEncounters=0;
-
-while(allEncs.hasNext()){
+//while(allEncs.hasNext()){
 	
 	//change state
 	//Encounter sharky=(Encounter)allEncs.next();
@@ -127,12 +152,12 @@ else{
 	}
 	*/
 
-}
+//}
 
 
-while(allSharks.hasNext()){
+//while(allSharks.hasNext()){
 
-	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+//	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
 	
 	//populate max years between resightings
 	/*
@@ -152,10 +177,10 @@ while(allSharks.hasNext()){
 	
 	//if(sharky.getSex().equals("unsure")){sharky.setSex("unknown");}
 	
-}
+//}
 
 
-myShepherd.commitDBTransaction();
+myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 	myShepherd=null;
 %>
@@ -173,8 +198,8 @@ catch(Exception ex) {
 	//System.out.println("fixSomeFields.jsp page is attempting to rollback a transaction because of an exception...");
 	encQuery.closeAll();
 	encQuery=null;
-	sharkQuery.closeAll();
-	sharkQuery=null;
+	//sharkQuery.closeAll();
+	//sharkQuery=null;
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 	myShepherd=null;
