@@ -186,6 +186,7 @@ z-index:99;
 <map name="m_masthead">
 	<area shape="rect" coords="649,156,785,295" href="http://www.wildme.org" alt="Sun" />
 	<area shape="rect" coords="12,218,380,288" href="http://www.wildme.org/wildbook" alt="Sun" />
+	<area shape="rect" coords="700,100,800,0" href="http://www.indiegogo.com/projects/wild-me-bringing-wildlife-into-social-media" alt="Sun" />
 </map>
 
 </div>
