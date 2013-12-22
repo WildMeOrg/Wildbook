@@ -134,12 +134,19 @@ public class CaribwhaleMigratorApp {
 			while(itKeys.hasNext()){
 			  String individualID=itKeys.next();
 			  MarkedIndividual thisIndie=new MarkedIndividual();
-			  thisIndie.setIndividualID(individualID);
-			  thisIndie.setDateTimeCreated(ServletUtilities.getDate());
+			  if(myShepherd.isMarkedIndividual(individualID)){
+			    thisIndie=myShepherd.getMarkedIndividual(individualID);
+			  }
+			  else{
+			    myShepherd.getPM().makePersistent(thisIndie);
+			    thisIndie.setIndividualID(individualID);
+	        thisIndie.setDateTimeCreated(ServletUtilities.getDate());
+			  }
+			  
 			  indies.add(thisIndie);
 			}
 			int numIndies=indies.size();
-			myShepherd.getPM().makePersistentAll(indies);
+			//myShepherd.getPM().makePersistentAll(indies);
 			myShepherd.commitDBTransaction();
 			myShepherd.beginDBTransaction();
 			
@@ -168,15 +175,28 @@ public class CaribwhaleMigratorApp {
 		        
 		        //set up the placeholder encounter
 		        Encounter placeholder=new Encounter();
-		       placeholder.setDWCDateAdded(ServletUtilities.getDate());
+		        String pCatNumber=indie.getIndividualID()+"_DATASTORE";
+		        if(myShepherd.isEncounter(pCatNumber)){
+		          placeholder=myShepherd.getEncounter(pCatNumber);
+		        }
+		        else{
+		          placeholder.setCatalogNumber(pCatNumber);
+		          placeholder.setDWCDateAdded(ServletUtilities.getDate());
+		          myShepherd.getPM().makePersistent(placeholder);
+		          indie.addEncounter(placeholder);
+		        }
+		        
+		        
+		        
+		       
 		       placeholder.setDWCDateLastModified(ServletUtilities.getDate());
 		        placeholder.setGenus("Physeter");
 		        placeholder.setSpecificEpithet("macrocephalus");
 		        placeholder.setState("approved");
 		        placeholder.setSubmitterName("Shane Gero");
 		        placeholder.setSubmitterEmail("geroshane@gmail.com");
-            String pCatNumber=indie.getIndividualID()+"_DATASTORE";
-            placeholder.setCatalogNumber(pCatNumber);
+            
+            
             placeholder.setLocationID(indiesArea);
             /*
              * 
@@ -189,8 +209,7 @@ public class CaribwhaleMigratorApp {
             else if(placeholder.getLocationID().equals("5")){placeholder.setVerbatimLocality("Azores");}
             else if(placeholder.getLocationID().equals("6")){placeholder.setVerbatimLocality("Other");}
             
-            myShepherd.getPM().makePersistent(placeholder);
-            indie.addEncounter(placeholder);
+           
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
             File placeholderFileDir=new File(encountersDirFile,pCatNumber);
@@ -205,12 +224,19 @@ public class CaribwhaleMigratorApp {
 		              //OK, we have a matching Encounter row
 		              //System.out.println("WE HAVE A MATCH!!!!!!!!!");
 		              Encounter enc=new Encounter();
-		              enc.setDWCDateAdded(ServletUtilities.getDate());
-		              enc.setDWCDateLastModified(ServletUtilities.getDate());
 		              String catNumber=Integer.toString(i);
-                  enc.setCatalogNumber(catNumber);
+		              if(myShepherd.isEncounter(catNumber)){
+		                enc=myShepherd.getEncounter(catNumber);
+		              }
+		              else{
+		                enc.setCatalogNumber(catNumber);
+		                enc.setDWCDateAdded(ServletUtilities.getDate());
+		                myShepherd.getPM().makePersistent(enc);
+		              }
+		              enc.setDWCDateLastModified(ServletUtilities.getDate());
+		              
                   
-                  myShepherd.getPM().makePersistent(enc);
+                  
                   myShepherd.commitDBTransaction();
                   myShepherd.beginDBTransaction();
                   
@@ -252,9 +278,15 @@ public class CaribwhaleMigratorApp {
                       
                     
                     SinglePhotoVideo sing = new SinglePhotoVideo(enc.getCatalogNumber(), (outputFile.getName()), (encounterDir.getAbsolutePath()+"/"+outputFile.getName()));
-                    myShepherd.getPM().makePersistent(sing);
                     
-                    enc.addSinglePhotoVideo(sing);
+                    
+                    if(!enc.hasSinglePhotoVideoByFileName(outputFile.getName())){
+                      myShepherd.getPM().makePersistent(sing);
+                      enc.addSinglePhotoVideo(sing);
+                    }
+                    
+                    
+                    
                     thumbnailTheseImages.add(enc.getCatalogNumber());
                   
                     
@@ -405,12 +437,12 @@ public class CaribwhaleMigratorApp {
 		          if((indie.getAllSinglePhotoVideo()==null)||(indie.getAllSinglePhotoVideo().size()==0)){
 		            SinglePhotoVideo sing = new SinglePhotoVideo(placeholder.getCatalogNumber(), indiesFilename, (placeholderFileDir.getAbsolutePath()+"/"+indiesFilename));
                
-		            //if(!!haveAssignedPhoto){
+		            if(!placeholder.hasSinglePhotoVideoByFileName(indiesFilename)){
 		              myShepherd.getPM().makePersistent(sing);
 		              placeholder.addSinglePhotoVideo(sing);
 		              thumbnailTheseImages.add(placeholder.getCatalogNumber());
 		             // haveAssignedPhoto=true;
-		           // }
+		            }
 		            
 		            myShepherd.commitDBTransaction();
 		            myShepherd.beginDBTransaction();
@@ -744,9 +776,19 @@ public class CaribwhaleMigratorApp {
                     System.out.println("     %%%%Found a match in FlukestoMatch:"+thisTable.getName());
                     
                     //let's create an encounter and set the date
+                    
+                    
                     Encounter flukesEnc=new Encounter();
-                    flukesEnc.setCatalogNumber(indie.getIndividualID()+":FlukestoMatch:"+thisTable.getName()+":"+rowNum);
-                    flukesEnc.setDWCDateAdded(ServletUtilities.getDate());
+                    String localCatNumber=indie.getIndividualID()+":FlukestoMatch:"+thisTable.getName()+":"+rowNum;
+                    if(myShepherd.isEncounter(localCatNumber)){
+                      flukesEnc=myShepherd.getEncounter(localCatNumber);
+                    }
+                    else{
+                      flukesEnc.setCatalogNumber(localCatNumber);
+                      flukesEnc.setDWCDateAdded(ServletUtilities.getDate());
+                      
+                    }
+                    
                     flukesEnc.setDWCDateLastModified(ServletUtilities.getDate());
                     
                     myShepherd.getPM().makePersistent(flukesEnc);
