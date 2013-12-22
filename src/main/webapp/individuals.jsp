@@ -518,22 +518,21 @@ if(sharky.getTimeOfBirth()>0){
 }
 
 %>
-<p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
-  <%=altID%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-
-  
+<p><%=props.getProperty("birthdate")  %>:
+  <%=timeOfBirth%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
 <!-- Now prep the popup dialog -->
-<div id="dialogAlternateID" title="<%=setAlternateID %>" style="display:none">
+<div id="dialogBirthDate" title="<%=props.getProperty("setBirthDate") %>" style="display:none">
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
   <tr>
     <td align="left" valign="top">
-      <form name="set_alternateid" method="post" action="IndividualSetAlternateID">
-      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> <%=alternateID %>:
-        <input name="alternateid" type="text" id="alternateid" size="15" maxlength="150" value="<%=altID %>" /><br /> <input name="Name" type="submit" id="Name" value="<%=update %>"></form>
+      <form name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
+      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> 
+      	<%=props.getProperty("birthdate")  %>:
+        <input name="timeOfBirth" type="text" id="timeOfBirth" size="15" maxlength="150" value="<%=timeOfBirth %>" /><br /> <input name="birthy" type="submit" id="birthy" value="<%=update %>"></form>
     </td>
   </tr>
 </table>
@@ -541,21 +540,65 @@ if(sharky.getTimeOfBirth()>0){
 </div>
                          		<!-- popup dialog script -->
 <script>
-var dlg = $("#dialogAlternateID").dialog({
+var dlg = $("#dialogBirthDate").dialog({
   autoOpen: false,
   draggable: false,
   resizable: false,
   width: 600
 });
 
-$("a#alternateID").click(function() {
+$("a#birthdate").click(function() {
   dlg.dialog("open");
 });
 </script>
-
-
 </p>
 <!-- end birth date -->
+
+
+<!-- start death date -->
+<a name="deathdate"></a>
+<%
+String timeOfDeath="";
+if(sharky.getTimeofDeath()>0){
+	timeOfDeath=(new DateTime(timeOfDeath)).toString();
+}
+
+%>
+<p><%=props.getProperty("deathdate")  %>:
+  <%=timeOfDeath%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+</p>
+
+
+<!-- Now prep the popup dialog -->
+<div id="dialogDeathDate" title="<%=props.getProperty("setDeathDate") %>" style="display:none">
+<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+  <tr>
+    <td align="left" valign="top">
+      <form name="set_deathdate" method="post" action="IndividualSetYearOfDeath">
+      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> 
+      	<%=props.getProperty("deathdate")  %>:
+        <input name="timeOfDeath" type="text" id="timeOfDeath" size="15" maxlength="150" value="<%=timeOfDeath %>" /><br /> <input name="deathy" type="submit" id="deathy" value="<%=update %>"></form>
+    </td>
+  </tr>
+</table>
+
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlg = $("#dialogDeathDate").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#deathdate").click(function() {
+  dlg.dialog("open");
+});
+</script>
+</p>
+<!-- end death date -->
 
 <%
 
