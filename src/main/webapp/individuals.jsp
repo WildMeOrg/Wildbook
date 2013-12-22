@@ -263,10 +263,19 @@ table.tissueSample td {
 </script>
 
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+
+<!--
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>
+-->
 
+  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
+<script>
+	$( "#timeOfBirth" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+	$( "#timeOfDeath" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+</script>
 
 </head>
 
@@ -527,12 +536,25 @@ if(sharky.getTimeOfBirth()>0){
 <div id="dialogBirthDate" title="<%=props.getProperty("setBirthDate") %>" style="display:none">
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
+<tr><td align="left" valign="top">
+	<strong>
+      		<font color="#990000"> <%=props.getProperty("clickDate")%>:
+      		</font>
+      	</strong>
+      	<br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
+    
+</td></tr>
+
   <tr>
     <td align="left" valign="top">
       <form name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
+      
+    
       	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> 
       	<%=props.getProperty("birthdate")  %>:
-        <input name="timeOfBirth" type="text" id="timeOfBirth" size="15" maxlength="150" value="<%=timeOfBirth %>" /><br /> <input name="birthy" type="submit" id="birthy" value="<%=update %>"></form>
+        <input name="timeOfBirth" type="text" id="timeOfBirth" size="15" maxlength="150" value="<%=timeOfBirth %>" />
+        
+        <br /> <input name="birthy" type="submit" id="birthy" value="<%=update %>"></form>
     </td>
   </tr>
 </table>
@@ -572,6 +594,15 @@ if(sharky.getTimeofDeath()>0){
 <!-- Now prep the popup dialog -->
 <div id="dialogDeathDate" title="<%=props.getProperty("setDeathDate") %>" style="display:none">
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+<tr><td align="left" valign="top">
+	<strong>
+      		<font color="#990000"> <%=props.getProperty("clickDate")%>:
+      		</font>
+      	</strong>
+      	<br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
+    
+</td></tr>
 
   <tr>
     <td align="left" valign="top">
