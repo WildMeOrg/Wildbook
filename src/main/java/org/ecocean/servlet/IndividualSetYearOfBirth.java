@@ -28,8 +28,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import org.joda.time.DateTime;
 
 
 //Set alternateID for the individual
@@ -56,8 +59,10 @@ public class IndividualSetYearOfBirth extends HttpServlet {
     sharky = request.getParameter("individual");
     
     String timeOfBirth="";
+    long longTime=-1;
     if((request.getParameter("timeOfBirth")!=null)&&(!request.getParameter("timeOfBirth").equals(""))){
       timeOfBirth=request.getParameter("timeOfBirth");
+      longTime=(new DateTime(timeOfBirth)).getMillis();
     }
 
     myShepherd.beginDBTransaction();
@@ -65,8 +70,8 @@ public class IndividualSetYearOfBirth extends HttpServlet {
       MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
       
       try {
-        Long myTime=new Long(timeOfBirth);
-        myShark.setTimeOfBirth(myTime.longValue());
+        //Long myTime=new Long(longTime);
+        myShark.setTimeOfBirth(longTime);
         myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set time of birth to " + timeOfBirth + ".");
 
       } catch (Exception le) {

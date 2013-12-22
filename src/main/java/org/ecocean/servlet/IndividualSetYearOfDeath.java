@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import org.joda.time.DateTime;
 
 
 //Set alternateID for the individual
@@ -56,8 +57,10 @@ public class IndividualSetYearOfDeath extends HttpServlet {
     sharky = request.getParameter("individual");
     
     String timeOfDeath="";
+    long longTime=-1;
     if((request.getParameter("timeOfDeath")!=null)&&(!request.getParameter("timeOfDeath").equals(""))){
       timeOfDeath=request.getParameter("timeOfDeath");
+      longTime=(new DateTime(timeOfDeath)).getMillis();
     }
 
     myShepherd.beginDBTransaction();
@@ -65,8 +68,8 @@ public class IndividualSetYearOfDeath extends HttpServlet {
       MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
       
       try {
-        Long myTime=new Long(timeOfDeath);
-        myShark.setTimeOfDeath(myTime.longValue());
+        //Long myTime=new Long(longTime);
+        myShark.setTimeOfDeath(longTime);
         myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set time of death to " + timeOfDeath + ".");
 
       } catch (Exception le) {
