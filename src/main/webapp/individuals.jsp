@@ -264,18 +264,11 @@ table.tissueSample td {
 
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
 
-<!--
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>
--->
 
   <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
   <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
-<script>
-	$( "#timeOfBirth" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
-	$( "#timeOfDeath" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
-</script>
+
 
 </head>
 
@@ -513,13 +506,18 @@ $("a#sex").click(function() {
 <a name="birthdate"></a>
 <%
 String timeOfBirth="";
+//System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
 if(sharky.getTimeOfBirth()>0){
-	timeOfBirth=(new DateTime(timeOfBirth)).toString();
+	timeOfBirth=(new DateTime(sharky.getTimeOfBirth())).toString();
+	
 }
+
+String displayTimeOfBirth=timeOfBirth;
+if(displayTimeOfBirth.indexOf("T")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("T"));}
 
 %>
 <p><%=props.getProperty("birthdate")  %>:
-  <%=timeOfBirth%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%=displayTimeOfBirth%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
@@ -529,9 +527,10 @@ if(sharky.getTimeOfBirth()>0){
 
 <tr><td align="left" valign="top">
 	<strong>
-      		<font color="#990000"> <%=props.getProperty("clickDate")%>:
+      		<font color="#990000"> <%=props.getProperty("clickDate")%>
       		</font>
       	</strong>
+      	  	<br /><%=props.getProperty("dateFormat")%>
       	<br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
     
 </td></tr>
@@ -553,7 +552,7 @@ if(sharky.getTimeOfBirth()>0){
 </div>
                          		<!-- popup dialog script -->
 <script>
-var dlg = $("#dialogBirthDate").dialog({
+var dlgBirthDate = $("#dialogBirthDate").dialog({
   autoOpen: false,
   draggable: false,
   resizable: false,
@@ -561,7 +560,7 @@ var dlg = $("#dialogBirthDate").dialog({
 });
 
 $("a#birthdate").click(function() {
-  dlg.dialog("open");
+	dlgBirthDate.dialog("open");
 });
 </script>
 </p>
@@ -573,12 +572,14 @@ $("a#birthdate").click(function() {
 <%
 String timeOfDeath="";
 if(sharky.getTimeofDeath()>0){
-	timeOfDeath=(new DateTime(timeOfDeath)).toString();
+	timeOfDeath=(new DateTime(sharky.getTimeofDeath())).toString();
 }
+String displayTimeOfDeath=timeOfDeath;
+if(displayTimeOfDeath.indexOf("T")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("T"));}
 
 %>
 <p><%=props.getProperty("deathdate")  %>:
-  <%=timeOfDeath%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%=displayTimeOfDeath%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
@@ -588,10 +589,11 @@ if(sharky.getTimeofDeath()>0){
 
 <tr><td align="left" valign="top">
 	<strong>
-      		<font color="#990000"> <%=props.getProperty("clickDate")%>:
+      		<font color="#990000"> <%=props.getProperty("clickDate")%>
       		</font>
       	</strong>
-      	<br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
+      	<br /><%=props.getProperty("dateFormat")%>
+      	<br /> <font size="-1"><em><%=props.getProperty("leaveBlank")%></em></font>
     
 </td></tr>
 
@@ -608,7 +610,7 @@ if(sharky.getTimeofDeath()>0){
 </div>
                          		<!-- popup dialog script -->
 <script>
-var dlg = $("#dialogDeathDate").dialog({
+var dlgDeathDate = $("#dialogDeathDate").dialog({
   autoOpen: false,
   draggable: false,
   resizable: false,
@@ -616,7 +618,7 @@ var dlg = $("#dialogDeathDate").dialog({
 });
 
 $("a#deathdate").click(function() {
-  dlg.dialog("open");
+	dlgDeathDate.dialog("open");
 });
 </script>
 </p>
