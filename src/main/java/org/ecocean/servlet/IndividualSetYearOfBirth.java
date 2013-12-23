@@ -66,7 +66,7 @@ public class IndividualSetYearOfBirth extends HttpServlet {
     }
 
     myShepherd.beginDBTransaction();
-    if ((!timeOfBirth.equals(""))&&(myShepherd.isMarkedIndividual(sharky))) {
+    if (myShepherd.isMarkedIndividual(sharky)) {
       MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
       
       try {
