@@ -64,7 +64,7 @@ public class IndividualSetYearOfDeath extends HttpServlet {
     }
 
     myShepherd.beginDBTransaction();
-    if ((!timeOfDeath.equals(""))&&(myShepherd.isMarkedIndividual(sharky))) {
+    if (myShepherd.isMarkedIndividual(sharky)) {
       MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
       
       try {
