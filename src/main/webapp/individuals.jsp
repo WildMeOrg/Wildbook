@@ -310,11 +310,10 @@ table.tissueSample td {
 
 <table><tr>
 <td>
-<span class="para"><img src="images/tag_big.gif" width="75px" height="75px" align="absmiddle"/></span>
+<span class="para"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/></span>
 </td>
 <td valign="middle">
- <h1><strong> <%=markedIndividualTypeCaps %>
-</strong>: <%=sharky.getIndividualID()%></h1>
+ <h1><strong> <%=markedIndividualTypeCaps %></strong>: <%=sharky.getIndividualID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
  </td></tr></table>
  <p> <table><tr valign="middle">  
@@ -331,7 +330,11 @@ table.tissueSample td {
 <!-- Facebook LIKE button -->
 <div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
 </td>
-</tr></table></p>
+<td>
+<a href="http://fb.wildme.org/wildme/public/profile/<%=sharky.getIndividualID()%>" target="_blank"><img src="images/wild-me-link.png" /></a>
+</td>
+</tr>
+</table></p>
 <a name="alternateid"></a>
 <%
 String altID="";

@@ -142,7 +142,7 @@ margin-bottom: 8px !important;
 <p>
 
 <h1 class="intro"><strong><span class="para">
-		<img src="images/tag_big.gif" width="50" align="absmiddle"/></span></strong>
+		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
   <%=props.getProperty("title")%>
 </h1>
 </p>
