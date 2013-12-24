@@ -500,7 +500,7 @@ margin-bottom: 8px !important;
 
 <!-- START IDENTITY ATTRIBUTE -->								
 
-  <p><img align="absmiddle" src="../images/tag_big.gif" width="40px" height="40px" /> <strong>Identity</strong></p>
+  <p><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <strong>Identity</strong></p>
       
       
 								
