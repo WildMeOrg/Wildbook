@@ -330,9 +330,15 @@ table.tissueSample td {
 <!-- Facebook LIKE button -->
 <div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
 </td>
+<%
+if(CommonConfiguration.isIntegratedWithWildMe()){
+%>
 <td>
 <a href="http://fb.wildme.org/wildme/public/profile/<%=sharky.getIndividualID()%>" target="_blank"><img src="images/wild-me-link.png" /></a>
 </td>
+<%
+}
+%>
 </tr>
 </table></p>
 <a name="alternateid"></a>
