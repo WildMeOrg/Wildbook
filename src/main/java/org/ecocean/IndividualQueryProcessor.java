@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.jdo.Query;
 import org.ecocean.Util.MeasurementDesc;
 import java.util.Iterator;
+import org.joda.time.DateTime;
 
 
 
@@ -38,7 +39,24 @@ public class IndividualQueryProcessor {
     try{year2=(new Integer(request.getParameter("year2"))).intValue();} catch(Exception nfe) {}
     try{day1=(new Integer(request.getParameter("day1"))).intValue();} catch(Exception nfe) {}
     try{day2=(new Integer(request.getParameter("day2"))).intValue();} catch(Exception nfe) {}
+    
+    int DOBday1=1, DOBday2=31, DOBmonth1=1, DOBmonth2=12, DOByear1=0, DOByear2=3000;
+    try{DOBmonth1=(new Integer(request.getParameter("DOBmonth1"))).intValue();} catch(Exception nfe) {}
+    try{DOBmonth2=(new Integer(request.getParameter("DOBmonth2"))).intValue();} catch(Exception nfe) {}
+    try{DOByear1=(new Integer(request.getParameter("DOByear1"))).intValue();} catch(Exception nfe) {}
+    try{DOByear2=(new Integer(request.getParameter("DOByear2"))).intValue();} catch(Exception nfe) {}
+    try{DOBday1=(new Integer(request.getParameter("DOBday1"))).intValue();} catch(Exception nfe) {}
+    try{DOBday2=(new Integer(request.getParameter("DOBday2"))).intValue();} catch(Exception nfe) {}
 
+    int DODday1=1, DODday2=31, DODmonth1=1, DODmonth2=12, DODyear1=0, DODyear2=3000;
+    try{DODmonth1=(new Integer(request.getParameter("DODmonth1"))).intValue();} catch(Exception nfe) {}
+    try{DODmonth2=(new Integer(request.getParameter("DODmonth2"))).intValue();} catch(Exception nfe) {}
+    try{DODyear1=(new Integer(request.getParameter("DODyear1"))).intValue();} catch(Exception nfe) {}
+    try{DODyear2=(new Integer(request.getParameter("DODyear2"))).intValue();} catch(Exception nfe) {}
+    try{DODday1=(new Integer(request.getParameter("DODday1"))).intValue();} catch(Exception nfe) {}
+    try{DODday2=(new Integer(request.getParameter("DODday2"))).intValue();} catch(Exception nfe) {}
+
+    
     String filter= SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE;
     String jdoqlVariableDeclaration = VARIABLES_STATEMENT;
 
@@ -909,6 +927,63 @@ public class IndividualQueryProcessor {
 
 
 
+    //start DOB filter----------------------------
+    if((request.getParameter("DOBstart")!=null)&&(request.getParameter("DOBend")!=null)&&(!request.getParameter("DOBstart").equals(""))&&(!request.getParameter("DOBend").equals(""))){ 
+      
+      try{
+
+        
+        DateTime gcMin=new DateTime(request.getParameter("DOBstart"));
+        DateTime gcMax=new DateTime(request.getParameter("DOBend"));
+        
+        
+
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){
+          filter+="((timeOfBirth >= "+gcMin.getMillis()+") && (timeOfBirth <= "+gcMax.getMillis()+"))";
+        }
+        else{
+          filter+=" && ((timeOfBirth >= "+gcMin.getMillis()+") && (timeOfBirth <= "+gcMax.getMillis()+"))";
+        }
+        prettyPrint.append("Date of birth between: "+request.getParameter("DOBstart")+" and "+request.getParameter("DOBend")+"<br />");
+
+
+      } 
+      catch(Exception nfe) {
+        //do nothing, just skip on
+        nfe.printStackTrace();
+      }
+    }
+    //end DOB filter ----------------------------------------
+    
+    
+    
+    //start DOD filter----------------------------
+    if((request.getParameter("DODstart")!=null)&&(request.getParameter("DODend")!=null)&&(!request.getParameter("DODstart").equals(""))&&(!request.getParameter("DODend").equals(""))){ 
+      
+      try{
+
+        
+        DateTime gcMin=new DateTime(request.getParameter("DODstart"));
+        DateTime gcMax=new DateTime(request.getParameter("DODend"));
+
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){
+          filter+="((timeOfDeath >= "+gcMin.getMillis()+") && (timeOfDeath <= "+gcMax.getMillis()+"))";
+        }
+        else{
+          filter+=" && ((timeOfDeath >= "+gcMin.getMillis()+") && (timeOfDeath <= "+gcMax.getMillis()+"))";
+        }
+        prettyPrint.append("Date of death between: "+request.getParameter("DODstart")+" and "+request.getParameter("DODend")+"<br />");
+
+        
+      } 
+      catch(Exception nfe) {
+        //do nothing, just skip on
+        nfe.printStackTrace();
+      }
+    }
+    //end DOD filter ----------------------------------------
+    
+    
     //start date filter----------------------------
     if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
       try{

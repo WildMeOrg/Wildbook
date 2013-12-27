@@ -273,7 +273,7 @@ table.tissueSample td {
 </head>
 
 <body <%if (request.getParameter("noscript") == null) {%>
-  onload="initialize()" onunload="GUnload()" <%}%>>
+onunload="GUnload()" <%}%>>
 <div id="wrapper">
 <div id="page">
 <jsp:include page="header.jsp" flush="true">
