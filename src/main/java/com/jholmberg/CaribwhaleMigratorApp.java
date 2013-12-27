@@ -504,10 +504,18 @@ public class CaribwhaleMigratorApp {
                             System.out.println("     SampleID is: "+ts.getSampleID());
                           }
                           SexAnalysis sa=new SexAnalysis((indie.getIndividualID()+"_SEX"), thisSex.trim(), placeholder.getCatalogNumber(), ts.getSampleID());
+                          if(myShepherd.isGeneticAnalysis(ts.getSampleID(), placeholder.getCatalogNumber(), (indie.getIndividualID()+"_SEX"), "SexAnalysis")){
+                            sa=myShepherd.getSexAnalysis(ts.getSampleID(), placeholder.getCatalogNumber(), (indie.getIndividualID()+"_SEX"));
+                          }
+                          else{myShepherd.getPM().makePersistent(sa);}
                           
-                          myShepherd.getPM().makePersistent(sa);
+                          
+                          
                           myShepherd.commitDBTransaction();
                           myShepherd.beginDBTransaction();
+                          
+                          //check if this analysis already exists
+                          
                           ts.addGeneticAnalysis(sa);
                           
                           
@@ -549,9 +557,18 @@ public class CaribwhaleMigratorApp {
                           
                          
                           MitochondrialDNAAnalysis haplo=new MitochondrialDNAAnalysis((indie.getIndividualID()+"_HAPLOTYPE"),thisHaplo,placeholder.getCatalogNumber(),ts.getSampleID());
-                          myShepherd.getPM().makePersistent(haplo);
-                          ts.addGeneticAnalysis(haplo);
-                          indie.doNotSetLocalHaplotypeReflection(haplo.getHaplotype());
+                          
+                          if(myShepherd.isGeneticAnalysis(ts.getSampleID(), placeholder.getCatalogNumber(), (indie.getIndividualID()+"_HAPLOTYPE"), "MitochondrialDNA")){
+                            haplo=myShepherd.getMitochondrialDNAAnalysis(ts.getSampleID(), placeholder.getCatalogNumber(), (indie.getIndividualID()+"_HAPLOTYPE"));
+                          }
+                          else{
+                            myShepherd.getPM().makePersistent(haplo);
+                            ts.addGeneticAnalysis(haplo);
+                            indie.doNotSetLocalHaplotypeReflection(haplo.getHaplotype());
+                            
+                          }
+                          
+                          
                           myShepherd.commitDBTransaction();
                           myShepherd.beginDBTransaction();
 
