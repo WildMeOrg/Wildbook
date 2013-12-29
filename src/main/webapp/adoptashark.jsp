@@ -57,51 +57,9 @@
 	          <li>Corporate adoption = USD $1000/year</li>
 		</ul>
 			<p>The cost of your adoption is tax deductible in the United States through Wild Me, a 501(c)(3) non-profit organization.</p>
-			</td>
-			<td width="200" align="left">
-				<p align="center"><a href="http://www.whaleshark.org/individuals.jsp?number=A-001"><img src="images/sample_adoption.gif" border="0" /></a>	
-				</p>
-				  <p align="center"><strong>
-				  Sample whale shark adoption for whale shark A-001. <br />
-				  </strong><strong><a href="http://www.whaleshark.org/individuals.jsp?number=A-003">Click here to see an example. </a> </strong></p>
-	  </td></table>
-			</p>
-			
-			<table><tr><td>
-			<h3>Creating an adoption</h3>
+				<h3>Creating an adoption</h3>
 			<p>To adopt a whale shark, follow these steps.</p>
-			<p>1. Make the appropriate donation using the appropriate PayPal button below.</p>
-<table cellpadding="5">
-
-<tr>
-	<td width="250px" valign="top"><em>Use the button below if you would like your Adoption funds directed to Wild Me. Wild Me offers tax deductability in the United States as a 501(c)(3) nonprofit organization.</em></td>
-	
-	<!--
-	<td width="250px" valign="top"><em>Use the button on the right if you would like your Adoption funds directed to ECOCEAN (Australia).</em></td>
-	-->
-
-</tr>
-<tr><td>	
-<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="5075222">
-<input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
-</form>
-</td>
-
-<!--
-<td><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="47YS8D5TXGZBY">
-<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-<img alt="" border="0" src="https://www.paypalobjects.com/en_AU/i/scr/pixel.gif" width="1" height="1">
-</form>
- </td>
- -->
-</tr>
-</table>
+			<p><a href="http://www.indiegogo.com/projects/wild-me-bringing-wildlife-into-social-media/x/5776235">1. Make the appropriate donation through our ongoing IndieGogo crowdfunding campaign. Please click here!</a></p>
 
 
 			<p>2. Send an email to <img src="images/adoptions_email.gif" width="228" height="18" align="absmiddle" />. Include the following in the email</p>
@@ -116,8 +74,18 @@
 	<p>Please allow 24-48 hours after receipt of your email for processing. We are currently working to automate and speed this process through PayPal. </p>
 	<p>Your adoption (photograph, name, and quote) will be displayed on the web site page for your shark, and one adoption will be randomly chosen to be displayed on the front page of whaleshark.org.</p>
 	<p><em><strong>Thank you for adopting a shark and supporting our global research efforts! </strong></em></p>
-	</td>
-	</tr></table>
+	
+			</td>
+			<td width="200" align="left">
+				<p align="center"><a href="http://www.whaleshark.org/individuals.jsp?number=A-001"><img src="images/sample_adoption.gif" border="0" /></a>	
+				</p>
+				  <p align="center"><strong>
+				  Sample whale shark adoption for whale shark A-001. <br />
+				  </strong><strong><a href="http://www.whaleshark.org/individuals.jsp?number=A-003">Click here to see an example. </a> </strong></p>
+	  </td></table>
+			</p>
+			
+			
 	</div>
 	<!-- end maintext -->
 
