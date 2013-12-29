@@ -3,7 +3,7 @@
   ~ Copyright (C) 2011 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
+  ~ modify it under the terms of the GNU General Public Licensef
   ~ as published by the Free Software Foundation; either version 2
   ~ of the License, or (at your option) any later version.
   ~
@@ -62,8 +62,13 @@
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
         href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
-  <!-- Sliding div content: STEP1 Place inside the head section -->
-  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+
+ <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+  
+  
+    <!-- Sliding div content: STEP1 Place inside the head section -->
   <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
  
   <script type="text/javascript">
@@ -92,7 +97,8 @@
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
 
   <!-- /STEP2 Place inside the head section -->
-
+  
+  
 
 </head>
 
@@ -641,8 +647,40 @@ function FSControl(controlDiv, map) {
       %>
       <c:if test="${showReleaseDate}">
         <p><strong><%= props.getProperty("releaseDate") %></strong></p>
-        <p>From: <input name="releaseDateFrom"/> to <input name="releaseDateTo"/> <%=props.getProperty("releaseDateFormat") %></p>
+        <p>From: <input id="releaseDateFrom" name="releaseDateFrom"/> to <input id="releaseDateTo" name="releaseDateTo"/></p>
       </c:if>
+
+<!--  date of birth and death -->      
+      <p><strong><%=props.getProperty("timeOfBirth")%>:</strong> <span class="para"><a
+        href="<%=CommonConfiguration.getWikiLocation()%>timeOfBirth"
+        target="_blank"><img src="images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+<table>
+
+	<tr>
+		<td>Start: <input type="text" id="DOBstart" name="DOBstart" /></td>
+		<td>End: <input type="text" id="DOBend" name="DOBend" /></td>
+	</tr>
+</table>
+	      <p><strong><%=props.getProperty("timeOfDeath")%>:</strong> <span class="para"><a
+        href="<%=CommonConfiguration.getWikiLocation()%>timeOfDeath"
+        target="_blank"><img src="images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+	<table>
+	<tr>
+		<td>Start: <input type="text" id="DODstart" name="DODstart" /></td>
+		<td>End: <input type="text" id="DODend" name="DODend" /></td>
+	</tr>
+</table>
+      <script>
+	$( "#DOBstart" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+    $( "#DOBend" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+    $( "#DODstart" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+    $( "#DODend" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+    $( "#releaseDateFrom" ).datepicker().datepicker('option', 'dateFormat', 'dd/mm/yy');
+    $( "#releaseDateTo" ).datepicker().datepicker('option', 'dateFormat', 'dd/mm/yy');
+</script>
+      
     </div>
   </td>
 </tr>

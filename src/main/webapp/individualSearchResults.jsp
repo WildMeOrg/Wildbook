@@ -84,7 +84,7 @@
 
     Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
     myShepherd.beginDBTransaction();
-    String order = "";
+    String order ="";
 
     MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
     rIndividuals = result.getResult();
