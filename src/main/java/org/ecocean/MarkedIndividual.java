@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.ecocean.genetics.*;
+import org.ecocean.social.Relationship;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -1561,6 +1562,11 @@ public long getTimeofDeath(){return timeOfDeath;}
 
 public void setTimeOfBirth(long newTime){timeOfBirth=newTime;}
 public void setTimeOfDeath(long newTime){timeOfDeath=newTime;}
+
+public ArrayList<Relationship> getAllRelationships(Shepherd myShepherd){
+  return myShepherd.getAllRelationshipsForMarkedIndividual(individualID);
+}
+
 
 
 }

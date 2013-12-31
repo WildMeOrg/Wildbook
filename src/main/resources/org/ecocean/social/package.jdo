@@ -8,21 +8,40 @@
 	
         
         
-        <class name="SocialGroupMember" identity-type="application" table="SOCIALGROUPMEMBER">
-				<field name="individualID" primary-key="true">
+        <class name="Community" identity-type="application" table="COMMUNITY">
+				<field name="communityName" primary-key="true">
 					<column length="100"/>
 				</field>
-				<field name="researcherNotes" persistence-modifier="persistent" default-fetch-group="false">
+				<field name="relatedComments" persistence-modifier="persistent" default-fetch-group="false">
 					<column jdbc-type="LONGVARCHAR" />
 				</field>
-				
-				<field name="currentSocialRole" column="currentSocialRole">
-										    				<column jdbc-type="LONGVARCHAR" />
-			</field>
-				
-				
 				<fetch-group name="count" />
-	
+		</class>
+		
+		<class name="Relationship" identity-type="application" table="RELATIONSHIP">
+
+				<field name="type" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="relatedCommunityName" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="markedIndividualName1" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="markedIndividualName2" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="markedIndividualRole1" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="markedIndividualRole2" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="relatedComments" persistence-modifier="persistent" default-fetch-group="false">
+					<column jdbc-type="LONGVARCHAR" />
+				</field>				
+				<fetch-group name="count" />
 		</class>
 
         
