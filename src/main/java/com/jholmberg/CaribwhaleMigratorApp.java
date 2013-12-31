@@ -473,6 +473,44 @@ public class CaribwhaleMigratorApp {
                   //alright, now we have the row we need in the Excel file to populate attributes of the MarkedIndividual
                   
                   
+                  //let's get year of birth
+                  if(sheet1.getCell(15, f)!=null){
+                    Cell yobCell=sheet1.getCell(15, f);
+                    if(yobCell.getContents()!=null){
+                      try{
+                        String thisYob=(String)yobCell.getContents().trim();
+                        DateTime dt=new DateTime(thisYob);
+                        indie.setTimeOfBirth(dt.getMillis());
+                        System.out.println("     YOB SET!!");
+                      }
+                      catch(Exception e){
+                        e.printStackTrace();
+                      }
+                      
+                    
+                    }
+                  }
+                  
+                  //let's get year of death
+                  if(sheet1.getCell(16, f)!=null){
+                    Cell yodCell=sheet1.getCell(16, f);
+                    if(yodCell.getContents()!=null){
+                      try{
+                        String thisYod=(String)yodCell.getContents().trim();
+                        DateTime dt=new DateTime(thisYod);
+                        indie.setTimeOfDeath(dt.getMillis());
+                        System.out.println("     YOD SET!!");
+                      }
+                      catch(Exception e){
+                        e.printStackTrace();
+                      }
+                      
+                    
+                    }
+                  }
+                  
+                  
+                  
                   //let's get sex
                   if(sheet1.getCell(9, f)!=null){
                     Cell sexCell=sheet1.getCell(9, f);
