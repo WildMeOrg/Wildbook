@@ -23,6 +23,7 @@ import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.genetics.*;
+import org.ecocean.social .*;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -2649,6 +2650,45 @@ public class Shepherd {
   }
 
 
+  public ArrayList<MarkedIndividual> getAllMarkedIndividualsInCommunity(String communityName){
+    ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
+    Extent encClass = pm.getExtent(Relationship.class, true);
+    String filter2use = "this.relatedCommunityName == \""+communityName+"\"";
+    Query acceptedEncounters = pm.newQuery(encClass, filter2use);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList listy = new ArrayList(c);
+    int listySize=listy.size();
+    for(int i=0;i<listySize;i++){
+      Relationship rely=(Relationship)listy.get(i);
+      if(rely.getMarkedIndividualName1()!=null){
+        String name1=rely.getMarkedIndividualName1();
+        if(isMarkedIndividual(name1)){
+          MarkedIndividual indie=getMarkedIndividual(name1);
+          if(!indies.contains(indie)){indies.add(indie);}
+        }
+      }
+      if(rely.getMarkedIndividualName2()!=null){
+        String name2=rely.getMarkedIndividualName2();
+        if(isMarkedIndividual(name2)){
+          MarkedIndividual indie=getMarkedIndividual(name2);
+          if(!indies.contains(indie)){indies.add(indie);}
+        }
+      }
+      
+    }
+    return indies;
+  }
+  
+  public ArrayList<Relationship> getAllRelationshipsForMarkedIndividual(String indieName){
+    ArrayList<Relationship> relies=new ArrayList<Relationship>();
+    Extent encClass = pm.getExtent(Relationship.class, true);
+    String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
+    Query acceptedEncounters = pm.newQuery(encClass, filter2use);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList<Relationship> listy = new ArrayList<Relationship>(c);
+    return relies;
+  }
+  
 
 } //end Shepherd class
 
