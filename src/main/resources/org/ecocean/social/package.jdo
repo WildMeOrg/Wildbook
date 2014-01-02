@@ -19,7 +19,7 @@
 		</class>
 		
 		<class name="Relationship" identity-type="application" table="RELATIONSHIP">
-
+				<datastore-identity strategy="increment"/>
 				<field name="type" persistence-modifier="persistent">
 					<column length="100" />
 				</field>
