@@ -20,6 +20,19 @@ public class Relationship implements java.io.Serializable{
     this.markedIndividualRole2=individualRole2;
   }
   
+  public Relationship(String type, String individualName1, String individualName2, String individualRole1, String individualRole2){
+    this.type=type;
+    this.markedIndividualName1=individualName1;
+    this.markedIndividualName2=individualName2;
+    this.markedIndividualRole1=individualRole1;
+    this.markedIndividualRole2=individualRole2;
+  }
+  
+  public Relationship(String type, String individualName1, String individualName2){
+    this.type=type;
+    this.markedIndividualName1=individualName1;
+    this.markedIndividualName2=individualName2;
+  }
 
   private static final long serialVersionUID = 6688796543218832687L;
 
