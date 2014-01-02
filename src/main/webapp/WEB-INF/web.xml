@@ -618,6 +618,11 @@
     <servlet-name>IndividualAddEncounter</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualAddEncounter</servlet-class>
   </servlet>
+  
+    <servlet>
+    <servlet-name>RelationshipCreate</servlet-name>
+    <servlet-class>org.ecocean.social.RelationshipCreate</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>OccurrenceAddEncounter</servlet-name>
@@ -1183,6 +1188,11 @@
   <servlet-mapping>
     <servlet-name>EncounterRemoveSpots</servlet-name>
     <url-pattern>/EncounterRemoveSpots</url-pattern>
+  </servlet-mapping>
+  
+    <servlet-mapping>
+    <servlet-name>RelationshipCreate</servlet-name>
+    <url-pattern>/RelationshipCreate</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
