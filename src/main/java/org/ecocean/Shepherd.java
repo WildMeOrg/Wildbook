@@ -282,6 +282,45 @@ public class Shepherd {
     }
     return tempEnc;
   }
+  
+  
+  
+  public Relationship getRelationship(String type, String indie1,String indie2) {
+    Relationship tempRel = null;
+    String filter = "this.type == \""+type+"\" && this.markedIndividualName1 == \""+indie1+"\" && this.markedIndividualName2 == \""+indie2+"\"";
+    Extent encClass = pm.getExtent(Relationship.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+    try {
+        Collection c = (Collection) (acceptedEncounters.execute());
+        Iterator it = c.iterator();
+        while(it.hasNext()){
+          Relationship ts=(Relationship)it.next();
+          acceptedEncounters.closeAll();
+          return ts;
+        }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      acceptedEncounters.closeAll();
+      return null;
+    }
+    acceptedEncounters.closeAll();
+    return null;
+  }
+  
+  
+  
+  
+  public Community getCommunity(String name) {
+    Community tempCom = null;
+    try {
+      tempCom = ((Community) (pm.getObjectById(pm.newObjectIdInstance(Community.class, name.trim()), true)));
+    } 
+    catch (Exception nsoe) {
+      return null;
+    }
+    return tempCom;
+  }
 
   public SinglePhotoVideo getSinglePhotoVideo(String num) {
     SinglePhotoVideo tempEnc = null;
@@ -553,6 +592,20 @@ public class Shepherd {
     }
     return true;
   }
+  
+  
+  public boolean isCommunity(String comName) {
+    try {
+      Community tempCom = ((org.ecocean.social.Community) (pm.getObjectById(pm.newObjectIdInstance(Community.class, comName.trim()), true)));
+    } 
+    catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
+  
+  
+  
 
   public boolean isTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
