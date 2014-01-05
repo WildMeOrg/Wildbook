@@ -2742,6 +2742,16 @@ public class Shepherd {
     return relies;
   }
   
+  public ArrayList<Relationship> getAllRelationshipsForCommunity(String commName){
+    ArrayList<Relationship> relies=new ArrayList<Relationship>();
+    Extent encClass = pm.getExtent(Relationship.class, true);
+    String filter2use = "this.communityName == \""+commName+"\"";
+    Query acceptedEncounters = pm.newQuery(encClass, filter2use);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList<Relationship> listy = new ArrayList<Relationship>(c);
+    return relies;
+  }
+  
 
 } //end Shepherd class
 
