@@ -39,7 +39,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 
 
-public class RelationshipCreate extends HttpServlet {
+public class RelationshipDelete extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -57,8 +57,6 @@ public class RelationshipCreate extends HttpServlet {
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-    boolean createThisRelationship = false;
-
 
     if ((request.getParameter("markedIndividualName1") != null) && (request.getParameter("markedIndividualName2") != null) && (request.getParameter("type") != null)) {
       
@@ -71,30 +69,12 @@ public class RelationshipCreate extends HttpServlet {
         myShepherd.beginDBTransaction();
       
 
-        if((myShepherd.isMarkedIndividual(request.getParameter("markedIndividualName1")))&&(myShepherd.isMarkedIndividual(request.getParameter("markedIndividualName2")))){
-          
-          rel=new Relationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"));
+          rel=myShepherd.getRelationship(request.getParameter("type") , request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"));
             
-          if(request.getParameter("markedIndividualRole1")!=null){
-            rel.setMarkedIndividualRole1(request.getParameter("markedIndividualRole1"));
-          }
-          if(request.getParameter("markedIndividualRole2")!=null){
-            rel.setMarkedIndividualRole2(request.getParameter("markedIndividualRole2"));
-          }
-          if(request.getParameter("relatedCommunityName")!=null){
-            rel.setRelatedCommunityName(request.getParameter("relatedCommunityName"));
-          }
-          
-          myShepherd.getPM().makePersistent(rel);          
-          createThisRelationship=true;
-          
-          //check the community and create it if not present
-          if((request.getParameter("relatedCommunityName")!=null)&&(!myShepherd.isCommunity(request.getParameter("relatedCommunityName")))){
-            comm.setCommunityName(request.getParameter("relatedCommunityName"));
-            myShepherd.getPM().makePersistent(comm);
+          if(rel!=null){
+            myShepherd.getPM().deletePersistent(rel);
           }
 
-        }
 
         myShepherd.commitDBTransaction();    
         myShepherd.closeDBTransaction();
@@ -103,21 +83,22 @@ public class RelationshipCreate extends HttpServlet {
 
             //output success statement
             out.println(ServletUtilities.getHeader(request));
-            if(createThisRelationship){
-              out.println("<strong>Success:</strong> A relationship of type " + request.getParameter("type") + " was created between " + request.getParameter("markedIndividualName1")+" and "+request.getParameter("markedIndividualName2")+".");
-            }
-            else{
-              out.println("<strong>Failure:</strong>  I could not create the relationship. Have your administrator check the log files for you to understand the problem.");
-              
-            }
+             out.println("<strong>Success:</strong> The relationship of type " + request.getParameter("type") + " between " + request.getParameter("markedIndividualName1")+" and "+request.getParameter("markedIndividualName2")+" was deleted.");
+          
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
-            
             out.println(ServletUtilities.getFooter());
-            
- 
-      
-      
+
+}
+else{
+  out.println(ServletUtilities.getHeader(request));
+  out.println("<strong>Failure:</strong> I did not have all of the information required.");
+
+ out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
+ out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
+ out.println(ServletUtilities.getFooter());
+  
+  
 }
 
 
