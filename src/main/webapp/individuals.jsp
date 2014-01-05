@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, 	   
-		 org.joda.time.DateTime,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
+		 org.joda.time.DateTime,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
 
 <%
 
@@ -1504,10 +1504,70 @@ else {
 }
 %>
 
-
 <br/>
 <a name="socialRelationships"></a>
 <p><strong><%=props.getProperty("social")%></strong></p>
+<%
+ArrayList<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
+
+if(relationships.size()>0){
+
+%>
+
+
+<table width="100%" class="tissueSample">
+<th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("type") %></strong></th><th><strong></strong></th><%=props.getProperty("community") %></tr>
+<%
+
+int numRels=relationships.size();
+for(int f=0;f<numRels;f++){
+	Relationship myRel=relationships.get(f);
+	String indieName1=myRel.getMarkedIndividualName1();
+	String indieName2=myRel.getMarkedIndividualName2();
+	String otherIndyName=indieName1;
+	if(otherIndyName.equals(sharky.getName())){otherIndyName=indieName2;}
+	MarkedIndividual otherIndy=myShepherd.getMarkedIndividual(otherIndyName);
+	String type="";
+	if(myRel.getType()!=null){type=myRel.getType();}
+	String community="";
+	if(myRel.getRelatedCommunityName()!=null){community=myRel.getRelatedCommunityName();}
+	%>
+	<tr><td>
+	<a target="_blank" href="individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
+		<%
+		if(otherIndy.getSex()!=null){
+		%>
+			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=otherIndy.getSex() %></span>
+		<%
+		}
+		
+		if(otherIndy.getHaplotype()!=null){
+		%>
+			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=otherIndy.getHaplotype() %></span>
+		<%
+		}
+		%>
+	</td>
+	<td><%=type %></td>
+	<td><%=community %></td>
+	</tr>
+	<%
+}
+}
+else {
+%>
+	<p class="para"><%=props.getProperty("noSocial") %></p><br />
+<%
+}
+//
+
+%>
+</table>
+
+
+<br/>
+<a name="cooccurrence"></a>
+<p><strong><%=props.getProperty("cooccurrence")%></strong></p>
 
 <%
 ArrayList<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
@@ -1549,7 +1609,7 @@ while(othersIterator.hasNext()){
 }
 else {
 %>
-	<p class="para"><%=props.getProperty("noSocial") %></p><br />
+	<p class="para"><%=props.getProperty("noCooccurrences") %></p><br />
 <%
 }
 //
