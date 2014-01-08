@@ -3,7 +3,7 @@
     "http://java.sun.com/dtd/jdo_2_0.dtd">
 
 <jdo>
-    <package name="org.ecocean">
+    <package name="org.ecocean.social">
 
 	
         
@@ -18,7 +18,7 @@
 				<fetch-group name="count" />
 		</class>
 		
-		<class name="Relationship" identity-type="application" table="RELATIONSHIP">
+		<class name="Relationship" identity-type="datastore" table="RELATIONSHIP">
 				<datastore-identity strategy="increment"/>
 				<field name="type" persistence-modifier="persistent">
 					<column length="100" />
