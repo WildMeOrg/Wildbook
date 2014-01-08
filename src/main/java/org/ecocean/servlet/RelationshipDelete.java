@@ -73,6 +73,8 @@ public class RelationshipDelete extends HttpServlet {
             
           if(rel!=null){
             myShepherd.getPM().deletePersistent(rel);
+            myShepherd.commitDBTransaction();  
+            myShepherd.beginDBTransaction();  
             
             if(rel.getRelatedCommunityName()!=null){
               
@@ -80,6 +82,8 @@ public class RelationshipDelete extends HttpServlet {
               if(myShepherd.getAllRelationshipsForCommunity(rel.getRelatedCommunityName()).size()==0){
                 Community myComm=myShepherd.getCommunity(rel.getRelatedCommunityName());
                 myShepherd.getPM().deletePersistent(myComm);
+                myShepherd.commitDBTransaction();  
+                myShepherd.beginDBTransaction(); 
               }
               
             }
