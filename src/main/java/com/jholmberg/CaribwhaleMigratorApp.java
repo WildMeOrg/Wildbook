@@ -7,6 +7,7 @@ package com.jholmberg;
 import org.ecocean.*;
 import org.ecocean.servlet.*;
 import org.ecocean.genetics.*;
+import org.ecocean.social.*;
 
 //import basic IO
 import java.io.*;
@@ -92,6 +93,10 @@ public class CaribwhaleMigratorApp {
 			Iterator<Map<String,Object>> atlanticTableIterator = atlanticTable.iterator();
 			TreeMap<String,String> idMap = new TreeMap<String,String>();
 			TreeMap<String,String> locIDMap = new TreeMap<String,String>();
+			
+			//store communities
+			TreeMap<String,ArrayList<String>> communityList = new TreeMap<String,ArrayList<String>>();
+			
 			while(atlanticTableIterator.hasNext()){
 				Map<String,Object> thisIndexRow=atlanticTableIterator.next();
 				//String index=(new Integer(((Double)thisIndexRow.get("IDN")).intValue())).toString();
@@ -219,6 +224,7 @@ public class CaribwhaleMigratorApp {
 		          for (int i = 0; i < sheet.getRows(); i++) {
 		            Cell IDcell = sheet.getCell(21, i);
 		            
+		            
 		            if((IDcell.getContents()!=null)&&(IDcell.getContents().trim().equals(indie.getIndividualID()))){
 		              
 		              //OK, we have a matching Encounter row
@@ -241,6 +247,71 @@ public class CaribwhaleMigratorApp {
                   myShepherd.beginDBTransaction();
                   
                   enc=myShepherd.getEncounter(catNumber);
+                  
+                  //start occurrence handling
+                  Cell occurCell = sheet.getCell(7, i);
+                  if(occurCell.getContents()!=null){
+                    
+                    String occurrenceNum=occurCell.getContents().trim();
+                    if(!occurrenceNum.equals("")){
+                      
+                        System.out.println("     I have an occurrence: "+occurrenceNum);
+                        Occurrence occur=new Occurrence();
+                        if(!myShepherd.isOccurrence(occurrenceNum)){
+                          occur=new Occurrence(occurrenceNum, enc);
+                          myShepherd.getPM().makePersistent(occur);
+                          myShepherd.commitDBTransaction();
+                          myShepherd.beginDBTransaction();
+                        }
+                        else{
+                          occur=myShepherd.getOccurrence(occurrenceNum);
+                          if(!occur.getEncounters().contains(enc)){
+                            occur.addEncounter(enc);
+                            myShepherd.commitDBTransaction();
+                            myShepherd.beginDBTransaction();
+                          }
+                          
+                        }
+                      
+                    }
+                    
+                  }
+                  //end occurrence handling
+                  
+                  //start relationship handling
+                  Cell groupingCell = sheet.getCell(22, i);
+                  if(groupingCell!=null){
+                    String group=groupingCell.getContents().trim();
+                    if(!group.equals("")){
+                      
+                      //ok, it is part of a group
+                      //indie
+                      if(!communityList.containsKey(group)){
+                        
+                        //ok, we found a new community, let's add it
+                        ArrayList<String> members=new ArrayList<String>();
+                        members.add(indie.getIndividualID());
+                        communityList.put(group, members);
+          
+                      }
+                      else{
+                        
+                        //ok, we found the community already exists, so let's just add this member
+                        ArrayList<String> members=communityList.get(group);
+                        if(!members.contains(indie.getIndividualID())){
+                          
+                          members.add(indie.getIndividualID());
+                          communityList.put(group, members);
+                          
+                        }
+                        
+                      }
+                      
+                    }
+                  }
+                  
+                  
+                  //end relationship handling
 		              
 		              Cell filenameCell = sheet.getCell(1, i);
                   if(filenameCell.getContents()!=null){
@@ -508,6 +579,9 @@ public class CaribwhaleMigratorApp {
                     
                     }
                   }
+                  
+                  
+                  
                   
                   
                   
@@ -948,8 +1022,98 @@ public class CaribwhaleMigratorApp {
             
             indie.resetMaxNumYearsBetweenSightings();
             
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+            
+            
+            
 		      
 		      } //end for
+		      
+		      
+		      
+		      //ok, we are done populating our MarkedIndividuals, Encounter and Occurrences
+		      //last step, we need to use the communityList object to populate our Relationship classes
+		      Set<String> communityNames=communityList.keySet();
+		      Iterator<String> communities=communityNames.iterator();
+		      while(communities.hasNext()){
+		        
+		        //let's get the communityName and membership list
+		        String comName=communities.next();
+		        ArrayList<String> members=communityList.get(comName);
+		        int numMembers=members.size();
+		        
+		        for(int p=0;p<(numMembers-1);p++){
+		          for(int q=(p+1);q<numMembers;q++){
+		            String indieName1=members.get(p);
+		            String indieName2=members.get(q);
+		            
+		            org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("CommunityMembership", indieName1, indieName2,"member","member");
+		            myRel.setRelatedCommunityName(comName);
+		            myShepherd.getPM().makePersistent(myRel);
+		            myShepherd.commitDBTransaction();
+		            myShepherd.beginDBTransaction();
+		            
+		          }
+		        }
+		        
+		      }
+		      //end relationship creation
+		      
+		      
+		      //look for mother-calf relationships
+		      Workbook w2;
+          File path1=new File(pathToExcel);
+          w2 = Workbook.getWorkbook(path1);
+          // Get the first sheet
+          Sheet sheet1 = w2.getSheet(0);
+		      for (int f = 0; f < sheet1.getRows(); f++) {
+		        
+		        //if mother or offspring columns are populated
+		        if((sheet1.getCell(13, f)!=null)||(sheet1.getCell(14, f)!=null)){
+		        
+		          Cell IDcell1 = sheet1.getCell(0, f);
+		          if(IDcell1!=null){
+		          
+		            String myID=IDcell1.getContents().trim();
+		            if(myShepherd.isMarkedIndividual(myID)){
+		            
+		              
+		              //check for a mother
+		              if((sheet1.getCell(13, f)!=null)&&(!sheet1.getCell(13, f).getContents().trim().equals(""))){
+		                  String mother=sheet1.getCell(13, f).getContents().trim();
+		                  
+		                  MarkedIndividual motherIndie=new MarkedIndividual();
+		                  if(myShepherd.isMarkedIndividual(mother)){motherIndie=myShepherd.getMarkedIndividual(mother);}
+		                  else if(myShepherd.getMarkedIndividualsByNickname(mother)!=null){
+		                    ArrayList moms=myShepherd.getMarkedIndividualsByNickname(mother);
+		                    if(moms.size()>0){
+		                      motherIndie=(MarkedIndividual)moms.get(0);
+		                    }
+		                  }
+		                  
+		                  if(motherIndie.getIndividualID()!=null){
+		                    
+		                    org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("Familial",myID,motherIndie.getIndividualID(),"calf","mother");
+		                    myShepherd.getPM().makePersistent(myRel);
+		                    myShepherd.commitDBTransaction();
+		                    myShepherd.beginDBTransaction();
+		                    
+		                  }
+
+		              }
+		              //end check for mother
+		              
+		            
+		            
+		            }
+		          
+		          }
+		      }
+		        
+		        
+		      }
+		      
 		      
 		      
 		      
