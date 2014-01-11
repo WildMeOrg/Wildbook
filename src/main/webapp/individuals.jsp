@@ -1534,7 +1534,6 @@ for(int f=0;f<numRels;f++){
 		thisIndyRole=myRel.getMarkedIndividualRole2();
 		otherIndyRole=myRel.getMarkedIndividualRole1();
 	}
-}
 	MarkedIndividual otherIndy=myShepherd.getMarkedIndividual(otherIndyName);
 	String type="";
 	if(myRel.getType()!=null){type=myRel.getType();}
@@ -1564,8 +1563,14 @@ for(int f=0;f<numRels;f++){
 	<td><%=community %></td>
 	
 	</tr>
-	<%
+<%
+
 }
+%>
+
+</table>
+<br/>
+<%
 }
 else {
 %>
@@ -1575,10 +1580,10 @@ else {
 //
 
 %>
-</table>
 
 
-<br/>
+
+
 <a name="cooccurrence"></a>
 <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
 
@@ -1619,6 +1624,9 @@ while(othersIterator.hasNext()){
 	<td><%=((Integer)indy.getValue()).toString() %></td></tr>
 	<%
 }
+%>
+</table>
+<%
 }
 else {
 %>
@@ -1627,9 +1635,7 @@ else {
 }
 //
 
-%>
-</table>
-<%
+
 
   if (isOwner) {
 %>
