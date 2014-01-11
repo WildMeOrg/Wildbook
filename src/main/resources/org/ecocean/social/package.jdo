@@ -12,9 +12,6 @@
 				<field name="communityName" primary-key="true">
 					<column length="100"/>
 				</field>
-				<field name="relatedComments" persistence-modifier="persistent" default-fetch-group="false">
-					<column jdbc-type="LONGVARCHAR" />
-				</field>
 				<fetch-group name="count" />
 		</class>
 		
