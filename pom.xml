@@ -423,6 +423,7 @@
             <argument>target/classes/org/ecocean/genetics/package.jdo</argument>
             <argument>target/classes/org/ecocean/grid/package.jdo</argument>
             <argument>target/classes/org/ecocean/tag/package.jdo</argument>
+			<argument>target/classes/org/ecocean/social/package.jdo</argument>
           </arguments>
         </configuration>
         <executions>
