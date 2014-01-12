@@ -832,6 +832,7 @@ public class CaribwhaleMigratorApp {
                   
                 //let's get nickname
                   if(sheet1.getCell(1, f)!=null){
+                    indie.setNickName("");
                     Cell nicknameCell=sheet1.getCell(1, f);
                     if(nicknameCell.getContents()!=null){
                       String thisnickname=nicknameCell.getContents();
@@ -1050,9 +1051,23 @@ public class CaribwhaleMigratorApp {
 		            
 		            org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("CommunityMembership", indieName1, indieName2,"member","member");
 		            myRel.setRelatedCommunityName(comName);
-		            myShepherd.getPM().makePersistent(myRel);
-		            myShepherd.commitDBTransaction();
-		            myShepherd.beginDBTransaction();
+		            
+		            //if it does not exist, create the relationship
+		            if(!myShepherd.isRelationship(myRel.getType(), myRel.getMarkedIndividualName1(), myRel.getMarkedIndividualName2(), myRel.getMarkedIndividualRole1(), myRel.getMarkedIndividualRole2(), myRel.getRelatedCommunityName(), true)){
+		              myShepherd.getPM().makePersistent(myRel);
+	                myShepherd.commitDBTransaction();
+	                myShepherd.beginDBTransaction();
+		            }
+		            
+		            //now check if community has been created!
+		           if(!myShepherd.isCommunity(comName)){
+		             org.ecocean.social.Community myCom=new org.ecocean.social.Community(comName);
+		             myShepherd.getPM().makePersistent(myCom);
+                 myShepherd.commitDBTransaction();
+                 myShepherd.beginDBTransaction();
+		             
+		           } 
+		           
 		            
 		          }
 		        }
@@ -1095,9 +1110,16 @@ public class CaribwhaleMigratorApp {
 		                  if(motherIndie.getIndividualID()!=null){
 		                    
 		                    org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("Familial",myID,motherIndie.getIndividualID(),"calf","mother");
-		                    myShepherd.getPM().makePersistent(myRel);
-		                    myShepherd.commitDBTransaction();
-		                    myShepherd.beginDBTransaction();
+                        
+		                    
+		                    //if it does not exist, create the relationship
+		                    if(!myShepherd.isRelationship(myRel.getType(), myRel.getMarkedIndividualName1(), myRel.getMarkedIndividualName2(), myRel.getMarkedIndividualRole1(), myRel.getMarkedIndividualRole2(), true)){
+		                      myShepherd.getPM().makePersistent(myRel);
+		                      myShepherd.commitDBTransaction();
+		                      myShepherd.beginDBTransaction();
+		                    }
+		                    
+		                    
 		                    
 		                  }
 
