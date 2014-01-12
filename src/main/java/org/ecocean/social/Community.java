@@ -13,9 +13,9 @@ public class Community implements java.io.Serializable {
   private String communityName;
   
   //default constructor for JDO
-  public void Community(){}
+  public Community(){}
   
-  public void Community(String name){
+  public Community(String name){
     this.communityName=name;
   }
   
