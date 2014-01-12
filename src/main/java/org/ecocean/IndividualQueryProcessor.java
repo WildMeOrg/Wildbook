@@ -1248,7 +1248,7 @@ public class IndividualQueryProcessor {
         for(int i=0;i<numCommunities;i++){
           for (int q = 0; q < rIndividuals.size(); q++) {
             MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
-            if(!myShepherd.getAllMarkedIndividualsInCommunity(communities[i]).contains(tShark.getIndividualID())) {
+            if(!myShepherd.getAllMarkedIndividualsInCommunity(communities[i]).contains(tShark)) {
               rIndividuals.remove(q);
               q--;
             }

@@ -2842,6 +2842,7 @@ public class Shepherd {
       }
       
     }
+    acceptedEncounters.closeAll();
     return indies;
   }
   
