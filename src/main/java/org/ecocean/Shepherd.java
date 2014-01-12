@@ -1336,7 +1336,7 @@ public class Shepherd {
     Collection c = (Collection) (query.execute());
     //System.out.println("getAllOccurrencesForMarkedIndividual size: "+c.size());
     Iterator it = c.iterator();
-    query.closeAll();
+    //query.closeAll();
     return it;
   }
 
@@ -1364,6 +1364,7 @@ public class Shepherd {
       Iterator it=getAllOccurrencesForMarkedIndividual(query,indie);
       while(it.hasNext()){
          Occurrence oc=(Occurrence)it.next();
+         //System.out.println("     Found an occurrence for my indie!!!!");
          ArrayList<MarkedIndividual> alreadyCounted=new ArrayList<MarkedIndividual>();
          ArrayList<Encounter> encounters=oc.getEncounters();
          int numEncounters=encounters.size();
@@ -1397,7 +1398,12 @@ public class Shepherd {
       //}
       //System.out.println("Final map size is: "+map.size());
 
+      
+      
       ArrayList<Map.Entry> as = new ArrayList<Map.Entry>( hmap.entrySet() );
+      
+      //System.out.println("getAllOtherIndividualsOccurringWithMarkedIndividual size is: "+as.size());
+      
       IndividualOccurrenceNumComparator cmp=new IndividualOccurrenceNumComparator();
       Collections.sort( as , cmp);
       Collections.reverse(as);
