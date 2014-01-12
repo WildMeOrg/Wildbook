@@ -1378,29 +1378,36 @@ else {
 </tr>
 <tr>
   <td>
-    <div id="social" style="display:none; ">
-    	<p><%=props.getProperty("belongsToCommunity")%> 
+    <div id="social" style="display:none;">
+    
+    <table><tr><td style="vertical-align: top">
+    	<%=props.getProperty("belongsToCommunity")%>
+    	</td><td> 
 			<%
         ArrayList<String> communities = myShepherd.getAllCommunityNames();
-        int totalNames = communities.size();
+        
 		//System.out.println(haplos.toString());
 
-        if (totalNames >= 1) {
+        if ((communities!=null)&&(communities.size()>0)) {
+        	int totalNames = communities.size();
+        
       %>
 
-      <select multiple size="<%=(totalNames+1) %>" name="community" id="community">
+      <select multiple size="10" name="community" id="community">
         <option value="None"></option>
         <%
           for (int n = 0; n < totalNames; n++) {
             String word = communities.get(n);
-            if (!word.equals("")) {
+            if ((word!=null)&&(!word.equals(""))) {
         	%>
         		<option value="<%=word%>"><%=word%></option>
         	<%
             }
           }
         %>
-      </select></p>
+      </select></td>
+      </tr>
+      </table>
       <%
       } else {
       %>
