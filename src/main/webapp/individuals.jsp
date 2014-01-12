@@ -522,7 +522,7 @@ if(sharky.getTimeOfBirth()>0){
 }
 
 String displayTimeOfBirth=timeOfBirth;
-if(displayTimeOfBirth.indexOf("T")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("T"));}
+if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
 
 %>
 <p><%=props.getProperty("birthdate")  %>:
@@ -584,7 +584,7 @@ if(sharky.getTimeofDeath()>0){
 	timeOfDeath=(new DateTime(sharky.getTimeofDeath())).toString();
 }
 String displayTimeOfDeath=timeOfDeath;
-if(displayTimeOfDeath.indexOf("T")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("T"));}
+if(displayTimeOfDeath.indexOf("-")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("-"));}
 
 %>
 <p><%=props.getProperty("deathdate")  %>:
