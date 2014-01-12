@@ -309,6 +309,51 @@ public class Shepherd {
   }
   
   
+  public Relationship getRelationship(String type, String indie1,String indie2, String indieRole1, String indieRole2) {
+    Relationship tempRel = null;
+    String filter = "this.type == \""+type+"\" && this.markedIndividualName1 == \""+indie1+"\" && this.markedIndividualName2 == \""+indie2+"\" && this.markedIndividualRole1 == \""+indieRole1+"\" && this.markedIndividualRole2 == \""+indieRole2+"\"";
+    Extent encClass = pm.getExtent(Relationship.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+    try {
+        Collection c = (Collection) (acceptedEncounters.execute());
+        Iterator it = c.iterator();
+        while(it.hasNext()){
+          Relationship ts=(Relationship)it.next();
+          acceptedEncounters.closeAll();
+          return ts;
+        }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      acceptedEncounters.closeAll();
+      return null;
+    }
+    acceptedEncounters.closeAll();
+    return null;
+  }
+  
+  public Relationship getRelationship(String type, String indie1,String indie2, String indieRole1, String indieRole2, String relatedCommunityName) {
+    Relationship tempRel = null;
+    String filter = "this.type == \""+type+"\" && this.markedIndividualName1 == \""+indie1+"\" && this.markedIndividualName2 == \""+indie2+"\" && this.markedIndividualRole1 == \""+indieRole1+"\" && this.markedIndividualRole2 == \""+indieRole2+"\" && this.relatedCommunityName == \""+relatedCommunityName+"\"";
+    Extent encClass = pm.getExtent(Relationship.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+    try {
+        Collection c = (Collection) (acceptedEncounters.execute());
+        Iterator it = c.iterator();
+        while(it.hasNext()){
+          Relationship ts=(Relationship)it.next();
+          acceptedEncounters.closeAll();
+          return ts;
+        }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      acceptedEncounters.closeAll();
+      return null;
+    }
+    acceptedEncounters.closeAll();
+    return null;
+  }
   
   
   public Community getCommunity(String name) {
@@ -757,6 +802,42 @@ public class Shepherd {
       return false;
     }
     return true;
+  }
+  
+  public boolean isRelationship(String type, String markedIndividualName1, String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2, boolean checkBidirectional) {
+    try {
+    
+      if(getRelationship(type, markedIndividualName1,markedIndividualName2, markedIndividualRole1, markedIndividualRole2)!=null){
+        return true;
+      }
+      //if requested by checkBidirectional attribute, also check for the inverse of this relationship
+      if(checkBidirectional && (getRelationship(type, markedIndividualName2,markedIndividualName1, markedIndividualRole2, markedIndividualRole1)!=null)){
+        return true;
+      }
+    
+    } 
+    catch (Exception nsoe) {
+      return false;
+    }
+    return false;
+  }
+  
+  public boolean isRelationship(String type, String markedIndividualName1, String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2, String relatedCommunityName, boolean checkBidirectional) {
+    try {
+    
+      if(getRelationship(type, markedIndividualName1,markedIndividualName2, markedIndividualRole1, markedIndividualRole2, relatedCommunityName)!=null){
+        return true;
+      }
+      //if requested by checkBidirectional attribute, also check for the inverse of this relationship
+      if(checkBidirectional && (getRelationship(type, markedIndividualName2,markedIndividualName1, markedIndividualRole2, markedIndividualRole1, relatedCommunityName)!=null)){
+        return true;
+      }
+    
+    } 
+    catch (Exception nsoe) {
+      return false;
+    }
+    return false;
   }
 
 
@@ -2765,23 +2846,25 @@ public class Shepherd {
   }
   
   public ArrayList<Relationship> getAllRelationshipsForMarkedIndividual(String indieName){
-    ArrayList<Relationship> relies=new ArrayList<Relationship>();
     Extent encClass = pm.getExtent(Relationship.class, true);
     String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
-    Query acceptedEncounters = pm.newQuery(encClass, filter2use);
-    Collection c = (Collection) (acceptedEncounters.execute());
+    Query query = pm.newQuery(encClass, filter2use);
+    Collection c = (Collection) (query.execute());
+    //System.out.println("Num relationships for MarkedIndividual "+indieName+": "+c.size());
     ArrayList<Relationship> listy = new ArrayList<Relationship>(c);
-    return relies;
+    query.closeAll();
+    return listy;
   }
   
   public ArrayList<Relationship> getAllRelationshipsForCommunity(String commName){
-    ArrayList<Relationship> relies=new ArrayList<Relationship>();
+    //ArrayList<Relationship> relies=new ArrayList<Relationship>();
     Extent encClass = pm.getExtent(Relationship.class, true);
     String filter2use = "this.communityName == \""+commName+"\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter2use);
     Collection c = (Collection) (acceptedEncounters.execute());
     ArrayList<Relationship> listy = new ArrayList<Relationship>(c);
-    return relies;
+    acceptedEncounters.closeAll();
+    return listy;
   }
   
 
