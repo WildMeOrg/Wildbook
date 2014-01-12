@@ -1524,7 +1524,7 @@ if(relationships.size()>0){
 
 
 <table width="100%" class="tissueSample">
-<th><th><strong><%=props.getProperty("roles") %></strong></th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("type") %></strong></th><th><strong></strong></th><%=props.getProperty("community") %></tr>
+<th><strong><%=props.getProperty("roles") %></strong></th><th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("type") %></strong></th><th><strong><%=props.getProperty("community") %></strong></th></tr>
 <%
 
 int numRels=relationships.size();
@@ -1532,13 +1532,13 @@ for(int f=0;f<numRels;f++){
 	Relationship myRel=relationships.get(f);
 	String indieName1=myRel.getMarkedIndividualName1();
 	String indieName2=myRel.getMarkedIndividualName2();
-	String otherIndyName=indieName1;
+	String otherIndyName=indieName2;
 	String thisIndyRole="";
 	String otherIndyRole="";
 	if(myRel.getMarkedIndividualRole1()!=null){thisIndyRole=myRel.getMarkedIndividualRole1();}
 	if(myRel.getMarkedIndividualRole2()!=null){otherIndyRole=myRel.getMarkedIndividualRole2();}
-	if(otherIndyName.equals(sharky.getName())){
-		otherIndyName=indieName2;
+	if(otherIndyName.equals(sharky.getIndividualID())){
+		otherIndyName=indieName1;
 		thisIndyRole=myRel.getMarkedIndividualRole2();
 		otherIndyRole=myRel.getMarkedIndividualRole1();
 	}
@@ -1550,7 +1550,7 @@ for(int f=0;f<numRels;f++){
 	if(myRel.getRelatedCommunityName()!=null){community=myRel.getRelatedCommunityName();}
 	%>
 	<tr>
-	<td><%=thisIndyRole %>-<%=otherIndyRole %></td>
+	<td><em><%=thisIndyRole %></em>-<%=otherIndyRole %></td>
 	<td>
 	<a target="_blank" href="individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
 		<%
