@@ -508,12 +508,16 @@ $("a#sex").click(function() {
 String timeOfBirth="";
 //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
 if(sharky.getTimeOfBirth()>0){
-	timeOfBirth=(new DateTime(sharky.getTimeOfBirth())).toString();
+	String timeOfBirthFormat="yyyy-MM-d";
+	if(props.getProperty("birthdateJodaFormat")!=null){
+		timeOfBirthFormat=props.getProperty("birthdateJodaFormat");
+	}
+	timeOfBirth=(new DateTime(sharky.getTimeOfBirth())).toString(timeOfBirthFormat);
 	
 }
 
 String displayTimeOfBirth=timeOfBirth;
-if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
+//if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
 
 %>
 <p><%=props.getProperty("birthdate")  %>:
@@ -572,10 +576,14 @@ $("a#birthdate").click(function() {
 <%
 String timeOfDeath="";
 if(sharky.getTimeofDeath()>0){
-	timeOfDeath=(new DateTime(sharky.getTimeofDeath())).toString();
+	String timeOfDeathFormat="yyyy-MM-d";
+	if(props.getProperty("deathdateJodaFormat")!=null){
+		timeOfDeathFormat=props.getProperty("deathdateJodaFormat");
+	}
+	timeOfDeath=(new DateTime(sharky.getTimeofDeath())).toString(timeOfDeathFormat);
 }
 String displayTimeOfDeath=timeOfDeath;
-if(displayTimeOfDeath.indexOf("-")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("-"));}
+//if(displayTimeOfDeath.indexOf("-")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("-"));}
 
 %>
 <p><%=props.getProperty("deathdate")  %>:
