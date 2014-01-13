@@ -703,6 +703,8 @@ public class CaribwhaleMigratorApp {
                     }
                   }
                   
+                  indie.setAlternateID("");
+                  
                   //let's get  previous names
                   if(sheet1.getCell(3, f)!=null){
                     Cell classCell=sheet1.getCell(3, f);
@@ -715,7 +717,9 @@ public class CaribwhaleMigratorApp {
                           existingAltIDs=indie.getAlternateID();
                           if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
                         }
-                        indie.setAlternateID(existingAltIDs+thisClass.trim());
+                        if(existingAltIDs.indexOf(thisClass.trim())==-1){
+                          indie.setAlternateID(existingAltIDs+thisClass.trim());
+                        }
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
                         System.out.println("     Set pre for indie "+indie.getAlternateID());
@@ -735,7 +739,10 @@ public class CaribwhaleMigratorApp {
                           existingAltIDs=indie.getAlternateID();
                           if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
                         }
-                        indie.setAlternateID(existingAltIDs+"AET:"+thisClass.trim());
+                        if(existingAltIDs.indexOf("AET:"+thisClass.trim())==-1){
+                          
+                          indie.setAlternateID(existingAltIDs+"AET:"+thisClass.trim());
+                        }
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
                         System.out.println("     Set AET code for indie "+indie.getAlternateID());
@@ -755,7 +762,10 @@ public class CaribwhaleMigratorApp {
                           existingAltIDs=indie.getAlternateID();
                           if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
                         }
-                        indie.setAlternateID(existingAltIDs+"IFAW:"+thisClass.trim());
+                         if(existingAltIDs.indexOf("IFAW:"+thisClass.trim())==-1){
+                          
+                          indie.setAlternateID(existingAltIDs+"IFAW:"+thisClass.trim());
+                        }
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
                         System.out.println("     Set IFAW code for indie "+indie.getAlternateID());
@@ -776,8 +786,11 @@ public class CaribwhaleMigratorApp {
                           existingAltIDs=indie.getAlternateID();
                           if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
                         }
-                        indie.setAlternateID(existingAltIDs+"STEFFEN:"+thisClass.trim());
-                        myShepherd.commitDBTransaction();
+                        if(existingAltIDs.indexOf("STEFFEN:"+thisClass.trim())==-1){
+                          
+                          indie.setAlternateID(existingAltIDs+"STEFFEN:"+thisClass.trim());
+                        }
+                      myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
                         System.out.println("     Set STEFFEN name for indie "+indie.getAlternateID());
                       }
@@ -796,7 +809,10 @@ public class CaribwhaleMigratorApp {
                           existingAltIDs=indie.getAlternateID();
                           if(!existingAltIDs.trim().equals("")){existingAltIDs+=",";}
                         }
-                        indie.setAlternateID(existingAltIDs+"PERNEL:"+thisClass.trim());
+                        if(existingAltIDs.indexOf("PERNEL:"+thisClass.trim())==-1){
+                          
+                          indie.setAlternateID(existingAltIDs+"PERNEL:"+thisClass.trim());
+                        }
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
                         System.out.println("     Set PERNEL name for indie "+indie.getAlternateID());
