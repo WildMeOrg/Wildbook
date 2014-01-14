@@ -1524,7 +1524,7 @@ if(relationships.size()>0){
 
 
 <table width="100%" class="tissueSample">
-<th><strong><%=props.getProperty("roles") %></strong></th><th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("type") %></strong></th><th><strong><%=props.getProperty("community") %></strong></th></tr>
+<th><strong><%=props.getProperty("roles") %></strong></th><th><strong><%=props.get("relationshipWith") %></strong></th><th><strong><%=props.getProperty("type") %></strong></th><th><strong><%=props.getProperty("community") %></strong></th></tr>
 <%
 
 int numRels=relationships.size();
@@ -1545,7 +1545,7 @@ for(int f=0;f<numRels;f++){
 	MarkedIndividual otherIndy=myShepherd.getMarkedIndividual(otherIndyName);
 	String type="";
 	if(myRel.getType()!=null){type=myRel.getType();}
-
+	
 	String community="";
 	if(myRel.getRelatedCommunityName()!=null){community=myRel.getRelatedCommunityName();}
 	%>
@@ -1554,6 +1554,16 @@ for(int f=0;f<numRels;f++){
 	<td>
 	<a target="_blank" href="individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
 		<%
+		if(otherIndy.getNickName()!=null){
+		%>
+		<br /><%=props.getProperty("nickname") %>: <%=otherIndy.getNickName()%>
+		<%	
+		}
+		if(otherIndy.getAlternateID()!=null){
+		%>
+		<br /><%=props.getProperty("alternateID") %>: <%=otherIndy.getAlternateID()%>
+		<%
+		}
 		if(otherIndy.getSex()!=null){
 		%>
 			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=otherIndy.getSex() %></span>
@@ -1568,7 +1578,7 @@ for(int f=0;f<numRels;f++){
 		%>
 	</td>
 	<td><%=type %></td>
-	<td><%=community %></td>
+	<td><a href="community.jsp?name=<%=community%>"><%=community %></a></td>
 	
 	</tr>
 <%
