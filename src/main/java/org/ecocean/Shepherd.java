@@ -2515,24 +2515,34 @@ public class Shepherd {
 
   //get earliest sighting year for setting search parameters
   public int getEarliestSightingYear() {
-    Query q = pm.newQuery("SELECT min(year) FROM org.ecocean.Encounter where year > 0");
-    int value=((Integer) q.execute()).intValue();
-    q.closeAll();
-    return value;
+    
+    try{
+      Query q = pm.newQuery("SELECT min(year) FROM org.ecocean.Encounter where year > 0");
+      int value=((Integer) q.execute()).intValue();
+      q.closeAll();
+      return value;
+    }
+    catch(Exception e){return -1;}
   }
 
   public int getLastSightingYear() {
-    Query q = pm.newQuery("SELECT max(year) FROM org.ecocean.Encounter");
-    int value=((Integer) q.execute()).intValue();
-    q.closeAll();
-    return value;
+    try{
+      Query q = pm.newQuery("SELECT max(year) FROM org.ecocean.Encounter");
+      int value=((Integer) q.execute()).intValue();
+      q.closeAll();
+      return value;
+    }
+    catch(Exception e){return -1;}
   }
 
   public int getLastMonthOfSightingYear(int yearHere) {
-    Query q = pm.newQuery("SELECT max(month) FROM org.ecocean.Encounter WHERE this.year == " + yearHere);
-    int value=((Integer) q.execute()).intValue();
-    q.closeAll();
-    return value;
+    try{  
+      Query q = pm.newQuery("SELECT max(month) FROM org.ecocean.Encounter WHERE this.year == " + yearHere);
+      int value=((Integer) q.execute()).intValue();
+      q.closeAll();
+      return value;
+    }
+    catch(Exception e){return -1;}
   }
 
   public ArrayList<String> getAllLocationIDs() {
@@ -2603,6 +2613,22 @@ public class Shepherd {
     ArrayList al=new ArrayList(results);
     q.closeAll();
     return al;
+  }
+  
+  public ArrayList<String> getAllCommunityNames() {
+    ArrayList<String> comNames=new ArrayList<String>();
+    Query q = pm.newQuery(Relationship.class);
+    try{
+      
+      q.setResult("distinct relatedCommunityName");
+      q.setOrdering("relatedCommunityName ascending");
+      Collection results = (Collection) q.execute();
+      comNames=new ArrayList<String>(results);
+      
+    }
+    catch(Exception e){}
+    q.closeAll();
+    return comNames;
   }
 
   public ArrayList<String> getAllGenuses() {
