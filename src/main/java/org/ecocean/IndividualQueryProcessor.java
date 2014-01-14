@@ -11,11 +11,15 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.lang.StringBuffer;
+
 import javax.servlet.http.HttpServletRequest;
 //import javax.jdo.Extent;
 import javax.jdo.Query;
+
 import org.ecocean.Util.MeasurementDesc;
+
 import java.util.Iterator;
+
 import org.joda.time.DateTime;
 
 
@@ -1205,7 +1209,7 @@ public class IndividualQueryProcessor {
   }
 
   public static MarkedIndividualQueryResult processQuery(Shepherd myShepherd, HttpServletRequest request, String order){
-    Iterator allSharks;
+      Iterator allSharks;
       Vector<MarkedIndividual> rIndividuals=new Vector<MarkedIndividual>();
       StringBuffer prettyPrint=new StringBuffer();
       Map<String,Object> paramMap = new HashMap<String, Object>();
@@ -1237,7 +1241,22 @@ public class IndividualQueryProcessor {
       }
       catch(NullPointerException npe){}
 
-
+      //community search
+      if(request.getParameterValues("community")!=null){
+        String[] communities=request.getParameterValues("community");
+        int numCommunities=communities.length;
+        for(int i=0;i<numCommunities;i++){
+          for (int q = 0; q < rIndividuals.size(); q++) {
+            MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
+            if(!myShepherd.getAllMarkedIndividualsInCommunity(communities[i]).contains(tShark.getIndividualID())) {
+              rIndividuals.remove(q);
+              q--;
+            }
+          }
+        }  
+      }
+      
+      
 
     //min number of resights
     if ((request.getParameter("numResights") != null) && (!request.getParameter("numResights").equals("")) && (request.getParameter("numResightsOperator") != null)) {
