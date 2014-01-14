@@ -3,29 +3,13 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="java.net.*,java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%
-
-
 	Shepherd myShepherd=new Shepherd();
-
-// pg_dump -Ft sharks > sharks.out
-
-//pg_restore -d sharks2 /home/webadmin/sharks.out
-
-
 %>
 
 <html>
 <head>
-<title><%=CommonConfiguration.getHTMLTitle() %></title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description"
-	content="<%=CommonConfiguration.getHTMLDescription() %>" />
-<meta name="Keywords"
-	content="<%=CommonConfiguration.getHTMLKeywords() %>" />
-<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
+<title>Fix Some Fields</title>
 
-<link rel="shortcut icon"
-	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
 </head>
 
 
@@ -36,9 +20,6 @@ myShepherd.beginDBTransaction();
 
 //build queries
 
-Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
-Query encQuery=myShepherd.getPM().newQuery(encClass);
-Iterator allEncs;
 
 
 
@@ -46,27 +27,47 @@ Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
 Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
 Iterator allSharks;
 
-//empty comment
-
 
 
 try{
 
-
-allEncs=myShepherd.getAllEncounters(encQuery);
 allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
-
-int numLogEncounters=0;
-
-
 
 
 while(allSharks.hasNext()){
 
-	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
-	sharky.setAlternateID(sharky.getAlternateID().replaceAll("None,","").replaceAll("None",""));
+	ArrayList<Encounter> originals=new ArrayList<Encounter>();
 	
-	sharky.resetMaxNumYearsBetweenSightings();
+	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	%>
+	<p>Indie is: <%=sharky.getIndividualID() %>
+	<br />Start encounters: <%=sharky.getEncounters().size() %>
+	
+	<%
+	Vector encs=sharky.getEncounters();
+	int numEncs=encs.size();	
+	for(int i=0;i<numEncs;i++){
+		Encounter enc=(Encounter)encs.get(i);
+		
+		if(!originals.contains(enc)){
+			originals.add(enc);
+		}
+		
+	}
+	%>
+	<br />Num originals: <%=originals.size() %></p>
+	<%
+	for(int i=0;i<originals.size();i++){
+		sharky.removeEncounter(originals.get(i));
+		sharky.addEncounter(originals.get(i));
+	}
+	
+	
+	myShepherd.commitDBTransaction();
+	myShepherd.beginDBTransaction();
+	%>
+	<br />End encounters: <%=sharky.getEncounters().size() %></p>
+	<%
 	
 }
 
@@ -78,21 +79,18 @@ myShepherd.commitDBTransaction();
 
 
 <p>Done successfully!</p>
-<p>numLogEncounters: <%=numLogEncounters %></p>
+
 
 <%
 } 
 catch(Exception ex) {
 
+	System.out.println("!!!An error occurred on page allEncounters.jsp. The error was:");
 	ex.printStackTrace();
-	%>
-	!!!An error occurred on page allEncounters.jsp.
-	<%
 	//System.out.println("fixSomeFields.jsp page is attempting to rollback a transaction because of an exception...");
-	encQuery.closeAll();
-	encQuery=null;
-	sharkQuery.closeAll();
-	sharkQuery=null;
+
+	//sharkQuery.closeAll();
+	//sharkQuery=null;
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 	myShepherd=null;
