@@ -76,13 +76,13 @@ if (myShepherd.isEncounter(num)) {
 
   	
   	//allowed width
-  	int allowedWidth=325;
-  	int offsetLeft=1350;
-  	int offsetRight=445;
+  	//int allowedWidth=325;
+  	//int offsetLeft=1350;
+  	//int offsetRight=445;
  
   	
-  	int leftAdjustmentFactor=0;
-  	int topAdjustmentFactor=0;
+  	//int leftAdjustmentFactor=0;
+  	//int topAdjustmentFactor=0;
   	
 
 
@@ -109,15 +109,15 @@ if (myShepherd.isEncounter(num)) {
         String src_url="..";
         %>
 
-  	<di:image x="0" y="0" srcurl="../images/zazzle/shirt_horizontal-sid2.png" width="2100" height="1800"  />
+  	<di:image x="0" y="0" srcurl="../images/zazzle/shirt_horizontal-sid3.png" width="2100" height="1800"  />
   	<%
   	String sharkURL="http://www.whaleshark.org/GenerateQRCodeImage?number="+individualID;
   	%>
-  	<di:image x="271" y="896" srcurl="<%=sharkURL %>" width="238" height="238"  />
+  	<di:image x="271" y="1091" srcurl="<%=sharkURL %>" width="238" height="238"  />
   	
   	 <!-- indie ID and nickname rendering -->
-  	<di:text x="710" y="906" font="Dakota Regular-plain-65" fillPaint="#000000" ><%=individualID %></di:text>
-  	<di:text x="710" y="1036" font="Dakota Regular-plain-65" fillPaint="#000000" ><%=nickname %></di:text>
+  	<di:text x="710" y="1106" font="Dakota Regular-plain-65" fillPaint="#000000" ><%=individualID %></di:text>
+  	<di:text x="710" y="1236" font="Dakota Regular-plain-65" fillPaint="#000000" ><%=nickname %></di:text>
  
   	<%
 
@@ -167,10 +167,14 @@ if (myShepherd.isEncounter(num)) {
 
     // My estimation of where spots can go without running outside shark
     // silhouette in image file from James Weyenberg
-    int boxleft = 1275;
-    int boxright = 1615;
-    int boxtop = 702;
-    int boxbot = 400;
+    int boxleft = 275;
+    int boxright = 1775;
+    
+    //this is actually the bottom limit of your region for spot definition, measured down from top of graphic
+    int boxtop = 1000;
+    		
+   //this is actually the top limit for spot definition, measured down in pixels from the top of the graphic 		
+    int boxbot = 375;
     
     
     double boxxcenter = (boxleft+boxright)/2.0;
@@ -225,7 +229,7 @@ if (myShepherd.isEncounter(num)) {
       
   %>
   
-<di:circle x="<%=theX %>" y="<%=theY %>" radius="12" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
+<di:circle x="<%=theX %>" y="<%=theY %>" radius="40" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
  
   <%
   if(request.getParameter("debug")!=null){
