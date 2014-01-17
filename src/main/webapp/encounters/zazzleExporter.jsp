@@ -216,6 +216,7 @@ if (myShepherd.isEncounter(num)) {
  <%
     }
     int currentSpotNum=0;
+    int secondarySpotNum=2;
     for (int numIter2 = 0; numIter2 < numSpots; numIter2++) {
       //int theX = (int) ((SuperSpot) spots.get(numIter2)).getTheSpot().getCentroidX();
       //theX=(int)(theX*xMultiple);
@@ -228,6 +229,10 @@ if (myShepherd.isEncounter(num)) {
           int theY = (int)((myY-origycenter)*factor+boxycenter); // array operation
       
   %>
+   <di:circle x="<%=theX %>" y="<%=theY %>" radius="52" fillPaint="#000000"></di:circle>
+   
+ <di:circle x="<%=theX %>" y="<%=theY %>" radius="48" fillPaint="<%=colors[secondarySpotNum] %>"></di:circle>
+   <di:circle x="<%=theX %>" y="<%=theY %>" radius="44" fillPaint="#000000"></di:circle>
   
 <di:circle x="<%=theX %>" y="<%=theY %>" radius="40" fillPaint="<%=colors[currentSpotNum] %>"></di:circle>
  
@@ -249,7 +254,9 @@ if (myShepherd.isEncounter(num)) {
   
   	//track spot number to set from the color palette
   	currentSpotNum++;
+  	secondarySpotNum++;
   	if(currentSpotNum==9){currentSpotNum=0;}
+  	if(secondarySpotNum==9){secondarySpotNum=0;}
     } //end for now
 
 
