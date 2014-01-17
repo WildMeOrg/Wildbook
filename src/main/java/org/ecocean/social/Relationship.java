@@ -40,13 +40,20 @@ public class Relationship implements java.io.Serializable{
   
   private String markedIndividualName1;
   private String markedIndividualRole1;
+  private String markedIndividual1DirectionalDescriptor;
 
   private String markedIndividualName2;
   private String markedIndividualRole2;
+  private String markedIndividual2DirectionalDescriptor;
   
   private String type;
   
   private String relatedComments;
+  
+  private long startTime=-1;
+  private long endTime=-1;
+  
+  private Boolean bidirectional=true;
   
   
   
@@ -97,5 +104,19 @@ public class Relationship implements java.io.Serializable{
   }
   public String getRelatedComments(){return relatedComments;}
   
+  public void setStartTime(long time){startTime=time;}
+  public void setEncTime(long time){endTime=time;}
+  
+  public long getStartTime(){return startTime;}
+  public long getEndTime(){return endTime;}
+  
+  public String getMarkedIndividual1DirectionalDescriptor(){return markedIndividual1DirectionalDescriptor;}
+  public String getMarkedIndividual2DirectionalDescriptor(){return markedIndividual2DirectionalDescriptor;}
+  
+  public void setMarkedIndividual1DirectionalDescriptor(String desc){markedIndividual1DirectionalDescriptor=desc;}
+  public void setMarkedIndividual2DirectionalDescriptor(String desc){markedIndividual2DirectionalDescriptor=desc;}
+  
+  public Boolean getBidirectional(){return bidirectional;}
+  public void setBidirectional(Boolean direction){bidirectional=direction;}
   
 }
