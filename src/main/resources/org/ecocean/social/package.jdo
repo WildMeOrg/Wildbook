@@ -35,6 +35,18 @@
 				<field name="markedIndividualRole2" persistence-modifier="persistent">
 					<column length="100" />
 				</field>
+				
+				<field name="markedIndividual1DirectionalDescriptor" persistence-modifier="persistent" allows-null="true">
+					<column length="100" />
+				</field>
+				<field name="markedIndividual2DirectionalDescriptor" persistence-modifier="persistent" allows-null="true">
+					<column length="100" />
+				</field>
+				
+				<field name="bidirectional" persistence-modifier="persistent">
+						    				<column jdbc-type="BOOLEAN" allows-null="true" />
+			</field>
+				
 				<field name="relatedComments" persistence-modifier="persistent" default-fetch-group="false">
 					<column jdbc-type="LONGVARCHAR" />
 				</field>				
