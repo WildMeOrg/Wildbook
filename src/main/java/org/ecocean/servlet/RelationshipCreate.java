@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import org.joda.time.DateTime;
+
 
 public class RelationshipCreate extends HttpServlet {
 
@@ -84,6 +86,52 @@ public class RelationshipCreate extends HttpServlet {
           if(request.getParameter("relatedCommunityName")!=null){
             rel.setRelatedCommunityName(request.getParameter("relatedCommunityName"));
           }
+          
+          
+          //start and end time setting
+          if(request.getParameter("startTime")!=null){
+            try{
+              String startTime=request.getParameter("startTime");
+              if(!startTime.trim().equals("")){
+                DateTime dt=new DateTime(startTime);
+                rel.setStartTime(dt.getMillis());
+              }
+            }
+            catch(Exception e){}
+          }
+          if(request.getParameter("endTime")!=null){
+            try{
+              String endTime=request.getParameter("endTime");
+              if(!endTime.trim().equals("")){
+                DateTime dt=new DateTime(endTime);
+                rel.setEndTime(dt.getMillis());
+              }
+            }
+            catch(Exception e){}
+          }
+          
+          //relationship descriptors setting
+          if(request.getParameter("markedIndividual1DirectionalDescriptor")!=null){
+            rel.setMarkedIndividual1DirectionalDescriptor(request.getParameter("markedIndividual1DirectionalDescriptor"));
+          }
+          if(request.getParameter("markedIndividual2DirectionalDescriptor")!=null){
+            rel.setMarkedIndividual2DirectionalDescriptor(request.getParameter("markedIndividual2DirectionalDescriptor"));
+          }
+          
+          //bidirectional boolean descriptor setting
+          if(request.getParameter("bidirectional")!=null){
+          
+            String bi=request.getParameter("bidirectional");
+            if(request.getParameter("bidirectional").toLowerCase().trim().equals("true")){
+              rel.setBidirectional(true);
+            }
+            else if(request.getParameter("bidirectional").toLowerCase().trim().equals("false")){
+              rel.setBidirectional(false);
+            }
+          
+          }
+          
+          
           
           myShepherd.getPM().makePersistent(rel);          
           createThisRelationship=true;

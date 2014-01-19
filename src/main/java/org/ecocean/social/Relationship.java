@@ -105,7 +105,7 @@ public class Relationship implements java.io.Serializable{
   public String getRelatedComments(){return relatedComments;}
   
   public void setStartTime(long time){startTime=time;}
-  public void setEncTime(long time){endTime=time;}
+  public void setEndTime(long time){endTime=time;}
   
   public long getStartTime(){return startTime;}
   public long getEndTime(){return endTime;}
