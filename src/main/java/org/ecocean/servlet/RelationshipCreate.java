@@ -65,6 +65,8 @@ public class RelationshipCreate extends HttpServlet {
     if ((request.getParameter("markedIndividualName1") != null) && (request.getParameter("markedIndividualName2") != null) && (request.getParameter("type") != null)) {
       
 
+      boolean isEdit=false;
+      
         Shepherd myShepherd = new Shepherd();
         
         Relationship rel=new Relationship();
@@ -75,8 +77,16 @@ public class RelationshipCreate extends HttpServlet {
 
         if((myShepherd.isMarkedIndividual(request.getParameter("markedIndividualName1")))&&(myShepherd.isMarkedIndividual(request.getParameter("markedIndividualName2")))){
           
-          rel=new Relationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"));
+          if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"), false)){
+            rel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
+          }
+          else{
+            rel=new Relationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"));
+            myShepherd.getPM().makePersistent(rel);          
             
+          }
+          
+          
           if(request.getParameter("markedIndividualRole1")!=null){
             rel.setMarkedIndividualRole1(request.getParameter("markedIndividualRole1"));
           }
@@ -133,7 +143,6 @@ public class RelationshipCreate extends HttpServlet {
           
           
           
-          myShepherd.getPM().makePersistent(rel);          
           createThisRelationship=true;
           
           //check the community and create it if not present
