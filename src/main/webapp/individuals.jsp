@@ -658,7 +658,7 @@ $("a#deathdate").click(function() {
     if (isOwner && CommonConfiguration.isCatalogEditable()) {
   %>
   <font size="-1"><a
-    href="individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
+    href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
   <%
     }
   %>
@@ -814,7 +814,7 @@ $("a#deathdate").click(function() {
     				if(j<20){
     			
     				%>
-    					<a href="individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
+    					<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
     				<%	
     				}
 
@@ -1515,7 +1515,10 @@ else {
 <br/>
 <a name="socialRelationships"></a>
 <p><strong><%=props.getProperty("social")%></strong></p>
-<p>
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<p class="para">
 	<a id="addRelationship" class="launchPopup">
 		<img align="absmiddle" width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit_add.png"/>
 	</a>
@@ -1523,16 +1526,19 @@ else {
 		<%=props.getProperty("addRelationship") %>
 	</a>
 </p>
+<%
+}
+%>
 
 
 <!-- start relationship popup code -->
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
-<div id="dialogRelationship" title="<%=props.getProperty("setRelationship")%>" style="display:none">  
+<div id="dialogRelationship" title="<%=props.getProperty("setRelationship")%>" style="display:none; z-index: 99999 !important">  
 
 <form id="setRelationship" action="RelationshipCreate" method="post">
-<table cellspacing="2" bordercolor="#FFFFFF" >
+<table cellspacing="2" bordercolor="#FFFFFF">
 
 <%
 
@@ -1709,11 +1715,19 @@ $("a#addRelationship").click(function() {
 </script>   
 <%
 }
+
+//setup the javascript to handle displaying an edit tissue sample dialog box
+if( (request.getParameter("edit")!=null) && request.getParameter("edit").equals("relationship")){
 %>
+<script>
+dlgRel.dialog("open");
+</script>  
 
+<%	
+}	
 
-<!-- end relationship popup code -->
-<%
+//end relationship code
+
 ArrayList<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
 
 if(relationships.size()>0){
@@ -1722,7 +1736,15 @@ if(relationships.size()>0){
 
 
 <table width="100%" class="tissueSample">
-<th><strong><%=props.getProperty("roles") %></strong></th><th><strong><%=props.get("relationshipWith") %></strong></th><th><strong><%=props.getProperty("type") %></strong></th><th><strong><%=props.getProperty("community") %></strong></th><th><strong><%=props.getProperty("edit") %></strong></th><th><strong><%=props.getProperty("remove") %></strong></th></tr>
+<th><strong><%=props.getProperty("roles") %></strong></th><th><strong><%=props.get("relationshipWith") %></strong></th><th><strong><%=props.getProperty("type") %></strong></th><th><strong><%=props.getProperty("community") %></strong></th>
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<th><strong><%=props.getProperty("edit") %></strong></th><th><strong><%=props.getProperty("remove") %></strong></th>
+<%
+}
+%>
+</tr>
 <%
 
 int numRels=relationships.size();
@@ -1750,7 +1772,7 @@ for(int f=0;f<numRels;f++){
 	<tr>
 	<td><em><%=thisIndyRole %></em>-<%=otherIndyRole %></td>
 	<td>
-	<a target="_blank" href="individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
+	<a target="_blank" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
 		<%
 		if(otherIndy.getNickName()!=null){
 		%>
@@ -1778,31 +1800,23 @@ for(int f=0;f<numRels;f++){
 	<td><%=type %></td>
 	<td><a href="community.jsp?name=<%=community%>"><%=community %></a></td>
 	
+	<%
+	if (isOwner && CommonConfiguration.isCatalogEditable()) {
+	%>
 	
 	<td>
-		<a href="individuals.jsp?number=<%=request.getParameter("number") %>&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>#socialRelationships"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
+		<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
 	</td>
 	<td>
 		<a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>"><img style="border-style: none;" src="images/cancel.gif" /></a>
 	</td>
-	
+	<%
+	}
+	%>
 	
 	</tr>
 <%
 
-/*
-String markedIndividual1Name="";
-String markedIndividual2Name="";
-String markedIndividual1Role="";
-String markedIndividual2Role="";
-String type="";
-String startTime="";
-String endTime="";
-String bidirectional="";
-String markedIndividual1DirectionalDescriptor="";
-String markedIndividual2DirectionalDescriptor="";
-String communityName="";
-*/
 
 }
 %>
@@ -1845,7 +1859,7 @@ while(othersIterator.hasNext()){
 	MarkedIndividual occurIndy=myShepherd.getMarkedIndividual((String)indy.getKey());
 	%>
 	<tr><td>
-	<a target="_blank" href="individuals.jsp?number=<%=occurIndy.getIndividualID()%>"><%=occurIndy.getIndividualID() %></a>
+	<a target="_blank" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=occurIndy.getIndividualID()%>"><%=occurIndy.getIndividualID() %></a>
 		<%
 		if(occurIndy.getSex()!=null){
 		%>
