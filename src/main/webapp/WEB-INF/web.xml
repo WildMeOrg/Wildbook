@@ -135,6 +135,10 @@
 		   /TissueSampleRemoveBiologicalMeasurement = authc, roles[admin]
 		   /TissueSampleSetMicrosatelliteMarkers  = authc, roles[admin]
 		   /TissueSampleRemoveMicrosatelliteMarkers  = authc, roles[admin]
+		   
+		   /RelationshipCreate  = authc, roles[admin]
+		   /RelationshipDelete  = authc, roles[admin]
+		   
 		   /ImportSRGD = authc, roles[admin]
 		        /IndividualCreate = authc, roles[admin]
 		        /OccurrenceCreate = authc, roles[admin]
@@ -621,7 +625,12 @@
   
     <servlet>
     <servlet-name>RelationshipCreate</servlet-name>
-    <servlet-class>org.ecocean.social.RelationshipCreate</servlet-class>
+    <servlet-class>org.ecocean.servlet.RelationshipCreate</servlet-class>
+  </servlet>
+  
+      <servlet>
+    <servlet-name>RelationshipDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.RelationshipDelete</servlet-class>
   </servlet>
 
   <servlet>
@@ -1193,6 +1202,11 @@
     <servlet-mapping>
     <servlet-name>RelationshipCreate</servlet-name>
     <url-pattern>/RelationshipCreate</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+    <servlet-name>RelationshipDelete</servlet-name>
+    <url-pattern>/RelationshipDelete</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>
