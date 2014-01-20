@@ -386,7 +386,7 @@ $("a#alternateID").click(function() {
     if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
     %>
     
-        <p class="para"><img align="absmiddle" src="images/taxontree.gif">
+        <p><img align="absmiddle" src="images/taxontree.gif">
           <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
        </p>
 
@@ -1506,6 +1506,204 @@ else {
 <br/>
 <a name="socialRelationships"></a>
 <p><strong><%=props.getProperty("social")%></strong></p>
+<p>
+	<a id="addRelationship" class="launchPopup">
+		<img align="absmiddle" width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit_add.png"/>
+	</a>
+	<a id="addRelationship" class="launchPopup">
+		<%=props.getProperty("addRelationship") %>
+	</a>
+</p>
+
+
+<!-- start relationship popup code -->
+<%
+if (isOwner && CommonConfiguration.isCatalogEditable()) {
+%>
+<div id="dialogRelationship" title="<%=props.getProperty("setRelationship")%>" style="display:none">  
+
+<form id="setRelationship" action="RelationshipCreate" method="post">
+<table cellspacing="2" bordercolor="#FFFFFF" >
+
+<%
+
+String markedIndividual1Name="";
+String markedIndividual2Name="";
+String markedIndividual1Role="";
+String markedIndividual2Role="";
+String type="";
+String startTime="";
+String endTime="";
+String bidirectional="";
+String markedIndividual1DirectionalDescriptor="";
+String markedIndividual2DirectionalDescriptor="";
+String communityName="";
+
+if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"),false)){
+
+	Relationship myRel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
+	if(myRel.getMarkedIndividualName1()!=null){
+		markedIndividual1Name=myRel.getMarkedIndividualName1();
+	}
+	if(myRel.getMarkedIndividualName2()!=null){
+		markedIndividual2Name=myRel.getMarkedIndividualName2();
+	}
+	if(myRel.getMarkedIndividualRole1()!=null){
+		markedIndividual1Role=myRel.getMarkedIndividualRole1();
+	}
+	if(myRel.getMarkedIndividualRole2()!=null){
+		markedIndividual2Role=myRel.getMarkedIndividualRole2();
+	}
+	if(myRel.getType()!=null){
+		type=myRel.getType();
+	}
+	if(myRel.getMarkedIndividual1DirectionalDescriptor()!=null){
+		markedIndividual1DirectionalDescriptor=myRel.getMarkedIndividual1DirectionalDescriptor();
+	}
+	if(myRel.getMarkedIndividual2DirectionalDescriptor()!=null){
+		markedIndividual2DirectionalDescriptor=myRel.getMarkedIndividual2DirectionalDescriptor();
+	}
+	
+	if(myRel.getStartTime()>-1){
+		startTime=(new DateTime(myRel.getStartTime())).toString();
+	}
+	if(myRel.getEndTime()>-1){
+		endTime=(new DateTime(myRel.getEndTime())).toString();
+	}
+	
+	if(myRel.getBidirectional()!=null){
+		bidirectional=myRel.getBidirectional().toString();
+	}
+	
+	if(myRel.getRelatedCommunityName()!=null){
+		communityName=myRel.getRelatedCommunityName();
+	}
+	
+	
+}
+
+%>
+
+    <tr>
+      	<td>
+          <%=props.getProperty("type")%> (<%=props.getProperty("required")%>)</td>
+        <td>
+      
+          <input name="type" type="text" size="20" maxlength="100" value="<%=type %>" />
+        </td>
+     </tr>
+     <tr>
+     	<td>
+          
+          <%=props.getProperty("individualID1")%> (<%=props.getProperty("required")%>)</td><td><input name="markedIndividualName1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Name %>" /> 
+       </td>
+   	</tr>
+   	<tr>
+     	<td>
+          <%=props.getProperty("individualRole1")%> (<%=props.getProperty("required")%>)
+         </td>
+         <td>
+         	<input name="markedIndividualRole1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Role %>" /> 
+         </td>
+         
+         <td>
+         	<%=props.getProperty("markedIndividual1DirectionalDescriptor") %>
+         </td>
+         <td>
+         	<input name="markedIndividual1DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual1DirectionalDescriptor %>" />       
+         </td>
+         
+   	</tr>
+   	
+    <tr>
+     	<td>
+          
+          <%=props.getProperty("individualID2")%></td><td><input name="markedIndividualName2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Name %>" /> 
+       </td>
+   	</tr>
+   	<tr>
+     	<td>
+          
+          <%=props.getProperty("individualRole2")%> (<%=props.getProperty("required")%>)</td><td><input name="markedIndividualRole2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Role %>" /> 
+       </td>
+       <td>
+         	<%=props.getProperty("markedIndividual2DirectionalDescriptor") %>
+         </td>
+         <td>
+         	<input name="markedIndividual2DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual2DirectionalDescriptor %>" />       
+         </td>
+   	</tr>
+   	
+   <tr>
+     	<td>
+          
+          <%=props.getProperty("relatedCommunityName")%></td><td><input name="relatedCommunityName" type="text" size="20" maxlength="100" value="<%=communityName %>" /> 
+       </td>
+   	</tr> 	
+   	
+   	   <tr>
+     	<td>
+          
+          <%=props.getProperty("startTime")%></td>
+          <td><input name="startTime" type="text" size="20" maxlength="100" value="<%=startTime %>" /> 
+       </td>
+       <td>
+          
+          <%=props.getProperty("endTime")%></td>
+          <td><input name="endTime" type="text" size="20" maxlength="100" value="<%=endTime %>" /> 
+       </td>
+       
+   	</tr> 	
+   	
+   	<tr>
+     	<td>
+          
+          <%=props.getProperty("bidirectional")%>
+       </td>
+       <td>
+          	<select name="bidirectional">
+          		<option value=""></option>
+          		<option value="true">true</option>
+          		<option value="false">false</option>
+          	</select>
+          	 
+       </td>
+   	</tr> 
+
+            
+    <tr><td colspan="2">
+            	<input name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="Update" />
+   			</td>
+   	</tr>
+   			
+   			
+      </td>
+    </tr>
+  </table>
+</form>	
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgRel = $("#dialogRelationship").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#addRelationship").click(function() {
+  dlgRel.dialog("open");
+  //$("#setRelationship").find("input[type=text], textarea").val("");
+  
+  
+});
+</script>   
+<%
+}
+%>
+
+
+<!-- end relationship popup code -->
 <%
 ArrayList<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
 
@@ -1515,7 +1713,7 @@ if(relationships.size()>0){
 
 
 <table width="100%" class="tissueSample">
-<th><strong><%=props.getProperty("roles") %></strong></th><th><strong><%=props.get("relationshipWith") %></strong></th><th><strong><%=props.getProperty("type") %></strong></th><th><strong><%=props.getProperty("community") %></strong></th></tr>
+<th><strong><%=props.getProperty("roles") %></strong></th><th><strong><%=props.get("relationshipWith") %></strong></th><th><strong><%=props.getProperty("type") %></strong></th><th><strong><%=props.getProperty("community") %></strong></th><th><strong><%=props.getProperty("edit") %></strong></th><th><strong><%=props.getProperty("remove") %></strong></th></tr>
 <%
 
 int numRels=relationships.size();
@@ -1571,8 +1769,31 @@ for(int f=0;f<numRels;f++){
 	<td><%=type %></td>
 	<td><a href="community.jsp?name=<%=community%>"><%=community %></a></td>
 	
+	
+	<td>
+		<a href="individuals.jsp?number=<%=request.getParameter("number") %>&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>#socialRelationships"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
+	</td>
+	<td>
+		<a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>"><img style="border-style: none;" src="images/cancel.gif" /></a>
+	</td>
+	
+	
 	</tr>
 <%
+
+/*
+String markedIndividual1Name="";
+String markedIndividual2Name="";
+String markedIndividual1Role="";
+String markedIndividual2Role="";
+String type="";
+String startTime="";
+String endTime="";
+String bidirectional="";
+String markedIndividual1DirectionalDescriptor="";
+String markedIndividual2DirectionalDescriptor="";
+String communityName="";
+*/
 
 }
 %>
