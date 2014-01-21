@@ -61,7 +61,8 @@ public class Relationship implements java.io.Serializable{
     return relatedCommunityName;
   }
   public void setRelatedCommunityName(String name){
-    relatedCommunityName=name;
+    if(name!=null){relatedCommunityName=name;}
+    else{relatedCommunityName=null;}
   }
 
   public String getType(){return type;}
@@ -72,7 +73,10 @@ public class Relationship implements java.io.Serializable{
     return markedIndividualName1;
   }
   public void setMarkedIndividualName1(String name){
-    markedIndividualName1=name;
+    if(name!=null){
+      markedIndividualName1=name;
+    }
+    else{markedIndividualName1=null;}
   }
   
   
@@ -80,7 +84,8 @@ public class Relationship implements java.io.Serializable{
     return markedIndividualRole1;
   }
   public void setMarkedIndividualRole1(String role){
-    markedIndividualRole1=role;
+    if(role!=null){markedIndividualRole1=role;}
+    else{markedIndividualRole1=null;}
   }
   
   
@@ -88,7 +93,8 @@ public class Relationship implements java.io.Serializable{
     return markedIndividualRole2;
   }
   public void setMarkedIndividualRole2(String role){
-    markedIndividualRole2=role;
+    if(role!=null){markedIndividualRole2=role;}
+    else{markedIndividualRole2=null;}
   }
   
   
@@ -96,11 +102,15 @@ public class Relationship implements java.io.Serializable{
     return markedIndividualName2;
   }
   public void setMarkedIndividualName2(String name){
-    markedIndividualName2=name;
+    if(name!=null){
+      markedIndividualName2=name;
+    }
+    else{markedIndividualName2=null;}
   }
   
   public void setRelatedComments(String comments){
-    relatedComments=comments;
+    if(comments!=null){relatedComments=comments;}
+    else{comments=null;}
   }
   public String getRelatedComments(){return relatedComments;}
   
@@ -113,10 +123,19 @@ public class Relationship implements java.io.Serializable{
   public String getMarkedIndividual1DirectionalDescriptor(){return markedIndividual1DirectionalDescriptor;}
   public String getMarkedIndividual2DirectionalDescriptor(){return markedIndividual2DirectionalDescriptor;}
   
-  public void setMarkedIndividual1DirectionalDescriptor(String desc){markedIndividual1DirectionalDescriptor=desc;}
-  public void setMarkedIndividual2DirectionalDescriptor(String desc){markedIndividual2DirectionalDescriptor=desc;}
+  public void setMarkedIndividual1DirectionalDescriptor(String desc){
+    if(desc!=null){markedIndividual1DirectionalDescriptor=desc;}
+    else{markedIndividual1DirectionalDescriptor=null;}
+  }
+  public void setMarkedIndividual2DirectionalDescriptor(String desc){
+    if(desc!=null){markedIndividual2DirectionalDescriptor=desc;}
+    else{markedIndividual2DirectionalDescriptor=null;}
+  }
   
   public Boolean getBidirectional(){return bidirectional;}
-  public void setBidirectional(Boolean direction){bidirectional=direction;}
+  public void setBidirectional(Boolean direction){
+    if(direction!=null){bidirectional=direction;}
+    else{bidirectional=null;}
+  }
   
 }
