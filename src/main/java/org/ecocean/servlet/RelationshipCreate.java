@@ -90,13 +90,22 @@ public class RelationshipCreate extends HttpServlet {
           if(request.getParameter("markedIndividualRole1")!=null){
             rel.setMarkedIndividualRole1(request.getParameter("markedIndividualRole1"));
           }
+          else{
+            rel.setMarkedIndividualRole1(null);
+          }
+          
           if(request.getParameter("markedIndividualRole2")!=null){
             rel.setMarkedIndividualRole2(request.getParameter("markedIndividualRole2"));
           }
+          else{
+            rel.setMarkedIndividualRole2(null);
+          }
+          
+          
           if(request.getParameter("relatedCommunityName")!=null){
             rel.setRelatedCommunityName(request.getParameter("relatedCommunityName"));
           }
-          
+          else{rel.setRelatedCommunityName(null);}
           
           //start and end time setting
           if(request.getParameter("startTime")!=null){
@@ -106,9 +115,13 @@ public class RelationshipCreate extends HttpServlet {
                 DateTime dt=new DateTime(startTime);
                 rel.setStartTime(dt.getMillis());
               }
+              else{rel.setStartTime(-1);}
             }
             catch(Exception e){}
           }
+          else{rel.setStartTime(-1);}
+          
+          
           if(request.getParameter("endTime")!=null){
             try{
               String endTime=request.getParameter("endTime");
@@ -116,16 +129,25 @@ public class RelationshipCreate extends HttpServlet {
                 DateTime dt=new DateTime(endTime);
                 rel.setEndTime(dt.getMillis());
               }
+              else{rel.setEndTime(-1);}
             }
             catch(Exception e){}
           }
+          else{rel.setEndTime(-1);}
           
           //relationship descriptors setting
           if(request.getParameter("markedIndividual1DirectionalDescriptor")!=null){
             rel.setMarkedIndividual1DirectionalDescriptor(request.getParameter("markedIndividual1DirectionalDescriptor"));
           }
+          else{
+            rel.setMarkedIndividual1DirectionalDescriptor(null);
+          }
+          
           if(request.getParameter("markedIndividual2DirectionalDescriptor")!=null){
             rel.setMarkedIndividual2DirectionalDescriptor(request.getParameter("markedIndividual2DirectionalDescriptor"));
+          }
+          else{
+            rel.setMarkedIndividual2DirectionalDescriptor(null);
           }
           
           //bidirectional boolean descriptor setting
@@ -138,9 +160,10 @@ public class RelationshipCreate extends HttpServlet {
             else if(request.getParameter("bidirectional").toLowerCase().trim().equals("false")){
               rel.setBidirectional(false);
             }
+            else{rel.setBidirectional(null);}
           
           }
-          
+          else{rel.setBidirectional(null);}
           
           
           createThisRelationship=true;
