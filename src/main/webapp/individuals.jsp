@@ -1093,22 +1093,29 @@ $("a#deathdate").click(function() {
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
               File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
-              Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              // iterate through metadata directories
-              Iterator directories = metadata.getDirectoryIterator();
-              while (directories.hasNext()) {
-                Directory directory = (Directory) directories.next();
-                // iterate through tags and print to System.out
-                Iterator tags = directory.getTagIterator();
-                while (tags.hasNext()) {
-                  Tag tag = (Tag) tags.next();
+              if(exifImage.exists()){              
+              	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+              	// iterate through metadata directories
+              	Iterator directories = metadata.getDirectoryIterator();
+              	while (directories.hasNext()) {
+                	Directory directory = (Directory) directories.next();
+                	// iterate through tags and print to System.out
+                	Iterator tags = directory.getTagIterator();
+                	while (tags.hasNext()) {
+                  		Tag tag = (Tag) tags.next();
 
-          %>
+          				%>
 								<%=tag.toString() %><br/>
 								<%
-                      }
                     }
-                    } //end try
+                }
+              } //end if
+              else{
+            	  %>
+		            <p>File not found on file system. No EXIF data available.</p>
+          		<%  
+              }
+            } //end try
             catch(Exception e){
             	 %>
 		            <p>Cannot read metadata for this file.</p>
@@ -1548,6 +1555,8 @@ String communityName="";
 if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"),false)){
 
 	Relationship myRel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
+	//myShepherd.getPM().
+	
 	if(myRel.getMarkedIndividualName1()!=null){
 		markedIndividual1Name=myRel.getMarkedIndividualName1();
 	}
@@ -1594,8 +1603,22 @@ if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter(
       	<td>
           <%=props.getProperty("type")%> (<%=props.getProperty("required")%>)</td>
         <td>
-      
-          <input name="type" type="text" size="20" maxlength="100" value="<%=type %>" />
+        	<select name="type">
+			<%
+			List<String> types=CommonConfiguration.getIndexedValues("relationshipType");
+			int numTypes=types.size();
+			for(int g=0;g<numTypes;g++){
+				
+				String selectedText="";
+				if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
+			%>      
+          		<option <%=selectedText %>><%=types.get(g) %></option>
+          	<%
+			}
+          	%>
+          	</select>
+          
+          
         </td>
      </tr>
      <tr>
@@ -1609,7 +1632,22 @@ if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter(
           <%=props.getProperty("individualRole1")%> (<%=props.getProperty("required")%>)
          </td>
          <td>
-         	<input name="markedIndividualRole1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Role %>" /> 
+         	
+         <select name="markedIndividualRole1">
+			<%
+			List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole");
+			int numRoles=roles.size();
+			for(int g=0;g<numRoles;g++){
+				
+				String selectedText="";
+				if(markedIndividual1Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
+			%>      
+          		<option <%=selectedText %>><%=roles.get(g) %></option>
+          	<%
+			}
+          	%>
+          	</select>
+         
          </td>
          
          <td>
@@ -1630,8 +1668,20 @@ if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter(
    	<tr>
      	<td>
           
-          <%=props.getProperty("individualRole2")%> (<%=props.getProperty("required")%>)</td><td><input name="markedIndividualRole2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Role %>" /> 
-       </td>
+          <%=props.getProperty("individualRole2")%> (<%=props.getProperty("required")%>)</td>
+          <td>
+          	<select name="markedIndividualRole2">
+			<%
+			for(int g=0;g<numRoles;g++){
+				
+				String selectedText="";
+				if(markedIndividual2Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
+			%>      
+          		<option <%=selectedText %>><%=roles.get(g) %></option>
+          	<%
+			}
+          	%>
+          	</select></td>
        <td>
          	<%=props.getProperty("markedIndividual2DirectionalDescriptor") %>
          </td>
