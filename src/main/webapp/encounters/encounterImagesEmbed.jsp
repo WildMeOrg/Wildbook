@@ -282,11 +282,13 @@ int imageCount = 0;
 
         if(!isVideo){
         	File file2process = new File(encountersDir.getAbsolutePath()+"/"+ addText);
-        	Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
-        	String width = Double.toString(imageDimensions.getWidth());
-        	String height = Double.toString(imageDimensions.getHeight());
-        	intHeight = ((new Double(height)).intValue());
-        	intWidth = ((new Double(width)).intValue());
+        	if(file2process.exists()){
+        		Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(file2process);
+        		String width = Double.toString(imageDimensions.getWidth());
+        		String height = Double.toString(imageDimensions.getHeight());
+        		intHeight = ((new Double(height)).intValue());
+        		intWidth = ((new Double(width)).intValue());
+        	}
         }
         
         if (intWidth > thumbnailWidth) {
@@ -452,21 +454,29 @@ String srcurl=encountersDir.getAbsolutePath()+"/"+addText;
             if ((addTextFile.toLowerCase().endsWith("jpg")) || (addTextFile.toLowerCase().endsWith("jpeg"))) {
               try{
               	File exifImage = new File(thisEncounterDir.getAbsolutePath() + "/"+addTextFile);
-              	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              	// iterate through metadata directories
-              	Iterator directories = metadata.getDirectoryIterator();
-              	while (directories.hasNext()) {
-              	  Directory directory = (Directory) directories.next();
-              	  // iterate through tags and print to System.out
-              	  Iterator tags = directory.getTagIterator();
-              	  while (tags.hasNext()) {
-              	    Tag tag = (Tag) tags.next();
+              	if(exifImage.exists()){              
+                  	
+              		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+              		// iterate through metadata directories
+              		Iterator directories = metadata.getDirectoryIterator();
+              		while (directories.hasNext()) {
+              	  		Directory directory = (Directory) directories.next();
+              	  		// iterate through tags and print to System.out
+              	  		Iterator tags = directory.getTagIterator();
+              	  		while (tags.hasNext()) {
+              	    		Tag tag = (Tag) tags.next();
 
-          %>
+          					%>
 								<%=tag.toString() %><br/>
 								<%
               	  } //end while
              	} //end while
+              } //end if
+              else{
+            	  %>
+		            <p>File not found on file system. No EXIF data available.</p>
+          		<%  
+              }
            } //end try
             catch(Exception e){
             %>
