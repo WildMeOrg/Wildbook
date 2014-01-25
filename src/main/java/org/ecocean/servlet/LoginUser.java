@@ -63,17 +63,26 @@ import org.ecocean.*;
 		String salt="";
 		Shepherd myShepherd=new Shepherd();
 		myShepherd.beginDBTransaction();
-		if(myShepherd.getUser(username)!=null){
-		  User user=myShepherd.getUser(username);
-		  salt=user.getSalt();  
-		  if(request.getParameter("acceptUserAgreement")!=null){
-		    user.setAcceptedUserAgreement(true);
-		    myShepherd.commitDBTransaction();
+		
+		try{
+		  if(myShepherd.getUser(username)!=null){
+		    User user=myShepherd.getUser(username);
+		    salt=user.getSalt();  
+		    if(request.getParameter("acceptUserAgreement")!=null){
+		      user.setAcceptedUserAgreement(true);
+		      myShepherd.commitDBTransaction();
+		    }
+		    else{
+		      myShepherd.rollbackDBTransaction();
+		    }
+      
 		  }
 		  else{
 		    myShepherd.rollbackDBTransaction();
 		  }
-      
+		}
+		catch(Exception e){
+		  myShepherd.rollbackDBTransaction();
 		}
 		
 		myShepherd.closeDBTransaction();
@@ -134,6 +143,7 @@ import org.ecocean.*;
 		        url = "/welcome.jsp";}
 		   
 		    }
+		    
 		    myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         
@@ -147,14 +157,20 @@ import org.ecocean.*;
 			
 			
 
-		} catch (UnknownAccountException ex) {
+		} 
+		catch (UnknownAccountException ex) {
 			//username provided was not found
 			ex.printStackTrace();
 			request.setAttribute("error", ex.getMessage() );
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
 			
-		} catch (IncorrectCredentialsException ex) {
+		} 
+		catch (IncorrectCredentialsException ex) {
 			//password provided did not match password found in database
 			//for the username provided
+		  myShepherd.rollbackDBTransaction();
+		  myShepherd.closeDBTransaction();
 			ex.printStackTrace();
 			request.setAttribute("error", ex.getMessage());
 		}

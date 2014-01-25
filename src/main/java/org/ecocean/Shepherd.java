@@ -822,6 +822,9 @@ public class Shepherd {
     return false;
   }
   
+  
+  
+  
   public boolean isRelationship(String type, String markedIndividualName1, String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2, String relatedCommunityName, boolean checkBidirectional) {
     try {
     
