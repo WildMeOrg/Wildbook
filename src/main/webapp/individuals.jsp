@@ -91,12 +91,12 @@
   Shepherd myShepherd = new Shepherd();
 
 
-
-  boolean isOwner = false;
+/*
+  booleaisOwnerer = false;
   if (request.getUserPrincipal()!=null) {
     isOwner = true;
   }
-
+*/
 %>
 
 <html>
@@ -304,7 +304,7 @@ table.tissueSample td {
 
 
       MarkedIndividual sharky = myShepherd.getMarkedIndividual(name);
-      boolean hasAuthority = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
+      boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
 
 %>
 
@@ -341,7 +341,7 @@ if(sharky.getAlternateID()!=null){
 
 %>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
-  <%=altID%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 
   
 </p>
@@ -409,7 +409,7 @@ $("a#alternateID").click(function() {
   <table border="0"><tr><td>
   <%=nickname %>: <%=myNickname%></td>
   <td>
-  <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
   </td>
   </tr>
   <tr><td>
