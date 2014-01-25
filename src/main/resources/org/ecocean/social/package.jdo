@@ -44,7 +44,7 @@
 				</field>
 				
 				<field name="bidirectional" persistence-modifier="persistent">
-						    				<column jdbc-type="BOOLEAN" allows-null="true" />
+						    				<column jdbc-type="bit(1)" allows-null="true" />
 			</field>
 				
 				<field name="relatedComments" persistence-modifier="persistent" default-fetch-group="false">
