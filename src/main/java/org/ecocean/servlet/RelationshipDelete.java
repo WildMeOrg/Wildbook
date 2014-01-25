@@ -58,19 +58,18 @@ public class RelationshipDelete extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
 
-    if ((request.getParameter("markedIndividualName1") != null) && (request.getParameter("markedIndividualName2") != null) && (request.getParameter("type") != null)) {
+    if ((request.getParameter("persistenceID")!=null)&&(!request.getParameter("persistenceID").equals(""))) {
       
 
         Shepherd myShepherd = new Shepherd();
         
         Relationship rel=new Relationship();
-        Community comm=new Community();
-      
+        
         myShepherd.beginDBTransaction();
       
-
-          rel=myShepherd.getRelationship(request.getParameter("type") , request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"));
-            
+          Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));           
+          rel=(Relationship)myShepherd.getPM().getObjectById(identity);
+   
           if(rel!=null){
             myShepherd.getPM().deletePersistent(rel);
             myShepherd.commitDBTransaction();  
