@@ -1552,10 +1552,15 @@ String markedIndividual1DirectionalDescriptor="";
 String markedIndividual2DirectionalDescriptor="";
 String communityName="";
 
-if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"),false)){
+//if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"),false)){
 
-	Relationship myRel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
-	//myShepherd.getPM().
+	if(request.getParameter("persistenceID")!=null){	
+
+	//Relationship myRel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
+	
+	Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));
+	
+	Relationship myRel=(Relationship)myShepherd.getPM().getObjectById(identity);
 	
 	if(myRel.getMarkedIndividualName1()!=null){
 		markedIndividual1Name=myRel.getMarkedIndividualName1();
@@ -1624,7 +1629,27 @@ if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter(
      <tr>
      	<td>
           
-          <%=props.getProperty("individualID1")%> (<%=props.getProperty("required")%>)</td><td><input name="markedIndividualName1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Name %>" /> 
+          <%=props.getProperty("individualID1")%> (<%=props.getProperty("required")%>)</td>
+          <td>
+          
+             <%
+             if((markedIndividual1Name.equals(""))&&(markedIndividual2Name.equals(""))){
+                   	%>
+               			<%=sharky.getIndividualID() %><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID() %>"/>
+               			
+               		<%	
+                  	}
+            else if(!markedIndividual1Name.equals(sharky.getIndividualID())){
+        	%>
+        		<input name="markedIndividualName1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Name %>" /> 
+       		<%
+        	}
+        	else{ 
+       		%>
+       			<%=markedIndividual1Name %><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID() %>"/>
+       		<%
+        	}
+       		%>
        </td>
    	</tr>
    	<tr>
@@ -1660,9 +1685,20 @@ if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter(
    	</tr>
    	
     <tr>
-     	<td>
-          
-          <%=props.getProperty("individualID2")%></td><td><input name="markedIndividualName2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Name %>" /> 
+     	<td><%=props.getProperty("individualID2")%></td>
+        <td>
+   			<%
+             if(!markedIndividual2Name.equals(sharky.getIndividualID())){
+        	%>
+        		<input name="markedIndividualName2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Name %>" /> 
+       		<%
+        	}
+        	else{ 
+       		%>
+       			<%=markedIndividual2Name %><input type="hidden" name="markedIndividualName2" value="<%=sharky.getIndividualID() %>"/>
+       		<%
+        	}
+       		%>
        </td>
    	</tr>
    	<tr>
@@ -1718,9 +1754,23 @@ if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter(
        </td>
        <td>
           	<select name="bidirectional">
+          	
+          	
           		<option value=""></option>
-          		<option value="true">true</option>
-          		<option value="false">false</option>
+          		<%
+          	String selected="";
+          	if(bidirectional.equals("true")){
+          		selected="selected=\"selected\"";
+          	}
+          	%>
+          		<option value="true" <%=selected %>>true</option>
+          		<%
+          	selected="";
+          	if(bidirectional.equals("false")){
+          		selected="selected=\"selected\"";
+          	}
+          	%>
+          		<option value="false" <%=selected %>>false</option>
           	</select>
           	 
        </td>
@@ -1736,6 +1786,15 @@ if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter(
       </td>
     </tr>
   </table>
+  
+  <%
+  if(request.getParameter("persistenceID")!=null){
+  %>
+  	<input name="persistenceID" type="hidden" value="<%=request.getParameter("persistenceID")%>"/>
+  <%
+  }
+  %>
+  
 </form>	
 </div>
                          		<!-- popup dialog script -->
@@ -1843,13 +1902,19 @@ for(int f=0;f<numRels;f++){
 	
 	<%
 	if (isOwner && CommonConfiguration.isCatalogEditable()) {
+		
+		String persistenceID=myShepherd.getPM().getObjectId(myRel).toString();
+		
+		//int bracketLocation=persistenceID.indexOf("[");
+		//persistenceID=persistenceID.substring(0,bracketLocation);
+
 	%>
 	
 	<td>
-		<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
+		<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
 	</td>
 	<td>
-		<a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>"><img style="border-style: none;" src="images/cancel.gif" /></a>
+		<a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a>
 	</td>
 	<%
 	}

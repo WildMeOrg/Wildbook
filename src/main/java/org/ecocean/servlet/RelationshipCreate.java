@@ -61,11 +61,12 @@ public class RelationshipCreate extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean createThisRelationship = false;
 
+    System.out.println("RelationshipCreate: "+request.getQueryString());
 
     if ((request.getParameter("markedIndividualName1") != null) && (request.getParameter("markedIndividualName2") != null) && (request.getParameter("type") != null)) {
       
 
-      boolean isEdit=false;
+      //boolean isEdit=false;
       
         Shepherd myShepherd = new Shepherd();
         
@@ -73,12 +74,17 @@ public class RelationshipCreate extends HttpServlet {
         Community comm=new Community();
       
         myShepherd.beginDBTransaction();
-      
 
         if((myShepherd.isMarkedIndividual(request.getParameter("markedIndividualName1")))&&(myShepherd.isMarkedIndividual(request.getParameter("markedIndividualName2")))){
           
-          if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"), false)){
-            rel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
+          
+          //if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"), false)){
+          //  rel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
+         // }
+          
+          if((request.getParameter("persistenceID")!=null)&&(!request.getParameter("persistenceID").equals(""))){  
+            Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));           
+            rel=(Relationship)myShepherd.getPM().getObjectById(identity);
           }
           else{
             rel=new Relationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"));
@@ -86,6 +92,9 @@ public class RelationshipCreate extends HttpServlet {
             
           }
           
+          if(request.getParameter("type")!=null){
+            rel.setType(request.getParameter("type"));
+          }
           
           if(request.getParameter("markedIndividualRole1")!=null){
             rel.setMarkedIndividualRole1(request.getParameter("markedIndividualRole1"));
