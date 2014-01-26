@@ -1536,7 +1536,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
 <div id="dialogRelationship" title="<%=props.getProperty("setRelationship")%>" style="display:none; z-index: 99999 !important">  
 
 <form id="setRelationship" action="RelationshipCreate" method="post">
-<table cellspacing="2" bordercolor="#FFFFFF">
+<table cellspacing="2" bordercolor="#FFFFFF" >
 
 <%
 
@@ -1605,8 +1605,9 @@ String communityName="";
 %>
 
     <tr>
-      	<td>
-          <%=props.getProperty("type")%> (<%=props.getProperty("required")%>)</td>
+      	<td width="200px">
+          <strong><%=props.getProperty("type")%></strong><br />
+          <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div></td>
         <td>
         	<select name="type">
 			<%
@@ -1629,7 +1630,9 @@ String communityName="";
      <tr>
      	<td>
           
-          <%=props.getProperty("individualID1")%> (<%=props.getProperty("required")%>)</td>
+          <strong><%=props.getProperty("individualID1")%></strong><br />
+           <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div>
+           </td>
           <td>
           
              <%
@@ -1654,7 +1657,8 @@ String communityName="";
    	</tr>
    	<tr>
      	<td>
-          <%=props.getProperty("individualRole1")%> (<%=props.getProperty("required")%>)
+          <strong><%=props.getProperty("individualRole1")%></strong>
+          <br /> <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div>
          </td>
          <td>
          	
@@ -1685,7 +1689,7 @@ String communityName="";
    	</tr>
    	
     <tr>
-     	<td><%=props.getProperty("individualID2")%></td>
+     	<td><strong><%=props.getProperty("individualID2")%></strong></td>
         <td>
    			<%
              if(!markedIndividual2Name.equals(sharky.getIndividualID())){
@@ -1704,7 +1708,8 @@ String communityName="";
    	<tr>
      	<td>
           
-          <%=props.getProperty("individualRole2")%> (<%=props.getProperty("required")%>)</td>
+          <strong><%=props.getProperty("individualRole2")%></strong>
+          <br /> <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div></td>
           <td>
           	<select name="markedIndividualRole2">
 			<%
@@ -1729,19 +1734,21 @@ String communityName="";
    <tr>
      	<td>
           
-          <%=props.getProperty("relatedCommunityName")%></td><td><input name="relatedCommunityName" type="text" size="20" maxlength="100" value="<%=communityName %>" /> 
+          <strong><%=props.getProperty("relatedCommunityName")%></strong></td><td><input name="relatedCommunityName" type="text" size="20" maxlength="100" value="<%=communityName %>" /> 
        </td>
    	</tr> 	
    	
    	   <tr>
      	<td>
           
-          <%=props.getProperty("startTime")%></td>
+          <strong><%=props.getProperty("startTime")%></strong></td>
           <td><input name="startTime" type="text" size="20" maxlength="100" value="<%=startTime %>" /> 
        </td>
+       </tr>
+       <tr>
        <td>
           
-          <%=props.getProperty("endTime")%></td>
+         <strong><%=props.getProperty("endTime")%></strong></td>
           <td><input name="endTime" type="text" size="20" maxlength="100" value="<%=endTime %>" /> 
        </td>
        
@@ -1750,7 +1757,7 @@ String communityName="";
    	<tr>
      	<td>
           
-          <%=props.getProperty("bidirectional")%>
+          <strong><%=props.getProperty("bidirectional")%></strong>
        </td>
        <td>
           	<select name="bidirectional">
