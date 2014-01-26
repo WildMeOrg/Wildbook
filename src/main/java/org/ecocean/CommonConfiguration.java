@@ -519,7 +519,7 @@ public class CommonConfiguration {
   }
   
   
-  public boolean isIntegratedWithWildMe(){
+  public static boolean isIntegratedWithWildMe(){
     
     initialize();
     boolean integrated = true;
