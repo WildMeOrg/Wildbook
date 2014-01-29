@@ -155,9 +155,23 @@ margin-bottom: 8px !important;
 </p>
 <p><em><%=props.getProperty("instructions")%>
 </em></p>
+<%
+String formAction="individualSearchResults.jsp";
+if(request.getParameter("individualDistanceSearch")!=null){
+	formAction="individualDistanceSearchResults.jsp";
+}
 
-<form action="individualSearchResults.jsp" method="get" name="search"
-      id="search">
+%>
+
+
+<form action="<%=formAction %>" method="get" name="search" id="search">
+    <%  
+	if(request.getParameter("individualDistanceSearch")!=null){
+	%>
+		<input type="hidden" name="individualDistanceSearch" value="<%=(request.getParameter("individualDistanceSearch") %>" />
+	<%
+	}
+    %>  
 <table width="810px">
 
 <tr>
