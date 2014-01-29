@@ -168,7 +168,7 @@ if(request.getParameter("individualDistanceSearch")!=null){
     <%  
 	if(request.getParameter("individualDistanceSearch")!=null){
 	%>
-		<input type="hidden" name="individualDistanceSearch" value="<%=(request.getParameter("individualDistanceSearch") %>" />
+		<input type="hidden" name="individualDistanceSearch" value="<%=request.getParameter("individualDistanceSearch") %>" />
 	<%
 	}
     %>  
@@ -1396,7 +1396,7 @@ else {
     
     <table><tr><td style="vertical-align: top">
     	<%=props.getProperty("belongsToCommunity")%>
-    	</td><td> 
+    	</td><td style="vertical-align: top"> 
 			<%
         ArrayList<String> communities = myShepherd.getAllCommunityNames();
         
@@ -1425,8 +1425,11 @@ else {
       <%
       } else {
       %>
-      <p><em><%=props.getProperty("noCommunities")%>
-      </em></p>
+      <em><%=props.getProperty("noCommunities")%>
+      </em>
+      </td>
+      </tr>
+      </table>
       <%
         }
       %>
@@ -1441,11 +1444,13 @@ else {
 <tr>
   <td>
 
-    <p><em> <input name="submitSearch" type="submit" id="submitSearch"
-                   value="<%=props.getProperty("goSearch")%>"></em>
+    
   </td>
 </tr>
 </table>
+
+<input name="submitSearch" type="submit" id="submitSearch"
+                   value="<%=props.getProperty("goSearch")%>" />
 </form>
 </td>
 </tr>
