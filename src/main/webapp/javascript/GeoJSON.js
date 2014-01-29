@@ -60,7 +60,43 @@ var GeoJSON = function( geojson, options, map, bounds,aspect ){
 					path.push(ll);
 				}
 				opts.path = path;
-				googleObj = new google.maps.Polyline(opts);
+				
+				//determine stroke color
+				var polyLineStrokeColor;
+				if(aspect == "sex"){
+					polyLineStrokeColor=geojsonGeometry.sexColor;
+				}
+				else if(aspect == "haplotype"){
+					polyLineStroke=geojsonGeometry.haplotypeColor;
+				}
+				else if(aspect == "species"){
+					polyLineStrokeColor=geojsonGeometry.speciesColor;
+				}
+				else{
+					polyLineStrokeColor=geojsonGeometry.color;
+				}
+				
+				googleObj = new google.maps.Polyline({
+	 				       path: path,
+	 				       visible: true,
+	 				       geodesic: true,
+	 				       strokeOpacity: 0.0,
+	 				       strokeColor: polyLineStrokeColor,
+	 				       icons: [{
+	 				         icon: {
+	 				           path: 'M -1,1 0,0 1,1',
+	 				           strokeOpacity: 1,
+	 				           strokeWeight: 1.5,
+	 				           scale: 6
+	 				           
+	 				         },
+	 				         repeat: '20px'
+	 				         
+	 				       }
+	 				       ],
+	 				       map: map
+	     			});
+	     			
 				if (geojsonProperties) {
 					googleObj.set("geojsonProperties", geojsonProperties);
 				}
