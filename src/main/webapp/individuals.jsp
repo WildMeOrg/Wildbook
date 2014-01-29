@@ -525,7 +525,7 @@ String displayTimeOfBirth=timeOfBirth;
 
 %>
 <p><%=props.getProperty("birthdate")  %>:
-  <%=displayTimeOfBirth%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%=displayTimeOfBirth%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
@@ -591,7 +591,7 @@ String displayTimeOfDeath=timeOfDeath;
 
 %>
 <p><%=props.getProperty("deathdate")  %>:
-  <%=displayTimeOfDeath%> <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%=displayTimeOfDeath%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
