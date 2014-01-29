@@ -425,7 +425,13 @@ function useNoAspect(){
 	if(aspect != "none"){
 		aspect="none";
 		hideTable("haplotable");
+		 <%
+		 if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+		 %>
 		hideTable("speciestable");
+		<%
+		 }
+		 %>
 		clearMap();
 		loadIndividualMapData(geoJSONResults,aspect);
 
@@ -434,7 +440,13 @@ function useNoAspect(){
 function useSexAspect(){
 	//alert("In useSexAspect");
 	hideTable("haplotable");
+	 <%
+	 if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+	 %>
 	hideTable("speciestable");
+	<%
+	 }
+	%>
 	if(aspect != "sex"){
 		aspect="sex";
 		
@@ -446,7 +458,13 @@ function useSexAspect(){
 }
 function useHaplotypeAspect(){
 	//alert("In useHaplotypeAspect");
+	 <%
+ 	if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+ 	%>
 	hideTable("speciestable");
+	<%
+ 	}
+	%>
 	showTable("haplotable");
 	if(aspect != "haplotype"){
 		aspect="haplotype";
@@ -460,9 +478,21 @@ function useHaplotypeAspect(){
 
 function useSpeciesAspect(){
 	//alert("In useHaplotypeAspect");
+	 <%
+ if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+ %>
 	hideTable("speciestable");
+	<%
+ }
+	%>
 	hideTable("haplotable");
+	 <%
+	 if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+	 %>
 	showTable("speciestable");
+	<%
+	 }
+	 %>
 	if(aspect != "species"){
 		aspect="species";
 		clearMap();
@@ -586,7 +616,14 @@ if (request.getQueryString() != null) {
  <p><%=map_props.getProperty("resultsNote")%></p>
  
  <p>
- <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer; color:blue" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSpeciesAspect(); return false;"><%=map_props.getProperty("displayAspectName3") %></a>
+ <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer; color:blue" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>
+  <%
+ if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+ %>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSpeciesAspect(); return false;"><%=map_props.getProperty("displayAspectName3") %></a>
+ <%
+ }
+ %>
  </p>
  
 <p><%=map_props.getProperty("mapNote")%></p>
