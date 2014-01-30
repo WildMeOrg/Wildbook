@@ -1467,7 +1467,15 @@ for(int j=0;j<numTissueSamples;j++){
 			%>
 			<tr>
 				<td style="border-style: none;">
-					<p><span class="caption"><strong><%=props.getProperty("msMarkers") %></strong></span></p>
+					<p><span class="caption"><strong><%=props.getProperty("msMarkers") %></strong></span>&nbsp;
+					<%
+					if(request.getUserPrincipal()!=null){
+					%>
+					<a href="individualSearch.jsp?individualDistanceSearch=<%=sharky.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" src="images/Crystal_Clear_app_xmag.png"></img></a>
+					<%
+					}
+					%>
+					</p>
 					<span class="caption"><%=mito.getAllelesHTMLString() %></span>
 				</td>
 				</tr></li>

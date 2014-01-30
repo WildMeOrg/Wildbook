@@ -147,21 +147,25 @@ margin-bottom: 8px !important;
 <tr>
 <td>
 <p>
+<%
+String titleString=props.getProperty("title");
+String formAction="individualSearchResults.jsp";
+if(request.getParameter("individualDistanceSearch")!=null){
+	formAction="individualDistanceSearchResults.jsp";
+	titleString=props.getProperty("geneticDistanceTitle");
+}
+
+
+%>
+
 
 <h1 class="intro"><strong><span class="para">
 		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
-  <%=props.getProperty("title")%>
+  <%=titleString%>
 </h1>
 </p>
 <p><em><%=props.getProperty("instructions")%>
 </em></p>
-<%
-String formAction="individualSearchResults.jsp";
-if(request.getParameter("individualDistanceSearch")!=null){
-	formAction="individualDistanceSearchResults.jsp";
-}
-
-%>
 
 
 <form action="<%=formAction %>" method="get" name="search" id="search">
