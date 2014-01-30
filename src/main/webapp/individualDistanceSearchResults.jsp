@@ -231,6 +231,9 @@ Map myMap=MyFuns.sortMapByDoubleValue(returnedValues);
 
 //now do something
 %>
+
+<p>Potential Matches: <%=(indieNames.length-1) %> individuals</p>
+
 <table id="results">
 <tr class="lineitem">
 	<th class="lineitem"  bgcolor="#99CCFF">Individual</th>
@@ -259,7 +262,7 @@ while(keyIter.hasNext()){
 	MarkedIndividual thisIndie=myShepherd.getMarkedIndividual(individualID);
 	String value=(String)myMap.get(individualID);
 	double val=(new Double(value)).doubleValue();
-	if(val<0.714){
+	//if(val<0.714){
 	%>
 	<tr class="lineitem">
 		<td class="lineitem" ><a href="individuals.jsp?number=<%=individualID %>"><%=individualID %></a></td>
@@ -281,7 +284,7 @@ while(keyIter.hasNext()){
 		
 	</tr>
 	<%
-	}
+	//}
 }
 
 %>
