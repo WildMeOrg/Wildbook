@@ -35,9 +35,9 @@ public class DistanceComparator implements Comparator {
     double bd=(new Double((String)b_enc.getValue())).doubleValue();
 
      if (ad < bd) {
-        return 1;
-      } else if (ad > bd) {
         return -1;
+      } else if (ad > bd) {
+        return 1;
       }
       return 0;
       
