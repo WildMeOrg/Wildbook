@@ -124,7 +124,7 @@ public class ShareDst{
    * @parameter noDivide Whether to divide by 2r- for smaller output
    * @parameter lowTriangle Only show lower triangle for smaller output
    */
-  public static String getDistanceOuput(String individualNames[], String lociNames[],boolean noDivide, boolean lowTriangle){
+  public static String getDistanceOuput(String individualNames[], String lociNames[],boolean noDivide, boolean lowTriangle, String EOL, String DELIM){
 
     String output = "";
 		
@@ -141,9 +141,9 @@ public class ShareDst{
     hash.put ("empty", new Integer (maxCode ++));
     
   //String EOL = NOBoutput.getEOL ();
-    String EOL = "\n";
+    //String EOL = "\n";
     //String DELIM = NOBoutput.getDelim ();
-    String DELIM = " ";
+    //String DELIM = " ";
     
     
     //String individualNames[] = null;
@@ -268,17 +268,15 @@ public class ShareDst{
 
     //pb.finalize ();
 
-    output = output.concat ("There are " + numIndividuals + " individuals and " + numLoci + " loci.\n");
+    //output = output.concat ("There are " + numIndividuals + " individuals and " + numLoci + " loci.\n");
     if (noDivide)
       {
 
-	output = output.concat (  "\nUnShared Allele Count\n"
-				  +   "======================\n" );
+      //output = output.concat (  "\nUnShared Allele Count\n" +   "======================\n" );
       }
     else
       {
-	output = output.concat (  "\nShared Allele Distance\n"
-				  +   "======================\n" );
+      //output = output.concat (  "\nShared Allele Distance\n"+   "======================\n" );
       }	
 
     //pb = new ProgressBar (this, "Formatting output:  ");
