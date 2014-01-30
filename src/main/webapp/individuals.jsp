@@ -1471,7 +1471,7 @@ for(int j=0;j<numTissueSamples;j++){
 					<%
 					if(request.getUserPrincipal()!=null){
 					%>
-					<a href="individualSearch.jsp?individualDistanceSearch=<%=sharky.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" src="images/Crystal_Clear_app_xmag.png"></img></a>
+					<a href="individualSearch.jsp?individualDistanceSearch=<%=sharky.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" alt="Individual-to-Individual Genetic Distance Search" src="images/Crystal_Clear_app_xmag.png"></img></a>
 					<%
 					}
 					%>
