@@ -185,10 +185,10 @@ public class ShareDst{
 	          if (! hash.containsKey (vals.get(1))) {hash.put (vals.get(1), new Integer (maxCode ++));}
 	          //return ((Integer) hash.get (s) ).intValue ();
 	          genoTypes[i][j+1] = ((Integer)hash.get(vals.get(1))).intValue();
-	        }
-	        else{
-	          genoTypes[i][j+1] = ((Integer)hash.get("empty")).intValue();
-	        }
+	       }
+	       else{
+	            genoTypes[i][j+1] = ((Integer)hash.get("empty")).intValue();
+	       }
 	      
 	      j=j+2;
 	    }
