@@ -1307,10 +1307,10 @@ public ArrayList<Integer> getAlleleValuesForLocus(String locus){
             MicrosatelliteMarkersAnalysis msa=(MicrosatelliteMarkersAnalysis)ga;
             if(msa.getLocus(locus)!=null){
                Locus l=msa.getLocus(locus);
-               if((l.getAllele0()!=null)&&(!matchingValues.contains(l.getAllele0()))){matchingValues.add(l.getAllele0());}
-               if((l.getAllele1()!=null)&&(!matchingValues.contains(l.getAllele1()))){matchingValues.add(l.getAllele1());}
-               if((l.getAllele2()!=null)&&(!matchingValues.contains(l.getAllele2()))){matchingValues.add(l.getAllele2());}
-               if((l.getAllele3()!=null)&&(!matchingValues.contains(l.getAllele3()))){matchingValues.add(l.getAllele3());}
+               if((l.getAllele0()!=null)){matchingValues.add(l.getAllele0());}
+               if((l.getAllele1()!=null)){matchingValues.add(l.getAllele1());}
+               if((l.getAllele2()!=null)){matchingValues.add(l.getAllele2());}
+               if((l.getAllele3()!=null)){matchingValues.add(l.getAllele3());}
             }
           }
         }
