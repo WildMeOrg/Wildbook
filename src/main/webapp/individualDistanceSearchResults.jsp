@@ -74,27 +74,41 @@
     rIndividuals = result.getResult();
     int numIndividuals=rIndividuals.size();
     
+    if((request.getParameter("individualDistanceSearch")!=null)&&(myShepherd.isMarkedIndividual(request.getParameter("individualDistanceSearch")))){
+    	MarkedIndividual compareAgainst=myShepherd.getMarkedIndividual(request.getParameter("individualDistanceSearch"));
+    	if(rIndividuals.contains(compareAgainst)){rIndividuals.remove(compareAgainst);numIndividuals--;}
+    }
+    
     ArrayList<String> loci=myShepherd.getAllLoci();
-    ArrayList<String> indieNames=new ArrayList<String>();
+    int numLoci=loci.size();
+    String[] theLoci=new String[numLoci];
+    for(int q=0;q<numLoci;q++){
+    	theLoci[q]=loci.get(q);
+    }
+    
+    
+    //ArrayList<String> indieNames=new ArrayList<String>();
+    String[] indieNames=new String[numIndividuals+1];
     if(request.getParameter("individualDistanceSearch")!=null){
     	String individualDistanceSearchID=request.getParameter("individualDistanceSearch");
-    	indieNames.add(0,individualDistanceSearchID);
+    	indieNames[0]=individualDistanceSearchID;
     }
     
     for(int i=0;i<numIndividuals;i++){
     	String indieName=rIndividuals.get(i).getIndividualID();
-    	if(!indieNames.contains(indieName)){indieNames.add(indieName);}
+    	indieNames[i+1]=indieName;
     }
     
     String individualDistanceSearchID="";
     
     if(request.getParameter("individualDistanceSearch")!=null){
     	individualDistanceSearchID=request.getParameter("individualDistanceSearch");
-    	indieNames.add(0,individualDistanceSearchID);
+    	//indieNames.add(0,individualDistanceSearchID);
     }
     
-    
-    String distanceOutput=ShareDst.getDistanceOuput((String[])indieNames.toArray(), (String[])loci.toArray(),false, false);
+    //String[] myNames=(String[])indieNames.toArray();
+    //String[] myLoci=(String[])loci.toArray();
+    String distanceOutput=ShareDst.getDistanceOuput(indieNames, theLoci,false, false);
 
 
 
