@@ -67,7 +67,7 @@ var GeoJSON = function( geojson, options, map, bounds,aspect ){
 					polyLineStrokeColor=geojsonGeometry.sexColor;
 				}
 				else if(aspect == "haplotype"){
-					polyLineStroke=geojsonGeometry.haplotypeColor;
+					polyLineStrokeColor=geojsonGeometry.haplotypeColor;
 				}
 				else if(aspect == "species"){
 					polyLineStrokeColor=geojsonGeometry.speciesColor;
