@@ -1245,7 +1245,9 @@ public class IndividualQueryProcessor {
       if(request.getParameterValues("community")!=null){
         String[] communities=request.getParameterValues("community");
         int numCommunities=communities.length;
+        prettyPrint.append("Community is one of the following: ");
         for(int i=0;i<numCommunities;i++){
+          prettyPrint.append(communities[i]+" ");
           for (int q = 0; q < rIndividuals.size(); q++) {
             MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
             if(!myShepherd.getAllMarkedIndividualsInCommunity(communities[i]).contains(tShark)) {
@@ -1254,7 +1256,68 @@ public class IndividualQueryProcessor {
             }
           }
         }  
+        prettyPrint.append("<br />");
       }
+      
+      //role search
+      if(request.getParameterValues("role")!=null){
+        boolean orRoles=true;
+        if(request.getParameter("andRoles")!=null){orRoles=false;}
+        String[] roles=request.getParameterValues("role");
+        int numRoles=roles.length;
+        if(!orRoles){
+          prettyPrint.append("Social roles include all of the following: ");
+        }
+        else{
+          prettyPrint.append("Social roles is one of the following: ");
+        }
+        
+        
+          
+          //logical OR the roles
+            for (int q = 0; q<rIndividuals.size(); q++) {
+              MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
+              ArrayList<String> myRoles=myShepherd.getAllRoleNamesForMarkedIndividual(tShark.getIndividualID());
+              
+              if(orRoles){
+                
+                //logical OR the role
+                boolean hasRole=false;
+                int f=0;
+                while(!hasRole && (f<numRoles)){
+                  if(myRoles.contains(roles[f])){hasRole=true;}
+                  f++;
+                }
+                if(!hasRole) {
+                   rIndividuals.remove(q);
+                   q--;
+                }              
+              }
+              else{
+                
+                //logical AND the roles
+                boolean hasRole=true;
+                int f=0;
+                while(hasRole && (f<numRoles)){
+                  if(!myRoles.contains(roles[f])){hasRole=false;}
+                  f++;
+                }
+                if(!hasRole) {
+                   rIndividuals.remove(q);
+                   q--;
+                }  
+                
+                
+              }
+              
+         
+        }
+        
+        
+        
+        prettyPrint.append("<br />");
+      }
+      
       
       
 
