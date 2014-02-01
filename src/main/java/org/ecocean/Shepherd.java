@@ -2860,6 +2860,26 @@ public class Shepherd {
     return listy;
   }
   
+  public ArrayList<String> getAllRoleNamesForMarkedIndividual(String indieName){
+    ArrayList<String> roles=new ArrayList<String>();
+    
+    ArrayList<Relationship> rels=getAllRelationshipsForMarkedIndividual(indieName);
+    int numRels=rels.size();
+    for(int i=0;i<numRels;i++){
+      
+      Relationship rel=rels.get(i);
+      if((rel.getMarkedIndividualName1().equals(indieName))&&(rel.getMarkedIndividualRole1()!=null)&&(!roles.contains(rel.getMarkedIndividualRole1()))){
+        roles.add(rel.getMarkedIndividualRole1());
+      }
+      if((rel.getMarkedIndividualName2().equals(indieName))&&(rel.getMarkedIndividualRole2()!=null)&&(!roles.contains(rel.getMarkedIndividualRole2()))){
+        roles.add(rel.getMarkedIndividualRole2());
+      }
+      
+    }
+    
+    return roles;
+  }
+  
   public ArrayList<Relationship> getAllRelationshipsForCommunity(String commName){
     //ArrayList<Relationship> relies=new ArrayList<Relationship>();
     Extent encClass = pm.getExtent(Relationship.class, true);
