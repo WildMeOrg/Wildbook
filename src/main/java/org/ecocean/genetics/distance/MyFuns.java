@@ -6,8 +6,7 @@
 package org.ecocean.genetics.distance;
 
 import java.lang.Math;
-import java.util.StringTokenizer;
-import java.util.Hashtable;
+import java.util.List;
 import java.util.*;
 import java.awt.*;
 
@@ -975,5 +974,23 @@ outside:	for (i=0; i < n.length; ++i )
 
 		return t;
 	}
+	
+	 public static Map sortMapByDoubleValue(Map unsortMap) {
+	   
+	    List list = new LinkedList(unsortMap.entrySet());
+	 
+	    // sort list based on comparator
+	    Collections.sort(list, new DistanceComparator());
+	 
+	    // put sorted list into map again
+	                //LinkedHashMap make sure order in which keys were inserted
+	    Map sortedMap = new LinkedHashMap();
+	    for (Iterator it = list.iterator(); it.hasNext();) {
+	      Map.Entry entry = (Map.Entry) it.next();
+	      sortedMap.put(entry.getKey(), entry.getValue());
+	    }
+	    return sortedMap;
+	  }
+	
 
 }
