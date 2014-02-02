@@ -79,13 +79,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
 
     //start the query and get the results
     String order = "";
-    
-    //determien if we should use locationID to determine some generic mapping points
-    boolean useLocales=false;
-    if(request.getParameter("useLocales")!=null){
-      useLocales=true;
-    }
-    else{request.setAttribute("gpsOnly", "yes");}
+    request.setAttribute("gpsOnly", "yes");
     MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, order);
     rIndividuals = queryResult.getResult();
     int numIndividuals=rIndividuals.size();
@@ -103,46 +97,16 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
       indieMappedPoints.put("features", featureList);
       
       
-      
       for(int i=0;i<numIndividuals;i++) {
         MarkedIndividual indie=(MarkedIndividual)rIndividuals.get(i);
-        
-        Vector rEncounters=indie.returnEncountersWithGPSData(useLocales,true); 
+        Vector rEncounters=indie.returnEncountersWithGPSData(true,true); 
         int numEncs=rEncounters.size();
-        
-        //set up move path
-        JSONArray[] movePathCoords=new JSONArray[numEncs];
-        
-        //set up colors
-        String baseColor="C0C0C0";
-        String sexColor="C0C0C0";
-        String haploColor="C0C0C0";
-        String speciesColor="C0C0C0";
-        
-        //now check if we should show by sex
-        if(indie.getSex().equals("male")){
-            sexColor="0000FF";
-          }
-          else if(indie.getSex().equals("female")){
-            sexColor="FF00FF";
-          }
-          
-        //set the haplotype color
-        if((indie.getHaplotype()!=null)&&(haploprops.getProperty(indie.getHaplotype())!=null)){
-            if(!haploprops.getProperty(indie.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(indie.getHaplotype());}
-        }
-        //set the species color
-        if(indie.getGenusSpecies()!=null){
-          speciesColor=speciesTable.get(indie.getGenusSpecies());
-        }
-        
-        
+        boolean showMovePath=false;
         for(int yh=0;yh<numEncs;yh++){
           Encounter enc=(Encounter)rEncounters.get(yh);
           Double thisEncLat=null;
           Double thisEncLong=null;
        
-          //
         //first check if the Encounter object has lat and long values
           if((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null)){
             thisEncLat=enc.getLatitudeAsDouble();
@@ -150,7 +114,6 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
           }
           //let's see if locales.properties has a location we can use
           else{
-            if(useLocales){
                    try {
                         String lc = enc.getLocationCode();
                         if (localeprops.getProperty(lc) != null) {
@@ -164,7 +127,6 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
                         e.printStackTrace();
                         System.out.println("     I hit an error getting locales in individualMappedSearchResults.jsp.");
                       }
-            }
           }
         //test example
           // {"geometry": {"type": "Point", "coordinates": [-94.149, 36.33]}
@@ -173,7 +135,6 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              
              // construct a JSONArray from a string; can also use an array or list
              JSONArray coord = new JSONArray("["+thisEncLong.toString()+","+thisEncLat.toString()+"]");
-             movePathCoords[yh]=coord;
              point.put("coordinates", coord);
              point.put("catalogNumber",enc.getCatalogNumber());
              point.put("rootURL",CommonConfiguration.getURLLocation(request));
@@ -182,7 +143,27 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              point.put("date",enc.getDate());
              
              
+             String baseColor="C0C0C0";
+             String sexColor="C0C0C0";
+             String haploColor="C0C0C0";
+             String speciesColor="C0C0C0";
              
+             //now check if we should show by sex
+             if(indie.getSex().equals("male")){
+                 sexColor="0000FF";
+               }
+               else if(indie.getSex().equals("female")){
+                 sexColor="FF00FF";
+               }
+               
+             //set the haplotype color
+             if((indie.getHaplotype()!=null)&&(haploprops.getProperty(indie.getHaplotype())!=null)){
+                 if(!haploprops.getProperty(indie.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(indie.getHaplotype());}
+             }
+             //set the species color
+             if(indie.getGenusSpecies()!=null){
+               speciesColor=speciesTable.get(indie.getGenusSpecies());
+             }
              
              
              //end color
@@ -202,43 +183,12 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
           
         }
         
-        //let's do the move path, one per shark
-        if(numEncs>1){
-          JSONObject lineString = new JSONObject();
-          lineString.put("type", "LineString");
-          JSONObject lsFeature = new JSONObject();
-          
-          StringBuffer sumCoords=new StringBuffer("[ ");
-          for(int p=0;p<movePathCoords.length;p++){
-            sumCoords.append((movePathCoords[p].toString()+", "));
-          }
-          sumCoords.append(" ]");
-          JSONArray coord = new JSONArray(sumCoords.toString());
-          
-          
-          lineString.put("type", "LineString");
-          lineString.put("color",baseColor);
-          lineString.put("sexColor",sexColor);
-          lineString.put("haplotypeColor",haploColor);
-          lineString.put("speciesColor",speciesColor);
-          lineString.put("coordinates", coord);
-          
-          //set up feature
-          JSONObject props = new JSONObject();
-          lsFeature.put("properties", props);
-          lsFeature.put("geometry", lineString);
-          lsFeature.put("type", "Feature");
-          featureList.put(lsFeature);
-          
-          
-        }
-        
     
         
         
        
         
-       } //end for
+        } //end for
    
 
       myShepherd.commitDBTransaction();
