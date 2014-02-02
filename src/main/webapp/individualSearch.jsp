@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
+         import="org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
   Shepherd myShepherd = new Shepherd();
@@ -1398,9 +1398,14 @@ else {
   <td>
     <div id="social" style="display:none;">
     
-    <table><tr><td style="vertical-align: top">
-    	<%=props.getProperty("belongsToCommunity")%>
-    	</td><td style="vertical-align: top"> 
+    <table>
+    	<tr>
+    		<td style="vertical-align: top">
+    			<strong><%=props.getProperty("belongsToCommunity")%></strong>
+    		</td>
+    		</tr>
+    		<tr>
+    		<td style="vertical-align: top"> 
 			<%
         ArrayList<String> communities = myShepherd.getAllCommunityNames();
         
@@ -1437,6 +1442,58 @@ else {
       <%
         }
       %>
+      
+      
+          <table>
+    	<tr>
+    		<td style="vertical-align: top">
+    			<strong><%=props.getProperty("socialRoleIs")%></strong><br />
+    			<input type="checkbox" name="andRoles"/>&nbsp;<em><%=props.getProperty("andRoles")%></em>
+    		</td>
+    		</tr>
+    		<tr>
+    		<td style="vertical-align: top"> 
+			<%
+        //ArrayList<String> roles = myShepherd.getAllRoleNames();
+        
+		List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole");
+			
+		//System.out.println(haplos.toString());
+
+        if ((roles!=null)&&(roles.size()>0)) {
+        	int totalNames = roles.size();
+        
+      %>
+
+      <select multiple size="10" name="role" id="role">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < totalNames; n++) {
+            String word = roles.get(n);
+            if ((word!=null)&&(!word.equals(""))) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select></td>
+      </tr>
+      </table>
+      <%
+      } else {
+      %>
+      <em><%=props.getProperty("noRoles")%>
+      </em>
+      </td>
+      </tr>
+      </table>
+      <%
+        }
+      %>
+      
+      
+      
     </div>
   </td>
 </tr>
