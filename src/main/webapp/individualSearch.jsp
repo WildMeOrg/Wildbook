@@ -147,21 +147,25 @@ margin-bottom: 8px !important;
 <tr>
 <td>
 <p>
+<%
+String titleString=props.getProperty("title");
+String formAction="individualSearchResults.jsp";
+if(request.getParameter("individualDistanceSearch")!=null){
+	formAction="individualDistanceSearchResults.jsp";
+	titleString=props.getProperty("geneticDistanceTitle");
+}
+
+
+%>
+
 
 <h1 class="intro"><strong><span class="para">
-		<img src="images/tag_big.gif" width="50" align="absmiddle"/></span></strong>
-  <%=props.getProperty("title")%>
+		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
+  <%=titleString%>
 </h1>
 </p>
 <p><em><%=props.getProperty("instructions")%>
 </em></p>
-<%
-String formAction="individualSearchResults.jsp";
-if(request.getParameter("individualDistanceSearch")!=null){
-	formAction="individualDistanceSearchResults.jsp";
-}
-
-%>
 
 
 <form action="<%=formAction %>" method="get" name="search" id="search">
@@ -189,7 +193,7 @@ if(request.getParameter("individualDistanceSearch")!=null){
 
 <script type="text/javascript">
 //alert("Prepping map functions.");
-var center = new google.maps.LatLng(15, -61);
+var center = new google.maps.LatLng(0, 0);
 
 var map;
 
@@ -208,8 +212,7 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	//test comment
-	var mapZoom = 2;
+	var mapZoom = 1;
 	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -463,12 +466,6 @@ function FSControl(controlDiv, map) {
       <%
         }
       %>
-      <p>
-       	<input name="useLocales" type="checkbox" id="useLocales" value="true" /> <%=props.getProperty("useLocales")%>
-      </p>               
-        	
-        
-      
     </div>
   </td>
 
