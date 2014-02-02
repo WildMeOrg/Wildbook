@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, org.ecocean.genetics.distance.*,java.util.Properties, java.util.Vector,java.util.ArrayList" %>
+         import="java.util.Map,java.util.Iterator,java.util.Set,java.util.TreeMap,java.util.StringTokenizer,org.ecocean.*, org.ecocean.genetics.distance.*,java.util.Properties, java.util.Vector,java.util.ArrayList" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -34,7 +34,7 @@
     if (session.getAttribute("langCode") != null) {
       langCode = (String) session.getAttribute("langCode");
     }
-    props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
+    props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualDistanceSearchResults.properties"));
 
 
 
@@ -108,7 +108,7 @@
     
     //String[] myNames=(String[])indieNames.toArray();
     //String[] myLoci=(String[])loci.toArray();
-    String distanceOutput=ShareDst.getDistanceOuput(indieNames, theLoci,false, false);
+    String distanceOutput=ShareDst.getDistanceOuput(indieNames, theLoci,false, false,"\n"," ");
 
 
 
@@ -192,19 +192,47 @@
 
       <h1 class="intro"><span class="para"><img src="images/wild-me-logo-only-100-100.png" width="35"
                                                 align="absmiddle"/>
-        <%=props.getProperty("title")%>
+        <%=props.getProperty("title")%> <a href="individuals.jsp?number=<%=individualDistanceSearchID %>"><%=individualDistanceSearchID %></a>
       </h1>
 
     </td>
   </tr>
 </table>
 
-<p><%=distanceOutput %></p>
+<%
+TreeMap<String,String> returnedValues=new TreeMap<String,String>();
 
+StringTokenizer str=new StringTokenizer(distanceOutput,"\n");
+int numLines=str.countTokens();
+
+for(int f=0;f<numLines;f++){
+	String line=str.nextToken();
+	StringTokenizer thisEntry=new StringTokenizer(line, " ");
+	returnedValues.put(thisEntry.nextToken(), thisEntry.nextToken());
+}
+
+Map myMap=MyFuns.sortMapByDoubleValue(returnedValues);
+
+//now do something
+%>
+<table id="results">
+<tr class="lineitem"><th class="lineitem"  bgcolor="#99CCFF">Marked Individual</th><th class="lineitem"  bgcolor="#99CCFF">Distance</th></tr>
 <%
 
+Set<String> keys=myMap.keySet();
+Iterator keyIter=keys.iterator();
+while(keyIter.hasNext()){
+	String individualID=(String)keyIter.next();
+	String value=(String)myMap.get(individualID);
+	%>
+	<tr class="lineitem"><td class="lineitem" ><a href="individuals.jsp?number=<%=individualID %>"><%=individualID %></a></td><td class="lineitem"><%=value %></td></tr>
+	<%
+}
 
+%>
 
+</table>
+<%
 
   myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
