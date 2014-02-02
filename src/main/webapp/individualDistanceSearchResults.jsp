@@ -65,7 +65,7 @@
 
     int numResults = 0;
 
-
+	MarkedIndividual compareAgainst=new MarkedIndividual();
     Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
     myShepherd.beginDBTransaction();
     String order ="";
@@ -75,7 +75,7 @@
     int numIndividuals=rIndividuals.size();
     
     if((request.getParameter("individualDistanceSearch")!=null)&&(myShepherd.isMarkedIndividual(request.getParameter("individualDistanceSearch")))){
-    	MarkedIndividual compareAgainst=myShepherd.getMarkedIndividual(request.getParameter("individualDistanceSearch"));
+    	compareAgainst=myShepherd.getMarkedIndividual(request.getParameter("individualDistanceSearch"));
     	if(rIndividuals.contains(compareAgainst)){rIndividuals.remove(compareAgainst);numIndividuals--;}
     }
     
@@ -85,6 +85,8 @@
     for(int q=0;q<numLoci;q++){
     	theLoci[q]=loci.get(q);
     }
+    
+    String compareAgainstAllelesString=compareAgainst.getFomattedMSMarkersString(theLoci);
     
     
     //ArrayList<String> indieNames=new ArrayList<String>();
@@ -198,6 +200,20 @@
     </td>
   </tr>
 </table>
+<p>Individual ID: <%=compareAgainst.getIndividualID() %>
+<%
+String compareAgainstHaplotype="";
+if(compareAgainst.getHaplotype()!=null){
+	compareAgainstHaplotype=compareAgainst.getHaplotype();
+}
+String compareAgainstGeneticSex="";
+if(compareAgainst.getGeneticSex()!=null){
+	compareAgainstGeneticSex=compareAgainst.getGeneticSex();
+}
+%>
+<br/>Haplotype: <%=compareAgainstHaplotype %>
+<br/>Genetic sex: <%=compareAgainstGeneticSex %>
+</p>
 
 <%
 TreeMap<String,String> returnedValues=new TreeMap<String,String>();
@@ -208,7 +224,7 @@ int numLines=str.countTokens();
 for(int f=0;f<numLines;f++){
 	String line=str.nextToken();
 	StringTokenizer thisEntry=new StringTokenizer(line, " ");
-	returnedValues.put(thisEntry.nextToken(), thisEntry.nextToken());
+	if(f>0)returnedValues.put(thisEntry.nextToken(), thisEntry.nextToken());
 }
 
 Map myMap=MyFuns.sortMapByDoubleValue(returnedValues);
@@ -216,17 +232,56 @@ Map myMap=MyFuns.sortMapByDoubleValue(returnedValues);
 //now do something
 %>
 <table id="results">
-<tr class="lineitem"><th class="lineitem"  bgcolor="#99CCFF">Marked Individual</th><th class="lineitem"  bgcolor="#99CCFF">Distance</th></tr>
+<tr class="lineitem">
+	<th class="lineitem"  bgcolor="#99CCFF">Individual</th>
+	<th class="lineitem"  bgcolor="#99CCFF">Distance</th>
+	<th class="lineitem"  bgcolor="#99CCFF">Haplo.</th>
+	<th class="lineitem"  bgcolor="#99CCFF">Gen. Sex</th>
+	<th class="lineitem"  bgcolor="#99CCFF">Microsatellite Markers
+		<br/><em>
+		<%
+		for(int y=0;y<numLoci;y++){
+			%>
+			<%=theLoci[y] %>&nbsp;<%=theLoci[y] %>&nbsp;
+			<%
+		}
+		%>
+		</em>
+	</th>
+</tr>
+
 <%
 
 Set<String> keys=myMap.keySet();
 Iterator keyIter=keys.iterator();
 while(keyIter.hasNext()){
 	String individualID=(String)keyIter.next();
+	MarkedIndividual thisIndie=myShepherd.getMarkedIndividual(individualID);
 	String value=(String)myMap.get(individualID);
+	double val=(new Double(value)).doubleValue();
+	if(val<0.714){
 	%>
-	<tr class="lineitem"><td class="lineitem" ><a href="individuals.jsp?number=<%=individualID %>"><%=individualID %></a></td><td class="lineitem"><%=value %></td></tr>
+	<tr class="lineitem">
+		<td class="lineitem" ><a href="individuals.jsp?number=<%=individualID %>"><%=individualID %></a></td>
+		<td class="lineitem"><%=value %></td>
+		<td class="lineitem"><%=thisIndie.getHaplotype() %></td>
+		<td class="lineitem"><%=thisIndie.getGeneticSex() %></td>
+		<td class="lineitem">
+			<table>
+				
+				<tr>
+					<td><em><%=compareAgainstAllelesString %></em></td>
+				</tr>
+				<tr>
+					<td><%=thisIndie.getFomattedMSMarkersString(theLoci) %></td>
+				</tr>
+			</table>
+		
+		</td>
+		
+	</tr>
 	<%
+	}
 }
 
 %>

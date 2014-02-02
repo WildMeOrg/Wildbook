@@ -1567,6 +1567,18 @@ public ArrayList<Relationship> getAllRelationships(Shepherd myShepherd){
   return myShepherd.getAllRelationshipsForMarkedIndividual(individualID);
 }
 
+public String getFomattedMSMarkersString(String[] loci){
+  StringBuffer sb=new StringBuffer();
+  int numLoci=loci.length;
+  for(int i=0;i<numLoci;i++){
+    ArrayList<Integer> alleles=getAlleleValuesForLocus(loci[i]);
+    if((alleles.size()>0)&&(alleles.get(0)!=null)){sb.append(alleles.get(0)+" ");}
+    else{sb.append("--- ");}
+    if((alleles.size()>=2)&&(alleles.get(1)!=null)){sb.append(alleles.get(1)+" ");}
+    else{sb.append("--- ");}
+  }
+  return sb.toString();
+}
 
 
 }
