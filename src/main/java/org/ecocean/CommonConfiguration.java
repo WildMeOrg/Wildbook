@@ -518,4 +518,16 @@ public class CommonConfiguration {
     return showUsersToPublic;
   }
   
+  
+  public static boolean isIntegratedWithWildMe(){
+    
+    initialize();
+    boolean integrated = true;
+    if ((props.getProperty("isIntegratedWithWildMe") != null) && (props.getProperty("isIntegratedWithWildMe").equals("false"))) {
+      integrated = false;
+    }
+    return integrated;
+  }
+  
+  
 }
