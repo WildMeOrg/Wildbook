@@ -1271,6 +1271,9 @@ public class IndividualQueryProcessor {
         else{
           prettyPrint.append("Social roles is one of the following: ");
         }
+        for(int h=0;h<numRoles;h++){
+          prettyPrint.append(roles[h]+"&nbsp;");
+        }
         
         
           
