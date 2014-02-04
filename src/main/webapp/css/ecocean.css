@@ -104,7 +104,8 @@ a.launchPopup {
      background-color: rgb(30, 30, 30);
      background-image: url('http://www.whaleshark.org/images/backgrounds/_1200881.jpg');
      background-repeat: no-repeat;
-     
+     background-attachment: fixed;
+background-size: cover;
      
 }
 
