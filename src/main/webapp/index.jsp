@@ -163,27 +163,7 @@ table.adopter td.image {
 		 	<a href="<%=submitPath%>"><img src="images/stumpy_banner.png" title="Report a whale shark encounter!" alt="Report a whale shark encounter! - photograph courtesy of Amber Triglone" border="0" />
 			</a>
 		 </div>
-		 <br />
-		 <table>
-		 <tr>
-		 	<td>
-				<a href="http://www.indiegogo.com/projects/wild-me-bringing-wildlife-into-social-media/x/5776235">
-		 			<img align="center" src="http://www.indiegogo.com/assets/igg_logo_color_print_black_v.jpg" width="50px" height="50px" />
-				</a>
-			</td>
-			<td><strong>Wild Me</strong><br /><em>Bringing Whale Sharks and Other Species into Social Media</em></td>
-		 </tr>
-		 
-		 </table>
-		 
-		 <p>
-		  <a href="http://www.indiegogo.com/projects/wild-me-bringing-wildlife-into-social-media/x/5776235">Can you help us crowdfund our newest project?</a>
-		</p>
-		
-		
-		<iframe width="605" height="340" src="//www.youtube.com/embed/Q_v2mXnbQP0" frameborder="0" allowfullscreen></iframe>
-<p><a href="http://www.indiegogo.com/projects/wild-me-bringing-wildlife-into-social-media">Click here to learn more!</a></p>
-<p />
+<br />
 	    <div id="maintext"><%=overview_maintext%>
 		 		 <p>
 		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />53000+ photos collected<br />
