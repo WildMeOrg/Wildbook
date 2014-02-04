@@ -25,7 +25,8 @@ body {
   font-family: verdana, arial, sans-serif;
   font-size: 14px;
   height: auto;
-  background-color: #D55500
+  //background-color: #D55500
+  background-color: rgb(30, 30, 30);
 }
 
 /* LEGACY JOOMLA TEMPLATE STUFF */
@@ -97,12 +98,14 @@ a.launchPopup {
 /* Layout */
 #wrapper {
   margin-left: 3px;
-  padding-left: 5px;
-
-  width: auto;
-  /* background-color: #fff; */
-  background-color: #D55500;
-  
+     padding-left: 5px;
+ 
+     width: auto;
+     background-color: rgb(30, 30, 30);
+     background-image: url('http://www.whaleshark.org/images/backgrounds/_1200881.jpg');
+     background-repeat: no-repeat;
+     
+     
 }
 
 #page {
