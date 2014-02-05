@@ -80,7 +80,7 @@
 
   <!-- Standard Content -->
   <!-- Body -->
-  <body bgcolor="#FFFFFF" link="#990000">
+  <body link="#990000">
   <center><!-- Login -->
 
     <div id="wrapper">
