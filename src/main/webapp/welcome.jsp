@@ -65,7 +65,7 @@
   ;
 %>
 
-<body bgcolor="#FFFFFF">
+<body>
 <div id="wrapper">
   <div id="page">
     <jsp:include page="header.jsp" flush="true">

@@ -17,6 +17,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+html{
+
+ background-color: rgb(30, 30, 30);
+     background-image: url('http://www.whaleshark.org/images/backgrounds/_1200881.jpg');
+     background-repeat: no-repeat;
+     background-attachment: fixed;
+background-size: cover;
+}
+
 /* ECOCEAN STYLE SHEET */
 body {
   margin: 0px;
@@ -101,11 +110,7 @@ a.launchPopup {
      padding-left: 5px;
  
      width: auto;
-     background-color: rgb(30, 30, 30);
-     background-image: url('http://www.whaleshark.org/images/backgrounds/_1200881.jpg');
-     background-repeat: no-repeat;
-     background-attachment: fixed;
-background-size: cover;
+    
      
 }
 
