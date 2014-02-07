@@ -1678,6 +1678,7 @@ public class Encounter implements java.io.Serializable {
      *@return a String if found or null if no genetic sex is found
      */
     public String getGeneticSex(){
+      if(tissueSamples!=null){
       int numTissueSamples=tissueSamples.size();
       if(numTissueSamples>0){
         for(int j=0;j<numTissueSamples;j++){
@@ -1694,6 +1695,7 @@ public class Encounter implements java.io.Serializable {
             }
           }
         }
+      }
       }
       return null;
     }

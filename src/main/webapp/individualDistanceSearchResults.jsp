@@ -1,6 +1,6 @@
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
+  ~ Copyright (C) 2014 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
   ~ modify it under the terms of the GNU General Public License
@@ -74,10 +74,40 @@
     rIndividuals = result.getResult();
     int numIndividuals=rIndividuals.size();
     
+    String individualDistanceSearchID="";
+
+    
     if((request.getParameter("individualDistanceSearch")!=null)&&(myShepherd.isMarkedIndividual(request.getParameter("individualDistanceSearch")))){
     	compareAgainst=myShepherd.getMarkedIndividual(request.getParameter("individualDistanceSearch"));
     	if(rIndividuals.contains(compareAgainst)){rIndividuals.remove(compareAgainst);numIndividuals--;}
+    	individualDistanceSearchID=request.getParameter("individualDistanceSearch");
+    	    
     }
+    else if((request.getParameter("encounterNumber")!=null)&&(myShepherd.isEncounter(request.getParameter("encounterNumber")))){
+    	Encounter enc=myShepherd.getEncounter(request.getParameter("encounterNumber"));
+    	
+    	if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))&&(myShepherd.isMarkedIndividual(enc.getIndividualID()))){
+    		compareAgainst=myShepherd.getMarkedIndividual(enc.getIndividualID());
+    		if(rIndividuals.contains(compareAgainst)){rIndividuals.remove(compareAgainst);numIndividuals--;}
+    		individualDistanceSearchID=compareAgainst.getIndividualID();
+    	}
+    	
+    	/**
+    	//DOES NOT WORK YET
+    	else{
+    		compareAgainst.setIndividualID("Unknown");
+    		myShepherd.getPM().makePersistent(compareAgainst);
+    		compareAgainst.addEncounter(enc);
+    		enc.setIndividualID("Unknown");
+    		myShepherd.commitDBTransaction();
+    		myShepherd.beginDBTransaction();
+    		individualDistanceSearchID="Unknown";
+    	}
+    	**/
+    	
+    	
+    }
+    	   
     
     ArrayList<String> loci=myShepherd.getAllLoci();
     int numLoci=loci.size();
@@ -91,28 +121,30 @@
     
     //ArrayList<String> indieNames=new ArrayList<String>();
     String[] indieNames=new String[numIndividuals+1];
-    if(request.getParameter("individualDistanceSearch")!=null){
-    	String individualDistanceSearchID=request.getParameter("individualDistanceSearch");
-    	indieNames[0]=individualDistanceSearchID;
-    }
+  //String individualDistanceSearchID=request.getParameter("individualDistanceSearch");
+    indieNames[0]=individualDistanceSearchID;
+  
     
     for(int i=0;i<numIndividuals;i++){
     	String indieName=rIndividuals.get(i).getIndividualID();
     	indieNames[i+1]=indieName;
     }
     
-    String individualDistanceSearchID="";
-    
-    if(request.getParameter("individualDistanceSearch")!=null){
-    	individualDistanceSearchID=request.getParameter("individualDistanceSearch");
-    	//indieNames.add(0,individualDistanceSearchID);
-    }
-    
+
     //String[] myNames=(String[])indieNames.toArray();
     //String[] myLoci=(String[])loci.toArray();
     String distanceOutput=ShareDst.getDistanceOuput(indieNames, theLoci,false, false,"\n"," ");
 
-
+    /**
+    //DOES NOT WORK YET
+    if(individualDistanceSearchID.equals("Unknown")){
+    	MarkedIndividual unknown=myShepherd.getMarkedIndividual("Unknown");
+    	unknown.removeEncounter(unknown.getEncounter(0));
+    	myShepherd.throwAwayMarkedIndividual(unknown);
+    	myShepherd.commitDBTransaction();
+    	myShepherd.beginDBTransaction();
+    }
+**/
 
   %>
   <title><%=CommonConfiguration.getHTMLTitle() %>
@@ -181,10 +213,7 @@
 <body>
 <div id="wrapper">
 <div id="page">
-<jsp:include page="header.jsp" flush="true">
 
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
 <div id="main">
 
 <table width="810" border="0" cellspacing="0" cellpadding="0">
@@ -213,6 +242,7 @@ if(compareAgainst.getGeneticSex()!=null){
 %>
 <br/>Haplotype: <%=compareAgainstHaplotype %>
 <br/>Genetic sex: <%=compareAgainstGeneticSex %>
+<br /><span style="color: #909090">Microsatellite marks for this individual are shown below in gray for comparison.</span>
 </p>
 
 <%
@@ -240,17 +270,7 @@ Map myMap=MyFuns.sortMapByDoubleValue(returnedValues);
 	<th class="lineitem"  bgcolor="#99CCFF">Distance</th>
 	<th class="lineitem"  bgcolor="#99CCFF">Haplo.</th>
 	<th class="lineitem"  bgcolor="#99CCFF">Gen. Sex</th>
-	<th class="lineitem"  bgcolor="#99CCFF">Microsatellite Markers
-		<br/><em>
-		<%
-		for(int y=0;y<numLoci;y++){
-			%>
-			<%=theLoci[y] %>&nbsp;<%=theLoci[y] %>&nbsp;
-			<%
-		}
-		%>
-		</em>
-	</th>
+	<th class="lineitem"  bgcolor="#99CCFF">Microsatellite Markers</th>
 </tr>
 
 <%
@@ -271,13 +291,23 @@ while(keyIter.hasNext()){
 		<td class="lineitem"><%=thisIndie.getGeneticSex() %></td>
 		<td class="lineitem">
 			<table>
+				<tr>
+						<%
+		for(int y=0;y<numLoci;y++){
+			%>
+			<td><span style="font-style: italic"><%=theLoci[y] %></span></td><td><span style="font-style: italic"><%=theLoci[y] %></span></td>
+			<%
+		}
+		%>
+				</tr>
+				<tr>
+					<td><%=thisIndie.getFomattedMSMarkersString(theLoci).replaceAll(" ", "</td><td>") %></td>
+				</tr>
 				
 				<tr>
-					<td><em><%=compareAgainstAllelesString %></em></td>
+					<td><span style="color: #909090"><%=compareAgainstAllelesString.replaceAll(" ", "</span></td><td><span style=\"color: #909090\">") %></span></td>
 				</tr>
-				<tr>
-					<td><%=thisIndie.getFomattedMSMarkersString(theLoci) %></td>
-				</tr>
+				
 			</table>
 		
 		</td>
