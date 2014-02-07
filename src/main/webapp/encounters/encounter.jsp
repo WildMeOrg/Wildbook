@@ -4061,7 +4061,15 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 			%>
 			<tr>
 				<td style="border-style: none;">
-					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span></p>
+					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span>
+					<%
+					if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))&&(request.getUserPrincipal()!=null)){
+					%>
+					<a href="../individualSearch.jsp?individualDistanceSearch=<%=enc.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" alt="Individual-to-Individual Genetic Distance Search" src="../images/Crystal_Clear_app_xmag.png"></img></a>
+					<%
+					}
+					%>
+					</p>
 					<span class="caption"><%=mito.getAllelesHTMLString() %>
 						<%
 									if(!mito.getSuperHTMLString().equals("")){
