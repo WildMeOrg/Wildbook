@@ -2891,6 +2891,46 @@ public class Shepherd {
     return listy;
   }
   
+  public int getNumCooccurrencesBetweenTwoMarkedIndividual(String individualID1,String individualID2){
+    int numCooccur=0;
+    
+    ArrayList<String> occurenceIDs1=getOccurrenceIDsForMarkedIndividual(individualID1);
+    //System.out.println("zzzOccurrences for indie "+individualID1+": "+occurenceIDs1.toString());
+    ArrayList<String> occurenceIDs2=getOccurrenceIDsForMarkedIndividual(individualID2);
+    //System.out.println("zzzOccurrences for indie "+individualID2+": "+occurenceIDs2.toString());
+    
+    int numOccurenceIDs1=occurenceIDs1.size();
+    if((numOccurenceIDs1>0)&&(occurenceIDs2.size()>0)){
+      //System.out.println(numOccurenceIDs1+":"+occurenceIDs2.size());
+      for(int i=0;i<numOccurenceIDs1;i++){
+        if(occurenceIDs2.contains(occurenceIDs1.get(i))){
+          //System.out.println("Checking occurrence: "+occurenceIDs1.get(i));
+          numCooccur++;
+          //System.out.println("zzzMatching co-occurrence: "+occurenceIDs1.get(i));
+        }
+      }
+    }
+    return numCooccur;
+  }
+  
+  public ArrayList<String> getOccurrenceIDsForMarkedIndividual(String individualID){
+    ArrayList<String> occurrenceIDs=new ArrayList<String>();
+    
+   String filter="SELECT distinct occurrenceID FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+individualID+"\"  VARIABLES org.ecocean.Encounter enc";
+    
+    Query q = pm.newQuery (filter);
+    
+    Collection results = (Collection) q.execute();
+    ArrayList al=new ArrayList(results);
+    q.closeAll();
+    int numResults=al.size();
+    for(int i=0;i<numResults;i++){occurrenceIDs.add((String)al.get(i));}
+    //System.out.println("zzzOccurrences for "+individualID+": "+occurrenceIDs.toString());
+    return occurrenceIDs;
+  }
+  
+
+  
 
 } //end Shepherd class
 
