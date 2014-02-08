@@ -213,7 +213,10 @@
 <body>
 <div id="wrapper">
 <div id="page">
+<jsp:include page="header.jsp" flush="true">
 
+	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+</jsp:include>
 <div id="main">
 
 <table width="810" border="0" cellspacing="0" cellpadding="0">
