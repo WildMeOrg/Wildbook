@@ -1188,9 +1188,17 @@ if(CommonConfiguration.showProperty("showLifestage")){
             </label>
       </p>
             </p>
+            <%
+            String hasMSMarkerChecked="";
+            if((request.getParameter("encountrNumber")!=null)||(request.getParameter("individualDistanceSearch")!=null)){
+            	hasMSMarkerChecked="checked=\"checked\"";
+            }
+            
+            %>
+            
             <p><strong><%=props.getProperty("hasMSMarkers")%>: </strong>
             <label> 
-            	<input name="hasMSMarkers" type="checkbox" id="hasMSMarkers" value="hasMSMarkers" />
+            	<input name="hasMSMarkers" type="checkbox" id="hasMSMarkers" value="hasMSMarkers" <%=hasMSMarkerChecked %>/>
             </label>
       </p>
 <br /><p><em><%=props.getProperty("slowOptions") %></em></p>
