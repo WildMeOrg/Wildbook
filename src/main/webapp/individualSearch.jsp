@@ -1,6 +1,6 @@
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
+  ~ Copyright (C) 2011-14 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
   ~ modify it under the terms of the GNU General Public Licensef
@@ -164,8 +164,71 @@ if(request.getParameter("individualDistanceSearch")!=null){
   <%=titleString%>
 </h1>
 </p>
-<p><em><%=props.getProperty("instructions")%>
-</em></p>
+
+<%
+if((request.getParameter("individualDistanceSearch")!=null)||(request.getParameter("encounterNumber")!=null)){
+	MarkedIndividual compareAgainst=new MarkedIndividual();
+	if((request.getParameter("individualDistanceSearch")!=null)&&(myShepherd.isMarkedIndividual(request.getParameter("individualDistanceSearch")))){
+		compareAgainst=myShepherd.getMarkedIndividual(request.getParameter("individualDistanceSearch"));
+	}
+	else if((request.getParameter("encounterNumber")!=null)&&(myShepherd.isEncounter(request.getParameter("encounterNumber")))){
+		Encounter enc=myShepherd.getEncounter(request.getParameter("encounterNumber"));
+		if((enc.getIndividualID()!=null)&&(myShepherd.isMarkedIndividual(enc.getIndividualID()))){
+			compareAgainst=myShepherd.getMarkedIndividual(enc.getIndividualID());
+		}
+	}
+	
+    ArrayList<String> loci=myShepherd.getAllLoci();
+    int numLoci=loci.size();
+    String[] theLoci=new String[numLoci];
+    for(int q=0;q<numLoci;q++){
+    	theLoci[q]=loci.get(q);
+    }
+    
+    String compareAgainstAllelesString=compareAgainst.getFomattedMSMarkersString(theLoci);
+    
+
+%>
+
+<p>Reference Individual ID: <%=compareAgainst.getIndividualID() %>
+<%
+String compareAgainstHaplotype="";
+if(compareAgainst.getHaplotype()!=null){
+	compareAgainstHaplotype=compareAgainst.getHaplotype();
+}
+String compareAgainstGeneticSex="";
+if(compareAgainst.getGeneticSex()!=null){
+	compareAgainstGeneticSex=compareAgainst.getGeneticSex();
+}
+%>
+<br/>Haplotype: <%=compareAgainstHaplotype %>
+<br/>Genetic sex: <%=compareAgainstGeneticSex %>
+		<table>
+			<tr><td colspan="<%=(numLoci*2)%>">Microsatellite markers</td></tr>
+				<tr>
+					<%
+					for(int y=0;y<numLoci;y++){
+					%>
+						<td><span style="font-style: italic"><%=theLoci[y] %></span></td><td><span style="font-style: italic"><%=theLoci[y] %></span></td>
+					<%
+					}
+					%>
+				</tr>
+				
+				
+				<tr>
+					<td><%=compareAgainstAllelesString.replaceAll(" ", "</td><td>") %></td>
+				</tr>
+				
+			</table>
+
+</p>
+<%
+}
+
+%>
+<p><em><strong><%=props.getProperty("instructions")%>
+</strong></em></p>
 
 
 <form action="<%=formAction %>" method="get" name="search" id="search">
