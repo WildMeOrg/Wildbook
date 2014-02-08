@@ -1859,10 +1859,12 @@ if(relationships.size()>0){
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
+<th><%=props.getProperty("numSightingsTogether") %></th>
 <th><strong><%=props.getProperty("edit") %></strong></th><th><strong><%=props.getProperty("remove") %></strong></th>
 <%
 }
 %>
+
 </tr>
 <%
 
@@ -1928,6 +1930,10 @@ for(int f=0;f<numRels;f++){
 		//persistenceID=persistenceID.substring(0,bracketLocation);
 
 	%>
+	<td>
+	<%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(otherIndy.getIndividualID(),sharky.getIndividualID()) %>
+	
+	</td>
 	
 	<td>
 		<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>

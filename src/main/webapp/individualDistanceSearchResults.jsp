@@ -232,7 +232,7 @@
     </td>
   </tr>
 </table>
-<p>Individual ID: <%=compareAgainst.getIndividualID() %>
+<p>Reference Individual ID: <%=compareAgainst.getIndividualID() %>
 <%
 String compareAgainstHaplotype="";
 if(compareAgainst.getHaplotype()!=null){
@@ -270,7 +270,8 @@ Map myMap=MyFuns.sortMapByDoubleValue(returnedValues);
 <table id="results">
 <tr class="lineitem">
 	<th class="lineitem"  bgcolor="#99CCFF">Individual</th>
-	<th class="lineitem"  bgcolor="#99CCFF">Distance</th>
+	<th class="lineitem"  bgcolor="#99CCFF">Gen. Distance</th>
+	<th class="lineitem"  bgcolor="#99CCFF">No. Co-occur.</th>
 	<th class="lineitem"  bgcolor="#99CCFF">Haplo.</th>
 	<th class="lineitem"  bgcolor="#99CCFF">Gen. Sex</th>
 	<th class="lineitem"  bgcolor="#99CCFF">Microsatellite Markers</th>
@@ -290,6 +291,8 @@ while(keyIter.hasNext()){
 	<tr class="lineitem">
 		<td class="lineitem" ><a href="individuals.jsp?number=<%=individualID %>"><%=individualID %></a></td>
 		<td class="lineitem"><%=value %></td>
+		
+		<td class="lineitem"><%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(individualID, compareAgainst.getIndividualID()) %></td>
 		<td class="lineitem"><%=thisIndie.getHaplotype() %></td>
 		<td class="lineitem"><%=thisIndie.getGeneticSex() %></td>
 		<td class="lineitem">
