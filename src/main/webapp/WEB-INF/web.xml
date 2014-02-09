@@ -180,6 +180,9 @@
                		/UserResetAcceptedUserAgreement = authc, roles[admin]
                		/IndividualSetYearOfBirth = authc, roles[admin]
                		/IndividualSetYearOfDeath = authc, roles[admin]
+               		
+               		
+               		/** = authc
 
             </param-value>
         </init-param>
