@@ -186,6 +186,10 @@
                		/individualSearchResults.jsp = authc
                		/encounters/encounter.jsp = authc
                		/encounters/searchResults.jsp = authc
+		
+					/login.jsp = anon
+					/index.jsp = authc
+					/ = authc
 
             </param-value>
         </init-param>
