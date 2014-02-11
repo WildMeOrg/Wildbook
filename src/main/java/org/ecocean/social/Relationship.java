@@ -13,7 +13,7 @@ public class Relationship implements java.io.Serializable{
   
   public Relationship(String type, String relatedCommunityName, String individualName1, String individualName2, String individualRole1, String individualRole2){
     this.type=type;
-    this.relatedCommunityName=relatedCommunityName;
+    this.relatedSocialUnitName=relatedCommunityName;
     this.markedIndividualName1=individualName1;
     this.markedIndividualName2=individualName2;
     this.markedIndividualRole1=individualRole1;
@@ -36,7 +36,7 @@ public class Relationship implements java.io.Serializable{
 
   private static final long serialVersionUID = 6688796543218832687L;
 
-  private String relatedCommunityName;
+  private String relatedSocialUnitName;
   
   private String markedIndividualName1;
   private String markedIndividualRole1;
@@ -57,12 +57,12 @@ public class Relationship implements java.io.Serializable{
   
   
   
-  public String getRelatedCommunityName(){
-    return relatedCommunityName;
+  public String getRelatedSocialUnitName(){
+    return relatedSocialUnitName;
   }
-  public void setRelatedCommunityName(String name){
-    if(name!=null){relatedCommunityName=name;}
-    else{relatedCommunityName=null;}
+  public void setRelatedSocialUnitName(String name){
+    if(name!=null){relatedSocialUnitName=name;}
+    else{relatedSocialUnitName=null;}
   }
 
   public String getType(){return type;}

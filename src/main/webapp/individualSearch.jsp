@@ -1478,14 +1478,13 @@ else {
     		<tr>
     		<td style="vertical-align: top"> 
 			<%
-        ArrayList<String> communities = myShepherd.getAllCommunityNames();
-        
-		//System.out.println(haplos.toString());
+ 				ArrayList<String> communities = myShepherd.getAllSocialUnitNames();
+ 			        
+ 					//System.out.println(haplos.toString());
 
-        if ((communities!=null)&&(communities.size()>0)) {
-        	int totalNames = communities.size();
-        
-      %>
+ 			        if ((communities!=null)&&(communities.size()>0)) {
+ 			        	int totalNames = communities.size();
+ 			%>
 
       <select multiple size="10" name="community" id="community">
         <option value="None"></option>
