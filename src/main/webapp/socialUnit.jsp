@@ -34,7 +34,7 @@
     if (session.getAttribute("langCode") != null) {
       langCode = (String) session.getAttribute("langCode");
     }
-    props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/community.properties"));
+    props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/socialunit.properties"));
 
 
 

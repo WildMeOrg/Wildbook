@@ -1245,7 +1245,7 @@ public class IndividualQueryProcessor {
       if(request.getParameterValues("community")!=null){
         String[] communities=request.getParameterValues("community");
         int numCommunities=communities.length;
-        prettyPrint.append("Community is one of the following: ");
+        prettyPrint.append("Social unit is one of the following: ");
         for(int i=0;i<numCommunities;i++){
           prettyPrint.append(communities[i]+" ");
           for (int q = 0; q < rIndividuals.size(); q++) {

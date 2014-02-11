@@ -75,11 +75,11 @@ public class RelationshipDelete extends HttpServlet {
             myShepherd.commitDBTransaction();  
             myShepherd.beginDBTransaction();  
             
-            if(rel.getRelatedCommunityName()!=null){
+            if(rel.getRelatedSocialUnitName()!=null){
               
               //delete the community too if it has no relationships
-              if(myShepherd.getAllRelationshipsForCommunity(rel.getRelatedCommunityName()).size()==0){
-                Community myComm=myShepherd.getCommunity(rel.getRelatedCommunityName());
+              if(myShepherd.getAllRelationshipsForCommunity(rel.getRelatedSocialUnitName()).size()==0){
+                SocialUnit myComm=myShepherd.getCommunity(rel.getRelatedSocialUnitName());
                 myShepherd.getPM().deletePersistent(myComm);
                 myShepherd.commitDBTransaction();  
                 myShepherd.beginDBTransaction(); 

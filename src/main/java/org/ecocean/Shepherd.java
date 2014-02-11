@@ -334,7 +334,7 @@ public class Shepherd {
   
   public Relationship getRelationship(String type, String indie1,String indie2, String indieRole1, String indieRole2, String relatedCommunityName) {
     Relationship tempRel = null;
-    String filter = "this.type == \""+type+"\" && this.markedIndividualName1 == \""+indie1+"\" && this.markedIndividualName2 == \""+indie2+"\" && this.markedIndividualRole1 == \""+indieRole1+"\" && this.markedIndividualRole2 == \""+indieRole2+"\" && this.relatedCommunityName == \""+relatedCommunityName+"\"";
+    String filter = "this.type == \""+type+"\" && this.markedIndividualName1 == \""+indie1+"\" && this.markedIndividualName2 == \""+indie2+"\" && this.markedIndividualRole1 == \""+indieRole1+"\" && this.markedIndividualRole2 == \""+indieRole2+"\" && this.relatedSocialUnitName == \""+relatedCommunityName+"\"";
     Extent encClass = pm.getExtent(Relationship.class, true);
       Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
@@ -356,10 +356,10 @@ public class Shepherd {
   }
   
   
-  public Community getCommunity(String name) {
-    Community tempCom = null;
+  public SocialUnit getCommunity(String name) {
+    SocialUnit tempCom = null;
     try {
-      tempCom = ((Community) (pm.getObjectById(pm.newObjectIdInstance(Community.class, name.trim()), true)));
+      tempCom = ((SocialUnit) (pm.getObjectById(pm.newObjectIdInstance(SocialUnit.class, name.trim()), true)));
     } 
     catch (Exception nsoe) {
       return null;
@@ -641,7 +641,7 @@ public class Shepherd {
   
   public boolean isCommunity(String comName) {
     try {
-      Community tempCom = ((org.ecocean.social.Community) (pm.getObjectById(pm.newObjectIdInstance(Community.class, comName.trim()), true)));
+      SocialUnit tempCom = ((org.ecocean.social.SocialUnit) (pm.getObjectById(pm.newObjectIdInstance(SocialUnit.class, comName.trim()), true)));
     } 
     catch (Exception nsoe) {
       return false;
@@ -2705,13 +2705,13 @@ public class Shepherd {
     return al;
   }
   
-  public ArrayList<String> getAllCommunityNames() {
+  public ArrayList<String> getAllSocialUnitNames() {
     ArrayList<String> comNames=new ArrayList<String>();
     Query q = pm.newQuery(Relationship.class);
     try{
       
-      q.setResult("distinct relatedCommunityName");
-      q.setOrdering("relatedCommunityName ascending");
+      q.setResult("distinct relatedSocialUnitName");
+      q.setOrdering("relatedSocialUnitName ascending");
       Collection results = (Collection) q.execute();
       comNames=new ArrayList<String>(results);
       
@@ -2822,7 +2822,7 @@ public class Shepherd {
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsInCommunity(String communityName){
     ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
     Extent encClass = pm.getExtent(Relationship.class, true);
-    String filter2use = "this.relatedCommunityName == \""+communityName+"\"";
+    String filter2use = "this.relatedSocialUnitName == \""+communityName+"\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter2use);
     Collection c = (Collection) (acceptedEncounters.execute());
     ArrayList listy = new ArrayList(c);
