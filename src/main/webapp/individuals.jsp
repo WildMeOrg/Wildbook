@@ -1551,8 +1551,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
 <table cellspacing="2" bordercolor="#FFFFFF" >
 
 <%
-
-String markedIndividual1Name="";
+	String markedIndividual1Name="";
 String markedIndividual2Name="";
 String markedIndividual1Role="";
 String markedIndividual2Role="";
@@ -1607,13 +1606,12 @@ String communityName="";
 		bidirectional=myRel.getBidirectional().toString();
 	}
 	
-	if(myRel.getRelatedCommunityName()!=null){
-		communityName=myRel.getRelatedCommunityName();
+	if(myRel.getRelatedSocialUnitName()!=null){
+		communityName=myRel.getRelatedSocialUnitName();
 	}
 	
 	
 }
-
 %>
 
     <tr>
@@ -1623,16 +1621,16 @@ String communityName="";
         <td>
         	<select name="type">
 			<%
-			List<String> types=CommonConfiguration.getIndexedValues("relationshipType");
-			int numTypes=types.size();
-			for(int g=0;g<numTypes;g++){
-				
-				String selectedText="";
-				if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
+				List<String> types=CommonConfiguration.getIndexedValues("relationshipType");
+				int numTypes=types.size();
+				for(int g=0;g<numTypes;g++){
+					
+					String selectedText="";
+					if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
 			%>      
-          		<option <%=selectedText %>><%=types.get(g) %></option>
+          		<option <%=selectedText%>><%=types.get(g)%></option>
           	<%
-			}
+          		}
           	%>
           	</select>
           
@@ -1648,22 +1646,22 @@ String communityName="";
           <td>
           
              <%
-             if((markedIndividual1Name.equals(""))&&(markedIndividual2Name.equals(""))){
-                   	%>
-               			<%=sharky.getIndividualID() %><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID() %>"/>
+                       	if((markedIndividual1Name.equals(""))&&(markedIndividual2Name.equals(""))){
+                       %>
+               			<%=sharky.getIndividualID()%><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
                			
-               		<%	
-                  	}
-            else if(!markedIndividual1Name.equals(sharky.getIndividualID())){
-        	%>
-        		<input name="markedIndividualName1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Name %>" /> 
+               		<%
+               			               			}
+               			               		            else if(!markedIndividual1Name.equals(sharky.getIndividualID())){
+               			               		%>
+        		<input name="markedIndividualName1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Name%>" /> 
        		<%
-        	}
-        	else{ 
-       		%>
-       			<%=markedIndividual1Name %><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID() %>"/>
+        			}
+        		        	else{
+        		%>
+       			<%=markedIndividual1Name%><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
        		<%
-        	}
+       			}
        		%>
        </td>
    	</tr>
@@ -1676,26 +1674,26 @@ String communityName="";
          	
          <select name="markedIndividualRole1">
 			<%
-			List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole");
-			int numRoles=roles.size();
-			for(int g=0;g<numRoles;g++){
-				
-				String selectedText="";
-				if(markedIndividual1Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
+				List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole");
+				int numRoles=roles.size();
+				for(int g=0;g<numRoles;g++){
+					
+					String selectedText="";
+					if(markedIndividual1Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
 			%>      
-          		<option <%=selectedText %>><%=roles.get(g) %></option>
+          		<option <%=selectedText%>><%=roles.get(g)%></option>
           	<%
-			}
+          		}
           	%>
           	</select>
          
          </td>
          
          <td>
-         	<%=props.getProperty("markedIndividual1DirectionalDescriptor") %>
+         	<%=props.getProperty("markedIndividual1DirectionalDescriptor")%>
          </td>
          <td>
-         	<input name="markedIndividual1DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual1DirectionalDescriptor %>" />       
+         	<input name="markedIndividual1DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual1DirectionalDescriptor%>" />       
          </td>
          
    	</tr>
@@ -1704,16 +1702,16 @@ String communityName="";
      	<td><strong><%=props.getProperty("individualID2")%></strong></td>
         <td>
    			<%
-             if(!markedIndividual2Name.equals(sharky.getIndividualID())){
-        	%>
-        		<input name="markedIndividualName2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Name %>" /> 
+   				if(!markedIndividual2Name.equals(sharky.getIndividualID())){
+   			%>
+        		<input name="markedIndividualName2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Name%>" /> 
        		<%
-        	}
-        	else{ 
-       		%>
-       			<%=markedIndividual2Name %><input type="hidden" name="markedIndividualName2" value="<%=sharky.getIndividualID() %>"/>
+        			}
+        		        	else{
+        		%>
+       			<%=markedIndividual2Name%><input type="hidden" name="markedIndividualName2" value="<%=sharky.getIndividualID()%>"/>
        		<%
-        	}
+       			}
        		%>
        </td>
    	</tr>
@@ -1725,28 +1723,28 @@ String communityName="";
           <td>
           	<select name="markedIndividualRole2">
 			<%
-			for(int g=0;g<numRoles;g++){
-				
-				String selectedText="";
-				if(markedIndividual2Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
+				for(int g=0;g<numRoles;g++){
+					
+					String selectedText="";
+					if(markedIndividual2Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
 			%>      
-          		<option <%=selectedText %>><%=roles.get(g) %></option>
+          		<option <%=selectedText%>><%=roles.get(g)%></option>
           	<%
-			}
+          		}
           	%>
           	</select></td>
        <td>
-         	<%=props.getProperty("markedIndividual2DirectionalDescriptor") %>
+         	<%=props.getProperty("markedIndividual2DirectionalDescriptor")%>
          </td>
          <td>
-         	<input name="markedIndividual2DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual2DirectionalDescriptor %>" />       
+         	<input name="markedIndividual2DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual2DirectionalDescriptor%>" />       
          </td>
    	</tr>
    	
    <tr>
      	<td>
           
-          <strong><%=props.getProperty("relatedCommunityName")%></strong></td><td><input name="relatedCommunityName" type="text" size="20" maxlength="100" value="<%=communityName %>" /> 
+          <strong><%=props.getProperty("relatedCommunityName")%></strong></td><td><input name="relatedCommunityName" type="text" size="20" maxlength="100" value="<%=communityName%>" /> 
        </td>
    	</tr> 	
    	
@@ -1754,14 +1752,14 @@ String communityName="";
      	<td>
           
           <strong><%=props.getProperty("startTime")%></strong></td>
-          <td><input name="startTime" type="text" size="20" maxlength="100" value="<%=startTime %>" /> 
+          <td><input name="startTime" type="text" size="20" maxlength="100" value="<%=startTime%>" /> 
        </td>
        </tr>
        <tr>
        <td>
           
          <strong><%=props.getProperty("endTime")%></strong></td>
-          <td><input name="endTime" type="text" size="20" maxlength="100" value="<%=endTime %>" /> 
+          <td><input name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" /> 
        </td>
        
    	</tr> 	
@@ -1777,19 +1775,19 @@ String communityName="";
           	
           		<option value=""></option>
           		<%
-          	String selected="";
-          	if(bidirectional.equals("true")){
-          		selected="selected=\"selected\"";
-          	}
-          	%>
-          		<option value="true" <%=selected %>>true</option>
+          			String selected="";
+          		          	if(bidirectional.equals("true")){
+          		          		selected="selected=\"selected\"";
+          		          	}
+          		%>
+          		<option value="true" <%=selected%>>true</option>
           		<%
-          	selected="";
-          	if(bidirectional.equals("false")){
-          		selected="selected=\"selected\"";
-          	}
-          	%>
-          		<option value="false" <%=selected %>>false</option>
+          			selected="";
+          		          	if(bidirectional.equals("false")){
+          		          		selected="selected=\"selected\"";
+          		          	}
+          		%>
+          		<option value="false" <%=selected%>>false</option>
           	</select>
           	 
        </td>
@@ -1807,11 +1805,11 @@ String communityName="";
   </table>
   
   <%
-  if(request.getParameter("persistenceID")!=null){
-  %>
+    	if(request.getParameter("persistenceID")!=null){
+    %>
   	<input name="persistenceID" type="hidden" value="<%=request.getParameter("persistenceID")%>"/>
   <%
-  }
+  	}
   %>
   
 </form>	
@@ -1833,42 +1831,40 @@ $("a#addRelationship").click(function() {
 });
 </script>   
 <%
-}
+   	}
 
-//setup the javascript to handle displaying an edit tissue sample dialog box
-if( (request.getParameter("edit")!=null) && request.getParameter("edit").equals("relationship")){
-%>
+   //setup the javascript to handle displaying an edit tissue sample dialog box
+   if( (request.getParameter("edit")!=null) && request.getParameter("edit").equals("relationship")){
+   %>
 <script>
 dlgRel.dialog("open");
 </script>  
 
-<%	
-}	
+<%
+  	}	
 
-//end relationship code
+  //end relationship code
 
-ArrayList<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
+  ArrayList<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
 
-if(relationships.size()>0){
-
-%>
+  if(relationships.size()>0){
+  %>
 
 
 <table width="100%" class="tissueSample">
-<th><strong><%=props.getProperty("roles") %></strong></th><th><strong><%=props.get("relationshipWith") %></strong></th><th><strong><%=props.getProperty("type") %></strong></th><th><strong><%=props.getProperty("community") %></strong></th>
+<th><strong><%=props.getProperty("roles")%></strong></th><th><strong><%=props.get("relationshipWith")%></strong></th><th><strong><%=props.getProperty("type")%></strong></th><th><strong><%=props.getProperty("community")%></strong></th>
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
+	if (isOwner && CommonConfiguration.isCatalogEditable()) {
 %>
-<th><%=props.getProperty("numSightingsTogether") %></th>
-<th><strong><%=props.getProperty("edit") %></strong></th><th><strong><%=props.getProperty("remove") %></strong></th>
+<th><%=props.getProperty("numSightingsTogether")%></th>
+<th><strong><%=props.getProperty("edit")%></strong></th><th><strong><%=props.getProperty("remove")%></strong></th>
 <%
-}
+	}
 %>
 
 </tr>
 <%
-
-int numRels=relationships.size();
+	int numRels=relationships.size();
 for(int f=0;f<numRels;f++){
 	Relationship myRel=relationships.get(f);
 	String indieName1=myRel.getMarkedIndividualName1();
@@ -1888,8 +1884,8 @@ for(int f=0;f<numRels;f++){
 	if(myRel.getType()!=null){type=myRel.getType();}
 	
 	String community="";
-	if(myRel.getRelatedCommunityName()!=null){community=myRel.getRelatedCommunityName();}
-	%>
+	if(myRel.getRelatedSocialUnitName()!=null){community=myRel.getRelatedSocialUnitName();}
+%>
 	<tr>
 	<td><em><%=thisIndyRole %></em>-<%=otherIndyRole %></td>
 	<td>
@@ -1919,7 +1915,7 @@ for(int f=0;f<numRels;f++){
 		%>
 	</td>
 	<td><%=type %></td>
-	<td><a href="community.jsp?name=<%=community%>"><%=community %></a></td>
+	<td><a href="socialUnit.jsp?name=<%=community%>"><%=community %></a></td>
 	
 	<%
 	if (isOwner && CommonConfiguration.isCatalogEditable()) {
