@@ -8,8 +8,8 @@
 	
         
         
-        <class name="Community" identity-type="application" table="COMMUNITY">
-				<field name="communityName" primary-key="true">
+        <class name="SocialUnit" identity-type="application" table="SOCIALUNIT">
+				<field name="socialUnitName" primary-key="true">
 					<column length="100"/>
 				</field>
 				<fetch-group name="count" />
@@ -20,7 +20,7 @@
 				<field name="type" persistence-modifier="persistent">
 					<column length="100" />
 				</field>
-				<field name="relatedCommunityName" persistence-modifier="persistent">
+				<field name="relatedSocialUnitName" persistence-modifier="persistent">
 					<column length="100" />
 				</field>
 				<field name="markedIndividualName1" persistence-modifier="persistent">

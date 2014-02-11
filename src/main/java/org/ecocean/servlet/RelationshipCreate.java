@@ -71,7 +71,7 @@ public class RelationshipCreate extends HttpServlet {
         Shepherd myShepherd = new Shepherd();
         
         Relationship rel=new Relationship();
-        Community comm=new Community();
+        SocialUnit comm=new SocialUnit();
       
         myShepherd.beginDBTransaction();
 
@@ -112,9 +112,9 @@ public class RelationshipCreate extends HttpServlet {
           
           
           if(request.getParameter("relatedCommunityName")!=null){
-            rel.setRelatedCommunityName(request.getParameter("relatedCommunityName"));
+            rel.setRelatedSocialUnitName(request.getParameter("relatedCommunityName"));
           }
-          else{rel.setRelatedCommunityName(null);}
+          else{rel.setRelatedSocialUnitName(null);}
           
           //start and end time setting
           if(request.getParameter("startTime")!=null){
@@ -179,7 +179,7 @@ public class RelationshipCreate extends HttpServlet {
           
           //check the community and create it if not present
           if((request.getParameter("relatedCommunityName")!=null)&&(!myShepherd.isCommunity(request.getParameter("relatedCommunityName")))){
-            comm.setCommunityName(request.getParameter("relatedCommunityName"));
+            comm.setSocialUnitName(request.getParameter("relatedCommunityName"));
             myShepherd.getPM().makePersistent(comm);
           }
 

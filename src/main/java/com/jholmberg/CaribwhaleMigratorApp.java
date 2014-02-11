@@ -1067,10 +1067,10 @@ public class CaribwhaleMigratorApp {
 		            String indieName2=members.get(q);
 		            
 		            org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("CommunityMembership", indieName1, indieName2,"member","member");
-		            myRel.setRelatedCommunityName(comName);
+		            myRel.setRelatedSocialUnitName(comName);
 		            
 		            //if it does not exist, create the relationship
-		            if(!myShepherd.isRelationship(myRel.getType(), myRel.getMarkedIndividualName1(), myRel.getMarkedIndividualName2(), myRel.getMarkedIndividualRole1(), myRel.getMarkedIndividualRole2(), myRel.getRelatedCommunityName(), true)){
+		            if(!myShepherd.isRelationship(myRel.getType(), myRel.getMarkedIndividualName1(), myRel.getMarkedIndividualName2(), myRel.getMarkedIndividualRole1(), myRel.getMarkedIndividualRole2(), myRel.getRelatedSocialUnitName(), true)){
 		              myShepherd.getPM().makePersistent(myRel);
 	                myShepherd.commitDBTransaction();
 	                myShepherd.beginDBTransaction();
@@ -1078,7 +1078,7 @@ public class CaribwhaleMigratorApp {
 		            
 		            //now check if community has been created!
 		           if(!myShepherd.isCommunity(comName)){
-		             org.ecocean.social.Community myCom=new org.ecocean.social.Community(comName);
+		             org.ecocean.social.SocialUnit myCom=new org.ecocean.social.SocialUnit(comName);
 		             myShepherd.getPM().makePersistent(myCom);
                  myShepherd.commitDBTransaction();
                  myShepherd.beginDBTransaction();
