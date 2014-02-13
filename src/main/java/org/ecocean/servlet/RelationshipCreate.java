@@ -112,7 +112,7 @@ public class RelationshipCreate extends HttpServlet {
           
           
           if(request.getParameter("relatedCommunityName")!=null){
-            rel.setRelatedSocialUnitName(request.getParameter("relatedCommunityName"));
+            rel.setRelatedSocialUnitName(ServletUtilities.cleanFileName(request.getParameter("relatedCommunityName")));
           }
           else{rel.setRelatedSocialUnitName(null);}
           
