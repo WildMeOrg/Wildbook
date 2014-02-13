@@ -72,6 +72,10 @@ public class IndividualCreate extends HttpServlet {
     String newIndividualID="";
     if(request.getParameter("individual")!=null){
       newIndividualID=request.getParameter("individual");
+      
+      //strip out problematic characters
+      newIndividualID=ServletUtilities.cleanFileName(newIndividualID);
+      
     }
 
 
