@@ -35,6 +35,10 @@
   metadata-complete="true">
          
          
+         <session-config>
+	     <session-timeout>2880</session-timeout>
+</session-config>
+         
 
   <display-name>Shepherd Project Framework for Mark-Recapture Studies</display-name>
   <description>
