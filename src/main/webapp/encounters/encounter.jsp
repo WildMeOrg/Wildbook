@@ -136,8 +136,8 @@ File encounterDir = new File(encountersDir, num);
 
 <html>
 
-<head>
-  <title><%=encprops.getProperty("encounter") %> <%=num%>
+<head prefix="og:http://ogp.me/ns#">
+  <title><%=CommonConfiguration.getHTMLTitle() %> - <%=encprops.getProperty("encounter") %> <%=num%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
@@ -148,7 +148,10 @@ File encounterDir = new File(encountersDir, num);
   
   
 <!-- social meta start -->
-<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle() %>" />
+<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle() %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
+
+<link rel="canonical" href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
+
 <meta itemprop="name" content="<%=encprops.getProperty("encounter")%> <%=request.getParameter("number")%>" />
 <meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
 <%
@@ -160,15 +163,21 @@ if (request.getParameter("number")!=null) {
 				SinglePhotoVideo metaSPV=metaEnc.getImages().get(0);
 %>
 <meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getDataCollectionEventID()+".jpg")%>" />
+<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getDataCollectionEventID()+".jpg")%>" / >
 <%
 			}
 		}
 }
 %>
 
-<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle() %>" />
+<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle() %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
 <meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
-<meta property="og:type" content="article" />
+
+<meta property="og:url" content="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
+
+
+<meta property="og:type" content="website" />
+
 <!-- social meta end -->
 
   
@@ -411,8 +420,7 @@ margin-bottom: 8px !important;
   js = d.createElement(s); js.id = id;
   js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
   fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));
-</script>
+}(document, 'script', 'facebook-jssdk'));</script>
 
 <!-- GOOGLE PLUS-ONE BUTTON -->
 <script type="text/javascript">
@@ -514,9 +522,8 @@ margin-bottom: 8px !important;
 								<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 							</td>
 							<td>
-								<!-- Facebook LIKE button -->
-								<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
-							</td>
+								<!-- Facebook SHARE button -->
+								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						</tr>
 					</table> 
 					<table>
