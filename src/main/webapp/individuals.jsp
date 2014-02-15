@@ -1,6 +1,6 @@
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
+  ~ Copyright (C) 2014 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
   ~ modify it under the terms of the GNU General Public License
@@ -95,7 +95,7 @@
 %>
 
 <html>
-<head>
+<head prefix="og:http://ogp.me/ns#">
 
   <title><%=CommonConfiguration.getHTMLTitle() %>
   </title>
@@ -111,7 +111,47 @@
         href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
         
 
+<!-- social meta start -->
+<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle() %> - <%=props.getProperty("markedIndividualTypeCaps") %> <%=request.getParameter("number") %>" />
 
+<link rel="canonical" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" />
+
+<meta itemprop="name" content="<%=props.getProperty("markedIndividualTypeCaps")%> <%=request.getParameter("number")%>" />
+<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+<%
+if (request.getParameter("number")!=null) {
+	myShepherd.beginDBTransaction();
+		if(myShepherd.isMarkedIndividual(name)){
+			MarkedIndividual indie=myShepherd.getMarkedIndividual(name);
+			Vector myEncs=indie.getEncounters();
+			int numEncs=myEncs.size();
+			for(int p=0;p<numEncs;p++){
+				Encounter metaEnc = (Encounter)myEncs.get(p);
+				int numImgs=metaEnc.getImages().size();
+				if((metaEnc.getImages()!=null)&&(numImgs>0)){
+					for(int b=0;b<numImgs;b++){
+						SinglePhotoVideo metaSPV=metaEnc.getImages().get(b);
+						%>
+						<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=metaEnc.getCatalogNumber()+"/"+metaSPV.getFilename()%>" />
+						<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(metaEnc.getCatalogNumber()+"/"+metaSPV.getFilename())%>" / >
+<%
+			}
+		}
+		}
+}
+		myShepherd.rollbackDBTransaction();
+}
+%>
+
+<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle() %> - <%=props.getProperty("markedIndividualTypeCaps") %> <%=request.getParameter("number") %>" />
+<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+
+<meta property="og:url" content="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" />
+
+
+<meta property="og:type" content="website" />
+
+<!-- social meta end -->
  
   
   <style type="text/css">
@@ -238,7 +278,7 @@ table.tissueSample td {
 
   </script>
 
-<!--  FACEBOOK LIKE BUTTON -->
+<!--  FACEBOOK SHARE BUTTON -->
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
   var js, fjs = d.getElementsByTagName(s)[0];
@@ -325,9 +365,8 @@ onunload="GUnload()" <%}%>>
 </td>
 <td>
 <!-- Facebook LIKE button -->
-<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
-</td>
-<%
+		<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
+						<%
 if(CommonConfiguration.isIntegratedWithWildMe()){
 %>
 <td>
