@@ -159,13 +159,16 @@ if (request.getParameter("number")!=null) {
 	
 		if(myShepherd.isEncounter(num)){
 			Encounter metaEnc = myShepherd.getEncounter(num);
-			if((metaEnc.getImages()!=null)&&(metaEnc.getImages().size()>0)){
-				SinglePhotoVideo metaSPV=metaEnc.getImages().get(0);
+			int numImgs=metaEnc.getImages().size();
+			if((metaEnc.getImages()!=null)&&(numImgs>0)){
+				for(int b=0;b<numImgs;b++){
+				SinglePhotoVideo metaSPV=metaEnc.getImages().get(b);
 %>
-<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getDataCollectionEventID()+".jpg")%>" />
-<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getDataCollectionEventID()+".jpg")%>" / >
+<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getFilename())%>" />
+<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getFilename())%>" / >
 <%
 			}
+		}
 		}
 }
 %>
