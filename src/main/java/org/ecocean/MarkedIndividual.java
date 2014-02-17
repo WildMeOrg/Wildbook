@@ -25,6 +25,8 @@ import java.util.*;
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
 
+import java.text.DecimalFormat;
+
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
  * <code>Encounters</code> are added to MarkedIndividual objects as multiple encounters are associated with
@@ -1502,7 +1504,7 @@ public Float getMaxDistanceBetweenTwoSightings(){
     if((thisEnc.getLatitudeAsDouble()!=null)&&(thisEnc.getLongitudeAsDouble()!=null)){
     for(int z=(y+1);z<numEncs;z++){
       Encounter nextEnc=(Encounter)encounters.get(z);
-      if((nextEnc.getLatitudeAsDouble()!=null)&&(thisEnc.getLongitudeAsDouble()!=null)){
+      if((nextEnc.getLatitudeAsDouble()!=null)&&(nextEnc.getLongitudeAsDouble()!=null)){
         try{
           Float tempMaxDistance=distFrom(new Float(thisEnc.getLatitudeAsDouble()), new Float(thisEnc.getLongitudeAsDouble()), new Float(nextEnc.getLatitudeAsDouble()), new Float(nextEnc.getLongitudeAsDouble()));
           if(tempMaxDistance>maxDistance){maxDistance=tempMaxDistance;}
@@ -1580,5 +1582,34 @@ public String getFomattedMSMarkersString(String[] loci){
   return sb.toString();
 }
 
+public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherIndy){
+  
+  DecimalFormat df = new DecimalFormat("#.#");
+  Float minDistance=new Float(1000000);
+  if((encounters!=null)&&(encounters.size()>0)&&(otherIndy.getEncounters()!=null)&&(otherIndy.getEncounters().size()>0)){
+  int numEncs=encounters.size();
+  int numOtherEncs=otherIndy.getEncounters().size();
+  
+  if(numEncs>0){
+  for(int y=0;y<numEncs;y++){
+    Encounter thisEnc=(Encounter)encounters.get(y);
+    if((thisEnc.getLatitudeAsDouble()!=null)&&(thisEnc.getLongitudeAsDouble()!=null)){
+    for(int z=0;z<numOtherEncs;z++){
+      Encounter nextEnc=otherIndy.getEncounter(z);
+      if((nextEnc.getLatitudeAsDouble()!=null)&&(nextEnc.getLongitudeAsDouble()!=null)){
+        try{
+          Float tempMinDistance=distFrom(new Float(thisEnc.getLatitudeAsDouble()), new Float(thisEnc.getLongitudeAsDouble()), new Float(nextEnc.getLatitudeAsDouble()), new Float(nextEnc.getLongitudeAsDouble()));
+          if(tempMinDistance<minDistance){minDistance=tempMinDistance;}
+        }
+        catch(Exception e){e.printStackTrace();System.out.println("Hit an NPE when calculating distance between: "+thisEnc.getCatalogNumber()+" and "+nextEnc.getCatalogNumber());}
+      }
+    }
+  }
+  }
+  }
+  }
+  if(minDistance>999999)minDistance=new Float(-1);
+  return minDistance;
+}
 
 }
