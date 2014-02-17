@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.Map,java.util.Iterator,java.util.Set,java.util.TreeMap,java.util.StringTokenizer,org.ecocean.*, org.ecocean.genetics.distance.*,java.util.Properties, java.util.Vector,java.util.ArrayList" %>
+         import="java.text.DecimalFormat,java.util.Map,java.util.Iterator,java.util.Set,java.util.TreeMap,java.util.StringTokenizer,org.ecocean.*, org.ecocean.genetics.distance.*,java.util.Properties, java.util.Vector,java.util.ArrayList" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -272,6 +272,7 @@ Map myMap=MyFuns.sortMapByDoubleValue(returnedValues);
 	<th class="lineitem"  bgcolor="#99CCFF">Individual</th>
 	<th class="lineitem"  bgcolor="#99CCFF">Gen. Distance</th>
 	<th class="lineitem"  bgcolor="#99CCFF">No. Co-occur.</th>
+	<th class="lineitem"  bgcolor="#99CCFF">Min. dist. (km)</th>
 	<th class="lineitem"  bgcolor="#99CCFF">Haplo.</th>
 	<th class="lineitem"  bgcolor="#99CCFF">Gen. Sex</th>
 	<th class="lineitem"  bgcolor="#99CCFF">Microsatellite Markers</th>
@@ -286,6 +287,7 @@ while(keyIter.hasNext()){
 	MarkedIndividual thisIndie=myShepherd.getMarkedIndividual(individualID);
 	String value=(String)myMap.get(individualID);
 	double val=(new Double(value)).doubleValue();
+	DecimalFormat df = new DecimalFormat("######.##");
 	//if(val<0.714){
 	%>
 	<tr class="lineitem">
@@ -293,7 +295,17 @@ while(keyIter.hasNext()){
 		<td class="lineitem"><%=value %></td>
 		
 		<td class="lineitem"><%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(individualID, compareAgainst.getIndividualID()) %></td>
-		<td class="lineitem"><%=thisIndie.getHaplotype() %></td>
+		<%
+		String minDistance="&nbsp;";
+		Float calcMin=compareAgainst.getMinDistanceBetweenTwoMarkedIndividuals(thisIndie);
+		if(calcMin>=0){minDistance=df.format((new Float(calcMin/1000)).longValue());}
+		%>
+		<td class="lineitem"><a target="_blank" href="individualMappedSearchResults.jsp?individualID=<%=individualID%>&individualID=<%=compareAgainst.getIndividualID()%>"><%=minDistance %></a></td>
+		<%
+		String thisHaplo="&nbsp;";
+		if(thisIndie.getHaplotype()!=null){thisHaplo=thisIndie.getHaplotype();}
+		%>
+		<td class="lineitem"><%=thisHaplo %></td>
 		<td class="lineitem"><%=thisIndie.getGeneticSex() %></td>
 		<td class="lineitem">
 			<table>
