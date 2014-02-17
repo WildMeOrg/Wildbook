@@ -103,7 +103,31 @@ public class IndividualQueryProcessor {
     }
     //end locationID filters-----------------------------------------------
 
-    
+    //------------------------------------------------------------------
+    //individualID filters-------------------------------------------------
+    String[] individualID=request.getParameterValues("individualID");
+    if((individualID!=null)&&(!individualID[0].equals("None"))){
+          prettyPrint.append("Individual ID one of the following: ");
+          int kwLength=individualID.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              String kwParam=individualID[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" individualID == \""+kwParam+"\"";
+                }
+                else{
+                  locIDFilter+=" || individualID == \""+kwParam+"\"";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end individualID filters-----------------------------------------------
     
     
     
