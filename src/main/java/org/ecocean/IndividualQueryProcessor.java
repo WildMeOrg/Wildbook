@@ -106,7 +106,7 @@ public class IndividualQueryProcessor {
     //------------------------------------------------------------------
     //individualID filters-------------------------------------------------
     String[] individualID=request.getParameterValues("individualID");
-    if((individualID!=null)&&(!individualID[0].equals("None"))){
+    if((individualID!=null)&&(!individualID[0].equals(""))&&(!individualID[0].equals("None"))){
           prettyPrint.append("Individual ID one of the following: ");
           int kwLength=individualID.length;
             String locIDFilter="(";
