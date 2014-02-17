@@ -217,7 +217,7 @@ if(compareAgainst.getGeneticSex()!=null){
 				
 				
 				<tr>
-					<td><%=compareAgainstAllelesString.replaceAll(" ", "</td><td>") %></td>
+					<td><span style="color: #909090"><%=compareAgainstAllelesString.replaceAll(" ", "</span></td><td><span style=\"color: #909090\">") %></span></td>
 				</tr>
 				
 			</table>
