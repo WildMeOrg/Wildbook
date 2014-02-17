@@ -1383,9 +1383,22 @@ else {
   <td>
     <div id="identity" style="display:none; ">
       <table>
+      
+          <tr>
+          <td>
+            <p><strong><%=props.getProperty("individualID")%>:</strong> <em> <input
+              name="individualID" type="text" id="individualID" size="25"
+              maxlength="100"> <span class="para"><a
+              href="<%=CommonConfiguration.getWikiLocation()%>individualID"
+              target="_blank"><img src="images/information_icon_svg.gif"
+                                   alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
+              <br /></em></p>
+          </td>
+        </tr>
+      
         <tr>
           <td>
-            <%=props.getProperty("maxYearsBetweenResights")%>: <select
+            <strong><%=props.getProperty("maxYearsBetweenResights")%></strong>&nbsp;<select
             name="resightGapOperator" id="resightGapOperator">
             <option value="greater" selected="selected">&#8250;=</option>
             <option value="equals">=</option>
