@@ -184,6 +184,7 @@
                		/UserResetAcceptedUserAgreement = authc, roles[admin]
                		/IndividualSetYearOfBirth = authc, roles[admin]
                		/IndividualSetYearOfDeath = authc, roles[admin]
+
                		
                		/index.jsp = authc
                		/individuals.jsp = authc
@@ -194,6 +195,10 @@
 					/login.jsp = anon
 					/index.jsp = authc
 					/ = authc
+
+					
+					/KinalyzerExport = authc, roles[admin]
+
 
             </param-value>
         </init-param>
@@ -545,6 +550,11 @@
     <servlet>
       <servlet-name>EncounterSearchExportGeneGISFormat</servlet-name>
       <servlet-class>org.ecocean.servlet.export.EncounterSearchExportGeneGISFormat</servlet-class>
+  </servlet>
+  
+      <servlet>
+      <servlet-name>KinalyzerExport</servlet-name>
+      <servlet-class>org.ecocean.servlet.export.KinalyzerExport</servlet-class>
   </servlet>
   
       <servlet>
@@ -1069,6 +1079,11 @@
       <servlet-mapping>
           <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
           <url-pattern>/GenalexExportCodominantMSDataBySize</url-pattern>
+  </servlet-mapping>
+  
+        <servlet-mapping>
+          <servlet-name>KinalyzerExport</servlet-name>
+          <url-pattern>/KinalyzerExport</url-pattern>
   </servlet-mapping>
   
   
