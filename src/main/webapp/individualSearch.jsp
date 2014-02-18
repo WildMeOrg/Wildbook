@@ -1386,7 +1386,7 @@ else {
       
           <tr>
           <td>
-            <p><strong><%=props.getProperty("individualID")%>:</strong> <em> <input
+            <p><strong><%=props.getProperty("individualID")%></strong> <em> <input
               name="individualID" type="text" id="individualID" size="25"
               maxlength="100"> <span class="para"><a
               href="<%=CommonConfiguration.getWikiLocation()%>individualID"
