@@ -231,6 +231,18 @@ Click here</a>
 </table>
 </p>
 
+
+	<p>	<table border="1" bordercolor="black" cellspacing="0">
+			<tr><td bgcolor="#CCCCCC"><strong>Kinalyzer CSV File Export</strong></td></tr>
+			<tr><td bgcolor="#FFFFFF">Link: <a href="http://kinalyzer.cs.uic.edu">http://kinalyzer.cs.uic.edu</a></td></tr>
+			<tr><td bgcolor="#FFFFFF">
+		<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/KinalyzerExport?<%=queryString%>">
+Click here</a>
+</td></tr>
+</table>
+</p>
+
+
 <p>	<table border="1" bordercolor="black" cellspacing="0">
 			<tr><td bgcolor="#CCCCCC"><strong>GeoJSON Export</strong></td></tr>
 			<tr><td bgcolor="#FFFFFF">
@@ -239,6 +251,7 @@ Click here</a>
 </td></tr>
 </table>
 </p>
+
 
 
 
