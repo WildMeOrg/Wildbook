@@ -75,13 +75,21 @@ public class IndividualCreate extends HttpServlet {
     File individualsDir=new File(shepherdDataDir.getAbsolutePath()+"/individuals");
     if(!individualsDir.exists()){individualsDir.mkdir();}
 
+    String newIndividualID="";
+    if(request.getParameter("individual")!=null){
+      newIndividualID=request.getParameter("individual");
+      
+      //strip out problematic characters
+      newIndividualID=ServletUtilities.cleanFileName(newIndividualID);
+      
+    }
 
 
     //create a new MarkedIndividual from an encounter
 
-    if ((request.getParameter("individual") != null) && (request.getParameter("number") != null) &&  (!request.getParameter("individual").trim().equals(""))) {
+    if ( (request.getParameter("number") != null) &&  (!newIndividualID.trim().equals(""))) {
       myShepherd.beginDBTransaction();
-      Encounter enc2make = myShepherd.getEncounter(request.getParameter("number"));
+      Encounter enc2make = myShepherd.getEncounter(newIndividualID);
       setDateLastModified(enc2make);
 
       String belongsTo = enc2make.isAssignedToMarkedIndividual();
@@ -91,15 +99,15 @@ public class IndividualCreate extends HttpServlet {
       
       boolean ok2add=true;
 
-      if (!(myShepherd.isMarkedIndividual(request.getParameter("individual")))) {
+      if (!(myShepherd.isMarkedIndividual(newIndividualID))) {
 
 
-        if ((belongsTo.equals("Unassigned")) && (request.getParameter("individual") != null)) {
+        if ((belongsTo.equals("Unassigned")) && (newIndividualID != null)) {
           try {
-            MarkedIndividual newShark = new MarkedIndividual(request.getParameter("individual"), enc2make);
-            enc2make.assignToMarkedIndividual(request.getParameter("individual"));
+            MarkedIndividual newShark = new MarkedIndividual(newIndividualID, enc2make);
+            enc2make.assignToMarkedIndividual(newIndividualID);
             enc2make.setMatchedBy("Unmatched first encounter");
-            newShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + request.getParameter("individual") + ".</p>");
+            newShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + newIndividualID + ".</p>");
             newShark.setDateTimeCreated(ServletUtilities.getDate());
             
             ok2add=myShepherd.addMarkedIndividual(newShark);
@@ -141,7 +149,7 @@ public class IndividualCreate extends HttpServlet {
             if (request.getParameter("noemail") == null) {
               //send the e-mail
               Vector e_images = new Vector();
-              String emailUpdate = "\nNewly marked: " + request.getParameter("individual") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\n\nEncounter: " + request.getParameter("number") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\n";
+              String emailUpdate = "\nNewly marked: " + newIndividualID+ "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID + "\n\nEncounter: " + request.getParameter("number") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\n";
               String thanksmessage = ServletUtilities.getText("createdMarkedIndividual.txt") + emailUpdate;
               ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
@@ -206,9 +214,9 @@ public class IndividualCreate extends HttpServlet {
               }
 
 
-              String rssTitle = "New marked individual: " + request.getParameter("individual");
-              String rssLink = "http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual");
-              String rssDescription = request.getParameter("individual") + " has been added.";
+              String rssTitle = "New marked individual: " + newIndividualID;
+              String rssLink = "http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID;
+              String rssDescription = newIndividualID + " has been added.";
               File rssFile = new File(getServletContext().getRealPath(("/rss.xml")));
 
               ServletUtilities.addRSSEntry(rssTitle, rssLink, rssDescription, rssFile);
@@ -221,7 +229,7 @@ public class IndividualCreate extends HttpServlet {
               
             }
             //set up the directory for this individual
-            File thisSharkDir = new File(individualsDir, request.getParameter("individual"));
+            File thisSharkDir = new File(individualsDir, newIndividualID);
 
 
             if (!(thisSharkDir.exists())) {
@@ -231,11 +239,11 @@ public class IndividualCreate extends HttpServlet {
 
             //output success statement
             out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully used to create <strong>" + request.getParameter("individual") + "</strong>.");
+            out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully used to create <strong>" + newIndividualID + "</strong>.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View <strong>" + request.getParameter("individual") + "</strong></a></p>\n");
+            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID + "\">View <strong>" + newIndividualID + "</strong></a></p>\n");
             out.println(ServletUtilities.getFooter());
-            String message = "Encounter #" + request.getParameter("number") + " was identified as a new individual. The new individual has been named " + request.getParameter("individual") + ".";
+            String message = "Encounter #" + request.getParameter("number") + " was identified as a new individual. The new individual has been named " + newIndividualID + ".";
             if (request.getParameter("noemail") == null) {
               ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
             }
@@ -243,7 +251,7 @@ public class IndividualCreate extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT used to create a new individual. This encounter is currently being modified by another user. Please go back and try to create the new individual again in a few seconds.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View <strong>" + request.getParameter("individual") + "</strong></a></p>\n");
+            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID + "\">View <strong>" + newIndividualID + "</strong></a></p>\n");
             out.println(ServletUtilities.getFooter());
 
           }
@@ -256,7 +264,7 @@ public class IndividualCreate extends HttpServlet {
 
         }
 
-      } else if ((myShepherd.isMarkedIndividual(request.getParameter("individual")))) {
+      } else if ((myShepherd.isMarkedIndividual(newIndividualID))) {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));

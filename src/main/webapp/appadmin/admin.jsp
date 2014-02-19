@@ -65,12 +65,8 @@
   <div id="page">
     <jsp:include page="../header.jsp" flush="true">
 
-   	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
-	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
-	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
-	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-
-</jsp:include>
+      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+    </jsp:include>
     <div id="main">
       <p>
 
@@ -202,6 +198,23 @@
         </tr>
       </table>
 
+      <p>&nbsp;</p>
+      <table width="600" border="1">
+        <tr>
+          <td>
+            <p><img src="../images/Warning_icon.png" width="25px" height="*" align="absmiddle" />  <font size="+1">Delete All Data PERMANENTLY</font>
+            <br /><br /><em>Warning! This will delete ALL of your data. Your user account must have the 'destroyer' user role for this function to work, and this option is not available for any account by default. This option is only meant for
+            Shepherd Project instances that have transient data (i.e., the Shepherd Project is not the primary data store).</em>
+            </p>
+
+            <form onsubmit="return confirm('Are you sure you want to delete all encounters? WARNING! This will cause complete data loss!');" name="deleteAll" method="post" action="../DeleteAllDataPermanently">
+
+              <input name="deleteAllData" type="submit" id="deleteAllData" value="Delete All Data PERMANENTLY">
+              </p></form>
+          </td>
+        </tr>
+      </table>
+      
         <p>&nbsp;</p>
       <table width="600" border="1">
         <tr>
