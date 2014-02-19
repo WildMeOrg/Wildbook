@@ -639,6 +639,11 @@
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportEmailAddresses</servlet-class>
   </servlet>
   
+        <servlet>
+        <servlet-name>ningalooPradel</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.NingalooPradel</servlet-class>
+  </servlet>
+  
      <servlet>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportShapefile</servlet-class>
@@ -727,6 +732,10 @@
     <servlet-class>org.ecocean.servlet.TrackerFeed</servlet-class>
   </servlet>
 
+    <servlet>
+    <servlet-name>SideFeed</servlet-name>
+    <servlet-class>org.ecocean.servlet.SideFeed</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterRemoveImage</servlet-name>
@@ -762,6 +771,11 @@
   <servlet>
     <servlet-name>EncounterSetSex</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSex</servlet-class>
+  </servlet>
+  
+    <servlet>
+    <servlet-name>EncounterDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
   
     <servlet>
