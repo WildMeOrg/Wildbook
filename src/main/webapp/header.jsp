@@ -304,7 +304,7 @@ if(request.getUserPrincipal()!=null){
 	
 
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;z-index:99;">Encounter Search</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearch.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;z-index:99;">Shark Search</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearch.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;z-index:99;">Individual Search</a></li>
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchComparison.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;z-index:99;">Search Comparison</a></li>
 		
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/googleSearch.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;">Google Search</a></li>
