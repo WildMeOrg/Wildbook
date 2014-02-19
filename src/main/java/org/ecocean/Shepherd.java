@@ -23,6 +23,7 @@ import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.genetics.*;
+import org.ecocean.social .*;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -280,6 +281,90 @@ public class Shepherd {
       return null;
     }
     return tempEnc;
+  }
+  
+  
+  
+  public Relationship getRelationship(String type, String indie1,String indie2) {
+    Relationship tempRel = null;
+    String filter = "this.type == \""+type+"\" && this.markedIndividualName1 == \""+indie1+"\" && this.markedIndividualName2 == \""+indie2+"\"";
+    Extent encClass = pm.getExtent(Relationship.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+    try {
+        Collection c = (Collection) (acceptedEncounters.execute());
+        Iterator it = c.iterator();
+        while(it.hasNext()){
+          Relationship ts=(Relationship)it.next();
+          acceptedEncounters.closeAll();
+          return ts;
+        }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      acceptedEncounters.closeAll();
+      return null;
+    }
+    acceptedEncounters.closeAll();
+    return null;
+  }
+  
+  
+  public Relationship getRelationship(String type, String indie1,String indie2, String indieRole1, String indieRole2) {
+    Relationship tempRel = null;
+    String filter = "this.type == \""+type+"\" && this.markedIndividualName1 == \""+indie1+"\" && this.markedIndividualName2 == \""+indie2+"\" && this.markedIndividualRole1 == \""+indieRole1+"\" && this.markedIndividualRole2 == \""+indieRole2+"\"";
+    Extent encClass = pm.getExtent(Relationship.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+    try {
+        Collection c = (Collection) (acceptedEncounters.execute());
+        Iterator it = c.iterator();
+        while(it.hasNext()){
+          Relationship ts=(Relationship)it.next();
+          acceptedEncounters.closeAll();
+          return ts;
+        }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      acceptedEncounters.closeAll();
+      return null;
+    }
+    acceptedEncounters.closeAll();
+    return null;
+  }
+  
+  public Relationship getRelationship(String type, String indie1,String indie2, String indieRole1, String indieRole2, String relatedCommunityName) {
+    Relationship tempRel = null;
+    String filter = "this.type == \""+type+"\" && this.markedIndividualName1 == \""+indie1+"\" && this.markedIndividualName2 == \""+indie2+"\" && this.markedIndividualRole1 == \""+indieRole1+"\" && this.markedIndividualRole2 == \""+indieRole2+"\" && this.relatedSocialUnitName == \""+relatedCommunityName+"\"";
+    Extent encClass = pm.getExtent(Relationship.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+    try {
+        Collection c = (Collection) (acceptedEncounters.execute());
+        Iterator it = c.iterator();
+        while(it.hasNext()){
+          Relationship ts=(Relationship)it.next();
+          acceptedEncounters.closeAll();
+          return ts;
+        }
+    }
+    catch (Exception nsoe) {
+      nsoe.printStackTrace();
+      acceptedEncounters.closeAll();
+      return null;
+    }
+    acceptedEncounters.closeAll();
+    return null;
+  }
+  
+  
+  public SocialUnit getCommunity(String name) {
+    SocialUnit tempCom = null;
+    try {
+      tempCom = ((SocialUnit) (pm.getObjectById(pm.newObjectIdInstance(SocialUnit.class, name.trim()), true)));
+    } 
+    catch (Exception nsoe) {
+      return null;
+    }
+    return tempCom;
   }
 
   public SinglePhotoVideo getSinglePhotoVideo(String num) {
@@ -552,6 +637,20 @@ public class Shepherd {
     }
     return true;
   }
+  
+  
+  public boolean isCommunity(String comName) {
+    try {
+      SocialUnit tempCom = ((org.ecocean.social.SocialUnit) (pm.getObjectById(pm.newObjectIdInstance(SocialUnit.class, comName.trim()), true)));
+    } 
+    catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
+  
+  
+  
 
   public boolean isTissueSample(String sampleID, String encounterNumber) {
     TissueSample tempEnc = null;
@@ -703,6 +802,45 @@ public class Shepherd {
       return false;
     }
     return true;
+  }
+  
+  public boolean isRelationship(String type, String markedIndividualName1, String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2, boolean checkBidirectional) {
+    try {
+    
+      if(getRelationship(type, markedIndividualName1,markedIndividualName2, markedIndividualRole1, markedIndividualRole2)!=null){
+        return true;
+      }
+      //if requested by checkBidirectional attribute, also check for the inverse of this relationship
+      if(checkBidirectional && (getRelationship(type, markedIndividualName2,markedIndividualName1, markedIndividualRole2, markedIndividualRole1)!=null)){
+        return true;
+      }
+    
+    } 
+    catch (Exception nsoe) {
+      return false;
+    }
+    return false;
+  }
+  
+  
+  
+  
+  public boolean isRelationship(String type, String markedIndividualName1, String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2, String relatedCommunityName, boolean checkBidirectional) {
+    try {
+    
+      if(getRelationship(type, markedIndividualName1,markedIndividualName2, markedIndividualRole1, markedIndividualRole2, relatedCommunityName)!=null){
+        return true;
+      }
+      //if requested by checkBidirectional attribute, also check for the inverse of this relationship
+      if(checkBidirectional && (getRelationship(type, markedIndividualName2,markedIndividualName1, markedIndividualRole2, markedIndividualRole1, relatedCommunityName)!=null)){
+        return true;
+      }
+    
+    } 
+    catch (Exception nsoe) {
+      return false;
+    }
+    return false;
   }
 
 
@@ -1282,7 +1420,7 @@ public class Shepherd {
     Collection c = (Collection) (query.execute());
     //System.out.println("getAllOccurrencesForMarkedIndividual size: "+c.size());
     Iterator it = c.iterator();
-    query.closeAll();
+    //query.closeAll();
     return it;
   }
 
@@ -1291,7 +1429,7 @@ public class Shepherd {
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     Iterator it = c.iterator();
-    
+
     while(it.hasNext()){
       Occurrence occur=(Occurrence)it.next();
       query.closeAll();
@@ -1310,6 +1448,7 @@ public class Shepherd {
       Iterator it=getAllOccurrencesForMarkedIndividual(query,indie);
       while(it.hasNext()){
          Occurrence oc=(Occurrence)it.next();
+         //System.out.println("     Found an occurrence for my indie!!!!");
          ArrayList<MarkedIndividual> alreadyCounted=new ArrayList<MarkedIndividual>();
          ArrayList<Encounter> encounters=oc.getEncounters();
          int numEncounters=encounters.size();
@@ -1343,7 +1482,12 @@ public class Shepherd {
       //}
       //System.out.println("Final map size is: "+map.size());
 
+      
+      
       ArrayList<Map.Entry> as = new ArrayList<Map.Entry>( hmap.entrySet() );
+      
+      //System.out.println("getAllOtherIndividualsOccurringWithMarkedIndividual size is: "+as.size());
+      
       IndividualOccurrenceNumComparator cmp=new IndividualOccurrenceNumComparator();
       Collections.sort( as , cmp);
       Collections.reverse(as);
@@ -2011,19 +2155,19 @@ public class Shepherd {
   }
 
   public ArrayList<User> getAllUsers() {
-    Extent allKeywords = null;
-    ArrayList<User> it = new ArrayList<User>();
+    Collection c;
+    Extent userClass = pm.getExtent(User.class, true);
+    Query users = pm.newQuery(userClass);
     try {
-      allKeywords = pm.getExtent(User.class, true);
-      Query acceptedKeywords = pm.newQuery(allKeywords);
-      acceptedKeywords.setOrdering("username descending");
-      Collection c = (Collection) (acceptedKeywords.execute());
-      it=new ArrayList<User>(c);
-    } catch (javax.jdo.JDOException x) {
-      x.printStackTrace();
-      return it;
+      c = (Collection) (users.execute());
+      ArrayList<User> list = new ArrayList<User>(c);
+      users.closeAll();
+      return list;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute Shepherd.getAllUsers. Returning a null collection because I didn't have a transaction to use.");
+      npe.printStackTrace();
+      return null;
     }
-    return it;
   }
   
   public String getAllUserEmailAddressesForLocationID(String locationID){
@@ -2459,25 +2603,36 @@ public class Shepherd {
     return al;
   }
 
+  //get earliest sighting year for setting search parameters
   public int getEarliestSightingYear() {
-    Query q = pm.newQuery("SELECT min(year) FROM org.ecocean.Encounter where year > -1");
-    int value=((Integer) q.execute()).intValue();
-    q.closeAll();
-    return value;
+    
+    try{
+      Query q = pm.newQuery("SELECT min(year) FROM org.ecocean.Encounter where year > 0");
+      int value=((Integer) q.execute()).intValue();
+      q.closeAll();
+      return value;
+    }
+    catch(Exception e){return -1;}
   }
 
   public int getLastSightingYear() {
-    Query q = pm.newQuery("SELECT max(year) FROM org.ecocean.Encounter");
-    int value=((Integer) q.execute()).intValue();
-    q.closeAll();
-    return value;
+    try{
+      Query q = pm.newQuery("SELECT max(year) FROM org.ecocean.Encounter");
+      int value=((Integer) q.execute()).intValue();
+      q.closeAll();
+      return value;
+    }
+    catch(Exception e){return -1;}
   }
 
   public int getLastMonthOfSightingYear(int yearHere) {
-    Query q = pm.newQuery("SELECT max(month) FROM org.ecocean.Encounter WHERE this.year == " + yearHere);
-    int value=((Integer) q.execute()).intValue();
-    q.closeAll();
-    return value;
+    try{  
+      Query q = pm.newQuery("SELECT max(month) FROM org.ecocean.Encounter WHERE this.year == " + yearHere);
+      int value=((Integer) q.execute()).intValue();
+      q.closeAll();
+      return value;
+    }
+    catch(Exception e){return -1;}
   }
 
   public ArrayList<String> getAllLocationIDs() {
@@ -2548,6 +2703,22 @@ public class Shepherd {
     ArrayList al=new ArrayList(results);
     q.closeAll();
     return al;
+  }
+  
+  public ArrayList<String> getAllSocialUnitNames() {
+    ArrayList<String> comNames=new ArrayList<String>();
+    Query q = pm.newQuery(Relationship.class);
+    try{
+      
+      q.setResult("distinct relatedSocialUnitName");
+      q.setOrdering("relatedSocialUnitName ascending");
+      Collection results = (Collection) q.execute();
+      comNames=new ArrayList<String>(results);
+      
+    }
+    catch(Exception e){}
+    q.closeAll();
+    return comNames;
   }
 
   public ArrayList<String> getAllGenuses() {
@@ -2648,6 +2819,132 @@ public class Shepherd {
   }
 
 
+  public ArrayList<MarkedIndividual> getAllMarkedIndividualsInCommunity(String communityName){
+    ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
+    Extent encClass = pm.getExtent(Relationship.class, true);
+    String filter2use = "this.relatedSocialUnitName == \""+communityName+"\"";
+    Query acceptedEncounters = pm.newQuery(encClass, filter2use);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList listy = new ArrayList(c);
+    int listySize=listy.size();
+    for(int i=0;i<listySize;i++){
+      Relationship rely=(Relationship)listy.get(i);
+      if(rely.getMarkedIndividualName1()!=null){
+        String name1=rely.getMarkedIndividualName1();
+        if(isMarkedIndividual(name1)){
+          MarkedIndividual indie=getMarkedIndividual(name1);
+          if(!indies.contains(indie)){indies.add(indie);}
+        }
+      }
+      if(rely.getMarkedIndividualName2()!=null){
+        String name2=rely.getMarkedIndividualName2();
+        if(isMarkedIndividual(name2)){
+          MarkedIndividual indie=getMarkedIndividual(name2);
+          if(!indies.contains(indie)){indies.add(indie);}
+        }
+      }
+      
+    }
+    acceptedEncounters.closeAll();
+    return indies;
+  }
+  
+  public ArrayList<Relationship> getAllRelationshipsForMarkedIndividual(String indieName){
+    Extent encClass = pm.getExtent(Relationship.class, true);
+    String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
+    Query query = pm.newQuery(encClass, filter2use);
+    Collection c = (Collection) (query.execute());
+    //System.out.println("Num relationships for MarkedIndividual "+indieName+": "+c.size());
+    ArrayList<Relationship> listy = new ArrayList<Relationship>(c);
+    query.closeAll();
+    return listy;
+  }
+  
+  public ArrayList<String> getAllSocialUnitsForMarkedIndividual(String indieName){
+    Extent encClass = pm.getExtent(Relationship.class, true);
+    
+    String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
+    Query query = pm.newQuery(encClass, filter2use);
+    query.setResult("distinct relatedSocialUnitName");
+    Collection c = (Collection) (query.execute());
+    //System.out.println("Num relationships for MarkedIndividual "+indieName+": "+c.size());
+    ArrayList<String> listy = new ArrayList<String>();
+    if(c!=null)listy = new ArrayList<String>(c);
+    query.closeAll();
+    return listy;
+  }
+  
+  public ArrayList<String> getAllRoleNamesForMarkedIndividual(String indieName){
+    ArrayList<String> roles=new ArrayList<String>();
+    
+    ArrayList<Relationship> rels=getAllRelationshipsForMarkedIndividual(indieName);
+    int numRels=rels.size();
+    for(int i=0;i<numRels;i++){
+      
+      Relationship rel=rels.get(i);
+      if((rel.getMarkedIndividualName1().equals(indieName))&&(rel.getMarkedIndividualRole1()!=null)&&(!roles.contains(rel.getMarkedIndividualRole1()))){
+        roles.add(rel.getMarkedIndividualRole1());
+      }
+      if((rel.getMarkedIndividualName2().equals(indieName))&&(rel.getMarkedIndividualRole2()!=null)&&(!roles.contains(rel.getMarkedIndividualRole2()))){
+        roles.add(rel.getMarkedIndividualRole2());
+      }
+      
+    }
+    
+    return roles;
+  }
+  
+  public ArrayList<Relationship> getAllRelationshipsForCommunity(String commName){
+    //ArrayList<Relationship> relies=new ArrayList<Relationship>();
+    Extent encClass = pm.getExtent(Relationship.class, true);
+    String filter2use = "this.communityName == \""+commName+"\"";
+    Query acceptedEncounters = pm.newQuery(encClass, filter2use);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList<Relationship> listy = new ArrayList<Relationship>(c);
+    acceptedEncounters.closeAll();
+    return listy;
+  }
+  
+  public int getNumCooccurrencesBetweenTwoMarkedIndividual(String individualID1,String individualID2){
+    int numCooccur=0;
+    
+    ArrayList<String> occurenceIDs1=getOccurrenceIDsForMarkedIndividual(individualID1);
+    //System.out.println("zzzOccurrences for indie "+individualID1+": "+occurenceIDs1.toString());
+    ArrayList<String> occurenceIDs2=getOccurrenceIDsForMarkedIndividual(individualID2);
+    //System.out.println("zzzOccurrences for indie "+individualID2+": "+occurenceIDs2.toString());
+    
+    int numOccurenceIDs1=occurenceIDs1.size();
+    if((numOccurenceIDs1>0)&&(occurenceIDs2.size()>0)){
+      //System.out.println(numOccurenceIDs1+":"+occurenceIDs2.size());
+      for(int i=0;i<numOccurenceIDs1;i++){
+        if(occurenceIDs2.contains(occurenceIDs1.get(i))){
+          //System.out.println("Checking occurrence: "+occurenceIDs1.get(i));
+          numCooccur++;
+          //System.out.println("zzzMatching co-occurrence: "+occurenceIDs1.get(i));
+        }
+      }
+    }
+    return numCooccur;
+  }
+  
+  public ArrayList<String> getOccurrenceIDsForMarkedIndividual(String individualID){
+    ArrayList<String> occurrenceIDs=new ArrayList<String>();
+    
+   String filter="SELECT distinct occurrenceID FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+individualID+"\"  VARIABLES org.ecocean.Encounter enc";
+    
+    Query q = pm.newQuery (filter);
+    
+    Collection results = (Collection) q.execute();
+    ArrayList al=new ArrayList(results);
+    q.closeAll();
+    int numResults=al.size();
+    for(int i=0;i<numResults;i++){occurrenceIDs.add((String)al.get(i));}
+    //System.out.println("zzzOccurrences for "+individualID+": "+occurrenceIDs.toString());
+    return occurrenceIDs;
+  }
+  
+
+  
 
 } //end Shepherd class
 

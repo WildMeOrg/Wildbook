@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>4.0.4-EXPERIMENTAL</version>
+  <version>4.1.0-EXPERIMENTAL</version>
   <packaging>war</packaging>
 
   <properties>
@@ -167,7 +167,15 @@
 	<artifactId>spring-core</artifactId>
 	<version>3.1.1.RELEASE</version>
 </dependency>
+
+
+<dependency>
+	<groupId>org.json</groupId>
+	<artifactId>json</artifactId>
+	<version>20131018</version>
+</dependency>
             
+
     <dependency>
       <groupId>org.datanucleus</groupId>
       <artifactId>datanucleus-enhancer</artifactId>
@@ -222,13 +230,6 @@
       <version>${datanucleus.jodatime.version}</version>
       <scope>${datanucleus.lib.scope}</scope>
     </dependency>
-    
-        <dependency>
-        	<groupId>ch.ethz.ganymed</groupId>
-        	<artifactId>ganymed-ssh2</artifactId>
-        	<version>build210</version>
-    </dependency>
-    
     <dependency>
       <groupId>org.apache.derby</groupId>
       <artifactId>derby</artifactId>
@@ -430,6 +431,7 @@
             <argument>target/classes/org/ecocean/genetics/package.jdo</argument>
             <argument>target/classes/org/ecocean/grid/package.jdo</argument>
             <argument>target/classes/org/ecocean/tag/package.jdo</argument>
+			<argument>target/classes/org/ecocean/social/package.jdo</argument>
           </arguments>
         </configuration>
         <executions>

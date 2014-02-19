@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
-         import="java.util.ArrayList,org.ecocean.CommonConfiguration, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
+         import="java.util.ArrayList,org.ecocean.*, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
   GregorianCalendar cal = new GregorianCalendar();
@@ -75,8 +75,6 @@
 
   //link path to submit page with appropriate language
   String submitPath = "submit.jsp?langCode=" + langCode;
-  
-  //test comment
 
 %>
 
@@ -488,7 +486,41 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
   <td colspan="2">
     <input name="behavior" type="text" id="scars" size="75"/></td>
 </tr>
+<%
 
+if(CommonConfiguration.showProperty("showLifestage")){
+
+%>
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("lifeStage")%>:</strong></td>
+  <td colspan="2">
+  <select name="lifeStage" id="lifeStage">
+  	<option value="" selected="selected"></option>
+  <%
+  			       boolean hasMoreStages=true;
+  			       int stageNum=0;
+  			       
+  			       while(hasMoreStages){
+  			       	  String currentLifeStage = "lifeStage"+stageNum;
+  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+  			       	  	<%
+  			       		stageNum++;
+  			          }
+  			          else{
+  			        	hasMoreStages=false;
+  			          }
+  			          
+			       }
+			       
+ %>
+  </select></td>
+</tr>
+<%
+}
+%>
 <%
     pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
 %>
@@ -531,7 +563,73 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
   pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode));
 %>
 
+<c:if test="${showMetalTags and !empty metalTags}">
+<tr class="form_row">
+  <td class="form_label"><strong>Metal Tags:</strong></td>
+  <td colspan="2">
+    <table class="metalTags">
+    <tr>
+      <th>Location</th><th>Tag Number</th>
+    </tr>
+    <c:forEach items="${metalTags}" var="metalTagDesc">
+      <tr>
+        <td><c:out value="${metalTagDesc.locationLabel}:"/></td>
+        <td><input name="metalTag(${metalTagDesc.location})"/></td>
+      </tr>
+    </c:forEach>
+    </table>
+  </td>
+</tr>
+</c:if>
 
+<c:if test="${showAcousticTag}">
+<tr class="form_row">
+    <td class="form_label"><strong>Acoustic Tag:</strong></td>
+    <td colspan="2">
+      <table class="acousticTag">
+      <tr>
+      <td>Serial number:</td>
+      <td><input name="acousticTagSerial"/></td>
+      </tr>
+      <tr>
+        <td>ID:</td>
+        <td><input name="acousticTagId"/></td>
+      </tr>
+      </table>
+    </td>
+</tr>
+</c:if>
+
+<c:if test="${showSatelliteTag}">
+<%
+  pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
+%>
+<tr class="form_row">
+    <td class="form_label"><strong>Satellite Tag:</strong></td>
+    <td colspan="2">
+      <table class="satelliteTag">
+      <tr>
+        <td>Name:</td>
+        <td>
+            <select name="satelliteTagName">
+              <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+                <option value="${satelliteTagName}">${satelliteTagName}</option>
+              </c:forEach>
+            </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Serial number:</td>
+        <td><input name="satelliteTagSerial"/></td>
+      </tr>
+      <tr>
+        <td>Argos PTT Number:</td>
+        <td><input name="satelliteTagArgosPttNumber"/></td>
+      </tr>
+      </table>
+    </td>
+</tr>
+</c:if>
 
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>
@@ -556,16 +654,34 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
     </strong><br/><%=props.getProperty("submit_ifyou")%>
     </td>
   </tr>
-
+    <%
+    //let's pre-populate important info for logged in users
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation="";
+    String project="";
+    if(request.getRemoteUser()!=null){
+    	submitterName=request.getRemoteUser();
+    	Shepherd myShepherd=new Shepherd();
+    	if(myShepherd.getUser(submitterName)!=null){
+    		User user=myShepherd.getUser(submitterName);
+    		if(user.getFullName()!=null){submitterName=user.getFullName();}
+    		if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+    		if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+    		if(user.getUserProject()!=null){project=user.getUserProject();}
+    	}
+    }
+    %>
   <tr>
     <td><font color="#CC0000"><%=props.getProperty("submit_name")%>:</font></td>
-    <td><input name="submitterName" type="text" id="submitterName" size="24"/></td>
+    <td><input name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName%>"/></td>
     <td><%=props.getProperty("submit_name")%>:</td>
     <td><input name="photographerName" type="text" id="photographerName" size="24"/></td>
   </tr>
   <tr>
     <td><font color="#CC0000"><%=props.getProperty("submit_email")%>:</font></td>
-    <td><input name="submitterEmail" type="text" id="submitterEmail" size="24"/></td>
+
+    <td><input name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>"/></td>
     <td><%=props.getProperty("submit_email")%>:</td>
     <td><input name="photographerEmail" type="text" id="photographerEmail" size="24"/></td>
   </tr>
@@ -585,13 +701,13 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
 
   <tr>
     <td colspan="4"><br /><strong><%=props.getProperty("submitterOrganization")%></strong><br />
-    <input name="submitterOrganization" type="text" id="submitterOrganization" size="75"/>
+    <input name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation%>"/>
     </td>
   </tr>
   
     <tr>
       <td colspan="4"><br /><strong><%=props.getProperty("submitterProject")%></strong><br />
-      <input name="submitterProject" type="text" id="submitterProject" size="75"/>
+      <input name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project%>"/>
       </td>
   </tr>
 

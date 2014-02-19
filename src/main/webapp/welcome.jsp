@@ -70,8 +70,6 @@
   <div id="page">
     <jsp:include page="header.jsp" flush="true">
       <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-      <jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>" />
-      <jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>" />
     </jsp:include>
     <div id="main">
       <div id="leftcol">
@@ -86,17 +84,16 @@
           </h1>
 
 
-          <p><%=props.getProperty("loggedInAs")%>: <strong><%=request.getRemoteUser()%>
-          </strong></p>
+          <p><%=props.getProperty("loggedInAs")%> <strong><%=request.getRemoteUser()%>
+          </strong>.
+          </p>
 
           <p><%=props.getProperty("grantedRole")%>
-
 			<%
 			Shepherd myShepherd=new Shepherd();
 			myShepherd.beginDBTransaction();
 			%>
              <strong><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser())%></strong></p>
-
             
             <%
             

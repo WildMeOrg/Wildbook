@@ -167,7 +167,7 @@
 
   File file2process = new File(addText);
   
-  if(myShepherd.isAcceptableImageFile(file2process.getName())){
+  if((file2process.exists())&&(myShepherd.isAcceptableImageFile(file2process.getName()))){
   	int intWidth = 100;
   	int intHeight = 75;
   	int thumbnailHeight = 75;

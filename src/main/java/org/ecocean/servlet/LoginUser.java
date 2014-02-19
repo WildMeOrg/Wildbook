@@ -16,8 +16,6 @@ import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 
-import org.apache.shiro.web.util.WebUtils;
-
 import org.ecocean.*;
 
 
@@ -65,11 +63,28 @@ import org.ecocean.*;
 		String salt="";
 		Shepherd myShepherd=new Shepherd();
 		myShepherd.beginDBTransaction();
-		if(myShepherd.getUser(username)!=null){
-		  User user=myShepherd.getUser(username);
-		  salt=user.getSalt();  
+		
+		try{
+		  if(myShepherd.getUser(username)!=null){
+		    User user=myShepherd.getUser(username);
+		    salt=user.getSalt();  
+		    if(request.getParameter("acceptUserAgreement")!=null){
+		      user.setAcceptedUserAgreement(true);
+		      myShepherd.commitDBTransaction();
+		    }
+		    else{
+		      myShepherd.rollbackDBTransaction();
+		    }
+      
+		  }
+		  else{
+		    myShepherd.rollbackDBTransaction();
+		  }
 		}
-		myShepherd.rollbackDBTransaction();
+		catch(Exception e){
+		  myShepherd.rollbackDBTransaction();
+		}
+		
 		myShepherd.closeDBTransaction();
     String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
     System.out.println("Authenticating hashed password: "+hashedPassword+" including salt "+salt);
@@ -113,29 +128,49 @@ import org.ecocean.*;
 			//authentication fails (e.g. incorrect password, no username found)
 
 			subject.login(token);
+			boolean redirectUser=false;
 		   myShepherd.beginDBTransaction();
 		    if(myShepherd.getUser(username)!=null){
 		      User user=myShepherd.getUser(username);
-		      user.setLastLogin((new Date()).getTime());
+		      if((CommonConfiguration.getProperty("showUserAgreement")!=null)&&(CommonConfiguration.getProperty("userAgreementURL")!=null)&&(CommonConfiguration.getProperty("showUserAgreement").equals("true"))&&(!user.getAcceptedUserAgreement())){
+		        subject.logout();
+		        redirectUser=true;
+		        //redirect to the user agreement
+		        
+		      }
+		      else{
+		        user.setLastLogin((new Date()).getTime());
+		        url = "/welcome.jsp";}
+		   
 		    }
+		    
 		    myShepherd.commitDBTransaction();
-		    myShepherd.closeDBTransaction();
+        myShepherd.closeDBTransaction();
+        
+        if(redirectUser){url=CommonConfiguration.getProperty("userAgreementURL");}
+        
 			
 			
 			//clear the information stored in the token
 
 			token.clear();
 			
-			url = "/welcome.jsp";
+			
 
-		} catch (UnknownAccountException ex) {
+		} 
+		catch (UnknownAccountException ex) {
 			//username provided was not found
 			ex.printStackTrace();
 			request.setAttribute("error", ex.getMessage() );
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
 			
-		} catch (IncorrectCredentialsException ex) {
+		} 
+		catch (IncorrectCredentialsException ex) {
 			//password provided did not match password found in database
 			//for the username provided
+		  myShepherd.rollbackDBTransaction();
+		  myShepherd.closeDBTransaction();
 			ex.printStackTrace();
 			request.setAttribute("error", ex.getMessage());
 		}
@@ -154,8 +189,12 @@ import org.ecocean.*;
         
         //dispatcher.forward(request, response);   
 		
-		WebUtils.redirectToSavedRequest(request, response, url);
+		//WebUtils.redirectToSavedRequest(request, response, url);
 
+    // forward the request and response to the view
+    RequestDispatcher dispatcher =
+    getServletContext().getRequestDispatcher(url);
+    dispatcher.forward(request, response);   
 	
 		
 	}   	  	    
