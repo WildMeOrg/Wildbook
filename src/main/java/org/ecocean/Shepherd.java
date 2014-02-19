@@ -2860,6 +2860,20 @@ public class Shepherd {
     return listy;
   }
   
+  public ArrayList<String> getAllSocialUnitsForMarkedIndividual(String indieName){
+    Extent encClass = pm.getExtent(Relationship.class, true);
+    
+    String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
+    Query query = pm.newQuery(encClass, filter2use);
+    query.setResult("distinct relatedSocialUnitName");
+    Collection c = (Collection) (query.execute());
+    //System.out.println("Num relationships for MarkedIndividual "+indieName+": "+c.size());
+    ArrayList<String> listy = new ArrayList<String>();
+    if(c!=null)listy = new ArrayList<String>(c);
+    query.closeAll();
+    return listy;
+  }
+  
   public ArrayList<String> getAllRoleNamesForMarkedIndividual(String indieName){
     ArrayList<String> roles=new ArrayList<String>();
     
