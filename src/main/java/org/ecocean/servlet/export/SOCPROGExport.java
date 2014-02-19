@@ -12,7 +12,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import jxl.write.*;
-import jxl.Workbook;
+import jxl.*;
 
 import org.ecocean.Util.MeasurementDesc;
 
@@ -98,7 +98,7 @@ public class SOCPROGExport extends HttpServlet{
         try {
           props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
         } catch (Exception e) {
-          System.out.println("     Could not load locales.properties in class GenalexExportCodominantMSDataBySize.");
+          //System.out.println("     Could not load locales.properties in class GenalexExportCodominantMSDataBySize.");
           e.printStackTrace();
         }
         
@@ -138,26 +138,29 @@ public class SOCPROGExport extends HttpServlet{
         Label popLabel4a = new Label(0, 0, "ID");
         sheet2.addCell(popLabel4a);
         
-        Label popLabel7 = new Label(1, 0, "GroupID");
+        Label popLabel7 = new Label(1, 0, "OccurrenceID");
         sheet2.addCell(popLabel7);
         
-        Label popLabel5 = new Label(2, 0, "Sex");
+        Label popLabel7a = new Label(2, 0, "SocialUnit");
+        sheet2.addCell(popLabel7a);
+        
+        Label popLabel5 = new Label(3, 0, "Sex");
         sheet2.addCell(popLabel5);
         
-        Label popLabel6 = new Label(3, 0, "Behavior");
+        Label popLabel6 = new Label(4, 0, "Behavior");
         sheet2.addCell(popLabel6);
         
-        Label popLabel8 = new Label(4, 0, "Haplotype");
+        Label popLabel8 = new Label(5, 0, "Haplotype");
         sheet2.addCell(popLabel8);
         
-        Label popLabel9 = new Label(5, 0, "RecaptureStatus");
+        Label popLabel9 = new Label(6, 0, "RecaptureStatus");
         sheet2.addCell(popLabel9);
         
         List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
         int numMeasurementTypes=measurementTypes.size();
         for(int j=0;j<numMeasurementTypes;j++){
           String measureName=measurementTypes.get(j).getType();
-          Label popLabelX = new Label((j+6), 0, measureName);
+          Label popLabelX = new Label((j+7), 0, measureName);
           sheet2.addCell(popLabelX);
         }
          
@@ -165,10 +168,16 @@ public class SOCPROGExport extends HttpServlet{
         int numBioMeasurementTypes=bioMeasurementTypes.size();
         for(int j=0;j<numBioMeasurementTypes;j++){
           String measureName=bioMeasurementTypes.get(j).getType();
-          Label popLabelX = new Label((j+6+numMeasurementTypes), 0, measureName);
+          Label popLabelX = new Label((j+7+numMeasurementTypes), 0, measureName);
           sheet2.addCell(popLabelX);
         }
         
+        
+        DateFormat customDateFormat = new DateFormat ("MM/dd/yy hh:mm");
+        WritableCellFormat dateFormat = new WritableCellFormat (customDateFormat);
+        
+        WritableCellFormat numbersFormat=new WritableCellFormat(new  jxl.write.NumberFormat("#.#####"));
+        numbersFormat.setShrinkToFit(true);
         
         //later, we might ant to add columns for Lat and Long
        
@@ -188,33 +197,53 @@ public class SOCPROGExport extends HttpServlet{
                   Encounter enc=(Encounter)encs.get(j);
                   if((enc.getLocationID()!=null)||((enc.getLongitudeAsDouble()!=null)&&(enc.getLatitudeAsDouble()!=null))){
                     
-                    if((enc.getYear()>0)&&(enc.getMonth()>0)&&(enc.getDay()>0)){
+                    if(enc.getDateInMilliseconds()>0){
                       
                     count++;
                     
+                    GregorianCalendar localCalendar = new GregorianCalendar();
+                    localCalendar.setTimeInMillis(enc.getDateInMilliseconds());
                     
-                    Label encLabel = new Label(0, count, enc.getDate().replaceAll("-", "/"));
+                    
+                    //jxl.write.DateTime encLabel = new jxl.write.DateTime(0, count, enc.getDate().replaceAll("-", "/"));
+                    jxl.write.DateTime encLabel = new jxl.write.DateTime(0, count, localCalendar.getTime(),dateFormat);
                     sheet.addCell(encLabel);
                     
                     
                     if((enc.getLongitudeAsDouble()!=null)&&(enc.getLatitudeAsDouble()!=null)){
-                      Label popLabel1a = new Label(1, count, enc.getLatitudeAsDouble().toString());
+                      jxl.write.Number popLabel1a = new jxl.write.Number(1, count, enc.getLatitudeAsDouble(),numbersFormat);
                       sheet.addCell(popLabel1a);
 
                     
-                      Label popLabel2a = new Label(2, count, enc.getLongitudeAsDouble().toString());
+                      jxl.write.Number popLabel2a = new jxl.write.Number(2, count, enc.getLongitudeAsDouble(),numbersFormat);
                       sheet.addCell(popLabel2a);
+                    }
+                    else{
+                      
+                      jxl.write.Label popLabel1a = new jxl.write.Label(1, count, "NaN");
+                      sheet.addCell(popLabel1a);
+
+                    
+                      jxl.write.Label popLabel2a = new jxl.write.Label(2, count, "NaN");
+                      sheet.addCell(popLabel2a);
+                      
                     }
                     
                     if((enc.getMaximumDepthInMeters()!=null)||(enc.getMaximumElevationInMeters()!=null)){
                       if(enc.getMaximumDepthInMeters()!=null){
-                        Label popLabel3c = new Label(3, count, enc.getMaximumDepthInMeters().toString());
+                        jxl.write.Number popLabel3c = new jxl.write.Number(3, count, enc.getMaximumDepthInMeters(),numbersFormat);
                         sheet.addCell(popLabel3c);
                       }
                       else{
-                        Label popLabel3c = new Label(3, count, enc.getMaximumElevationInMeters().toString());
+                        jxl.write.Number popLabel3c = new jxl.write.Number(3, count, enc.getMaximumElevationInMeters(),numbersFormat);
                         sheet.addCell(popLabel3c);
                       }
+                    }
+                    else{
+                      
+                      jxl.write.Label popLabel3c = new jxl.write.Label(3, count, "NaN");
+                      sheet.addCell(popLabel3c);
+                      
                     }
                     
                     
@@ -237,24 +266,31 @@ public class SOCPROGExport extends HttpServlet{
                     
                     if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
                       Occurrence oc=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-                      Label popLabel7a = new Label(1, count, oc.getOccurrenceID());
-                      sheet2.addCell(popLabel7a);
+                      Label popLabel7b = new Label(1, count, oc.getOccurrenceID());
+                      sheet2.addCell(popLabel7b);
+                      
+                    }
+                    
+                    ArrayList<String> mySocialUnits=myShepherd.getAllSocialUnitsForMarkedIndividual(indy.getIndividualID());
+                    if(mySocialUnits.size()>0){
+                      Label popLabel7c = new Label(2, count, mySocialUnits.get(0));
+                      sheet2.addCell(popLabel7c);
                     }
                     
                     if(enc.getSex()!=null){
-                      Label popLabel5a = new Label(2, count, enc.getSex());
+                      Label popLabel5a = new Label(3, count, enc.getSex());
                       sheet2.addCell(popLabel5a);
                     }
                     
                     
                     if(enc.getBehavior()!=null){
-                      Label popLabel6a = new Label(3, count, enc.getBehavior());
+                      Label popLabel6a = new Label(4, count, enc.getBehavior());
                       sheet2.addCell(popLabel6a);
                     }
                     
                     
                     if(enc.getHaplotype()!=null){
-                      Label popLabel8a = new Label(4, count, enc.getHaplotype());
+                      Label popLabel8a = new Label(5, count, enc.getHaplotype());
                       sheet2.addCell(popLabel8a);
                     }
                     
@@ -262,7 +298,7 @@ public class SOCPROGExport extends HttpServlet{
                       if(indy.getDateSortedEncounters(true)[0].getCatalogNumber().equals(enc.getCatalogNumber())){
                         cmrStatus = "New";
                       }
-                      Label popLabel9a = new Label(5, count, cmrStatus);
+                      Label popLabel9a = new Label(6, count, cmrStatus);
                       sheet2.addCell(popLabel9a);
                     
                       
@@ -270,7 +306,7 @@ public class SOCPROGExport extends HttpServlet{
                         String measureName=measurementTypes.get(m).getType();
                         if((enc.hasMeasurement(measureName))&&(enc.getMeasurement(measureName)!=null)){
                           Measurement mmnt=enc.getMeasurement(measureName);
-                          Label popLabelX = new Label((m+6), count, mmnt.getValue().toString());
+                          jxl.write.Number popLabelX = new jxl.write.Number((m+7), count, mmnt.getValue(),numbersFormat);
                           sheet2.addCell(popLabelX);
                         }
                       }
@@ -280,7 +316,7 @@ public class SOCPROGExport extends HttpServlet{
                         if(enc.hasBiologicalMeasurement(measureName)){
                           BiologicalMeasurement bm=enc.getBiologicalMeasurement(measureName);
                           if((bm!=null)&&(bm.getValue()!=null)){
-                            Label popLabelX = new Label((m+6+numMeasurementTypes), count, bm.getValue().toString());
+                            jxl.write.Number popLabelX = new jxl.write.Number((m+7+numMeasurementTypes), count, bm.getValue(),numbersFormat);
                             sheet2.addCell(popLabelX);
                           }
                         }
