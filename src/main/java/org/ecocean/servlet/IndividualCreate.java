@@ -48,6 +48,7 @@ public class IndividualCreate extends HttpServlet {
 
   private void setDateLastModified(Encounter enc) {
     String strOutputDateTime = ServletUtilities.getDate();
+    System.out.println("ServletUtilities.getDate output: "+strOutputDateTime);
     enc.setDWCDateLastModified(strOutputDateTime);
   }
 
@@ -83,7 +84,7 @@ public class IndividualCreate extends HttpServlet {
 
     if ( (request.getParameter("number") != null) &&  (!newIndividualID.trim().equals(""))) {
       myShepherd.beginDBTransaction();
-      Encounter enc2make = myShepherd.getEncounter(newIndividualID);
+      Encounter enc2make = myShepherd.getEncounter(request.getParameter("number").trim());
       setDateLastModified(enc2make);
 
       String belongsTo = enc2make.isAssignedToMarkedIndividual();
