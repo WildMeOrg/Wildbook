@@ -346,10 +346,7 @@
       <servlet-class>org.ecocean.servlet.EncounterSetVerbatimEventDate</servlet-class>
   </servlet>
     
-        <servlet>
-          <servlet-name>InterconnectSubmitSpots</servlet-name>
-          <servlet-class>org.ecocean.servlet.InterconnectSubmitSpots</servlet-class>
-    </servlet>
+   
 
 
   <servlet>
@@ -382,12 +379,7 @@
     <servlet-name>ScanResultsServlet</servlet-name>
     <servlet-class>org.ecocean.servlet.ScanResultsServlet</servlet-class>
   </servlet>
-  
-    <servlet>
-      <servlet-name>UserAddProfileImage</servlet-name>
-      <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
-  </servlet>
-  
+
       <servlet>
         <servlet-name>UserRemoveProfileImage</servlet-name>
         <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
@@ -556,36 +548,7 @@
   
   <!-- end Shiro filters -->
 
-  <servlet>
-    <servlet-name>EncounterAddSpotFile</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterAddSpotFile</servlet-class>
-  </servlet>
 
-  <servlet>
-    <servlet-name>EncounterResetDate</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterResetDate</servlet-class>
-  </servlet>
-  
-    <servlet>
-      <servlet-name>EncounterSetTissueSample</servlet-name>
-      <servlet-class>org.ecocean.servlet.EncounterSetTissueSample</servlet-class>
-  </servlet>
-  
-    <servlet>
-        <servlet-name>EncounterRemoveTissueSample</servlet-name>
-        <servlet-class>org.ecocean.servlet.EncounterRemoveTissueSample</servlet-class>
-  </servlet>
-  
-
-    <servlet>
-      <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
-      <servlet-class>org.ecocean.servlet.TissueSampleRemoveHaplotype</servlet-class>
-  </servlet>
-  
-      <servlet>
-        <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
-        <servlet-class>org.ecocean.servlet.TissueSampleRemoveBiologicalMeasurement</servlet-class>
-    </servlet>
   
   
       <servlet>
@@ -756,10 +719,6 @@
     <servlet-class>org.ecocean.servlet.MassSetLocationCodeFromLocationString</servlet-class>
   </servlet>
 
-      <servlet>
-        <servlet-name>UserRemoveProfileImage</servlet-name>
-        <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
-  </servlet>
 
   <servlet>
     <servlet-name>IndividualSetSex</servlet-name>
@@ -844,11 +803,7 @@
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet> 
   
-    <servlet>
-      <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
-      <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
-  </servlet>
-  
+ 
 
       <servlet>
         <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
@@ -863,11 +818,6 @@
     <servlet>
       <servlet-name>NingalooByMonthsSonification</servlet-name>
       <servlet-class>org.ecocean.servlet.NingalooByMonthsSonification</servlet-class>
-  </servlet>
-  
-    <servlet>
-      <servlet-name>EncounterSetGenusSpecies</servlet-name>
-      <servlet-class>org.ecocean.servlet.EncounterSetGenusSpecies</servlet-class>
   </servlet>
 
   <servlet>
@@ -949,7 +899,7 @@
 
   <servlet>
     <servlet-name>ScanTaskHandler</servlet-name>
-    <servlet-class>org.ecocean.servlet.ScanTaskHandler</servlet-class>
+    <servlet-class>org.ecocean.servlet.ScanTaskHandlerIVEC</servlet-class>
   </servlet>
 
   <servlet>
