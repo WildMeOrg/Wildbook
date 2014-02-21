@@ -141,7 +141,7 @@
           	<form name="accept_agreement" action="LoginUser" method="post">
           		<input type="hidden" name="username" value="<%=request.getParameter("username")%>" />
           		<input type="hidden" name="password" value="<%=request.getParameter("password")%>" />
-          		<input type="submit" name="acceptUserAgreement" value="Accept"/>
+          		<input type="submit" id="acceptUserAgreement" name="acceptUserAgreement" value="Accept"/>
           	</form>
           </td>
           <td><form name="reject_agreement" action="index.jsp" method="get">
