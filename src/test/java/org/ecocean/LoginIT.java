@@ -48,11 +48,11 @@ public class LoginIT extends WebTestCase {
     setTextField("username", "tomcat");
     setTextField("password", "tomcat123");
     submit();
-    assertTextPresent("Login success!");
-    clickLinkWithExactText("Home");
+    assertTextPresent("User Agreement");
+    submit("acceptUserAgreement");
     assertLinkPresentWithExactText("Log out");
     clickLinkWithExactText("Log out");
-    assertTextPresent("Overview");
+    assertTextPresent("Home");
   }
 
   public void testUnsuccessfulLogin() {
