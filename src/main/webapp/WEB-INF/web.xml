@@ -119,14 +119,14 @@
 		/individualSearchResults.jsp = anon
 		/individualSearchResultsExport.jsp = authc, roles[researcher]
 		/individualSearchResultsAnalysis.jsp = authc, roles[researcher]
-		/individualMappedSearchResults.jsp = anon
+		/individualMappedSearchResults.jsp = authc
 		/individualThumbnailSearchResults.jsp = authc, roles[researcher]
 	
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
 		 /encounters/encounterSearch.jsp = authc
 		 /encounters/searchResults.jsp = anon
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
-		 /encounters/mappedSearchResults.jsp = anon
+		 /encounters/mappedSearchResults.jsp = authc
 		 /encounters/mappedSearchResultsSex.jsp = anon
 		 /encounters/mappedSearchResultsHaplotype.jsp = anon
 		 /encounters/exportSearchResults.jsp = authc, roles[researcher]
