@@ -2142,6 +2142,8 @@ else {
 
   <%
    }
+
+if(request.getUserPrincipal()!=null){
 %>
 
 <br /><br />
@@ -2157,6 +2159,9 @@ else {
 </table>
 
 <%
+
+}
+
 if(isOwner){
 %>
 <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %></strong>: </p>

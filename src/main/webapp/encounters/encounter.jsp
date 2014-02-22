@@ -1465,7 +1465,7 @@ $("a#elev").click(function() {
     </script>
     
  	<%
- 	if((request.getUserPrincipal()!=null) || ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
+ 	if((request.getUserPrincipal()!=null) && ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
  	%>
  		<p><%=encprops.getProperty("map_note") %></p>
  		<div id="map_canvas" style="width: 510px; height: 350px; "></div>
