@@ -1386,13 +1386,19 @@ else {
       
           <tr>
           <td>
-            <p><strong><%=props.getProperty("individualID")%></strong> <em> <input
-              name="individualID" type="text" id="individualID" size="25"
-              maxlength="100"> <span class="para"><a
-              href="<%=CommonConfiguration.getWikiLocation()%>individualID"
-              target="_blank"><img src="images/information_icon_svg.gif"
-                                   alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
-              <br /></em></p>
+            <p>
+            	<strong><%=props.getProperty("individualID")%></strong> 
+            	<em>
+            		<input name="individualID" type="text" id="individualID" size="40" />&nbsp;
+            		<span class="para">
+            			<a href="<%=CommonConfiguration.getWikiLocation()%>individualID" target="_blank">
+            				<img src="images/information_icon_svg.gif" alt="Help" width="15" height="15" border="0" align="absmiddle"/>
+            			</a>
+            		</span>
+              <br />
+              <%=props.getProperty("multipleIndividualID")%>
+              </em>
+              </p>
           </td>
         </tr>
       

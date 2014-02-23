@@ -105,22 +105,31 @@ public class IndividualQueryProcessor {
 
     //------------------------------------------------------------------
     //individualID filters-------------------------------------------------
+    //supports multiple individualID parameters as well as comma-separated lists of individualIDs within them
     String[] individualID=request.getParameterValues("individualID");
     if((individualID!=null)&&(!individualID[0].equals(""))&&(!individualID[0].equals("None"))){
           prettyPrint.append("Individual ID is one of the following: ");
           int kwLength=individualID.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
-              String kwParam=individualID[kwIter].replaceAll("%20", " ").trim();
-              if(!kwParam.equals("")){
-                if(locIDFilter.equals("(")){
-                  locIDFilter+=" individualID == \""+kwParam+"\"";
+              String kwParamMaster=individualID[kwIter].replaceAll("%20", " ").trim();
+              
+              StringTokenizer str=new StringTokenizer(kwParamMaster,",");
+              int numTokens=str.countTokens();
+              for(int k=0;k<numTokens;k++){
+                String kwParam=str.nextToken().trim();
+                if(!kwParam.equals("")){
+                  if(locIDFilter.equals("(")){
+                    locIDFilter+=" individualID == \""+kwParam+"\"";
+                  }
+                  else{
+                    locIDFilter+=" || individualID == \""+kwParam+"\"";
+                  }
+                  prettyPrint.append(kwParam+" ");
                 }
-                else{
-                  locIDFilter+=" || individualID == \""+kwParam+"\"";
-                }
-                prettyPrint.append(kwParam+" ");
+              
               }
+              
             }
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=locIDFilter;}
