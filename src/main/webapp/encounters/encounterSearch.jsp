@@ -1113,7 +1113,9 @@ if(CommonConfiguration.showProperty("showPatterningCode")){
               href="<%=CommonConfiguration.getWikiLocation()%>individualID"
               target="_blank"><img src="../images/information_icon_svg.gif"
                                    alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
-              <br /></em></p>
+              <br />
+              
+              <%=encprops.getProperty("multipleIndividualID")%></em></p>
         
       
         
