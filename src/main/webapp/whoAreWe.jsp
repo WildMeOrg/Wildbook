@@ -86,7 +86,7 @@
 	<div id="maincol-wide">
 
 		<div id="maintext">
-		  <h1 class="intro">Who are we</h1>
+		  <h1 class="intro">The Wildbook for Whale Sharks team:</h1>
 		</div>
 			
 			<p>&nbsp;</p>
