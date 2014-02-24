@@ -188,11 +188,15 @@ table.adopter td.image {
 
 		 </div>
 
+		<div id="maintext"><h1 class="intro">Our Supporters</h1>
+		<p class="caption">We gratefully acknowledge the financial support of the following organizations, without which continuing operation of this Wildbook would not be possible.</p>
+		<p><img src="images/Siren_Fleet.jpg" width="300" align="left" /></p>
+		</div>
 		
-		<div id="maintext"><h1 class="intro">Contact us</h1>
+		<div id="maintext"><h1 class="intro">Contact Us</h1>
 		<p class="caption">Wild Me is always looking for opportunities to better tell the story of whale sharks and the growing body of research and discoveries made possible by dedicated scientists, volunteers, and the general public.</p>
 		<p class="caption"><a href="contactus.jsp">Please contact us with your questions.</a></p>
-	</div>
+		</div>
 		
 	
 								
