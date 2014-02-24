@@ -373,7 +373,7 @@ if(request.getUserPrincipal()!=null){
 				 </li>
                  
                  
-                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/provateSector.jsp" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px; z-index:100;"><strong>People/Partners </strong>
+                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/whoAreWe.jsp" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px; z-index:100;"><strong>People/Partners </strong>
   
             <!--[if IE 7]><!--></a><!--<![endif]-->
 
