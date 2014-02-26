@@ -190,7 +190,7 @@ table.adopter td.image {
 
 		<div id="maintext"><h1 class="intro">Our Supporters</h1>
 		<p class="caption">We gratefully acknowledge the financial support of the following organizations, without which continuing operation of this Wildbook would not be possible.</p>
-		<p align="left"><img src="images/Siren_Fleet.jpg" width="150" /></p>
+		<p align="left"><img src="images/Siren_Fleet.jpg" width="150" alt="Siren Fleet" border="0"/><img src="images/QWSP_Logo.png" width="150" alt="Qatar Whale Shark Research Project" border="0"/></p>
 		</div>
 		
 
