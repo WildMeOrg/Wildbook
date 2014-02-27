@@ -28,8 +28,12 @@ import java.util.List;
  * Utility class to allow convenient building of lists by method chaining.
  * This class is just a wrapper around a {@code List} implementation which
  * provides convenience methods to quickly create/edit lists.
+ * Lists can also be easily created using the standard method
+ * {@link java.util.Arrays#asList(java.lang.Object...)},
+ * so this technique is just a added option.
  *
  * @author Giles Winstanley
+ * @param <E> list element type
  */
 public final class ListHelper<E> {
   /** List to be built. */
@@ -42,11 +46,10 @@ public final class ListHelper<E> {
   @SuppressWarnings("unchecked")
   private <T extends List> ListHelper(Class<T> c) {
     try {
-      Object o = c.newInstance();
-      if (!(o instanceof List)) {
+      if (List.class.isAssignableFrom(c))
+        this.list = (List<E>)c.newInstance();
+      else
         throw new IllegalArgumentException("Invalid class type specified; not a List implementation");
-      }
-      this.list = (List<E>)o;
     } catch (Exception ex) {
       throw new IllegalArgumentException(ex);
     }
@@ -56,7 +59,7 @@ public final class ListHelper<E> {
    * Creates an instance using {@code ArrayList} as the list implementation.
    */
   private ListHelper() {
-    this(ArrayList.class);
+    list = new ArrayList<E>();
   }
 
   /**
@@ -174,7 +177,9 @@ public final class ListHelper<E> {
   /**
    * Returns a single delimited string comprising the string
    * representations of the constituent items.
+   * @param <E> list element type
    * @param delim string delimiter to use between list items
+   * @return String comprising list contents sequentially concatenated with specified delimiter
    */
   public <E> String toDelimitedString(String delim) {
     return toDelimitedString(this.asList(), delim);
@@ -183,8 +188,10 @@ public final class ListHelper<E> {
   /**
    * Converts a list of items to a single delimited string comprising the string
    * representations of the constituent items.
+   * @param <E> list element type
    * @param list list of objects to convert
    * @param delim string delimiter to use between list items
+   * @return String comprising list contents sequentially concatenated with specified delimiter
    */
   public static <E> String toDelimitedString(List<E> list, String delim) {
     if (list == null)
@@ -204,8 +211,10 @@ public final class ListHelper<E> {
    * Converts a list of items to a single delimited string comprising the string
    * representations of the constituent items, and also quotes items containing
    * whitespace or quotes.
+   * @param <E> list element type
    * @param list list of objects to convert
    * @param delim string delimiter to use between list items
+   * @return String comprising quoted list contents sequentially concatenated with specified delimiter
    */
   public static <E> String toDelimitedStringQuoted(List<E> list, String delim) {
     if (list == null)

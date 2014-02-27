@@ -54,7 +54,7 @@ public final class MediaUtilities {
   /** Regex pattern string suffix for matching image filenames (case-insensitive, capturing group). */
   public static final String REGEX_SUFFIX_FOR_WEB_IMAGES = "(?i:(jpe?g?|png|gif))$";
   /** Regex pattern string suffix for matching video filenames (case-insensitive, capturing group). */
-  public static final String REGEX_SUFFIX_FOR_MOVIES = "(?i:mp4|mpg|mov|wmv|avi)$";
+  public static final String REGEX_SUFFIX_FOR_MOVIES = "(?i:(mp4|mpg|mov|wmv|avi|flv))$";
   /** Instance for writing JPEG images. */
   private static ImageWriter iwJPEG;
   /** Instance for writing JPEG images. */

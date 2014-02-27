@@ -122,6 +122,7 @@
 		      			
 				
 				/BatchUpload/** = authc, roles[manager]
+				/appadmin/batch* = authc, roles[manager]
 				/EncounterSetSubmitterID = authc, roles[manager]
 				 
 				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
