@@ -102,6 +102,7 @@
 		            /appadmin/users.jsp = authc, roles[admin]
 		            /MassSetInformOthers = authc, roles[admin]
 		           /BatchUpload = authc, roles[admin]
+		           /MantaMatcher = authc, roles[admin]
 		          /MassExposeGBIF = authc, roles[admin]
 		           /MassSetLocationCodeFromLocationString = authc, roles[admin]
 		          /MassSwapLocationCode = authc, roles[admin]
@@ -895,6 +896,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>MantaMatcher</servlet-name>
+    <servlet-class>org.ecocean.servlet.MantaMatcher</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>ScanWorkItemResultsHandler</servlet-name>
     <servlet-class>org.ecocean.servlet.ScanWorkItemResultsHandler</servlet-class>
   </servlet>
@@ -1226,6 +1232,11 @@
   <servlet-mapping>
     <servlet-name>BatchUpload</servlet-name>
     <url-pattern>/BatchUpload/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>MantaMatcher</servlet-name>
+    <url-pattern>/MantaMatcher/*</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

@@ -47,7 +47,7 @@ try {
     for(int t = 0; t < photos.size(); t++){
       SinglePhotoVideo spv = photos.get(t);
       Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
-      File matchOutput = mmFiles.get("XHTML");
+      File matchOutput = mmFiles.get("TXT");
       File mmCR = mmFiles.get("CR");
       if (mmCR.exists()) {
         File mmFT = mmFiles.get("FT");
@@ -83,14 +83,14 @@ try {
             } else {
 %>
               <p><em>Inspect the algorithm results</em></p>
-              <p>A match results file was found: <a href="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=matchOutput.getName()%>">Click here.</a></p>
+              <p>A match results file was found: <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here.</a></p>
 
               <p><em>Rescan the manta patterning image.</em></p>
                        <p>
                          <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
                            <input name="action" type="hidden" value="rescan" id="actionRescan" />
-                        <input name="number" type="hidden" value="<%=encNum%>" id="number" />
-                  <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
+                           <input name="number" type="hidden" value="<%=encNum%>" id="number" />
+                           <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
 
                         <p><input name="rescanFile" type="submit" id="rescanFile" value="Rescan" /></p>
                     </form>

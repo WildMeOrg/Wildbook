@@ -19,10 +19,22 @@
 
 package org.ecocean.util;
 
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateExceptionHandler;
+import freemarker.template.Version;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.text.ParseException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.SinglePhotoVideo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +58,8 @@ public final class MantaMatcherUtilities {
    * <li>File representing MantaMatcher enhanced photo (key: EH).</li>
    * <li>File representing MantaMatcher feature photo (key: FT).</li>
    * <li>File representing MantaMatcher feature file (key: FEAT).</li>
+   * <li>File representing MantaMatcher output TXT file (key: TXT).</li>
+   * <li>File representing MantaMatcher output CSV file (key: CSV).</li>
    * <li>File representing MantaMatcher output XHTML file (key: XHTML).</li>
    * </ul>
    * All files are assumed to be in the same folder, and no checking is
@@ -57,6 +71,8 @@ public final class MantaMatcherUtilities {
     if (spv == null)
       throw new NullPointerException("Invalid file specified: null");
     Map<String, File> map = getMatcherFilesMap(spv.getFile());
+    map.put("TXT", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_matchOutput.txt"));
+    map.put("CSV", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_matchOutput.csv"));
     map.put("XHTML", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_matchOutput.xhtml"));
     return map;
   }
@@ -91,7 +107,7 @@ public final class MantaMatcherUtilities {
     File ft = new File(pf, name.replaceFirst(regex, "_FT.$1"));
     File feat = new File(pf, name.replaceFirst(regex, ".FEAT"));
     
-    Map<String, File> map = new HashMap<String, File>(6);
+    Map<String, File> map = new HashMap<String, File>(7);
     map.put("O", f);
     map.put("CR", cr);
     map.put("EH", eh);
@@ -113,5 +129,59 @@ public final class MantaMatcherUtilities {
             mmFiles.get("EH").exists() &&
             mmFiles.get("FT").exists() &&
             mmFiles.get("FEAT").exists();
+  }
+
+  /**
+   * Checks whether the MantaMatcher algorithm files exist for the specified
+   * base file.
+   * @param spv {@code SinglePhotoVideo} instance denoting base reference image
+   * @return true if MantaMatcher results files exist (TXT/CSV), false otherwise
+   */
+  public static boolean checkMatcherResultsFilesExist(SinglePhotoVideo spv) {
+    Map<String, File> mmFiles = getMatcherFilesMap(spv);
+    return mmFiles.get("TXT").exists() && mmFiles.get("CSV").exists();
+  }
+
+	/**
+   * Creates a FreeMarker template configuration instance.
+   * @param dir folder in which templates are located
+   * @return Configuration instance for loading FreeMarker templates
+   * @throws IOException
+   */
+  public static Configuration configureTemplateEngine(File dir) throws IOException
+	{
+		Configuration conf = new Configuration();
+		conf.setDirectoryForTemplateLoading(dir);
+		conf.setObjectWrapper(new DefaultObjectWrapper());
+		conf.setDefaultEncoding("UTF-8");
+    conf.setURLEscapingCharset("ISO-8859-1");
+		conf.setTemplateExceptionHandler(TemplateExceptionHandler.DEBUG_HANDLER);
+		conf.setIncompatibleImprovements(new Version(2, 3, 20));
+    return conf;
+	}
+
+  /**
+   * Parses the MantaMatcher results text file for the specified SinglePhotoVideo.
+   * @param conf FreeMarker configuration
+   * @param spv {@code SinglePhotoVideo} instance for base reference image
+   * @param urlPrefixImage URL prefix for encounter folder (for image links)
+   * @param pageUrlFormat Format string for encounter page URL (with <em>%s</em> placeholder)
+   * @return A map containing parsed results ready for use with a FreeMarker template
+   * @throws IOException
+   * @throws ParseException
+   * @throws TemplateException
+   */
+  @SuppressWarnings("unchecked")
+  public static String getResultsHtml(Configuration conf, SinglePhotoVideo spv, String urlPrefixImage, String pageUrlFormat) throws IOException, ParseException, TemplateException {
+    // Load test from file.
+    Map<String, File> mmFiles = getMatcherFilesMap(spv);
+    File txt = mmFiles.get("TXT");
+    if (!txt.isFile())
+      throw new FileNotFoundException("Unable to locate results file: " + txt.getAbsolutePath());
+
+    // Load results file.
+    String text = new String(FileUtilities.loadFile(txt));
+    // Convert to HTML results page.
+    return MMAResultsProcessor.convertResultsToHtml(conf, text, spv, urlPrefixImage, pageUrlFormat);
   }
 }
