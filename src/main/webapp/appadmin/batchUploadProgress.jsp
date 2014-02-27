@@ -16,6 +16,7 @@
 	~ along with this program; if not, write to the Free Software
 	~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 --%>
+<%@page import="org.ecocean.servlet.ServletUtilities"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@page contentType="text/html; charset=iso-8859-1" language="java"
@@ -35,11 +36,6 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://java.sun.com/jstl/fmt" prefix="fmt" %>
 <%
-	response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-	response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
-	response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
-	response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
-
   // Page internationalization.
   String langCode = "en";
   if (session.getAttribute("langCode") != null) {
@@ -59,8 +55,14 @@
     response.sendRedirect(BatchUpload.JSP_MAIN);
   }
 
-  List<String> errors = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_ERRORS);
-  List<String> warnings = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_WARNINGS);
+  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+	response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+	response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+	response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+
+
+  List<String> errors = proc.getErrors();
+  List<String> warnings = proc.getWarnings();
   boolean isFinished = proc.getStatus() == BatchProcessor.Status.FINISHED;
   boolean hasErrors = errors != null && !errors.isEmpty() || proc.getStatus() == BatchProcessor.Status.ERROR;
   boolean hasWarnings = warnings != null && !warnings.isEmpty();
@@ -154,6 +156,29 @@
 
 <%  if (hasErrors) { %>
       <p><%=bundle.getProperty("gui.progress.text.error")%></p>
+<%    switch (proc.getPhase()) {
+        case MEDIA_DOWNLOAD:
+%>
+      <p><%=bundle.getProperty("gui.progress.text.errorIntegrityMediaDownload")%></p>
+<%          break;
+        case PERSISTENCE:
+%>
+      <p><%=bundle.getProperty("gui.progress.text.errorIntegrityPersistence")%></p>
+<%          break;
+        case THUMBNAILS:
+%>
+      <p><%=bundle.getProperty("gui.progress.text.errorIntegrityThumbnails")%></p>
+<%          break;
+        case PLUGIN:
+%>
+      <p><%=bundle.getProperty("gui.progress.text.errorIntegrityPlugin")%></p>
+<%          break;
+        default:
+%>
+      <p><%=bundle.getProperty("gui.progress.text.errorIntegrityOk")%></p>
+<%          break;
+      }
+%>
 <%  } else { %>
 <%
       switch(proc.getStatus()) {
@@ -180,7 +205,7 @@
   			<h2><%=bundle.getProperty("gui.errors.title")%></h2>
         <ul id="errorList">
 <%    for (String msg : errors) { %>
-          <li><%=msg%></li>
+          <li><%=ServletUtilities.preventCrossSiteScriptingAttacks(msg)%></li>
 <%    } %>
         </ul>
 <%    if (proc.getThrown() != null) { %>
@@ -194,7 +219,7 @@
   			<h2><%=bundle.getProperty("gui.warnings.title")%></h2>
         <ul id="warningList">
 <%    for (String msg : warnings) { %>
-          <li><%=msg%></li>
+          <li><%=ServletUtilities.preventCrossSiteScriptingAttacks(msg)%></li>
 <%    } %>
         </ul>
       </div>

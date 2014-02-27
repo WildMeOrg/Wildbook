@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Servlet to manage batch data uploads for Project Shepherd.
+ * Servlet to manage batch data uploads for Wild Book.
  * There are three key steps to batch data upload:
  * <ol>
  * <li>CSV template download.</li>
@@ -141,7 +141,7 @@ public final class BatchUpload extends DispatchServlet {
       registerMethodGET("templateInd", "templateEnc", "templateMea", "templateMed", "templateSam");
       registerMethodGET("getBatchProgress");
       registerMethodPOST("uploadBatchData", "confirmBatchDataUpload");
-      registerMethodGET("confirmBatchDataUpload"); // Needs both GET/POST due to forwarding idiosyncracies.
+      registerMethodGET("uploadBatchData", "confirmBatchDataUpload"); // Needs both GET/POST due to forwarding idiosyncracies.
     }
     catch (DelegateNotFoundException ex) {
       throw new ServletException(ex);
@@ -175,7 +175,7 @@ public final class BatchUpload extends DispatchServlet {
 
   @Override
   public String getServletInfo() {
-    return "BatchUpload, Copyright 2013 Giles Winstanley / Project Shepherd / ecocean.org";
+    return "BatchUpload, Copyright 2013 Giles Winstanley / Wild Book / wildme.org";
   }
 
   protected void handleDelegateNotFound(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
@@ -198,6 +198,7 @@ public final class BatchUpload extends DispatchServlet {
       int len = template.getBytes("UTF-8").length;
       res.setContentType("text/csv");
       res.setHeader("Content-Disposition", "attachment; filename=\"" + BTF[index] + "\"");
+      res.setHeader("Content-Encoding", "UTF-8");
       res.setContentLength(len);
 //      log.debug(String.format("Sending template '%s' to client (%d bytes)", BTF[index], len));
       PrintWriter pw = res.getWriter();

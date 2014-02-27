@@ -24,20 +24,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.ecocean.SinglePhotoVideo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Giles Winstanley
  */
-public class MantaMatcherUtilities {
+public final class MantaMatcherUtilities {
   /** SLF4J logger instance for writing log entries. */
-//  private static final Logger log = LoggerFactory.getLogger(MantaMatcherUtilities.class);
+  private static final Logger log = LoggerFactory.getLogger(MantaMatcherUtilities.class);
 
   private MantaMatcherUtilities() {}
 
   /**
    * Converts the specified file to a map of files, keyed by string for easy
-   * referencing, comprising six elements in order:
+   * referencing, comprising the following elements:
    * <ul>
    * <li>Original file (key: O).</li>
    * <li>File representing MantaMatcher &quot;candidate region&quot; photo (key: CR).</li>
@@ -49,6 +51,7 @@ public class MantaMatcherUtilities {
    * All files are assumed to be in the same folder, and no checking is
    * performed to see if they exist.
    * @param spv {@code SinglePhotoVideo} instance denoting base reference image
+   * @return Map of string to file for each MantaMatcher algorithm feature.
    */
   public static Map<String, File> getMatcherFilesMap(SinglePhotoVideo spv) {
     if (spv == null)
@@ -60,7 +63,7 @@ public class MantaMatcherUtilities {
 
   /**
    * Converts the specified file to a map of files, keyed by string for easy
-   * referencing, comprising five elements:
+   * referencing, comprising the following elements:
    * <ul>
    * <li>Original file (key: O).</li>
    * <li>File representing MantaMatcher &quot;candidate region&quot; photo (key: CR).</li>
@@ -72,6 +75,7 @@ public class MantaMatcherUtilities {
    * performed to see if they exist.
    * The functionality is centralized here to reduce naming errors/conflicts.
    * @param f base image file from which to reference other algorithm files
+   * @return Map of string to file for each MantaMatcher algorithm feature.
    */
   public static Map<String, File> getMatcherFilesMap(File f) {
     if (f == null)
@@ -100,6 +104,7 @@ public class MantaMatcherUtilities {
    * Checks whether the MantaMatcher algorithm files exist for the specified
    * base file (does not check for XHTML results file).
    * @param f base image file from which to reference other algorithm files
+   * @return true if all MantaMatcher files exist (O/CR/EH/FT/FEAT), false otherwise
    */
   public static boolean checkMatcherFilesExist(File f) {
     Map<String, File> mmFiles = getMatcherFilesMap(f);
