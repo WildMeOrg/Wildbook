@@ -170,7 +170,7 @@ table.adopter td.image {
 		 		 <p>
 		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />53000+ photos collected<br />
 		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />25000+  sighting reports</strong><br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />4800+ whale sharks collaboratively tagged</strong><br />
+		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />5200+ whale sharks collaboratively tagged</strong><br />
 			   
 			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />4000+ data contributors</strong></strong></span><br />
 		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />365 research days/year</strong><br />
@@ -188,9 +188,16 @@ table.adopter td.image {
 
 		 </div>
 
-		<div id="maintext"><h1 class="intro">Our Supporters</h1>
+		<div id="supporters"><h1 class="intro">Our Supporters</h1>
 		<p class="caption">We gratefully acknowledge the financial support of the following organizations, without which continuing operation of this Wildbook would not be possible.</p>
-		<p align="left"><img src="images/Siren_Fleet.jpg" width="150" alt="Siren Fleet" border="0"/><img src="images/QWSP_Logo.png" width="150" alt="Qatar Whale Shark Research Project" border="0"/></p>
+		<table>
+			<tr>
+				<td><img src="images/Siren_Fleet.jpg" width="150" alt="Siren Fleet" border="0"/></td>
+				<td><img src="images/QWSP_Logo.png" width="150" alt="Qatar Whale Shark Research Project" border="0"/>
+			</td>
+			
+			</tr>
+		</table>
 		</div>
 		
 
