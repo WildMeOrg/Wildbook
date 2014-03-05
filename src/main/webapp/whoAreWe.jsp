@@ -86,15 +86,15 @@
 	<div id="maincol-wide">
 
 		<div id="maintext">
-		  <h1 class="intro">The Wildbook for Whale Sharks team:</h1>
+		  <h1 class="intro">The Wildbook for Whale Sharks team</h1>
 		</div>
 			
 			<p>&nbsp;</p>
 			<p><strong>ZAVEN ARZOUMANIAN, Director, President, Co-founder</strong></p>
 			<p>Zaven Arzoumanian earned degrees in Physics at McGill University (B.Sc.) and Princeton University (M.A., Ph.D.). His research interests include the astrophysics of neutron stars and black holes, testing theories of gravitation and the nature of matter in extreme environments, and new technologies for instrumentation in radio and X-ray astronomy. Zaven is employed as a contract scientist at NASA's Goddard Space Flight Center in Greenbelt, MD, USA. Zaven’s interest in Whale Sharks and pattern-matching computations for biological applications was cultivated in a collaboration with Jason Holmberg and Brad Norman, culminating in the development of a technique for matching spot patterns adapted from astronomy, published in the Journal of Applied Ecology (May 2005).<br />
-			  Universities Space Research Association<br />
+			  Code 662<br />
 			  NASA Goddard Space Flight Center<br />
-			  Greenbelt, MD 20770<br />
+			  Greenbelt, MD 20771<br />
 			  USA<br />
 			  <a href="mailto:zaven@ecoceanusa.org">zaven@ecoceanusa.org</a></p>
 <p><img src="images/zaven.jpg" width="450" height="293" border="1" /></p>
@@ -102,9 +102,9 @@
 			<p>&nbsp;</p>
 			<p><strong>JASON HOLMBERG, Director, Secretary, Co-founder</strong></p>
 			<p>Jason Holmberg joined ECOCEAN in 2002 and has logged over 8,000 hours of development time on the ECOCEAN Whale Shark Photo-identification Library. As Project Architect, he has designed and implemented new tools to support digital pattern recognition for Whale Sharks. Using Jaon’s tools, the project has been able to categorize and manage a large amount of Whale Shark data and to identify individual animals from multiple photos taken by different researchers many years apart. Jason’s ECOCEAN interface also encourages public participation in Whale Shark research via an automated email system that sends individual data contributors automatic updates on individual Whale Shark re-sightings. Jason also undertook further field-testing of the project’s methodology and technology in the Galapagos Islands in October 2004, Honduras in March 2005 and Australia in April 2005. He gave two talks at the International Whale Shark Conference in Perth, Australia in May 2005 and later that year accepted a Duke’s Choice Award on behalf of the ECOCEAN team for innovative use of Java technology for Whale Shark data management and pattern recognition. Jason co-authored a widely lauded paper with Zaven Arzoumanian and Brad Norman on a 12-year population study at Ningaloo Marine Park in Ecological Applications (January 2008).<br />
-			  ECOCEAN Library Architect<br />
-			  4836 NE 31st Avenue<br />
-			  Portland, Oregon 97211 <br />
+			  Wild Me Information Architect<br />
+			  1726 N Terry Street<br />
+			  Portland, Oregon 97217 <br />
 			  USA<br />
 			  <a href="mailto:jason@whaleshark.org">jason@whaleshark.org</a></p>
 <p><img src="images/holmberg.jpg" width="450" height="293" border="1" /> </p>
