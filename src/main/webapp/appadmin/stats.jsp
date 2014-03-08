@@ -48,9 +48,27 @@ public int getNumLengths(double[] lengths) {
 
 <html>
 <head>
-<title>ECOCEAN Library - Statistics</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link href="http://<%=CommonConfiguration.getURLLocation(request)%>/css/ecocean.css" rel="stylesheet" type="text/css" />
+  <title><%=CommonConfiguration.getHTMLTitle() %>
+  </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="Description"
+        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+  <meta name="Keywords"
+        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        rel="stylesheet" type="text/css"/>
+  <link rel="shortcut icon"
+        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+
+  <style type="text/css">
+    <!--
+    .style1 {
+      color: #FF0000
+    }
+
+    -->
+  </style>
 </head>
 
 <body>
