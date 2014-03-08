@@ -81,7 +81,7 @@ public int getNumLengths(double[] lengths) {
 <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
 </jsp:include>
 <div id="main">
-<p><h1 class="intro">ECOCEAN Library Statistics</h1></p>
+<p><h1 class="intro"><%=CommonConfiguration.getHTMLTitle() %> Statistics</h1></p>
 
 <%
 myShepherd.beginDBTransaction();
@@ -96,9 +96,9 @@ int yearDiff=nowYear-2003+1;
 %>
 
 <p><strong>General statistics</strong></p>
-<p>Number of sharks in the library: <%=myShepherd.getNumMarkedIndividuals()%></p>
-<p>Number of approved and unapproved encounters in the library: <%=myShepherd.getNumEncounters()%></p>
-<p>Number of unidentifiable encounters in the library: <%=myShepherd.getNumUnidentifiableEncounters()%></p>
+<p>Number of marked individual in this wildbook: <%=myShepherd.getNumMarkedIndividuals()%></p>
+<p>Number of approved and unapproved encounters in this wildbook: <%=myShepherd.getNumEncounters()%></p>
+<p>Number of unidentifiable encounters in this wildbook: <%=myShepherd.getNumUnidentifiableEncounters()%></p>
 <%
 int numPhotos=0;
 int numNingalooPhotos=0;
@@ -359,14 +359,14 @@ for(int y=0;y<yearDiff;y++){%>
 	Encounters added in year <%=(2003+y)%>*: <%=encNumArray[y]%> (<%=(100*encNumUtilizedArray[y]/encNumArray[y])%>% identified)<br>
 
 <%}%>
-<p><em>*These are encounters added in that year but NOT necessarily reported for that year (i.e. a shark sighted in 2006 but reported in 2007 is added to the 2007 value). </em></p>
+<p><em>*These are encounters added in that year but NOT necessarily reported for that year (i.e. an animal sighted in 2006 but reported in 2007 is added to the 2007 value). </em></p>
 <br>
 <%
 for(int y=0;y<yearDiff;y++){%>
 	Sharks newly identified in year <%=(2003+y)%>*: <%=sharkNumArray[y]%><br>
 
 <%}%>
-<p><em>*These are sharks newly identified in that year but NOT necessarily reported or resighted for that year (i.e. a shark sighted in 2006 but identified by members in 2008 is added to the 2008 value). </em></p>
+<p><em>*These are sharks newly identified in that year but NOT necessarily reported or resighted for that year (i.e., an animal sighted in 2006 but identified by members in 2008 is added to the 2008 value). </em></p>
 <br>
 <p>Number of photos in the library: <%=numPhotos%></p>
 <p>Number of left-side patterns in the library: <%=numLeftPatterns%></p>
