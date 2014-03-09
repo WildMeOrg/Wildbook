@@ -74,21 +74,8 @@
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
 </jsp:include>	
 <div id="main">
-	<div id="leftcol">
-		<div id="menu">
 
-						
-			<div class="module">
-				<img src="images/Logo-Final_whitebackground.png" width="190" height="115" border="0" title="Wild Me" alt="www.wildme.org" />
-				
-			</div>
-						
-			
-			<!-- awards script here -->			
-
-		</div><!-- end menu -->
-	</div><!-- end leftcol -->
-	<div id="maincol-wide">
+	<div id="maincol-wide-solo">
 
 		<div id="maintext">
 		  <h2>Partner Organizations</h2>
