@@ -188,17 +188,7 @@ table.adopter td.image {
 
 		 </div>
 
-		<div id="supporters"><h1 class="intro">Our Supporters</h1>
-		<p class="caption">We gratefully acknowledge the financial support of the following organizations, without which continuing operation of this Wildbook would not be possible.</p>
-		<table>
-			<tr>
-				<td><img src="images/Siren_Fleet.jpg" width="150" alt="Siren Fleet" border="0"/></td>
-				<td><img src="images/QWSP_Logo.png" width="150" alt="Qatar Whale Shark Research Project" border="0"/>
-			</td>
-			
-			</tr>
-		</table>
-		</div>
+
 		
 
 
@@ -211,7 +201,7 @@ table.adopter td.image {
 								
 		
 				<div class="module">
-		    	<p><strong>Data Sharing</strong></p>
+		    	<h1 class="intro">Data Sharing</h1>
 		    	<p><a href="http://data.gbif.org/datasets/provider/261"><img src="images/gbif.gif" border="0" alt="Data sharing with the Global Biodiversity Information Facility"/></a>
 				<a href="http://ecovision.mit.edu/~ecovision/"><img src="http://web.mit.edu/img/google/google-mithome-logo.gif" alt="Data sharing with the Massachusetts Institute of Technology" border="0" />
 				</a>
@@ -227,26 +217,28 @@ table.adopter td.image {
 
 
 			 <div class="module">
-				 
-		 <div class="module">
-		 	<h3>Find Record</h3>
-		   
-		 	<form name="form2" method="get" action="individuals.jsp">
-		 	<em>Enter a shark number, encounter number, shark nickname, or alternate ID.</em><br/>
-		 	<input name="number" type="text" id="shark" size="25" />
-		 	<input type="hidden" name="langCode" value="<%=langCode%>" /><br/>
-		 	<input name="Go" type="submit" id="Go2" value="Go" />
-		 	</form>
+		
+         <div id="supporters"><h3>Our Supporters</h3>
+		<p class="caption">We gratefully acknowledge the financial support of the following organizations and individuals, without which continuing operation of this Wildbook would not be possible.</p>
+		<table>
+			<tr>
 			
-		 </div>
-         
+				<tr>
+				<td><img src="images/QWSP_Logo.png" width="150" alt="Qatar Whale Shark Research Project" border="0"/>
+			</td>
+			</tr>
+				<td><img src="images/Siren_Fleet.jpg" width="150" alt="Siren Fleet" border="0"/></td>
+				</tr>
+			
+			
+		</table>
+		</div>
 				
 <%
 Adoption ad=myShepherd.getRandomAdoption();
 if(ad!=null){
 %>
 <table class="adopter" bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
-<tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="images/adoption-button-top.gif" /></a></td></tr>
 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="images/meet-adopter-frame.gif" /></a></td></tr>
 			 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=ad.getID()%>/thumb.jpg" /></a></td></tr>
 			 
@@ -298,7 +290,17 @@ if(ad!=null){
 
 </div>
 
-
+ <div class="module">
+		 	<h3>Find Record</h3>
+		   
+		 	<form name="form2" method="get" action="individuals.jsp">
+		 	<em>Enter a shark number, encounter number, shark nickname, or alternate ID.</em><br/>
+		 	<input name="number" type="text" id="shark" size="25" />
+		 	<input type="hidden" name="langCode" value="<%=langCode%>" /><br/>
+		 	<input name="Go" type="submit" id="Go2" value="Go" />
+		 	</form>
+			
+		 </div>
 		
 	    <div class="module">
 			 <h3><%=last_sightings%></h3>
@@ -310,7 +312,7 @@ if(ad!=null){
 			 <p align="left">
 			 <a href="atom.xml"><img src="images/atom-feed-icon.gif" border="0" alt="ATOM News Feed" /></a></p>
 	    </div>
-		 	<jsp:include page="awards.jsp" flush="true" /> 
+	
  
 	
 
