@@ -86,9 +86,16 @@
 	<div id="maincol-wide">
 
 		<div id="maintext">
-		  <h1 class="intro">The Wildbook for Whale Sharks team</h1>
+		  <h1 class="intro">The Wildbook for Whale Sharks Team</h1>
 		</div>
-			
+		
+		<ul>
+			<li><a href="#directors">Directors</a></li>
+			<li><a href="#researchers">Collaborating Researchers</a></li>
+		</ul>
+		
+		
+			<a name="directors" /><h2>Directors</h2>
 			<p>&nbsp;</p>
 			<p><strong>ZAVEN ARZOUMANIAN, Director, President, Co-founder</strong></p>
 			<p>Zaven Arzoumanian earned degrees in Physics at McGill University (B.Sc.) and Princeton University (M.A., Ph.D.). His research interests include the astrophysics of neutron stars and black holes, testing theories of gravitation and the nature of matter in extreme environments, and new technologies for instrumentation in radio and X-ray astronomy. Zaven is employed as a contract scientist at NASA's Goddard Space Flight Center in Greenbelt, MD, USA. Zaven’s interest in Whale Sharks and pattern-matching computations for biological applications was cultivated in a collaboration with Jason Holmberg and Brad Norman, culminating in the development of a technique for matching spot patterns adapted from astronomy, published in the Journal of Applied Ecology (May 2005).<br />
@@ -117,18 +124,7 @@
 			<p>Mark McBride is a software developer at Twitter Inc., building APIs that allow developers to access Twitter capabilities. He is also on the board of Wild Me. He is interested in all aspects of software development, as well as sustainability and conservation.</p>
 <p><img src="images/mcbride.jpg" width="450" height="300" border="1" /> </p>
 			<p>&nbsp;</p>
-			<p><strong>BRAD NORMAN, Co-founder</strong></p>
-		<p>Brad Norman is a researcher with Murdoch University and is heading up a new Whale Shark study program there. His main research interests are Whale Shark biology, behavior and physiology, and sustainable eco-tourism and conservation. Brad began studying Whale Sharks at Ningaloo Marine Park, Western Australia in 1994 and has continued Whale Shark research both in Australia and abroad. Over his many years of work, he has established that the natural patterning on the skin of these sharks does not change over time and can be used to identify individuals. In addition to developing acoustic and satellite tracking programs at Ningaloo and Christmas Island, Indian Ocean with Australian authorities, he has also developed programs with WWF-Philippines, the Wildlife Trust of India, and the Galapagos National Parks. In 2006 he was awarded a Rolex Awards for Enterprise and as a Laureate and in 2007 provided training on Whale Shark monitoring and conservation issues to local stakeholders in eight countries. In 2008 he was also recognized by National Geographic as an Emerging Explorer for his work on species conservation and named an Ocean Hero by the same organization in 2010.<br />
-			  Conservation Biologist, ECOCEAN<br />
-			  Adjunct Research Associate, Murdoch University<br />
-			  68a Railway Street<br />
-			  Cottesloe WA 6011<br />
-			  Australia<br />
-			  <a href="mailto:brad@whaleshark.org">brad@whaleshark.org</a></p>
-		
-    <p><img src="images/norman.jpg" width="450" height="293" border="1" /></p>
-    
-    <p>&nbsp;</p>
+			
     			<p><strong>SIMON PIERCE, Director, Science Coordinator</strong></p>
     			<p>Simon Pierce is a conservation ecologist focusing on threatened marine species, particularly sharks and rays. Simon, a New Zealand native, has been based in Mozambique since 2005 where he leads research efforts on a large year-round aggregation of whale sharks. Simon's whale shark research examines the population ecology, movements and conservation status of these enormous fishes. His research is designed to bridge the gap between science in management in order to develop and implement effective conservation solutions. Simon is a Lead Scientist at the Marine Megafauna Association in Mozambique and Executive Director of Eyes on the Horizon, a national Mozambican marine conservation organisation. He holds a BSc degree from Victoria University of Wellington (NZ) and a BSc (Hons) and PhD from The University of Queensland (Australia).</p>
 <p><img src="images/SimonPierce.jpg" width="450" height="300" border="1" /> </p>
@@ -142,7 +138,19 @@
 			  <a href="mailto:zaidazaid@gmail.com">zaidazaid@gmail.com</a></p>
 	<p><img src="images/zaid.jpg" alt="" width="450" height="293" border="1" /></p>
 			<p>&nbsp;</p>
+			<p><strong>Jacob Levenson, Director</strong><br />
+			  TBD</p>
+
+			<p>&nbsp;</p>
+			
+			<a name="researchers" /><h2>Collaborating Researchers</h2>
+	
+	TBD
+			
 	</div>
+	
+	
+	
 	<!-- end maintext -->
 
   </div><!-- end maincol -->
