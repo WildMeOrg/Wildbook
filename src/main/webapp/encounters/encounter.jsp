@@ -413,8 +413,6 @@ margin-bottom: 8px !important;
 
 
 
-  <script type="text/javascript" src="StyledMarker.js"></script>
-
 <!--  FACEBOOK LIKE BUTTON -->
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
@@ -1376,7 +1374,13 @@ $("a#elev").click(function() {
 		   
            
            	%>
-       marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
+ 
+       marker = new google.maps.Marker({
+    	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+    	   position:latLng,
+    	   map:map
+    	});
+	   		
 	   		<%
 	   		if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
 	   		%>
