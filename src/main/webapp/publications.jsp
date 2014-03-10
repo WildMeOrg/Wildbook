@@ -88,7 +88,7 @@
 	
 		<a name="acknowl"></a><strong>Acknowledging Wildbook for Whale Sharks in a publication</strong>
 		<p><em>If use of the Wildbook for Whale Sharks library made a significant contribution to a research project, please make the following acknowledgement in any resulting publication: </em></p>
-		<p>This research has made use of data and software tools provided by <em>Wildbook for Whale Sharks</em>, an online mark-recapture database operated by the non-profit scientific organization <em>Wild Me</em> with funding derived from public donations.</p>
+		<p>This research has made use of data and software tools provided by <em>Wildbook for Whale Sharks</em>, an online mark-recapture database operated by the non-profit scientific organization <em>Wild Me</em> with support from public donations and the Qatar Whale Shark Research Project.</p>
 		
 		<p>&nbsp;</p>
 	
@@ -100,7 +100,7 @@
 		<a href="http://dx.doi.org/10.7287/peerj.preprints.98v1">Web link</a>
 		</p>
 		
-		<p>J Bonner, S. and Holmberg, J. (2013), Mark-Recapture with Multiple, Non-Invasive Marks. Biometrics. doi: 10.1111/biom.12045<br /><a href="http://onlinelibrary.wiley.com/doi/10.1111/biom.12045/abstract">Web link</a></p>
+		<p>Bonner SJ &amp; Holmberg, J (2013), Mark-Recapture with Multiple, Non-Invasive Marks. Biometrics. doi: 10.1111/biom.12045<br /><a href="http://onlinelibrary.wiley.com/doi/10.1111/biom.12045/abstract">Web link</a></p>
 		
 		<p>Hueter RE, Tyminski JP, de la Parra R (2013) Horizontal Movements, Migration Patterns, and Population Structure of Whale Sharks in the Gulf of Mexico and Northwestern Caribbean Sea. PLoS ONE 8(8): e71883. doi:10.1371/journal.pone.0071883
 		<br /><a href="http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0071883">Web link</a>
@@ -115,7 +115,7 @@ Volume 83, Issue 3, pages 574-587, September 2013 <br /><a href="http://onlineli
 		
 		<p>Davies, Tim K., Stevens, Guy, Meekan, Mark G., Struve, Juliane, and Rowcliffe, J. Marcus (2012) Can citizen science monitor whale-shark aggregations? Investigating bias in mark-recapture modelling using identification photographs sourced from the public. Wildlife Research 39, 696-704.<br /><a href="http://www.publish.csiro.au/paper/WR12092">Web link</a></p>
 		
-		<p>Marshall AD & SJ Pierce (2012) The use and abuse of photographic identification in sharks and rays. Journal of Fish Biology 80: 1361-1379</p>
+		<p>Marshall AD &amp; SJ Pierce (2012) The use and abuse of photographic identification in sharks and rays. Journal of Fish Biology 80: 1361-1379</p>
 	
 		<p>Catlin J, Jones T, Norman B &amp; Wood D. Consolidation in a wildlife tourism industry: the changing impact of whale shark tourist expenditure in the Ningaloo Coast region. <em>International Journal of Tourism Research</em>,
 Volume 12, Issue 2, pages 134-148, March/April 2010. </p>
