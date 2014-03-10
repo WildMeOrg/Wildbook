@@ -231,6 +231,10 @@
      %>
      </table>
      <%
+     myShepherd.rollbackDBTransaction();
+     myShepherd.closeDBTransaction();
+     myShepherd=null;
+     
 	} //end if(CommonConfiguration.showUsersToPublic()){
 	%>
 
