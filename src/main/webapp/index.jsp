@@ -224,7 +224,7 @@ table.adopter td.image {
 			<tr>
 			
 				<tr>
-				<td><img src="images/QWSP_Logo.png" width="150" alt="Qatar Whale Shark Research Project" border="0"/>
+				<td class="image"><a href="http://www.qatarwhalesharkproject.com"><img src="images/QWSP_Logo.png" width="150" alt="Qatar Whale Shark Research Project" border="0"/></a>
 			</td>
 			</tr>
 				<td><img src="images/Siren_Fleet.jpg" width="150" alt="Siren Fleet" border="0"/></td>
