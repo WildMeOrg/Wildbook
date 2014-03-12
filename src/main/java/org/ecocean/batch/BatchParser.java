@@ -453,7 +453,7 @@ public class BatchParser {
       }
 
       // Parse values from each line of CSV file according to field identifiers.
-      int lineNum = 0;
+      int lineNum = 1;
       while ((line = csvr.readNext()) != null) {
         lineNum++;
         // NOTE: This if-block checks for use of all fields;
@@ -471,6 +471,12 @@ public class BatchParser {
           Boolean req = requiredMap.get(fieldKey);
           if (req == null)
             req = Boolean.FALSE;
+
+          // Check for value length too long for database field.
+          if (s != null && s.length() > 254) {
+            errors.add(MessageFormat.format(res.getString("err.ValueTooLong"), toTitleCase(type.toString()), fieldHeader, lineNum));
+            continue;
+          }
 
           // Check for unspecified required field.
           if (req && (s == null || "".equals(s))) {
