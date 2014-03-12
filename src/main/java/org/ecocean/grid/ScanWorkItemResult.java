@@ -22,7 +22,6 @@ package org.ecocean.grid;
 //unenhanced comment
 
 //import java.io.Serializable;
-//import java.util.Properties;
 
 /**
  * An <code>encounter</code> object stores the complete data for a single sighting.

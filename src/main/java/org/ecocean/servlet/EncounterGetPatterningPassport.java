@@ -26,7 +26,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.Properties;
 
 public class EncounterGetPatterningPassport extends HttpServlet {
   

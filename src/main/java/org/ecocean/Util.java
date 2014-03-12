@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
-//import java.util.Properties;
 import java.util.ResourceBundle;
 
 //import javax.jdo.JDOException;

@@ -22,7 +22,6 @@ package org.ecocean.interconnect;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Properties;
 
 class GetEncounterNumber extends JPanel implements ActionListener {
   JFrame frame = null;
@@ -124,18 +123,9 @@ class GetEncounterNumber extends JPanel implements ActionListener {
 
       String enc_number = tfDir.getText();
 
-      Properties props = new Properties();
       //String transmitToURL="unknown";
       System.out.println("Transmitting the pattern to: " + transmitToURL);
 
-      /**
-       try{
-       props.load(GetEncounterNumber.class.getResourceAsStream("/bundles/en/interconnect.properties"));
-       transmitToURL=props.getProperty("transmitToURL").trim();
-       System.out.println("I will be transmitting this spot pattern to: "+transmitToURL);
-       }
-       catch(IOException ioe){ioe.printStackTrace();}
-       */
 
       String libraryURL = transmitToURL + "?number=" + enc_number + sideURLAddition;
 
