@@ -55,7 +55,8 @@ public class ShepherdPMF {
           //otherwise load the embedded commonConfig
           
           try {
-            props.load(ShepherdPMF.class.getResourceAsStream("/bundles/jdoconfig.properties"));
+            //props.load(ShepherdPMF.class.getResourceAsStream("/bundles/jdoconfig.properties"));
+            props=ShepherdProperties.getProperties("jdoconfig.properties", "");
           } 
           catch (IOException ioe) {
             ioe.printStackTrace();

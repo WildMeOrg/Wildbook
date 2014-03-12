@@ -34,6 +34,7 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -190,7 +191,8 @@ public class SubmitAction extends Action {
 
 
       	try {
-        	props.load(getClass().getResourceAsStream("/bundles/submitActionClass.properties"));
+        	//props.load(getClass().getResourceAsStream("/bundles/submitActionClass.properties"));
+        	props=ShepherdProperties.getProperties("submitActionClass.properties.properties", "");
 
         	Enumeration m_enum = props.propertyNames();
         	while (m_enum.hasMoreElements()) {

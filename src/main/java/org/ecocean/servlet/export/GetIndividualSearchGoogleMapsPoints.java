@@ -41,14 +41,16 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     //let's load encounterSearch.properties
     
     Properties map_props = new Properties();
-    map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
-
+    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
+    map_props=ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode);
+    
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
   haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
 
     Properties localeprops = new Properties();
-   localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+   //localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+   localeprops=ShepherdProperties.getProperties("locales.properties", "");
 
    List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies");
    int numSpecies=allSpecies.size();

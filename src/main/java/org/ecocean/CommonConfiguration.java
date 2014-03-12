@@ -58,12 +58,16 @@ public class CommonConfiguration {
   public static synchronized boolean reloadProps() {
       InputStream resourceAsStream = null;
       try {
-        resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
-        props.load(resourceAsStream);
-      } catch (IOException ioe) {
+        //resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
+        //props.load(resourceAsStream);
+        props=ShepherdProperties.getProperties(COMMON_CONFIGURATION_PROPERTIES, "");
+
+      } catch (Exception ioe) {
         ioe.printStackTrace();
         return false;
       }
+      
+      /*
       finally {
         if (resourceAsStream != null) {
           try {
@@ -73,6 +77,8 @@ public class CommonConfiguration {
           }
         }
       }
+      */
+      
       String shepherdDataDir="shepherd_data_dir";
       if((props.getProperty("dataDirectoryName")!=null)&&(!props.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=props.getProperty("dataDirectoryName");}
       loadOverrideProps(shepherdDataDir);
