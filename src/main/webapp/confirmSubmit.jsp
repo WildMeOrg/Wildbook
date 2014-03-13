@@ -37,7 +37,9 @@
   }
 
   //set up the file input stream
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  props = ShepherdProperties.getProperties("submit.properties", langCode);
+
 
 
   //email_props.load(getClass().getResourceAsStream("/bundles/confirmSubmitEmails.properties"));

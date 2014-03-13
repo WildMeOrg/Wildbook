@@ -51,7 +51,9 @@ if (session.getAttribute("langCode") != null) {
 
 //let's load encounters.properties
 Properties encprops = new Properties();
-encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
+//encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
+encprops=ShepherdProperties.getProperties("encounter.properties", langCode);
+
 
 Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
 

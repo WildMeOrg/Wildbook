@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,org.ecocean.Shepherd,org.ecocean.Encounter,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor" %>
+         import="org.ecocean.*,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor" %>
 <%
 
   //concurrency examination for creation and removal threads
@@ -84,8 +84,8 @@
     }
   }
 
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  props=ShepherdProperties.getProperties("submit.properties", langCode);
 
   //load our variables for the submit page
   String title = props.getProperty("submit_title");

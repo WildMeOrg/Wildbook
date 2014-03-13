@@ -38,10 +38,14 @@
       langCode = (String) session.getAttribute("langCode");
     }
     Properties encprops = new Properties();
-    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+    //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+    encprops=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode);
 
-    Properties map_props = new Properties();
-    map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+    
+    
+    //Properties map_props = new Properties();
+    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+    //map_props=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode);
 
 
     
@@ -405,14 +409,14 @@ myShepherd.rollbackDBTransaction();
 
  %>
  </p>
- <p><%=map_props.getProperty("aspects") %>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ <p><%=encprops.getProperty("aspects") %>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <%
   boolean hasMoreProps=true;
   int propsNum=0;
   while(hasMoreProps){
-	if((map_props.getProperty("displayAspectName"+propsNum)!=null)&&(map_props.getProperty("displayAspectFile"+propsNum)!=null)){
+	if((encprops.getProperty("displayAspectName"+propsNum)!=null)&&(encprops.getProperty("displayAspectFile"+propsNum)!=null)){
 		%>
-		<a href="<%=map_props.getProperty("displayAspectFile"+propsNum)%>?<%=request.getQueryString()%>"><%=map_props.getProperty("displayAspectName"+propsNum) %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a href="<%=encprops.getProperty("displayAspectFile"+propsNum)%>?<%=request.getQueryString()%>"><%=encprops.getProperty("displayAspectName"+propsNum) %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		
 		<%
 		propsNum++;

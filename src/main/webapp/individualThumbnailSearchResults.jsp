@@ -60,7 +60,8 @@
     }
 
     Properties encprops = new Properties();
-    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualThumbnailSearchResults.properties"));
+    //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualThumbnailSearchResults.properties"));
+    encprops = ShepherdProperties.getProperties("individualThumbnailSearchResults.properties", langCode);
 
 
     Shepherd myShepherd = new Shepherd();

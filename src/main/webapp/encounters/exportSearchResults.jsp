@@ -38,7 +38,8 @@
       langCode = (String) session.getAttribute("langCode");
     }
     Properties map_props = new Properties();
-    map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/exportSearchResults.properties"));
+    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/exportSearchResults.properties"));
+    map_props=ShepherdProperties.getProperties("exportSearchResults.properties", langCode);
 
     
     //get our Shepherd

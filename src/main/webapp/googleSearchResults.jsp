@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="org.ecocean.*, java.util.Properties" %>
 <%
 
   //setup our Properties object to hold all properties
@@ -27,7 +27,8 @@
   String langCode = "en";
   //set up the file input stream
   //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+ // props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  props = ShepherdProperties.getProperties("submit.properties", langCode);
 
 
   //load our variables for the submit page

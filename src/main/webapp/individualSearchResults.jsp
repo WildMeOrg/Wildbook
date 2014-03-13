@@ -34,7 +34,8 @@
     if (session.getAttribute("langCode") != null) {
       langCode = (String) session.getAttribute("langCode");
     }
-    props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
+    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
+    props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode);
 
 
     int startNum = 1;

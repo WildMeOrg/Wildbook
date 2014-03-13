@@ -55,7 +55,9 @@
 
   //set up the file input stream
   Properties props = new Properties();
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/welcome.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/welcome.properties"));
+  props = ShepherdProperties.getProperties("welcome.properties", langCode);
+
 
   session = request.getSession(true);
   session.putValue("logged", "true");

@@ -42,7 +42,9 @@
   }
 
   //set up the file input stream
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  props = ShepherdProperties.getProperties("submit.properties", langCode);
+
 
 
   //load our variables for the submit page

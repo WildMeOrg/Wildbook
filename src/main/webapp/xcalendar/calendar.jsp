@@ -23,8 +23,9 @@ if((request.getParameter("locCode")!=null)&&(!request.getParameter("locCode").eq
 String langCode="en";
 if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
 Properties calprops=new Properties();
-calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.properties"));
-	
+//calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.properties"));
+calprops = ShepherdProperties.getProperties("calendar.properties", langCode);
+
 
 
 %>

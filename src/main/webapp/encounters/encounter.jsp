@@ -36,7 +36,8 @@
         //let's see if we can find a string in the mapping properties file
         Properties props = new Properties();
         //set up the file input stream
-        props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
+        //props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
+        props=ShepherdProperties.getProperties("newIndividualNumbers.properties", "");
 
 
         //let's see if the property is defined
