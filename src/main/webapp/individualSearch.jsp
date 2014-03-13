@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
+         import="org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
   Shepherd myShepherd = new Shepherd();
@@ -44,8 +44,9 @@
   if (session.getAttribute("langCode") != null) {
     langCode = (String) session.getAttribute("langCode");
   }
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
-
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
+  props = ShepherdProperties.getProperties("individualSearch.properties", langCode);
+	
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">

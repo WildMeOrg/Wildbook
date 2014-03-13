@@ -37,15 +37,21 @@
       langCode = (String) session.getAttribute("langCode");
     }
     Properties map_props = new Properties();
-    map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
+    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
+    map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode);
+	  
 
+    
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+	//haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+	haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+		
 
     Properties localeprops = new Properties();
-   localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
-
+   //localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+   localeprops = ShepherdProperties.getProperties("locales.properties", "");
+	
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd();

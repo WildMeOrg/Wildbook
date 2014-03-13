@@ -38,8 +38,11 @@
       langCode = (String) session.getAttribute("langCode");
     }
     Properties encprops = new Properties();
-    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+    //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+    encprops=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode);
 
+    
+    
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
 	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
@@ -418,7 +421,8 @@ myShepherd.rollbackDBTransaction();
  <%
  
  Properties map_props = new Properties();
- map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+ //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
+ map_props=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode);
 
  //read from the encprops property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
  int numberResultsToMap = -1;

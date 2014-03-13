@@ -130,8 +130,8 @@ margin-bottom: 8px !important;
   }
 
   Properties encprops = new Properties();
-  encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
-
+  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
+  encprops=ShepherdProperties.getProperties("encounterSearch.properties", langCode);
 
   
 %>

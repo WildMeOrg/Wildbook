@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.Calendar, java.util.Properties" %>
+         import="org.ecocean.*,java.util.Calendar, java.util.Properties" %>
 
 
 <%
@@ -44,7 +44,9 @@
     langCode = (String) session.getAttribute("langCode");
   }
   Properties calprops = new Properties();
-  calprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/calendar.properties"));
+  //calprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/calendar.properties"));
+  calprops = ShepherdProperties.getProperties("calendar.properties", langCode);
+
 
 
 %>

@@ -50,8 +50,9 @@
 
   //load our variables for the submit page
 
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
-
+ // props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
+  props = ShepherdProperties.getProperties("individuals.properties", langCode);
+	
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
   String nicknamer = props.getProperty("nicknamer");

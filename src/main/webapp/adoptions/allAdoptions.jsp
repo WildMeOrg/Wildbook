@@ -31,7 +31,7 @@
   String strOutputDateTime = fmt.print(dt);
 
 //setup our Properties object to hold all properties
-  Properties props = new Properties();
+ // Properties props = new Properties();
   String langCode = "en";
 
   Shepherd myShepherd = new Shepherd();

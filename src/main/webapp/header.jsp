@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.apache.commons.lang.WordUtils,org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="org.apache.commons.lang.WordUtils,org.ecocean.*, java.util.Properties" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -38,7 +38,8 @@
   }
 
   //set up the file input stream
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/header.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/header.properties"));
+  props = ShepherdProperties.getProperties("header.properties", langCode);
 
 
 %>

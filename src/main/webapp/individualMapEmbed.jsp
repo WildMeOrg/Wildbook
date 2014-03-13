@@ -32,11 +32,15 @@
 
   //load our variables for the submit page
 
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
+  props = ShepherdProperties.getProperties("individuals.properties", langCode);
 
-  Properties localesProps = new Properties();
-  localesProps.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+
 		  
+  Properties localesProps = new Properties();
+  //localesProps.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+  localesProps = ShepherdProperties.getProperties("locales.properties", "");
+	  
 		  
 		  
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");

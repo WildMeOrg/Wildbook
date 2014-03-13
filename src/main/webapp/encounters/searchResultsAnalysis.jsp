@@ -42,8 +42,10 @@
       langCode = (String) session.getAttribute("langCode");
     }
     Properties encprops = new Properties();
-    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
-
+    //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
+    encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode);
+    
+    
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
 	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");

@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="org.ecocean.*, java.util.Properties" %>
 <%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %>
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 <%@ taglib uri="/WEB-INF/struts-logic.tld" prefix="logic" %>
@@ -35,7 +35,8 @@
 
 //set up the file input stream
   Properties props = new Properties();
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/login.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/login.properties"));
+  props = ShepherdProperties.getProperties("login.properties", langCode);
 
 
 %>
