@@ -991,7 +991,7 @@ public final class BatchUpload extends DispatchServlet {
    * @param dataEnc map of parsed CSV data
    * @return a list of {@code Encounter}
    */
-  private List<Encounter> parseEnc(List<Map<String, Object>> dataEnc, List<String> errors, ResourceBundle bundle) {
+  private static List<Encounter> parseEnc(List<Map<String, Object>> dataEnc, List<String> errors, ResourceBundle bundle) {
     List<Encounter> list = new ArrayList<Encounter>();
     String pre = "encounter.";
 
@@ -1037,6 +1037,8 @@ public final class BatchUpload extends DispatchServlet {
       x.setSpecificEpithet((String)map.get(pre + "specificEpithet"));
       x.setLocationID((String)map.get(pre + "locationID"));
       x.setVerbatimLocality((String)map.get(pre + "verbatimLocality"));
+      if (x.getVerbatimLocality() == null && x.getLocationID() != null)
+        x.setVerbatimLocality(x.getLocationID());
       x.setDecimalLatitude((Double)map.get(pre + "decimalLatitude"));
       x.setDecimalLongitude((Double)map.get(pre + "decimalLongitude"));
       x.setMaximumDepthInMeters((Double)map.get(pre + "maximumDepthInMeters"));
@@ -1118,7 +1120,7 @@ public final class BatchUpload extends DispatchServlet {
    * @param dataMea map of parsed CSV data
    * @return a list of {@code Measurement}
    */
-  private List<Measurement> parseMea(List<Map<String, Object>> dataMea, List<String> errors, ResourceBundle bundle) {
+  private static List<Measurement> parseMea(List<Map<String, Object>> dataMea, List<String> errors, ResourceBundle bundle) {
     List<Measurement> list = new ArrayList<Measurement>();
     if (dataMea == null)
       return list;
@@ -1142,7 +1144,7 @@ public final class BatchUpload extends DispatchServlet {
    * @param dataMed map of parsed CSV data
    * @return a list of {@code BatchMedia}
    */
-  private List<BatchMedia> parseMed(List<Map<String, Object>> dataMed, List<String> errors, ResourceBundle bundle) {
+  private static List<BatchMedia> parseMed(List<Map<String, Object>> dataMed, List<String> errors, ResourceBundle bundle) {
     List<BatchMedia> list = new ArrayList<BatchMedia>();
     if (dataMed == null)
       return list;
@@ -1175,7 +1177,7 @@ public final class BatchUpload extends DispatchServlet {
    * @param dataSam map of parsed CSV data
    * @return a list of {@code TissueSample}
    */
-  private List<TissueSample> parseSam(List<Map<String, Object>> dataSam, List<String> errors, ResourceBundle bundle) {
+  private static List<TissueSample> parseSam(List<Map<String, Object>> dataSam, List<String> errors, ResourceBundle bundle) {
     List<TissueSample> list = new ArrayList<TissueSample>();
     if (dataSam == null)
       return list;

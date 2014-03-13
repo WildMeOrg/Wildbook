@@ -103,6 +103,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             mmFiles.get("FEAT").delete();
             mmFiles.get("TXT").delete();
             mmFiles.get("CSV").delete();
+            mmFiles.get("XHTML").delete(); // Retained to clean up old files.
           }
           mmFiles = null;
         } 
@@ -181,7 +182,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           }
 
           // Check for FilePart is done after other Part types.
-          // NOTE: "number" and "photoNumber" must be come first in JSP form
+          // NOTE: "number" and "photoNumber" must come first in JSP form
           // to ensure correct association with encounter/photo.
           File thisEncounterDir = new File(encountersDir, encounterNumber);
           if (part.isFile()) {
@@ -195,6 +196,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
               mmFiles.get("FEAT").delete();
               mmFiles.get("TXT").delete();
               mmFiles.get("CSV").delete();
+              mmFiles.get("XHTML").delete(); // Retained to clean up old files.
             }
             catch (SecurityException sx) {
               sx.printStackTrace();
