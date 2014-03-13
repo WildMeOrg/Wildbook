@@ -22,6 +22,7 @@ package org.ecocean.batch;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,6 +41,7 @@ import org.ecocean.util.FileUtilities;
 import org.ecocean.util.ListHelper;
 import org.ecocean.util.MantaMatcherUtilities;
 import org.ecocean.util.MediaUtilities;
+import org.ecocean.util.RegexFilenameFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +63,7 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
   /** SLF4J logger instance for writing log entries. */
   private static final Logger log = LoggerFactory.getLogger(Plugin_MantaMatcher.class);
   /** Regex pattern string for matching CR image filenames. */
-  private static final Pattern REGEX_CR = Pattern.compile("^(.+)_CR\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES);
+  private static final Pattern REGEX_CR = Pattern.compile("^(.+)_CR\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES + "$");
   /** Resources for internationalization. */
   private ResourceBundle bundle;
   /** Collection of media files to process with mmprocess. */
@@ -167,26 +169,51 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
    */
   private SinglePhotoVideo findReferenceImageFile(SinglePhotoVideo spvCR) {
     File fCR = spvCR.getFile();
+    File found = null;
     Matcher m = REGEX_CR.matcher(fCR.getName());
     if (!m.matches())
       throw new IllegalArgumentException("Invalid CR image filename");
+    // Check for existence of image without _CR suffix & same extension.
     File f = new File(fCR.getParentFile(), String.format("%s.%s", m.group(1), m.group(2)));
-    // Check for existence of image without _CR suffix.
     if (f.exists()) {
-      // Find SPV to match file.
-      for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
-        if (spv.getFile().equals(f)) {
-          log.trace("Found matching reference: " + spv.getFile().getName());
-          return spv;
+      found = f;
+    }
+    // Check for existence of image without _CR suffix & different extension.
+    if (found == null)
+    {
+      FilenameFilter ff = new RegexFilenameFilter(String.format("%s\\.%s", m.group(1), MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES));
+      File[] poss = fCR.getParentFile().listFiles(ff);
+      if (poss.length > 0)
+      {
+        found = poss[0];
+        if (poss.length > 1)
+        {
+          for (File x : poss)
+            log.debug("Found multiple matching ID ref: " + x.getName());
         }
       }
     }
     // Failed to find obvious matching SPV, so fall-back to top ID image.
-    final String REGEX_ID = String.format("^%s[-_ ](?i:Id)(?=[ .]).*\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES, m.group(1));
-    for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
-      if (spv.getFile().getName().matches(REGEX_ID)) {
-        log.trace("Found matching ID ref: " + spv.getFile().getName());
-        return spv;
+    if (found == null)
+    {
+      FilenameFilter ff = new RegexFilenameFilter(String.format("^%s[-_ ](?i:Id)(?!\\d).*\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES, m.group(1)));
+      File[] poss = fCR.getParentFile().listFiles(ff);
+      if (poss.length > 0)
+      {
+        found = poss[0];
+        if (poss.length > 1)
+        {
+          for (File x : poss)
+            log.debug("Found multiple matching ID ref: " + x.getName());
+        }
+      }
+    }
+    // If ID found, find SPV to match file.
+    if (found != null)
+    {
+      for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
+        if (spv.getFile().equals(found))
+          return spv;
       }
     }
     // Failed to find any match.
