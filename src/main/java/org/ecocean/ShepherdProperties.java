@@ -10,8 +10,15 @@ public class ShepherdProperties {
   public static Properties getProperties(String fileName){
     return getProperties(fileName, "en");
   }
-
+  
+  
   public static Properties getProperties(String fileName, String langCode){
+    
+    return getProperties(fileName, langCode, "context0");
+    
+  }
+
+  public static Properties getProperties(String fileName, String langCode, String context){
     Properties props=new Properties();
 
     String shepherdDataDir="shepherd_data_dir";

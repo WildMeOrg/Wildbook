@@ -54,8 +54,11 @@ public class CommonConfiguration {
       return loadProps();
   }
   
-  
   public static synchronized boolean reloadProps() {
+    return reloadProps("context0");
+  }
+  
+  public static synchronized boolean reloadProps(String context) {
       InputStream resourceAsStream = null;
       try {
         //resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
@@ -80,16 +83,29 @@ public class CommonConfiguration {
       */
       
       String shepherdDataDir="shepherd_data_dir";
-      if((props.getProperty("dataDirectoryName")!=null)&&(!props.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=props.getProperty("dataDirectoryName");}
+      
+      //new context code here
+      
+      //if((props.getProperty("dataDirectoryName")!=null)&&(!props.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=props.getProperty("dataDirectoryName");}
+      if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){shepherdDataDir=ContextConfiguration.getDataDirForContext(context);}
+      
+      
       loadOverrideProps(shepherdDataDir);
+      
       propsSize = props.size();
 
     return true;
   }
   
+  
   private static synchronized boolean loadProps() {
+    return loadProps("context0");
+  }
+  
+  
+  private static synchronized boolean loadProps(String context) {
     if (propsSize == 0) {
-      return reloadProps();
+      return reloadProps(context);
     }
     return true;
   }
@@ -503,10 +519,21 @@ public class CommonConfiguration {
     return !Boolean.FALSE.toString().equals(showMeasurements);
   }
   
-  public static String getDataDirectoryName() {
+  public static String getDataDirectoryName(){
+    return getDataDirectoryName("context0");
+  }
+  
+  
+  public static String getDataDirectoryName(String context) {
     initialize();
     String dataDirectoryName="shepherd_data_dir";
-    if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
+    
+    //new context code here
+    
+    //if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
+    
+    if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){dataDirectoryName=ContextConfiguration.getDataDirForContext(context);}
+    
     return dataDirectoryName;
   }
   
