@@ -33,8 +33,12 @@ import java.util.Properties;
 public class ShepherdPMF {
 
   private static PersistenceManagerFactory pmf;
-
+  
   public synchronized static PersistenceManagerFactory getPMF() {
+    return getPMF("context0"); 
+  }
+
+  public synchronized static PersistenceManagerFactory getPMF(String context) {
     //public static PersistenceManagerFactory getPMF(String dbLocation) {
     try {
       if (pmf == null) {
@@ -46,7 +50,12 @@ public class ShepherdPMF {
 
         Properties props = new Properties();
         String shepherdDataDir="shepherd_data_dir";
-        if((CommonConfiguration.getProperty("dataDirectoryName")!=null)&&(!CommonConfiguration.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=CommonConfiguration.getProperty("dataDirectoryName");}
+        
+        
+        if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){shepherdDataDir=ContextConfiguration.getDataDirForContext(context);}
+        
+        
+        
         Properties overrideProps=loadOverrideProps(shepherdDataDir);
         //System.out.println(overrideProps);
         
@@ -58,7 +67,7 @@ public class ShepherdPMF {
             //props.load(ShepherdPMF.class.getResourceAsStream("/bundles/jdoconfig.properties"));
             props=ShepherdProperties.getProperties("jdoconfig.properties", "");
           } 
-          catch (IOException ioe) {
+          catch (Exception ioe) {
             ioe.printStackTrace();
           }
         }
