@@ -67,8 +67,9 @@ public class RelationshipCreate extends HttpServlet {
       
 
       //boolean isEdit=false;
-      
-        Shepherd myShepherd = new Shepherd();
+      String context="context0";
+      context=ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
         
         Relationship rel=new Relationship();
         SocialUnit comm=new SocialUnit();
@@ -202,7 +203,7 @@ public class RelationshipCreate extends HttpServlet {
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
             
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
             
  
       

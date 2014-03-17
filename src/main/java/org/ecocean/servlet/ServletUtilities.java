@@ -23,19 +23,20 @@ import com.sun.syndication.feed.synd.*;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.SyndFeedOutput;
 import com.sun.syndication.io.XmlReader;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
-import org.ecocean.*;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
+
 import java.io.*;
 import java.net.URL;
 import java.text.CharacterIterator;
@@ -44,15 +45,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
-
 import java.sql.*;
 
-
+import org.ecocean.*;
 import org.apache.shiro.crypto.hash.*;
 import org.apache.shiro.util.*; 
 import org.apache.shiro.crypto.*;
-
-
 
 import java.util.Properties;
 
@@ -72,12 +70,14 @@ public class ServletUtilities {
       fileReader.close();
       buffread.close();
       templateFile = SBreader.toString();
+      
+      String context=getContext(request);
 
       //process the CSS string
-      templateFile = templateFile.replaceAll("CSSURL", CommonConfiguration.getCSSURLLocation(request));
+      templateFile = templateFile.replaceAll("CSSURL", CommonConfiguration.getCSSURLLocation(request,context));
 
       //set the top header graphic
-      templateFile = templateFile.replaceAll("TOPGRAPHIC", CommonConfiguration.getURLToMastheadGraphic());
+      templateFile = templateFile.replaceAll("TOPGRAPHIC", CommonConfiguration.getURLToMastheadGraphic(context));
 
       int end_header = templateFile.indexOf("INSERT_HERE");
       return (templateFile.substring(0, end_header));
@@ -91,7 +91,7 @@ public class ServletUtilities {
 
   }
 
-  public static String getFooter() {
+  public static String getFooter(String context) {
     try {
       FileReader fileReader = new FileReader(findResourceOnFileSystem("servletResponseTemplate.htm"));
       BufferedReader buffread = new BufferedReader(fileReader);
@@ -103,7 +103,7 @@ public class ServletUtilities {
       fileReader.close();
       buffread.close();
       templateFile = SBreader.toString();
-      templateFile = templateFile.replaceAll("BOTTOMGRAPHIC", CommonConfiguration.getURLToFooterGraphic());
+      templateFile = templateFile.replaceAll("BOTTOMGRAPHIC", CommonConfiguration.getURLToFooterGraphic(context));
 
       int end_header = templateFile.indexOf("INSERT_HERE");
       return (templateFile.substring(end_header + 11));
@@ -117,9 +117,10 @@ public class ServletUtilities {
 
   }
 
-  public static void informInterestedParties(HttpServletRequest request, String number,
-                                             String message) {
-    Shepherd myShepherd = new Shepherd();
+  public static void informInterestedParties(HttpServletRequest request, String number, String message) {
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
     Encounter enc = myShepherd.getEncounter(number);
     
@@ -139,13 +140,13 @@ public class ServletUtilities {
         String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Encounter " + number + ": " + message + "\n\nLink to encounter: http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + number));
         email += ("\n\nWant to stop tracking this set of encounter data? Use this link.\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?number=" + number + "&email=");
         ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images));
+        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(getContext(request)), CommonConfiguration.getAutoEmailAddress(getContext(request)), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images,context));
 
 
         //NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: "+number), (email+mailMe), e_images);
         for (int j = 1; j < size; j++) {
           mailMe = interested[j];
-          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images));
+          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(getContext(request)), CommonConfiguration.getAutoEmailAddress(getContext(request)), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images,context));
         }
       }
     }
@@ -153,7 +154,9 @@ public class ServletUtilities {
 
   //inform researchers that have logged an interest with the encounter or marked individual
   public static void informInterestedIndividualParties(HttpServletRequest request, String shark, String message) {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
     MarkedIndividual sharkie = myShepherd.getMarkedIndividual(shark);
     
@@ -178,10 +181,10 @@ public class ServletUtilities {
         String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Tag " + shark + ": " + message + "\n\nLink to individual: http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark));
         email += ("\n\nWant to stop tracking this set of this individual's data? Use this link.\n\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?shark=" + shark + "&email=");
 
-        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Marked individual data update: " + shark), (email + mailMe), e_images));
+        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(getContext(request)), CommonConfiguration.getAutoEmailAddress(getContext(request)), mailMe, ("Marked individual data update: " + shark), (email + mailMe), e_images,context));
         for (int j = 1; j < size; j++) {
           mailMe = interested[j];
-          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Individual data update: " + shark), (email + mailMe), e_images));
+          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(getContext(request)), CommonConfiguration.getAutoEmailAddress(getContext(request)), mailMe, ("Individual data update: " + shark), (email + mailMe), e_images,context));
         }
       }
     }
@@ -211,7 +214,7 @@ public class ServletUtilities {
   }
 
   //Logs a new ATOM entry
-  public static synchronized void addATOMEntry(String title, String link, String description, File atomFile) {
+  public static synchronized void addATOMEntry(String title, String link, String description, File atomFile, String context) {
     try {
 
       if (atomFile.exists()) {
@@ -251,14 +254,14 @@ public class ServletUtilities {
         newItem.setPublishedDate(new java.util.Date());
 
         List<SyndCategory> categories = new ArrayList<SyndCategory>();
-        if(CommonConfiguration.getProperty("htmlTitle")!=null){
+        if(CommonConfiguration.getProperty("htmlTitle",context)!=null){
         	SyndCategory category2 = new SyndCategoryImpl();
-        	category2.setName(CommonConfiguration.getProperty("htmlTitle"));
+        	category2.setName(CommonConfiguration.getProperty("htmlTitle",context));
         	categories.add(category2);
 		}
         newItem.setCategories(categories);
-        if(CommonConfiguration.getProperty("htmlAuthor")!=null){
-        	newItem.setAuthor(CommonConfiguration.getProperty("htmlAuthor"));
+        if(CommonConfiguration.getProperty("htmlAuthor",context)!=null){
+        	newItem.setAuthor(CommonConfiguration.getProperty("htmlAuthor",context));
 		}
         items.add(newItem);
         feed.setEntries(items);
@@ -448,12 +451,12 @@ public class ServletUtilities {
 
     Connection conn = null;
     Properties connectionProps = new Properties();
-    connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName"));
-    connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword"));
+    connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
+    connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
 
     
     conn = DriverManager.getConnection(
-           CommonConfiguration.getProperty("datanucleus.ConnectionURL"),
+           CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"),
            connectionProps);
     
     System.out.println("Connected to database for authentication.");
@@ -468,5 +471,24 @@ public static ByteSource getSalt() {
     return new SecureRandomNumberGenerator().nextBytes();
 }
 
+public static String getContext(HttpServletRequest request){
+  String context="context0";
+  context=ServletUtilities.getContext(request);
+  if(request.getUserPrincipal()!=null){
+    String username=request.getUserPrincipal().getName();
+    Shepherd myShepherd=new Shepherd(context);
+    myShepherd.beginDBTransaction();
+    if(myShepherd.getUser(username)!=null){
+      User user=myShepherd.getUser(username);
+      if((user.getCurrentContext()!=null)&&(!user.getCurrentContext().trim().equals(""))){context=user.getCurrentContext().trim();}
+    }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+    myShepherd=null;
+    
+  }
+  
+  return context;
+}
 
 }

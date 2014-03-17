@@ -3,6 +3,7 @@ package org.ecocean.servlet;
 import java.io.IOException;
 
 
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +19,6 @@ import org.apache.shiro.subject.Subject;
 
 
 import org.apache.shiro.web.util.WebUtils;
-
 import org.ecocean.*;
 
 
@@ -64,7 +64,9 @@ import org.ecocean.*;
 		
 		
 		String salt="";
-		Shepherd myShepherd=new Shepherd();
+		String context="context0";
+    //context=ServletUtilities.getContext(request);
+		Shepherd myShepherd=new Shepherd(context);
 		myShepherd.beginDBTransaction();
 		
 		try{
@@ -137,7 +139,7 @@ import org.ecocean.*;
 		   myShepherd.beginDBTransaction();
 		    if(myShepherd.getUser(username)!=null){
 		      User user=myShepherd.getUser(username);
-		      if((CommonConfiguration.getProperty("showUserAgreement")!=null)&&(CommonConfiguration.getProperty("userAgreementURL")!=null)&&(CommonConfiguration.getProperty("showUserAgreement").equals("true"))&&(!user.getAcceptedUserAgreement())){
+		      if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(CommonConfiguration.getProperty("userAgreementURL",context)!=null)&&(CommonConfiguration.getProperty("showUserAgreement",context).equals("true"))&&(!user.getAcceptedUserAgreement())){
 		        subject.logout();
 		        redirectUser=true;
 		        //redirect to the user agreement
@@ -152,7 +154,7 @@ import org.ecocean.*;
 		    myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         
-        if(redirectUser){url=CommonConfiguration.getProperty("userAgreementURL");}
+        if(redirectUser){url=CommonConfiguration.getProperty("userAgreementURL",context);}
         
 			
 			

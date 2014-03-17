@@ -29,7 +29,10 @@ public class UserResetAcceptedUserAgreement extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
 
     //set up for response
     response.setContentType("text/html");
@@ -69,13 +72,13 @@ public class UserResetAcceptedUserAgreement extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println(("<strong>Success!</strong> I have successfully reset the User Agreement status for all users. Each will now need to accept the User Agreement again after login."));
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp\">Return to the User Administration page.</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(ServletUtilities.getContext(request)));
       }
       //failure due to exception
       else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> I could not reset User Agreement status. Please check the server log for the relevant exception.");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
       query.closeAll();
 
