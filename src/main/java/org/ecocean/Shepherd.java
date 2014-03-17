@@ -65,9 +65,9 @@ public class Shepherd {
   /**
    * Constructor to create a new shepherd thread object
    */
-  public Shepherd() {
+  public Shepherd(String context) {
     if (pm == null || pm.isClosed()) {
-      pmf = ShepherdPMF.getPMF();
+      pmf = ShepherdPMF.getPMF(context);
       try {
         pm = pmf.getPersistenceManager();
       } catch (JDOUserException e) {
@@ -1294,8 +1294,8 @@ public class Shepherd {
     return it;
   }
 
-  public ArrayList getAllAdoptionsForMarkedIndividual(String ind) {
-    if(CommonConfiguration.allowAdoptions()){
+  public ArrayList getAllAdoptionsForMarkedIndividual(String ind,String context) {
+    if(CommonConfiguration.allowAdoptions(context)){
       String filter = "this.individual == '" + ind + "'";
       Extent encClass = pm.getExtent(Adoption.class, true);
       Query acceptedEncounters = pm.newQuery(encClass, filter);

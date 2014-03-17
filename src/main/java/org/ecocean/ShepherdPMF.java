@@ -34,9 +34,7 @@ public class ShepherdPMF {
 
   private static PersistenceManagerFactory pmf;
   
-  public synchronized static PersistenceManagerFactory getPMF() {
-    return getPMF("context0"); 
-  }
+
 
   public synchronized static PersistenceManagerFactory getPMF(String context) {
     //public static PersistenceManagerFactory getPMF(String dbLocation) {
@@ -51,10 +49,7 @@ public class ShepherdPMF {
         Properties props = new Properties();
         String shepherdDataDir="shepherd_data_dir";
         
-        
         if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){shepherdDataDir=ContextConfiguration.getDataDirForContext(context);}
-        
-        
         
         Properties overrideProps=loadOverrideProps(shepherdDataDir);
         //System.out.println(overrideProps);
@@ -73,7 +68,6 @@ public class ShepherdPMF {
         }
         
         
-
         Enumeration<Object> propsNames = props.keys();
         while (propsNames.hasMoreElements()) {
           String name = (String) propsNames.nextElement();

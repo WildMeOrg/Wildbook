@@ -52,11 +52,14 @@ public class UserCreate extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    
     //set up the user directory
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File usersDir=new File(shepherdDataDir.getAbsolutePath()+"/users");
     if(!usersDir.exists()){usersDir.mkdir();}
@@ -86,7 +89,7 @@ public class UserCreate extends HttpServlet {
       
       if((password.equals(password2))||(isEdit)){
         
-        Shepherd myShepherd = new Shepherd();
+        Shepherd myShepherd = new Shepherd(context);
         
         User newUser=new User();
       
@@ -193,7 +196,7 @@ public class UserCreate extends HttpServlet {
               
             }
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp" + "\">Return to User Administration" + "</a></p>\n");
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
             
     }
     else{
@@ -201,7 +204,7 @@ public class UserCreate extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> User was NOT successfully created. Your passwords did not match.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp" + "\">Return to User Administration" + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         
       }
       
@@ -212,7 +215,7 @@ else{
   out.println(ServletUtilities.getHeader(request));
   out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username and password information I needed.");
   out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp" + "\">Return to User Administration" + "</a></p>\n");
-  out.println(ServletUtilities.getFooter());
+  out.println(ServletUtilities.getFooter(context));
   
 }
 
