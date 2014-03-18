@@ -88,7 +88,9 @@ import org.slf4j.LoggerFactory;
 public final class BatchUpload extends DispatchServlet {
   private static final long serialVersionUID = 1L;
   /** SLF4J logger instance for writing log entries. */
-  private static Logger log = LoggerFactory.getLogger(BatchUpload.class);
+  public static Logger log = LoggerFactory.getLogger(BatchUpload.class);
+  /** Name of folder in which to hold batch upload data. */
+  private static final String BATCH_DATA_DIR = "batch-data";
   /** Session key for referencing batch upload data. */
   public static final String SESSION_KEY_DATA = "BatchData";
   /** Session key for referencing existing matching task. */
@@ -96,17 +98,17 @@ public final class BatchUpload extends DispatchServlet {
   /** Session key for referencing existing matching task's {@code Future}. */
   public static final String SESSION_KEY_TASKFUTURE = "BatchTaskFuture";
   /** Session key for referencing existing matching task. */
-  public static final String SESSION_KEY_ERRORS = "batchErrors";
+  public static final String SESSION_KEY_ERRORS = "BatchErrors";
   /** Session key for referencing existing matching task. */
-  public static final String SESSION_KEY_WARNINGS = "batchWarnings";
+  public static final String SESSION_KEY_WARNINGS = "BatchWarnings";
   /** Path for referencing JSP page for main batch upload page. */
   public static final String JSP_MAIN = "/appadmin/batchUpload.jsp";
   /** Path for referencing JSP page for batch task confirmation. */
-  private static final String JSP_CONFIRM = "/appadmin/batchUploadConfirmation.jsp";
+  public static final String JSP_CONFIRM = "/appadmin/batchUploadConfirmation.jsp";
   /** Path for referencing JSP page for batch task progress. */
-  private static final String JSP_PROGRESS = "/appadmin/batchUploadProgress.jsp";
+  public static final String JSP_PROGRESS = "/appadmin/batchUploadProgress.jsp";
   /** Path for referencing JSP page for error display. */
-  private static final String JSP_ERROR = "/appadmin/batchErrorDisplay.jsp";
+  public static final String JSP_ERROR = "/appadmin/batchErrorDisplay.jsp";
   /** Name of batch template files. */
   private static final String[] BTF = {
     "batchIndividuals.csv",
@@ -139,10 +141,10 @@ public final class BatchUpload extends DispatchServlet {
   public void init() throws ServletException {
     super.init();
     try {
+      registerMethodGET("start");
       registerMethodGET("templateInd", "templateEnc", "templateMea", "templateMed", "templateSam");
-      registerMethodGET("getBatchProgress");
       registerMethodPOST("uploadBatchData", "confirmBatchDataUpload");
-      registerMethodGET("uploadBatchData", "confirmBatchDataUpload"); // Needs both GET/POST due to forwarding idiosyncracies.
+      registerMethodGET("getBatchProgress");
     }
     catch (DelegateNotFoundException ex) {
       throw new ServletException(ex);
@@ -168,7 +170,7 @@ public final class BatchUpload extends DispatchServlet {
     if (session != null) {
       for (Enumeration e = session.getAttributeNames(); e.hasMoreElements();) {
         String s = (String)e.nextElement();
-        if (s.toLowerCase().startsWith("batch"))
+        if (s.matches("^(?i)batch.*$"))
           session.removeAttribute(s);
       }
     }
@@ -179,6 +181,13 @@ public final class BatchUpload extends DispatchServlet {
     return "BatchUpload, Copyright 2013 Giles Winstanley / Wild Book / wildme.org";
   }
 
+  /**
+   * Entrance point for the BatchUpload service, which is used whenever an
+   * unrecognised delegate method is specified.
+   * This method checks for an ongoing process for the current user, and if
+   * one exists, redirects to the progress page. If not, it redirects to the
+   * start page to create a new process.
+   */
   protected void handleDelegateNotFound(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unsupported delegate method specified.");
   }
@@ -186,7 +195,7 @@ public final class BatchUpload extends DispatchServlet {
   private void handleException(HttpServletRequest req, HttpServletResponse res, Throwable t) throws ServletException, IOException {
     log.warn(t.getMessage(), t);
     req.setAttribute("thrown", t);
-    res.sendRedirect("//" + CommonConfiguration.getURLLocation(req) + JSP_ERROR);
+    getServletContext().getRequestDispatcher(JSP_ERROR).forward(req, res);
   }
 
   /**
@@ -246,6 +255,41 @@ public final class BatchUpload extends DispatchServlet {
   }
 
   /**
+   * Entrance point for the BatchUpload service.
+   * This method checks for an ongoing process for the current user, and if
+   * one exists, redirects to the progress page. If not, it redirects to the
+   * start page to create a new process.
+   */
+  public void start(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    try {
+      HttpSession session = req.getSession();
+
+      List<String> errors = (List<String>)session.getAttribute(SESSION_KEY_ERRORS);
+      List<String> warnings = (List<String>)session.getAttribute(SESSION_KEY_WARNINGS);
+      boolean hasErrors = errors != null && !errors.isEmpty();
+      boolean hasWarnings = warnings != null && !warnings.isEmpty();
+
+      // Check for batch processor already assigned for this user.
+      BatchProcessor proc = (BatchProcessor)session.getAttribute(SESSION_KEY_TASK);
+      if (proc == null) {
+        proc = processMap.get(req.getRemoteUser());
+      }
+      if (proc != null && !proc.isTerminated()) {
+        getServletConfig().getServletContext().getRequestDispatcher(JSP_PROGRESS).forward(req, res);
+        return;
+      }
+
+      // Clear any possible old data, then redirect to main page.
+      flushSessionInfo(req);
+      getServletConfig().getServletContext().getRequestDispatcher(JSP_MAIN).forward(req, res);
+
+    } catch (Throwable th) {
+      log.warn(th.getMessage(), th);
+      handleException(req, res, th);
+    }
+  }
+
+  /**
    * Delegate method for mediating data upload for batch data processing.
    * The pipeline goes as follows:
    * <ol>
@@ -276,19 +320,11 @@ public final class BatchUpload extends DispatchServlet {
       ResourceBundle bundle = getResources(loc);
       List<String> errors = new ArrayList<String>();
       session.setAttribute(SESSION_KEY_ERRORS, errors);
-
-      // Check for batch processor already assigned for this user.
-      BatchProcessor proc = (BatchProcessor)session.getAttribute(SESSION_KEY_TASK);
-      if (proc == null) {
-        proc = processMap.get(req.getRemoteUser());
-      }
-      if (proc != null) {
-        getServletConfig().getServletContext().getRequestDispatcher(JSP_PROGRESS).forward(req, res);
-        return;
-      }
+      List<String> warnings = new ArrayList<String>();
+      session.setAttribute(SESSION_KEY_WARNINGS, warnings);
 
       // Setup folder/file paths.
-      File batchDataDir = new File(getDataDir(), "batch-data");
+      File batchDataDir = new File(getDataDir(), BATCH_DATA_DIR);
       if (!batchDataDir.exists()) {
         if (!batchDataDir.mkdirs()) {
           errors.add(bundle.getString("batchUpload.error.MakeDir"));
@@ -350,7 +386,6 @@ public final class BatchUpload extends DispatchServlet {
       // PROCESS DATA.
 
       Map<SinglePhotoVideo, BatchMedia> mapMedia = null;
-
       List<MarkedIndividual> listInd = null;
       List<Encounter> listEnc = null;
       List<Measurement> listMea = null;
@@ -407,10 +442,11 @@ public final class BatchUpload extends DispatchServlet {
         }
       }
 
-      // Return to the view to ask user if they really want to proceed.
       if (errors.isEmpty()) {
+        // Return to the view to ask user if they really want to proceed.
         getServletConfig().getServletContext().getRequestDispatcher(JSP_CONFIRM).forward(req, res);
       } else {
+        // Return to main page to report errors & start over.
         getServletConfig().getServletContext().getRequestDispatcher(JSP_MAIN).forward(req, res);
       }
 
@@ -445,22 +481,30 @@ public final class BatchUpload extends DispatchServlet {
 
       Locale loc = req.getLocale();
       ResourceBundle bundle = getResources(loc);
-      List<String> errors = new ArrayList<String>();
-      session.setAttribute(SESSION_KEY_ERRORS, errors);
-      List<String> warnings = new ArrayList<String>();
-      session.setAttribute(SESSION_KEY_WARNINGS, warnings);
+      List<String> errors = (List<String>)session.getAttribute(SESSION_KEY_ERRORS);
+      List<String> warnings = (List<String>)session.getAttribute(SESSION_KEY_WARNINGS);
+      if (errors == null)
+      {
+        log.warn("Errors should already be assigned; check code for pathway anomalies");
+        errors = new ArrayList<String>();
+        session.setAttribute(SESSION_KEY_ERRORS, errors);
+      }
+      if (warnings == null)
+      {
+        log.warn("Warnings should already be assigned; check code for pathway anomalies");
+        warnings = new ArrayList<String>();
+        session.setAttribute(SESSION_KEY_WARNINGS, warnings);
+      }
 
       // Find any currently running batch tasks assigned by this user.
       BatchProcessor proc = (BatchProcessor)session.getAttribute(SESSION_KEY_TASK);
       if (proc == null) {
         proc = processMap.get(req.getRemoteUser());
       }
-      if (proc != null) {
+      if (proc != null && !proc.isTerminated()) {
         getServletConfig().getServletContext().getRequestDispatcher(JSP_PROGRESS).forward(req, res);
         return;
       }
-
-      // VALIDATE INPUT.
 
       BatchData data = (BatchData)session.getAttribute(SESSION_KEY_DATA);
       if (data == null) {
@@ -470,27 +514,23 @@ public final class BatchUpload extends DispatchServlet {
 
       if (errors.isEmpty()) {
 
-        // PROCESS DATA.
-
         // NOTE: This might be updated to use Servlet 3.0 API asynchronous task mechanism in future.
         proc = new BatchProcessor(data.listInd, data.listEnc, errors, warnings, loc);
         proc.setMapMedia(data.mapMedia);
         proc.setListSam(data.listSam);
-        getServletContext().setAttribute("BATCH_SERVER_ROOT_URI", CommonConfiguration.getServerRootURI(req));
-        getServletContext().setAttribute("BATCH_SERVER_URL_LOCATION", CommonConfiguration.getURLLocation(req));
         proc.setServletContext(getServletContext());
         proc.setUser(req.getRemoteUser());
         proc.setDataDir(getDataDir());
         log.info(String.format("Assigning batch processor for user %s: %s", req.getRemoteUser(), proc));
         processMap.put(req.getRemoteUser(), proc);
 
-        // OUTPUT RESULT.
-
         session.setAttribute(SESSION_KEY_TASK, proc);
         session.setAttribute(SESSION_KEY_TASKFUTURE, taskExecutor.submit(proc));
         getServletConfig().getServletContext().getRequestDispatcher(JSP_PROGRESS).forward(req, res);
 
       } else {
+        // Should never happen, but flag just in case.
+        log.warn("Invalid BatchUpload condition has occurred");
         flushSessionInfo(req);
         getServletConfig().getServletContext().getRequestDispatcher(JSP_MAIN).forward(req, res);
       }

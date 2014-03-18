@@ -305,17 +305,17 @@ public class EncounterAddMantaPattern extends HttpServlet {
           myShepherd.commitDBTransaction();
           
           if (action.equals("imageadd")) {
-            String resultsURL = "//" + CommonConfiguration.getURLLocation(request) + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
+            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
             response.sendRedirect(resultsURL);
           }
           else if (action.equals("rescan")) {
-            String resultsURL = "//" + CommonConfiguration.getURLLocation(request) + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
+            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
             response.sendRedirect(resultsURL);
           }
           else {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Confirmed:</strong> I have successfully removed your mantamatcher data image file.");
-            out.println("<p><a href=\"//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+            out.println("<p><a href=\"" + request.getScheme() + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
             out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
             out.println(ServletUtilities.getFooter());
           }
@@ -328,7 +328,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           else {
             out.println("<strong>Step 2 Failed:</strong> I could not remove this patterning file. There may be a database error.");
           }
-          out.println("<p><a href=\"//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+          out.println("<p><a href=\"" + request.getScheme() + "//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
           out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
           out.println(ServletUtilities.getFooter());
         }

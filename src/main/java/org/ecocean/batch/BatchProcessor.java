@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -108,8 +107,6 @@ public final class BatchProcessor implements Runnable {
   private Status status = Status.WAITING;
   /** Current phase of the batch processor. */
   private Phase phase = Phase.NONE;
-  /** Flag indicating whether the batch processor has been halted. */
-  private boolean halted = false;
   /** Throwable instance produced by the batch processor (if any). */
   private Throwable thrown;
 
@@ -197,17 +194,14 @@ public final class BatchProcessor implements Runnable {
   }
 
   /**
-   * @return Whether processing has been halted.
-   */
-  public boolean isHalted() {
-    return halted;
-  }
-
-  /**
    * @return Current status of processing.
    */
   public Status getStatus() {
     return status;
+  }
+
+  public boolean isTerminated() {
+    return status == Status.FINISHED || status == Status.ERROR;
   }
 
   /**
@@ -594,10 +588,6 @@ public final class BatchProcessor implements Runnable {
       } finally {
         shepherd.closeDBTransaction();
       }
-
-      // Remove temporary attributes from ServletContext.
-      servletContext.removeAttribute("BATCH_SERVER_ROOT_URI");
-      servletContext.removeAttribute("BATCH_SERVER_URL_LOCATION");
 
       phase = Phase.DONE;
       cleanupTemporaryFiles();

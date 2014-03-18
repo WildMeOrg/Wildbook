@@ -19,16 +19,18 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@page contentType="text/html; charset=iso-8859-1" language="java"
-				 import="org.ecocean.CommonConfiguration"
-				 import="org.ecocean.Shepherd"
-				 import="org.ecocean.Keyword"
-				 import="org.ecocean.servlet.BatchUpload"
-				 import="java.io.File"
-				 import="java.io.IOException"
-				 import="java.text.MessageFormat"
-				 import="java.util.*"
-         import="org.slf4j.Logger"
-         import="org.slf4j.LoggerFactory"
+        import="org.ecocean.CommonConfiguration"
+        import="org.ecocean.Shepherd"
+        import="org.ecocean.Keyword"
+        import="org.ecocean.servlet.BatchUpload"
+        import="org.ecocean.servlet.ServletUtilities"
+        import="org.ecocean.batch.BatchProcessor"
+        import="java.io.File"
+        import="java.io.IOException"
+        import="java.text.MessageFormat"
+        import="java.util.*"
+        import="org.slf4j.Logger"
+        import="org.slf4j.LoggerFactory"
 %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%
@@ -59,6 +61,8 @@
 
   List<String> errors = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_ERRORS);
   boolean hasErrors = errors != null && !errors.isEmpty();
+  List<String> warnings = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_WARNINGS);
+  boolean hasWarnings = warnings != null && !warnings.isEmpty();
 
   // If landed directly on page without forwarding, reset ready for use.
   String uri = (String)request.getAttribute("javax.servlet.forward.request_uri");
@@ -69,8 +73,6 @@
   final String[] TYPES = {"Ind", "Enc", "Mea", "Med", "Sam"};
 %>
 <%!
-  private static Logger log = LoggerFactory.getLogger(org.ecocean.servlet.BatchUpload.class);
-
   /*
    * This method populates the option descriptions for the BatchUpload JSP page.
    * Each indexed item refers to the same indexed item in the properties file
@@ -143,14 +145,12 @@
         break;
       default:
     }
-//    log.trace(String.format("EnumList has %d items: %s", list.size(), list));
     StringBuilder sb = new StringBuilder();
     sb.append("<br />{");
     for (String s : list)
       sb.append("<span class=\"example\">&quot;").append(s).append("&quot;</span>, ");
     sb.setLength(sb.length() - 2);
     sb.append("}");
-//    log.trace(String.format("EnumList: %s", sb.toString()));
     return sb.toString();
   }
 %>
@@ -163,7 +163,7 @@
 	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
 	<link href="<%=CommonConfiguration.getCSSURLLocation(request) %>" rel="stylesheet" type="text/css"/>
 	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
-	<link href="../css/batchUpload.css" rel="stylesheet" type="text/css"/>
+	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
 </head>
 
 <body>
@@ -182,9 +182,21 @@
         <hr />
   			<h2><%=bundle.getProperty("gui.errors.title")%></h2>
         <ul id="errorList">
-        <c:forEach var="err" items="${batchErrors}">
-          <li>${err}</li>
-        </c:forEach>
+        <% for (String msg : errors) { %>
+          <li><%=ServletUtilities.preventCrossSiteScriptingAttacks(msg)%></li>
+        <% } %>
+        </ul>
+        <hr />
+      </div>
+      <% } %>
+      <% if (hasWarnings) { %>
+      <hr />
+      <div id="warnings">
+  			<h2><%=bundle.getProperty("gui.warnings.title")%></h2>
+        <ul id="warningList">
+        <% for (String msg : warnings) { %>
+          <li><%=ServletUtilities.preventCrossSiteScriptingAttacks(msg)%></li>
+        <% } %>
         </ul>
         <hr />
       </div>
@@ -228,7 +240,7 @@
 			<h2><%=bundle.getProperty("gui.step3.title")%></h2>
 			<p><%=bundle.getProperty("gui.step3.text")%></p>
 			<p class="notice"><%=bundle.getProperty("gui.step3.text2")%></p>
-      <form name="batchUpload" method="post" enctype="multipart/form-data" accept-charset="utf-8" action="../BatchUpload/uploadBatchData">
+      <form name="batchUpload" method="post" enctype="multipart/form-data" accept-charset="utf-8" action="<%=request.getContextPath()%>/BatchUpload/uploadBatchData">
 			<table id="batchTable">
         <% for (String type : TYPES) { %>
 				<tr>

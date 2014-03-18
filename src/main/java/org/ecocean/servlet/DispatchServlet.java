@@ -32,9 +32,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.ecocean.CommonConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 /**
  * Servlet base class which dispatches calls to delegate methods based on the
@@ -54,8 +51,6 @@ import org.slf4j.LoggerFactory;
  */
 abstract class DispatchServlet extends HttpServlet
 {
-  /** SLF4J logger instance for writing log entries. */
-  private static final Logger log = LoggerFactory.getLogger(DispatchServlet.class);
   /** Class references for reflection. */
   protected static final Class[] SERVLET_ARGS = {HttpServletRequest.class, HttpServletResponse.class};
   /** List of method names supporting GET. */
@@ -123,13 +118,10 @@ abstract class DispatchServlet extends HttpServlet
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       String mn = parseDelegateMethodName(req);
-      log.trace(String.format("Attempt to access GET method: " + mn));
       if (mn == null || !methodsGET.contains(mn)) {
         handleDelegateNotFound(req, res);
         return;
       }
-      // Added as request attribute for extra JSP support.
-      req.setAttribute("servletPath", req.getServletPath());
       dispatchToDelegate(this, getDelegateMethod(mn), req, res);
     } catch (DelegateNotFoundException cnfx) {
       handleDelegateNotFound(req, res);
@@ -143,13 +135,10 @@ abstract class DispatchServlet extends HttpServlet
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       String mn = parseDelegateMethodName(req);
-      log.trace(String.format("Attempt to access POST method: " + mn));
       if (mn == null || !methodsPOST.contains(mn)) {
         handleDelegateNotFound(req, res);
         return;
       }
-      // Added as request attribute for extra JSP support.
-      req.setAttribute("servletPath", req.getServletPath());
       dispatchToDelegate(this, getDelegateMethod(parseDelegateMethodName(req)), req, res);
     } catch (DelegateNotFoundException cnfx) {
       handleDelegateNotFound(req, res);
@@ -190,8 +179,10 @@ abstract class DispatchServlet extends HttpServlet
   protected Method getDelegateMethod(String methodName) throws DelegateNotFoundException {
     try {
       return getClass().getMethod(methodName, SERVLET_ARGS);
-    } catch (NoSuchMethodException nsmx) {
-      throw new DelegateNotFoundException("Couldn't locate method: " + methodName, nsmx);
+    } catch (NullPointerException ex) {
+      throw new DelegateNotFoundException("Couldn't locate method: " + methodName, ex);
+    } catch (NoSuchMethodException ex) {
+      throw new DelegateNotFoundException("Couldn't locate method: " + methodName, ex);
     }
   }
 
@@ -208,8 +199,9 @@ abstract class DispatchServlet extends HttpServlet
    * Gets the name of the delegate dispatch method from the servlet request, or null.
    */
   protected final String parseDelegateMethodName(HttpServletRequest req) {
-    final Pattern p = Pattern.compile("^[^/]*/([^/]+)");
-    Matcher m = p.matcher(req.getPathInfo());
+    if (req.getPathInfo() == null)
+      return null;
+    Matcher m = Pattern.compile("^[^/]*/([^/]+)").matcher(req.getPathInfo());
     return m.matches() ? m.group(1) : null;
   }
 
