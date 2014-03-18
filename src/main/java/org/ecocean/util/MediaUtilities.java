@@ -26,8 +26,13 @@ import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
+import java.awt.color.ColorSpace;
+import java.awt.color.ICC_ColorSpace;
+import java.awt.color.ICC_Profile;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
+import java.awt.image.ColorModel;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -49,6 +54,8 @@ import org.slf4j.LoggerFactory;
 public final class MediaUtilities {
   /** SLF4J logger instance for writing log entries. */
   private static Logger log = LoggerFactory.getLogger(MediaUtilities.class);
+  /** ColorSpace for sRGB images (used for conversions). */
+  private static final ICC_ColorSpace CS_sRGB = new ICC_ColorSpace(ICC_Profile.getInstance(ColorSpace.CS_sRGB));
   /** Regex pattern string suffix for matching image filenames (case-insensitive, capturing group). */
   public static final String REGEX_SUFFIX_FOR_IMAGES = "(?i:(jpe?g?|png|gif|tiff?|bmp))$";
   /** Regex pattern string suffix for matching image filenames (case-insensitive, capturing group). */
@@ -152,6 +159,15 @@ public final class MediaUtilities {
   }
 
   /**
+   * Loads the specified image from the specified file, converting it to
+   * the sRGB color space if necessary.
+   * @param f file to which to save image
+   */
+  public static BufferedImage loadImageAsSRGB(File f) throws IOException {
+    return convertToSRGB(loadImage(f));
+  }
+
+  /**
    * Saves the specified image to the specified file.
    * @param img image to save in JPEG format
    * @param f file to which to save image
@@ -205,8 +221,28 @@ public final class MediaUtilities {
   }
 
   /**
+   * Convenience method to convert a {@code BufferedImage} to the sRGB
+   * color space if not already compatible.
+   * @param image image to convert (if necessary)
+   * @return A {@code BufferedImage} instance in sRGB color space
+   */
+  public static BufferedImage convertToSRGB(BufferedImage image) {
+    if (image == null)
+      throw new NullPointerException("Invalid (null) image specified");
+    final ColorModel cm = image.getColorModel();
+    BufferedImage img = image;
+    // If not using sRGB colorspace, convert to sRGB before processing.
+    if (cm != null && !cm.getColorSpace().isCS_sRGB()) {
+      ColorConvertOp cco = new ColorConvertOp(CS_sRGB, null);
+      img = cco.filter(image, null);
+    }
+    return img;
+  }
+
+  /**
    * Convenience method that returns a scaled instance of the
    * provided {@code BufferedImage}.
+   * Any transparency/alpha of the original image is not preserved.
    *
    * @param img the original image to be scaled
    * @param targetWidth the desired width of the scaled instance, in pixels
@@ -221,9 +257,7 @@ public final class MediaUtilities {
   public static BufferedImage rescaleImage(BufferedImage img, int targetWidth, int targetHeight, Object hint) {
     if (img == null)
       throw new NullPointerException("Invalid (null) image specified");
-    int type = (img.getColorModel().getTransparency() == Transparency.OPAQUE)
-            ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-    BufferedImage tmp = new BufferedImage(targetWidth, targetHeight, type);
+    BufferedImage tmp = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
     Graphics2D g2 = tmp.createGraphics();
     if (hint != null)
       g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, hint);
@@ -235,14 +269,15 @@ public final class MediaUtilities {
   /**
    * Convenience method that returns a scaled instance of the
    * provided {@code BufferedImage} with a text overlay.
+   * Any transparency/alpha of the original image is not preserved.
    * This is a simple implementation which was created solely for the purpose
    * of reproducing thumbnail images with a copyright message overlay,
    * as done by the deprecated Sunwest Technologies Dynamic Images library.
    */
   public static BufferedImage rescaleImageWithTextOverlay(BufferedImage img, int tw, int th, String text) {
-    int type = (img.getColorModel().getTransparency() == Transparency.OPAQUE)
-            ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-    BufferedImage tmp = new BufferedImage(tw, th, type);
+    if (img == null)
+      throw new NullPointerException("Invalid (null) image specified");
+    BufferedImage tmp = new BufferedImage(tw, th, BufferedImage.TYPE_INT_RGB);
     Graphics2D g2 = tmp.createGraphics();
     int yPos = th / 3;
     // RenderingHints for determining image quality.

@@ -638,7 +638,7 @@ public final class BatchProcessor implements Runnable {
    * @throws IOException 
    */
   private static void createThumbnail(File src, File dst, int w, int h) throws ImageReadException, IOException {
-    BufferedImage img = MediaUtilities.loadImage(src);
+    BufferedImage img = MediaUtilities.loadImageAsSRGB(src);
     BufferedImage out = MediaUtilities.rescaleImage(img, w, h, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
     MediaUtilities.saveImageJPEG(out, dst, false, 0.6f, false);
   }
@@ -654,7 +654,7 @@ public final class BatchProcessor implements Runnable {
    * @throws IOException
    */
   private static void createThumbnailWithOverlay(File src, File dst, int w, int h, String text) throws ImageReadException, IOException {
-    BufferedImage img = MediaUtilities.loadImage(src);
+    BufferedImage img = MediaUtilities.loadImageAsSRGB(src);
     BufferedImage out = MediaUtilities.rescaleImageWithTextOverlay(img, w, h, text);
     MediaUtilities.saveImageJPEG(out, dst, false, 0.6f, false);
   }
