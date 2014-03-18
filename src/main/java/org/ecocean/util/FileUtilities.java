@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,6 +105,31 @@ public class FileUtilities {
         try { in.close(); }
         catch (IOException ex) { log.warn(ex.getMessage(), ex); }
       }
+    }
+  }
+
+  /**
+   * Downloads the byte contents of a URL to a specified file.
+   * @param url URL to download
+   * @param file File to which to write downloaded data
+   * @throws IOException
+   */
+  public static void downloadUrlToFile(URL url, File file) throws IOException {
+    BufferedInputStream is = null;
+    BufferedOutputStream os = null;
+    try {
+      is = new BufferedInputStream(url.openStream());
+      os = new BufferedOutputStream(new FileOutputStream(file));
+      byte[] b = new byte[4096];
+      int len = -1;
+      while ((len = is.read(b)) != -1)
+        os.write(b, 0, len);
+      os.flush();
+    } finally {
+      if (os != null)
+        os.close();
+      if (is != null)
+        is.close();
     }
   }
 }
