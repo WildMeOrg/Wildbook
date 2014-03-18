@@ -21,10 +21,7 @@ package org.ecocean.batch;
 
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -322,7 +319,7 @@ public final class BatchProcessor implements Runnable {
                 if (spv.getFile().exists()) {
                   log.info("Media file already exists: {}", spv.getFile().getAbsolutePath());
                 } else {
-                  downloadUrlToFile(url, spv.getFile());
+                  FileUtilities.downloadUrlToFile(url, spv.getFile());
                   log.debug("Downloaded media file: {}", url);
                 }
                 mapMedia.get(spv).setDownloaded(true);
@@ -628,31 +625,6 @@ public final class BatchProcessor implements Runnable {
     if (dataDirUser.listFiles().length == 0) {
       if (!dataDirUser.delete())
         log.warn(String.format("Failed to delete temporary folder: %s", dataDirUser.getAbsolutePath()));
-    }
-  }
-
-  /**
-   * Downloads the byte contents of a URL to a specified file.
-   * @param url URL to download
-   * @param file File to which to write downloaded data
-   * @throws IOException
-   */
-  private static void downloadUrlToFile(URL url, File file) throws IOException {
-    BufferedInputStream is = null;
-    BufferedOutputStream os = null;
-    try {
-      is = new BufferedInputStream(url.openStream());
-      os = new BufferedOutputStream(new FileOutputStream(file));
-      byte[] b = new byte[4096];
-      int len = -1;
-      while ((len = is.read(b)) != -1)
-        os.write(b, 0, len);
-      os.flush();
-    } finally {
-      if (os != null)
-        os.close();
-      if (is != null)
-        is.close();
     }
   }
 
