@@ -19,17 +19,15 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@page contentType="text/html; charset=iso-8859-1" language="java"
-				 import="org.ecocean.CommonConfiguration"
-				 import="org.ecocean.Shepherd"
-				 import="org.ecocean.batch.BatchData"
-				 import="org.ecocean.batch.BatchProcessor"
-				 import="org.ecocean.servlet.BatchUpload"
-				 import="java.io.File"
-         import="java.text.MessageFormat"
-         import="java.util.List"
-         import="java.util.Locale"
-         import="java.util.Properties"
-         import="java.util.ResourceBundle"
+        import="org.ecocean.CommonConfiguration"
+        import="org.ecocean.Shepherd"
+        import="org.ecocean.batch.BatchData"
+        import="org.ecocean.batch.BatchProcessor"
+        import="org.ecocean.servlet.BatchUpload"
+        import="org.ecocean.servlet.ServletUtilities"
+        import="java.io.File"
+        import="java.text.MessageFormat"
+        import="java.util.*"
 %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%
@@ -52,11 +50,11 @@
   List<String> warnings = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_WARNINGS);
   boolean hasWarnings = warnings != null && !warnings.isEmpty();
 
+  // Check that batch data has been assigned to session.
   BatchData data = (BatchData)session.getAttribute(BatchUpload.SESSION_KEY_DATA);
   if (data == null) {
-    session.removeAttribute("BatchTaskFuture");
-    session.removeAttribute("BatchTask");
-    response.sendRedirect("batchUpload.jsp");
+    getServletContext().getRequestDispatcher(request.getContextPath() + "/BatchUpload/start").forward(request, response);
+    return;
   }
 %>
 <html>
@@ -68,7 +66,7 @@
 	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
 	<link href="<%=CommonConfiguration.getCSSURLLocation(request) %>" rel="stylesheet" type="text/css"/>
 	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
-	<link href="../css/batchUpload.css" rel="stylesheet" type="text/css"/>
+	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
 </head>
 
 <body>
@@ -109,12 +107,12 @@
       </table>
 			<p><%=bundle.getProperty("gui.summary.text")%></p>
 
-			<form name="batchSummary" method="post" accept-charset="utf-8" action="../BatchUpload/confirmBatchDataUpload">
+			<form name="batchSummary" method="post" accept-charset="utf-8" action="<%=request.getContextPath()%>/BatchUpload/confirmBatchDataUpload">
 			<table id="batchTable">
 				<tr>
 					<td>
             <input type="submit" id="confirm" value="<%=bundle.getProperty("gui.summary.form.confirm")%>" />
-            <input type="button" id="cancel" value="<%=bundle.getProperty("gui.summary.form.cancel")%>" onclick="window.location.href='../appadmin/batchUpload.jsp';return true;" />
+            <input type="button" id="cancel" value="<%=bundle.getProperty("gui.summary.form.cancel")%>" onclick="window.location.href='<%=request.getContextPath()%>/BatchUpload/start';return true;" />
           </td>
 				</tr>
 			</table>
@@ -124,9 +122,9 @@
       <div id="warnings">
   			<h2><%=bundle.getProperty("gui.warnings.title")%></h2>
         <ul id="warningList">
-        <c:forEach var="msg" items="${batchWarnings}">
-          <li>${msg}</li>
-        </c:forEach>
+<%    for (String msg : warnings) { %>
+          <li><%=ServletUtilities.preventCrossSiteScriptingAttacks(msg)%></li>
+<%    } %>
         </ul>
       </div>
 <%  } %>

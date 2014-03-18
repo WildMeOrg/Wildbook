@@ -16,22 +16,18 @@
 	~ along with this program; if not, write to the Free Software
 	~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 --%>
-<%@page import="org.ecocean.servlet.ServletUtilities"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@page contentType="text/html; charset=iso-8859-1" language="java"
-				 import="org.ecocean.CommonConfiguration"
-				 import="org.ecocean.Shepherd"
-				 import="org.ecocean.batch.BatchProcessor"
-				 import="org.ecocean.servlet.BatchUpload"
-				 import="java.io.File"
-				 import="java.io.PrintWriter"
-				 import="java.text.MessageFormat"
-         import="java.util.Enumeration"
-         import="java.util.List"
-         import="java.util.Locale"
-         import="java.util.Properties"
-         import="java.util.ResourceBundle"
+        import="org.ecocean.CommonConfiguration"
+        import="org.ecocean.Shepherd"
+        import="org.ecocean.batch.BatchProcessor"
+        import="org.ecocean.servlet.BatchUpload"
+        import="org.ecocean.servlet.ServletUtilities"
+        import="java.io.File"
+        import="java.io.PrintWriter"
+        import="java.text.MessageFormat"
+        import="java.util.*"
 %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://java.sun.com/jstl/fmt" prefix="fmt" %>
@@ -51,21 +47,21 @@
 
   BatchProcessor proc = (BatchProcessor)session.getAttribute(BatchUpload.SESSION_KEY_TASK);
   if (proc == null) {
+    BatchUpload.log.trace("No BatchProcessor found");
     BatchUpload.flushSessionInfo(request);
-    response.sendRedirect(BatchUpload.JSP_MAIN);
+    getServletContext().getRequestDispatcher(request.getContextPath() + "/BatchUpload/start").forward(request, response);
+    return;
   }
+
+  List<String> errors = proc.getErrors();
+  List<String> warnings = proc.getWarnings();
+  boolean hasErrors = (errors != null) && !errors.isEmpty();
+  boolean hasWarnings = warnings != null && !warnings.isEmpty();
 
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 	response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
 	response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
 	response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
-
-
-  List<String> errors = proc.getErrors();
-  List<String> warnings = proc.getWarnings();
-  boolean isFinished = proc.getStatus() == BatchProcessor.Status.FINISHED;
-  boolean hasErrors = errors != null && !errors.isEmpty() || proc.getStatus() == BatchProcessor.Status.ERROR;
-  boolean hasWarnings = warnings != null && !warnings.isEmpty();
 %>
 <html>
 <head>
@@ -76,28 +72,28 @@
 	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
 	<link href="<%=CommonConfiguration.getCSSURLLocation(request) %>" rel="stylesheet" type="text/css"/>
 	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
-	<link href="../css/batchUpload.css" rel="stylesheet" type="text/css"/>
-	<link href="../css/gui-meter.css" rel="stylesheet" type="text/css"/>
+	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
+	<link href="<%=request.getContextPath()%>/css/gui-meter.css" rel="stylesheet" type="text/css"/>
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-<%  if (!isFinished && !hasErrors) { %>
+<%  if (!proc.isTerminated() && !hasErrors) { %>
   <script language="javascript" type="text/javascript">
     var INTERVAL = 1000 * <%=CommonConfiguration.getBatchUploadProgressRefresh()%>;
     var PHASE_NONE = "<%=bundle.getProperty("gui.progress.status.phase.NONE")%>";
     var PHASE_MEDIA_DOWNLOAD = "<%=bundle.getProperty("gui.progress.status.phase.MEDIA_DOWNLOAD")%>";
     var PHASE_PERSISTENCE = "<%=bundle.getProperty("gui.progress.status.phase.PERSISTENCE")%>";
     var PHASE_THUMBNAILS = "<%=bundle.getProperty("gui.progress.status.phase.THUMBNAILS")%>";
-    var PHASE_PLUGIN = "<%=proc.getPluginPhaseMessage()%>";
+    var PHASE_PLUGIN = "<%=(proc == null) ? "" : proc.getPluginPhaseMessage()%>";
     var PHASE_DONE = "<%=bundle.getProperty("gui.progress.status.phase.DONE")%>";
 
     function refreshProgress() {
       $.ajax({
-        url:'../BatchUpload/getBatchProgress',
+        url:'<%=request.getContextPath()%>/BatchUpload/getBatchProgress',
         cache:false,
         dataType:'json',
         success:function(data) {
           if (data.error == undefined) {
             if (data.status == 'FINISHED' || data.status == 'ERROR') {
-              window.location.href = window.location.href;
+              window.location.replace('<%=request.getContextPath() + BatchUpload.JSP_PROGRESS%>');
               return;
             }
             if (!$('#ajaxProblem').hasClass('hidden'))
@@ -110,7 +106,7 @@
             $('#progress, #progressMeter, #phase').css('visibility', 'visible');
             setTimeout(refreshProgress, INTERVAL);
           } else {
-            window.location.href = window.location.href;
+            window.location.replace('<%=request.getContextPath() + BatchUpload.JSP_PROGRESS%>');
             return;
           }
         },

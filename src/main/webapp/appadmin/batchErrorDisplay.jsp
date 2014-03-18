@@ -23,11 +23,9 @@
 				 import="org.ecocean.Shepherd"
 				 import="org.ecocean.batch.BatchProcessor"
          import="org.ecocean.servlet.BatchUpload"
+         import="org.ecocean.servlet.ServletUtilities"
          import="java.io.PrintWriter"
-         import="java.util.List"
-         import="java.util.Locale"
-         import="java.util.Properties"
-         import="java.util.ResourceBundle"
+         import="java.util.*"
 %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%
@@ -57,7 +55,9 @@
   // --------------------------------------------------------------------------
 
   BatchProcessor proc = (BatchProcessor)session.getAttribute(BatchUpload.SESSION_KEY_TASK);
-  Throwable throwable = proc == null ? null : proc.getThrown();
+  Throwable throwable = (proc == null) ? null : proc.getThrown();
+  if (throwable == null)
+    throwable = (Throwable)request.getAttribute("thrown");
   List<String> errors = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_ERRORS);
   List<String> warnings = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_WARNINGS);
   boolean hasErrors = errors != null && !errors.isEmpty();
@@ -89,11 +89,11 @@
 
 <%  if (hasErrors) { %>
 			<h2><%=bundle.getProperty("gui.errors.title")%></h2>
-      <ul id="errorList">
-      <c:forEach var="err" items="${batchErrors}">
-        <li>${err}</li>
-      </c:forEach>
-      </ul>
+        <ul id="errorList">
+<%    for (String msg : errors) { %>
+          <li><%=ServletUtilities.preventCrossSiteScriptingAttacks(msg)%></li>
+<%    } %>
+        </ul>
 <%  } %>
 
 <%  if (throwable != null) { %>

@@ -67,11 +67,8 @@ public final class MantaMatcher extends DispatchServlet {
   private void handleException(HttpServletRequest req, HttpServletResponse res, Throwable t) throws ServletException, IOException {
     log.warn(t.getMessage(), t);
     req.getSession().setAttribute("thrown", t);
-    if (t instanceof ServletException)
-      throw (ServletException)t;
-    else
-      throw new ServletException(t);
-//    res.sendRedirect("//" + CommonConfiguration.getURLLocation(req) + JSP_ERROR);
+//    res.sendRedirect(req.getContextPath() + JSP_ERROR);
+    getServletContext().getRequestDispatcher(JSP_ERROR).forward(req, res);
   }
 
   public void displayResults(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
