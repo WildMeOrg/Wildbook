@@ -36,7 +36,7 @@ public class DataUtilities {
    * TODO: Further improve UID generation algorithm (UUID class?)
    * @return unique ID string
    */
-  private static String createUniqueId() {
+  public static String createUniqueId() {
     StringBuilder sb = new StringBuilder();
     Calendar cal = Calendar.getInstance();
     sb.append(String.format("%02d", cal.get(Calendar.YEAR)- 2000));

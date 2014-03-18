@@ -42,6 +42,7 @@ import org.ecocean.batch.BatchParser;
 import org.ecocean.batch.BatchMedia;
 import org.ecocean.batch.BatchProcessor;
 import org.ecocean.genetics.TissueSample;
+import org.ecocean.util.DataUtilities;
 import org.ecocean.util.MediaUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -296,8 +297,7 @@ public final class BatchUpload extends DispatchServlet {
 
       // Generate unique identifier for this upload.
       // (Millisecond precision should be good enough for non-automated code.)
-      String uniq = null;
-      synchronized(DF) { uniq = DF.format(new Date()); }
+      String uniq = DataUtilities.createUniqueId();
       // Process submitted files.
       MultipartParser mp = new MultipartParser(req, CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576);
       Part part = null;
