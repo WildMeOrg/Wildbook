@@ -25,13 +25,17 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServlet;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 import java.util.Iterator;
+
 import org.ecocean.*;
+
 import javax.jdo.Query;
 import javax.jdo.Extent;
+
 import java.lang.NumberFormatException;
 import java.util.StringTokenizer;
 
@@ -60,9 +64,10 @@ public class CalendarXMLServer2 extends HttpServlet {
       	out.println("<data>");
 		
       	
-      	
+      	String context="context0";
+        context=ServletUtilities.getContext(request);	
 		//establish a shepherd to manage DB interactions
-		Shepherd myShepherd=new Shepherd();
+		Shepherd myShepherd=new Shepherd(context);
 		
 		//change
 		Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);

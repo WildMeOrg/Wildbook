@@ -6,8 +6,6 @@ import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.*;
 import org.apache.shiro.subject.*;
-
-
 import org.ecocean.*;
 
 import java.util.TreeSet;
@@ -36,8 +34,9 @@ public class ShepherdRealm extends AuthorizingRealm {
         }
 
         AuthenticationInfo info = null;
+        String context="context0";
        
-            Shepherd myShepherd=new Shepherd();
+            Shepherd myShepherd=new Shepherd(context);
             myShepherd.beginDBTransaction();
         
             String password = "";
@@ -67,7 +66,7 @@ public class ShepherdRealm extends AuthorizingRealm {
   private String getPasswordForUser(String username) {
 
     String password = null;
-    Shepherd myShepherd=new Shepherd();
+    Shepherd myShepherd=new Shepherd("context0");
     myShepherd.beginDBTransaction();
     if(myShepherd.getUser(username)!=null){
       User user=myShepherd.getUser(username);
@@ -82,7 +81,7 @@ public class ShepherdRealm extends AuthorizingRealm {
     protected Set getRoleNamesForUser(String username){
         
         Set roleNames = new TreeSet();
-        Shepherd myShepherd=new Shepherd();
+        Shepherd myShepherd=new Shepherd("context0");
         myShepherd.beginDBTransaction();
         if(myShepherd.getUser(username)!=null){
           

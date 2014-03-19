@@ -22,14 +22,15 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.grid.*;
 import org.ecocean.genetics.*;
+import org.ecocean.social.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
 
+import java.io.*;
 import java.util.Iterator;
 
 public class DeleteAllDataPermanently extends HttpServlet {
@@ -46,7 +47,9 @@ public class DeleteAllDataPermanently extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -94,6 +97,14 @@ public class DeleteAllDataPermanently extends HttpServlet {
         myShepherd.getPM().newQuery(GeneticAnalysis.class).deletePersistentAll();
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
+        
+        myShepherd.getPM().newQuery(SocialUnit.class).deletePersistentAll();
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+        
+        myShepherd.getPM().newQuery(Relationship.class).deletePersistentAll();
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
 
       } 
       catch (Exception le) {
@@ -110,7 +121,7 @@ public class DeleteAllDataPermanently extends HttpServlet {
         out.println("<strong>Success!</strong> I have successfully removed all data.");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       } 
       else {
 
@@ -118,7 +129,7 @@ public class DeleteAllDataPermanently extends HttpServlet {
         out.println("<strong>Failure!</strong> I failed to delete all data.");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
 
