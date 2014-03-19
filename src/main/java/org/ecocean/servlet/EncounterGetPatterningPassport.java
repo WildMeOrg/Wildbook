@@ -45,15 +45,17 @@ public class EncounterGetPatterningPassport extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     String responseMsg = "";
+
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     
-    //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir = new File(shepherdDataDir.getAbsolutePath() + "/encounters");
     
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
 
     responseMsg += "GetPatterningPassport<p/>";
@@ -80,7 +82,7 @@ public class EncounterGetPatterningPassport extends HttpServlet {
     // response
     out.println(ServletUtilities.getHeader(request));
     out.println(responseMsg);
-    out.println(ServletUtilities.getFooter());
+    out.println(ServletUtilities.getFooter(context));
     out.close();
 
     //return;

@@ -28,6 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 
 public class DeleteAdoption extends HttpServlet {
@@ -44,7 +45,9 @@ public class DeleteAdoption extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -55,7 +58,7 @@ public class DeleteAdoption extends HttpServlet {
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
     
@@ -94,7 +97,7 @@ public class DeleteAdoption extends HttpServlet {
         out.println("<strong>Success!</strong> I have successfully removed adoption " + number + ". However, a saved copy an still be restored.");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       } 
       else {
 
@@ -102,7 +105,7 @@ public class DeleteAdoption extends HttpServlet {
         out.println("<strong>Failure!</strong> I failed to delete this adoption. Check the logs for more details.");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
 
@@ -111,7 +114,7 @@ public class DeleteAdoption extends HttpServlet {
       myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to remove your image file. I cannot find the encounter that you intended it for in the database.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();
