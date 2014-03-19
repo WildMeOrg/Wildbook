@@ -21,8 +21,10 @@ public class BatchMedia {
   private String[] keywords;
   /** Flag indicating whether item has been downloaded. */
   private boolean downloaded;
-  /** Flag indicating whether item has been assigned to an encounter. */
-  private boolean assigned;
+  /** Flag indicating whether item has been relocated to an encounter folder. */
+  private boolean relocated;
+  /** Flag indicating whether item is oversize. */
+  private boolean oversize;
   /** Flag indicating whether item should be persisted to database. */
   private boolean persist = true;
 
@@ -84,12 +86,20 @@ public class BatchMedia {
     this.downloaded = downloaded;
   }
 
-  public boolean isAssigned() {
-    return assigned;
+  public boolean isOversize() {
+    return oversize;
   }
 
-  public void setAssigned(boolean assigned) {
-    this.assigned = assigned;
+  public void setOversize(boolean oversize) {
+    this.oversize = oversize;
+  }
+
+  public boolean isRelocated() {
+    return relocated;
+  }
+
+  public void setRelocated(boolean relocated) {
+    this.relocated = relocated;
   }
 
   public boolean isPersist() {

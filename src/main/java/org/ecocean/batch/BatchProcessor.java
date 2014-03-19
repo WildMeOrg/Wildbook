@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -301,10 +302,13 @@ public final class BatchProcessor implements Runnable {
       phase = Phase.MEDIA_DOWNLOAD;
       if (dataDirUser != null && !dataDirUser.exists())
         dataDirUser.mkdir();
+      final int MAX_SIZE = CommonConfiguration.getMaxMediaSizeInMegabytes();
+      List<SinglePhotoVideo> removeAsOversized = new ArrayList<SinglePhotoVideo>();
       for (Encounter enc : listEnc) {
         if (enc.getSinglePhotoVideo() != null) {
           for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
-            URL url = new URL(mapMedia.get(spv).getMediaURL());
+            BatchMedia bm = mapMedia.get(spv);
+            URL url = new URL(bm.getMediaURL());
             try {
               if (MediaUtilities.isAcceptableMediaFile(spv.getFilename())) {
                 // NOTE: If file already exists the download is skipped and the
@@ -315,6 +319,15 @@ public final class BatchProcessor implements Runnable {
                 } else {
                   FileUtilities.downloadUrlToFile(url, spv.getFile());
                   log.debug("Downloaded media file: {}", url);
+                  // Check downloaded file size.
+                  long size = spv.getFile().length() / 1000000;
+                  if (size > MAX_SIZE) {
+                    bm.setOversize(true);
+                    removeAsOversized.add(spv);
+                    String msg = bundle.getString("batchUpload.processError.mediaSize");
+                    msg = MessageFormat.format(msg, mapMedia.get(spv).getMediaURL(), MAX_SIZE);
+                    warnings.add(msg);
+                  }
                 }
                 mapMedia.get(spv).setDownloaded(true);
               } else {
@@ -331,6 +344,9 @@ public final class BatchProcessor implements Runnable {
               counter++;
             }
           }
+          // Remove invalid/oversized media files from encounter.
+          for (SinglePhotoVideo spv : removeAsOversized)
+            enc.removeSinglePhotoVideo(spv);
         }
       }
       if (!errors.isEmpty()) {
@@ -417,7 +433,7 @@ public final class BatchProcessor implements Runnable {
           if (media != null && !media.isEmpty()) {
             for (SinglePhotoVideo spv : media.toArray(new SinglePhotoVideo[0])) {
               BatchMedia bp = mapMedia.get(spv);
-              if (!bp.isAssigned()) {
+              if (!bp.isRelocated()) {
                 String msg = bundle.getString("batchUpload.processError.mediaRename");
                 msg = MessageFormat.format(msg, bp.getMediaURL());
                 errors.add(msg);
@@ -603,7 +619,7 @@ public final class BatchProcessor implements Runnable {
     // Remove unassigned photos.
     for (Map.Entry<SinglePhotoVideo, BatchMedia> me : mapMedia.entrySet()) {
       BatchMedia bp = me.getValue();
-      if (bp.isDownloaded() && !bp.isAssigned()) {
+      if (bp.isDownloaded() && !bp.isRelocated()) {
         if (me.getKey().getFile().delete())
           log.info(String.format("Deleted unused file: %s", me.getKey().getFile().getAbsoluteFile()));
         else
@@ -658,7 +674,7 @@ public final class BatchProcessor implements Runnable {
   private void relocateMedia(Encounter enc) throws IOException {
     for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
       BatchMedia bp = mapMedia.get(spv);
-      if (bp.isDownloaded()) {
+      if (bp.isDownloaded() && !bp.isOversize()) {
         // Images initially at <root>/user/X.jpg and need to be at <root>/encounters/<encounter>/X.jpg
         File srcDir = spv.getFile().getParentFile().getParentFile();
         File encDir = new File(new File(srcDir, "encounters"), enc.getCatalogNumber());
@@ -673,7 +689,7 @@ public final class BatchProcessor implements Runnable {
         } else if (!src.renameTo(dst)) {
           throw new IOException("Unable to rename image for encounter " + spv.getFullFileSystemPath());
         } else {
-          bp.setAssigned(true);
+          bp.setRelocated(true);
         }
         spv.setFullFileSystemPath(dst.getAbsolutePath());
         spv.setFilename(dst.getName());
