@@ -3,10 +3,13 @@ package org.ecocean.servlet.export;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
+
 import java.lang.StringBuffer;
 
 
@@ -30,9 +33,10 @@ public class EncounterSearchExportEmailAddresses extends HttpServlet{
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
     
     //set the response
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     
-    
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
     
 
     
@@ -44,7 +48,7 @@ public class EncounterSearchExportEmailAddresses extends HttpServlet{
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -98,7 +102,7 @@ public class EncounterSearchExportEmailAddresses extends HttpServlet{
       out.println(ServletUtilities.getHeader(request));  
       out.println("<html><body><p><strong>Error encountered</strong></p>");
         out.println("<p>Please let the webmaster know you encountered an error at: "+this.getServletName()+" servlet</p></body></html>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         out.close();
     }
     myShepherd.rollbackDBTransaction();

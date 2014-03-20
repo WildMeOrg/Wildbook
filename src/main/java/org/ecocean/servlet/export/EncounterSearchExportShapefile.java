@@ -2,11 +2,14 @@ package org.ecocean.servlet.export;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
+
 
 
 import java.util.zip.ZipEntry;
@@ -17,6 +20,7 @@ import java.io.FileOutputStream;
 import java.util.zip.ZipOutputStream;
 //import java.io.FileWriter;
 import java.io.Serializable;
+
 import org.geotools.data.*;
 import org.geotools.data.shapefile.*;
 import org.geotools.data.simple.*;
@@ -25,6 +29,7 @@ import org.geotools.feature.simple.*;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.simple.*;
+
 import com.vividsolutions.jts.geom.*;
 //import java.sql.Date;
 //import java.net.URI;
@@ -49,16 +54,17 @@ public class EncounterSearchExportShapefile extends HttpServlet{
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
     
     //set the response
-    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //if(!encountersDir.exists()){encountersDir.mkdir();}
     
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
     Vector rEncounters = new Vector();
     
     //set up the files
@@ -102,7 +108,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
           if ((enc.getDecimalLongitude()!=null) && (enc.getDecimalLatitude() != null)) {
             //let's also populate the Shapefile
             Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble(), enc.getDecimalLatitudeAsDouble()));
-            SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(createFeatureType());
+            SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(createFeatureType(context));
             featureBuilder.add(point);
             featureBuilder.add((new java.sql.Date(enc.getDateInMilliseconds())));
             featureBuilder.add(enc.getCatalogNumber());
@@ -147,7 +153,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
         params.put("url", shapeFile.toURI().toURL());
         params.put("create spatial index", Boolean.TRUE);
         ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
-        newDataStore.createSchema(createFeatureType());
+        newDataStore.createSchema(createFeatureType(context));
         /*
          * You can comment out this line if you are using the createFeatureType
          * method (at end of class file) rather than DataUtilities.createType
@@ -263,7 +269,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
         out.println(ServletUtilities.getHeader(request));
         out.println("<html><body><p><strong>Error encountered</strong> with file writing. Check the relevant log.</p>");
         out.println("<p>Please let the webmaster know you encountered an error at: "+this.getServletName()+" servlet</p></body></html>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
       
 
@@ -286,10 +292,10 @@ public class EncounterSearchExportShapefile extends HttpServlet{
    * DataUtilities.createFeatureType) because we can set a Coordinate Reference System for the
    * FeatureType and a a maximum field length for the 'name' field dddd
    */
-  private static SimpleFeatureType createFeatureType() {
+  private static SimpleFeatureType createFeatureType(String context) {
 
       SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-      builder.setName(CommonConfiguration.getHTMLTitle());
+      builder.setName(CommonConfiguration.getHTMLTitle(context));
       builder.setCRS(DefaultGeographicCRS.WGS84); // <- Coordinate reference system
 
       // add attributes in order

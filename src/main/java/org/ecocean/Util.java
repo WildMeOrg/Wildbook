@@ -210,12 +210,12 @@ public class Util {
     
   }
   
-  public synchronized static ArrayList<Point2D> getCachedGPSCoordinates(boolean refresh) {
+  public synchronized static ArrayList<Point2D> getCachedGPSCoordinates(boolean refresh,String context) {
     try {
       if ((coords == null)||(refresh)) {
 
         //execute the JDOQL
-        Shepherd myShepherd=new Shepherd();
+        Shepherd myShepherd=new Shepherd(context);
         Query query=myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null");
         Collection<Encounter> c = (Collection<Encounter>) (query.execute());
         ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
