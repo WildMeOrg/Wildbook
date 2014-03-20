@@ -20,13 +20,15 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, java.util.Properties, java.util.Vector,java.util.ArrayList" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Vector,java.util.ArrayList" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
 <html>
 <head>
   <%
+  String context="context0";
+  context=ServletUtilities.getContext(request);
 
     //let's load out properties
     Properties props = new Properties();
@@ -40,7 +42,7 @@
 
 
 
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
 
 
 
@@ -56,18 +58,18 @@
 
 
   %>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
 </head>
 <style type="text/css">
@@ -190,7 +192,7 @@
        							<%
    								if(photos.size()>0){ 
    									SinglePhotoVideo myPhoto=photos.get(0);
-   									String imgName = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/" + myPhoto.getCorrespondingEncounterNumber() + "/thumb.jpg";
+   									String imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + myPhoto.getCorrespondingEncounterNumber() + "/thumb.jpg";
    			                       
    								%>                         
                             		<a href="individuals.jsp?number=<%=indie.getName()%>"><img src="<%=imgName%>" alt="<%=indie.getName()%>" border="0"/></a>
@@ -218,7 +220,7 @@
       </font>
       <%
       }
-      if(CommonConfiguration.showProperty("showTaxonomy")){
+      if(CommonConfiguration.showProperty("showTaxonomy",context)){
       	if(indie.getGenusSpecies()!=null){
       %>
       	<br /><em><font size="-1"><%=indie.getGenusSpecies()%></font></em>

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="org.ecocean.CommonConfiguration,org.ecocean.servlet.ServletUtilities, java.util.Properties" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -25,7 +25,8 @@
   //setup our Properties object to hold all properties
   Properties props = new Properties();
   String langCode = "en";
-
+  String context="context0";
+  context=ServletUtilities.getContext(request);
 
 %>
 <div id="footer">
@@ -36,7 +37,7 @@
     href="http://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPL v3 license</a> and is
     intended to support mark-recapture field studies. Open source and commercially licensed products
     used in this framework are listed <a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/thirdparty.jsp">here</a>. This is version <%=CommonConfiguration.getVersion()%>.</p>
+      href="http://<%=CommonConfiguration.getURLLocation(request)%>/thirdparty.jsp">here</a>. This is version <%=CommonConfiguration.getVersion(context)%>.</p>
 
   <p>
   	<a href="http://www.wildme.org/shepherd" target="_blank">
