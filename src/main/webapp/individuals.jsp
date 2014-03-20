@@ -23,7 +23,8 @@
 		 org.joda.time.DateTime,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
 
 <%
-
+String context="context0";
+context=ServletUtilities.getContext(request);
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -33,7 +34,7 @@
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
   //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -89,7 +90,7 @@
   String allIndividuals = props.getProperty("allIndividuals");
 
   String name = request.getParameter("number").trim();
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
 
 
 
@@ -98,27 +99,27 @@
 <html>
 <head prefix="og:http://ogp.me/ns#">
 
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
         
 
 <!-- social meta start -->
-<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle() %> - <%=props.getProperty("markedIndividualTypeCaps") %> <%=request.getParameter("number") %>" />
+<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=props.getProperty("markedIndividualTypeCaps") %> <%=request.getParameter("number") %>" />
 
 <link rel="canonical" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" />
 
 <meta itemprop="name" content="<%=props.getProperty("markedIndividualTypeCaps")%> <%=request.getParameter("number")%>" />
-<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
 <%
 if (request.getParameter("number")!=null) {
 	myShepherd.beginDBTransaction();
@@ -133,8 +134,8 @@ if (request.getParameter("number")!=null) {
 					for(int b=0;b<numImgs;b++){
 						SinglePhotoVideo metaSPV=metaEnc.getImages().get(b);
 						%>
-						<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=metaEnc.getCatalogNumber()+"/"+metaSPV.getFilename()%>" />
-						<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(metaEnc.getCatalogNumber()+"/"+metaSPV.getFilename())%>" / >
+						<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=metaEnc.getCatalogNumber()+"/"+metaSPV.getFilename()%>" />
+						<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=(metaEnc.getCatalogNumber()+"/"+metaSPV.getFilename())%>" / >
 <%
 			}
 		}
@@ -144,8 +145,8 @@ if (request.getParameter("number")!=null) {
 }
 %>
 
-<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle() %> - <%=props.getProperty("markedIndividualTypeCaps") %> <%=request.getParameter("number") %>" />
-<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=props.getProperty("markedIndividualTypeCaps") %> <%=request.getParameter("number") %>" />
+<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
 
 <meta property="og:url" content="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" />
 
@@ -319,8 +320,8 @@ onunload="GUnload()" <%}%>>
 <div id="main">
 
 <%
-  if (CommonConfiguration.allowAdoptions()) {
-	  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name);
+  if (CommonConfiguration.allowAdoptions(context)) {
+	  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
 	  int numAdoptions = adoptions.size();
 	  if(numAdoptions>0){
 %>
@@ -368,7 +369,7 @@ onunload="GUnload()" <%}%>>
 <!-- Facebook LIKE button -->
 		<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						<%
-if(CommonConfiguration.isIntegratedWithWildMe()){
+if(CommonConfiguration.isIntegratedWithWildMe(context)){
 %>
 <td>
 <a href="http://fb.wildme.org/wildme/public/profile/<%=sharky.getIndividualID()%>" target="_blank"><img src="images/wild-me-link.png" /></a>
@@ -387,7 +388,7 @@ if(sharky.getAlternateID()!=null){
 
 %>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
-  <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 
   
 </p>
@@ -424,7 +425,7 @@ $("a#alternateID").click(function() {
 
 </p>
 <%
-    if(CommonConfiguration.showProperty("showTaxonomy")){
+    if(CommonConfiguration.showProperty("showTaxonomy",context)){
     
     String genusSpeciesFound=props.getProperty("notAvailable");
     if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
@@ -440,7 +441,7 @@ $("a#alternateID").click(function() {
 
 <p>
   <%
-    if (CommonConfiguration.allowNicknames()) {
+    if (CommonConfiguration.allowNicknames(context)) {
 
       String myNickname = "";
       if (sharky.getNickName() != null) {
@@ -455,7 +456,7 @@ $("a#alternateID").click(function() {
   <table border="0"><tr><td>
   <%=nickname %>: <%=myNickname%></td>
   <td>
-  <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
   </td>
   </tr>
   <tr><td>
@@ -501,10 +502,10 @@ $("a#nickname").click(function() {
 
 
 </p>
-<p><%=sex %>: <%=sharky.getSex()%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
+<p><%=sex %>: <%=sharky.getSex()%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
   <%
     //edit sex
-    if (CommonConfiguration.isCatalogEditable() && isOwner) {%>
+    if (CommonConfiguration.isCatalogEditable(context) && isOwner) {%>
   
     <!-- Now prep the popup dialog -->
 <div id="dialogSex" title="<%=setsex %>" style="display:none">
@@ -565,7 +566,7 @@ String displayTimeOfBirth=timeOfBirth;
 
 %>
 <p><%=props.getProperty("birthdate")  %>:
-  <%=displayTimeOfBirth%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%=displayTimeOfBirth%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
@@ -631,7 +632,7 @@ String displayTimeOfDeath=timeOfDeath;
 
 %>
 <p><%=props.getProperty("deathdate")  %>:
-  <%=displayTimeOfDeath%> <%if (isOwner && CommonConfiguration.isCatalogEditable()) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+  <%=displayTimeOfDeath%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
@@ -690,7 +691,7 @@ $("a#deathdate").click(function() {
 <p class="para"><img align="absmiddle" src="images/lightning_dynamic_props.gif"> <strong><%=nm%>
 </strong><br/> <%=vl%>
   <%
-    if (isOwner && CommonConfiguration.isCatalogEditable()) {
+    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
   %>
   <font size="-1"><a
     href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
@@ -727,7 +728,7 @@ $("a#deathdate").click(function() {
 
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %></strong></td>
     <%
-      if (isOwner && CommonConfiguration.useSpotPatternRecognition()) {
+      if (isOwner && CommonConfiguration.useSpotPatternRecognition(context)) {
     %>
 
     	<td align="left" valign="top" bgcolor="#99CCFF">
@@ -750,7 +751,7 @@ $("a#deathdate").click(function() {
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
         
-          imgName = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
+          imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
         
   %>
   <tr>
@@ -821,7 +822,7 @@ $("a#deathdate").click(function() {
     </td>
 
     <%
-      if (CommonConfiguration.useSpotPatternRecognition()) {
+      if (CommonConfiguration.useSpotPatternRecognition(context)) {
     %>
     <%if (((enc.getSpots().size() == 0) && (enc.getRightSpots().size() == 0)) && (isOwner)) {%>
     <td class="lineitem">&nbsp;</td>
@@ -927,8 +928,8 @@ $("a#deathdate").click(function() {
 			
 			int  numColumns=3;
 			int numThumbs=0;
-			  if (CommonConfiguration.allowAdoptions()) {
-				  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name);
+			  if (CommonConfiguration.allowAdoptions(context)) {
+				  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
 				  int numAdoptions = adoptions.size();
 				  if(numAdoptions>0){
 					  numColumns=2;
@@ -966,14 +967,14 @@ $("a#deathdate").click(function() {
 									String thumbLink="";
 									boolean video=true;
 									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
+										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
 										video=false;
 									}
 									else{
 										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
 										
 									}
-									String link="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
+									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
 						
 							%>
 
@@ -1126,7 +1127,7 @@ $("a#deathdate").click(function() {
                     <br/>
 
                     <%
-                      if (CommonConfiguration.showEXIFData()) {
+                      if (CommonConfiguration.showEXIFData(context)) {
                    
             	if(!thumbLink.endsWith("video.jpg")){
            		 %>							
@@ -1323,7 +1324,7 @@ $("a#deathdate").click(function() {
 
 <br />
 <%
-if(CommonConfiguration.showUsersToPublic()){
+if(CommonConfiguration.showUsersToPublic(context)){
 %>
 <p>
   <strong><%=props.getProperty("collaboratingResearchers") %></strong> (click each to learn more)
@@ -1354,7 +1355,7 @@ if(CommonConfiguration.showUsersToPublic()){
                                 	String profilePhotoURL="images/empty_profile.jpg";
                     		    
                          		if(thisUser.getUserImage()!=null){
-                         			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName()+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                         			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
 
                          		}
                          		%>
@@ -1566,7 +1567,7 @@ else {
 <a name="socialRelationships"></a>
 <p><strong><%=props.getProperty("social")%></strong></p>
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
+if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <p class="para">
 	<a id="addRelationship" class="launchPopup">
@@ -1583,7 +1584,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable()) {
 
 <!-- start relationship popup code -->
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable()) {
+if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <div id="dialogRelationship" title="<%=props.getProperty("setRelationship")%>" style="display:none; z-index: 99999 !important">  
 
@@ -1661,7 +1662,7 @@ String communityName="";
         <td>
         	<select name="type">
 			<%
-				List<String> types=CommonConfiguration.getIndexedValues("relationshipType");
+				List<String> types=CommonConfiguration.getIndexedValues("relationshipType",context);
 				int numTypes=types.size();
 				for(int g=0;g<numTypes;g++){
 					
@@ -1714,7 +1715,7 @@ String communityName="";
          	
          <select name="markedIndividualRole1">
 			<%
-				List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole");
+				List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole",context);
 				int numRoles=roles.size();
 				for(int g=0;g<numRoles;g++){
 					
@@ -1894,7 +1895,7 @@ dlgRel.dialog("open");
 <table width="100%" class="tissueSample">
 <th><strong><%=props.getProperty("roles")%></strong></th><th><strong><%=props.get("relationshipWith")%></strong></th><th><strong><%=props.getProperty("type")%></strong></th><th><strong><%=props.getProperty("community")%></strong></th>
 <%
-	if (isOwner && CommonConfiguration.isCatalogEditable()) {
+	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <th><%=props.getProperty("numSightingsTogether")%></th>
 <th><strong><%=props.getProperty("edit")%></strong></th><th><strong><%=props.getProperty("remove")%></strong></th>
@@ -1958,7 +1959,7 @@ for(int f=0;f<numRels;f++){
 	<td><a href="socialUnit.jsp?name=<%=community%>"><%=community %></a></td>
 	
 	<%
-	if (isOwner && CommonConfiguration.isCatalogEditable()) {
+	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		
 		String persistenceID=myShepherd.getPM().getObjectId(myRel).toString();
 		
@@ -2072,7 +2073,7 @@ else {
   %>
 
   <tr>
-    <td><a href="/<%=CommonConfiguration.getDataDirectoryName() %>/individuals/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%>
+    <td><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/individuals/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%>
     </a></td>
     <td>&nbsp;&nbsp;&nbsp;[<a
       href="IndividualRemoveDataFile?individual=<%=name%>&filename=<%=file_name%>"><%=delete %>
@@ -2086,7 +2087,7 @@ else {
 </p>
 <%
   }
-  if (CommonConfiguration.isCatalogEditable()) {
+  if (CommonConfiguration.isCatalogEditable(context)) {
 %>
 <form action="IndividualAddFile" method="post"
       enctype="multipart/form-data" name="addDataFiles"><input
@@ -2124,7 +2125,7 @@ else {
 </div><!-- end maintext -->
 </div><!-- end main-wide -->
 <%
-  if (CommonConfiguration.allowAdoptions()) {
+  if (CommonConfiguration.allowAdoptions(context)) {
 %>
 
 <div id="rightcol" style="vertical-align: top;">
@@ -2166,7 +2167,7 @@ if(isOwner){
 	<p><%=sharky.getComments().replaceAll("\n", "<br>")%></p>
 </div>
 <%
-  if (CommonConfiguration.isCatalogEditable() && isOwner) {
+  if (CommonConfiguration.isCatalogEditable(context) && isOwner) {
 %>
 <p>
 	<form action="IndividualAddComment" method="post" name="addComments">

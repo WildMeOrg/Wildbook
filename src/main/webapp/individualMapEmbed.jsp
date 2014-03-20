@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,java.util.ArrayList,java.util.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.ArrayList,java.util.*" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -20,6 +20,9 @@
   --%>
 
 <%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
 
 //setup our Properties object to hold all properties
   Properties props = new Properties();
@@ -78,7 +81,7 @@
   String allEncounters = props.getProperty("allEncounters");
   String allIndividuals = props.getProperty("allIndividuals");
 
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
   
   
  

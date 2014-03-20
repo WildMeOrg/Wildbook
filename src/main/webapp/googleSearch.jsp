@@ -19,9 +19,11 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, java.util.Properties" %>
+         import="org.ecocean.*, java.util.Properties,org.ecocean.servlet.ServletUtilities" %>
 <%
 
+String context="context0";
+context=ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
   Properties props = new Properties();
   String langCode = "en";
@@ -33,18 +35,18 @@
 
 <html>
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
 
 </head>
@@ -69,15 +71,15 @@
         <!-- Google CSE Search Box Begins  -->
         <form
           action="http://<%=CommonConfiguration.getURLLocation(request) %>/googleSearchResults.jsp"
-          id="searchbox_<%=CommonConfiguration.getGoogleSearchKey() %>"><input
+          id="searchbox_<%=CommonConfiguration.getGoogleSearchKey(context) %>"><input
           type="hidden" name="cx"
-          value="<%=CommonConfiguration.getGoogleSearchKey() %>"/> <input
+          value="<%=CommonConfiguration.getGoogleSearchKey(context) %>"/> <input
           type="hidden" name="cof" value="FORID:11"/> <input type="text"
                                                              name="q" size="25"/> <input
           type="submit" name="sa" value="Search"/>
         </form>
         <script type="text/javascript"
-                src="http://www.google.com/coop/cse/brand?form=searchbox_<%=CommonConfiguration.getGoogleSearchKey() %>"></script>
+                src="http://www.google.com/coop/cse/brand?form=searchbox_<%=CommonConfiguration.getGoogleSearchKey(context) %>"></script>
         <!-- Google CSE Search Box Ends --></div>
       <!-- end maintext --></div>
     <!-- end maincol -->
