@@ -35,17 +35,19 @@ public class FalseMatchCreationThread implements Runnable, ISharkGridThread {
   boolean finished = false;
   GridManager gm;
   int numFalseComparisons = 0;
+  
+  String context="context0";
 
   /**
    * Constructor to create a new thread object
    */
-  public FalseMatchCreationThread(int numFalseComparisons, String taskID) {
+  public FalseMatchCreationThread(int numFalseComparisons, String taskID,String context) {
     this.taskID = taskID;
     //this.writeThis=writeThis;
     this.numFalseComparisons = numFalseComparisons;
     gm = GridManagerFactory.getGridManager();
     threadCreationObject = new Thread(this, ("FalseMatchCreationThread"));
-
+    this.context=context;
   }
 
 
@@ -62,7 +64,7 @@ public class FalseMatchCreationThread implements Runnable, ISharkGridThread {
 
 
   public void createThem() {
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
     GridManager gm = GridManagerFactory.getGridManager();
 
     String secondRun = "true";

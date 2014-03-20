@@ -11,7 +11,9 @@ import java.lang.StringBuffer;
 
 //import javax.jdo.Query;
 
+
 import org.ecocean.genetics.*;
+import org.ecocean.servlet.ServletUtilities;
 
 import java.net.URI;
 //import java.text.NumberFormat;;
@@ -43,12 +45,14 @@ public class KinalyzerExport extends HttpServlet{
     //PrintWriter out = response.getWriter();
     
     //get our Shepherd
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdir();}

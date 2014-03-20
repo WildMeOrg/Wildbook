@@ -284,12 +284,12 @@ public class GridManager {
 
 
   //call this from outside any other transaction
-  private void updateGridStats() {
+  private void updateGridStats(String context) {
     long currenTime = System.currentTimeMillis();
 
     //refresh the grid stats if necessary
     if ((lastGridStatsQuery == 1) || ((currenTime - lastGridStatsQuery) > gridStatsRefreshPeriod)) {
-      Shepherd myShepherd = new Shepherd();
+      Shepherd myShepherd = new Shepherd(context);
       myShepherd.beginDBTransaction();
       numScanTasks = myShepherd.getNumScanTasks();
       myShepherd.rollbackDBTransaction();
@@ -299,13 +299,13 @@ public class GridManager {
     }
   }
 
-  public int getNumTasks() {
-    updateGridStats();
+  public int getNumTasks(String context) {
+    updateGridStats(context);
     return numScanTasks;
   }
 
-  public int getNumWorkItems() {
-    updateGridStats();
+  public int getNumWorkItems(String context) {
+    updateGridStats(context);
     return numScanWorkItems;
   }
 

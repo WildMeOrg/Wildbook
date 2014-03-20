@@ -262,7 +262,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-            es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis));
+            es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context));
 
 
           } catch (Exception e) {
@@ -468,7 +468,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-            es.execute(new TuningTaskCreationThread(taskIdentifier, writeThis, maxNumWorkItems));
+            es.execute(new TuningTaskCreationThread(taskIdentifier, writeThis, maxNumWorkItems,context));
 
 
           } catch (Exception e) {
@@ -634,7 +634,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-            es.execute(new FalseMatchCreationThread(maxNumWorkItems, taskIdentifier));
+            es.execute(new FalseMatchCreationThread(maxNumWorkItems, taskIdentifier,context));
 
 
           } catch (Exception e) {
@@ -688,7 +688,7 @@ public class ScanTaskHandler extends HttpServlet {
       else if (action.equals("removeAllWorkItems")) {
         try {
 
-          GridCleanupThread swiThread = new GridCleanupThread();
+          GridCleanupThread swiThread = new GridCleanupThread(context);
           gm.removeAllWorkItems();
 
           //confirm success

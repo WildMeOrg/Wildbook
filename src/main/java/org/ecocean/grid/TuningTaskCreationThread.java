@@ -37,16 +37,18 @@ public class TuningTaskCreationThread implements Runnable, ISharkGridThread {
   GridManager gm;
   int maxNumWorkItems = 99999999;
   int numAdded = 0;
+  private String context="context0";
 
   /**
    * Constructor to create a new thread object
    */
-  public TuningTaskCreationThread(String taskID, boolean writeThis, int maxNumWorkItems) {
+  public TuningTaskCreationThread(String taskID, boolean writeThis, int maxNumWorkItems,String context) {
     this.taskID = taskID;
     this.writeThis = writeThis;
     gm = GridManagerFactory.getGridManager();
     threadCreationObject = new Thread(this, ("scanWorkItemCreation_" + taskID));
     this.maxNumWorkItems = maxNumWorkItems;
+    this.context=context;
   }
 
 
@@ -63,7 +65,7 @@ public class TuningTaskCreationThread implements Runnable, ISharkGridThread {
 
 
   public void createThem() {
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
     GridManager gm = GridManagerFactory.getGridManager();
 
     String secondRun = "true";

@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Hashtable;
 
 import org.json.*;
-
 import org.ecocean.*;
+import org.ecocean.servlet.ServletUtilities;
 
 public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
 
@@ -38,6 +38,9 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     PrintWriter out = response.getWriter();
     String langCode="en";
     
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    
     //let's load encounterSearch.properties
     
     Properties map_props = new Properties();
@@ -52,10 +55,10 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
    //localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
    localeprops=ShepherdProperties.getProperties("locales.properties", "");
 
-   List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies");
+   List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies",context);
    int numSpecies=allSpecies.size();
   
-   List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor");
+   List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor",context);
    int numSpeciesColors=allSpeciesColors.size();
    
    Hashtable<String, String> speciesTable=new Hashtable<String,String>();
@@ -66,7 +69,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
    }
     
     //get our Shepherd
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
 
   Random ran= new Random();
 
@@ -179,7 +182,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              point.put("catalogNumber",enc.getCatalogNumber());
              point.put("rootURL",CommonConfiguration.getURLLocation(request));
              point.put("individualID",enc.getIndividualID());
-             point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName());
+             point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
              point.put("date",enc.getDate());
              
              
