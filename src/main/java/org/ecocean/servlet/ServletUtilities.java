@@ -473,7 +473,6 @@ public static ByteSource getSalt() {
 
 public static String getContext(HttpServletRequest request){
   String context="context0";
-  context=ServletUtilities.getContext(request);
   if(request.getUserPrincipal()!=null){
     String username=request.getUserPrincipal().getName();
     Shepherd myShepherd=new Shepherd(context);

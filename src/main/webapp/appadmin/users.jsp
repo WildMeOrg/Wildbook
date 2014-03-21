@@ -20,16 +20,19 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
-<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities" %>
 
 
 <%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
   	
   	
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
   	//get the available user roles
-  	ArrayList<String> roles=CommonConfiguration.getSequentialPropertyValues("role");
-	ArrayList<String> roleDefinitions=CommonConfiguration.getSequentialPropertyValues("roleDefinition");
+  	ArrayList<String> roles=CommonConfiguration.getSequentialPropertyValues("role",context);
+	ArrayList<String> roleDefinitions=CommonConfiguration.getSequentialPropertyValues("roleDefinition",context);
 	int numRoles=roles.size();
   	int numRoleDefinitions=roleDefinitions.size();
 
@@ -42,18 +45,18 @@
 
 <html>
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
   <style type="text/css">
     <!--
@@ -112,7 +115,7 @@
       		<td>
       		<%
       		if(user.getUserImage()!=null){
-      			String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName()+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+      			String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
       		%>
       		<img src="<%=profilePhotoURL %>" width="75px" height="*"/>
       		<%
@@ -224,7 +227,7 @@
 				userURL=thisUser.getUserURL();
     		    	}
     		    	if(thisUser.getUserImage()!=null){
-    		    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName()+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+    		    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
     		    	}
     		    	if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
     		    }
@@ -319,7 +322,7 @@
     	
     </p>
     <%
-    if((CommonConfiguration.getProperty("showUserAgreement")!=null)&&(CommonConfiguration.getProperty("showUserAgreement").equals("true"))){
+    if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(CommonConfiguration.getProperty("showUserAgreement",context).equals("true"))){
     %>
             <p>&nbsp;</p>
       <table class="tissueSample" style="border: 1px solid black;" width="100%" border="1">
