@@ -20,25 +20,28 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.CommonConfiguration, org.ecocean.Shepherd, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.CommonConfiguration, org.ecocean.Shepherd, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 <html>
 <%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
 File webappsDir = new File(rootWebappPath).getParentFile();
-File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 
 
   session.setMaxInactiveInterval(6000);
   String num = request.getParameter("number");
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
   if (request.getParameter("writeThis") == null) {
     myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
   }
-  Shepherd altShepherd = new Shepherd();
+  //Shepherd altShepherd = new Shepherd(context);
   String sessionId = session.getId();
   boolean xmlOK = false;
   SAXReader xmlReader = new SAXReader();
@@ -53,18 +56,18 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 %>
 
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 </head>
 
 <style type="text/css">
@@ -224,7 +227,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 <p>
 
 <h2>Modified Groth Scan Results <a
-  href="<%=CommonConfiguration.getWikiLocation()%>scan_results"
+  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
   target="_blank"><img src="../images/information_icon_svg.gif"
                        alt="Help" border="0" align="absmiddle"></a></h2>
 </p>
@@ -452,7 +455,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 <p>
   <%
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
-    String baseURL = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/";
+    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
 
 //myShepherd.rollbackDBTransaction();

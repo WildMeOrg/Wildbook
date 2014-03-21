@@ -58,7 +58,7 @@ public class CommonConfiguration {
       try {
         //resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
         //props.load(resourceAsStream);
-        props=ShepherdProperties.getProperties(COMMON_CONFIGURATION_PROPERTIES, "");
+        props=ShepherdProperties.getProperties(COMMON_CONFIGURATION_PROPERTIES, "",context);
 
       } catch (Exception ioe) {
         ioe.printStackTrace();
@@ -67,20 +67,20 @@ public class CommonConfiguration {
       
 
       
-      String shepherdDataDir="shepherd_data_dir";
+      //String shepherdDataDir="shepherd_data_dir";
       
       //new context code here
-      
-      //if((props.getProperty("dataDirectoryName")!=null)&&(!props.getProperty("dataDirectoryName").trim().equals(""))){shepherdDataDir=props.getProperty("dataDirectoryName");}
-      if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){
-        shepherdDataDir=ContextConfiguration.getDataDirForContext(context);
+     
+      /*
+      Properties contextsProps=ShepherdProperties.getContextsProperties();
+      if(contextsProps.getProperty(context+"DataDir")!=null){
+        shepherdDataDir=contextsProps.getProperty(context+"DataDir");
         
-      
       }
       
       
       props=loadOverrideProps(shepherdDataDir);
-      
+      */
 
 
     return props;

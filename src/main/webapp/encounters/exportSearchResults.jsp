@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
 
 
@@ -30,7 +30,8 @@
 
 
   <%
-
+  String context="context0";
+  context=ServletUtilities.getContext(request);
 
     //let's load encounterSearch.properties
     String langCode = "en";
@@ -43,7 +44,7 @@
 
     
     //get our Shepherd
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
 
     //set up the vector for matching encounters
     Vector rEncounters = new Vector();
@@ -62,14 +63,14 @@
     		
   %>
 
-  <title><%=CommonConfiguration.getHTMLTitle()%>
+  <title><%=CommonConfiguration.getHTMLTitle(context)%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription()%>"/>
-  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords()%>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor()%>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request)%>" rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon()%>"/>
+  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context)%>"/>
+  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context)%>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context)%>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context)%>" rel="stylesheet" type="text/css"/>
+  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
 
 
     <style type="text/css">
