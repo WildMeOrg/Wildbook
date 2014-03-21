@@ -473,19 +473,26 @@ public static ByteSource getSalt() {
 
 public static String getContext(HttpServletRequest request){
   String context="context0";
-  if(request.getUserPrincipal()!=null){
-    String username=request.getUserPrincipal().getName();
-    Shepherd myShepherd=new Shepherd(context);
-    myShepherd.beginDBTransaction();
-    if(myShepherd.getUser(username)!=null){
-      User user=myShepherd.getUser(username);
-      if((user.getCurrentContext()!=null)&&(!user.getCurrentContext().trim().equals(""))){context=user.getCurrentContext().trim();}
+  Properties contexts=ShepherdProperties.getContextsProperties();
+  
+  //check the URL
+  if(request.getParameter("context")!=null){
+    //get the available contexts
+    //System.out.println("Checking for a context: "+request.getParameter("context"));
+    if(contexts.containsKey((request.getParameter("context")+"DataDir"))){
+      //System.out.println("Found a request context: "+request.getParameter("context"));
+      return request.getParameter("context");
     }
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
-    myShepherd=null;
-    
   }
+  
+  
+  if(request.getSession().getAttribute("context")!=null){
+    String cookieContext=(String)request.getSession().getAttribute("context");
+    if(contexts.containsKey((cookieContext+"DataDir"))){
+      return cookieContext;
+    }
+  }
+  
   
   return context;
 }
