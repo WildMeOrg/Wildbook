@@ -57,6 +57,7 @@ public static Properties getContexts(){
         localesProps.load(ContextConfiguration.class.getResourceAsStream(CONTEXTS_PROPERTIES));
         props=localesProps;
         propsSize=props.size();
+        //System.out.println("     Context props are: "+props.toString());
         } 
       catch (Exception ioe) {
         System.out.println("Hit an error loading contexts.properties.");
@@ -66,7 +67,8 @@ public static Properties getContexts(){
   }
   
   public static String getDataDirForContext(String context){
-    if(props.getProperty(context)!=null){return props.getProperty(context);}
+    initialize();
+    if(props.getProperty((context+"DataDir"))!=null){return props.getProperty((context+"DataDir"));}
     return null;
   }
   
