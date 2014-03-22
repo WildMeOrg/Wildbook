@@ -33,13 +33,14 @@ import java.util.Properties;
 public class ShepherdPMF {
 
   private static PersistenceManagerFactory pmf;
+  private static String currentContext="context0";
   
 
 
   public synchronized static PersistenceManagerFactory getPMF(String context) {
     //public static PersistenceManagerFactory getPMF(String dbLocation) {
     try {
-      if (pmf == null) {
+      if ((pmf == null)||(!currentContext.equals(context))) {
 
         Properties dnProperties = new Properties();
 
@@ -49,8 +50,13 @@ public class ShepherdPMF {
         Properties props = new Properties();
         String shepherdDataDir="shepherd_data_dir";
         
-        if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){shepherdDataDir=ContextConfiguration.getDataDirForContext(context);}
-        
+        //System.out.println("     Let's find the corresponding dataDir for context: "+context);
+        if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){
+          //System.out.println("     Looking up corresponding contextDir...");
+          shepherdDataDir=ContextConfiguration.getDataDirForContext(context);
+          
+        }
+        //System.out.println("ShepherdPMF: Data directory for context "+context+" is: "+shepherdDataDir);
         Properties overrideProps=loadOverrideProps(shepherdDataDir);
         //System.out.println(overrideProps);
         
@@ -77,7 +83,7 @@ public class ShepherdPMF {
         }
 
         pmf = JDOHelper.getPersistenceManagerFactory(dnProperties);
-
+        currentContext=context;
 
       }
       return pmf;
@@ -89,23 +95,23 @@ public class ShepherdPMF {
   }
   
   public static Properties loadOverrideProps(String shepherdDataDir) {
-    //System.out.println("Starting loadOverrideProps");
+    System.out.println("     Starting loadOverrideProps");
     Properties myProps=new Properties();
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
-    //System.out.println(configDir.getAbsolutePath());
+    System.out.println("     In dir: "+configDir.getAbsolutePath());
     //sometimes this ends up being the "bin" directory of the J2EE container
     //we need to fix that
     if((configDir.getAbsolutePath().contains("/bin/")) || (configDir.getAbsolutePath().contains("\\bin\\"))){
       String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
       configDir=new File(fixedPath);
-      //System.out.println("Fixing the bin issue in Shepherd PMF. ");
-      //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+      System.out.println("     Fixing the bin issue in Shepherd PMF. ");
+      System.out.println("     The fix abs path is: "+configDir.getAbsolutePath());
     }
-    //System.out.println(configDir.getAbsolutePath());
+     System.out.println("     Looking in: "+configDir.getAbsolutePath());
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, "jdoconfig.properties");
     if (configFile.exists()) {
-      //System.out.println("Overriding default properties with " + configFile.getAbsolutePath());
+      System.out.println("     Overriding default properties with " + configFile.getAbsolutePath());
       FileInputStream fileInputStream = null;
       try {
         fileInputStream = new FileInputStream(configFile);
