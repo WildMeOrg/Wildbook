@@ -94,12 +94,12 @@
                 
 				/DeleteAllDataPermanently = authc, roles[destroyer]
 				
-				/appadmin/admin.jsp = authc, roles[admin]
-		        /appadmin/import.jsp = authc, roles[admin]
-		           /appadmin/kwAdmin.jsp = authc, roles[admin]
-		           /appadmin/logs.jsp = authc, roles[admin]
-		           /appadmin/stats.jsp = authc, roles[admin]
-		            /appadmin/users.jsp = authc, roles[admin]
+				/appadmin/** = authc, roles[admin]
+				 /logs/** = authc, roles[admin]
+             
+			    /RelationshipCreate  = authc, roles[admin]
+		   /RelationshipDelete  = authc, roles[admin]
+			 
 		            /MassSetInformOthers = authc, roles[admin]
 		          /MassExposeGBIF = authc, roles[admin]
 		           /MassSetLocationCodeFromLocationString = authc, roles[admin]
@@ -203,6 +203,9 @@
 						   /welcome.jsp = authc
 						   /UserAddProfileImage = authc
 						   /UserRemoveProfileImage = authc
+						    		/IndividualSetYearOfBirth = authc, roles[admin]
+               		/IndividualSetYearOfDeath = authc, roles[admin]
+						   /KinalyzerExport = authc, roles[admin]
 
             </param-value>
         </init-param>
