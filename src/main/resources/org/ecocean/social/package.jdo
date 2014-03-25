@@ -1,0 +1,60 @@
+<!DOCTYPE jdo PUBLIC
+    "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN"
+    "http://java.sun.com/dtd/jdo_2_0.dtd">
+
+<jdo>
+    <package name="org.ecocean.social">
+
+	
+        
+        
+        <class name="SocialUnit" identity-type="application" table="SOCIALUNIT">
+				<field name="socialUnitName" primary-key="true">
+					<column length="100"/>
+				</field>
+				<fetch-group name="count" />
+		</class>
+		
+		<class name="Relationship" identity-type="datastore" table="RELATIONSHIP">
+				<datastore-identity strategy="increment"/>
+				<field name="type" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="relatedSocialUnitName" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="markedIndividualName1" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="markedIndividualName2" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="markedIndividualRole1" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				<field name="markedIndividualRole2" persistence-modifier="persistent">
+					<column length="100" />
+				</field>
+				
+				<field name="markedIndividual1DirectionalDescriptor" persistence-modifier="persistent" allows-null="true">
+					<column length="100" />
+				</field>
+				<field name="markedIndividual2DirectionalDescriptor" persistence-modifier="persistent" allows-null="true">
+					<column length="100" />
+				</field>
+				
+				<field name="bidirectional" persistence-modifier="persistent">
+						    				<column jdbc-type="bit(1)" allows-null="true" />
+			</field>
+				
+				<field name="relatedComments" persistence-modifier="persistent" default-fetch-group="false">
+					<column jdbc-type="LONGVARCHAR" />
+				</field>				
+				<fetch-group name="count" />
+		</class>
+
+        
+		
+		
+    </package>
+</jdo>

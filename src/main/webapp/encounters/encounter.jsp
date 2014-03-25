@@ -136,8 +136,8 @@ File encounterDir = new File(encountersDir, num);
 
 <html>
 
-<head>
-  <title><%=encprops.getProperty("encounter") %> <%=num%>
+<head prefix="og:http://ogp.me/ns#">
+  <title><%=CommonConfiguration.getHTMLTitle() %> - <%=encprops.getProperty("encounter") %> <%=num%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
@@ -145,6 +145,45 @@ File encounterDir = new File(encountersDir, num);
   <meta name="Keywords"
         content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
   <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
+  
+  
+<!-- social meta start -->
+<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle() %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
+
+<link rel="canonical" href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
+
+<meta itemprop="name" content="<%=encprops.getProperty("encounter")%> <%=request.getParameter("number")%>" />
+<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+<%
+if (request.getParameter("number")!=null) {
+	
+		if(myShepherd.isEncounter(num)){
+			Encounter metaEnc = myShepherd.getEncounter(num);
+			int numImgs=metaEnc.getImages().size();
+			if((metaEnc.getImages()!=null)&&(numImgs>0)){
+				for(int b=0;b<numImgs;b++){
+				SinglePhotoVideo metaSPV=metaEnc.getImages().get(b);
+%>
+<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getFilename())%>" />
+<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getFilename())%>" / >
+<%
+			}
+		}
+		}
+}
+%>
+
+<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle() %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
+<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+
+<meta property="og:url" content="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
+
+
+<meta property="og:type" content="website" />
+
+<!-- social meta end -->
+
+  
   <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
@@ -374,8 +413,6 @@ margin-bottom: 8px !important;
 
 
 
-  <script type="text/javascript" src="StyledMarker.js"></script>
-
 <!--  FACEBOOK LIKE BUTTON -->
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
@@ -384,8 +421,7 @@ margin-bottom: 8px !important;
   js = d.createElement(s); js.id = id;
   js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
   fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));
-</script>
+}(document, 'script', 'facebook-jssdk'));</script>
 
 <!-- GOOGLE PLUS-ONE BUTTON -->
 <script type="text/javascript">
@@ -487,9 +523,8 @@ margin-bottom: 8px !important;
 								<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 							</td>
 							<td>
-								<!-- Facebook LIKE button -->
-								<div class="fb-like" data-send="false" data-layout="button_count" data-width="100" data-show-faces="false"></div>
-							</td>
+								<!-- Facebook SHARE button -->
+								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						</tr>
 					</table> 
 					<table>
@@ -500,7 +535,7 @@ margin-bottom: 8px !important;
 
 <!-- START IDENTITY ATTRIBUTE -->								
 
-  <p><img align="absmiddle" src="../images/tag_big.gif" width="40px" height="40px" /> <strong>Identity</strong></p>
+  <p><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <strong>Identity</strong></p>
       
       
 								
@@ -1339,7 +1374,13 @@ $("a#elev").click(function() {
 		   
            
            	%>
-       marker = new StyledMarker({styleIcon:new StyledIcon(StyledIconTypes.MARKER,{color:"<%=haploColor%>",text:"<%=markerText%>"}),position:latLng,map:map});
+ 
+       marker = new google.maps.Marker({
+    	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+    	   position:latLng,
+    	   map:map
+    	});
+	   		
 	   		<%
 	   		if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
 	   		%>
@@ -3344,13 +3385,12 @@ $("a#sat").click(function() {
 <!-- end sat tag popup --> 
 <%
 }
-%>
+%></c:if>
 </td>
 </tr>
 </table>
 
 
-</c:if>
 <br />
 <p><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <strong><%=encprops.getProperty("dynamicProperties") %></strong>
 <%
@@ -4035,7 +4075,15 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 			%>
 			<tr>
 				<td style="border-style: none;">
-					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span></p>
+					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span>
+					<%
+					if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))&&(request.getUserPrincipal()!=null)){
+					%>
+					<a href="../individualSearch.jsp?individualDistanceSearch=<%=enc.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" alt="Individual-to-Individual Genetic Distance Search" src="../images/Crystal_Clear_app_xmag.png"></img></a>
+					<%
+					}
+					%>
+					</p>
 					<span class="caption"><%=mito.getAllelesHTMLString() %>
 						<%
 									if(!mito.getSuperHTMLString().equals("")){

@@ -1,9 +1,9 @@
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
+  ~ Copyright (C) 2011-14 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
+  ~ modify it under the terms of the GNU General Public Licensef
   ~ as published by the Free Software Foundation; either version 2
   ~ of the License, or (at your option) any later version.
   ~
@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
+         import="org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
   Shepherd myShepherd = new Shepherd();
@@ -62,8 +62,13 @@
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
         href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
-  <!-- Sliding div content: STEP1 Place inside the head section -->
-  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+
+ <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+  
+  
+    <!-- Sliding div content: STEP1 Place inside the head section -->
   <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
  
   <script type="text/javascript">
@@ -76,6 +81,7 @@
     animatedcollapse.addDiv('metadata', 'fade=1')
     animatedcollapse.addDiv('export', 'fade=1')
     animatedcollapse.addDiv('genetics', 'fade=1')
+	animatedcollapse.addDiv('social', 'fade=1')
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -92,7 +98,8 @@
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
 
   <!-- /STEP2 Place inside the head section -->
-
+  
+  
 
 </head>
 
@@ -140,17 +147,98 @@ margin-bottom: 8px !important;
 <tr>
 <td>
 <p>
+<%
+String titleString=props.getProperty("title");
+String formAction="individualSearchResults.jsp";
+if(request.getParameter("individualDistanceSearch")!=null){
+	formAction="individualDistanceSearchResults.jsp";
+	titleString=props.getProperty("geneticDistanceTitle");
+}
+
+
+%>
+
 
 <h1 class="intro"><strong><span class="para">
-		<img src="images/tag_big.gif" width="50" align="absmiddle"/></span></strong>
-  <%=props.getProperty("title")%>
+		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
+  <%=titleString%>
 </h1>
 </p>
-<p><em><%=props.getProperty("instructions")%>
-</em></p>
 
-<form action="individualSearchResults.jsp" method="get" name="search"
-      id="search">
+<%
+if((request.getParameter("individualDistanceSearch")!=null)||(request.getParameter("encounterNumber")!=null)){
+	MarkedIndividual compareAgainst=new MarkedIndividual();
+	if((request.getParameter("individualDistanceSearch")!=null)&&(myShepherd.isMarkedIndividual(request.getParameter("individualDistanceSearch")))){
+		compareAgainst=myShepherd.getMarkedIndividual(request.getParameter("individualDistanceSearch"));
+	}
+	else if((request.getParameter("encounterNumber")!=null)&&(myShepherd.isEncounter(request.getParameter("encounterNumber")))){
+		Encounter enc=myShepherd.getEncounter(request.getParameter("encounterNumber"));
+		if((enc.getIndividualID()!=null)&&(myShepherd.isMarkedIndividual(enc.getIndividualID()))){
+			compareAgainst=myShepherd.getMarkedIndividual(enc.getIndividualID());
+		}
+	}
+	
+    ArrayList<String> loci=myShepherd.getAllLoci();
+    int numLoci=loci.size();
+    String[] theLoci=new String[numLoci];
+    for(int q=0;q<numLoci;q++){
+    	theLoci[q]=loci.get(q);
+    }
+    
+    String compareAgainstAllelesString=compareAgainst.getFomattedMSMarkersString(theLoci);
+    
+
+%>
+
+<p>Reference Individual ID: <%=compareAgainst.getIndividualID() %>
+<%
+String compareAgainstHaplotype="";
+if(compareAgainst.getHaplotype()!=null){
+	compareAgainstHaplotype=compareAgainst.getHaplotype();
+}
+String compareAgainstGeneticSex="";
+if(compareAgainst.getGeneticSex()!=null){
+	compareAgainstGeneticSex=compareAgainst.getGeneticSex();
+}
+%>
+<br/>Haplotype: <%=compareAgainstHaplotype %>
+<br/>Genetic sex: <%=compareAgainstGeneticSex %>
+		<table>
+			<tr><td colspan="<%=(numLoci*2)%>">Microsatellite markers</td></tr>
+				<tr>
+					<%
+					for(int y=0;y<numLoci;y++){
+					%>
+						<td><span style="font-style: italic"><%=theLoci[y] %></span></td><td><span style="font-style: italic"><%=theLoci[y] %></span></td>
+					<%
+					}
+					%>
+				</tr>
+				
+				
+				<tr>
+					<td><span style="color: #909090"><%=compareAgainstAllelesString.replaceAll(" ", "</span></td><td><span style=\"color: #909090\">") %></span></td>
+				</tr>
+				
+			</table>
+
+</p>
+<%
+}
+
+%>
+<p><em><strong><%=props.getProperty("instructions")%>
+</strong></em></p>
+
+
+<form action="<%=formAction %>" method="get" name="search" id="search">
+    <%  
+	if(request.getParameter("individualDistanceSearch")!=null){
+	%>
+		<input type="hidden" name="individualDistanceSearch" value="<%=request.getParameter("individualDistanceSearch") %>" />
+	<%
+	}
+    %>  
 <table width="810px">
 
 <tr>
@@ -641,8 +729,40 @@ function FSControl(controlDiv, map) {
       %>
       <c:if test="${showReleaseDate}">
         <p><strong><%= props.getProperty("releaseDate") %></strong></p>
-        <p>From: <input name="releaseDateFrom"/> to <input name="releaseDateTo"/> <%=props.getProperty("releaseDateFormat") %></p>
+        <p>From: <input id="releaseDateFrom" name="releaseDateFrom"/> to <input id="releaseDateTo" name="releaseDateTo"/></p>
       </c:if>
+
+<!--  date of birth and death -->      
+      <p><strong><%=props.getProperty("timeOfBirth")%>:</strong> <span class="para"><a
+        href="<%=CommonConfiguration.getWikiLocation()%>timeOfBirth"
+        target="_blank"><img src="images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+<table>
+
+	<tr>
+		<td>Start: <input type="text" id="DOBstart" name="DOBstart" /></td>
+		<td>End: <input type="text" id="DOBend" name="DOBend" /></td>
+	</tr>
+</table>
+	      <p><strong><%=props.getProperty("timeOfDeath")%>:</strong> <span class="para"><a
+        href="<%=CommonConfiguration.getWikiLocation()%>timeOfDeath"
+        target="_blank"><img src="images/information_icon_svg.gif"
+                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+	<table>
+	<tr>
+		<td>Start: <input type="text" id="DODstart" name="DODstart" /></td>
+		<td>End: <input type="text" id="DODend" name="DODend" /></td>
+	</tr>
+</table>
+      <script>
+	$( "#DOBstart" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+    $( "#DOBend" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+    $( "#DODstart" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+    $( "#DODend" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+    $( "#releaseDateFrom" ).datepicker().datepicker('option', 'dateFormat', 'dd/mm/yy');
+    $( "#releaseDateTo" ).datepicker().datepicker('option', 'dateFormat', 'dd/mm/yy');
+</script>
+      
     </div>
   </td>
 </tr>
@@ -956,11 +1076,15 @@ if(CommonConfiguration.showProperty("showLifestage")){
   </td>
 </tr>
 
+
+
 <%
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags());
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
 %>
+
+
 <c:if test="${showMetalTags or showAcousticTag or showSatelliteTag}">
 
   <tr>
@@ -976,6 +1100,8 @@ if(CommonConfiguration.showProperty("showLifestage")){
     <td>
         <div id="tags" style="display:none;">
             <p>Use the fields below to limit your search to encounters with the specified tag(s)</p>
+            
+            
             <c:if test="${showMetalTags}">
                 <% 
                   pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); 
@@ -989,6 +1115,10 @@ if(CommonConfiguration.showProperty("showLifestage")){
             </c:forEach>
             </table>
             </c:if>
+            
+            
+            
+            
             <c:if test="${showAcousticTag}">
               <h5>Acoustic Tag</h5>
               <table>
@@ -996,6 +1126,8 @@ if(CommonConfiguration.showProperty("showLifestage")){
               <tr><td>ID:</td><td><input name="acousticTagId"/></td></tr>
               </table>
             </c:if>
+            
+            
             <c:if test="${showSatelliteTag}">
               <%
                 pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
@@ -1010,22 +1142,27 @@ if(CommonConfiguration.showProperty("showLifestage")){
                     </c:forEach>
                 </select>
               </td></tr>
-              <tr><td>Serial Number:</td><td><input name="satelliteTagSerial"/></td></tr>
+                   <tr><td>Serial Number:</td><td><input name="satelliteTagSerial"/></td></tr>
               <tr><td>Argos PTT Number</td><td><input name="satelliteTagArgosPttNumber"/></td></tr>
               </table>
-            </c:if>
-        </div>
-    </td>
-  </tr>
-
+            
+              </table>
+           </c:if>
+           
+           
+           
+           </div>
+           </td>
+           </tr>   
 </c:if>
-
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-      color="#000000">Biological samples and analyses filters</font></a></h4>
+    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; ">
+    	<a href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none">
+    		<img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> 
+    		<font color="#000000">Biological samples and analyses filters</font>
+    	</a>
+    </h4>
   </td>
 </tr>
 
@@ -1034,6 +1171,11 @@ if(CommonConfiguration.showProperty("showLifestage")){
     <div id="genetics" style="display:none; ">
       <p>Use the fields below to limit your search to marked individuals with available biological samples and resulting analyses.</p>
       
+         
+  
+
+
+
   <br /><p><em><%=props.getProperty("fastOptions") %></em></p>
       <p><strong><%=props.getProperty("hasTissueSample")%>: </strong>
             <label> 
@@ -1046,9 +1188,17 @@ if(CommonConfiguration.showProperty("showLifestage")){
             </label>
       </p>
             </p>
+            <%
+            String hasMSMarkerChecked="";
+            if((request.getParameter("encountrNumber")!=null)||(request.getParameter("individualDistanceSearch")!=null)){
+            	hasMSMarkerChecked="checked=\"checked\"";
+            }
+            
+            %>
+            
             <p><strong><%=props.getProperty("hasMSMarkers")%>: </strong>
             <label> 
-            	<input name="hasMSMarkers" type="checkbox" id="hasMSMarkers" value="hasMSMarkers" />
+            	<input name="hasMSMarkers" type="checkbox" id="hasMSMarkers" value="hasMSMarkers" <%=hasMSMarkerChecked %>/>
             </label>
       </p>
 <br /><p><em><%=props.getProperty("slowOptions") %></em></p>
@@ -1218,6 +1368,8 @@ else {
   </td>
 </tr>
 
+
+
 <tr>
   <td>
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
@@ -1231,9 +1383,28 @@ else {
   <td>
     <div id="identity" style="display:none; ">
       <table>
+      
+          <tr>
+          <td>
+            <p>
+            	<strong><%=props.getProperty("individualID")%></strong> 
+            	<em>
+            		<input name="individualID" type="text" id="individualID" size="40" />&nbsp;
+            		<span class="para">
+            			<a href="<%=CommonConfiguration.getWikiLocation()%>individualID" target="_blank">
+            				<img src="images/information_icon_svg.gif" alt="Help" width="15" height="15" border="0" align="absmiddle"/>
+            			</a>
+            		</span>
+              <br />
+              <%=props.getProperty("multipleIndividualID")%>
+              </em>
+              </p>
+          </td>
+        </tr>
+      
         <tr>
           <td>
-            <%=props.getProperty("maxYearsBetweenResights")%>: <select
+            <strong><%=props.getProperty("maxYearsBetweenResights")%></strong>&nbsp;<select
             name="resightGapOperator" id="resightGapOperator">
             <option value="greater" selected="selected">&#8250;=</option>
             <option value="equals">=</option>
@@ -1279,6 +1450,9 @@ else {
           <td>
             <p><strong><%=props.getProperty("firstSightedInYear")%>:</strong> 
             <em> 
+            <%
+            if(firstYear>-1){ 
+            %>
             	<select name="firstYearField" id="firstYearField">
             		<option value="" selected="selected"></option>
             		<% for (int q = firstYear; q <= nowYear; q++) { %>
@@ -1288,17 +1462,130 @@ else {
 
             		<% } %>
           		</select>
+          	<%
+            }
+          	%>	
               </em>
             </p>
           </td>
         </tr>
 
       </table>
+      </div>
   </td>
 
 </tr>
 
+<tr>
+  <td>
+    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+      href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><img
+      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+      color="#000000">Social filters</font></a></h4>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div id="social" style="display:none;">
+    
+    <table>
+    	<tr>
+    		<td style="vertical-align: top">
+    			<strong><%=props.getProperty("belongsToCommunity")%></strong>
+    		</td>
+    		</tr>
+    		<tr>
+    		<td style="vertical-align: top"> 
+			<%
+ 				ArrayList<String> communities = myShepherd.getAllSocialUnitNames();
+ 			        
+ 					//System.out.println(haplos.toString());
 
+ 			        if ((communities!=null)&&(communities.size()>0)) {
+ 			        	int totalNames = communities.size();
+ 			%>
+
+      <select multiple size="10" name="community" id="community">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < totalNames; n++) {
+            String word = communities.get(n);
+            if ((word!=null)&&(!word.equals(""))) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select></td>
+      </tr>
+      </table>
+      <%
+      } else {
+      %>
+      <em><%=props.getProperty("noCommunities")%>
+      </em>
+      </td>
+      </tr>
+      </table>
+      <%
+        }
+      %>
+      
+      
+          <table>
+    	<tr>
+    		<td style="vertical-align: top">
+    			<strong><%=props.getProperty("socialRoleIs")%></strong><br />
+    			<input type="checkbox" name="andRoles"/>&nbsp;<em><%=props.getProperty("andRoles")%></em>
+    		</td>
+    		</tr>
+    		<tr>
+    		<td style="vertical-align: top"> 
+			<%
+        //ArrayList<String> roles = myShepherd.getAllRoleNames();
+        
+		List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole");
+			
+		//System.out.println(haplos.toString());
+
+        if ((roles!=null)&&(roles.size()>0)) {
+        	int totalNames = roles.size();
+        
+      %>
+
+      <select multiple size="10" name="role" id="role">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < totalNames; n++) {
+            String word = roles.get(n);
+            if ((word!=null)&&(!word.equals(""))) {
+        	%>
+        		<option value="<%=word%>"><%=word%></option>
+        	<%
+            }
+          }
+        %>
+      </select></td>
+      </tr>
+      </table>
+      <%
+      } else {
+      %>
+      <em><%=props.getProperty("noRoles")%>
+      </em>
+      </td>
+      </tr>
+      </table>
+      <%
+        }
+      %>
+      
+      
+      
+    </div>
+  </td>
+</tr>
 <%
   myShepherd.rollbackDBTransaction();
 %>
@@ -1307,11 +1594,13 @@ else {
 <tr>
   <td>
 
-    <p><em> <input name="submitSearch" type="submit" id="submitSearch"
-                   value="<%=props.getProperty("goSearch")%>"></em>
+    
   </td>
 </tr>
 </table>
+
+<input name="submitSearch" type="submit" id="submitSearch"
+                   value="<%=props.getProperty("goSearch")%>" />
 </form>
 </td>
 </tr>

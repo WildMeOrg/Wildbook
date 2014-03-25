@@ -762,23 +762,31 @@ if(sharky.getLocationID()!=null){
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
-              File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
-              Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              // iterate through metadata directories
-              Iterator directories = metadata.getDirectoryIterator();
-              while (directories.hasNext()) {
-                Directory directory = (Directory) directories.next();
-                // iterate through tags and print to System.out
-                Iterator tags = directory.getTagIterator();
-                while (tags.hasNext()) {
-                  Tag tag = (Tag) tags.next();
+              	File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
+              	if(exifImage.exists()){
+              	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+              	// iterate through metadata directories
+              	Iterator directories = metadata.getDirectoryIterator();
+              	while (directories.hasNext()) {
+                	Directory directory = (Directory) directories.next();
+                	// iterate through tags and print to System.out
+                	Iterator tags = directory.getTagIterator();
+                	while (tags.hasNext()) {
+                  		Tag tag = (Tag) tags.next();
 
-          %>
+          				%>
 								<%=tag.toString() %><br/>
 								<%
                       }
-                    }
-                    } //end try
+                 }
+              } //end if
+              else{
+            	  %>
+		            <p>File not found on file system. No EXIF data available.</p>
+          		<%  
+              }
+              
+            } //end try
             catch(Exception e){
             	 %>
 		            <p>Cannot read metadata for this file.</p>
