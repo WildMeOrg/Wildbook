@@ -1,6 +1,6 @@
 /*
- * The Shepherd Project - A Mark-Recapture Framework
- * Copyright (C) 2011 Jason Holmberg
+ * Wildbook - A Mark-Recapture Framework
+ * Copyright (C) 2011-2013 Jason Holmberg
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,9 @@ import java.io.IOException;
 import java.util.*;
 
 import org.ecocean.genetics.*;
+import org.ecocean.social.Relationship;
+
+import java.text.DecimalFormat;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -74,12 +77,19 @@ public class MarkedIndividual implements java.io.Serializable {
   private Vector interestedResearchers = new Vector();
 
   private String dateTimeCreated;
+  
+  //FOR FAST QUERY PURPOSES ONLY - DO NOT MANUALLY SET
+  private String localHaplotypeReflection;
 
   private String dynamicProperties;
 
   private String patterningCode;
 
   private int maxYearsBetweenResightings;
+  
+  private long timeOfBirth=0;
+  
+  private long timeOfDeath=0;
 
   public MarkedIndividual(String individualID, Encounter enc) {
 
@@ -107,8 +117,11 @@ public class MarkedIndividual implements java.io.Serializable {
 
   public boolean addEncounter(Encounter newEncounter) {
 
-    newEncounter.assignToMarkedIndividual(individualID);
-    
+      newEncounter.assignToMarkedIndividual(individualID);
+   
+      //get and therefore set the haplotype if necessary
+      getHaplotype();
+      
       boolean ok=encounters.add(newEncounter);
       numberEncounters++;
       resetMaxNumYearsBetweenSightings();
@@ -124,6 +137,9 @@ public class MarkedIndividual implements java.io.Serializable {
   public boolean removeEncounter(Encounter getRidOfMe){
 
       numberEncounters--;
+      
+      
+      
       boolean changed=false;
       for(int i=0;i<encounters.size();i++) {
         Encounter tempEnc=(Encounter)encounters.get(i);
@@ -134,6 +150,11 @@ public class MarkedIndividual implements java.io.Serializable {
           }
         }
       resetMaxNumYearsBetweenSightings();
+      
+      //reset haplotype
+      localHaplotypeReflection=null;
+      getHaplotype();
+      
       return changed;
   }
   
@@ -1234,13 +1255,12 @@ Returns the first haplotype found in the Encounter objects for this MarkedIndivi
 @return a String if found or null if no haplotype is found
 */
 public String getHaplotype(){
-      for (int c = 0; c < encounters.size(); c++) {
-        Encounter temp = (Encounter) encounters.get(c);
-        if(temp.getHaplotype()!=null){return temp.getHaplotype();}
-      }
-    return null;
-
+      
+    return localHaplotypeReflection;
+    
 }
+
+
 
 public String getGeneticSex(){
   for (int c = 0; c < encounters.size(); c++) {
@@ -1289,10 +1309,10 @@ public ArrayList<Integer> getAlleleValuesForLocus(String locus){
             MicrosatelliteMarkersAnalysis msa=(MicrosatelliteMarkersAnalysis)ga;
             if(msa.getLocus(locus)!=null){
                Locus l=msa.getLocus(locus);
-               if((l.getAllele0()!=null)&&(!matchingValues.contains(l.getAllele0()))){matchingValues.add(l.getAllele0());}
-               if((l.getAllele1()!=null)&&(!matchingValues.contains(l.getAllele1()))){matchingValues.add(l.getAllele1());}
-               if((l.getAllele2()!=null)&&(!matchingValues.contains(l.getAllele2()))){matchingValues.add(l.getAllele2());}
-               if((l.getAllele3()!=null)&&(!matchingValues.contains(l.getAllele3()))){matchingValues.add(l.getAllele3());}
+               if((l.getAllele0()!=null)){matchingValues.add(l.getAllele0());}
+               if((l.getAllele1()!=null)){matchingValues.add(l.getAllele1());}
+               if((l.getAllele2()!=null)){matchingValues.add(l.getAllele2());}
+               if((l.getAllele3()!=null)){matchingValues.add(l.getAllele3());}
             }
           }
         }
@@ -1484,7 +1504,7 @@ public Float getMaxDistanceBetweenTwoSightings(){
     if((thisEnc.getLatitudeAsDouble()!=null)&&(thisEnc.getLongitudeAsDouble()!=null)){
     for(int z=(y+1);z<numEncs;z++){
       Encounter nextEnc=(Encounter)encounters.get(z);
-      if((nextEnc.getLatitudeAsDouble()!=null)&&(thisEnc.getLongitudeAsDouble()!=null)){
+      if((nextEnc.getLatitudeAsDouble()!=null)&&(nextEnc.getLongitudeAsDouble()!=null)){
         try{
           Float tempMaxDistance=distFrom(new Float(thisEnc.getLatitudeAsDouble()), new Float(thisEnc.getLongitudeAsDouble()), new Float(nextEnc.getLatitudeAsDouble()), new Float(nextEnc.getLongitudeAsDouble()));
           if(tempMaxDistance>maxDistance){maxDistance=tempMaxDistance;}
@@ -1528,5 +1548,68 @@ public ArrayList<String> getAllAssignedUsers(){
 
    return allIDs;
  }
+
+/**
+ * DO NOT SET DIRECTLY!!
+ * 
+ * @param myDepth
+ */
+public void doNotSetLocalHaplotypeReflection(String myHaplo) {
+  if(myHaplo!=null){localHaplotypeReflection = myHaplo;}
+  else{localHaplotypeReflection = null;}
+}
+
+public long getTimeOfBirth(){return timeOfBirth;}
+public long getTimeofDeath(){return timeOfDeath;}
+
+public void setTimeOfBirth(long newTime){timeOfBirth=newTime;}
+public void setTimeOfDeath(long newTime){timeOfDeath=newTime;}
+
+public ArrayList<Relationship> getAllRelationships(Shepherd myShepherd){
+  return myShepherd.getAllRelationshipsForMarkedIndividual(individualID);
+}
+
+public String getFomattedMSMarkersString(String[] loci){
+  StringBuffer sb=new StringBuffer();
+  int numLoci=loci.length;
+  for(int i=0;i<numLoci;i++){
+    ArrayList<Integer> alleles=getAlleleValuesForLocus(loci[i]);
+    if((alleles.size()>0)&&(alleles.get(0)!=null)){sb.append(alleles.get(0)+" ");}
+    else{sb.append("--- ");}
+    if((alleles.size()>=2)&&(alleles.get(1)!=null)){sb.append(alleles.get(1)+" ");}
+    else{sb.append("--- ");}
+  }
+  return sb.toString();
+}
+
+public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherIndy){
+  
+  DecimalFormat df = new DecimalFormat("#.#");
+  Float minDistance=new Float(1000000);
+  if((encounters!=null)&&(encounters.size()>0)&&(otherIndy.getEncounters()!=null)&&(otherIndy.getEncounters().size()>0)){
+  int numEncs=encounters.size();
+  int numOtherEncs=otherIndy.getEncounters().size();
+  
+  if(numEncs>0){
+  for(int y=0;y<numEncs;y++){
+    Encounter thisEnc=(Encounter)encounters.get(y);
+    if((thisEnc.getLatitudeAsDouble()!=null)&&(thisEnc.getLongitudeAsDouble()!=null)){
+    for(int z=0;z<numOtherEncs;z++){
+      Encounter nextEnc=otherIndy.getEncounter(z);
+      if((nextEnc.getLatitudeAsDouble()!=null)&&(nextEnc.getLongitudeAsDouble()!=null)){
+        try{
+          Float tempMinDistance=distFrom(new Float(thisEnc.getLatitudeAsDouble()), new Float(thisEnc.getLongitudeAsDouble()), new Float(nextEnc.getLatitudeAsDouble()), new Float(nextEnc.getLongitudeAsDouble()));
+          if(tempMinDistance<minDistance){minDistance=tempMinDistance;}
+        }
+        catch(Exception e){e.printStackTrace();System.out.println("Hit an NPE when calculating distance between: "+thisEnc.getCatalogNumber()+" and "+nextEnc.getCatalogNumber());}
+      }
+    }
+  }
+  }
+  }
+  }
+  if(minDistance>999999)minDistance=new Float(-1);
+  return minDistance;
+}
 
 }

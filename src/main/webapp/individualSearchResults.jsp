@@ -84,7 +84,7 @@
 
     Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
     myShepherd.beginDBTransaction();
-    String order = "";
+    String order ="";
 
     MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
     rIndividuals = result.getResult();
@@ -188,7 +188,7 @@
     <td>
       <br/>
 
-      <h1 class="intro"><span class="para"><img src="images/tag_big.gif" width="35"
+      <h1 class="intro"><span class="para"><img src="images/wild-me-logo-only-100-100.png" width="35"
                                                 align="absmiddle"/>
         <%=props.getProperty("title")%>
       </h1>

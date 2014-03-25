@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
-         import="java.util.ArrayList,org.ecocean.CommonConfiguration, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
+         import="java.util.ArrayList,org.ecocean.*, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
   GregorianCalendar cal = new GregorianCalendar();
@@ -654,16 +654,34 @@ if(CommonConfiguration.showProperty("showLifestage")){
     </strong><br/><%=props.getProperty("submit_ifyou")%>
     </td>
   </tr>
-
+    <%
+    //let's pre-populate important info for logged in users
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation="";
+    String project="";
+    if(request.getRemoteUser()!=null){
+    	submitterName=request.getRemoteUser();
+    	Shepherd myShepherd=new Shepherd();
+    	if(myShepherd.getUser(submitterName)!=null){
+    		User user=myShepherd.getUser(submitterName);
+    		if(user.getFullName()!=null){submitterName=user.getFullName();}
+    		if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+    		if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+    		if(user.getUserProject()!=null){project=user.getUserProject();}
+    	}
+    }
+    %>
   <tr>
     <td><font color="#CC0000"><%=props.getProperty("submit_name")%>:</font></td>
-    <td><input name="submitterName" type="text" id="submitterName" size="24"/></td>
+    <td><input name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName%>"/></td>
     <td><%=props.getProperty("submit_name")%>:</td>
     <td><input name="photographerName" type="text" id="photographerName" size="24"/></td>
   </tr>
   <tr>
     <td><font color="#CC0000"><%=props.getProperty("submit_email")%>:</font></td>
-    <td><input name="submitterEmail" type="text" id="submitterEmail" size="24"/></td>
+
+    <td><input name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>"/></td>
     <td><%=props.getProperty("submit_email")%>:</td>
     <td><input name="photographerEmail" type="text" id="photographerEmail" size="24"/></td>
   </tr>
@@ -683,13 +701,13 @@ if(CommonConfiguration.showProperty("showLifestage")){
 
   <tr>
     <td colspan="4"><br /><strong><%=props.getProperty("submitterOrganization")%></strong><br />
-    <input name="submitterOrganization" type="text" id="submitterOrganization" size="75"/>
+    <input name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation%>"/>
     </td>
   </tr>
   
     <tr>
       <td colspan="4"><br /><strong><%=props.getProperty("submitterProject")%></strong><br />
-      <input name="submitterProject" type="text" id="submitterProject" size="75"/>
+      <input name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project%>"/>
       </td>
   </tr>
 
