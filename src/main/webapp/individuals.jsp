@@ -2117,33 +2117,6 @@ else {
 
 </table>
 
-</td>
-</tr>
-</table>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
-<%
-  if (CommonConfiguration.allowAdoptions()) {
-%>
-
-<div id="rightcol" style="vertical-align: top;">
-  <div id="menu" style="vertical-align: top;">
-
-
-    <div class="module">
-      <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-        <jsp:param name="name" value="<%=name%>"/>
-      </jsp:include>
-    </div>
-
-
-  </div><!-- end menu -->
-  </div><!-- end rightcol -->
-
-  <%
-   }
-%>
-
 <br /><br />
 <table>
 <tr>
@@ -2181,6 +2154,35 @@ if(isOwner){
     } //if isEditable
 
 }
+%>
+
+</td>
+</tr>
+</table>
+</div><!-- end maintext -->
+</div><!-- end main-wide -->
+<%
+  if (CommonConfiguration.allowAdoptions()) {
+%>
+
+<div id="rightcol" style="vertical-align: top;">
+  <div id="menu" style="vertical-align: top;">
+
+
+    <div class="module">
+      <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
+        <jsp:param name="name" value="<%=name%>"/>
+      </jsp:include>
+    </div>
+
+
+  </div><!-- end menu -->
+  </div><!-- end rightcol -->
+
+  <%
+   }
+
+
 
 } 
 
