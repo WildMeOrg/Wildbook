@@ -696,14 +696,18 @@ public class MarkedIndividual implements java.io.Serializable {
   }
 
   public void addInterestedResearcher(String email) {
-    interestedResearchers.add(email);
+    if(interestedResearchers==null){interestedResearchers=new Vector();}
+      interestedResearchers.add(email);
+    
   }
 
   public void removeInterestedResearcher(String email) {
-    for (int i = 0; i < interestedResearchers.size(); i++) {
-      String rName = (String) interestedResearchers.get(i);
-      if (rName.equals(email)) {
-        interestedResearchers.remove(i);
+    if(interestedResearchers!=null){
+      for (int i = 0; i < interestedResearchers.size(); i++) {
+        String rName = (String) interestedResearchers.get(i);
+        if (rName.equals(email)) {
+          interestedResearchers.remove(i);
+        }
       }
     }
   }
