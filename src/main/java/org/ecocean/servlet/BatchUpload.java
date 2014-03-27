@@ -18,11 +18,11 @@
  */
 package org.ecocean.servlet;
 
-import org.ecocean.batch.BatchData;
 import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.Part;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -38,8 +38,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.ecocean.*;
-import org.ecocean.batch.BatchParser;
+import org.ecocean.batch.BatchData;
 import org.ecocean.batch.BatchMedia;
+import org.ecocean.batch.BatchParser;
 import org.ecocean.batch.BatchProcessor;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.util.DataUtilities;
@@ -520,7 +521,6 @@ public final class BatchUpload extends DispatchServlet {
         proc.setListSam(data.listSam);
         proc.setServletContext(getServletContext());
         proc.setUser(req.getRemoteUser());
-        proc.setDataDir(getDataDir());
         log.info(String.format("Assigning batch processor for user %s: %s", req.getRemoteUser(), proc));
         processMap.put(req.getRemoteUser(), proc);
 
@@ -803,7 +803,8 @@ public final class BatchUpload extends DispatchServlet {
 
     // Validate/assign media, and assign target filename on local filesystem.
     // This does NOT download the media items, just prepares data relating to them.
-    File dataDir = new File(getDataDir(), req.getRemoteUser());
+    File usersDir = CommonConfiguration.getUsersDataDirectory(getServletContext());
+    File dataDir = new File(usersDir, req.getRemoteUser());
     Map<SinglePhotoVideo, BatchMedia> map = new HashMap<SinglePhotoVideo, BatchMedia>();
     Set<String> spvNames = new HashSet<String>();
     Set<BatchMedia> badMedNoEnc = new LinkedHashSet<BatchMedia>();

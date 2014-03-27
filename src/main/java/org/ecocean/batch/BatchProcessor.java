@@ -22,6 +22,7 @@ package org.ecocean.batch;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -88,6 +89,8 @@ public final class BatchProcessor implements Runnable {
   private ResourceBundle bundle;
   /** Data folder for web application. */
   private File dataDir;
+  /** Data folder for holding user-specific information (parent). */
+  private File dataDirUsers;
   /** Data folder specific to this user (acts as temporary storage area). */
   private File dataDirUser;
   /** ServletContext for web application, to allow access to resources. */
@@ -163,18 +166,14 @@ public final class BatchProcessor implements Runnable {
   /**
    * Sets the {@code ServletContext} to use for contextual reference,
    * which is required to access web application data files.
-   * @param dataDir folder in which non-database data is stored
+   * @param username name of user
    */
-  public void setDataDir(File dataDir) {
-    if (dataDir == null)
+  public void setUser(String username) {
+    if (username == null)
       throw new NullPointerException();
-    if (!dataDir.exists())
-      throw new IllegalArgumentException(String.format("Folder %s doesn't exist", dataDir.getAbsolutePath()));
-    if (!dataDir.isDirectory())
-      throw new IllegalArgumentException(String.format("%s isn't a folder", dataDir.getAbsolutePath()));
-    this.dataDir = dataDir;
-    if (user != null)
-      this.dataDirUser = new File(dataDir, user);
+    if ("".equals(username.trim()))
+      throw new IllegalArgumentException();
+    this.user = username;
   }
 
   /**
@@ -186,12 +185,13 @@ public final class BatchProcessor implements Runnable {
     if (servletContext == null)
       throw new NullPointerException();
     this.servletContext = servletContext;
-  }
-
-  public void setUser(String user) {
-    this.user = user;
-    if (dataDir != null)
-      this.dataDirUser = new File(dataDir, user);
+    try {
+      this.dataDir = CommonConfiguration.getDataDirectory(servletContext);
+      this.dataDirUsers = CommonConfiguration.getUsersDataDirectory(servletContext);
+    }
+    catch (FileNotFoundException ex) {
+      throw new RuntimeException("Unable to locate data folders", ex);
+    }
   }
 
   /**
@@ -266,20 +266,39 @@ public final class BatchProcessor implements Runnable {
 
   public void run() {
     status = Status.INIT;
-    // Setup progress monitoring.
-    // MaxCount:
-    // 1. Download of media from all encounters.
-    // 2. Persistence of encounters.
-    // 3. Persistence of individuals.
-    // 4. Thumb for each media item of each encounter.
-    // 5. Copyright-overlay thumb for each encounter.
-    maxCount = listInd.size() + listEnc.size() * 2;
-    for (Encounter enc : listEnc) {
-      List<SinglePhotoVideo> x = enc.getSinglePhotoVideo();
-      if (x != null)
-        maxCount += x.size() * 2;
-    }
+
     try {
+      // Validate state, and abort if not configured correctly.
+      if (servletContext == null)
+        throw new IllegalStateException("ServletContext has not been configured");
+      if (dataDir == null || dataDirUsers == null)
+        throw new IllegalStateException("Data folders have not been configured");
+      if (user == null)
+        throw new IllegalStateException("User has not been configured");
+
+      if (dataDirUser == null) {
+        dataDirUser = new File(dataDirUsers, user);
+        if (!dataDirUser.exists()) {
+          if (!dataDirUser.mkdir())
+            throw new RuntimeException(String.format("Unable to create user folder: %s", dataDirUser.getAbsolutePath()));
+        } else if (!dataDirUser.isDirectory()) {
+            throw new RuntimeException(String.format("%s isn't a folder", dataDirUser.getAbsolutePath()));
+        }
+      }
+
+      // Setup progress monitoring.
+      // MaxCount:
+      // 1. Download of media from all encounters.
+      // 2. Persistence of encounters.
+      // 3. Persistence of individuals.
+      // 4. Thumb for each media item of each encounter.
+      // 5. Copyright-overlay thumb for each encounter.
+      maxCount = listInd.size() + listEnc.size() * 2;
+      for (Encounter enc : listEnc) {
+        List<SinglePhotoVideo> x = enc.getSinglePhotoVideo();
+        if (x != null)
+          maxCount += x.size() * 2;
+      }
       // Find & instantiate plugin.
       setupPlugin();
 
@@ -675,9 +694,7 @@ public final class BatchProcessor implements Runnable {
     for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
       BatchMedia bp = mapMedia.get(spv);
       if (bp.isDownloaded() && !bp.isOversize()) {
-        // Images initially at <root>/user/X.jpg and need to be at <root>/encounters/<encounter>/X.jpg
-        File srcDir = spv.getFile().getParentFile().getParentFile();
-        File encDir = new File(new File(srcDir, "encounters"), enc.getCatalogNumber());
+        File encDir = new File(new File(dataDir, "encounters"), enc.getCatalogNumber());
         if (!encDir.exists()) {
           if (!encDir.mkdirs())
             throw new IOException("Unable to create folder for encounter " + enc.getCatalogNumber());

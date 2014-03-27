@@ -19,6 +19,7 @@
 package org.ecocean.servlet;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -61,10 +62,15 @@ abstract class DispatchServlet extends HttpServlet
   /**
    * @return The data directory used for web application storage.
    */
-  protected File getDataDir() {
-    String webappRoot = getServletContext().getRealPath("/");
-    File dataDir = new File(webappRoot).getParentFile();
-    return new File(dataDir, CommonConfiguration.getDataDirectoryName());
+  protected File getDataDir() throws FileNotFoundException {
+    return CommonConfiguration.getDataDirectory(getServletContext());
+  }
+
+  /**
+   * @return The data directory used for web application storage.
+   */
+  protected File getUsersDataDir() throws FileNotFoundException {
+    return CommonConfiguration.getUsersDataDirectory(getServletContext());
   }
 
   /**
