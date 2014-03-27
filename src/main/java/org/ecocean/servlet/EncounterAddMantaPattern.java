@@ -138,18 +138,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
           resultComment.append("<br />").append(procArgStr).append("<br /><br />");
           System.out.println(procArgStr);
           
-          pb2.start();
-
-          // Wait a little while to ensure results file has been created (with timeout).
-          File matchFile = mmFiles.get("TXT");
-          long timeStart = System.currentTimeMillis();
-          while (!matchFile.exists() && System.currentTimeMillis() - timeStart < 3000) {
-            try {
-              Thread.sleep(100);
-            } catch (InterruptedException ex) {
-              // Ignore, as irrelevant.
-            }
-          }
+          Process proc = pb2.start();
+          proc.waitFor();
         }
         catch (SecurityException sx) {
           sx.printStackTrace();
@@ -251,18 +241,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
               resultComment.append("<br />").append(procArg2Str).append("<br /><br />");
               System.out.println(procArg2Str);
 
-              pb2.start();
-
-              // Wait a little while to ensure results file has been created (with timeout).
-              File matchFile = mmFiles.get("TXT");
-              long timeStart = System.currentTimeMillis();
-              while (!matchFile.exists() && System.currentTimeMillis() - timeStart < 3000) {
-                try {
-                  Thread.sleep(100);
-                } catch (InterruptedException ex) {
-                  // Ignore, as irrelevant.
-                }
-              }
+              Process proc = pb2.start();
+              proc.waitFor();
             }
             else {
               locked = true;
@@ -342,6 +322,13 @@ public class EncounterAddMantaPattern extends HttpServlet {
       lEx.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to execute the action.");
+      out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
+      out.println(ServletUtilities.getFooter());
+    }
+    catch (InterruptedException ex) {
+      ex.printStackTrace();
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> Algorithm scanning process was unexpectedly interrupted.");
       out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
       out.println(ServletUtilities.getFooter());
     }
