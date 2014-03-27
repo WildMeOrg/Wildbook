@@ -95,7 +95,7 @@ public class MarkedIndividual implements java.io.Serializable {
 
     this.individualID = individualID;
     encounters.add(enc);
-    dataFiles = new Vector();
+    //dataFiles = new Vector();
     numberEncounters = 1;
     this.sex = enc.getSex();
     numUnidentifiableEncounters = 0;
@@ -718,6 +718,7 @@ public class MarkedIndividual implements java.io.Serializable {
    * @param  dataFile  the satellite tag data file to be added
    */
   public void addDataFile(String dataFile) {
+    if(dataFiles==null){dataFiles = new Vector();}
     dataFiles.add(dataFile);
   }
 
@@ -727,7 +728,10 @@ public class MarkedIndividual implements java.io.Serializable {
    * @param  dataFile  The satellite data file, as a String, to be removed.
    */
   public void removeDataFile(String dataFile) {
-    dataFiles.remove(dataFile);
+    if(dataFiles!=null)
+    {
+      dataFiles.remove(dataFile);
+    }
   }
 
   public int getNumberTrainableEncounters() {
