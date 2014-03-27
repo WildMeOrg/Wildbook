@@ -2060,8 +2060,8 @@ else {
 %>
 <br />
 <p>
-<strong><img align="absmiddle" src="images/48px-Crystal_Clear_mimetype_binary.png" /> <%=additionalDataFiles %></strong>: 
-<%if (sharky.getDataFiles().size() > 0) {%>
+<strong><img align="absmiddle" src="images/48px-Crystal_Clear_mimetype_binary.png" /> <%=additionalDataFiles %></strong> 
+<%if ((sharky.getDataFiles()!=null)&&(sharky.getDataFiles().size() > 0)) {%>
 </p>
 <table>
   <%
