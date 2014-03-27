@@ -21,15 +21,12 @@ package org.ecocean;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
-
+import java.util.*;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 public class CommonConfiguration {
@@ -571,7 +568,54 @@ public class CommonConfiguration {
     if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
     return dataDirectoryName;
   }
-  
+
+  /**
+   * Gets the directory for holding website data ('shepherd_data_dir').
+   * @param sc ServletContext as reference for finding directory
+   * @return The data directory used for web application storage.
+   * @throws FileNotFoundException if folder not found (or unable to create)
+   */
+  public static File getDataDirectory(ServletContext sc) throws FileNotFoundException {
+    String webappRoot = sc.getRealPath("/");
+    File dataDir = new File(webappRoot).getParentFile();
+    File f = new File(dataDir, getDataDirectoryName());
+    if (!f.exists() && !f.mkdir())
+      throw new FileNotFoundException("Unable to find/create folder: " + f.getAbsolutePath());
+    return f;
+  }
+
+  /**
+   * Gets the directory for holding user-specific data folders (i.e. parent
+   * folder of each user-specific folder).
+   * @param sc ServletContext as reference for finding directory
+   * @return The user-specific data directory used for web application storage.
+   * @throws FileNotFoundException if folder not found (or unable to create)
+   */
+  public static File getUsersDataDirectory(ServletContext sc) throws FileNotFoundException {
+    File f = new File(getDataDirectory(sc), "users");
+    if (!f.exists() && !f.mkdir())
+      throw new FileNotFoundException("Unable to find/create folder: " + f.getAbsolutePath());
+    return f;
+  }
+
+  /**
+   * Gets the directory for holding user-specific data (e.g. profile photo).
+   * @param sc ServletContext as reference for finding directory
+   * @param username username for which to locate directory
+   * @return The user-specific data directory used for web application storage.
+   * @throws FileNotFoundException if folder not found (or unable to create)
+   */
+  public static File getDataDirectoryForUser(ServletContext sc, String username) throws FileNotFoundException {
+    if (username == null)
+      throw new NullPointerException();
+    if ("".equals(username.trim()))
+      throw new IllegalArgumentException();
+    File f = new File(getUsersDataDirectory(sc), username);
+    if (!f.exists() && !f.mkdir())
+      throw new FileNotFoundException("Unable to find/create folder: " + f.getAbsolutePath());
+    return f;
+  }
+
   /**
    * This configuration option defines whether information about User objects associated with Encounters and MarkedIndividuals will be displayed to web site viewers.
    *

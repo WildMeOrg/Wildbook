@@ -60,9 +60,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
     myShepherd.beginDBTransaction();
     
     //setup data dir
-    String rootWebappPath = getServletContext().getRealPath("/");
-    File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext());
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //if(!encountersDir.exists()){encountersDir.mkdir();}
