@@ -63,7 +63,7 @@
       <ul>
         <li><a
           href="http://www.wildme.org/wildbook" class="enclose" target="_blank"
-          style="margin: 0px 0 0px 0px; position: relative; width: 280px; height: 25px; z-index:
+          style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px; z-index:
           100;"><strong><%=props.getProperty("learnAboutShepherd")%></strong></a>
         </li>
 
@@ -326,7 +326,7 @@
         %>
 
 	        <li><a
-          href="http://www.ecoceanusa.org/shepherd" class="enclose" target="_blank"
+          href="http://www.wildme.org/wildbook" class="enclose" target="_blank"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px; z-index:
           100;"><strong><%=props.getProperty("shepherdDoc")%></strong></a>
         </li>
