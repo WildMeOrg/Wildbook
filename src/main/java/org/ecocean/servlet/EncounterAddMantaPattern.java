@@ -123,6 +123,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           // Delete previous matching files.
           mmFiles.get("TXT").delete();
           mmFiles.get("CSV").delete();
+          mmFiles.get("XHTML").delete(); // Retained to clean up old files.
 
           List<String> procArg = ListHelper.create("/usr/bin/mmatch")
                   .add(encountersDir.getAbsolutePath())
