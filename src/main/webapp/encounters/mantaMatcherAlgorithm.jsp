@@ -34,9 +34,7 @@ try {
   }
 
   //let's set up references to our file system components
-  String rootWebappPath = getServletContext().getRealPath("/");
-  File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext());
 
 %>
   <p><strong>Matching Algorithm</strong></p>
@@ -51,7 +49,8 @@ try {
       File mmCR = mmFiles.get("CR");
       if (mmCR.exists()) {
         File mmFT = mmFiles.get("FT");
-        if (mmFT.exists() && (request.isUserInRole("admin") || request.isUserInRole("imageProcessor"))) {
+        File mmFEAT = mmFiles.get("FEAT");
+        if (mmFT.exists() && mmFEAT.exists() && (request.isUserInRole("admin") || request.isUserInRole("imageProcessor"))) {
 %>
           <p style="background-color:#f0f0f0;"><em>Extracted Feature Image for Image <%=(t+1) %>.</em></p>
             <p><img width="300px" height="*" src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=mmFT.getName()%>"/></p>
