@@ -125,7 +125,7 @@ public class EncounterSetScarring extends HttpServlet {
         out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter(context));
         String message = "Encounter #" + request.getParameter("number") + " scarring has been updated from " + oldScar + " to " + scar + ".";
-        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Encounter scarring was NOT updated because another user is currently modifying this reconrd. Please try to reset the scarring again in a few seconds.");

@@ -95,7 +95,7 @@ public class IndividualSetSex extends HttpServlet {
         out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter(context));
         String message = "The sex for " + request.getParameter("individual") + " has been updated from " + oldSex + " to " + request.getParameter("selectSex") + ".";
-        ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message);
+        ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
       } else {
 
         out.println(ServletUtilities.getHeader(request));

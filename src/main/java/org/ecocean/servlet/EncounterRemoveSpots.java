@@ -129,7 +129,7 @@ public class EncounterRemoveSpots extends HttpServlet {
         out.println("<strong>Success:</strong> I have removed spot data for encounter " + request.getParameter("number") + ".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         String message = "The spot-matching data for encounter " + request.getParameter("number") + " was removed.";
-        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
 
         if (assigned) {

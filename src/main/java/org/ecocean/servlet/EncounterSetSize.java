@@ -129,8 +129,7 @@ public class EncounterSetSize extends HttpServlet {
             out.println("<p><a href=\"individualSearchResults.jsp\">View all sharks</a></font></p>");
             out.println(ServletUtilities.getFooter(context));
             String message = "Encounter #" + request.getParameter("number") + " size has been updated from " + oldSize + " " + oldUnits + "(" + oldGuess + ")" + " to " + request.getParameter("lengthField") + " " + request.getParameter("lengthUnits") + "(" + request.getParameter("guessList") + ").";
-            ServletUtilities.informInterestedParties(request, request.getParameter("number"),
-              message);
+            ServletUtilities.informInterestedParties(request, request.getParameter("number"),message,context);
           } else if (!okNumberFormat) {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter size was NOT updated because I did not understand the value that you entered. The value must be zero or greater. A value of zero indicates an unknown length.");

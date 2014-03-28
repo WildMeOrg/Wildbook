@@ -122,7 +122,7 @@ public class EncounterApprove extends HttpServlet {
         
         out.println(ServletUtilities.getFooter(context));
         String message = "Encounter " + request.getParameter("number") + " was approved for inclusion in the visual database.";
-        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> I have NOT approved this encounter " + request.getParameter("number") + " for the visual database. This new encounter is currently being modified by another user.");

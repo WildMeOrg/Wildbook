@@ -135,9 +135,9 @@ public class IndividualRemoveEncounter extends HttpServlet {
           }
           out.println(ServletUtilities.getFooter(context));
           String message = "Encounter #" + request.getParameter("number") + " was removed from " + old_name + ".";
-          ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+          ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
           if (!wasRemoved) {
-            ServletUtilities.informInterestedIndividualParties(request, old_name, message);
+            ServletUtilities.informInterestedIndividualParties(request, old_name, message,context);
           }
         } else {
           out.println(ServletUtilities.getHeader(request));

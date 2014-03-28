@@ -149,7 +149,7 @@ public class EncounterRemoveImage extends HttpServlet {
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
           String message = "An image file named " + fileName + " has been removed from encounter#" + encounterNumber + ".";
-          ServletUtilities.informInterestedParties(request, encounterNumber, message);
+          ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
         } else {
 
           out.println(ServletUtilities.getHeader(request));
