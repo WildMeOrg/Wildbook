@@ -103,7 +103,7 @@ public class EncounterResetDate extends HttpServlet {
         out.println("<strong>Success:</strong> I have changed the encounter date from " + oldDate + " to " + newDate + ".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         String message = "The date of encounter #" + request.getParameter("number") + " was changed from " + oldDate + " to " + newDate + ".";
-        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
 
         out.println("<strong>Failure:</strong> I have NOT changed the encounter date because another user is currently modifying this encounter. Please try this operation again in a few seconds.");

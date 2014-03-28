@@ -167,7 +167,7 @@ public class UserCreate extends HttpServlet {
           String thisRole=roles[i].trim();
 
           Role role=new Role();
-          if(myShepherd.getRole(thisRole,username)==null){
+          if(myShepherd.getRole(thisRole,username,context)==null){
             
             role.setRolename(thisRole);
             role.setUsername(username);

@@ -143,7 +143,7 @@ public class EncounterSetGPS extends HttpServlet {
             out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
                 out.println(ServletUtilities.getFooter(context));
             String message="The recorded GPS location for encounter #"+request.getParameter("number")+" has been updated from "+oldGPS+" to "+newGPS+".";
-            ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+            ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
             }
           else{
             

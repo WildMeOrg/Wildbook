@@ -221,7 +221,7 @@ public class IndividualCreate extends HttpServlet {
             out.println(ServletUtilities.getFooter(context));
             String message = "Encounter #" + request.getParameter("number") + " was identified as a new individual. The new individual has been named " + newIndividualID + ".";
             if (request.getParameter("noemail") == null) {
-              ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+              ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
             }
           } else {
             out.println(ServletUtilities.getHeader(request));

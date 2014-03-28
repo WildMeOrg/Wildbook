@@ -283,8 +283,8 @@ public class IndividualAddEncounter extends HttpServlet {
             String message = "Encounter #" + request.getParameter("number") + " was added to " + request.getParameter("individual") + ".";
 
             if (request.getParameter("noemail") == null) {
-              ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
-              ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message);
+              ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
+              ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
             }
             es.shutdown();
           }

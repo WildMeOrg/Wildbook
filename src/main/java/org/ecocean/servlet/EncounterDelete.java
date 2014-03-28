@@ -77,7 +77,7 @@ public class EncounterDelete extends HttpServlet {
 
     if (!(request.getParameter("number") == null)) {
       String message = "Encounter #" + request.getParameter("number") + " was deleted from the database.";
-      ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+      ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       myShepherd.beginDBTransaction();
       Encounter enc2trash = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2trash);

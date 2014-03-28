@@ -104,7 +104,7 @@ public class EncounterSetMatchedBy extends HttpServlet {
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
         String message = "The matched by type for encounter " + encounterNumber + " was changed from " + prevMatchedBy + " to " + matchedBy + ".";
-        ServletUtilities.informInterestedParties(request, encounterNumber, message);
+        ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
       } else {
 
         out.println(ServletUtilities.getHeader(request));

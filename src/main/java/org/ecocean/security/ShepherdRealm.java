@@ -78,15 +78,16 @@ public class ShepherdRealm extends AuthorizingRealm {
     return password;
   }
 
-    protected Set getRoleNamesForUser(String username){
+    protected Set getRoleNamesForUserInContext(String username,String context){
         
         Set roleNames = new TreeSet();
+        //always use context0 below as all users are stored there
         Shepherd myShepherd=new Shepherd("context0");
         myShepherd.beginDBTransaction();
         if(myShepherd.getUser(username)!=null){
           
             User user=myShepherd.getUser(username);
-            ArrayList<Role> roles=myShepherd.getAllRolesForUser(username);
+            ArrayList<Role> roles=myShepherd.getAllRolesForUserInContext(username,context);
             int numRoles=roles.size();
             for(int i=0;i<numRoles;i++){
               roleNames.add(roles.get(i).getRolename());
@@ -102,7 +103,8 @@ public class ShepherdRealm extends AuthorizingRealm {
     
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
      String username = (String) principals.getPrimaryPrincipal();
-     return new SimpleAuthorizationInfo(getRoleNamesForUser(username));
+     String context=ServletUtilities.getContext(request);
+     return new SimpleAuthorizationInfo(getRoleNamesForUserInContext(username,context));
 }
 
 }

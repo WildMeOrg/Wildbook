@@ -243,7 +243,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
             out.println("<p><input name=\"addtlFile\" type=\"submit\" id=\"addtlFile\" value=\"Upload spot image file\"></p>");
             out.println("</form><p><i>Other options: </i></p>");
             String message = "Spot-matching data was uploaded for encounter#" + num + ".";
-            ServletUtilities.informInterestedParties(request, num, message);
+            ServletUtilities.informInterestedParties(request, num, message,context);
 
           }
           //check for right-side spot submissions
@@ -267,7 +267,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
             out.println("<p><input name=\"addtlFile\" type=\"submit\" id=\"addtlFile\" value=\"Upload spot image file\"></p>");
             out.println("</form><p><i>Other options: </i></p>");
             String message = "Spot-matching data was uploaded for encounter#" + num + ".";
-            ServletUtilities.informInterestedParties(request, num, message);
+            ServletUtilities.informInterestedParties(request, num, message,context);
 
           } else if ((enc.getSpots() != null) && (!haveData) && (side.equals("left"))) {
             out.println("<p>You didn't submit any data!</p>");

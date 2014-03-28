@@ -123,7 +123,7 @@ public class EncounterSetIdentifiable extends HttpServlet {
         }
         out.println(ServletUtilities.getFooter(context));
         String message = "Encounter #" + request.getParameter("number") + " was accepted back into the visual database.";
-        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Encounter #" + request.getParameter("number") + " was NOT successfully added back into the visual database. This encounter is currently being modified by another user. Please try this operation again in a few seconds.");

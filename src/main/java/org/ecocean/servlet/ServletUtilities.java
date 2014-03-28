@@ -117,9 +117,9 @@ public class ServletUtilities {
 
   }
 
-  public static void informInterestedParties(HttpServletRequest request, String number, String message) {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+  public static void informInterestedParties(HttpServletRequest request, String number, String message, String context) {
+    //String context="context0";
+    //context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
     
@@ -141,13 +141,13 @@ public class ServletUtilities {
           String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Encounter " + number + ": " + message + "\n\nLink to encounter: http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + number));
           email += ("\n\nWant to stop tracking this set of encounter data? Use this link.\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?number=" + number + "&email=");
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images));
+          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images, context));
 
 
           //NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: "+number), (email+mailMe), e_images);
           for (int j = 1; j < size; j++) {
             mailMe = interested[j];
-            es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images));
+            es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images, context));
           }
         }
       }
@@ -166,9 +166,7 @@ public class ServletUtilities {
   }
 
   //inform researchers that have logged an interest with the encounter or marked individual
-  public static void informInterestedIndividualParties(HttpServletRequest request, String shark, String message) {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+  public static void informInterestedIndividualParties(HttpServletRequest request, String shark, String message, String context) {
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
 
@@ -192,10 +190,10 @@ public class ServletUtilities {
             String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Tag " + shark + ": " + message + "\n\nLink to individual: http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark));
             email += ("\n\nWant to stop tracking this set of this individual's data? Use this link.\n\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?shark=" + shark + "&email=");
 
-            es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Marked individual data update: " + shark), (email + mailMe), e_images));
+            es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), mailMe, ("Marked individual data update: " + shark), (email + mailMe), e_images,context));
             for (int j = 1; j < size; j++) {
               mailMe = interested[j];
-              es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Individual data update: " + shark), (email + mailMe), e_images));
+              es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), mailMe, ("Individual data update: " + shark), (email + mailMe), e_images,context));
             }
           }
         }
