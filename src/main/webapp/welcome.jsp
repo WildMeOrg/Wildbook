@@ -98,12 +98,12 @@ context=ServletUtilities.getContext(request);
           </strong>.
           </p>
 
-          <p><%=props.getProperty("grantedRole")%>
+          <p><%=props.getProperty("grantedRole")%><br />
 			<%
 			Shepherd myShepherd=new Shepherd(context);
 			myShepherd.beginDBTransaction();
 			%>
-             <strong><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser())%></strong></p>
+             <strong><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser()).replaceAll("\r","<br />")%></strong></p>
             
             <%
             

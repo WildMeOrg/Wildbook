@@ -7,12 +7,19 @@ import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.*;
 import org.apache.shiro.subject.*;
 import org.ecocean.*;
+import org.apache.shiro.SecurityUtils;
 
 import java.util.TreeSet;
 import java.util.Set;
 import java.util.ArrayList;
 
+import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.ecocean.servlet.ServletUtilities;
+import org.apache.shiro.mgt.RealmSecurityManager;
+
+import org.apache.shiro.web.util.WebUtils;
+
+import javax.servlet.http.HttpServletRequest;
 
 public class ShepherdRealm extends AuthorizingRealm {
 
@@ -82,6 +89,8 @@ public class ShepherdRealm extends AuthorizingRealm {
         
         Set roleNames = new TreeSet();
         //always use context0 below as all users are stored there
+
+        
         Shepherd myShepherd=new Shepherd("context0");
         myShepherd.beginDBTransaction();
         if(myShepherd.getUser(username)!=null){
@@ -103,8 +112,12 @@ public class ShepherdRealm extends AuthorizingRealm {
     
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
      String username = (String) principals.getPrimaryPrincipal();
-     String context=ServletUtilities.getContext(request);
-     return new SimpleAuthorizationInfo(getRoleNamesForUserInContext(username,context));
+     Subject subject = SecurityUtils.getSubject();
+     HttpServletRequest request = WebUtils.getHttpRequest(subject); 
+     //String context=ServletUtilities.getContext(ShiroHttpServletRequest);
+     //ServletContainerSessionManager.
+
+     return new SimpleAuthorizationInfo(getRoleNamesForUserInContext(username,ServletUtilities.getContext(request)));
 }
 
 }

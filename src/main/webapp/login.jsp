@@ -146,6 +146,11 @@ context=ServletUtilities.getContext(request);
             <td><input type="password" name="password" maxlength="50" /></td>
         </tr>
         <tr>
+        <td colspan="2" align="left">
+        <input type="checkbox" name="rememberMe" value="true"/> Remember Me? 
+        </td>
+        </tr>
+        <tr>
             <td colspan="2" align="right"><input type="submit" name="submit" value="Login" /></td>
         </tr>
     </table>

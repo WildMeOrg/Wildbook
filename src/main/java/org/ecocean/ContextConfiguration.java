@@ -72,6 +72,12 @@ public static Properties getContexts(){
     return null;
   }
   
+  public static String getNameForContext(String context){
+    initialize();
+    if(props.getProperty((context+"Name"))!=null){return props.getProperty((context+"Name"));}
+    return null;
+  }
+  
 }
 
   
