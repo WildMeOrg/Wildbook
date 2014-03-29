@@ -432,7 +432,8 @@ public class Shepherd {
     for(int i=0;i<numRoles;i++){
       String context="context0";
       if(roles.get(i).getContext()!=null){context=roles.get(i).getContext();}
-      rolesFound+=(context+":"+roles.get(i).getRolename()+" ");
+      String contextName=ContextConfiguration.getNameForContext(context);
+      rolesFound+=(contextName+":"+roles.get(i).getRolename()+"\r");
     }
     acceptedEncounters.closeAll();
     return rolesFound;
