@@ -25,6 +25,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -130,12 +132,31 @@ public class CommonConfiguration {
   }
 
   /**
+   * Utility method to return a {@code URI} instance for the specified
+   * context path of the server relating to the servlet request.
+   * This method ensures all appropriate encoding is performed for the respective
+   * parts of the URI.
    * @param req HttpServletRequest for which to return server root URI
-   * @return The server's root URI (scheme-relative), comprising server name,
-   * port, and trailing slash (e.g. <em>//server:8080/</em>).
+   * @param contextPath context path for the URI (must start with '/')
+   * @return URI for the specified context path
+   * @throws URISyntaxException if thrown when creating URI
    */
-  public static String getServerRootURI(HttpServletRequest req) {
-    return String.format("//%s:%d/", req.getServerName(), req.getServerPort());
+  public static URI getServerURI(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return new URI(req.getScheme(), null, req.getServerName(), req.getServerPort(), contextPath, null, null).normalize();
+  }
+
+  /**
+   * Utility method to return a URL string for the specified
+   * context path of the server relating to the servlet request.
+   * This method ensures all appropriate encoding is performed for the respective
+   * parts of the URI.
+   * @param req HttpServletRequest for which to return server root URL
+   * @param contextPath context path for the URI (must start with '/')
+   * @return URI string for the server's root (without context path)
+   * @throws URISyntaxException if thrown when creating URI
+   */
+  public static String getServerURL(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return getServerURI(req, contextPath).toASCIIString();
   }
 
   public static String getMailHost() {

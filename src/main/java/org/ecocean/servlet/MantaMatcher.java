@@ -22,6 +22,7 @@ import freemarker.template.Configuration;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URI;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -93,7 +94,8 @@ public final class MantaMatcher extends DispatchServlet {
       }
 
       // URL prefix of the encounters folder (for image links).
-      String encUrlPrefix = String.format("%s%s/encounters", CommonConfiguration.getServerRootURI(req), CommonConfiguration.getDataDirectoryName());
+      String dir = "/" + CommonConfiguration.getDataDirectoryName() + "/encounters";
+      String encUrlPrefix = String.format("%s/", CommonConfiguration.getServerURL(req, dir));
       // Format string for encounter page URL (with placeholder).
       String pageFormat = "//" + CommonConfiguration.getURLLocation(req) + "/encounters/encounter.jsp?number=%s";
       // Parse MantaMatcher results files ready for display.
@@ -101,8 +103,8 @@ public final class MantaMatcher extends DispatchServlet {
 
       // Write results page to output (with support HTTP/1.1).
       int len = html.getBytes("UTF-8").length;
-      res.setContentType("text/html");
-      res.setHeader("Content-Encoding", "UTF-8");
+      res.setCharacterEncoding("UTF-8");
+      res.setContentType("text/html; charset=UTF-8");
       res.setContentLength(len);
       PrintWriter pw = res.getWriter();
       pw.append(html);
