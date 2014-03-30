@@ -21,6 +21,7 @@ package org.ecocean;
 
 
 import java.util.Properties;
+import java.util.ArrayList;
 
 public class ContextConfiguration {
   
@@ -31,7 +32,7 @@ public class ContextConfiguration {
   
   private static volatile int propsSize = 0;
 
-public static Properties getContexts(){
+public static Properties getContextsProperties(){
   initialize();
   return props;
 }
@@ -76,6 +77,19 @@ public static Properties getContexts(){
     initialize();
     if(props.getProperty((context+"Name"))!=null){return props.getProperty((context+"Name"));}
     return null;
+  }
+  
+  public static ArrayList<String> getContextNames(){
+    ArrayList<String> names=new ArrayList<String>();
+    int contextNum=0;
+    while(getNameForContext(("context"+contextNum))!=null){
+      
+      names.add(getNameForContext(("context"+contextNum)));
+      contextNum++;
+    }
+    
+    return names;
+    
   }
   
 }

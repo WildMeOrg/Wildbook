@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
-<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.util.Properties" %>
 
 
 <%
@@ -268,7 +268,7 @@ context=ServletUtilities.getContext(request);
 		        		    	</td>
 		        	<form action="../UserCreate<%=isEditAddition %>" method="post" id="newUser">	    
     		    	<td><table width="100%" class="tissueSample">
-      				<tr><td colspan="4"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured, listed in commonConfiguration.properties, and matched to the URL-based functions of the Shepherd Project in the Apache Shiro filter in web.xml.</em></td></tr>
+      				<tr><td colspan="3"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured, listed in commonConfiguration.properties, and matched to the URL-based functions of the Shepherd Project in the Apache Shiro filter in web.xml.</em></td></tr>
       				<tr>
             			
                         <%
@@ -285,13 +285,38 @@ context=ServletUtilities.getContext(request);
                         <td>Confirm Password: <input name="password2" type="password" size="15" maxlength="90" <%=disabled %>></input></td>
                         
                         
-                        <td> Roles (multi-select): 
-                        	<select multiple="multiple" name="rolename" id="rolename" size="5" required="required">
+
+            		</tr>
+                    <tr><td colspan="3">Full name: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
+                    <tr><td colspan="2">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+                    <tr><td colspan="3">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
+                     <tr><td colspan="3">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
+                          
+                    <tr><td colspan="3">Project URL: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
+		     <tr><td colspan="3" valign="top">User Statement (255 char. max): <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
+                    
+                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
+            </table>
+            </td>
+            <td>
+            <table>
+           
+            <%
+            ArrayList<String> contexts=ContextConfiguration.getContextNames();
+            int numContexts=contexts.size();
+            for(int d=0;d<numContexts;d++){
+            	%>
+            	 <tr>
+            <td>
+            
+            
+            Roles for <%=ContextConfiguration.getNameForContext(("context"+d)) %>(multi-select): 
+                        	<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5" required="required">
 								<%
 								for(int q=0;q<numRoles;q++){
 									String selected="";
 									if((request.getParameter("isEdit")!=null)&&(myShepherd.getUser(request.getParameter("username").trim())!=null)){
-										if(myShepherd.doesUserHaveRole(request.getParameter("username").trim(),roles.get(q))){
+										if(myShepherd.doesUserHaveRole(request.getParameter("username").trim(),roles.get(q),("context"+d))){
 											selected="selected=\"true\"";
 										}
 									}
@@ -304,19 +329,20 @@ context=ServletUtilities.getContext(request);
 								%>
                                 
             				</select>
-                        </td>	
-            		</tr>
-                    <tr><td colspan="4">Full name: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
-                    <tr><td colspan="3">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
-                    <tr><td colspan="4">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
-                     <tr><td colspan="4">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
-                          
-                    <tr><td colspan="4">Project URL: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
-		     <tr><td colspan="4" valign="top">User Statement (255 char. max): <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
-                    
-                    <tr><td colspan="4"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
+            
+            
+            </td>
+            </tr>
+            <%	
+            }
+            %>
+            
             </table>
-            </td></form>
+				
+            </td>	
+            
+            
+            </form>
             </tr>
             </table>
     	
