@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import java.util.Properties;
+
 
 public class UserCreate extends HttpServlet {
 
@@ -78,7 +80,7 @@ public class UserCreate extends HttpServlet {
 
     //create a new Role from an encounter
 
-    if ((request.getParameterValues("rolename") != null) && (request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (((request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals("")) && (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))) || (request.getParameter("isEdit")!=null))) {
+    if ((request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (((request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals("")) && (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))) || (request.getParameter("isEdit")!=null))) {
       
       String username=request.getParameter("username").trim();
       
@@ -160,26 +162,37 @@ public class UserCreate extends HttpServlet {
         }
         
         
-        String[] roles=request.getParameterValues("rolename");
-        int numRoles=roles.length;
-        for(int i=0;i<numRoles;i++){
+        //start role processing
+        
+        ArrayList<String> contexts=ContextConfiguration.getContextNames();
+        int numContexts=contexts.size();
+        for(int d=0;d<numContexts;d++){
+        
+          String[] roles=request.getParameterValues("context"+d+"rolename");
+          int numRoles=roles.length;
+          for(int i=0;i<numRoles;i++){
 
-          String thisRole=roles[i].trim();
+            String thisRole=roles[i].trim();
 
-          Role role=new Role();
-          if(myShepherd.getRole(thisRole,username,context)==null){
+            Role role=new Role();
+            if(myShepherd.getRole(thisRole,username,context)==null){
             
-            role.setRolename(thisRole);
-            role.setUsername(username);
-            myShepherd.getPM().makePersistent(role);
-            addedRoles+=(roles[i]+" ");
-            //System.out.println(addedRoles);
-            myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-          }
+              role.setRolename(thisRole);
+              role.setUsername(username);
+              role.setContext("context"+d);
+              myShepherd.getPM().makePersistent(role);
+              addedRoles+=(roles[i]+" ");
+              //System.out.println(addedRoles);
+              myShepherd.commitDBTransaction();
+              myShepherd.beginDBTransaction();
+            }
         
           
+          }
         }
+        //end role processing
+        
+        
 
         myShepherd.commitDBTransaction();    
         myShepherd.closeDBTransaction();
