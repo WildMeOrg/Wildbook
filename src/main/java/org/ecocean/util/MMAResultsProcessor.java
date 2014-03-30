@@ -153,7 +153,7 @@ public final class MMAResultsProcessor {
       if (!fCR.isFile())
         throw new FileNotFoundException("File not found: " + fCR.getAbsolutePath());
       String nameCR = fCR.getName();
-      String nameCR_url = URLEncoder.encode(nameCR, "US-ASCII");
+      String nameCR_url = URLEncoder.encode(nameCR, "UTF-8");
       String encUrl = String.format(pageUrlFormat, fCR.getParentFile().getName());
       modelResult.put("link", encUrl);
       modelResult.put("name", nameCR.substring(0, nameCR.indexOf("_CR")));
@@ -171,6 +171,9 @@ public final class MMAResultsProcessor {
       List modelMatches = new ArrayList();
       modelResult.put("matches", modelMatches);
       for (MMAMatch match : test.getValue()) {
+        // Null-check needed in case referent wasn't found.
+        if (match.fileRef == null)
+          continue;
         File dir = match.fileRef.getParentFile();
         String encUrlMatch = String.format(pageUrlFormat, dir.getName());
         Map modelMatch = new HashMap();
@@ -270,9 +273,9 @@ public final class MMAResultsProcessor {
    * @param text text of core section of the results file
    * @param dirTest folder containing test images (for deriving reference folder)
    * @throws ParseException if there is a problem during parsing
-   * @throws FileNotFoundException if {@code dirTest} is not found
+   * @throws IOException if there is a problem locating {@code dirTest}
    */
-  private static void parseMatchResultsCore(MMAResult result, String text, File dirTest) throws ParseException, FileNotFoundException {
+  private static void parseMatchResultsCore(MMAResult result, String text, File dirTest) throws ParseException, IOException {
     Scanner sc = null;
     try {
       sc = new Scanner(text).useDelimiter("[\\r\\n]+");
@@ -429,9 +432,9 @@ public final class MMAResultsProcessor {
    * @param dir folder in which to search
    * @param root root filename
    * @return file reference
-   * @throws FileNotFoundException if {@code dir} is not found
+   * @throws IOException if there is a problem locating {@code dir}
    */
-  private static File findReferenceFile(File dir, String root) throws FileNotFoundException {
+  private static File findReferenceFile(File dir, String root) throws IOException {
     StringBuilder sb = new StringBuilder();
     sb.append("^").append(root).append("\\.").append(MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES);
     FilenameFilter ff = new RegexFilenameFilter(sb.toString());
@@ -441,8 +444,13 @@ public final class MMAResultsProcessor {
     if (files.length == 0)
       return null;
     if (files.length > 1)
-      log.warn(String.format("Found %d matching image files in folder: %s", files.length, dir.getAbsolutePath()));
-    return files[0];
+    // Double-check for existence of file.
+    for (File f : files) {
+      if (f.exists()) {
+        return f;
+      }
+    }
+    return null;
   }
 
   /**

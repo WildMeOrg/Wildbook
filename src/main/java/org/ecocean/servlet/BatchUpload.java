@@ -207,9 +207,9 @@ public final class BatchUpload extends DispatchServlet {
       BatchParser bp = new BatchParser(req.getLocale());
       String template = bp.generateTemplates()[index];
       int len = template.getBytes("UTF-8").length;
-      res.setContentType("text/csv");
+      res.setCharacterEncoding("UTF-8");
+      res.setContentType("text/csv; charset=UTF-8");
       res.setHeader("Content-Disposition", "attachment; filename=\"" + BTF[index] + "\"");
-      res.setHeader("Content-Encoding", "UTF-8");
       res.setContentLength(len);
 //      log.debug(String.format("Sending template '%s' to client (%d bytes)", BTF[index], len));
       PrintWriter pw = res.getWriter();
@@ -565,7 +565,8 @@ public final class BatchUpload extends DispatchServlet {
       }
       sb.append("}");
 //      log.trace("Prepared JSON response: " + sb.toString());
-      res.setContentType("application/json");
+      res.setContentType("application/json; charset=UTF-8");
+      res.setCharacterEncoding("UTF-8");
       res.getOutputStream().write(sb.toString().getBytes("UTF-8"));
       res.getOutputStream().flush();
     } catch (Throwable th) {
