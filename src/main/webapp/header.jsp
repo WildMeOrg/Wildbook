@@ -257,7 +257,7 @@ context=ServletUtilities.getContext(request);
 		%>
 		
 	<li><a
-	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp"
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp?context=context0"
 	          class="enclose"
 	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userManagement")%>
         </a></li>	
