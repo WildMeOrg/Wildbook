@@ -166,16 +166,18 @@ public class UserCreate extends HttpServlet {
         
         ArrayList<String> contexts=ContextConfiguration.getContextNames();
         int numContexts=contexts.size();
+        //System.out.println("numContexts is: "+numContexts);
         for(int d=0;d<numContexts;d++){
         
           String[] roles=request.getParameterValues("context"+d+"rolename");
           int numRoles=roles.length;
+          //System.out.println("numRoles in context"+d+" is: "+numRoles);
           for(int i=0;i<numRoles;i++){
 
             String thisRole=roles[i].trim();
 
             Role role=new Role();
-            if(myShepherd.getRole(thisRole,username,context)==null){
+            if(myShepherd.getRole(thisRole,username,("context"+d))==null){
             
               role.setRolename(thisRole);
               role.setUsername(username);
@@ -185,6 +187,7 @@ public class UserCreate extends HttpServlet {
               //System.out.println(addedRoles);
               myShepherd.commitDBTransaction();
               myShepherd.beginDBTransaction();
+              //System.out.println("Creating role: context"+d+thisRole);
             }
         
           
