@@ -88,3 +88,14 @@ p#ajaxProblem {
 .hidden {
   visibility: hidden;
 }
+div.debug {
+  border: 1px solid #090;
+  font-size: 0.75em;
+  color: #090;
+}
+div.debug li span.key {
+  font-weight: bold;
+}
+div.debug ul li span.val {
+  font-family: monospace;
+}

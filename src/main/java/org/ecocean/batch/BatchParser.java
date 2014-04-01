@@ -383,7 +383,7 @@ public class BatchParser {
    * Performs CSV file parsing.
    * Parsing is somewhat tolerant, as column order is not enforced,
    * and data types are coerced to some degree.
-   * (e.g. boolean => true/false/yes/no)
+   * (e.g. boolean =&gt; true/false/yes/no)
    * @param csvFile CSV file to parse
    * @param type type of data item to parsed
    * @return map of field keys to values
@@ -546,7 +546,7 @@ public class BatchParser {
       case SIMPLE_MULTI:  // Returns a list of SIMPLE-type objects.
         // Determine simple type to use.
         List x = new ArrayList();
-        String delim = String.valueOf(value.charAt(0));
+        String delim = Character.toString(value.charAt(0));
         for (StringTokenizer st = new StringTokenizer(value, delim); st.hasMoreTokens();)
           x.add(parseSimple(group1, st.nextToken()));
         return x;
