@@ -666,6 +666,8 @@ public final class BatchProcessor implements Runnable {
     BufferedImage img = MediaUtilities.loadImageAsSRGB(src);
     BufferedImage out = MediaUtilities.rescaleImage(img, w, h, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
     MediaUtilities.saveImageJPEG(out, dst, false, 0.6f, false);
+    out.flush();
+    img.flush();
   }
 
   /**
@@ -682,6 +684,8 @@ public final class BatchProcessor implements Runnable {
     BufferedImage img = MediaUtilities.loadImageAsSRGB(src);
     BufferedImage out = MediaUtilities.rescaleImageWithTextOverlay(img, w, h, text);
     MediaUtilities.saveImageJPEG(out, dst, false, 0.6f, false);
+    out.flush();
+    img.flush();
   }
 
   /**
