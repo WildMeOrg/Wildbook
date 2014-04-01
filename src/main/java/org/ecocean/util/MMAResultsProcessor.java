@@ -127,7 +127,7 @@ public final class MMAResultsProcessor {
 
     // Construct test dir-path & URL-prefix from ref versions.
     File testDir = spv.getFile().getParentFile();
-    String testUrlPrefix = String.format("%s/%s", refUrlPrefix, testDir.getName());
+    String testUrlPrefix = String.format("%s%s", refUrlPrefix, testDir.getName());
 //    log.trace(String.format("testDir      : %s", testDir));
 //    log.trace(String.format("testUrlPrefix: %s", testUrlPrefix));
 //    log.trace(String.format("refUrlPrefix : %s", refUrlPrefix));
@@ -198,9 +198,9 @@ public final class MMAResultsProcessor {
           String fnCR = mmMap.get("CR").getName();
           String fnEH = mmMap.get("EH").getName();
           String fnFT = mmMap.get("FT").getName();
-          modelMatch.put("linkCR", String.format("%s/%s/%s", refUrlPrefix, dir.getName(), fnCR));
-          modelMatch.put("linkEH", String.format("%s/%s/%s", refUrlPrefix, dir.getName(), fnEH));
-          modelMatch.put("linkFT", String.format("%s/%s/%s", refUrlPrefix, dir.getName(), fnFT));
+          modelMatch.put("linkCR", String.format("%s%s/%s", refUrlPrefix, dir.getName(), fnCR));
+          modelMatch.put("linkEH", String.format("%s%s/%s", refUrlPrefix, dir.getName(), fnEH));
+          modelMatch.put("linkFT", String.format("%s%s/%s", refUrlPrefix, dir.getName(), fnFT));
           modelMatches.add(modelMatch);
 //          log.trace(String.format("nameCR: %s", modelMatch.get("nameCR")));
 //          log.trace(String.format("nameEH: %s", modelMatch.get("nameEH")));
@@ -444,6 +444,7 @@ public final class MMAResultsProcessor {
     if (files.length == 0)
       return null;
     if (files.length > 1)
+      log.warn(String.format("Found %d matching image files in folder: %s", files.length, dir.getAbsolutePath()));
     // Double-check for existence of file.
     for (File f : files) {
       if (f.exists()) {

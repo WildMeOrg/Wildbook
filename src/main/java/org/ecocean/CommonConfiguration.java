@@ -383,6 +383,7 @@ public class CommonConfiguration {
   /**
    * Helper method to parse boolean from string.
    * @param s string to parse
+   * @param def default value
    * @return true if s is one of { true, yes, ok, 1 }
    */
   private static boolean parseBoolean(String s, boolean def) {
