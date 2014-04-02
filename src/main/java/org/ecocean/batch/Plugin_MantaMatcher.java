@@ -159,6 +159,8 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
       }
       // Increment progress counter.
       incrementCounter();
+      // Take a breath to avoid hogging resources through external calls.
+      Thread.yield();
     }
   }
 
