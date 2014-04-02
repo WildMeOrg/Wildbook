@@ -531,6 +531,20 @@ public final class BatchProcessor implements Runnable {
         // Commit changes to store.
         shepherd.commitDBTransaction();
 
+        // Allow plugin to perform media processing.
+        if (plugin != null) {
+          phase = Phase.PLUGIN;
+          try {
+              plugin.process();
+          } catch (Exception ex) {
+            log.warn(ex.getMessage(), ex);
+            String msg = bundle.getString("batchUpload.processError.plugin.processError");
+            msg = MessageFormat.format(msg, plugin.getClass().getName());
+            errors.add(msg);
+            throw ex;
+          }
+        }
+
         // TODO: Nasty hack to get resources from a language folder.
         // Should be using the standard ResourceBundle lookup mechanism to find
         // the appropriate language file.
@@ -539,6 +553,9 @@ public final class BatchProcessor implements Runnable {
         String copyText = props.getProperty("nocopying");
 
         // Generate thumbnails for encounter's media.
+        // This step is performed last, as it's considered optional, and just
+        // a convenience to have all the thumbnail images pre-rendered.
+        // If this stage fails, all data should already be in the database.
         phase = Phase.THUMBNAILS;
         long timeStart = System.currentTimeMillis();
         File encsDir = new File(dataDir, "encounters");
@@ -603,20 +620,6 @@ public final class BatchProcessor implements Runnable {
         long timeEnd = System.currentTimeMillis();
         long timeElapsed = (timeEnd - timeStart);
         log.debug(String.format("Time taken for media processing: %,d milliseconds", timeElapsed));
-
-        // Allow plugin to perform pre-processing.
-        if (plugin != null) {
-          phase = Phase.PLUGIN;
-          try {
-              plugin.process();
-          } catch (Exception ex) {
-            log.warn(ex.getMessage(), ex);
-            String msg = bundle.getString("batchUpload.processError.plugin.processError");
-            msg = MessageFormat.format(msg, plugin.getClass().getName());
-            errors.add(msg);
-            throw ex;
-          }
-        }
       } catch (Exception ex) {
         shepherd.rollbackDBTransaction();
         throw ex;
