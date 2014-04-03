@@ -32,10 +32,10 @@
 <div id="footer">
  
 
-          <p align="left"><a href="rss.xml"><img src="images/rssfeed.gif"
+          <p align="left"><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/rss.xml"><img src="http://<%=CommonConfiguration.getURLLocation(request)%>/images/rssfeed.gif"
                                                  width="80" height="15" border="0"
-                                                 alt="RSS News Feed"/></a> &nbsp;<a href="atom.xml"><img
-            src="images/atom-feed-icon.gif" border="0" alt="ATOM News Feed"/></a></p>
+                                                 alt="RSS News Feed"/></a> &nbsp;<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/atom.xml"><img
+            src="http://<%=CommonConfiguration.getURLLocation(request)%>/images/atom-feed-icon.gif" border="0" alt="ATOM News Feed"/></a></p>
   
   <p class="credit">This software is distributed under the <a
     href="http://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPL v3 license</a> and is
