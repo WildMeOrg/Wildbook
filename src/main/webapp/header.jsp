@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.apache.commons.lang.WordUtils,org.ecocean.*, java.util.Properties" %>
+         import="java.util.ArrayList,org.ecocean.servlet.ServletUtilities,org.apache.commons.lang.WordUtils,org.ecocean.*, java.util.Properties" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -45,7 +45,7 @@ context=ServletUtilities.getContext(request);
 
 
 %>
-
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
 <div id="header"><img name="masthead"
                       src="<%=CommonConfiguration.getURLToMastheadGraphic(context) %>" width="810"
                       height="150" border="0" usemap="#m_masthead" alt=""/></div>
@@ -364,4 +364,52 @@ if(CommonConfiguration.isCatalogEditable(context)){
     <%}%>
 
   </ul>
+</div>
+<div id="header_menu" style="background-color: #D7E0ED">
+<table width="810px">
+	<tr>
+		<td class="caption" class="caption" style="text-align: left;" align="left">
+		<table><tr><td>Find record:</td><td><form name="form2" method="get" action="individuals.jsp">
+            <input name="number" type="text" id="shark" size="25"/>
+            <input type="hidden" name="langCode" value="<%=langCode%>"/>
+            <input name="Go" type="submit" id="Go2" value="Go"/>
+          </form></td></table>
+		 
+		          
+		</td>
+		<%
+		ArrayList<String> contextNames=ContextConfiguration.getContextNames();
+		int numContexts=contextNames.size();
+		if(numContexts>1){
+		%>
+		
+		<td  class="caption" style="text-align: right;" align="right">
+		<table align="right"><tr><td>Switch context:</td>
+		<td><form>
+				<select id="context" name="context">
+					<%
+					for(int h=0;h<numContexts;h++){
+					%>
+						<option value="context<%=h%>"><%=contextNames.get(h) %></option>
+					<%
+					}
+					%>
+				</select>
+			</form>
+			
+			</td></tr></table>
+		 
+		</td>
+		
+
+		<%
+		}
+		%>
+	</tr>
+</table>
+<script>
+	$( "#context" ).change(function() {
+  		alert( "Handler for .change() called." );
+	});
+</script>
 </div>
