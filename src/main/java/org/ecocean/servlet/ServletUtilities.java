@@ -54,6 +54,8 @@ import org.apache.shiro.crypto.*;
 
 import java.util.Properties;
 
+import javax.servlet.http.Cookie;
+
 //ATOM feed
 
 public class ServletUtilities {
@@ -496,8 +498,10 @@ public static ByteSource getSalt() {
 public static String getContext(HttpServletRequest request){
   String context="context0";
   Properties contexts=ShepherdProperties.getContextsProperties();
+  int numContexts=contexts.size();
   
-  //check the URL
+  //check the URL for the context attribute
+  //this can be used for debugging and takes precedence
   if(request.getParameter("context")!=null){
     //get the available contexts
     //System.out.println("Checking for a context: "+request.getParameter("context"));
@@ -507,14 +511,29 @@ public static String getContext(HttpServletRequest request){
     }
   }
   
-  
-  if(request.getSession().getAttribute("context")!=null){
-    String cookieContext=(String)request.getSession().getAttribute("context");
-    if(contexts.containsKey((cookieContext+"DataDir"))){
-      return cookieContext;
-    }
+
+  //the request cookie is the next thing we check. this should be the primary means of figuring context out
+  Cookie[] cookies = request.getCookies();
+  for(Cookie cookie : cookies){
+      if("wildbookContext".equals(cookie.getName())){
+          return cookie.getValue();
+      }
   }
   
+  //finally, we will check the URL vs values defined in context.properties to see if we can set the right context
+  String currentURL=request.getServerName();
+  for(int q=0;q<numContexts;q++){
+    String thisContext="context"+q;
+    ArrayList<String> domainNames=ContextConfiguration.getContextDomainNames(thisContext);
+    int numDomainNames=domainNames.size();
+    for(int p=0;p<numDomainNames;p++){
+      
+      if(currentURL.indexOf(domainNames.get(p))!=-1){return thisContext;}
+      
+    }
+    
+    
+  }
   
   return context;
 }
