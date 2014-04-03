@@ -144,46 +144,13 @@ context=ServletUtilities.getContext(request);
       <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
     <div id="main">
-      <div id="leftcol">
-        <div id="menu">
-          <%
-            //check what language is requested
-            if (request.getParameter("langCode") != null) {
-              if (request.getParameter("langCode").equals("fr")) {
-                langCode = "fr";
-              }
-              if (request.getParameter("langCode").equals("de")) {
-                langCode = "de";
-              }
-              if (request.getParameter("langCode").equals("es")) {
-                langCode = "es";
-              }
-            }
-          %>
-
-
-          <div class="module">
-            <h3>Latest News</h3>
-            <span class="caption">Add your news items here... </span><span class="caption"><br/>
-</span> <br/>
-          </div>
-
-          <div class="module">
-            <h3>Data Sharing</h3>
-            <span class="caption">If you are sharing data, this is a great place to let others know about it... </span>
-            <br/>
-          </div>
-
-        </div>
-        <!-- end menu --></div>
-      <!-- end leftcol -->
-      <div id="maincol">
+      
+      <div id="maincol-wide0solo">
 
         <div id="maintext">
           <h1 class="intro">Overview</h1>
 
-          <p class="caption">This is a great place to present an overview description of this
-            mark-recapture project and library...</p>
+          <p class="caption">Welcome to Wildbook! This is the main landing page of this project. You can customize this page (index.jsp) to present details about your project and species.</p>
           <br/>
         </div>
 
@@ -210,30 +177,8 @@ context=ServletUtilities.getContext(request);
       <div id="rightcol">
 
 
-        <div class="module">
-          <h3>Find Record</h3>
-
-          <form name="form2" method="get" action="individuals.jsp">
-            <em>Enter a marked animal number, encounter number, animal nickname, or alternate
-              ID.</em><br/>
-            <input name="number" type="text" id="shark" size="25"/>
-            <input type="hidden" name="langCode" value="<%=langCode%>"/><br/>
-            <input name="Go" type="submit" id="Go2" value="Go"/>
-          </form>
-
-        </div>
 
 
-        <div class="module">
-          <h3>RSS/Atom Feeds</h3>
-
-          <p align="left"><a href="rss.xml"><img src="images/rssfeed.gif"
-                                                 width="80" height="15" border="0"
-                                                 alt="RSS News Feed"/></a></p>
-
-          <p align="left"><a href="atom.xml"><img
-            src="images/atom-feed-icon.gif" border="0" alt="ATOM News Feed"/></a></p>
-        </div>
 
 
       </div>
