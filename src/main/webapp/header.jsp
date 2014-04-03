@@ -45,7 +45,7 @@ context=ServletUtilities.getContext(request);
 
 
 %>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+
 <div id="header"><img name="masthead"
                       src="<%=CommonConfiguration.getURLToMastheadGraphic(context) %>" width="810"
                       height="150" border="0" usemap="#m_masthead" alt=""/></div>
@@ -389,8 +389,11 @@ if(CommonConfiguration.isCatalogEditable(context)){
 				<select id="context" name="context">
 					<%
 					for(int h=0;h<numContexts;h++){
+						String selected="";
+						if(ServletUtilities.getContext(request).equals(("context"+h))){selected="selected=\"selected\"";}
 					%>
-						<option value="context<%=h%>"><%=contextNames.get(h) %></option>
+					
+						<option value="context<%=h%>" <%=selected %>><%=contextNames.get(h) %></option>
 					<%
 					}
 					%>
@@ -400,16 +403,31 @@ if(CommonConfiguration.isCatalogEditable(context)){
 			</td></tr></table>
 		 
 		</td>
-		
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
+	<script type="text/javascript">
+		$( "#context" ).change(function() {
+			
+  			//alert( "Handler for .change() called with new value: "+$( "#context option:selected" ).text() +" with value "+ $( "#context option:selected").val());
+  			$.cookie("wildbookContext", $( "#context option:selected").val(), {
+  			   path    : '/',          //The value of the path attribute of the cookie 
+  			                           //(default: path of page that created the cookie).
+			   
+  			   secure  : false          //If set to true the secure attribute of the cookie
+  			                           //will be set and the cookie transmission will
+  			                           //require a secure protocol (defaults to false).
+  			});
+  			
+  			//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
+  			location.reload(true);
+  			
+		});
+	</script>
 
 		<%
 		}
 		%>
 	</tr>
 </table>
-<script>
-	$( "#context" ).change(function() {
-  		alert( "Handler for .change() called." );
-	});
-</script>
+
 </div>

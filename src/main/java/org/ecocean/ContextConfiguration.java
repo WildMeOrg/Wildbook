@@ -89,6 +89,18 @@ public static Properties getContextsProperties(){
     }
     
     return names;
+  }
+  
+  public static ArrayList<String> getContextDomainNames(String contextName){
+    initialize();
+    ArrayList<String> domainNames=new ArrayList<String>();
+    int domainNum=0;
+    while(props.getProperty(contextName+"DomainName"+domainNum)!=null){
+      
+      domainNames.add(props.getProperty(contextName+"DomainName"+domainNum));
+      domainNum++;
+    }
+    return domainNames;
     
   }
   
