@@ -514,10 +514,12 @@ public static String getContext(HttpServletRequest request){
 
   //the request cookie is the next thing we check. this should be the primary means of figuring context out
   Cookie[] cookies = request.getCookies();
-  for(Cookie cookie : cookies){
+  if(cookies!=null){
+    for(Cookie cookie : cookies){
       if("wildbookContext".equals(cookie.getName())){
           return cookie.getValue();
       }
+    }
   }
   
   //finally, we will check the URL vs values defined in context.properties to see if we can set the right context
