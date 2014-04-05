@@ -228,8 +228,7 @@ public final class MMAResultsProcessor {
       "SIFT files found",
       "Test Image: ",
       "### Ranking List ###",
-      "Confidence: ",
-      "best match"
+      "Confidence: "
     };
     for (String check : CHECKS) {
       if (!text.contains(check))
@@ -304,33 +303,36 @@ public final class MMAResultsProcessor {
       mr = sc.match();
       result.confidence = Float.parseFloat(mr.group(1));
 //      log.trace("Confidence: {}", result.confidence);
-      sc.nextLine();
+      if (sc.hasNext())
+      {
+        sc.nextLine();
 
-      Pattern p = Pattern.compile("^(\\d+)\\) \\{([^{}]+)\\} \\[([\\d.]+)\\]\\s*(?:\\(best match: '([^']+)'\\))?$", Pattern.MULTILINE);
-      List<MMAMatch> matches = new ArrayList<MMAMatch>();
-      while ((s = sc.findInLine(p)) != null) {
-        mr = sc.match();
-        MMAMatch res = new MMAMatch();
-        res.rank = Integer.parseInt(mr.group(1));
-        res.score = Float.parseFloat(mr.group(3));
-        if (mr.group(4) != null) {
-          res.bestMatch = mr.group(4);
-          File dir = new File(dirTest.getParentFile(), mr.group(2));
-          // Find matched image file (base image, not CR).
-          res.fileRef = findReferenceFile(dir, res.bestMatch);
-          // Only add items with a non-zero score (only lines with 'best match' anyway).
-          matches.add(res);
+        Pattern p = Pattern.compile("^(\\d+)\\) \\{([^{}]+)\\} \\[([\\d.]+)\\]\\s*(?:\\(best match: '([^']+)'\\))?$", Pattern.MULTILINE);
+        List<MMAMatch> matches = new ArrayList<MMAMatch>();
+        while ((s = sc.findInLine(p)) != null) {
+          mr = sc.match();
+          MMAMatch res = new MMAMatch();
+          res.rank = Integer.parseInt(mr.group(1));
+          res.score = Float.parseFloat(mr.group(3));
+          if (mr.group(4) != null) {
+            res.bestMatch = mr.group(4);
+            File dir = new File(dirTest.getParentFile(), mr.group(2));
+            // Find matched image file (base image, not CR).
+            res.fileRef = findReferenceFile(dir, res.bestMatch);
+            // Only add items with a non-zero score (only lines with 'best match' anyway).
+            matches.add(res);
+          }
+          try
+          {
+            sc.nextLine();
+          }
+          catch (NoSuchElementException ex)
+          {
+            // Ignore.
+          }
         }
-        try
-        {
-          sc.nextLine();
-        }
-        catch (NoSuchElementException ex)
-        {
-          // Ignore.
-        }
+        result.mapTests.put(pathCR, matches);
       }
-      result.mapTests.put(pathCR, matches);
     }
     finally {
       if (sc != null)
