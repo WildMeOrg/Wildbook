@@ -1,0 +1,80 @@
+body {
+  font-size: 1em;
+}
+body p, body table {
+  font-size: 1.1em;
+}
+.mma-small {
+  font-weight: normal;
+  font-size: 0.8em;
+}
+.mma-bold {
+  font-weight: bold;
+}
+p.mma-version {
+  margin: 0px;
+  font-size: 1em;
+}
+p.mma-query {
+}
+p.mma-postQuery {
+}
+p.mma-copyright {
+  font-style: italic;
+}
+table#mma-confidence {
+  margin: 1em 0;
+	border-width: 1px;
+	border-spacing: 0px;
+	border-style: outset;
+	border-collapse: separate;
+  background-color: #FFFFD0;
+}
+table#mma-confidence th, table#mma-confidence td {
+  margin: 0;
+	border-width: 1px;
+	padding: 5px;
+	border-style: inset;
+	border-color: gray;
+  background-color: #FFFFD0;
+  vertical-align: middle;
+  text-align: center;
+}
+table#mma-results {
+  margin: 1em 0;
+	border-width: 1px;
+	border-spacing: 0px;
+	border-style: outset;
+	border-collapse: separate;
+  background-color: #E0E0F0;
+}
+table#mma-results th, table#mma-results td {
+  margin: 0;
+	border-width: 1px;
+	padding: 5px;
+	border-style: inset;
+	border-color: gray;
+  background-color: #E0E0F0;
+  vertical-align: middle;
+  text-align: center;
+}
+table#mma-results th {
+  font-weight: bold;
+}
+table#mma-results td {
+}
+table#mma-results td.rank {
+  width: 7%;
+}
+table#mma-results td.similarity {
+  width: 8%;
+}
+table#mma-results td.filename {
+  width: 15%;
+}
+table#mma-results td.matchedImage {
+  width: 35%;
+}
+table#mma-results td.queryImage {
+  width: 35%;
+}
