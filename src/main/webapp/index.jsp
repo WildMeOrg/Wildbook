@@ -145,7 +145,7 @@ context=ServletUtilities.getContext(request);
     </jsp:include>
     <div id="main">
       
-      <div id="maincol-wide0solo">
+      <div id="maincol-wide-solo">
 
         <div id="maintext">
           <h1 class="intro">Overview</h1>
