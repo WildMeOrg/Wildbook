@@ -1078,6 +1078,7 @@ public final class BatchUpload extends DispatchServlet {
       x.setGenus((String)map.get(pre + "genus"));
       x.setSpecificEpithet((String)map.get(pre + "specificEpithet"));
       x.setLocationID((String)map.get(pre + "locationID"));
+      x.setCountry((String)map.get(pre + "country"));
       x.setVerbatimLocality((String)map.get(pre + "verbatimLocality"));
       if (x.getVerbatimLocality() == null && x.getLocationID() != null)
         x.setVerbatimLocality(x.getLocationID());
