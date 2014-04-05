@@ -147,10 +147,20 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
         // Perform MM process.
         mmprocess(ref.getFile());
         // Check that mmprocess did something.
-        if (!MantaMatcherUtilities.checkMatcherFilesExist(spv.getFile())) {
+        File fEH = mmFiles.get("EH");
+        File fFT = mmFiles.get("FT");
+        File fFEAT = mmFiles.get("FEAT");
+        if (!fEH.exists() || !fFT.exists() || !fFEAT.exists()) {
           String msg = MessageFormat.format(bundle.getString("plugin.warning.mmprocess.failed"), spv.getFile().getName());
           addWarning(msg);
           log.warn(msg);
+        }
+        // Delete files if mmprocess couldn't create FEAT file.
+        if (fEH.exists() && fFT.exists() && !fFEAT.exists()) {
+          fFEAT.delete();
+          fFT.delete();
+          fEH.delete();
+          fCR.delete();
         }
       }
       // Increment progress counter.
