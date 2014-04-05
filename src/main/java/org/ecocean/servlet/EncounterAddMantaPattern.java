@@ -82,6 +82,9 @@ public class EncounterAddMantaPattern extends HttpServlet {
     else if (request.getParameter("action") != null && request.getParameter("action").equals("rescan")) {
       action = "rescan";
     }
+    else if (request.getParameter("action") != null && request.getParameter("action").equals("rescanRegional")) {
+      action = "rescanRegional";
+    }
 
     try {
       // ====================================================================
@@ -101,7 +104,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
             mmFiles.get("FEAT").delete();
             mmFiles.get("TXT").delete();
             mmFiles.get("CSV").delete();
-            mmFiles.get("XHTML").delete(); // Retained to clean up old files.
+            mmFiles.get("TXT-REGIONAL").delete();
+            mmFiles.get("CSV-REGIONAL").delete();
           }
           mmFiles = null;
         } 
@@ -116,15 +120,32 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
         encounterNumber = request.getParameter("number");
         try {
-          File encDir = new File(encountersDir, request.getParameter("number"));
+          Encounter enc = myShepherd.getEncounter(encounterNumber);
+          File encDir = new File(encountersDir, enc.getEncounterNumber());
           spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
           File spvFile = new File(encDir, spv.getFilename());
           mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
           // Delete previous matching files.
           mmFiles.get("TXT").delete();
           mmFiles.get("CSV").delete();
-          mmFiles.get("XHTML").delete(); // Retained to clean up old files.
 
+          // Prepare temporary algorithm input file.
+          File mmaInputFile = mmFiles.get("MMA-INPUT");
+          if (mmaInputFile.exists())
+            mmaInputFile.delete();
+          String inputText = MantaMatcherUtilities.collateAlgorithmInput(myShepherd, encountersDir, enc, spv);
+          PrintWriter pw = null;
+          try {
+            pw = new PrintWriter(mmaInputFile);
+            pw.print(inputText);
+            pw.flush();
+          }
+          finally {
+            if (pw != null)
+              pw.close();
+          }
+
+          // Run algorithm.
           List<String> procArg = ListHelper.create("/usr/bin/mmatch")
                   .add(encountersDir.getAbsolutePath())
                   .add(spvFile.getAbsolutePath())
@@ -141,6 +162,61 @@ public class EncounterAddMantaPattern extends HttpServlet {
           
           Process proc = pb2.start();
           proc.waitFor();
+        }
+        catch (SecurityException sx) {
+          sx.printStackTrace();
+          System.out.println("Error attempting to rescan manta feature image!!!!");
+          resultComment.append("I hit a security error trying to rescan manta feature image. Please check your file system permissions.");
+        }
+      }
+      // ====================================================================
+      else if (action.equals("rescanRegional")){
+
+        encounterNumber = request.getParameter("number");
+        try {
+          Encounter enc = myShepherd.getEncounter(encounterNumber);
+          File dirEnc = new File(encountersDir, enc.getEncounterNumber());
+          spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+          // Delete previous matching files.
+          mmFiles.get("TXT-REGIONAL").delete();
+          mmFiles.get("CSV-REGIONAL").delete();
+
+          // Prepare temporary algorithm input file.
+          File mmaInputFile = mmFiles.get("MMA-INPUT-REGIONAL");
+          if (mmaInputFile.exists())
+            mmaInputFile.delete();
+          String inputText = MantaMatcherUtilities.collateAlgorithmInputRegional(myShepherd, encountersDir, enc, spv);
+          PrintWriter pw = null;
+          try {
+            pw = new PrintWriter(mmaInputFile);
+            pw.print(inputText);
+            pw.flush();
+          }
+          finally {
+            if (pw != null)
+              pw.close();
+          }
+
+          // Run algorithm.
+          List<String> procArg = ListHelper.create("/usr/bin/mmatch")
+                  .add(mmaInputFile.getAbsolutePath())
+                  .add("0").add("0").add("2").add("1")
+                  .add("-o").add(mmFiles.get("TXT-REGIONAL").getName())
+                  .add("-c").add(mmFiles.get("CSV-REGIONAL").getName())
+                  .asList();
+          ProcessBuilder pb2 = new ProcessBuilder(procArg);
+          pb2.directory(dirEnc);
+
+          String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
+          resultComment.append("<br />").append(procArgStr).append("<br /><br />");
+          System.out.println(procArgStr);
+
+          Process proc = pb2.start();
+          proc.waitFor();
+
+          // Delete temporary algorithm input file.
+          mmaInputFile.delete();
         }
         catch (SecurityException sx) {
           sx.printStackTrace();
@@ -173,19 +249,20 @@ public class EncounterAddMantaPattern extends HttpServlet {
           // Check for FilePart is done after other Part types.
           // NOTE: "number" and "photoNumber" must come first in JSP form
           // to ensure correct association with encounter/photo.
-          File thisEncounterDir = new File(encountersDir, encounterNumber);
           if (part.isFile()) {
             FilePart filePart = (FilePart)part;
             assert mmFiles != null;
             try {
-              // Attempt to delete existing MM algorithm images.
+              // Attempt to delete existing MM algorithm files.
+              // (Shouldn't exist, but just a precaution.)
               mmFiles.get("CR").delete();
               mmFiles.get("EH").delete();
               mmFiles.get("FT").delete();
               mmFiles.get("FEAT").delete();
               mmFiles.get("TXT").delete();
               mmFiles.get("CSV").delete();
-              mmFiles.get("XHTML").delete(); // Retained to clean up old files.
+              mmFiles.get("TXT-REGIONAL").delete();
+              mmFiles.get("CSV-REGIONAL").delete();
             }
             catch (SecurityException sx) {
               sx.printStackTrace();
@@ -227,23 +304,44 @@ public class EncounterAddMantaPattern extends HttpServlet {
             } 
 
             if (!locked) {
-              //if we've made it here, we have an enhanced image and can kick off a scan.
+              // If we've made it here, we have an enhanced image and can kick off a scan.
+              // Perform a regional scan, as it's the most immediately useful.
+              Encounter enc = myShepherd.getEncounter(encounterNumber);
+              File dirEnc = new File(encountersDir, enc.getEncounterNumber());
+              spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+              mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+              File mmaInputFile = mmFiles.get("MMA-INPUT-REGIONAL");
+              if (mmaInputFile.exists())
+                mmaInputFile.delete();
+              String inputText = MantaMatcherUtilities.collateAlgorithmInputRegional(myShepherd, encountersDir, enc, spv);
+              PrintWriter pw = null;
+              try {
+                pw = new PrintWriter(mmaInputFile);
+                pw.print(inputText);
+                pw.flush();
+              }
+              finally {
+                if (pw != null)
+                  pw.close();
+              }
               List<String> procArg2 = ListHelper.create("/usr/bin/mmatch")
-                      .add(encountersDir.getAbsolutePath())
-                      .add(mmFiles.get("O").getAbsolutePath())
+                      .add(mmaInputFile.getAbsolutePath())
                       .add("0").add("0").add("2").add("1")
-                      .add("-o").add(mmFiles.get("TXT").getName())
-                      .add("-c").add(mmFiles.get("CSV").getName())
+                      .add("-o").add(mmFiles.get("TXT-REGIONAL").getName())
+                      .add("-c").add(mmFiles.get("CSV-REGIONAL").getName())
                       .asList();
-              String procArg2Str = ListHelper.toDelimitedStringQuoted(procArg2, " ");
               ProcessBuilder pb2 = new ProcessBuilder(procArg2);
-              pb2.directory(thisEncounterDir);
+              pb2.directory(dirEnc);
 
+              String procArg2Str = ListHelper.toDelimitedStringQuoted(procArg2, " ");
               resultComment.append("<br />").append(procArg2Str).append("<br /><br />");
               System.out.println(procArg2Str);
 
               Process proc = pb2.start();
               proc.waitFor();
+
+              // Delete temporary algorithm input file.
+              mmaInputFile.delete();
             }
             else {
               locked = true;
@@ -284,11 +382,15 @@ public class EncounterAddMantaPattern extends HttpServlet {
           myShepherd.commitDBTransaction();
           
           if (action.equals("imageadd")) {
-            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
+            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResultsRegional?spv=" + spv.getDataCollectionEventID();
             response.sendRedirect(resultsURL);
           }
           else if (action.equals("rescan")) {
             String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
+            response.sendRedirect(resultsURL);
+          }
+          else if (action.equals("rescanRegional")) {
+            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResultsRegional?spv=" + spv.getDataCollectionEventID();
             response.sendRedirect(resultsURL);
           }
           else {

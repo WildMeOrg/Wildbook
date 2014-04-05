@@ -19,10 +19,13 @@
 package org.ecocean.servlet;
 
 import freemarker.template.Configuration;
+import freemarker.template.TemplateException;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URI;
+import java.net.URISyntaxException;
+import java.text.ParseException;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,7 +52,7 @@ public final class MantaMatcher extends DispatchServlet {
   public void init() throws ServletException {
     super.init();
     try {
-      registerMethodGET("displayResults");
+      registerMethodGET("displayResults", "displayResultsRegional");
     }
     catch (DelegateNotFoundException ex) {
       throw new ServletException(ex);
@@ -85,21 +88,8 @@ public final class MantaMatcher extends DispatchServlet {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
       }
 
-      // Find FreeMarker config in ServletContext, or create if doesn't exist.
-      Configuration conf = (Configuration)getServletContext().getAttribute("templateConfig");
-      if (conf == null) {
-        File dir = new File(getServletContext().getRealPath(PATH_TEMPLATES));
-        conf = MantaMatcherUtilities.configureTemplateEngine(dir);
-        getServletContext().setAttribute("templateConfig", conf);
-      }
-
-      // URL prefix of the encounters folder (for image links).
-      String dir = "/" + CommonConfiguration.getDataDirectoryName() + "/encounters";
-      String encUrlPrefix = String.format("%s/", CommonConfiguration.getServerURL(req, dir));
-      // Format string for encounter page URL (with placeholder).
-      String pageFormat = "//" + CommonConfiguration.getURLLocation(req) + "/encounters/encounter.jsp?number=%s";
-      // Parse MantaMatcher results files ready for display.
-      String html = MantaMatcherUtilities.getResultsHtml(conf, spv, encUrlPrefix, pageFormat);
+      Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(spv);
+      String html = createResultsPage(req, mmMap.get("TXT"), spv);
 
       // Write results page to output (with support HTTP/1.1).
       int len = html.getBytes("UTF-8").length;
@@ -114,5 +104,58 @@ public final class MantaMatcher extends DispatchServlet {
     } catch (Exception ex) {
       handleException(req, res, ex);
     }
+  }
+
+  public void displayResultsRegional(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    try {
+      // Parse encounter for which to get MantaMatcher algorithm results.
+      String num = req.getParameter("spv");
+      if (num == null || "".equals(num.trim())) {
+        throw new IllegalArgumentException("Invalid SinglePhotoVideo specified");
+      }
+      Shepherd shepherd = new Shepherd();
+      SinglePhotoVideo spv = shepherd.getSinglePhotoVideo(num);
+      if (spv == null) {
+        throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
+      }
+
+      Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(spv);
+      String html = createResultsPage(req, mmMap.get("TXT-REGIONAL"), spv);
+
+      // Write results page to output (with support HTTP/1.1).
+      int len = html.getBytes("UTF-8").length;
+      res.setCharacterEncoding("UTF-8");
+      res.setContentType("text/html; charset=UTF-8");
+      res.setContentLength(len);
+      PrintWriter pw = res.getWriter();
+      pw.append(html);
+      pw.flush();
+      pw.close();
+
+    } catch (Exception ex) {
+      handleException(req, res, ex);
+    }
+  }
+
+  private String createResultsPage(HttpServletRequest req, File mmaResults, SinglePhotoVideo spv)
+          throws IOException, URISyntaxException, ParseException, TemplateException {
+    assert spv != null;
+    assert mmaResults != null;
+
+    // Find FreeMarker config in ServletContext, or create if doesn't exist.
+    Configuration conf = (Configuration)getServletContext().getAttribute("templateConfig");
+    if (conf == null) {
+      File dir = new File(getServletContext().getRealPath(PATH_TEMPLATES));
+      conf = MantaMatcherUtilities.configureTemplateEngine(dir);
+      getServletContext().setAttribute("templateConfig", conf);
+    }
+
+    // URL prefix of the encounters folder (for image links).
+    String dir = "/" + CommonConfiguration.getDataDirectoryName() + "/encounters";
+    String encUrlPrefix = String.format("%s/", CommonConfiguration.getServerURL(req, dir));
+    // Format string for encounter page URL (with placeholder).
+    String pageFormat = "//" + CommonConfiguration.getURLLocation(req) + "/encounters/encounter.jsp?number=%s";
+    // Parse MantaMatcher results files ready for display.
+    return MantaMatcherUtilities.getResultsHtml(conf, mmaResults, spv, encUrlPrefix, pageFormat);
   }
 }

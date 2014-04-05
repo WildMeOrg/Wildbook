@@ -25,11 +25,15 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import freemarker.template.Version;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import javax.jdo.Extent;
+import javax.jdo.Query;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +57,12 @@ public final class MantaMatcherUtilities {
    * <li>File representing MantaMatcher enhanced photo (key: EH).</li>
    * <li>File representing MantaMatcher feature photo (key: FT).</li>
    * <li>File representing MantaMatcher feature file (key: FEAT).</li>
+   * <li>File representing MantaMatcher algorithm input file (key: MMA-INPUT).</li>
+   * <li>File representing MantaMatcher algorithm regional input file (key: MMA-INPUT-REGIONAL).</li>
    * <li>File representing MantaMatcher output TXT file (key: TXT).</li>
    * <li>File representing MantaMatcher output CSV file (key: CSV).</li>
-   * <li>File representing MantaMatcher output XHTML file (key: XHTML).</li>
+   * <li>File representing MantaMatcher regional output TXT file (key: TXT-REGIONAL).</li>
+   * <li>File representing MantaMatcher regional output CSV file (key: CSV-REGIONAL).</li>
    * </ul>
    * All files are assumed to be in the same folder, and no checking is
    * performed to see if they exist.
@@ -66,9 +73,15 @@ public final class MantaMatcherUtilities {
     if (spv == null)
       throw new NullPointerException("Invalid file specified: null");
     Map<String, File> map = getMatcherFilesMap(spv.getFile());
-    map.put("TXT", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_matchOutput.txt"));
-    map.put("CSV", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_matchOutput.csv"));
-    map.put("XHTML", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_matchOutput.xhtml"));
+    // MMA input files.
+    map.put("MMA-INPUT", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaInput.txt"));
+    map.put("MMA-INPUT-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaInputRegional.txt"));
+    // MMA results files: global.
+    map.put("TXT", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutput.txt"));
+    map.put("CSV", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutput.csv"));
+    // MMA results files: regional.
+    map.put("TXT-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutputRegional.txt"));
+    map.put("CSV-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutputRegional.csv"));
     return map;
   }
 
@@ -126,17 +139,6 @@ public final class MantaMatcherUtilities {
             mmFiles.get("FEAT").exists();
   }
 
-  /**
-   * Checks whether the MantaMatcher algorithm files exist for the specified
-   * base file.
-   * @param spv {@code SinglePhotoVideo} instance denoting base reference image
-   * @return true if MantaMatcher results files exist (TXT/CSV), false otherwise
-   */
-  public static boolean checkMatcherResultsFilesExist(SinglePhotoVideo spv) {
-    Map<String, File> mmFiles = getMatcherFilesMap(spv);
-    return mmFiles.get("TXT").exists() && mmFiles.get("CSV").exists();
-  }
-
 	/**
    * Creates a FreeMarker template configuration instance.
    * @param dir folder in which templates are located
@@ -158,6 +160,7 @@ public final class MantaMatcherUtilities {
   /**
    * Parses the MantaMatcher results text file for the specified SinglePhotoVideo.
    * @param conf FreeMarker configuration
+   * @param mmaResultsFile MantaMatcher algorithm results text file
    * @param spv {@code SinglePhotoVideo} instance for base reference image
    * @param urlPrefixImage URL prefix for encounter folder (for image links)
    * @param pageUrlFormat Format string for encounter page URL (with <em>%s</em> placeholder)
@@ -167,16 +170,145 @@ public final class MantaMatcherUtilities {
    * @throws TemplateException
    */
   @SuppressWarnings("unchecked")
-  public static String getResultsHtml(Configuration conf, SinglePhotoVideo spv, String urlPrefixImage, String pageUrlFormat) throws IOException, ParseException, TemplateException {
-    // Load test from file.
-    Map<String, File> mmFiles = getMatcherFilesMap(spv);
-    File txt = mmFiles.get("TXT");
-    if (!txt.isFile())
-      throw new FileNotFoundException("Unable to locate results file: " + txt.getAbsolutePath());
-
+  public static String getResultsHtml(Configuration conf, File mmaResultsFile, SinglePhotoVideo spv, String urlPrefixImage, String pageUrlFormat) throws IOException, ParseException, TemplateException {
     // Load results file.
-    String text = new String(FileUtilities.loadFile(txt));
+    String text = new String(FileUtilities.loadFile(mmaResultsFile));
     // Convert to HTML results page.
     return MMAResultsProcessor.convertResultsToHtml(conf, text, spv, urlPrefixImage, pageUrlFormat);
+  }
+
+  /**
+   * Collates text input for the MantaMatcher algorithm.
+   * The output of this method is suitable for placing in a temporary file
+   * to be access by the {@code mmatch} process.
+   * @param shep {@code Shepherd} instance
+   * @param encDir &quot;encounters&quot; directory
+   * @param enc {@code Encounter} instance
+   * @param spv {@code SinglePhotoVideo} instance
+   * @return text suitable for MantaMatcher algorithm input file
+   */
+  @SuppressWarnings("unchecked")
+  public static String collateAlgorithmInput(Shepherd shep, File encDir, Encounter enc, SinglePhotoVideo spv) {
+    // Validate input.
+    if (enc.getLocationID() == null)
+      throw new IllegalArgumentException("Invalid location ID specified");
+    if (encDir == null || !encDir.isDirectory())
+      throw new IllegalArgumentException("Invalid encounter directory specified");
+    if (enc == null || spv == null)
+      throw new IllegalArgumentException("Invalid encounter/SPV specified");
+
+    // Build query filter based on encounter.
+    StringBuilder sbf = new StringBuilder();
+    if (enc.getSpecificEpithet()!= null) {
+      sbf.append("(this.specificEpithet == 'NULL'");
+      sbf.append(" || this.specificEpithet == '").append(enc.getSpecificEpithet()).append("'");
+      sbf.append(")");
+    }
+    if (enc.getPatterningCode() != null) {
+      if (sbf.length() > 0)
+        sbf.append(" && ");
+      sbf.append("(this.patterningCode == 'NULL'");
+      sbf.append(" || this.patterningCode == '").append(enc.getPatterningCode()).append("'");
+      sbf.append(")");
+    }
+    if (enc.getSex() != null) {
+      if (sbf.length() > 0)
+        sbf.append(" && ");
+      sbf.append("(this.sex == 'NULL'");
+      sbf.append(" || this.sex == 'unknown'");
+      sbf.append(" || this.sex == '").append(enc.getSex()).append("'");
+      sbf.append(")");
+    }
+//    log.trace(String.format("Filter: %s", sbf.toString()));
+
+    // Issue query.
+    Extent ext = shep.getPM().getExtent(Encounter.class, true);
+		Query query = shep.getPM().newQuery(ext);
+    query.setFilter(sbf.toString());
+    List<Encounter> list = (List<Encounter>)query.execute();
+
+    // Collate results.
+    StringBuilder sb = new StringBuilder();
+//    sb.append(spv.getFile().getParent()).append("\n\n");
+    sb.append(spv.getFile().getAbsolutePath()).append("\n\n");
+    for (Encounter x : list) {
+      if (!enc.getEncounterNumber().equals(x.getEncounterNumber()))
+        sb.append(encDir.getAbsolutePath()).append(File.separatorChar).append(x.getEncounterNumber()).append("\n");
+    }
+
+    // Clean resources.
+    query.closeAll();
+    ext.closeAll();
+
+    return sb.toString();
+  }
+
+  /**
+   * Collates text input for the MantaMatcher algorithm.
+   * The output of this method is suitable for placing in a temporary file
+   * to be access by the {@code mmatch} process.
+   * @param shep {@code Shepherd} instance
+   * @param encDir &quot;encounters&quot; directory
+   * @param enc {@code Encounter} instance
+   * @param spv {@code SinglePhotoVideo} instance
+   * @return text suitable for MantaMatcher algorithm input file
+   */
+  @SuppressWarnings("unchecked")
+  public static String collateAlgorithmInputRegional(Shepherd shep, File encDir, Encounter enc, SinglePhotoVideo spv) {
+    // Validate input.
+    if (enc.getLocationID() == null)
+      throw new IllegalArgumentException("Invalid location ID specified");
+    if (encDir == null || !encDir.isDirectory())
+      throw new IllegalArgumentException("Invalid encounter directory specified");
+    if (enc == null || spv == null)
+      throw new IllegalArgumentException("Invalid encounter/SPV specified");
+
+    // Build query filter based on encounter.
+    StringBuilder sbf = new StringBuilder();
+    sbf.append("this.locationID == '").append(enc.getLocationID()).append("'");
+    if (enc.getSpecificEpithet()!= null) {
+      if (sbf.length() > 0)
+        sbf.append(" && ");
+      sbf.append("(this.specificEpithet == 'NULL'");
+      sbf.append(" || this.specificEpithet == '").append(enc.getSpecificEpithet()).append("'");
+      sbf.append(")");
+    }
+    if (enc.getPatterningCode() != null) {
+      if (sbf.length() > 0)
+        sbf.append(" && ");
+      sbf.append("(this.patterningCode == 'NULL'");
+      sbf.append(" || this.patterningCode == '").append(enc.getPatterningCode()).append("'");
+      sbf.append(")");
+    }
+    if (enc.getSex() != null) {
+      if (sbf.length() > 0)
+        sbf.append(" && ");
+      sbf.append("(this.sex == 'NULL'");
+      sbf.append(" || this.sex == 'unknown'");
+      sbf.append(" || this.sex == '").append(enc.getSex()).append("'");
+      sbf.append(")");
+    }
+//    log.trace(String.format("Filter: %s", sbf.toString()));
+
+    // Issue query.
+    Extent ext = shep.getPM().getExtent(Encounter.class, true);
+		Query query = shep.getPM().newQuery(ext);
+    query.setFilter(sbf.toString());
+    List<Encounter> list = (List<Encounter>)query.execute();
+
+    // Collate results.
+    StringBuilder sb = new StringBuilder();
+//    sb.append(spv.getFile().getParent()).append("\n\n");
+    sb.append(spv.getFile().getAbsolutePath()).append("\n\n");
+    for (Encounter x : list) {
+      if (!enc.getEncounterNumber().equals(x.getEncounterNumber()))
+        sb.append(encDir.getAbsolutePath()).append(File.separatorChar).append(x.getEncounterNumber()).append("\n");
+    }
+
+    // Clean resources.
+    query.closeAll();
+    ext.closeAll();
+
+    return sb.toString();
   }
 }

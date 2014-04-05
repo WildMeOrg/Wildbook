@@ -45,12 +45,11 @@ try {
     for(int t = 0; t < photos.size(); t++){
       SinglePhotoVideo spv = photos.get(t);
       Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
-      File matchOutput = mmFiles.get("TXT");
-      File mmCR = mmFiles.get("CR");
-      if (mmCR.exists()) {
-        File mmFT = mmFiles.get("FT");
-        File mmFEAT = mmFiles.get("FEAT");
-        if (mmFT.exists() && mmFEAT.exists() && (request.isUserInRole("admin") || request.isUserInRole("imageProcessor"))) {
+      File matchOutputRegional = mmFiles.get("TXT-REGIONAL");
+      File matchOutputAll = mmFiles.get("TXT");
+      File mmFT = mmFiles.get("FT");
+      if (MantaMatcherUtilities.checkMatcherFilesExist(spv.getFile())) {
+        if (request.isUserInRole("admin") || request.isUserInRole("imageProcessor")) {
 %>
           <p style="background-color:#f0f0f0;"><em>Extracted Feature Image for Image <%=(t+1) %>.</em></p>
             <p><img width="300px" height="*" src="/<%=shepherdDataDir.getName() %>/encounters/<%=encNum %>/<%=mmFT.getName()%>"/></p>
@@ -65,33 +64,66 @@ try {
                     </form>
                    </p>
 <%
-            if (!matchOutput.exists()) {
+            if (!matchOutputRegional.exists()) {
 %>
-              <p>No match results file was found.</p>
-                <p><em>Scan the manta patterning image.</em></p>
+              <p>No regional &quot;<%=enc.getLocationID()%>&quot; match results file was found.</p>
+                <p><em>Scan patterning image against regional &quot;<%=enc.getLocationID()%>&quot; database.</em></p>
                        <p>
                          <form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
-                          <input name="action" type="hidden" value="rescan" id="actionScan" />
+                          <input name="action" type="hidden" value="rescanRegional" id="actionScanRegional" />
                           <input name="number" type="hidden" value="<%=encNum%>" id="number" />
                           <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
 
-                        <p><input name="scanFile" type="submit" id="scanFile" value="Scan" /></p>
+                        <p><input name="scanFile" type="submit" id="scanFile" value="Scan (regional)" /></p>
                     </form>
                    </p>
 <%
             } else {
 %>
               <p><em>Inspect the algorithm results</em></p>
-              <p>A match results file was found: <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here.</a></p>
+              <p>A regional &quot;<%=enc.getLocationID()%>&quot; match results file was found: <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here.</a></p>
 
-              <p><em>Rescan the manta patterning image.</em></p>
+              <p><em>Rescan manta patterning image against regional &quot;<%=enc.getLocationID()%>&quot; database.</em></p>
+                       <p>
+                         <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
+                           <input name="action" type="hidden" value="rescanRegional" id="actionRescanRegional" />
+                           <input name="number" type="hidden" value="<%=encNum%>" id="number" />
+                           <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
+
+                        <p><input name="rescanFile" type="submit" id="rescanFile" value="Rescan (regional)" /></p>
+                    </form>
+                   </p>
+<%
+            }
+%>
+<%
+            if (!matchOutputAll.exists()) {
+%>
+              <p>No global database match results file was found.</p>
+                <p><em>Scan patterning image against global manta database.</em></p>
+                       <p>
+                         <form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
+                          <input name="action" type="hidden" value="rescan" id="actionScan" />
+                          <input name="number" type="hidden" value="<%=encNum%>" id="number" />
+                          <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
+
+                        <p><input name="scanFile" type="submit" id="scanFile" value="Scan (global)" /></p>
+                    </form>
+                   </p>
+<%
+            } else {
+%>
+              <p><em>Inspect the algorithm results</em></p>
+              <p>A global database match results file was found: <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here.</a></p>
+
+              <p><em>Rescan manta patterning image against global manta database.</em></p>
                        <p>
                          <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
                            <input name="action" type="hidden" value="rescan" id="actionRescan" />
                            <input name="number" type="hidden" value="<%=encNum%>" id="number" />
                            <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
 
-                        <p><input name="rescanFile" type="submit" id="rescanFile" value="Rescan" /></p>
+                        <p><input name="rescanFile" type="submit" id="rescanFile" value="Rescan (global)" /></p>
                     </form>
                    </p>
 <%
