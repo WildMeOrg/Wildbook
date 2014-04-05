@@ -58,6 +58,8 @@ import org.ecocean.*;
 
 		String url = "/login.jsp";
 		
+		System.out.println("Starting LoginUser servlet...");
+		
 		//see /login.jsp for these form fields
 		String username = request.getParameter("username").trim();
 		String password = request.getParameter("password").trim();
@@ -74,6 +76,7 @@ import org.ecocean.*;
 		    User user=myShepherd.getUser(username);
 		    salt=user.getSalt();  
 		    if(request.getParameter("acceptUserAgreement")!=null){
+		      System.out.println("Trying to set acceptance for UserAgreement!");
 		      user.setAcceptedUserAgreement(true);
 		      myShepherd.commitDBTransaction();
 		    }

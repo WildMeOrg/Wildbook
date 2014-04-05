@@ -391,7 +391,9 @@ public class Shepherd {
   }
 
   public ArrayList<Role> getAllRolesForUserInContext(String username, String context) {
-    String filter = "this.username == '" + username + "' && this.context == '"+context+"'";
+    String actualContext="context0";
+    if(context!=null){actualContext=context;}
+    String filter = "this.username == '" + username + "' && this.context == '"+actualContext+"'";
     Extent encClass = pm.getExtent(Role.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (acceptedEncounters.execute());

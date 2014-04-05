@@ -89,17 +89,19 @@ public class ShepherdRealm extends AuthorizingRealm {
         
         Set roleNames = new TreeSet();
         //always use context0 below as all users are stored there
-
+        String actualContext="context0";
+        if(context!=null){actualContext=context;}
         
         Shepherd myShepherd=new Shepherd("context0");
         myShepherd.beginDBTransaction();
         if(myShepherd.getUser(username)!=null){
           
             User user=myShepherd.getUser(username);
-            ArrayList<Role> roles=myShepherd.getAllRolesForUserInContext(username,context);
+            ArrayList<Role> roles=myShepherd.getAllRolesForUserInContext(username,actualContext);
             int numRoles=roles.size();
             for(int i=0;i<numRoles;i++){
               roleNames.add(roles.get(i).getRolename());
+              //System.out.println("ShepherdRealm:Adding role: "+roles.get(i).getRolename());
             }
           
         }
@@ -114,10 +116,11 @@ public class ShepherdRealm extends AuthorizingRealm {
      String username = (String) principals.getPrimaryPrincipal();
      Subject subject = SecurityUtils.getSubject();
      HttpServletRequest request = WebUtils.getHttpRequest(subject); 
-     //String context=ServletUtilities.getContext(ShiroHttpServletRequest);
+     String context=ServletUtilities.getContext(request);
+     //System.out.println("Context in ShepherdReal is: "+context);
      //ServletContainerSessionManager.
 
-     return new SimpleAuthorizationInfo(getRoleNamesForUserInContext(username,ServletUtilities.getContext(request)));
+     return new SimpleAuthorizationInfo(getRoleNamesForUserInContext(username,context));
 }
 
 }
