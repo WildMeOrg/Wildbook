@@ -113,7 +113,7 @@ public final class MantaMatcherUtilities {
 
   /**
    * Checks whether the MantaMatcher algorithm files exist for the specified
-   * base file (does not check for XHTML results file).
+   * base file (only checks the files required for running {@code mmatch}).
    * @param f base image file from which to reference other algorithm files
    * @return true if all MantaMatcher files exist (O/CR/EH/FT/FEAT), false otherwise
    */
