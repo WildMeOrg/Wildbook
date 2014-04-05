@@ -1,49 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  -->
-
-<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:taxo="http://purl.org/rss/1.0/modules/taxonomy/">
   <title>Need a title...</title>
-  <link rel="alternate" href="http://.../"/>
-  <link rel="self" href="http://.../atom.xml"/>
+  <link rel="alternate" href="http://.../" />
   <author>
     <name>Need a name...</name>
     <email>Need an email...</email>
   </author>
   <subtitle>Need a description...</subtitle>
-  <updated>2010-06-02T20:17:15Z</updated>
-  <dc:date>2010-06-02T20:17:15Z</dc:date>
-  <entry>
-    <title>Sample title...</title>
-    <link rel="alternate" href="http://..."/>
-    <category term=""/>
-    <category term=""/>
-    <author>
-      <name>Need an author...</name>
-    </author>
-    <id>http://...</id>
-    <updated>2010-06-02T11:06:00Z</updated>
-    <published>2010-06-02T11:06:00Z</published>
-    <summary type="html">Need a summary...</summary>
-    <dc:creator>Need a creator...</dc:creator>
-    <dc:date>2010-06-02T11:06:00Z</dc:date>
-  </entry>
-
+  <updated>2014-04-03T22:59:49Z</updated>
+  <dc:date>2014-04-03T22:59:49Z</dc:date>
+ 
 </feed>
 

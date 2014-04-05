@@ -193,11 +193,17 @@ public class IndividualCreate extends HttpServlet {
               String rssTitle = "New marked individual: " + newIndividualID;
               String rssLink = "http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID;
               String rssDescription = newIndividualID + " has been added.";
-              File rssFile = new File(getServletContext().getRealPath(("/rss.xml")));
+              //File rssFile = new File(getServletContext().getRealPath(("/"+context+"/rss.xml")));
 
+              
+              File rssFile = new File(shepherdDataDir,"rss.xml");
+
+              
               ServletUtilities.addRSSEntry(rssTitle, rssLink, rssDescription, rssFile);
-              File atomFile = new File(getServletContext().getRealPath(("/atom.xml")));
+              //File atomFile = new File(getServletContext().getRealPath(("/"+context+"/atom.xml")));
+              File atomFile = new File(shepherdDataDir,"atom.xml");
 
+              
               ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile,context);
               
               //shutdown the mailing threadpool

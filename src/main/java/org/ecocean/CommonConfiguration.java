@@ -96,14 +96,14 @@ public class CommonConfiguration {
     if((configDir.getAbsolutePath().contains("/bin/"))||(configDir.getAbsolutePath().contains("\\bin\\"))){
       String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
       configDir=new File(fixedPath);
-      System.out.println("Fixing the bin issue in CommonConfiguration.");
-      System.out.println("The fix absolute path is: "+configDir.getAbsolutePath());
+      //System.out.println("Fixing the bin issue in CommonConfiguration.");
+      //System.out.println("The fix absolute path is: "+configDir.getAbsolutePath());
     }
     
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
     if (configFile.exists()) {
-      System.out.println("Overriding default properties with " + configFile.getAbsolutePath());
+      //System.out.println("Overriding default properties with " + configFile.getAbsolutePath());
       FileInputStream fileInputStream = null;
       try {
         fileInputStream = new FileInputStream(configFile);
@@ -122,7 +122,7 @@ public class CommonConfiguration {
       }
     }
     else {
-      System.out.println("No properties override file found at " + configFile.getAbsolutePath());
+      //System.out.println("No properties override file found at " + configFile.getAbsolutePath());
     }
     return props;
   }

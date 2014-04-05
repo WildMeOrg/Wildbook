@@ -259,11 +259,20 @@ public class IndividualAddEncounter extends HttpServlet {
               String rssTitle = request.getParameter("individual") + " Resight";
               String rssLink = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number");
               String rssDescription = request.getParameter("individual") + " was resighted on " + enc2add.getShortDate() + ".";
-              File rssFile = new File(getServletContext().getRealPath(("/rss.xml")));
+              //File rssFile = new File(getServletContext().getRealPath(("/"+context+"/rss.xml")));
+
+              //setup data dir
+              String rootWebappPath = getServletContext().getRealPath("/");
+              File webappsDir = new File(rootWebappPath).getParentFile();
+              File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+              if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+              File rssFile = new File(shepherdDataDir,"rss.xml");
 
               ServletUtilities.addRSSEntry(rssTitle, rssLink, rssDescription, rssFile);
-              File atomFile = new File(getServletContext().getRealPath(("/atom.xml")));
+              //File atomFile = new File(getServletContext().getRealPath(("/"+context+"/atom.xml")));
+              File atomFile = new File(shepherdDataDir,"atom.xml");
 
+              
               ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile,context);
             }
 
