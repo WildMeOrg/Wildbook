@@ -3,47 +3,68 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>Manta Matcher Search Results</title>
+  <title>MantaMatcher: algorithm search results</title>
   <link href="../css/mma.css" rel="stylesheet" type="text/css"/>
 </head>
 
 <body>
 
-<p class="mma-version">${version}, ${datetime?string("dd MMM yyyy, hh:mm:ss")}</p>
-
-<p class="mma-query"><span class="mma-bold">Query Image:</span> ${results[0].name!"Unknown"?html}</p>
-<div>
-  <a href="${results[0].link!"#"?html}" target="_blank"><img src="${results[0].linkEH}" width="*" height="200"/></a>
+<div id="mma-queryImage">
+  <a href="${results[0].link!"#"}" target="_blank"><img src="${results[0].linkEH}" class="mma-queryImg"/></a>
+  <p>${results[0].name!"Unknown"?html}</p>
 </div>
-<p class="mma-postQuery">... Completed, displaying top matches: (click on an image to access the encounter record)</p>
 
-<table id="mma-confidence">
-<tr>
-  <td>Overall confidence of results <span class="mma-small">(0:worst, 1:best)</span>: <span class="mma-bold">${results[0].confidence?string("0.######")}</span></td>
-</tr>
-</table>
+<div id="mma-desc">
+  <table>
+    <tr>
+      <th>Date of scan:</th>
+      <td class="mma-date">${datetime?string("dd/MM/yyyy hh:mm:ss")}</td>
+    </tr>
+    <tr>
+      <th>Version:</th>
+      <td class="mma-version">${version}</td>
+    </tr>
+    <tr>
+      <th>Match count:</th>
+      <td class="mma-count">${results[0].matches?size}</td>
+    </tr>
+    <tr>
+      <th>Confidence:<br/><span class="mma-small">(0:worst, 1:best)</span></th>
+      <td class="mma-confidence">${results[0].confidence?string("0.######")}</td>
+    </tr>
+  </table>
+</div>
 
-<table id="mma-results">
-<tr>
-  <th>Rank</td>
-  <th>Similarity<br/><span class="mma-small">(0:worst, 1:best)</span></td>
-  <th>Filename</td>
-  <th>Matched image<br/><span class="mma-small">(open in a new window)</span></td>
-  <th>Query image<br/><span class="mma-small">(open in a new window)</span></td>
-</tr>
-<#list results[0].matches as item>
-<tr>
-  <td>${item.rank}</td>
-  <td>${item.score?string("0.######")}</td>
-  <td>${item.imgbase?html}</td>
-  <td><a href="${item.link!"#"}" target="_blank"><img src="${item.linkEH}" width="*" height="200"/></a></td>
-  <td><a href="${results[0].link!"#"}" target="_blank"><img src="${results[0].linkEH}" width="*" height="200"/></a></td>
-</tr>
-</#list>
-</table>
+<div id="mma-results">
+  <table id="mma-resultsTable">
+    <tr>
+      <th>Rank</td>
+      <th>Similarity<br/><span class="mma-small">(0:worst, 1:best)</span></td>
+      <th>Filename</td>
+      <th>Matched image<br/><span class="mma-small">(opens in a new window)</span></td>
+      <th>Query image</td>
+    </tr>
+<#if results[0].matches?has_content>
+  <#list results[0].matches as item>
+    <tr>
+      <td class="rank">${item.rank}</td>
+      <td class="similarity">${item.score?string("0.######")}</td>
+      <td class="filename">${item.imgbase?html}</td>
+      <td class="matchedImage"><a href="${item.link!"#"}" target="_blank"><img src="${item.linkEH}" class="mma-matchImg"/></a></td>
+      <td class="queryImage"><a href="${results[0].link!"#"}"><img src="${results[0].linkEH}" class="mma-queryImg"/></a></td>
+    </tr>
+  </#list>
+<#else>
+    <tr>
+      <td class="noMatches" colspan="3">No matches were found by the MantaMatcher algorithm</td>
+    </tr>
+</#if>
+  </table>
+</div>
 
-<hr>
-<p class="mma-copyright">Manta Matcher, Copyright: <a href="http://www.cl.cam.ac.uk/~cpt23/index.html">Chris Town</a> and N. Sethasathien, 2012</p>
+<div id="mma-footer">
+  <p id="mma-copyright">Manta Matcher, Copyright: <a href="http://www.cl.cam.ac.uk/~cpt23/index.html">Chris Town</a> and N. Sethasathien, 2012</p>
+</div>
 
 </body>
 </html>
