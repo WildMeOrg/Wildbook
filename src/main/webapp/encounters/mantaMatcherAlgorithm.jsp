@@ -65,7 +65,7 @@ try {
                     </form>
                    </p>
 <%
-            if (!matchOutputRegional.exists()) {
+            if (enc.getLocationID() != null && !matchOutputRegional.exists()) {
 %>
               <p>No regional &quot;<%=enc.getLocationID()%>&quot; match results file was found.</p>
                 <p><em>Scan patterning image against regional &quot;<%=enc.getLocationID()%>&quot; database.</em></p>
@@ -79,7 +79,7 @@ try {
                     </form>
                    </p>
 <%
-            } else {
+            } else if (enc.getLocationID() != null) {
 %>
               <p><em>Inspect the algorithm results</em></p>
               <p>A regional &quot;<%=enc.getLocationID()%>&quot; match results file was found: <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here</a> <span class="smallish">(created <%=dateFormat.format(new Date(matchOutputRegional.lastModified()))%>)</span></p>
