@@ -132,12 +132,12 @@ String context="context0";
       		<td><a href="mailto:<%=emailAddress%>"><img height="20px" width="20px" src="../images/Crystal_Clear_app_email.png" /></a></td>
       		<td><%=affiliation%></td>
       		<td><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()) %></em></td>
-      		<td><a href="users.jsp?username=<%=user.getUsername()%>&isEdit=true#editUser"><img width="20px" height="20px" src="../images/Crystal_Clear_action_edit.png" /></a></td>   	
+      		<td><a href="users.jsp?context=context0&username=<%=user.getUsername()%>&isEdit=true#editUser"><img width="20px" height="20px" src="../images/Crystal_Clear_action_edit.png" /></a></td>   	
       		<td>
       			<%
       			if(!user.getUsername().equals(request.getUserPrincipal().getName())){
       			%>
-      			<form onsubmit="return confirm('Are you sure you want to delete this user?');" action="../UserDelete?username=<%=user.getUsername()%>" method="post"><input type="image"  width="20px" height="20px" src="../images/cancel.gif" /></form>
+      			<form onsubmit="return confirm('Are you sure you want to delete this user?');" action="../UserDelete?context=context0&username=<%=user.getUsername()%>" method="post"><input type="image"  width="20px" height="20px" src="../images/cancel.gif" /></form>
       			<%
       			}
       			else {
@@ -184,7 +184,7 @@ String context="context0";
 	<p>
 	<%
 	String isEditAddition="";
-	if(request.getParameter("isEdit")!=null){isEditAddition="?isEdit=true";}
+	if(request.getParameter("isEdit")!=null){isEditAddition="&isEdit=true";}
 	%>
     	
     		    <table width="100%" class="tissueSample">
@@ -246,7 +246,7 @@ String context="context0";
 		        		    			if(request.getParameter("isEdit")!=null){
 		        		    			%>
 		        		    			<tr>
-		        		    					<td style="border: solid 0"><form action="../UserAddProfileImage" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
+		        		    					<td style="border: solid 0"><form action="../UserAddProfileImage?context=context0" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
         												<img src="../images/upload_small.gif" align="absmiddle" />&nbsp;Upload photo:<br /> 
 		        		    						 <input name="username" type="hidden" value="<%=localUsername%>" id="profileUploadUsernameField" />
         												<input name="file2add" type="file" size="20" />
@@ -266,7 +266,7 @@ String context="context0";
 		        		    			</table>
 		        		    		
 		        		    	</td>
-		        	<form action="../UserCreate<%=isEditAddition %>" method="post" id="newUser">	    
+		        	<form action="../UserCreate?context=context0<%=isEditAddition %>" method="post" id="newUser">	    
     		    	<td><table width="100%" class="tissueSample">
       				<tr><td colspan="3"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured, listed in commonConfiguration.properties, and matched to the URL-based functions of the Shepherd Project in the Apache Shiro filter in web.xml.</em></td></tr>
       				<tr>
@@ -311,7 +311,8 @@ String context="context0";
             
             
             Roles for <%=ContextConfiguration.getNameForContext(("context"+d)) %>(multi-select): 
-                        	<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5" required="required">
+                        	<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5">
+                        		<option value=""></option>
 								<%
 								for(int q=0;q<numRoles;q++){
 									String selected="";
@@ -357,7 +358,7 @@ String context="context0";
             <p><font size="+1">Reset User Agreement Acceptance for All Users</font></p>
             <p>This command resets all User accounts such that each user must reaccept the User Agreement upon the next login.</p>
 
-            <form name="UserResetAcceptedUserAgreement" method="post" action="../UserResetAcceptedUserAgreement">
+            <form name="UserResetAcceptedUserAgreement" method="post" action="../UserResetAcceptedUserAgreement?context=context0">
 
               <input name="UserResetAcceptedUserAgreementButton" type="submit" id="UserResetAcceptedUserAgreementButton" value="Reset">
               </p></form>
