@@ -99,7 +99,7 @@
 		/interconnectSubmitSpots= authc, roles[admin]
 		/GenePopExport = authc, roles[admin]
 		/individualSearch.jsp = authc, roles[admin]
-		/individualSearchResults.jsp = anon
+		/individualSearchResults.jsp = authc, roles[admin]
 		/individualSearchResultsExport.jsp = authc, roles[admin]
 		/individualSearchResultsAnalysis.jsp = authc, roles[admin]
 		/individualMappedSearchResults.jsp = authc, roles[admin]
@@ -107,7 +107,7 @@
 		/encounters/thumbnailSearch.jsp = authc, roles[admin]
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[admin]
 		 /encounters/encounterSearch.jsp = authc, roles[admin]
-		 /encounters/searchResults.jsp = anon
+		 /encounters/searchResults.jsp = authc, roles[admin]
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[admin]
 		 /encounters/mappedSearchResults.jsp = authc, roles[admin]
 		 /encounters/mappedSearchResultsSex.jsp = authc, roles[admin]
