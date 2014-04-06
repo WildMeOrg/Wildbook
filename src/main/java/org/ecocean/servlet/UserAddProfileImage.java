@@ -58,7 +58,7 @@ public class UserAddProfileImage extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
     String context="context0";
-    context=ServletUtilities.getContext(request);
+    //context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 
     //setup data dir
@@ -144,7 +144,7 @@ public class UserAddProfileImage extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success!</strong> I have successfully uploaded the user profile image file.");
 
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?isEdit=true&username=" + username + "#editUser\">Return to User Management.</a></p>\n");
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0&isEdit=true&username=" + username + "#editUser\">Return to User Management.</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
           //String message = "An additional image file has been uploaded for encounter #" + encounterNumber + ".";
           //ServletUtilities.informInterestedParties(request, encounterNumber, message);
@@ -152,7 +152,7 @@ public class UserAddProfileImage extends HttpServlet {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure!</strong> This User account is currently being modified by another user. Please wait a few seconds before trying to add this image again.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp\">Return to User Management</a></p>\n");
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0\">Return to User Management</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
 
         }

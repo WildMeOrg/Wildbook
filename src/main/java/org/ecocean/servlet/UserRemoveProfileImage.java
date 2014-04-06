@@ -49,7 +49,7 @@ public class UserRemoveProfileImage extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
     String context="context0";
-    context=ServletUtilities.getContext(request);
+    //context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
@@ -86,7 +86,7 @@ public class UserRemoveProfileImage extends HttpServlet {
         out.println("<strong>Failure:</strong> No such user exists in the library.");
         
       }
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?isEdit=true&username=" + username + "#editUser\">Return to User Management</a></p>\n");
+      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0&isEdit=true&username=" + username + "#editUser\">Return to User Management</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
       //String message = "An image file named " + fileName + " has been removed from encounter#" + encounterNumber + ".";
       //ServletUtilities.informInterestedParties(request, encounterNumber, message);

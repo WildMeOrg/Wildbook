@@ -150,7 +150,7 @@ import org.ecocean.*;
 		      }
 		      else{
 		        user.setLastLogin((new Date()).getTime());
-		        url = "/welcome.jsp";}
+		        url = "/welcome.jsp?context=context0";}
 		   
 		    }
 		    
