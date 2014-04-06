@@ -23,7 +23,7 @@
 
 <%
 String context="context0";
-//context=ServletUtilities.getContext(request);
+context=ServletUtilities.getContext(request);
 %>
 
 <html>
@@ -100,7 +100,7 @@ String context="context0";
 
           <p><%=props.getProperty("grantedRole")%><br />
 			<%
-			Shepherd myShepherd=new Shepherd(context);
+			Shepherd myShepherd=new Shepherd("context0");
 			myShepherd.beginDBTransaction();
 			%>
              <strong><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser()).replaceAll("\r","<br />")%></strong></p>
@@ -112,7 +112,7 @@ String context="context0";
             
 	        Logger log = LoggerFactory.getLogger(getClass());
 	        log.info(request.getRemoteUser()+" logged in from IP address "+request.getRemoteAddr()+".");
-
+			
 	    %>
 
 
