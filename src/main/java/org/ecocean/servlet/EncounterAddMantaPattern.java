@@ -147,21 +147,39 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
           // Run algorithm.
           List<String> procArg = ListHelper.create("/usr/bin/mmatch")
-                  .add(encountersDir.getAbsolutePath())
-                  .add(spvFile.getAbsolutePath())
+                  .add(mmaInputFile.getAbsolutePath())
                   .add("0").add("0").add("2").add("1")
                   .add("-o").add(mmFiles.get("TXT").getName())
                   .add("-c").add(mmFiles.get("CSV").getName())
                   .asList();
           ProcessBuilder pb2 = new ProcessBuilder(procArg);
           pb2.directory(encDir);
+          pb2.redirectErrorStream();
           
           String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
           resultComment.append("<br />").append(procArgStr).append("<br /><br />");
           System.out.println(procArgStr);
           
           Process proc = pb2.start();
+          // Read ouput from process.
+          resultComment.append("mmatch reported the following when trying to match image files:<br />");
+          BufferedReader brProc = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+          try {
+            String temp = null;
+            while ((temp = brProc.readLine()) != null) {
+              resultComment.append(temp).append("<br />");
+            }
+          }
+          catch (IOException iox) {
+            iox.printStackTrace();
+            locked = true;
+            resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
+            resultComment.append(iox.getStackTrace().toString());
+          }
           proc.waitFor();
+
+          // Delete temporary algorithm input file.
+          mmaInputFile.delete();
         }
         catch (SecurityException sx) {
           sx.printStackTrace();
@@ -207,12 +225,28 @@ public class EncounterAddMantaPattern extends HttpServlet {
                   .asList();
           ProcessBuilder pb2 = new ProcessBuilder(procArg);
           pb2.directory(dirEnc);
+          pb2.redirectErrorStream();
 
           String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
           resultComment.append("<br />").append(procArgStr).append("<br /><br />");
           System.out.println(procArgStr);
 
           Process proc = pb2.start();
+          // Read ouput from process.
+          resultComment.append("mmatch reported the following when trying to match image files:<br />");
+          BufferedReader brProc = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+          try {
+            String temp = null;
+            while ((temp = brProc.readLine()) != null) {
+              resultComment.append(temp).append("<br />");
+            }
+          }
+          catch (IOException iox) {
+            iox.printStackTrace();
+            locked = true;
+            resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
+            resultComment.append(iox.getStackTrace().toString());
+          }
           proc.waitFor();
 
           // Delete temporary algorithm input file.
@@ -281,6 +315,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
                     .add(mmFiles.get("O").getAbsolutePath())
                     .add("4").add("1").add("2").asList();
             ProcessBuilder pb = new ProcessBuilder(procArg);
+            pb.redirectErrorStream();
 
             String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
             System.out.println("I am trying to execute the command: " + procArgStr);
@@ -302,6 +337,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
               resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
               resultComment.append(iox.getStackTrace().toString());
             } 
+            process.waitFor();
 
             if (!locked) {
               // If we've made it here, we have an enhanced image and can kick off a scan.
@@ -332,12 +368,28 @@ public class EncounterAddMantaPattern extends HttpServlet {
                       .asList();
               ProcessBuilder pb2 = new ProcessBuilder(procArg2);
               pb2.directory(dirEnc);
+              pb2.redirectErrorStream();
 
               String procArg2Str = ListHelper.toDelimitedStringQuoted(procArg2, " ");
               resultComment.append("<br />").append(procArg2Str).append("<br /><br />");
               System.out.println(procArg2Str);
 
               Process proc = pb2.start();
+              // Read ouput from process.
+              resultComment.append("mmatch reported the following when trying to match image files:<br />");
+              BufferedReader brProc2 = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+              try {
+                String temp = null;
+                while ((temp = brProc2.readLine()) != null) {
+                  resultComment.append(temp).append("<br />");
+                }
+              }
+              catch (IOException iox) {
+                iox.printStackTrace();
+                locked = true;
+                resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
+                resultComment.append(iox.getStackTrace().toString());
+              }
               proc.waitFor();
 
               // Delete temporary algorithm input file.
@@ -364,7 +416,10 @@ public class EncounterAddMantaPattern extends HttpServlet {
             add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Submitted new mantamatcher data image.</p>");
           }
           else if (action.equals("rescan")){
-            add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Performed matching scan of mantamatcher feature data.</p>");
+            add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Performed global matching scan of mantamatcher feature data.</p>");
+          }
+          else if (action.equals("rescanRegional")){
+            add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Performed regional matching scan of mantamatcher feature data.</p>");
           }
           else {
             add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed mantamatcher data image.</p>");

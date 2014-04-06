@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*, org.ecocean.util.*, java.util.*,javax.jdo.*,java.io.File" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*, org.ecocean.util.*, java.text.*, java.util.*,javax.jdo.*,java.io.File" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -45,6 +45,7 @@ try {
     for(int t = 0; t < photos.size(); t++){
       SinglePhotoVideo spv = photos.get(t);
       Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+      DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
       File matchOutputRegional = mmFiles.get("TXT-REGIONAL");
       File matchOutputAll = mmFiles.get("TXT");
       File mmFT = mmFiles.get("FT");
@@ -74,14 +75,14 @@ try {
                           <input name="number" type="hidden" value="<%=encNum%>" id="number" />
                           <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
 
-                        <p><input name="scanFile" type="submit" id="scanFile" value="Scan (regional)" /></p>
+                        <p><input name="scanFile" type="submit" id="scanRegionalFile" value="Scan (regional)" /></p>
                     </form>
                    </p>
 <%
             } else {
 %>
               <p><em>Inspect the algorithm results</em></p>
-              <p>A regional &quot;<%=enc.getLocationID()%>&quot; match results file was found: <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here.</a></p>
+              <p>A regional &quot;<%=enc.getLocationID()%>&quot; match results file was found: <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here</a> <span class="smallish">(created <%=dateFormat.format(new Date(matchOutputRegional.lastModified()))%>)</span></p>
 
               <p><em>Rescan manta patterning image against regional &quot;<%=enc.getLocationID()%>&quot; database.</em></p>
                        <p>
@@ -90,7 +91,7 @@ try {
                            <input name="number" type="hidden" value="<%=encNum%>" id="number" />
                            <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
 
-                        <p><input name="rescanFile" type="submit" id="rescanFile" value="Rescan (regional)" /></p>
+                        <p><input name="rescanFile" type="submit" id="rescanRegionalFile" value="Rescan (regional)" /></p>
                     </form>
                    </p>
 <%
@@ -114,7 +115,7 @@ try {
             } else {
 %>
               <p><em>Inspect the algorithm results</em></p>
-              <p>A global database match results file was found: <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here.</a></p>
+              <p>A global database match results file was found: <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here</a> <span class="smallish">(created <%=dateFormat.format(new Date(matchOutputAll.lastModified()))%>)</span></p>
 
               <p><em>Rescan manta patterning image against global manta database.</em></p>
                        <p>
@@ -135,6 +136,39 @@ try {
 
     if (request.isUserInRole("admin") || request.isUserInRole("imageProcessor")) {
 %>
+<div id="dlgScan" title="MantaMatcher algorithm" style="display:none">
+<table>
+  <tr>
+    <td align="left" valign="top">
+      Please wait while the algorithm completes the scan...
+    </td>
+  </tr>
+</table>
+</div>
+<script>
+  var dlgScan = $("#dlgScan").dialog({
+    autoOpen: false,
+    draggable: false,
+    resizable: false,
+    modal: true,
+    width: 600,
+    close: function(event, ui) {
+			window.stop();
+    }
+  });
+  $("input#scanRegionalFile").click(function() {
+    dlgScan.dialog("open");
+  });
+  $("input#rescanRegionalFile").click(function() {
+    dlgScan.dialog("open");
+  });
+  $("input#scanFile").click(function() {
+    dlgScan.dialog("open");
+  });
+  $("input#rescanFile").click(function() {
+    dlgScan.dialog("open");
+  });
+</script>
 <br />
 <p style="background-color:#f0f0f0;"><em>Upload or replace a processed, cropped manta patterning image.</em></p>
       <p><form action="../EncounterAddMantaPattern" method="post" enctype="multipart/form-data" name="EncounterAddMantaPattern">
