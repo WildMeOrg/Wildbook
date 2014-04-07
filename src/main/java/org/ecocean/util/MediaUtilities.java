@@ -19,17 +19,18 @@
 
 package org.ecocean.util;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Paint;
-import java.awt.RenderingHints;
-import java.awt.Transparency;
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.MetadataException;
+import com.drew.metadata.exif.ExifDirectory;
+import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.color.ICC_Profile;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.awt.image.ColorModel;
@@ -146,6 +147,8 @@ public final class MediaUtilities {
   /**
    * Loads the specified image from the specified file.
    * @param f file to which to save image
+   * @return {@code BufferedImage} instance
+   * @throws IOException if an I/O problem occurs
    */
   public static BufferedImage loadImage(File f) throws IOException {
     if (f == null)
@@ -155,16 +158,110 @@ public final class MediaUtilities {
     else if (f.isDirectory())
       throw new FileNotFoundException(String.format("%s is a folder", f.getAbsolutePath()));
 
-    return ImageIO.read(f);
+    // Read image file.
+    BufferedImage img = ImageIO.read(f);
+
+    // Search metadata for orientation change to apply.
+    try {
+      Metadata md = ImageMetadataReader.readMetadata(f);
+      ExifDirectory dir = (ExifDirectory)md.getDirectory(ExifDirectory.class);
+      if (dir == null) {
+        return img;
+      }
+      // Check orientation & define transform.
+      int orientation = dir.getInt(ExifDirectory.TAG_ORIENTATION);
+      AffineTransform tx = getOrientationTransform(img, orientation);
+      // Transform image.
+      if (tx != null) {
+        BufferedImage tmp = transformImage(img, tx);
+        img.flush();
+        img = tmp;
+      }
+    } catch (ImageProcessingException ex) {
+      throw new IOException(ex);
+    } catch (MetadataException ex) {
+      // Warn, and return original.
+      log.warn(ex.getMessage(), ex);
+    }
+    // Return image.
+    return img;
   }
 
   /**
    * Loads the specified image from the specified file, converting it to
-   * the sRGB color space if necessary.
+   * the sRGB color profile if necessary.
    * @param f file to which to save image
+   * @return {@code BufferedImage} instance (converted to sRGB color profile)
+   * @throws IOException if an I/O problem occurs
    */
   public static BufferedImage loadImageAsSRGB(File f) throws IOException {
     return convertToSRGB(loadImage(f));
+  }
+
+  /**
+   * Creates an appropriate affine transform to correct the EXIF orientation
+   * specified. The orientation number should be obtained from the EXIF IDFD0
+   * Orientation metadata field.
+   * @param img image to be transformed
+   * @param orientation EXIF orientation identifier
+   * @return {@code AffineTransform} instance
+   */
+  private static AffineTransform getOrientationTransform(BufferedImage img, int orientation) {
+    AffineTransform tx = null;
+    int w = img.getWidth();
+    int h = img.getHeight();
+    switch (orientation) {
+      case 1: // "top, left side (normal)"
+        break;
+      case 2: // "top, right side (mirror horizontal)";
+        tx = AffineTransform.getScaleInstance(-1, 1);
+        tx.translate(-w, 0);
+        break;
+      case 3: // "bottom, right side (mirror horizontal/vertical)";
+        tx = AffineTransform.getScaleInstance(-1, -1);
+        tx.translate(-w, -h);
+        break;
+      case 4: // "bottom, left side (mirror vertical)";
+        tx = AffineTransform.getScaleInstance(1, -1);
+        tx.translate(0, -h);
+        break;
+      case 5: // "left side, top (mirror horizontal, rotate 90)";
+        tx = AffineTransform.getScaleInstance(-1, 1);
+        tx.translate(-h / 2, w / 2);
+        tx.quadrantRotate(1);
+        tx.translate(-w / 2, -h / 2);
+        break;
+      case 6: // "right side, top (rotate 90)";
+        tx = AffineTransform.getTranslateInstance(h / 2, w / 2);
+        tx.quadrantRotate(1);
+        tx.translate(-w / 2, -h / 2);
+        break;
+      case 7: // "right side, bottom (mirror horizontal, rotate 90)";
+        tx = AffineTransform.getScaleInstance(-1, 1);
+        tx.translate(-h / 2, w / 2);
+        tx.quadrantRotate(3);
+        tx.translate(-w / 2, -h / 2);
+        break;
+      case 8: // "Left side, bottom (rotate 270)";
+        tx = AffineTransform.getTranslateInstance(h / 2, w / 2);
+        tx.quadrantRotate(3);
+        tx.translate(-w / 2, -h / 2);
+        break;
+    }
+    return tx;
+  }
+
+	/**
+   * Transforms an image according to the specified affine transform.
+   * @param image image to transform
+   * @param transform affine transform to apply
+   * @return {@code BufferedImage} instance
+   */
+  private static BufferedImage transformImage(BufferedImage image, AffineTransform transform) {
+    AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BICUBIC);
+    BufferedImage img = op.createCompatibleDestImage(image, (image.getType() == BufferedImage.TYPE_BYTE_GRAY) ? image.getColorModel() : null);
+    img = op.filter(image, img);
+    return img;
   }
 
   /**
