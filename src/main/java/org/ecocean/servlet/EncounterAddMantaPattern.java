@@ -338,66 +338,6 @@ public class EncounterAddMantaPattern extends HttpServlet {
               resultComment.append(iox.getStackTrace().toString());
             } 
             process.waitFor();
-
-            if (!locked) {
-              // If we've made it here, we have an enhanced image and can kick off a scan.
-              // Perform a regional scan, as it's the most immediately useful.
-              Encounter enc = myShepherd.getEncounter(encounterNumber);
-              File dirEnc = new File(encountersDir, enc.getEncounterNumber());
-              spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
-              mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
-              File mmaInputFile = mmFiles.get("MMA-INPUT-REGIONAL");
-              if (mmaInputFile.exists())
-                mmaInputFile.delete();
-              String inputText = MantaMatcherUtilities.collateAlgorithmInputRegional(myShepherd, encountersDir, enc, spv);
-              PrintWriter pw = null;
-              try {
-                pw = new PrintWriter(mmaInputFile);
-                pw.print(inputText);
-                pw.flush();
-              }
-              finally {
-                if (pw != null)
-                  pw.close();
-              }
-              List<String> procArg2 = ListHelper.create("/usr/bin/mmatch")
-                      .add(mmaInputFile.getAbsolutePath())
-                      .add("0").add("0").add("2").add("1")
-                      .add("-o").add(mmFiles.get("TXT-REGIONAL").getName())
-                      .add("-c").add(mmFiles.get("CSV-REGIONAL").getName())
-                      .asList();
-              ProcessBuilder pb2 = new ProcessBuilder(procArg2);
-              pb2.directory(dirEnc);
-              pb2.redirectErrorStream();
-
-              String procArg2Str = ListHelper.toDelimitedStringQuoted(procArg2, " ");
-              resultComment.append("<br />").append(procArg2Str).append("<br /><br />");
-              System.out.println(procArg2Str);
-
-              Process proc = pb2.start();
-              // Read ouput from process.
-              resultComment.append("mmatch reported the following when trying to match image files:<br />");
-              BufferedReader brProc2 = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-              try {
-                String temp = null;
-                while ((temp = brProc2.readLine()) != null) {
-                  resultComment.append(temp).append("<br />");
-                }
-              }
-              catch (IOException iox) {
-                iox.printStackTrace();
-                locked = true;
-                resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
-                resultComment.append(iox.getStackTrace().toString());
-              }
-              proc.waitFor();
-
-              // Delete temporary algorithm input file.
-              mmaInputFile.delete();
-            }
-            else {
-              locked = true;
-            }
           }
         }
       }
@@ -437,8 +377,10 @@ public class EncounterAddMantaPattern extends HttpServlet {
           myShepherd.commitDBTransaction();
           
           if (action.equals("imageadd")) {
-            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResultsRegional?spv=" + spv.getDataCollectionEventID();
-            response.sendRedirect(resultsURL);
+            out.println(ServletUtilities.getHeader(request));
+            out.println("<strong>Confirmed:</strong> I have successfully added your mantamatcher data image file.");
+            out.println("<p><a href=\"" + request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+            out.println(ServletUtilities.getFooter());
           }
           else if (action.equals("rescan")) {
             String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
