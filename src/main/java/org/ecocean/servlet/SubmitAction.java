@@ -34,6 +34,7 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -84,11 +85,11 @@ public class SubmitAction extends Action {
 		  String genusSpecies="";
 		  String country="";
 		  String locationID="";
-  		  Shepherd myShepherd;
-
-
-
-    myShepherd = new Shepherd();
+		  
+		  
+	    String context="context0";
+	    context=ServletUtilities.getContext(request);  
+	    Shepherd myShepherd=myShepherd = new Shepherd(context);
 
     if (form instanceof SubmitForm) {
       System.out.println("Starting data submission...");
@@ -190,7 +191,8 @@ public class SubmitAction extends Action {
 
 
       	try {
-        	props.load(getClass().getResourceAsStream("/bundles/submitActionClass.properties"));
+        	//props.load(getClass().getResourceAsStream("/bundles/submitActionClass.properties"));
+        	props=ShepherdProperties.getProperties("submitActionClass.properties.properties", "");
 
         	Enumeration m_enum = props.propertyNames();
         	while (m_enum.hasMoreElements()) {
@@ -325,7 +327,7 @@ public class SubmitAction extends Action {
 
       String rootWebappPath = getServlet().getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
       if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
 
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
@@ -352,7 +354,7 @@ public class SubmitAction extends Action {
             //System.out.println(writeFile);
             if (!writeFile) {
               //only write files out that are less than 9MB
-              if ((file[iter].getFileSize() < (CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576)) && (file[iter].getFileSize() > 0)) {
+              if ((file[iter].getFileSize() < (CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576)) && (file[iter].getFileSize() > 0)) {
 
                 byte[] buffer = new byte[8192];
                 int bytesRead = 0;
@@ -411,7 +413,7 @@ public class SubmitAction extends Action {
       enc.setComments(comments.replaceAll("\n", "<br>"));
       if (theForm.getReleaseDate() != null && theForm.getReleaseDate().length() > 0) {
         String dateStr = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getReleaseDate());
-        String dateFormatPattern = CommonConfiguration.getProperty("releaseDateFormat");
+        String dateFormatPattern = CommonConfiguration.getProperty("releaseDateFormat",context);
         try {
           SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
           enc.setReleaseDate(simpleDateFormat.parse(dateStr));
@@ -688,8 +690,8 @@ public class SubmitAction extends Action {
       enc.setPhotographerEmail(photographerEmail);
       enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + request.getRemoteHost() + "</p>");
       //enc.approved = false;
-      if(CommonConfiguration.getProperty("encounterState0")!=null){
-        enc.setState(CommonConfiguration.getProperty("encounterState0"));
+      if(CommonConfiguration.getProperty("encounterState0",context)!=null){
+        enc.setState(CommonConfiguration.getProperty("encounterState0",context));
       }
       if (request.getRemoteUser() != null) {
         enc.setSubmitterID(request.getRemoteUser());
@@ -707,7 +709,7 @@ public class SubmitAction extends Action {
       if (!informothers.equals("")) {
         enc.setInformOthers(informothers);
       }
-      String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix() + uniqueID;
+      String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + uniqueID;
 
       //new additions for DarwinCore
       enc.setDWCGlobalUniqueIdentifier(guid);

@@ -30,6 +30,7 @@ import org.ecocean.Shepherd;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
@@ -70,14 +71,16 @@ public class AdoptionAction extends Action {
 
     boolean adoptionSuccess = true;
     String failureMessage = "";
-    myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    myShepherd = new Shepherd(context);
     System.out.println("Starting adoptionAction...");
     if (form instanceof AdoptionForm) {
       
       //setup data dir
       String rootWebappPath = getServlet().getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
       //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
       File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
       if(!adoptionsDir.exists()){adoptionsDir.mkdir();}  
@@ -185,7 +188,7 @@ public class AdoptionAction extends Action {
             //System.out.println(writeFile);
             if (!writeFile) {
               //only write files out that are less than 9MB
-              if ((file[iter].getFileSize() < (CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576)) && (file[iter].getFileSize() > 0)) {
+              if ((file[iter].getFileSize() < (CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576)) && (file[iter].getFileSize() > 0)) {
 
                 byte[] buffer = new byte[8192];
                 int bytesRead = 0;

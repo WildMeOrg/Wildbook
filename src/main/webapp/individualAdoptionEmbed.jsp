@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -21,7 +21,9 @@
   --%>
 
 <%
-  Shepherd adoptShepherd = new Shepherd();
+String context="context0";
+context=ServletUtilities.getContext(request);
+  Shepherd adoptShepherd = new Shepherd(context);
   String name = request.getParameter("name");
 
   try {
@@ -77,7 +79,7 @@
 
 
   <%
-    ArrayList adoptions = adoptShepherd.getAllAdoptionsForMarkedIndividual(name);
+    ArrayList adoptions = adoptShepherd.getAllAdoptionsForMarkedIndividual(name,context);
     int numAdoptions = adoptions.size();
     int ia = 0;
     for (ia = 0; ia < numAdoptions; ia++) {
@@ -93,7 +95,7 @@
   <tr>
     <td class="image" style="padding-top: 0px;">
       <center><img width="188px"
-                   src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=ad.getID()%>/thumb.jpg"/></center>
+                   src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg"/></center>
     </td>
   </tr>
   <%

@@ -20,17 +20,16 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.grid.GridManager,org.ecocean.grid.GridManagerFactory, java.util.Properties,java.util.ArrayList" %>
+         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities, java.util.Properties,java.util.ArrayList" %>
 
 
 <%
 
-  //grab a gridManager
-  GridManager gm = GridManagerFactory.getGridManager();
-  int numProcessors = gm.getNumProcessors();
-  int numWorkItems = gm.getIncompleteWork().size();
 
-  Shepherd myShepherd = new Shepherd();
+String context="context0";
+context=ServletUtilities.getContext(request);
+
+  Shepherd myShepherd = new Shepherd(context);
   
   	//check usernames and passwords
 	myShepherd.beginDBTransaction();
@@ -50,8 +49,10 @@
   	  	System.out.println("Creating tomcat roles...");
   	  		
   	  		Role newRole1=new Role("tomcat","admin");
+  	  		newRole1.setContext("context0");
   	  		myShepherd.getPM().makePersistent(newRole1);
 	  		Role newRole4=new Role("tomcat","destroyer");
+	  		newRole4.setContext("context0");
 	  		myShepherd.getPM().makePersistent(newRole4);
 	  		
 	  		System.out.println("Creating tomcat user account...");
@@ -72,25 +73,26 @@
   }
 
   Properties props = new Properties();
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/overview.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/overview.properties"));
+  props = ShepherdProperties.getProperties("overview.properties", langCode);
 
 
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle()%>
+  <title><%=CommonConfiguration.getHTMLTitle(context)%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
 
   <style type="text/css">
@@ -142,46 +144,13 @@
       <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
     <div id="main">
-      <div id="leftcol">
-        <div id="menu">
-          <%
-            //check what language is requested
-            if (request.getParameter("langCode") != null) {
-              if (request.getParameter("langCode").equals("fr")) {
-                langCode = "fr";
-              }
-              if (request.getParameter("langCode").equals("de")) {
-                langCode = "de";
-              }
-              if (request.getParameter("langCode").equals("es")) {
-                langCode = "es";
-              }
-            }
-          %>
-
-
-          <div class="module">
-            <h3>Latest News</h3>
-            <span class="caption">Add your news items here... </span><span class="caption"><br/>
-</span> <br/>
-          </div>
-
-          <div class="module">
-            <h3>Data Sharing</h3>
-            <span class="caption">If you are sharing data, this is a great place to let others know about it... </span>
-            <br/>
-          </div>
-
-        </div>
-        <!-- end menu --></div>
-      <!-- end leftcol -->
-      <div id="maincol">
+      
+      <div id="maincol-wide-solo">
 
         <div id="maintext">
           <h1 class="intro">Overview</h1>
 
-          <p class="caption">This is a great place to present an overview description of this
-            mark-recapture project and library...</p>
+          <p class="caption">Welcome to Wildbook! This is the main landing page of this project. You can customize this page (index.jsp) to present details about your project and species.</p>
           <br/>
         </div>
 
@@ -208,30 +177,8 @@
       <div id="rightcol">
 
 
-        <div class="module">
-          <h3>Find Record</h3>
-
-          <form name="form2" method="get" action="individuals.jsp">
-            <em>Enter a marked animal number, encounter number, animal nickname, or alternate
-              ID.</em><br/>
-            <input name="number" type="text" id="shark" size="25"/>
-            <input type="hidden" name="langCode" value="<%=langCode%>"/><br/>
-            <input name="Go" type="submit" id="Go2" value="Go"/>
-          </form>
-
-        </div>
 
 
-        <div class="module">
-          <h3>RSS/Atom Feeds</h3>
-
-          <p align="left"><a href="rss.xml"><img src="images/rssfeed.gif"
-                                                 width="80" height="15" border="0"
-                                                 alt="RSS News Feed"/></a></p>
-
-          <p align="left"><a href="atom.xml"><img
-            src="images/atom-feed-icon.gif" border="0" alt="ATOM News Feed"/></a></p>
-        </div>
 
 
       </div>

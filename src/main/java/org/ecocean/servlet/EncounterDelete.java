@@ -26,11 +26,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +56,9 @@ public class EncounterDelete extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -63,7 +67,7 @@ public class EncounterDelete extends HttpServlet {
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -73,7 +77,7 @@ public class EncounterDelete extends HttpServlet {
 
     if (!(request.getParameter("number") == null)) {
       String message = "Encounter #" + request.getParameter("number") + " was deleted from the database.";
-      ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+      ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       myShepherd.beginDBTransaction();
       Encounter enc2trash = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2trash);
@@ -122,7 +126,7 @@ public class EncounterDelete extends HttpServlet {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have removed encounter " + request.getParameter("number") + " from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter " + request.getParameter("number") + " to have it restored.");
-          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
             for(int i=0;i<allStatesSize;i++){
@@ -131,9 +135,9 @@ public class EncounterDelete extends HttpServlet {
             }
           }
           
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           Vector e_images = new Vector();
-          NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), CommonConfiguration.getNewSubmissionEmail(), ("Removed encounter " + request.getParameter("number")), "Encounter " + request.getParameter("number") + " has been removed from the database by user " + request.getRemoteUser() + ".", e_images);
+          NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getNewSubmissionEmail(context), ("Removed encounter " + request.getParameter("number")), "Encounter " + request.getParameter("number") + " has been removed from the database by user " + request.getRemoteUser() + ".", e_images,context);
 
 		  //let's get ready for emailing
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
@@ -144,7 +148,7 @@ public class EncounterDelete extends HttpServlet {
         } else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I have NOT removed encounter " + request.getParameter("number") + " from the database. This encounter is currently being modified by another user.");
-          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
             for(int i=0;i<allStatesSize;i++){
@@ -152,7 +156,7 @@ public class EncounterDelete extends HttpServlet {
               out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
             }
           }
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
 
 
         }
@@ -160,12 +164,12 @@ public class EncounterDelete extends HttpServlet {
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("Encounter# " + request.getParameter("number") + " is assigned to an individual and cannot be rejected until it has been removed from that individual.");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't know which encounter you're trying to remove.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
 

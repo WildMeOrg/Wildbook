@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -21,7 +21,9 @@
   --%>
 
 <%
-  Shepherd adoptShepherd = new Shepherd();
+String context="context0";
+context=ServletUtilities.getContext(request);
+  Shepherd adoptShepherd = new Shepherd(context);
   String num = request.getParameter("encounterNumber");
 
   try {
@@ -100,7 +102,7 @@ if(numAdoptions>0){
   %>
   <tr>
     <td class="image"><img
-      src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=ad.getID()%>/thumb.jpg" width="250px"></td>
+      src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" width="250px"></td>
   </tr>
   <%
     }

@@ -23,7 +23,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
 
 
@@ -34,6 +34,9 @@
 
   <%
 
+  String context="context0";
+  context=ServletUtilities.getContext(request);
+  
   DecimalFormat df = new DecimalFormat("#.##");
 
     //let's load encounterSearch.properties
@@ -42,19 +45,21 @@
       langCode = (String) session.getAttribute("langCode");
     }
     Properties encprops = new Properties();
-    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
-
+    //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
+    encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode);
+    
+    
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
 	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
     
     //get our Shepherd
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
 
 
     
  	//prep for measurements summary
- 	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
+ 	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en",context);
  	int numMeasurementTypes=measurementTypes.size();
  	SummaryStatistics[] measurementValues=new SummaryStatistics[numMeasurementTypes];
  	SummaryStatistics[] measurementValuesMales=new SummaryStatistics[numMeasurementTypes];
@@ -68,7 +73,7 @@
 
  	
  	//prep for biomeasurements summary
- 	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en");
+ 	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
  	int numBioMeasurementTypes=bioMeasurementTypes.size();
  	SummaryStatistics[] bioMeasurementValues=new SummaryStatistics[numBioMeasurementTypes];
  	SummaryStatistics[] bioMeasurementValuesMales=new SummaryStatistics[numBioMeasurementTypes];
@@ -110,7 +115,7 @@
  	sexHashtable.put("unknown", new Integer(0));
  	
  	//let's prep the HashTable for the species pie chart
- 	  ArrayList<String> allSpecies2=CommonConfiguration.getSequentialPropertyValues("genusSpecies"); 
+ 	  ArrayList<String> allSpecies2=CommonConfiguration.getSequentialPropertyValues("genusSpecies",context); 
  	  int numSpecies2 = allSpecies2.size();
  	  Hashtable<String,Integer> speciesHashtable = new Hashtable<String,Integer>();
  		for(int gg=0;gg<numSpecies2;gg++){
@@ -279,14 +284,14 @@
  	 
   %>
 
-  <title><%=CommonConfiguration.getHTMLTitle()%>
+  <title><%=CommonConfiguration.getHTMLTitle(context)%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription()%>"/>
-  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords()%>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor()%>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request)%>" rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon()%>"/>
+  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context)%>"/>
+  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context)%>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context)%>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context)%>" rel="stylesheet" type="text/css"/>
+  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
 
 
     <style type="text/css">
@@ -472,7 +477,7 @@
         speciesData.addColumn('number', 'No. Recorded');
         speciesData.addRows([
           <%
-          ArrayList<String> allSpecies=CommonConfiguration.getSequentialPropertyValues("genusSpecies"); 
+          ArrayList<String> allSpecies=CommonConfiguration.getSequentialPropertyValues("genusSpecies",context); 
           int numSpecies = speciesHashtable.size();
           Enumeration<String> speciesKeys=speciesHashtable.keys();
 
@@ -743,13 +748,13 @@
 <div id="sexchart_div"></div>
 
  <%
-        if(CommonConfiguration.showProperty("showTaxonomy")){
+        if(CommonConfiguration.showProperty("showTaxonomy",context)){
         %>
 		<div id="specieschart_div"></div>
 		<%
         }
 		
-        if(CommonConfiguration.showProperty("showCountry")){
+        if(CommonConfiguration.showProperty("showCountry",context)){
         %>
 		<div id="countrieschart_div"></div>
 		<%

@@ -26,7 +26,12 @@ public class EncounterQueryProcessor {
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
     String jdoqlVariableDeclaration = "";
     String parameterDeclaration = "";
-    Shepherd myShepherd=new Shepherd();
+    
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    
+    Shepherd myShepherd=new Shepherd(context);
 
   //filter for location------------------------------------------
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
@@ -362,7 +367,7 @@ public class EncounterQueryProcessor {
 
 
     // Measurement filters-----------------------------------------------
-    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs("us");
+    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs("us",context);
     String measurementPrefix = "measurement";
     StringBuilder measurementFilter = new StringBuilder(); //"( collectedData.contains(measurement) && (");
     boolean atLeastOneMeasurement = false;
@@ -437,7 +442,7 @@ public class EncounterQueryProcessor {
 
 
     // BiologicalMeasurement filters-----------------------------------------------
-    List<MeasurementDesc> bioMeasurementDescs = Util.findBiologicalMeasurementDescs("us");
+    List<MeasurementDesc> bioMeasurementDescs = Util.findBiologicalMeasurementDescs("us",context);
     String bioMeasurementPrefix = "biomeasurement";
     StringBuilder bioMeasurementFilter = new StringBuilder();
     bioMeasurementFilter.append("tissueSamples.contains(dce322) ");
@@ -1030,7 +1035,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
     String releaseDateToStr = request.getParameter("releaseDateTo");
-    String pattern = CommonConfiguration.getProperty("releaseDateFormat");
+    String pattern = CommonConfiguration.getProperty("releaseDateFormat",context);
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
     if (releaseDateFromStr != null && releaseDateFromStr.trim().length() > 0) {
       try {

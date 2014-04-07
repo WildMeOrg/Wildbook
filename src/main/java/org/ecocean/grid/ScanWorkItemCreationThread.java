@@ -36,18 +36,19 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
   java.util.Properties props2 = new java.util.Properties();
   boolean finished = false;
   GridManager gm;
+  String context="context0";
 
   /**
    * Constructor to create a new thread object
    */
-  public ScanWorkItemCreationThread(String taskID, boolean rightSide, String encounterNum, boolean writeThis) {
+  public ScanWorkItemCreationThread(String taskID, boolean rightSide, String encounterNum, boolean writeThis, String context) {
     this.taskID = taskID;
     this.writeThis = writeThis;
     this.rightSide = rightSide;
     this.encounterNumber = encounterNum;
     gm = GridManagerFactory.getGridManager();
     threadCreationObject = new Thread(this, ("scanWorkItemCreation_" + taskID));
-
+    this.context=context;
   }
 
 
@@ -64,7 +65,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
 
 
   public void createThem() {
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
     GridManager gm = GridManagerFactory.getGridManager();
 
     String secondRun = "true";

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,java.util.ArrayList,java.util.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.ArrayList,java.util.*" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -21,6 +21,9 @@
 
 <%
 
+String context="context0";
+context=ServletUtilities.getContext(request);
+
 //setup our Properties object to hold all properties
   Properties props = new Properties();
   String langCode = "en";
@@ -32,11 +35,15 @@
 
   //load our variables for the submit page
 
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
+  props = ShepherdProperties.getProperties("individuals.properties", langCode);
 
-  Properties localesProps = new Properties();
-  localesProps.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+
 		  
+  Properties localesProps = new Properties();
+  //localesProps.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+  localesProps = ShepherdProperties.getProperties("locales.properties", "");
+	  
 		  
 		  
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
@@ -74,7 +81,7 @@
   String allEncounters = props.getProperty("allEncounters");
   String allIndividuals = props.getProperty("allIndividuals");
 
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
   
   
  
@@ -217,7 +224,7 @@ String lastLatLong="";
 					        	});
 
 					             google.maps.event.addListener(marker,'click', function() {
-					                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indieEnc.isAssignedToMarkedIndividual()%>\"><%=indieEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=indieEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=indieEnc.getDate()%><br />Sex: <%=indieEnc.getSex()%><%if(indieEnc.getSizeAsDouble()!=null){%><br />Size: <%=indieEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=indieEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+					                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indieEnc.isAssignedToMarkedIndividual()%>\"><%=indieEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=indieEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=indieEnc.getDate()%><br />Sex: <%=indieEnc.getSex()%><%if(indieEnc.getSizeAsDouble()!=null){%><br />Size: <%=indieEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=indieEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
 					              });
 					 
 						
@@ -306,7 +313,7 @@ String lastLatLong="";
         	});
 
             google.maps.event.addListener(marker,'click', function() {
-                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
              });
  
 	
