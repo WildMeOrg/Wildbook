@@ -170,7 +170,7 @@ public class IndividualQueryProcessor {
 
 
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=("encounters.contains(enc97) &&"+ patterningCodeFilter);}
-            else{filter+=(" && "+patterningCodeFilter+" &&  encounters.contains(enc97) &&");}
+            else{filter+=(" && "+patterningCodeFilter+" &&  encounters.contains(enc97)");}
             if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc97")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc97";}
 
             prettyPrint.append("<br />");
@@ -231,7 +231,7 @@ public class IndividualQueryProcessor {
 
 
 	            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=("encounters.contains(enc1515) &&"+ patterningCodeFilter);}
-	            else{filter+=(" && "+patterningCodeFilter+" &&  encounters.contains(enc1515) &&");}
+	            else{filter+=(" && "+patterningCodeFilter+" &&  encounters.contains(enc1515)");}
 	            if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc1515")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc1515";}
 
 	            prettyPrint.append("<br />");
