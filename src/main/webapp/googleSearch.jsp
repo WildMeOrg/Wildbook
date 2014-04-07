@@ -19,62 +19,34 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="org.ecocean.*, java.util.Properties,org.ecocean.servlet.ServletUtilities" %>
 <%
 
+String context="context0";
+context=ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
   Properties props = new Properties();
   String langCode = "en";
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-
-
-  //load our variables for the submit page
-  String title = props.getProperty("submit_title");
-  String submit_maintext = props.getProperty("submit_maintext");
-  String submit_reportit = props.getProperty("reportit");
-  String submit_language = props.getProperty("language");
-  String what_do = props.getProperty("what_do");
-  String read_overview = props.getProperty("read_overview");
-  String see_all_encounters = props.getProperty("see_all_encounters");
-  String see_all_sharks = props.getProperty("see_all_sharks");
-  String report_encounter = props.getProperty("report_encounter");
-  String log_in = props.getProperty("log_in");
-  String contact_us = props.getProperty("contact_us");
-  String search = props.getProperty("search");
-  String encounter = props.getProperty("encounter");
-  String shark = props.getProperty("shark");
-  String join_the_dots = props.getProperty("join_the_dots");
-  String menu = props.getProperty("menu");
-  String last_sightings = props.getProperty("last_sightings");
-  String more = props.getProperty("more");
-  String ws_info = props.getProperty("ws_info");
-  String about = props.getProperty("about");
-  String contributors = props.getProperty("contributors");
-  String forum = props.getProperty("forum");
-  String blog = props.getProperty("blog");
-  String area = props.getProperty("area");
-  String match = props.getProperty("match");
-
-  //link path to submit page with appropriate language
-  String submitPath = "submit.jsp?langCode=" + langCode;
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  props = ShepherdProperties.getProperties("submit.properties", langCode);
 
 
 %>
 
 <html>
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
 
 </head>
@@ -99,15 +71,15 @@
         <!-- Google CSE Search Box Begins  -->
         <form
           action="http://<%=CommonConfiguration.getURLLocation(request) %>/googleSearchResults.jsp"
-          id="searchbox_<%=CommonConfiguration.getGoogleSearchKey() %>"><input
+          id="searchbox_<%=CommonConfiguration.getGoogleSearchKey(context) %>"><input
           type="hidden" name="cx"
-          value="<%=CommonConfiguration.getGoogleSearchKey() %>"/> <input
+          value="<%=CommonConfiguration.getGoogleSearchKey(context) %>"/> <input
           type="hidden" name="cof" value="FORID:11"/> <input type="text"
                                                              name="q" size="25"/> <input
           type="submit" name="sa" value="Search"/>
         </form>
         <script type="text/javascript"
-                src="http://www.google.com/coop/cse/brand?form=searchbox_<%=CommonConfiguration.getGoogleSearchKey() %>"></script>
+                src="http://www.google.com/coop/cse/brand?form=searchbox_<%=CommonConfiguration.getGoogleSearchKey(context) %>"></script>
         <!-- Google CSE Search Box Ends --></div>
       <!-- end maintext --></div>
     <!-- end maincol -->

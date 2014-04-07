@@ -177,7 +177,8 @@ public class Occurrence implements java.io.Serializable{
     Properties localesProps = new Properties();
     if(useLocales){
       try {
-        localesProps.load(ShepherdPMF.class.getResourceAsStream("/bundles/locales.properties"));
+        //localesProps.load(ShepherdPMF.class.getResourceAsStream("/bundles/locales.properties"));
+        localesProps=ShepherdProperties.getProperties("locales.properties", "");
       } 
       catch (Exception ioe) {
         ioe.printStackTrace();

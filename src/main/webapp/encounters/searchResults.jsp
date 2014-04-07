@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*" %>
 
 
 <html>
@@ -28,6 +28,8 @@
 
 <%
 
+String context="context0";
+context=ServletUtilities.getContext(request);
 
   //let's load encounterSearch.properties
   String langCode = "en";
@@ -36,10 +38,11 @@
   }
 
   Properties encprops = new Properties();
-  encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
+  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
+  encprops=ShepherdProperties.getProperties("searchResults.properties", langCode);
+  
 
-
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
 
 
 
@@ -97,18 +100,18 @@
 //--end unique counting------------------------------------------
 
 %>
-<title><%=CommonConfiguration.getHTMLTitle()%>
+<title><%=CommonConfiguration.getHTMLTitle(context)%>
 </title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta name="Description"
-      content="<%=CommonConfiguration.getHTMLDescription()%>"/>
+      content="<%=CommonConfiguration.getHTMLDescription(context)%>"/>
 <meta name="Keywords"
-      content="<%=CommonConfiguration.getHTMLKeywords()%>"/>
-<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor()%>"/>
-<link href="<%=CommonConfiguration.getCSSURLLocation(request)%>"
+      content="<%=CommonConfiguration.getHTMLKeywords(context)%>"/>
+<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context)%>"/>
+<link href="<%=CommonConfiguration.getCSSURLLocation(request,context)%>"
       rel="stylesheet" type="text/css"/>
 <link rel="shortcut icon"
-      href="<%=CommonConfiguration.getHTMLShortcutIcon()%>"/>
+      href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
 </head>
 
 <style type="text/css">
@@ -220,7 +223,7 @@
     </strong></td>
   
   <%
-  if (CommonConfiguration.showProperty("showTaxonomy")) {
+  if (CommonConfiguration.showProperty("showTaxonomy",context)) {
   %>
   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
     <strong><%=encprops.getProperty("taxonomy")%>
@@ -269,7 +272,7 @@
   <%
    if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
    %>
-  	<img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>" />
+  	<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>" />
   <%
    }
   %>
@@ -295,7 +298,7 @@
   </td>
   
   <%
-  if (CommonConfiguration.showProperty("showTaxonomy")) {
+  if (CommonConfiguration.showProperty("showTaxonomy",context)) {
   
     String genusSpeciesFound=encprops.getProperty("notAvailable");
     if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}

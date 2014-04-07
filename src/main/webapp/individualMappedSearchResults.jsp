@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,java.util.Random" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,java.util.Random" %>
 
 
 
@@ -29,7 +29,8 @@
 
 
   <%
-
+  String context="context0";
+  context=ServletUtilities.getContext(request);
 
     //let's load encounterSearch.properties
     String langCode = "en";
@@ -37,18 +38,24 @@
       langCode = (String) session.getAttribute("langCode");
     }
     Properties map_props = new Properties();
-    map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
-
-    Properties haploprops = new Properties();
-    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
-
-    Properties localeprops = new Properties();
-   localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
+    map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode);
+	  
 
     
+    Properties haploprops = new Properties();
+    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
+	//haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+	haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+		
+
+    Properties localeprops = new Properties();
+   //localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+   localeprops = ShepherdProperties.getProperties("locales.properties", "");
+	
+    
     //get our Shepherd
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
 
 	Random ran= new Random();
 
@@ -75,21 +82,21 @@
     allHaplos2=myShepherd.getAllHaplotypes(); 
     numHaplos2=allHaplos2.size();
     
-    List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies");
+    List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies",context);
     int numSpecies=allSpecies.size();
    
-    List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor");
+    List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor",context);
     int numSpeciesColors=allSpeciesColors.size();
 %>
 
-  <title><%=CommonConfiguration.getHTMLTitle()%>
+  <title><%=CommonConfiguration.getHTMLTitle(context)%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription()%>"/>
-  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords()%>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor()%>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request)%>" rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon()%>"/>
+  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context)%>"/>
+  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context)%>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context)%>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context)%>" rel="stylesheet" type="text/css"/>
+  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
 
 
     <style type="text/css">
@@ -426,7 +433,7 @@ function useNoAspect(){
 		aspect="none";
 		hideTable("haplotable");
 		 <%
-		 if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+		 if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
 		 %>
 		hideTable("speciestable");
 		<%
@@ -441,7 +448,7 @@ function useSexAspect(){
 	//alert("In useSexAspect");
 	hideTable("haplotable");
 	 <%
-	 if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+	 if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
 	 %>
 	hideTable("speciestable");
 	<%
@@ -459,7 +466,7 @@ function useSexAspect(){
 function useHaplotypeAspect(){
 	//alert("In useHaplotypeAspect");
 	 <%
- 	if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+ 	if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
  	%>
 	hideTable("speciestable");
 	<%
@@ -479,7 +486,7 @@ function useHaplotypeAspect(){
 function useSpeciesAspect(){
 	//alert("In useHaplotypeAspect");
 	 <%
- if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+ if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
  %>
 	hideTable("speciestable");
 	<%
@@ -487,7 +494,7 @@ function useSpeciesAspect(){
 	%>
 	hideTable("haplotable");
 	 <%
-	 if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+	 if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
 	 %>
 	showTable("speciestable");
 	<%
@@ -618,7 +625,7 @@ if (request.getQueryString() != null) {
  <p>
  <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer; color:blue" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>
   <%
- if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+ if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
  %>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSpeciesAspect(); return false;"><%=map_props.getProperty("displayAspectName3") %></a>
  <%
@@ -666,7 +673,7 @@ if (request.getQueryString() != null) {
  </table>
  </td>
  <%
- if((CommonConfiguration.getProperty("showTaxonomy")!=null)&&(!CommonConfiguration.getProperty("showTaxonomy").equals("false"))){
+ if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
  %>
   <td valign="top">
  <table id="speciestable" style="display:none">

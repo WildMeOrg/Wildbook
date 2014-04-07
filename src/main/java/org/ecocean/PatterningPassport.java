@@ -62,7 +62,7 @@ public class PatterningPassport implements java.io.Serializable {
     this.timestampOfLastUpdate = ts.getTime();
   }
 
-  private Boolean makeNewPassportXml () {
+  private Boolean makeNewPassportXml (String context) {
     // -- FROM: http://www.mkyong.com/java/how-to-create-xml-file-in-java-dom/
     try {
       DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -74,7 +74,7 @@ public class PatterningPassport implements java.io.Serializable {
       doc.appendChild(rootElement);
 
       // File locations
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 
       // Universal passport fields for the XML
       String encounterUrlString = "foo/" + this.encounterId; // TODO -- generate URL
@@ -166,18 +166,18 @@ public class PatterningPassport implements java.io.Serializable {
   /**
    * @return the passportDataXml
    */
-  public String getPassportDataXml() {
+  public String getPassportDataXml(String context) {
     if (passportDataXml.equals(null)) {
-      this.makeNewPassportXml(); // make one if none is yet made
+      this.makeNewPassportXml(context); // make one if none is yet made
     }
     return passportDataXml;
   }
   /**
    * @param passportDataXml the passportDataXml to set
    */
-  public Boolean setPassportDataXml(String passportDataXml) {
+  public Boolean setPassportDataXml(String passportDataXml,String context) {
     this.passportDataXml = passportDataXml;
-    Boolean success = this.makeNewPassportXml();
+    Boolean success = this.makeNewPassportXml(context);
     this.updateTimeStamp();
     return success;
   }

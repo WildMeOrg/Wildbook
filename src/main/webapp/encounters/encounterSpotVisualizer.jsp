@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.*,java.awt.*,java.io.*, java.net.URL, java.net.URLConnection, java.util.ArrayList" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.awt.*,java.io.*, java.net.URL, java.net.URLConnection, java.util.ArrayList" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -28,9 +28,13 @@
 
 
 <%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
   String num = request.getParameter("number");
 //int number=(new Integer(num)).intValue();
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
   boolean proceed = true;
   String side = "Left";
 
@@ -43,7 +47,7 @@
      //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -58,18 +62,18 @@
 <head>
 
   <title>Spot Visualization for Encounter <%=num%></title>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 </head>
 
 <body bgcolor="#FFFFFF" link="#990000">
@@ -278,7 +282,7 @@ if (myShepherd.isEncounter(num)) {
 </di:img>
 
 <!-- Put the image URL in now -->
-<img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(num+"/"+side+"SideSpotsMapped.jpg")%>" border="0" align="left" valign="left">
+<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=(num+"/"+side+"SideSpotsMapped.jpg")%>" border="0" align="left" valign="left">
 
 
 

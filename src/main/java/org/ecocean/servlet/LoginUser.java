@@ -3,6 +3,7 @@ package org.ecocean.servlet;
 import java.io.IOException;
 
 
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +19,6 @@ import org.apache.shiro.subject.Subject;
 
 
 import org.apache.shiro.web.util.WebUtils;
-
 import org.ecocean.*;
 
 
@@ -58,13 +58,17 @@ import org.ecocean.*;
 
 		String url = "/login.jsp";
 		
+		System.out.println("Starting LoginUser servlet...");
+		
 		//see /login.jsp for these form fields
 		String username = request.getParameter("username").trim();
 		String password = request.getParameter("password").trim();
 		
 		
 		String salt="";
-		Shepherd myShepherd=new Shepherd();
+		String context="context0";
+    //context=ServletUtilities.getContext(request);
+		Shepherd myShepherd=new Shepherd(context);
 		myShepherd.beginDBTransaction();
 		
 		try{
@@ -72,6 +76,7 @@ import org.ecocean.*;
 		    User user=myShepherd.getUser(username);
 		    salt=user.getSalt();  
 		    if(request.getParameter("acceptUserAgreement")!=null){
+		      System.out.println("Trying to set acceptance for UserAgreement!");
 		      user.setAcceptedUserAgreement(true);
 		      myShepherd.commitDBTransaction();
 		    }
@@ -90,7 +95,7 @@ import org.ecocean.*;
 		
 		myShepherd.closeDBTransaction();
     String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
-    System.out.println("Authenticating hashed password: "+hashedPassword+" including salt "+salt);
+    //System.out.println("Authenticating hashed password: "+hashedPassword+" including salt "+salt);
 		
 	    //create a UsernamePasswordToken using the
 		//username and password provided by the user
@@ -137,7 +142,7 @@ import org.ecocean.*;
 		   myShepherd.beginDBTransaction();
 		    if(myShepherd.getUser(username)!=null){
 		      User user=myShepherd.getUser(username);
-		      if((CommonConfiguration.getProperty("showUserAgreement")!=null)&&(CommonConfiguration.getProperty("userAgreementURL")!=null)&&(CommonConfiguration.getProperty("showUserAgreement").equals("true"))&&(!user.getAcceptedUserAgreement())){
+		      if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(CommonConfiguration.getProperty("userAgreementURL",context)!=null)&&(CommonConfiguration.getProperty("showUserAgreement",context).equals("true"))&&(!user.getAcceptedUserAgreement())){
 		        subject.logout();
 		        redirectUser=true;
 		        //redirect to the user agreement
@@ -152,7 +157,7 @@ import org.ecocean.*;
 		    myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         
-        if(redirectUser){url=CommonConfiguration.getProperty("userAgreementURL");}
+        if(redirectUser){url=CommonConfiguration.getProperty("userAgreementURL",context);}
         
 			
 			

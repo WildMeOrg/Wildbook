@@ -19,7 +19,6 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
 import org.ecocean.*;
 
 import javax.servlet.ServletConfig;
@@ -27,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -50,7 +50,9 @@ public class EncounterRemoveImage extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -145,16 +147,16 @@ public class EncounterRemoveImage extends HttpServlet {
           out.println("<strong>Success!</strong> I have successfully removed the encounter image file. When returning to the encounter page, please make sure to refresh your browser to see the changes. Image changes will not be visible until you have done so.");
 
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           String message = "An image file named " + fileName + " has been removed from encounter#" + encounterNumber + ".";
-          ServletUtilities.informInterestedParties(request, encounterNumber, message);
+          ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
         } else {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to remove this image again.");
 
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
 
         }
       } else {
@@ -162,14 +164,14 @@ public class EncounterRemoveImage extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to remove your image file. For data protection, you must first remove the encounter from the marked individual it is assigned to.");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
     } else {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to remove your image file. I cannot find the encounter that you intended it for in the database. +++");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();

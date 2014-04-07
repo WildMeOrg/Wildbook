@@ -28,6 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -45,7 +46,9 @@ public class EncounterSetInformOthers extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -75,7 +78,7 @@ public class EncounterSetInformOthers extends HttpServlet {
         out.println("<strong>Success!</strong> I have successfully changed the others to inform for encounter " + sharky + " to " + informers + ".</p>");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         String message = "The others to inform for encounter " + sharky + " was set to " + informers + ".";
       } else {
 
@@ -83,14 +86,14 @@ public class EncounterSetInformOthers extends HttpServlet {
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to modify this encounter again.");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
     } else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the others to inform. I cannot find the encounter that you intended in the database.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();

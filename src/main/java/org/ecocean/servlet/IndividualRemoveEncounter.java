@@ -29,6 +29,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -51,7 +52,9 @@ public class IndividualRemoveEncounter extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -130,17 +133,17 @@ public class IndividualRemoveEncounter extends HttpServlet {
           if (wasRemoved) {
             out.println("Record <strong>" + name_s + "</strong> was also removed because it contained no encounters.");
           }
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           String message = "Encounter #" + request.getParameter("number") + " was removed from " + old_name + ".";
-          ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+          ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
           if (!wasRemoved) {
-            ServletUtilities.informInterestedIndividualParties(request, old_name, message);
+            ServletUtilities.informInterestedIndividualParties(request, old_name, message,context);
           }
         } else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> Encounter #" + request.getParameter("number") + " was NOT removed from " + old_name + ". Another user is currently modifying this record entry. Please try again in a few seconds.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
 
         }
 
@@ -148,7 +151,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> You can't remove this encounter from a marked individual because it is not assigned to one.");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
 
 

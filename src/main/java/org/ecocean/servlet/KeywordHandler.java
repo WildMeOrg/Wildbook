@@ -28,6 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -50,7 +51,10 @@ public class KeywordHandler extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -71,7 +75,7 @@ public class KeywordHandler extends HttpServlet {
         out.println("<strong>Success:</strong> The new image indexing keyword <em>" + readableName + "</em> has been added.");
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark <strong>"+request.getParameter("shark")+"</strong></a></p>\n");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/kwAdmin.jsp\">Return to keyword administration page.</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -79,7 +83,7 @@ public class KeywordHandler extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       } 
       else if ((action.equals("removeWord")) && (request.getParameter("keyword") != null)) {
@@ -94,7 +98,7 @@ public class KeywordHandler extends HttpServlet {
         out.println("<strong>Success:</strong> The image indexing keyword <i>" + desc + "</i> has been removed.");
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark <strong>"+request.getParameter("shark")+"</strong></a></p>\n");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/kwAdmin.jsp\">Return to keyword administration page.</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -102,7 +106,7 @@ public class KeywordHandler extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       } 
    
 
@@ -119,7 +123,7 @@ public class KeywordHandler extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> The keyword <i>" + oldName + "</i> has been changed to <i>" + request.getParameter("newName") + "</i>.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/kwAdmin.jsp\">Return to keyword administration.</a></font></p>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       } 
       
       else {
@@ -127,7 +131,7 @@ public class KeywordHandler extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark <strong>"+request.getParameter("shark")+"</strong></a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -136,7 +140,7 @@ public class KeywordHandler extends HttpServlet {
           }
         }
         out.println("<p><a href=\"individualSearchResults.jsp\">View all sharks</a></font></p>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
 
 
@@ -145,7 +149,7 @@ public class KeywordHandler extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<p>I did not receive enough data to process your command. No action was indicated to me.</p>");
       out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
       //npe2.printStackTrace();
     }
     myShepherd.closeDBTransaction();

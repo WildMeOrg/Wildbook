@@ -34,8 +34,9 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
     
     //set the response
     
-    
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     
     //in case we're doing haplotype export
     ArrayList<String> haplos=myShepherd.getAllHaplotypes();
@@ -48,7 +49,7 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -95,7 +96,9 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
         //load the optional locales
         Properties props = new Properties();
         try {
-          props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+          //props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+          props=ShepherdProperties.getProperties("locales.properties", "");
+          
         } catch (Exception e) {
           System.out.println("     Could not load locales.properties in class GenalexExportCodominantMSDataBySize.");
           e.printStackTrace();
@@ -301,7 +304,7 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
         out.println(ServletUtilities.getHeader(request));
         out.println("<html><body><p><strong>Error encountered</strong> with file writing. Check the relevant log.</p>");
         out.println("<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         out.close();
         outp.close();
         outp=null;
@@ -316,7 +319,7 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
       out.println(ServletUtilities.getHeader(request));  
       out.println("<html><body><p><strong>Error encountered</strong></p>");
         out.println("<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         out.close();
     }
 

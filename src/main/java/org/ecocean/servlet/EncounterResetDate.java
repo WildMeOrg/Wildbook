@@ -20,11 +20,13 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -48,7 +50,9 @@ public class EncounterResetDate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -56,28 +60,7 @@ public class EncounterResetDate extends HttpServlet {
 
     boolean isOwner = true;
 
-    /**
-     if(request.getParameter("number")!=null){
-     myShepherd.beginDBTransaction();
-     if(myShepherd.isEncounter(request.getParameter("number"))) {
-     Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-     String locCode=verifyMyOwner.getLocationCode();
-
-     //check if the encounter is assigned
-     if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-     isOwner=true;
-     }
-
-     //if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-     else if((request.isUserInRole("admin"))){
-     isOwner=true;
-     }
-     //if they have general location code permissions for the encounter's location code
-     else if(request.isUserInRole(locCode)){isOwner=true;}
-     }
-     myShepherd.rollbackDBTransaction();
-     }
-     */
+   
     if ((request.getParameter("number") != null) && (request.getParameter("day") != null) && (request.getParameter("month") != null) && (request.getParameter("year") != null) && (request.getParameter("hour") != null) && (request.getParameter("minutes") != null)) {
       myShepherd.beginDBTransaction();
       Encounter fixMe = myShepherd.getEncounter(request.getParameter("number"));
@@ -120,7 +103,7 @@ public class EncounterResetDate extends HttpServlet {
         out.println("<strong>Success:</strong> I have changed the encounter date from " + oldDate + " to " + newDate + ".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         String message = "The date of encounter #" + request.getParameter("number") + " was changed from " + oldDate + " to " + newDate + ".";
-        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
 
         out.println("<strong>Failure:</strong> I have NOT changed the encounter date because another user is currently modifying this encounter. Please try this operation again in a few seconds.");
@@ -128,13 +111,13 @@ public class EncounterResetDate extends HttpServlet {
 
 
       }
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
 
 

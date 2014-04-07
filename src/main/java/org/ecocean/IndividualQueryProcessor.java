@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.jdo.Query;
 
 import org.ecocean.Util.MeasurementDesc;
+import org.ecocean.servlet.ServletUtilities;
 
 import java.util.Iterator;
 
@@ -29,12 +30,16 @@ public class IndividualQueryProcessor {
   private static final String SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && ";
   private static final String VARIABLES_STATEMENT = " VARIABLES org.ecocean.Encounter enc";
 
+  
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
 
     String parameterDeclaration = "";
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
 
-    Shepherd myShepherd=new Shepherd();
+    Shepherd myShepherd=new Shepherd(context);
 
     int day1=1, day2=31, month1=1, month2=12, year1=0, year2=3000;
     try{month1=(new Integer(request.getParameter("month1"))).intValue();} catch(Exception nfe) {}
@@ -287,7 +292,7 @@ public class IndividualQueryProcessor {
 
 
     // Measurement filters-----------------------------------------------
-    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs("us");
+    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs("us",context);
     String measurementPrefix = "measurement";
     StringBuilder measurementFilter = new StringBuilder(); //"( collectedData.contains(measurement) && (");
     boolean atLeastOneMeasurement = false;
@@ -360,7 +365,7 @@ public class IndividualQueryProcessor {
 
 
     // BiologicalMeasurement filters-----------------------------------------------
-    List<MeasurementDesc> bioMeasurementDescs = Util.findBiologicalMeasurementDescs("us");
+    List<MeasurementDesc> bioMeasurementDescs = Util.findBiologicalMeasurementDescs("us",context);
     String bioMeasurementPrefix = "biomeasurement";
     StringBuilder bioMeasurementFilter = new StringBuilder();
     bioMeasurementFilter.append("encounters.contains(enc) && enc.tissueSamples.contains(dce322) ");
@@ -473,7 +478,7 @@ public class IndividualQueryProcessor {
 
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
     String releaseDateToStr = request.getParameter("releaseDateTo");
-    String pattern = CommonConfiguration.getProperty("releaseDateFormat");
+    String pattern = CommonConfiguration.getProperty("releaseDateFormat",context);
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
     if (releaseDateFromStr != null && releaseDateFromStr.trim().length() > 0) {
       try {
@@ -481,7 +486,7 @@ public class IndividualQueryProcessor {
         if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
           filter += " && ";
         }
-        filter += "(enc13.releaseDate >= releaseDateFrom)";
+        filter += "(enc13.releaseDate >= releaseDateFrom)"; 
         filter += " && encounters.contains(enc13) ";
         parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateFrom");
         jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");

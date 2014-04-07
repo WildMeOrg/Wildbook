@@ -1,14 +1,18 @@
 package org.ecocean.servlet.export;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
 
 import javax.jdo.*;
+
 import java.lang.StringBuffer;
+
 import jxl.write.*;
 import jxl.Workbook;
 
@@ -33,8 +37,9 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
     
     //set the response
     
-    
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     
 
     
@@ -48,7 +53,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -78,7 +83,9 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
         //load the optional locales
         Properties props = new Properties();
         try {
-          props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+          //props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+          props=ShepherdProperties.getProperties("locales.properties", "");
+        
         } catch (Exception e) {
           System.out.println("     Could not load locales.properties EncounterSearchExportExcelFile.");
           e.printStackTrace();
@@ -165,9 +172,9 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
             //OBIS formt export
             Label lNumber = new Label(0, count, enc.getDWCDateLastModified());
             sheet.addCell(lNumber);
-            Label lNumberx1 = new Label(1, count, CommonConfiguration.getProperty("institutionCode"));
+            Label lNumberx1 = new Label(1, count, CommonConfiguration.getProperty("institutionCode",context));
             sheet.addCell(lNumberx1);
-            Label lNumberx2 = new Label(2, count, CommonConfiguration.getProperty("catalogCode"));
+            Label lNumberx2 = new Label(2, count, CommonConfiguration.getProperty("catalogCode",context));
             sheet.addCell(lNumberx2);
             Label lNumberx3 = new Label(3, count, enc.getEncounterNumber());
             sheet.addCell(lNumberx3);
@@ -178,8 +185,8 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               Label lNumberx5 = new Label(5, count, (enc.getGenus() + " " + enc.getSpecificEpithet()));
               sheet.addCell(lNumberx5);
             }
-            else if(CommonConfiguration.getProperty("genusSpecies0")!=null){
-              Label lNumberx5 = new Label(5, count, (CommonConfiguration.getProperty("genusSpecies0")));
+            else if(CommonConfiguration.getProperty("genusSpecies0",context)!=null){
+              Label lNumberx5 = new Label(5, count, (CommonConfiguration.getProperty("genusSpecies0",context)));
               sheet.addCell(lNumberx5);
             }
             
@@ -189,17 +196,17 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
             sheet.addCell(lNumberx6);
             Calendar toDay = Calendar.getInstance();
             int year = toDay.get(Calendar.YEAR);
-            Label lNumberx7 = new Label(7, count, CommonConfiguration.getProperty("citation"));
+            Label lNumberx7 = new Label(7, count, CommonConfiguration.getProperty("citation",context));
             sheet.addCell(lNumberx7);
-            Label lNumberx8 = new Label(8, count, CommonConfiguration.getProperty("kingdom"));
+            Label lNumberx8 = new Label(8, count, CommonConfiguration.getProperty("kingdom",context));
             sheet.addCell(lNumberx8);
-            Label lNumberx9 = new Label(9, count, CommonConfiguration.getProperty("phylum"));
+            Label lNumberx9 = new Label(9, count, CommonConfiguration.getProperty("phylum",context));
             sheet.addCell(lNumberx9);
-            Label lNumberx10 = new Label(10, count, CommonConfiguration.getProperty("class"));
+            Label lNumberx10 = new Label(10, count, CommonConfiguration.getProperty("class",context));
             sheet.addCell(lNumberx10);
-            Label lNumberx11 = new Label(11, count, CommonConfiguration.getProperty("order"));
+            Label lNumberx11 = new Label(11, count, CommonConfiguration.getProperty("order",context));
             sheet.addCell(lNumberx11);
-            Label lNumberx13 = new Label(12, count, CommonConfiguration.getProperty("family"));
+            Label lNumberx13 = new Label(12, count, CommonConfiguration.getProperty("family",context));
             sheet.addCell(lNumberx13);
             
               if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){
@@ -208,8 +215,8 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
                 Label lNumberx15 = new Label(14, count, enc.getSpecificEpithet());
                 sheet.addCell(lNumberx15);
               }
-              else if(CommonConfiguration.getProperty("genusSpecies0")!=null){
-                StringTokenizer str=new StringTokenizer(CommonConfiguration.getProperty("genusSpecies0")," ");
+              else if(CommonConfiguration.getProperty("genusSpecies0",context)!=null){
+                StringTokenizer str=new StringTokenizer(CommonConfiguration.getProperty("genusSpecies0",context)," ");
                 if(str.countTokens()>1){
                   Label lNumberx14 = new Label(13, count, str.nextToken());
                   sheet.addCell(lNumberx14);
@@ -325,7 +332,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
         out.println(ServletUtilities.getHeader(request));
         out.println("<html><body><p><strong>Error encountered</strong> with file writing. Check the relevant log.</p>");
         out.println("<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         out.close();
         outp.close();
         outp=null;
@@ -340,7 +347,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
       out.println(ServletUtilities.getHeader(request));  
       out.println("<html><body><p><strong>Error encountered</strong></p>");
         out.println("<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         out.close();
     }
 
