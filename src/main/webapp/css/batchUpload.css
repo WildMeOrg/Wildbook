@@ -45,7 +45,7 @@ span.colHeader {
   white-space: nowrap;
   font-style: italic;
 }
-span.example {
+.example {
   font-size: 0.9em;
   font-family: monospace;
 }
@@ -70,9 +70,6 @@ p.notice {
   text-align: center;
   color: #900;
   font-style: italic;
-}
-div.meter {
-  width: 75%;
 }
 p#progress {
   font-weight: bold;
