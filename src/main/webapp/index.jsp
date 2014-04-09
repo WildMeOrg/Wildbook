@@ -43,7 +43,8 @@ context=ServletUtilities.getContext(request);
   		User newUser=new User("tomcat",hashedPassword,salt);
   		myShepherd.getPM().makePersistent(newUser);
   		System.out.println("Creating tomcat user account...");
-  		
+  		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
   	  	ArrayList<Role> roles=myShepherd.getAllRoles();
   	  	if(roles.size()==0){
   	  	System.out.println("Creating tomcat roles...");
@@ -54,14 +55,17 @@ context=ServletUtilities.getContext(request);
 	  		Role newRole4=new Role("tomcat","destroyer");
 	  		newRole4.setContext("context0");
 	  		myShepherd.getPM().makePersistent(newRole4);
+			
+			  		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
 	  		
 	  		System.out.println("Creating tomcat user account...");
   	  	}
   	}
   	
 
-
-  	myShepherd.commitDBTransaction();
+myShepherd.commitDBTransaction();
+  	myShepherd.closeDBTransaction();
   	
 
 //setup our Properties object to hold all properties
