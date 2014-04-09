@@ -73,8 +73,9 @@
 	<link href="<%=CommonConfiguration.getCSSURLLocation(request) %>" rel="stylesheet" type="text/css"/>
 	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
 	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
-	<link href="<%=request.getContextPath()%>/css/gui-meter.css" rel="stylesheet" type="text/css"/>
-  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/start/jquery-ui.css"/>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <%  if (!proc.isTerminated() && !hasErrors) { %>
   <script language="javascript" type="text/javascript">
     var INTERVAL = 1000 * <%=CommonConfiguration.getBatchUploadProgressRefresh()%>;
@@ -99,7 +100,7 @@
             if (!$('#ajaxProblem').hasClass('hidden'))
               $('#ajaxProblem').addClass('hidden');
             // Update progress display & phase text.
-            $('#progressMeter').width(data.progress + '%');
+            $('#progressMeter').progressbar({ value: data.progress });
             $('#percent').text(data.progress + '%');
             $('#phase').text(eval('PHASE_' + data.phase));
             // Ensure progress displays are visible.
@@ -120,6 +121,7 @@
     }
 
     $(document).ready(function() {
+      $('#progressMeter').progressbar({ value: false });
       window.setTimeout(refreshProgress, INTERVAL);
     });
   </script>
@@ -129,15 +131,10 @@
 <%  } else { %>
   <script language="javascript" type="text/javascript">
     $(document).ready(function() {
-      $('#ajaxProblem, #progress, #meter, #phase').css('visibility', 'hidden');
+      $('#ajaxProblem, #progress, #progressMeter, #phase').css('visibility', 'hidden');
     });
   </script>
 <%  } %>
-  <style type="text/css">
-    .progressMeter {
-      width: <%=Integer.toString((int)proc.getProgress())%>%;
-    }
-  </style>
 </head>
 
 <body>
@@ -187,10 +184,8 @@
         default: %>
       <p><%=bundle.getProperty("gui.progress.text.running")%></p>
       <p id="progress"><%=MessageFormat.format(bundle.getProperty("gui.progress.text.tracker"), proc.getProgress())%></p>
-      <!-- Progress meter (maybe replaced with HTML5 tag, eventually). -->
-      <div class="meter nostripes">
-        <span id="progressMeter" class="hidden"></span>
-      </div>
+      <!-- Progress meter. -->
+      <div id="progressMeter"></div>
 <%    } %>
       <p id="phase" class="hidden"><%=bundle.getProperty("gui.progress.status.phase.NONE")%></p>
       <p id="ajaxProblem" class="hidden"><%=bundle.getProperty("gui.progress.problem")%></p>
