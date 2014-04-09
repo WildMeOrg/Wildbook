@@ -146,11 +146,18 @@
       default:
     }
     StringBuilder sb = new StringBuilder();
-    sb.append("<br />{");
-    for (String s : list)
-      sb.append("<span class=\"example\">&quot;").append(s).append("&quot;</span>, ");
-    sb.setLength(sb.length() - 2);
-    sb.append("}");
+    if (list.size() < 6) {
+      sb.append("<ul><li>");
+      for (String s : list)
+        sb.append("<span class=\"example\">&quot;").append(s).append("&quot;</span>, ");
+      sb.setLength(sb.length() - 2);
+      sb.append("</li></ul>");
+    } else {
+      sb.append("<ul>");
+      for (String s : list)
+        sb.append("<li class=\"example\">").append(s).append("</li>");
+      sb.append("</ul>\n");
+    }
     return sb.toString();
   }
 %>
