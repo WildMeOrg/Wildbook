@@ -158,13 +158,13 @@
 %>
       <p><%=bundle.getProperty("gui.progress.text.errorIntegrityPersistence")%></p>
 <%          break;
-        case THUMBNAILS:
-%>
-      <p><%=bundle.getProperty("gui.progress.text.errorIntegrityThumbnails")%></p>
-<%          break;
         case PLUGIN:
 %>
       <p><%=bundle.getProperty("gui.progress.text.errorIntegrityPlugin")%></p>
+<%          break;
+        case THUMBNAILS:
+%>
+      <p><%=bundle.getProperty("gui.progress.text.errorIntegrityThumbnails")%></p>
 <%          break;
         default:
 %>
