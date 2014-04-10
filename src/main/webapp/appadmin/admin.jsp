@@ -120,10 +120,10 @@
 
             <form name="massSwapLocCode" method="post" action="../MassSwapLocationCode">
               <p>Old location code: <input name="oldLocCode" type="text"
-                                           id="oldLocCode" size="10" maxlength="10">
+                                           id="oldLocCode" size="20" maxlength="30">
 
               <p>New location code: <input name="newLocCode" type="text"
-                                           id="newLocCode" size="10" maxlength="10"> <br/>
+                                           id="newLocCode" size="20" maxlength="30"> <br/>
                 <br> <input name="Update" type="submit" id="Update"
                             value="Update"></p>
             </form>
