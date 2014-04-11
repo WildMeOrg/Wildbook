@@ -59,7 +59,8 @@ public class Shepherd {
 
   private PersistenceManager pm;
   public static Vector matches = new Vector();
-  private PersistenceManagerFactory pmf;
+  //private PersistenceManagerFactory pmf;
+  private String localContext;
 
 
   /**
@@ -67,13 +68,16 @@ public class Shepherd {
    */
   public Shepherd(String context) {
     if (pm == null || pm.isClosed()) {
-      pmf = ShepherdPMF.getPMF(context);
+      PersistenceManagerFactory pmf = ShepherdPMF.getPMF(context);
+      localContext=context;
       try {
         pm = pmf.getPersistenceManager();
-      } catch (JDOUserException e) {
+      } 
+      catch (JDOUserException e) {
         System.out.println("Hit an excpetion while trying to instantiate a PM. Not fatal I think.");
         e.printStackTrace();
       }
+      pmf=null;
     }
   }
 
@@ -82,9 +86,9 @@ public class Shepherd {
     return pm;
   }
 
-  public PersistenceManagerFactory getPMF() {
-    return pmf;
-  }
+  //public PersistenceManagerFactory getPMF() {
+  //  return pmf;
+  //}
 
 
   /**
@@ -267,9 +271,10 @@ public class Shepherd {
 
     //throw away the task
     pm.deletePersistent(sTask);
+    PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
     pmf.getDataStoreCache().unpin(sTask);
     pmf.getDataStoreCache().evict(sTask);
-
+    pmf=null;
   }
 
 
@@ -2051,6 +2056,7 @@ public class Shepherd {
    * Opens the database up for information retrieval, storage, and removal
    */
   public void beginDBTransaction() {
+    PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
     try {
       if (pm == null || pm.isClosed()) {
         pm = pmf.getPersistenceManager();
@@ -2060,11 +2066,14 @@ public class Shepherd {
         pm.currentTransaction().begin();
       }
 
-    } catch (JDOUserException jdoe) {
+    } 
+    catch (JDOUserException jdoe) {
       jdoe.printStackTrace();
-    } catch (NullPointerException npe) {
+    } 
+    catch (NullPointerException npe) {
       npe.printStackTrace();
     }
+    pmf=null;
   }
 
   /**
