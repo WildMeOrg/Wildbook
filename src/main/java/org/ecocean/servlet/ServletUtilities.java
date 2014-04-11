@@ -497,6 +497,7 @@ public static ByteSource getSalt() {
 
 public static String getContext(HttpServletRequest request){
   String context="context0";
+  if(ContextConfiguration.getDefaultContext()!=null){context=ContextConfiguration.getDefaultContext();}
   Properties contexts=ShepherdProperties.getContextsProperties();
   int numContexts=contexts.size();
   
