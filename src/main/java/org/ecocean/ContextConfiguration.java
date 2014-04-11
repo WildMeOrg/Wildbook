@@ -79,6 +79,12 @@ public static Properties getContextsProperties(){
     return null;
   }
   
+  public static String getDefaultContext(){
+    initialize();
+    if(props.getProperty("defaultContext")!=null){return props.getProperty("defaultContext");}
+    return "context0";
+  }
+  
   public static ArrayList<String> getContextNames(){
     ArrayList<String> names=new ArrayList<String>();
     int contextNum=0;
