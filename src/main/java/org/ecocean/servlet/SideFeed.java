@@ -1,10 +1,12 @@
 package org.ecocean.servlet;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
 
 import org.ecocean.*;
+
 import javax.jdo.*;
 
 import java.lang.StringBuffer;
@@ -14,12 +16,12 @@ import java.util.GregorianCalendar;
 
 public class SideFeed extends HttpServlet{
 
-  Shepherd myShepherd;
+  //Shepherd myShepherd;
 
 
   public void init(ServletConfig config) throws ServletException {
       super.init(config);
-      myShepherd=new Shepherd();
+      //myShepherd=new Shepherd();
     }
 
 
@@ -33,11 +35,15 @@ public class SideFeed extends HttpServlet{
 
     //set the response
     response.setContentType("text/html");
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
 
     //vector of dates for the study
     Vector dates=new Vector();
     boolean monthly=false;
     if(request.getParameter("monthly")!=null){monthly=true;}
+    Shepherd myShepherd= new Shepherd(context);
 
     PrintWriter out = response.getWriter();
     try {

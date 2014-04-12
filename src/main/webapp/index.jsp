@@ -12,7 +12,11 @@ GridManager gm=GridManagerFactory.getGridManager();
 int numProcessors = gm.getNumProcessors();
 int numWorkItems = gm.getIncompleteWork().size();
 
-  Shepherd myShepherd = new Shepherd();
+String context="context0";
+context=ServletUtilities.getContext(request);
+
+
+  Shepherd myShepherd = new Shepherd(context);
   
   	//check usernames and passwords
 	myShepherd.beginDBTransaction();
@@ -100,11 +104,11 @@ int numWorkItems = gm.getIncompleteWork().size();
 <head>
 <title><%=title%></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription() %>" />
-<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords() %>" />
-<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
-<link href="<%=CommonConfiguration.getCSSURLLocation(request) %>" rel="stylesheet" type="text/css" />
-<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
+<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>" />
+<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>" />
+<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>" />
+<link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css" />
+<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>" />
 
 <link rel="shortcut icon" href="images/favicon.ico" />
 <style type="text/css">
@@ -240,7 +244,7 @@ if(ad!=null){
 %>
 <table class="adopter" bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="images/meet-adopter-frame.gif" /></a></td></tr>
-			 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=ad.getID()%>/thumb.jpg" /></a></td></tr>
+			 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" /></a></td></tr>
 			 
 			 <tr><td class="name">
 			 	<center><strong><font color="#282460" size="+1"><%=ad.getAdopterName()%></font></strong></center>

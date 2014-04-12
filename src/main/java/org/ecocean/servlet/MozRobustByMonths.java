@@ -1,10 +1,12 @@
 package org.ecocean.servlet;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
 
 import org.ecocean.*;
+
 import javax.jdo.*;
 
 import java.lang.StringBuffer;
@@ -14,12 +16,12 @@ import java.util.GregorianCalendar;
 //robust design
 public class MozRobustByMonths extends HttpServlet{
 	
-	Shepherd myShepherd;
+	//Shepherd myShepherd;
 
 	
 	public void init(ServletConfig config) throws ServletException {
     	super.init(config);
-    	myShepherd=new Shepherd();
+    	//myShepherd=new Shepherd();
   	}
 
 	
@@ -31,8 +33,15 @@ public class MozRobustByMonths extends HttpServlet{
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		
+	  
+	  String context="context0";
+    context=ServletUtilities.getContext(request);
+    
+    
 		//set the response
 		response.setContentType("text/html");
+		
+		Shepherd myShepherd=new Shepherd(context);
 		
 		//vector of dates for the study
 		//Vector dates=new Vector();

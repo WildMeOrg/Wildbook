@@ -10,7 +10,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.util.Properties;
+
 import org.ecocean.*;
 import org.ecocean.grid.*;
 
@@ -42,7 +44,12 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 	}
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-		Shepherd myShepherd=new Shepherd();
+		
+	  String context="context0";
+    context=ServletUtilities.getContext(request);
+    
+	  
+	  Shepherd myShepherd=new Shepherd(context);
 		GridManager gm=GridManagerFactory.getGridManager();
 		//set up for response
 		response.setContentType("text/html");
@@ -98,13 +105,13 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Success:</strong> The scanTask <i>"+request.getParameter("taskID")+"</i> has been removed.");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Return to scanTask administration page.</a></p>\n");
-						out.println(ServletUtilities.getFooter());
+						out.println(ServletUtilities.getFooter(context));
 					}
 					else{
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Error:</strong> The scanTask <i>"+request.getParameter("taskID")+"</i> was not removed. The task may be locked by another user or in process. Check the logs for more information.");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Return to scanTask administration page.</a></p>\n");
-						out.println(ServletUtilities.getFooter());
+						out.println(ServletUtilities.getFooter(context));
 
 					}
 				}
@@ -113,7 +120,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 					out.println(ServletUtilities.getHeader(request));
 					out.println("<strong>Error:</strong> The scanTask <i>"+request.getParameter("taskID")+"</i> was not identified in the database.");
 					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Return to scanTask administration page.</a></p>\n");
-					out.println(ServletUtilities.getFooter());
+					out.println(ServletUtilities.getFooter(context));
 				}
 			}
 
@@ -216,7 +223,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 
 								myShepherd.commitDBTransaction();
 								myShepherd.closeDBTransaction();
-								myShepherd=new Shepherd();
+								myShepherd=new Shepherd(context);
 							}
 						}
 						else {
@@ -277,7 +284,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 
 						//kick off the building thread
 						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
-						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis));
+						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context));
 
 						//check if we can get some IVEC help
 						//es.execute(new IVECRequestThread("cognac.ivec.org", "jholmberg", "lookthisup"));
@@ -316,13 +323,13 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 						//out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/workAppletScan.jsp?number=scan"+rightFilter+request.getParameter("encounterNumber")+rightURL+"\">Start scanning for a match.</a></p>\n");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("encounterNumber")+"\">Return to encounter "+request.getParameter("encounterNumber")+".</a></p>\n");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp"+"\">Go to sharkGrid administration to monitor for completion.</a></p>\n");
-						out.println(ServletUtilities.getFooter());
+						out.println(ServletUtilities.getFooter(context));
 					}
 					else{
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Failure:</strong> The scan could not be created or was not fully created!");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-						out.println(ServletUtilities.getFooter());
+						out.println(ServletUtilities.getFooter(context));
 
 					}
 				}
@@ -333,7 +340,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 								out.println("The unfinished task limit of "+taskLimit+" has been filled. Please try adding the task to the queue again after existing tasks have finished.");
 							}
 							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-							out.println(ServletUtilities.getFooter());
+							out.println(ServletUtilities.getFooter(context));
 				}
 			}
 
@@ -462,7 +469,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 
 							myShepherd.commitDBTransaction();
 							myShepherd.closeDBTransaction();
-							myShepherd=new Shepherd();
+							myShepherd=new Shepherd(context);
 
 
 						}
@@ -498,7 +505,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 
 
 						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
-						es.execute(new TuningTaskCreationThread(taskIdentifier, writeThis, maxNumWorkItems));
+						es.execute(new TuningTaskCreationThread(taskIdentifier, writeThis, maxNumWorkItems,context));
 
 
 					}
@@ -530,13 +537,13 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Success:</strong> Your scan was successfully added to the sharkGrid!");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp"+"\">Return to sharkGrid administration.</a></p>\n");
-						out.println(ServletUtilities.getFooter());
+						out.println(ServletUtilities.getFooter(context));
 					}
 					else{
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Failure:</strong> The scan could not be created or was not fully created!");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-						out.println(ServletUtilities.getFooter());
+						out.println(ServletUtilities.getFooter(context));
 
 					}
 				}
@@ -547,7 +554,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 								out.println("The unfinished task limit of "+taskLimit+" has been filled. Please try adding the task to the queue again after existing tasks have finished.");
 							}
 							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-							out.println(ServletUtilities.getFooter());
+							out.println(ServletUtilities.getFooter(context));
 				}
 			}
 
@@ -637,7 +644,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 
 							myShepherd.commitDBTransaction();
 							myShepherd.closeDBTransaction();
-							myShepherd=new Shepherd();
+							myShepherd=new Shepherd(context);
 
 
 						}
@@ -673,7 +680,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 
 
 						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
-						es.execute(new FalseMatchCreationThread(maxNumWorkItems,taskIdentifier));
+						es.execute(new FalseMatchCreationThread(maxNumWorkItems,taskIdentifier,context));
 
 
 					}
@@ -705,13 +712,13 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Success:</strong> Your scan was successfully added to the sharkGrid!");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp"+"\">Return to sharkGrid administration.</a></p>\n");
-						out.println(ServletUtilities.getFooter());
+						out.println(ServletUtilities.getFooter(context));
 					}
 					else{
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Failure:</strong> The scan could not be created or was not fully created!");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-						out.println(ServletUtilities.getFooter());
+						out.println(ServletUtilities.getFooter(context));
 
 					}
 				}
@@ -722,7 +729,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 								out.println("The unfinished task limit of "+taskLimit+" has been filled. Please try adding the task to the queue again after existing tasks have finished.");
 							}
 							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-							out.println(ServletUtilities.getFooter());
+							out.println(ServletUtilities.getFooter(context));
 				}
 			}
 
@@ -731,14 +738,14 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 			else if (action.equals("removeAllWorkItems")) {
 				try{
 
-					GridCleanupThread swiThread=new GridCleanupThread();
+					GridCleanupThread swiThread=new GridCleanupThread(context);
 					gm.removeAllWorkItems();
 
 					//confirm success
 					out.println(ServletUtilities.getHeader(request));
 					out.println("<strong>Success:</strong> I removed all outstanding scanWorkItems from the database.<br>/<strong>Warning!</strong> <em>This may cause any outstanding scanTasks to fail!</em>");
 					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-					out.println(ServletUtilities.getFooter());
+					out.println(ServletUtilities.getFooter(context));
 				}
 				catch(Exception e){
 					e.printStackTrace();
@@ -746,7 +753,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 					out.println(ServletUtilities.getHeader(request));
 					out.println("<strong>Failure:</strong> I failed to remove all outstanding scanWorkItems from the database. Check the log for more information.");
 					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-					out.println(ServletUtilities.getFooter());
+					out.println(ServletUtilities.getFooter(context));
 
 				}
 			}
@@ -757,7 +764,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 					out.println(ServletUtilities.getHeader(request));
 					out.println("<p>I did not receive enough data to process your command, or you do not have the necessary permissions to perform this operation.</p>");
 					out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-					out.println(ServletUtilities.getFooter());
+					out.println(ServletUtilities.getFooter(context));
 			}
 
 
@@ -766,7 +773,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 			out.println(ServletUtilities.getHeader(request));
 			out.println("<p>I did not receive enough data to process your command, or you do not have the necessary permissions to perform this operation. </p>");
 			out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
-			out.println(ServletUtilities.getFooter());
+			out.println(ServletUtilities.getFooter(context));
 		}
 			myShepherd.closeDBTransaction();
 			myShepherd=null;

@@ -1,9 +1,12 @@
 package org.ecocean.servlet;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
+
 import javax.jdo.*;
 
 import org.joda.time.DateTime;
@@ -54,10 +57,14 @@ public class TestServlet extends HttpServlet{
 	}*/
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-		response.setContentType("text/html");
+		
+	  String context="context0";
+    context=ServletUtilities.getContext(request);
+	  
+	  response.setContentType("text/html");
 		boolean madeChanges=false;
 		PrintWriter out = response.getWriter();
-		Shepherd myShepherd=new Shepherd();
+		Shepherd myShepherd=new Shepherd(context);
 		myShepherd.beginDBTransaction();
 		Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
 		Query query=myShepherd.getPM().newQuery(encClass);
