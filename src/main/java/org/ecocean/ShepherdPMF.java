@@ -29,18 +29,23 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Properties;
 
+import java.util.TreeMap;
+
 
 public class ShepherdPMF {
 
-  private static PersistenceManagerFactory pmf;
-  private static String currentContext="context0";
-  
+  //private static PersistenceManagerFactory pmf;
+  //private static String currentContext="context0";
+  private static TreeMap<String,PersistenceManagerFactory> pmfs=new TreeMap<String,PersistenceManagerFactory>();
 
 
   public synchronized static PersistenceManagerFactory getPMF(String context) {
     //public static PersistenceManagerFactory getPMF(String dbLocation) {
+    
+    if(pmfs==null){pmfs=new TreeMap<String,PersistenceManagerFactory>();}
+    
     try {
-      if ((pmf == null)||(!currentContext.equals(context))) {
+      if (!pmfs.containsKey(context)) {
 
         Properties dnProperties = new Properties();
 
@@ -81,12 +86,20 @@ public class ShepherdPMF {
             dnProperties.setProperty(name, props.getProperty(name).trim());
           }
         }
+        
+        //make sure to close an old PMF if switching
+        //if(pmf!=null){pmf.close();}
 
-        pmf = JDOHelper.getPersistenceManagerFactory(dnProperties);
-        currentContext=context;
+        pmfs.put(context, JDOHelper.getPersistenceManagerFactory(dnProperties));
+        return pmfs.get(context);
 
       }
-      return pmf;
+      else{
+        
+        return pmfs.get(context);
+        
+      }
+      
     } catch (JDOException jdo) {
       jdo.printStackTrace();
       System.out.println("I couldn't instantiate a PMF.");
