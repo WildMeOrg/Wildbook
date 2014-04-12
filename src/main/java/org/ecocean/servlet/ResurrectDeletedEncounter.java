@@ -28,6 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 
 //import com.poet.jdo.*;
@@ -54,7 +55,9 @@ public class ResurrectDeletedEncounter extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     //initialize shepherd
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
 
     //set up for response
     response.setContentType("text/html");
@@ -67,7 +70,7 @@ public class ResurrectDeletedEncounter extends HttpServlet {
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -110,7 +113,7 @@ public class ResurrectDeletedEncounter extends HttpServlet {
           out.println("<strong>Success!</strong> I have successfully restored encounter " + request.getParameter("number") + " from accidental deletion.</p>");
 
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           //String message="The matched by type for encounter "+encounterNumber+" was changed from "+prevMatchedBy+" to "+matchedBy+".";
           //informInterestedParties(encounterNumber, message);
         } else {
@@ -119,7 +122,7 @@ public class ResurrectDeletedEncounter extends HttpServlet {
           out.println("<strong>Failure!</strong> This encounter cannot be restored due to an unknown error. Please contact the webmaster.");
 
           //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+encounterNumber+"\">Return to encounter "+encounterNumber+"</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
 
         }
 
@@ -128,7 +131,7 @@ public class ResurrectDeletedEncounter extends HttpServlet {
         out.println("<strong>Failure!</strong> I could not find the DAT file to restore this encounter from.");
 
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+encounterNumber+"\">Return to encounter "+encounterNumber+"</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
 
@@ -137,7 +140,7 @@ public class ResurrectDeletedEncounter extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to resurrect the encounter because I did not know which encounter you were referring to, or this encounter still exists in the database!");
       //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark "+request.getParameter("shark")+"</a></p>\n");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();

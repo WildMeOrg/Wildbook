@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import java.io.*;
 import java.util.Arrays;
 import java.util.Vector;
@@ -68,6 +69,8 @@ public class ScanResultsServlet extends HttpServlet {
   }
 
   public boolean writeXML(HttpServletRequest request, Vector results, String num, String newEncDate, String newEncShark, String newEncSize) {
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     try {
       System.out.println("Prepping to write XML file for encounter " + num);
 
@@ -139,7 +142,7 @@ public class ScanResultsServlet extends HttpServlet {
       //setup data dir
       String rootWebappPath = getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
       //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       //if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -170,8 +173,10 @@ public class ScanResultsServlet extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     //set up a shepherd for DB transactions
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
 
     //System.out.println("scanResultsServlet: I am starting up.");
     response.setContentType("application/octet-stream");

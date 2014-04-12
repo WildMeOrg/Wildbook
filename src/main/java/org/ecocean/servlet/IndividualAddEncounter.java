@@ -27,14 +27,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -61,7 +56,9 @@ public class IndividualAddEncounter extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -97,29 +94,6 @@ public class IndividualAddEncounter extends HttpServlet {
             enc2add.setMatchedBy(request.getParameter("matchType"));
             enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + request.getParameter("individual") + ".</p>");
             addToMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + request.getParameter("number") + ".</p>");
-            
-            
-            //let's call out to the Zazzle exporter
-            if(enc2add.getNumSpots()>0){
-              try{
-                URL u = new URL("http://"+CommonConfiguration.getURLLocation(request) + "/encounters/zazzleExporter.jsp?number=" + enc2add.getCatalogNumber());
-                URLConnection finishConnection = u.openConnection();
-                InputStream inputStreamFromServlet = finishConnection.getInputStream();
-                BufferedReader in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));
-                //String line = in.readLine();
-                in.close();
-                in=null;
-                inputStreamFromServlet.close();
-                inputStreamFromServlet=null;
-                finishConnection=null;
-                u=null;
-              }
-              catch(Exception e){e.printStackTrace();}
-            }
-            //let's do the zazzle exporter image in the background
-            
-            
-            
             if (!(addToMe.getSex().equals(enc2add.getSex()))) {
               if (addToMe.getSex().equals("Unknown")) {
                 addToMe.setSex(enc2add.getSex());
@@ -167,7 +141,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
 
               //notify the administrators
-              NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), CommonConfiguration.getAutoEmailAddress(), ("Encounter update sent to submitters: " + request.getParameter("number")), ServletUtilities.getText("add2MarkedIndividual.txt") + emailUpdate, e_images);
+              NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getAutoEmailAddress(context), ("Encounter update sent to submitters: " + request.getParameter("number")), ServletUtilities.getText("add2MarkedIndividual.txt") + emailUpdate, e_images,context);
 			  es.execute(mailer);
 
 			  //notify submitters, photographers, and informOthers values
@@ -177,12 +151,12 @@ public class IndividualAddEncounter extends HttpServlet {
 
 				if((enc2add.getSubmitterEmail().indexOf(submitter)!=-1)||(enc2add.getPhotographerEmail().indexOf(submitter)!=-1)||(enc2add.getInformOthers().indexOf(submitter)!=-1)){
 
-				  	String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter);
-					es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
+				  	String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter,context);
+					es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images,context));
 				}
 				else{
-					  	String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, updateMessage, submitter);
-						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
+					  	String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, updateMessage, submitter,context);
+						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images,context));
 
 				}
 
@@ -276,7 +250,7 @@ public class IndividualAddEncounter extends HttpServlet {
               for (int t = 0; t < adopters.size(); t++) {
                 String adEmail = (String) adopters.get(t);
                 if ((allAssociatedEmails.indexOf(adEmail) == -1)) {
-                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), adEmail, ("Sighting update: " + request.getParameter("individual")), ServletUtilities.getText("adopterUpdate.txt") + emailUpdate, e_images));
+                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), adEmail, ("Sighting update: " + request.getParameter("individual")), ServletUtilities.getText("adopterUpdate.txt") + emailUpdate, e_images,context));
                   allAssociatedEmails.add(adEmail);
                 }
               }
@@ -285,12 +259,21 @@ public class IndividualAddEncounter extends HttpServlet {
               String rssTitle = request.getParameter("individual") + " Resight";
               String rssLink = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number");
               String rssDescription = request.getParameter("individual") + " was resighted on " + enc2add.getShortDate() + ".";
-              File rssFile = new File(getServletContext().getRealPath(("/rss.xml")));
+              //File rssFile = new File(getServletContext().getRealPath(("/"+context+"/rss.xml")));
+
+              //setup data dir
+              String rootWebappPath = getServletContext().getRealPath("/");
+              File webappsDir = new File(rootWebappPath).getParentFile();
+              File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+              if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+              File rssFile = new File(shepherdDataDir,"rss.xml");
 
               ServletUtilities.addRSSEntry(rssTitle, rssLink, rssDescription, rssFile);
-              File atomFile = new File(getServletContext().getRealPath(("/atom.xml")));
+              //File atomFile = new File(getServletContext().getRealPath(("/"+context+"/atom.xml")));
+              File atomFile = new File(shepherdDataDir,"atom.xml");
 
-              ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile);
+              
+              ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile,context);
             }
 
 
@@ -305,12 +288,12 @@ public class IndividualAddEncounter extends HttpServlet {
             }
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View individual " + request.getParameter("individual") + "</a></p>\n");
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
             String message = "Encounter #" + request.getParameter("number") + " was added to " + request.getParameter("individual") + ".";
 
             if (request.getParameter("noemail") == null) {
-              ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
-              ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message);
+              ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
+              ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
             }
             es.shutdown();
           }
@@ -321,7 +304,7 @@ public class IndividualAddEncounter extends HttpServlet {
             out.println("<strong>Failure:</strong> Encounter #" + request.getParameter("number") + " was NOT added to " + request.getParameter("individual") + ". Another user is currently modifying this record in the database. Please try to add the encounter again after a few seconds.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View " + request.getParameter("individual") + "</a></p>\n");
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
 
           }
 
@@ -330,7 +313,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Error:</strong> No such record exists in the database.");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           myShepherd.rollbackDBTransaction();
           e.printStackTrace();
           //myShepherd.closeDBTransaction();
@@ -338,7 +321,7 @@ public class IndividualAddEncounter extends HttpServlet {
       } else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> You can't add this encounter to a marked individual when it's already assigned to another one, or you may be trying to add this encounter to a nonexistent individual.");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         myShepherd.rollbackDBTransaction();
         //myShepherd.closeDBTransaction();
       }
@@ -347,7 +330,7 @@ public class IndividualAddEncounter extends HttpServlet {
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I didn't receive enough data to add this encounter to a marked individual.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
 
 

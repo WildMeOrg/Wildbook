@@ -19,9 +19,13 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
-         import="java.util.ArrayList,org.ecocean.*, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
+         import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,org.ecocean.*, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
 //setup our Properties object to hold all properties
@@ -42,7 +46,9 @@
   }
 
   //set up the file input stream
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  props = ShepherdProperties.getProperties("submit.properties", langCode);
+
 
 
   //load our variables for the submit page
@@ -80,18 +86,18 @@
 
 <html>
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
   <script language="javascript" type="text/javascript">
     <!--
@@ -231,7 +237,7 @@
 </tr>
 
 <%
-  pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
+  pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
 %>
 <c:if test="${showReleaseDate}">
     <tr class="form_row">
@@ -302,7 +308,7 @@
 </tr>
 <%
 
-if(CommonConfiguration.showProperty("showTaxonomy")){
+if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
 <tr class="form_row">
@@ -313,13 +319,13 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
   <%
   			       boolean hasMoreTax=true;
   			       int taxNum=0;
-  			       if(CommonConfiguration.showProperty("showTaxonomy")){
+  			       if(CommonConfiguration.showProperty("showTaxonomy",context)){
   			       while(hasMoreTax){
   			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
-  			       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
+  			       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
   			       	  	%>
   			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies).replaceAll("_"," ")%></option>
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
   			       	  	<%
   			       		taxNum++;
   			          }
@@ -357,10 +363,10 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
 	  			       
 	  			       while(hasMoreLocationsIDs){
 	  			       	  String currentLocationID = "locationID"+locNum;
-	  			       	  if(CommonConfiguration.getProperty(currentLocationID)!=null){
+	  			       	  if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
 	  			       	  	%>
 	  			       	  	 
-	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLocationID)%>"><%=CommonConfiguration.getProperty(currentLocationID)%></option>
+	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
 	  			       	  	<%
 	  			       		locNum++;
 	  			          }
@@ -378,7 +384,7 @@ if(CommonConfiguration.showProperty("showTaxonomy")){
 <%
 
 
-if(CommonConfiguration.showProperty("showCountry")){
+if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
 
@@ -393,10 +399,10 @@ if(CommonConfiguration.showProperty("showCountry")){
 	  			       
 	  			       while(hasMoreCountries){
 	  			       	  String currentCountry = "country"+taxNum;
-	  			       	  if(CommonConfiguration.getProperty(currentCountry)!=null){
+	  			       	  if(CommonConfiguration.getProperty(currentCountry,context)!=null){
 	  			       	  	%>
 	  			       	  	 
-	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry)%>"><%=CommonConfiguration.getProperty(currentCountry)%></option>
+	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
 	  			       	  	<%
 	  			       		taxNum++;
 	  			          }
@@ -446,7 +452,7 @@ if(CommonConfiguration.showProperty("showCountry")){
 
 
 
-if(CommonConfiguration.showProperty("maximumDepthInMeters")){
+if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 %>
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_depth")%>:</strong></td>
@@ -460,7 +466,7 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters")){
 %>
 
 <%
-if(CommonConfiguration.showProperty("maximumElevationInMeters")){
+if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 %>
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_elevation")%>:</strong></td>
@@ -488,7 +494,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters")){
 </tr>
 <%
 
-if(CommonConfiguration.showProperty("showLifestage")){
+if(CommonConfiguration.showProperty("showLifestage",context)){
 
 %>
 <tr class="form_row">
@@ -502,10 +508,10 @@ if(CommonConfiguration.showProperty("showLifestage")){
   			       
   			       while(hasMoreStages){
   			       	  String currentLifeStage = "lifeStage"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
   			       	  	%>
   			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
   			       	  	<%
   			       		stageNum++;
   			          }
@@ -522,12 +528,12 @@ if(CommonConfiguration.showProperty("showLifestage")){
 }
 %>
 <%
-    pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements());
+    pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
 %>
 <c:if test="${showMeasurements}">
 <%
-    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode));
-    pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode));
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
+    pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
 %>
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("measurements")%>:</strong></td>
@@ -557,10 +563,10 @@ if(CommonConfiguration.showProperty("showLifestage")){
 </tr>
 </c:if>
 <%
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags());
-  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
-  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
-  pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode));
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
+  pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
 %>
 
 <c:if test="${showMetalTags and !empty metalTags}">
@@ -602,7 +608,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 
 <c:if test="${showSatelliteTag}">
 <%
-  pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
+  pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
 %>
 <tr class="form_row">
     <td class="form_label"><strong>Satellite Tag:</strong></td>
@@ -662,7 +668,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
     String project="";
     if(request.getRemoteUser()!=null){
     	submitterName=request.getRemoteUser();
-    	Shepherd myShepherd=new Shepherd();
+    	Shepherd myShepherd=new Shepherd(context);
     	if(myShepherd.getUser(submitterName)!=null){
     		User user=myShepherd.getUser(submitterName);
     		if(user.getFullName()!=null){submitterName=user.getFullName();}

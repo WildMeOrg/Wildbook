@@ -491,14 +491,18 @@
 		        <field name="userURL">	
 		        	<column length="256"/>
 		        </field>
-		        <field name="userImage" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo"/>
+		        <field name="userImage" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo">
+				</field>
 		 					
 			<field name="lastLogin" persistence-modifier="persistent">
 				<column jdbc-type="BIGINT" allows-null="true" />
 		        </field>
 			                
-            </field>
+            <field name="currentContext">	
+		        	<column length="100"/>
+		        </field>
 					
+					</field>
 		 </class>
 		 
 		 
@@ -510,6 +514,10 @@
 		 			    				<column length="100"/>
 		 			</field>
 		 			 <field name="rolename" column="ROLE_NAME">
+							 			    				<column length="100"/>
+		 			</field>
+					
+					<field name="context" column="CONTEXT">
 							 			    				<column length="100"/>
 		 			</field>
 		 		

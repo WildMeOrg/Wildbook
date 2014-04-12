@@ -218,13 +218,6 @@ public class ScanWorkItem implements java.io.Serializable {
     return uniqueNum;
   }
 
-  /*public Properties getProperties(){
-      return props;
-  }
-
-  public void setProperties(Properties props){
-      this.props=props;
-  }*/
 
   public String getTaskIdentifier() {
     return taskID;

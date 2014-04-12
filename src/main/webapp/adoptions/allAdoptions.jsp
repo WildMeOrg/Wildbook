@@ -20,21 +20,22 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities, org.joda.time.DateTime, org.joda.time.format.DateTimeFormatter, org.joda.time.format.ISODateTimeFormat, javax.jdo.Extent,javax.jdo.Query,java.util.Iterator, java.util.Properties" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities, org.joda.time.DateTime, org.joda.time.format.DateTimeFormatter, org.joda.time.format.ISODateTimeFormat, javax.jdo.Extent,javax.jdo.Query,java.util.Iterator, java.util.Properties" %>
 
 
 <%
-
+String context="context0";
+context=ServletUtilities.getContext(request);
   //set up dateTime
   DateTime dt = new DateTime();
   DateTimeFormatter fmt = ISODateTimeFormat.date();
   String strOutputDateTime = fmt.print(dt);
 
 //setup our Properties object to hold all properties
-  Properties props = new Properties();
+ // Properties props = new Properties();
   String langCode = "en";
 
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
   String currentSort = "nosort";
   String displaySort = "";
   if (request.getParameter("sort") != null) {
@@ -58,18 +59,18 @@
 
 <html>
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
 </head>
 
@@ -195,7 +196,7 @@
             <tr class="lineitems">
               <td width="102" height="60" class="lineitems"><a
                 href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?individual=<%=enc.getID()%>"><img
-                src="/<%=CommonConfiguration.getDataDirectoryName() %>/adoptions/<%=(enc.getID()+"/thumb.jpg")%>"
+                src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=(enc.getID()+"/thumb.jpg")%>"
                 width="100" height="75" alt="adopter photo" border="0"/></a></td>
 
               <td class="lineitems"><a

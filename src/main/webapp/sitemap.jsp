@@ -19,17 +19,18 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, org.ecocean.Encounter,org.ecocean.MarkedIndividual, org.ecocean.Shepherd, javax.jdo.Extent, javax.jdo.Query,java.io.File" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration, org.ecocean.Encounter,org.ecocean.MarkedIndividual, org.ecocean.Shepherd, javax.jdo.Extent, javax.jdo.Query,java.io.File" %>
 <%@ page import="java.io.FileInputStream" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Properties" %>
 <%
-
+String context="context0";
+context=ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
 
 
   //Shepherd
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
 
 
 
@@ -42,14 +43,14 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
 
 </head>
@@ -65,7 +66,7 @@
       <div id="maincol-wide">
 
         <div id="maintext">
-          <h1 class="intro"><%=CommonConfiguration.getHTMLTitle() %>
+          <h1 class="intro"><%=CommonConfiguration.getHTMLTitle(context) %>
             Sitemap</h1>
         </div>
         <ul>
