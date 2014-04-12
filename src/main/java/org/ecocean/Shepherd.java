@@ -1465,7 +1465,8 @@ public class Shepherd {
    TreeMap<String, Integer> map=new TreeMap<String, Integer>();
    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
    Query query=getPM().newQuery(filter);
-      Iterator it=getAllOccurrencesForMarkedIndividual(query,indie);
+   Iterator it=getAllOccurrencesForMarkedIndividual(query,indie);
+   if(it!=null){
       while(it.hasNext()){
          Occurrence oc=(Occurrence)it.next();
          //System.out.println("     Found an occurrence for my indie!!!!");
@@ -1490,27 +1491,16 @@ public class Shepherd {
            }
          }
       }
-      //map.putAll(hmap);
-      //System.out.println("hmap size is: "+hmap.size());
-      //System.out.println("Let's copy hmap to map...");
-      //Iterator jit=hmap.keySet().iterator();
-      //while(jit.hasNext()){
-        //System.out.println("     hmap now size is: "+hmap.size());
-        //String lString=(String)jit.next();
-        //map.put(lString, hmap.get(lString));
-        //System.out.println("     map now size is: "+map.size());
-      //}
-      //System.out.println("Final map size is: "+map.size());
+    } //end if
 
-      
-      
       ArrayList<Map.Entry> as = new ArrayList<Map.Entry>( hmap.entrySet() );
+
+      if(as.size()>0){
+        IndividualOccurrenceNumComparator cmp=new IndividualOccurrenceNumComparator();
+        Collections.sort( as , cmp);
+        Collections.reverse(as);
+      }
       
-      //System.out.println("getAllOtherIndividualsOccurringWithMarkedIndividual size is: "+as.size());
-      
-      IndividualOccurrenceNumComparator cmp=new IndividualOccurrenceNumComparator();
-      Collections.sort( as , cmp);
-      Collections.reverse(as);
       query.closeAll();
       return as;
   }
