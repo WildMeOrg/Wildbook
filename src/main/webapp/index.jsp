@@ -294,17 +294,7 @@ if(ad!=null){
 
 </div>
 
- <div class="module">
-		 	<h3>Find Record</h3>
-		   
-		 	<form name="form2" method="get" action="individuals.jsp">
-		 	<em>Enter a shark number, encounter number, shark nickname, or alternate ID.</em><br/>
-		 	<input name="number" type="text" id="shark" size="25" />
-		 	<input type="hidden" name="langCode" value="<%=langCode%>" /><br/>
-		 	<input name="Go" type="submit" id="Go2" value="Go" />
-		 	</form>
-			
-		 </div>
+
 		
 	    <div class="module">
 			 <h3><%=last_sightings%></h3>

@@ -47,8 +47,8 @@ context=ServletUtilities.getContext(request);
 %>
 
 <div id="header"><img name="masthead"
-                      src="<%=CommonConfiguration.getURLToMastheadGraphic(context) %>" width="810"
-                      height="150" border="0" usemap="#m_masthead" alt=""/></div>
+                      src="<%=CommonConfiguration.getURLToMastheadGraphic(context) %>" width="810px"
+                      height="300px" border="0" usemap="#m_masthead" alt=""/></div>
 <div id="header_menu">
   <ul id="pmenu">
     <li style="background: #000066;"><a
