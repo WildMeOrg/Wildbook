@@ -402,7 +402,8 @@ public class Shepherd {
     Extent encClass = pm.getExtent(Role.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (acceptedEncounters.execute());
-    ArrayList<Role> roles=new ArrayList<Role>(c);
+    ArrayList<Role> roles=new ArrayList<Role>();
+    if(c!=null){roles=new ArrayList<Role>(c);}
     acceptedEncounters.closeAll();
     return roles;
   }
