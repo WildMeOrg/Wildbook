@@ -1,10 +1,14 @@
 package org.ecocean.servlet;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
+
 import java.lang.StringBuffer;
+
 import javax.jdo.*;
 
 
@@ -25,8 +29,11 @@ public class MitFeed extends HttpServlet{
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 
+	  String context="context0";
+    context=ServletUtilities.getContext(request);
+    
 		//open a shepherd
-		Shepherd myShepherd=new Shepherd();
+		Shepherd myShepherd=new Shepherd(context);
 
 		response.setContentType("application/xml; charset=UTF-8");
 		boolean madeChanges=false;

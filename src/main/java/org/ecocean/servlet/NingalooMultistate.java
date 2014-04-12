@@ -1,22 +1,26 @@
 package org.ecocean.servlet;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
+
 import javax.jdo.*;
+
 import java.lang.StringBuffer;
 
 
 //adds spots to a new encounter
 public class NingalooMultistate extends HttpServlet{
 	
-	Shepherd myShepherd;
+	//Shepherd myShepherd;
 
 	
 	public void init(ServletConfig config) throws ServletException {
     	super.init(config);
-    	myShepherd=new Shepherd();
+    	//myShepherd=new Shepherd();
   	}
 
 	
@@ -31,6 +35,11 @@ public class NingalooMultistate extends HttpServlet{
 		//set the response
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
+		
+		String context="context0";
+    context=ServletUtilities.getContext(request);
+    
+    Shepherd myShepherd = new Shepherd(context);
 		
 		//before any DB transactions, check permissions
 		String locCode="1a";
@@ -175,7 +184,7 @@ public class NingalooMultistate extends HttpServlet{
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
 			query=null;
-			out.println(ServletUtilities.getFooter());
+			out.println(ServletUtilities.getFooter(context));
 
 		}
 		catch(Exception e) {
@@ -186,7 +195,7 @@ public class NingalooMultistate extends HttpServlet{
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
 			query=null;
-			out.println(ServletUtilities.getFooter());
+			out.println(ServletUtilities.getFooter(context));
 
 		}
 		
@@ -195,7 +204,7 @@ public class NingalooMultistate extends HttpServlet{
 			out.println(ServletUtilities.getHeader(request));
 			out.println("<p><strong>Permission denied</strong></p>");
 			out.println("<p>You do not have permissions to access this capture history.</p>");
-			out.println(ServletUtilities.getFooter());
+			out.println(ServletUtilities.getFooter(context));
 		}
 		out.close();
 	}

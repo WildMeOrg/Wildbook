@@ -1,10 +1,14 @@
 package org.ecocean.servlet;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
+
 import javax.jdo.*;
+
 //import com.poet.jdo.*;
 import java.lang.StringBuffer;
 
@@ -32,7 +36,10 @@ public class NingalooPradel extends HttpServlet{
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
 		
-		Shepherd myShepherd = new Shepherd();
+		String context="context0";
+    context=ServletUtilities.getContext(request);
+		
+		Shepherd myShepherd = new Shepherd(context);
 		
 		//before any DB transactions, check permissions
 		String locCode="1a1";
@@ -184,7 +191,7 @@ public class NingalooPradel extends HttpServlet{
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
 			query=null;
-			out.println(ServletUtilities.getFooter());
+			out.println(ServletUtilities.getFooter(context));
 
 		}
 		catch(Exception e) {
@@ -194,7 +201,7 @@ public class NingalooPradel extends HttpServlet{
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
 			query=null;
-			out.println(ServletUtilities.getFooter());
+			out.println(ServletUtilities.getFooter(context));
 
 		}
 		
@@ -203,7 +210,7 @@ public class NingalooPradel extends HttpServlet{
 			out.println(ServletUtilities.getHeader(request));
 			out.println("<p><strong>Permission denied</strong></p>");
 			out.println("<p>You do not have permissions to access this capture history.</p>");
-			out.println(ServletUtilities.getFooter());
+			out.println(ServletUtilities.getFooter(context));
 		}
 		out.close();
 	}

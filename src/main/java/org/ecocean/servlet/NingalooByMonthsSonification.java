@@ -1,22 +1,26 @@
 package org.ecocean.servlet;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
+
 import javax.jdo.*;
+
 import java.lang.StringBuffer;
 
 
 //robust design
 public class NingalooByMonthsSonification extends HttpServlet{
 
-	Shepherd myShepherd;
+	//Shepherd myShepherd;
 
 
 	public void init(ServletConfig config) throws ServletException {
     	super.init(config);
-    	myShepherd=new Shepherd();
+    	//myShepherd=new Shepherd();
   	}
 
 
@@ -34,6 +38,10 @@ public class NingalooByMonthsSonification extends HttpServlet{
 		//vector of dates for the study
 		Vector dates=new Vector();
 
+		String context="context0";
+    context=ServletUtilities.getContext(request);
+    
+    Shepherd myShepherd = new Shepherd(context);
 
 
 		PrintWriter out = response.getWriter();

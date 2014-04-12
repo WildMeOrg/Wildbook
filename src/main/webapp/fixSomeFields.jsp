@@ -4,8 +4,10 @@
 
 <%
 
+String context="context0";
+context=ServletUtilities.getContext(request);
 
-	Shepherd myShepherd=new Shepherd();
+	Shepherd myShepherd=new Shepherd(context);
 
 // pg_dump -Ft sharks > sharks.out
 
