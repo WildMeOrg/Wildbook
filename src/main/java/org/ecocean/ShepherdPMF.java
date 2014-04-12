@@ -95,23 +95,23 @@ public class ShepherdPMF {
   }
   
   public static Properties loadOverrideProps(String shepherdDataDir) {
-    System.out.println("     Starting loadOverrideProps");
+    //System.out.println("     Starting loadOverrideProps");
     Properties myProps=new Properties();
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
-    System.out.println("     In dir: "+configDir.getAbsolutePath());
+    //System.out.println("     In dir: "+configDir.getAbsolutePath());
     //sometimes this ends up being the "bin" directory of the J2EE container
     //we need to fix that
     if((configDir.getAbsolutePath().contains("/bin/")) || (configDir.getAbsolutePath().contains("\\bin\\"))){
       String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
       configDir=new File(fixedPath);
-      System.out.println("     Fixing the bin issue in Shepherd PMF. ");
-      System.out.println("     The fix abs path is: "+configDir.getAbsolutePath());
+      //System.out.println("     Fixing the bin issue in Shepherd PMF. ");
+      //System.out.println("     The fix abs path is: "+configDir.getAbsolutePath());
     }
-     System.out.println("     Looking in: "+configDir.getAbsolutePath());
+     //System.out.println("     Looking in: "+configDir.getAbsolutePath());
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, "jdoconfig.properties");
     if (configFile.exists()) {
-      System.out.println("     Overriding default properties with " + configFile.getAbsolutePath());
+      //System.out.println("     Overriding default properties with " + configFile.getAbsolutePath());
       FileInputStream fileInputStream = null;
       try {
         fileInputStream = new FileInputStream(configFile);
