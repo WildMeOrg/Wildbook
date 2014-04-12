@@ -68,16 +68,16 @@ public class Shepherd {
    */
   public Shepherd(String context) {
     if (pm == null || pm.isClosed()) {
-      PersistenceManagerFactory pmf = ShepherdPMF.getPMF(context);
+      //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(context);
       localContext=context;
       try {
-        pm = pmf.getPersistenceManager();
+        pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
       } 
       catch (JDOUserException e) {
         System.out.println("Hit an excpetion while trying to instantiate a PM. Not fatal I think.");
         e.printStackTrace();
       }
-      pmf=null;
+      //pmf=null;
     }
   }
 
@@ -271,10 +271,10 @@ public class Shepherd {
 
     //throw away the task
     pm.deletePersistent(sTask);
-    PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
-    pmf.getDataStoreCache().unpin(sTask);
-    pmf.getDataStoreCache().evict(sTask);
-    pmf=null;
+    //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
+    ShepherdPMF.getPMF(localContext).getDataStoreCache().unpin(sTask);
+    ShepherdPMF.getPMF(localContext).getDataStoreCache().evict(sTask);
+    //pmf=null;
   }
 
 
@@ -2056,10 +2056,10 @@ public class Shepherd {
    * Opens the database up for information retrieval, storage, and removal
    */
   public void beginDBTransaction() {
-    PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
+    //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
     try {
       if (pm == null || pm.isClosed()) {
-        pm = pmf.getPersistenceManager();
+        pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
         pm.currentTransaction().begin();
       } else if (!pm.currentTransaction().isActive()) {
 
@@ -2073,7 +2073,7 @@ public class Shepherd {
     catch (NullPointerException npe) {
       npe.printStackTrace();
     }
-    pmf=null;
+    //pmf=null;
   }
 
   /**
