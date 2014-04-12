@@ -19,27 +19,30 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.springframework.mock.web.MockHttpServletRequest,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
+         import="org.ecocean.servlet.ServletUtilities,org.springframework.mock.web.MockHttpServletRequest,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
-
+<%
+String context="context0";
+context=ServletUtilities.getContext(request);
+%>
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
   <!-- Sliding div content: STEP1 Place inside the head section -->
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
@@ -114,7 +117,7 @@ margin-bottom: 8px !important;
   int nowYear = cal.get(1);
   int firstYear = 1980;
 
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();
@@ -132,8 +135,10 @@ margin-bottom: 8px !important;
   }
 
   Properties encprops = new Properties();
-  encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchComparison.properties"));
+  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchComparison.properties"));
+  encprops=ShepherdProperties.getProperties("searchComparison.properties", langCode);
 
+  
   //let's determine if this is location 1 or 2
   
   String part="1";
@@ -167,7 +172,7 @@ margin-bottom: 8px !important;
 <p>
 
 <h1 class="intro"><%=encprops.getProperty("title")%> (<%=encprops.getProperty("part") %> <%=part %>)
-  <a href="<%=CommonConfiguration.getWikiLocation()%>searching#encounter_search" target="_blank">
+  <a href="<%=CommonConfiguration.getWikiLocation(context)%>searching#encounter_search" target="_blank">
     <img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
   </a>
 </h1>
@@ -478,7 +483,7 @@ function FSControl(controlDiv, map) {
       </p>
 
       <p><strong><%=encprops.getProperty("locationID")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>locationID"
+        href="<%=CommonConfiguration.getWikiLocation(context)%>locationID"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
                              
@@ -675,7 +680,7 @@ function FSControl(controlDiv, map) {
       </table>
 
       <p><strong><%=encprops.getProperty("verbatimEventDate")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>verbatimEventDate"
+        href="<%=CommonConfiguration.getWikiLocation(context)%>verbatimEventDate"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
 
@@ -714,7 +719,7 @@ function FSControl(controlDiv, map) {
         }
       %>
       <%
-        pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
+        pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
       %>
       <c:if test="${showReleaseDate}">
         <p><strong><%= encprops.getProperty("releaseDate") %></strong></p>
@@ -757,7 +762,7 @@ function FSControl(controlDiv, map) {
             </label></td>
         </tr>
         <%
-        if(CommonConfiguration.showProperty("showTaxonomy")){
+        if(CommonConfiguration.showProperty("showTaxonomy",context)){
         %>
         <tr>
         <td>
@@ -769,10 +774,10 @@ function FSControl(controlDiv, map) {
 				       int taxNum=0;
 				       while(hasMoreTax){
 				       	  String currentGenuSpecies = "genusSpecies"+taxNum;
-				       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
+				       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 				       	  	%>
 				       	  	 
-				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context)%></option>
 				       	  	<%
 				       		taxNum++;
 				          }
@@ -807,7 +812,7 @@ function FSControl(controlDiv, map) {
         <tr>
           <td valign="top"><strong><%=encprops.getProperty("behavior")%>:</strong>
             <em> <span class="para">
-								<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank">
+								<a href="<%=CommonConfiguration.getWikiLocation(context)%>behavior" target="_blank">
                   <img src="../images/information_icon_svg.gif" alt="Help" border="0"
                        align="absmiddle"/>
                 </a>
@@ -853,7 +858,7 @@ function FSControl(controlDiv, map) {
 </tr>
 <%
 
-if(CommonConfiguration.showProperty("showLifestage")){
+if(CommonConfiguration.showProperty("showLifestage",context)){
 
 %>
 <tr valign="top">
@@ -867,10 +872,10 @@ if(CommonConfiguration.showProperty("showLifestage")){
   			       
   			       while(hasMoreStages){
   			       	  String currentLifeStage = "lifeStage"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
   			       	  	%>
   			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
   			       	  	<%
   			       		stageNum++;
   			          }
@@ -891,11 +896,11 @@ if(CommonConfiguration.showProperty("showLifestage")){
 %>
 
 <%
-  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements());
+  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements(context));
 %>
 <c:if test="${showMeasurement}">
 <%
-    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode));
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
 %>
 <tr><td><strong><%=encprops.getProperty("measurements") %></strong></td></tr>
 <c:forEach items="${items}" var="item">
@@ -1012,7 +1017,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
       <p><strong><%=encprops.getProperty("alternateID")%>:</strong> <em> <input
         name="alternateIDField" type="text" id="alternateIDField" size="10"
         maxlength="35"> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>alternateID"
+        href="<%=CommonConfiguration.getWikiLocation(context)%>alternateID"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" width="15" height="15" border="0"
                              align="absmiddle"/></a></span>
@@ -1022,9 +1027,9 @@ if(CommonConfiguration.showProperty("showLifestage")){
 </tr>
 
 <%
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags());
-  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
-  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 %>
 <c:if test="${showMetalTags or showAcousticTag or showSatelliteTag}">
  <tr>
@@ -1041,7 +1046,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
         <p>Use the fields below to limit your search to specific tags.</p>
         <c:if test="${showMetalTags}">
             <% 
-              pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); 
+              pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); 
             %>
             <h5>Metal Tags</h5>
             <table>
@@ -1061,7 +1066,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
         </c:if>
         <c:if test="${showSatelliteTag}">
           <%
-            pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
+            pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
            %>
           <h5>Satellite Tag</h5>
           <table>
@@ -1113,7 +1118,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
       </p>
 <br /><p><em><%=encprops.getProperty("slowOptions") %></em></p>
       <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para">
-      <a href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
+      <a href="<%=CommonConfiguration.getWikiLocation(context)%>haplotype"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
                              (<em><%=encprops.getProperty("locationIDExample")%></em>)
@@ -1151,7 +1156,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
       
       
     <p><strong><%=encprops.getProperty("geneticSex")%>:</strong> <span class="para">
-      <a href="<%=CommonConfiguration.getWikiLocation()%>geneticSex"
+      <a href="<%=CommonConfiguration.getWikiLocation(context)%>geneticSex"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
                              (<em><%=encprops.getProperty("locationIDExample")%></em>)
@@ -1190,7 +1195,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
       
       <p><strong><%=encprops.getProperty("msmarker")%>:</strong> 
       <span class="para">
-      	<a href="<%=CommonConfiguration.getWikiLocation()%>loci" target="_blank">
+      	<a href="<%=CommonConfiguration.getWikiLocation(context)%>loci" target="_blank">
       		<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
       	</a>
       </span> 
@@ -1223,7 +1228,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <%
 int alleleRelaxMaxValue=0;
 try{
-	alleleRelaxMaxValue=(new Integer(CommonConfiguration.getProperty("alleleRelaxMaxValue"))).intValue();
+	alleleRelaxMaxValue=(new Integer(CommonConfiguration.getProperty("alleleRelaxMaxValue",context))).intValue();
 }
 catch(Exception d){}
 %>
@@ -1275,7 +1280,7 @@ else {
           <td width="154">
           <p><strong><%=encprops.getProperty("types2search")%></strong>:</p>
      		<%
-     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("encounterState");
+     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
      		int numProps=values.size();
      		%>
      		<p><select size="<%=(numProps+1) %>" multiple="multiple" name="state" id="state">

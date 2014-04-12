@@ -26,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
@@ -46,7 +47,9 @@ public class DontTrack extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -90,16 +93,16 @@ public class DontTrack extends HttpServlet {
         out.println("<strong>Success!</strong> I have successfully stopped the tracking of encounter#" + encounterNumber + " for e-mail address " + email + ".");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Go to encounter " + encounterNumber + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         Vector e_images = new Vector();
         String message = "This is a confirmation that e-mail tracking of data changes to encounter " + encounterNumber + " has now been stopped.";
-        NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), email, ("Encounter data tracking stopped for encounter: " + encounterNumber), message, e_images);
+        NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), email, ("Encounter data tracking stopped for encounter: " + encounterNumber), message, e_images,context);
       } else {
 
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user, or the database is locked. Please wait a few seconds before trying to remove this e-mail address from tracking again.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
     }
@@ -141,16 +144,16 @@ public class DontTrack extends HttpServlet {
         out.println("<strong>Success!</strong> I have successfully stopped the tracking of " + shark + " for e-mail address " + email + ".");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark + "\">Go to " + shark + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         Vector e_images = new Vector();
         String message = "This is a confirmation that e-mail tracking of data changes to " + shark + " has now been stopped.";
-        NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), email, ("Data tracking stopped for: " + shark), message, e_images);
+        NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), email, ("Data tracking stopped for: " + shark), message, e_images,context);
       } else {
 
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This record is currently being modified by another user, or the database is locked. Please wait a few seconds before trying to remove this e-mail address from tracking again.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark + "\">Return to " + shark + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
 
@@ -160,7 +163,7 @@ public class DontTrack extends HttpServlet {
       myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to remove your e-mail address from the tracking list. I cannot find the encounter or marked individual that you indicated in the database, or you did not provide a valid e-mail address.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();

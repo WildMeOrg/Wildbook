@@ -26,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -53,7 +54,9 @@ public class OccurrenceAddEncounter extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -110,7 +113,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
 
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("occurrence") + "\">View occurrence " + request.getParameter("occurrence") + ".</a></p>\n");
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
 
           }
 
@@ -120,7 +123,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
             out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT added to occurrence " + request.getParameter("occurrence") + ". Please try to add the encounter again after a few seconds.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("occurrence") + "\">View occurrence " + request.getParameter("occurrence") + ".</a></p>\n");
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
 
           }
 
@@ -129,7 +132,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Error:</strong> No such record exists in the database.");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           myShepherd.rollbackDBTransaction();
           e.printStackTrace();
           //myShepherd.closeDBTransaction();
@@ -138,7 +141,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
       else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> You can't add this encounter to an occurrence when it's already assigned to another one, or you may be trying to add this encounter to a nonexistent occurrence.");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         myShepherd.rollbackDBTransaction();
         //myShepherd.closeDBTransaction();
       }
@@ -148,7 +151,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
     else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I didn't receive enough data to add this encounter to an occurrence.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
 
 

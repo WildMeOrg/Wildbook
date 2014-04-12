@@ -19,9 +19,10 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.io.File, java.io.FileInputStream,java.util.Properties" %>
+         import="org.ecocean.servlet.ServletUtilities,java.io.File, java.io.FileInputStream,java.util.Properties,org.ecocean.*" %>
 <%
-
+String context="context0";
+context=ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
   Properties props = new Properties();
   String langCode = "en";
@@ -39,25 +40,20 @@
     }
   }
 
+  
 
 %>
 
 <html>
 <head>
-  <title>ECOCEAN - Whale Shark Photo-identification Library
-    Sitemap</title>
+  <title><%=CommonConfiguration.getHTMLTitle(context)%>
+  </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="The ECOCEAN Whale Shark Photo-identification Library is a visual database of whale shark (Rhincodon typus) encounters and of individually catalogued whale sharks. The library is maintained and used by marine biologists to collect and analyse whale shark encounter data to learn more about these amazing creatures."/>
-  <meta name="Keywords"
-        content="whale shark,whale,shark,Rhincodon typus,requin balleine,Rhineodon,Rhiniodon,big fish,ECOCEAN,Brad Norman, fish, coral, sharks, elasmobranch, mark, recapture, photo-identification, identification, conservation, citizen science"/>
-  <meta name="Author" content="ECOCEAN - info@ecocean.org"/>
-  <link href="http://www.whaleshark.org/css/ecocean.css" rel="stylesheet"
-        type="text/css"/>
-  <link rel="alternate" type="application/rss+xml"
-        title="Whaleshark.org feed" href="http://www.whaleshark.org/rss.xml"/>
-  <link rel="shortcut icon"
-        href="http://www.whaleshark.org/images/favicon.ico"/>
+  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context)%>"/>
+  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context)%>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context)%>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context)%>" rel="stylesheet" type="text/css"/>
+  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
 
   <style type="text/css">
     <!--
@@ -74,12 +70,12 @@
   <div id="page">
     <jsp:include page="../../header.jsp" flush="true">
       <jsp:param name="isResearcher"
-                 value="<%=request.isUserInRole(\"researcher\")%>"/>
+                 value="<%=request.isUserInRole("researcher")%>"/>
       <jsp:param name="isManager"
-                 value="<%=request.isUserInRole(\"manager\")%>"/>
+                 value="<%=request.isUserInRole("manager")%>"/>
       <jsp:param name="isReviewer"
-                 value="<%=request.isUserInRole(\"reviewer\")%>"/>
-      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
+                 value="<%=request.isUserInRole("reviewer")%>"/>
+      <jsp:param name="isAdmin" value="<%=request.isUserInRole("admin")%>"/>
     </jsp:include>
     <div id="main"><!-- end leftcol -->
       <div id="maincol-calendar">

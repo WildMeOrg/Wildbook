@@ -57,11 +57,13 @@ public class RelationshipDelete extends HttpServlet {
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
 
     if ((request.getParameter("persistenceID")!=null)&&(!request.getParameter("persistenceID").equals(""))) {
       
-
-        Shepherd myShepherd = new Shepherd();
+    
+        Shepherd myShepherd = new Shepherd(context);
         
         Relationship rel=new Relationship();
         
@@ -101,7 +103,7 @@ public class RelationshipDelete extends HttpServlet {
           
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
 
 }
 else{
@@ -110,7 +112,7 @@ else{
 
  out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
  out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
- out.println(ServletUtilities.getFooter());
+ out.println(ServletUtilities.getFooter(context));
   
   
 }

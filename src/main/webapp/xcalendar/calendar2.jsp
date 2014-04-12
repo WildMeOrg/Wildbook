@@ -20,10 +20,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.Calendar, java.util.Properties" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.Calendar, java.util.Properties" %>
 
 
 <%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -44,7 +48,9 @@
     langCode = (String) session.getAttribute("langCode");
   }
   Properties calprops = new Properties();
-  calprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/calendar.properties"));
+  //calprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/calendar.properties"));
+  calprops = ShepherdProperties.getProperties("calendar.properties", langCode);
+
 
 
 %>
@@ -53,19 +59,19 @@
 
 <head>
 
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
 
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
 </head>
 <style type="text/css">

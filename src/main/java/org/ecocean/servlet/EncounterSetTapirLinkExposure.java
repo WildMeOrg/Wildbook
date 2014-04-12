@@ -28,6 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -46,7 +47,9 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -109,7 +112,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Success:</strong> I have changed encounter " + request.getParameter("number") + " TapirLink exposure status.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a>.</p>\n");
-            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
             int allStatesSize=allStates.size();
             if(allStatesSize>0){
               for(int i=0;i<allStatesSize;i++){
@@ -119,12 +122,12 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
             }
             out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
 
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
           } else {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> I have NOT changed encounter " + request.getParameter("number") + " TapirLink status. This encounter is currently being modified by another user, or an unknown error occurred.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
             int allStatesSize=allStates.size();
             if(allStatesSize>0){
               for(int i=0;i<allStatesSize;i++){
@@ -133,7 +136,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
               }
             }
             out.println("<p><a href=\"individualSearchResults.jsp\">View all individual</a></font></p>");
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
 
 
           }
@@ -141,7 +144,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
         } else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Error:</strong> I don't know which new encounter you're trying to approve.");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
 
         }
 
@@ -149,14 +152,14 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<p>I didn't understand your command, or you are not authorized for this action.</p>");
         out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
 
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<p>I did not receive enough data to process your command. No action was indicated to me.</p>");
       out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
 
     out.close();

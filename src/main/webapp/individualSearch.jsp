@@ -19,10 +19,12 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
-  Shepherd myShepherd = new Shepherd();
+String context="context0";
+context=ServletUtilities.getContext(request);
+  Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 
@@ -44,24 +46,25 @@
   if (session.getAttribute("langCode") != null) {
     langCode = (String) session.getAttribute("langCode");
   }
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
-
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
+  props = ShepherdProperties.getProperties("individualSearch.properties", langCode);
+	
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
   <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
@@ -489,7 +492,7 @@ function FSControl(controlDiv, map) {
       </p>
 
       <p><strong><%=props.getProperty("locationID")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>locationID"
+        href="<%=CommonConfiguration.getWikiLocation(context)%>locationID"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
                              
@@ -686,7 +689,7 @@ function FSControl(controlDiv, map) {
       </table>
 
       <p><strong><%=props.getProperty("verbatimEventDate")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>verbatimEventDate"
+        href="<%=CommonConfiguration.getWikiLocation(context)%>verbatimEventDate"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
 
@@ -725,7 +728,7 @@ function FSControl(controlDiv, map) {
         }
       %>
       <%
-        pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate());
+        pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
       %>
       <c:if test="${showReleaseDate}">
         <p><strong><%= props.getProperty("releaseDate") %></strong></p>
@@ -734,7 +737,7 @@ function FSControl(controlDiv, map) {
 
 <!--  date of birth and death -->      
       <p><strong><%=props.getProperty("timeOfBirth")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>timeOfBirth"
+        href="<%=CommonConfiguration.getWikiLocation(context)%>timeOfBirth"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
 <table>
@@ -745,7 +748,7 @@ function FSControl(controlDiv, map) {
 	</tr>
 </table>
 	      <p><strong><%=props.getProperty("timeOfDeath")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>timeOfDeath"
+        href="<%=CommonConfiguration.getWikiLocation(context)%>timeOfDeath"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
 	<table>
@@ -820,7 +823,7 @@ function FSControl(controlDiv, map) {
          <tr>
           <td valign="top"><strong><%=props.getProperty("behavior")%>:</strong>
             <em> <span class="para">
-								<a href="<%=CommonConfiguration.getWikiLocation()%>behavior" target="_blank">
+								<a href="<%=CommonConfiguration.getWikiLocation(context)%>behavior" target="_blank">
                   <img src="images/information_icon_svg.gif" alt="Help" border="0"
                        align="absmiddle"/>
                 </a>
@@ -867,7 +870,7 @@ function FSControl(controlDiv, map) {
         
         <%
 
-if(CommonConfiguration.showProperty("showLifestage")){
+if(CommonConfiguration.showProperty("showLifestage",context)){
 
 %>
 <tr>
@@ -880,10 +883,10 @@ if(CommonConfiguration.showProperty("showLifestage")){
   			       
   			       while(hasMoreStages){
   			       	  String currentLifeStage = "lifeStage"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
   			       	  	%>
   			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
   			       	  	<%
   			       		stageNum++;
   			          }
@@ -902,7 +905,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 }
         
         
-        if(CommonConfiguration.showProperty("showPatterningCode")){
+        if(CommonConfiguration.showProperty("showPatterningCode",context)){
 
         	%>
         	<tr valign="top">
@@ -916,10 +919,10 @@ if(CommonConfiguration.showProperty("showLifestage")){
         	  			       
         	  			       while(hasMorePatterningCodes){
         	  			       	  String currentLifeStage = "patterningCode"+stageNum;
-        	  			       	  if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+        	  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
         	  			       	  	%>
         	  			       	  	 
-        	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+        	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
         	  			       	  	<%
         	  			       		stageNum++;
         	  			          }
@@ -939,11 +942,11 @@ if(CommonConfiguration.showProperty("showLifestage")){
         	}        
         
 
-  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements());
+  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements(context));
 %>
 <c:if test="${showMeasurement}">
 <%
-    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode));
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
 %>
 <tr><td><strong><%=props.getProperty("measurements") %></strong></td></tr>
 <c:forEach items="${items}" var="item">
@@ -974,7 +977,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 
 
                 <%
-	        if(CommonConfiguration.showProperty("showTaxonomy")){
+	        if(CommonConfiguration.showProperty("showTaxonomy",context)){
 	        %>
 	        <tr>
 	        <td>
@@ -986,10 +989,10 @@ if(CommonConfiguration.showProperty("showLifestage")){
 					       int taxNum=0;
 					       while(hasMoreTax){
 					       	  String currentGenuSpecies = "genusSpecies"+taxNum;
-					       	  if(CommonConfiguration.getProperty(currentGenuSpecies)!=null){
+					       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 					       	  	%>
 					       	  	 
-					       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies)%></option>
+					       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context)%></option>
 					       	  	<%
 					       		taxNum++;
 					          }
@@ -1079,9 +1082,9 @@ if(CommonConfiguration.showProperty("showLifestage")){
 
 
 <%
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags());
-  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag());
-  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag());
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 %>
 
 
@@ -1104,7 +1107,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
             
             <c:if test="${showMetalTags}">
                 <% 
-                  pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode)); 
+                  pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); 
                 %>
             <h5>Metal Tags</h5>
             <table>
@@ -1130,7 +1133,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
             
             <c:if test="${showSatelliteTag}">
               <%
-                pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames());
+                pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
                %>
               <h5>Satellite Tag</h5>
               <table>
@@ -1205,7 +1208,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
       
 
       <p><strong><%=props.getProperty("haplotype")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation()%>haplotype"
+        href="<%=CommonConfiguration.getWikiLocation(context)%>haplotype"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
                              <br />
@@ -1244,7 +1247,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 
 
   <p><strong><%=props.getProperty("geneticSex")%>:</strong> <span class="para">
-      <a href="<%=CommonConfiguration.getWikiLocation()%>geneticSex"
+      <a href="<%=CommonConfiguration.getWikiLocation(context)%>geneticSex"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
                              (<em><%=props.getProperty("locationIDExample")%></em>)
@@ -1281,7 +1284,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
       %>
       
 <%
-    pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode));
+    pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode,context));
 %>
 <table><tr><td></td></tr>
 <tr><td><strong><%=props.getProperty("biomeasurements") %></strong></td></tr>
@@ -1304,7 +1307,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
    
       <p><strong><%=props.getProperty("msmarker")%>:</strong> 
       <span class="para">
-      	<a href="<%=CommonConfiguration.getWikiLocation()%>loci" target="_blank">
+      	<a href="<%=CommonConfiguration.getWikiLocation(context)%>loci" target="_blank">
       		<img src="images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
       	</a>
       </span> 
@@ -1337,7 +1340,7 @@ if(CommonConfiguration.showProperty("showLifestage")){
 <%
 int alleleRelaxMaxValue=0;
 try{
-	alleleRelaxMaxValue=(new Integer(CommonConfiguration.getProperty("alleleRelaxMaxValue"))).intValue();
+	alleleRelaxMaxValue=(new Integer(CommonConfiguration.getProperty("alleleRelaxMaxValue",context))).intValue();
 }
 catch(Exception d){}
 %>
@@ -1391,7 +1394,7 @@ else {
             	<em>
             		<input name="individualID" type="text" id="individualID" size="40" />&nbsp;
             		<span class="para">
-            			<a href="<%=CommonConfiguration.getWikiLocation()%>individualID" target="_blank">
+            			<a href="<%=CommonConfiguration.getWikiLocation(context)%>individualID" target="_blank">
             				<img src="images/information_icon_svg.gif" alt="Help" width="15" height="15" border="0" align="absmiddle"/>
             			</a>
             		</span>
@@ -1439,7 +1442,7 @@ else {
             <p><strong><%=props.getProperty("alternateID")%>:</strong> <em> <input
               name="alternateIDField" type="text" id="alternateIDField" size="25"
               maxlength="100"> <span class="para"><a
-              href="<%=CommonConfiguration.getWikiLocation()%>alternateID"
+              href="<%=CommonConfiguration.getWikiLocation(context)%>alternateID"
               target="_blank"><img src="images/information_icon_svg.gif"
                                    alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
               <br></em></p>
@@ -1545,7 +1548,7 @@ else {
 			<%
         //ArrayList<String> roles = myShepherd.getAllRoleNames();
         
-		List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole");
+		List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole",context);
 			
 		//System.out.println(haplos.toString());
 

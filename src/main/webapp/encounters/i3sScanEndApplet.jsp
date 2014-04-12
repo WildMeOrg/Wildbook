@@ -20,16 +20,20 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.CommonConfiguration, org.ecocean.Shepherd, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.CommonConfiguration, org.ecocean.Shepherd, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 <html>
 <%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
   session.setMaxInactiveInterval(6000);
   String num = request.getParameter("number");
-  Shepherd myShepherd = new Shepherd();
-  if (request.getParameter("writeThis") == null) {
-    myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
-  }
-  Shepherd altShepherd = new Shepherd();
+  //Shepherd myShepherd = new Shepherd(context);
+  //if (request.getParameter("writeThis") == null) {
+  //  myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
+  //}
+  //Shepherd altShepherd = new Shepherd(context);
   String sessionId = session.getId();
   boolean xmlOK = false;
   SAXReader xmlReader = new SAXReader();
@@ -40,7 +44,7 @@
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
   //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -49,7 +53,7 @@
 %>
 
 <head>
-  <title>Best matches for #<%=num%>
+  <title>Best matches for Encounter <%=num%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
   <meta http-equiv="expires" content="0">
@@ -197,7 +201,7 @@
 <p>
 
 <h2>I3S Scan Results <a
-  href="<%=CommonConfiguration.getWikiLocation()%>scan_results"
+  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
   target="_blank"><img src="../images/information_icon_svg.gif"
                        alt="Help" border="0" align="absmiddle"></a></h2>
 </p>
@@ -360,11 +364,11 @@
 <p>
   <%
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
-    String baseURL = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/";
+    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
 
 //myShepherd.rollbackDBTransaction();
-    myShepherd = null;
+   //myShepherd = null;
     doc = null;
     root = null;
     initresults = null;

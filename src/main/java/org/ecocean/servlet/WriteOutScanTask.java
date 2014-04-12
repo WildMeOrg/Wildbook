@@ -57,7 +57,11 @@ public class WriteOutScanTask extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     //set up a shepherd for DB transactions
-    Shepherd myShepherd = new Shepherd();
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    
+    Shepherd myShepherd = new Shepherd(context);
     PrintWriter out = null;
     GridManager gm = GridManagerFactory.getGridManager();
 
@@ -106,9 +110,9 @@ public class WriteOutScanTask extends HttpServlet {
           righty = true;
         }
 
-        successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(), CommonConfiguration.getEpsilon(), CommonConfiguration.getSizelim(), CommonConfiguration.getMaxTriangleRotation(), CommonConfiguration.getC(), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd);
+        successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context);
 
-        successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5);
+        successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
 
         //write out the boosted results
         //if(request.getParameter("boost")!=null){
@@ -566,7 +570,7 @@ public class WriteOutScanTask extends HttpServlet {
 
   }
 
-  public boolean writeResult(MatchObject[] swirs, String num, String R, String epsilon, String Sizelim, String maxTriangleRotation, String C, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd) {
+  public boolean writeResult(MatchObject[] swirs, String num, String R, String epsilon, String Sizelim, String maxTriangleRotation, String C, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd, String context) {
 
 
     try {
@@ -671,7 +675,7 @@ public class WriteOutScanTask extends HttpServlet {
       //setup data dir
       String rootWebappPath = getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
       //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       //if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -695,7 +699,7 @@ public class WriteOutScanTask extends HttpServlet {
     }
   } //end writeResult method
 
-  public boolean i3sWriteThis(Shepherd myShepherd, MatchObject[] matches, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff) {
+  public boolean i3sWriteThis(Shepherd myShepherd, MatchObject[] matches, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, String context) {
     try {
 
       System.out.println("scanWorkItemResultsHandler: Prepping to write I3S XML file for encounter " + num);
@@ -791,7 +795,7 @@ public class WriteOutScanTask extends HttpServlet {
       //setup data dir
       String rootWebappPath = getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
       //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       //if(!encountersDir.exists()){encountersDir.mkdir();}

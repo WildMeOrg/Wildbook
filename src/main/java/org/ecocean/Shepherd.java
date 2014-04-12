@@ -59,21 +59,25 @@ public class Shepherd {
 
   private PersistenceManager pm;
   public static Vector matches = new Vector();
-  private PersistenceManagerFactory pmf;
+  //private PersistenceManagerFactory pmf;
+  private String localContext;
 
 
   /**
    * Constructor to create a new shepherd thread object
    */
-  public Shepherd() {
+  public Shepherd(String context) {
     if (pm == null || pm.isClosed()) {
-      pmf = ShepherdPMF.getPMF();
+      PersistenceManagerFactory pmf = ShepherdPMF.getPMF(context);
+      localContext=context;
       try {
         pm = pmf.getPersistenceManager();
-      } catch (JDOUserException e) {
+      } 
+      catch (JDOUserException e) {
         System.out.println("Hit an excpetion while trying to instantiate a PM. Not fatal I think.");
         e.printStackTrace();
       }
+      pmf=null;
     }
   }
 
@@ -82,9 +86,9 @@ public class Shepherd {
     return pm;
   }
 
-  public PersistenceManagerFactory getPMF() {
-    return pmf;
-  }
+  //public PersistenceManagerFactory getPMF() {
+  //  return pmf;
+  //}
 
 
   /**
@@ -267,9 +271,10 @@ public class Shepherd {
 
     //throw away the task
     pm.deletePersistent(sTask);
+    PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
     pmf.getDataStoreCache().unpin(sTask);
     pmf.getDataStoreCache().evict(sTask);
-
+    pmf=null;
   }
 
 
@@ -377,19 +382,31 @@ public class Shepherd {
     return tempEnc;
   }
 
-  public Role getRole(String rolename, String username) {
+  public Role getRole(String rolename, String username, String context) {
 
     ArrayList<Role> roles = getAllRoles();
     int numRoles=roles.size();
     for(int i=0;i<numRoles;i++) {
       Role kw = (Role) roles.get(i);
-      if((kw.getRolename().equals(rolename))&&(kw.getUsername().equals(username))){
+      if((kw.getRolename().equals(rolename))&&(kw.getUsername().equals(username))&&(kw.getContext().equals(context))){
         return kw;
         }
     }
     return null;
   }
 
+  public ArrayList<Role> getAllRolesForUserInContext(String username, String context) {
+    String actualContext="context0";
+    if(context!=null){actualContext=context;}
+    String filter = "this.username == '" + username + "' && this.context == '"+actualContext+"'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList<Role> roles=new ArrayList<Role>(c);
+    acceptedEncounters.closeAll();
+    return roles;
+  }
+  
   public ArrayList<Role> getAllRolesForUser(String username) {
     String filter = "this.username == '" + username + "'";
     Extent encClass = pm.getExtent(Role.class, true);
@@ -400,8 +417,8 @@ public class Shepherd {
     return roles;
   }
 
-  public boolean doesUserHaveRole(String username, String rolename) {
-    String filter = "this.username == '" + username + "' && this.rolename == '" + rolename + "'";
+  public boolean doesUserHaveRole(String username, String rolename, String context) {
+    String filter = "this.username == '" + username + "' && this.rolename == '" + rolename + "' && this.context == '"+context+"'";
     Extent encClass = pm.getExtent(Role.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (acceptedEncounters.execute());
@@ -420,7 +437,10 @@ public class Shepherd {
     int numRoles=roles.size();
     String rolesFound="";
     for(int i=0;i<numRoles;i++){
-      rolesFound+=(roles.get(i).getRolename()+" ");
+      String context="context0";
+      if(roles.get(i).getContext()!=null){context=roles.get(i).getContext();}
+      String contextName=ContextConfiguration.getNameForContext(context);
+      rolesFound+=(contextName+":"+roles.get(i).getRolename()+"\r");
     }
     acceptedEncounters.closeAll();
     return rolesFound;
@@ -1294,8 +1314,8 @@ public class Shepherd {
     return it;
   }
 
-  public ArrayList getAllAdoptionsForMarkedIndividual(String ind) {
-    if(CommonConfiguration.allowAdoptions()){
+  public ArrayList getAllAdoptionsForMarkedIndividual(String ind,String context) {
+    if(CommonConfiguration.allowAdoptions(context)){
       String filter = "this.individual == '" + ind + "'";
       Extent encClass = pm.getExtent(Adoption.class, true);
       Query acceptedEncounters = pm.newQuery(encClass, filter);
@@ -2036,6 +2056,7 @@ public class Shepherd {
    * Opens the database up for information retrieval, storage, and removal
    */
   public void beginDBTransaction() {
+    PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
     try {
       if (pm == null || pm.isClosed()) {
         pm = pmf.getPersistenceManager();
@@ -2045,11 +2066,14 @@ public class Shepherd {
         pm.currentTransaction().begin();
       }
 
-    } catch (JDOUserException jdoe) {
+    } 
+    catch (JDOUserException jdoe) {
       jdoe.printStackTrace();
-    } catch (NullPointerException npe) {
+    } 
+    catch (NullPointerException npe) {
       npe.printStackTrace();
     }
+    pmf=null;
   }
 
   /**
@@ -2170,13 +2194,13 @@ public class Shepherd {
     }
   }
   
-  public String getAllUserEmailAddressesForLocationID(String locationID){
+  public String getAllUserEmailAddressesForLocationID(String locationID, String context){
     String addresses="";
     ArrayList<User> users = getAllUsers();
     int numUsers=users.size();
     for(int i=0;i<numUsers;i++){
       User user=users.get(i);
-      if(doesUserHaveRole(user.getUsername(), locationID.trim())){
+      if(doesUserHaveRole(user.getUsername(), locationID.trim(),context)){
         if((user.getReceiveEmails())&&(user.getEmailAddress()!=null)){addresses+=(user.getEmailAddress()+",");}
       }
     }
