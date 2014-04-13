@@ -127,6 +127,11 @@ z-index:99;
 }
 /* If you can see the pattern in the above IE5.5 and IE6 style then you can add as many sub levels as you like */
 
+/* A class used by the jQuery UI CSS framework for their dialogs. */
+.ui-front {
+    z-index:1000000 !important; /* The default is 100. !important overrides the default. */
+}
+
 </style>
 
 <%
@@ -147,6 +152,10 @@ context=ServletUtilities.getContext(request);
 
 
 %>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
+	
+	
 
 	<div id="header"><img name="masthead" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/masthead.jpg" width="810px" height="300px" border="0" usemap="#m_masthead" alt="">
 
@@ -416,9 +425,7 @@ if(request.getUserPrincipal()!=null){
 			</td></tr></table>
 		 
 		</td>
-		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
-	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
-	<script type="text/javascript">
+<script type="text/javascript">
 		$( "#context" ).change(function() {
 			
   			//alert( "Handler for .change() called with new value: "+$( "#context option:selected" ).text() +" with value "+ $( "#context option:selected").val());

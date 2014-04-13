@@ -83,25 +83,7 @@ if(request.getQueryString()!=null){
   <link rel="shortcut icon"
         href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
-  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
-  <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
-  
-   <script>
-   
-    $(function() {
-    <%
-    for(int f=0;f<numSessions;f++){
-    %>
-    	$( "#datepicker<%=f%>start" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
-      $( "#datepicker<%=f%>end" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
-    <%
-    }
-    %>
-    
-    });
-  
-  
-  </script>
+
   
 </head>
 <style type="text/css">
@@ -159,6 +141,24 @@ if(request.getQueryString()!=null){
 
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
+ <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+  
+   <script>
+   
+    $(function() {
+    <%
+    for(int f=0;f<numSessions;f++){
+    %>
+    	$( "#datepicker<%=f%>start" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+      $( "#datepicker<%=f%>end" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+    <%
+    }
+    %>
+    
+    });
+  
+  
+  </script>
 <div id="main">
 <ul id="tabmenu">
 

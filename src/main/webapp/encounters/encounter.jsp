@@ -407,13 +407,10 @@ margin-bottom: 8px !important;
 
 
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>
+
 
 <!--added below for improved map selection -->
- <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 
 
 
@@ -445,6 +442,16 @@ margin-bottom: 8px !important;
 			<jsp:include page="../header.jsp" flush="true">
   				<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 			</jsp:include>
+			
+			
+			<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>
+
+ <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
+
+			
+			
 			<div id="main">
 			<%
   			myShepherd.beginDBTransaction();
