@@ -117,7 +117,6 @@ margin-bottom: 8px !important;
 </style>
 
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
 
 
 <p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>

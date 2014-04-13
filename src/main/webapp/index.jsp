@@ -29,7 +29,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-  Shepherd myShepherd = new Shepherd(context);
+  Shepherd myShepherd = new Shepherd("context0");
   
   	//check usernames and passwords
 	myShepherd.beginDBTransaction();
