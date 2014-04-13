@@ -136,7 +136,7 @@
  	%>		
 	<a name="collaborators"></a>
 	<h3><%=props.getProperty("collaborators") %> (<%=numUsers %>)</h3>
-<table>
+<table width="810px">
 <%
      
      
@@ -146,7 +146,7 @@
        	User thisUser=allUsers.get(i);
        	String username=thisUser.getUsername();
     	 %>
-          <tr><td> 
+          <tr class="who"><td> 
            <table align="left">
            	<%
     	
@@ -158,17 +158,45 @@
 
     		}
     		%>
-			<tr><td><div style="height: 50px">
-	<a style="color:blue;cursor: pointer;" id="username<%=userNum%>"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
-</div></td></tr>
+			<tr>
+				<td>
+					<div style="height: 50px">
+						<a style="color:blue;cursor: pointer;" id="username<%=userNum%>"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
+					</div>
+				</td>
+				<td style="border:none">
+					<table>
+					<%
+					if(thisUser.getFullName()!=null){
+		    			String displayName=thisUser.getFullName();
+					%>
+						<tr>
+							<td>
+    				
+    							<a style="color:blue;cursor: pointer;" id="username<%=userNum%>" style="font-weight:normal;border:none"><%=displayName %></a>
+    				
+    						</td>
+    					</tr>
+    					<%
+     					}
+    					if(thisUser.getAffiliation()!=null){
+    					%>
+    					<tr>
+							<td>
+	    						<%=thisUser.getAffiliation() %>
+    						</td>
+    					</tr>
+    					<%
+    					}
+    					%>
+    				</table>
+    			</td>
+			</tr>
 			<%
     		String displayName="";
     		if(thisUser.getFullName()!=null){
     			displayName=thisUser.getFullName();
     		
-    		%>
-    		<tr><td style="border:none"><center><a style="color:blue;cursor: pointer;" id="username<%=userNum%>" style="font-weight:normal;border:none"><%=displayName %></a></center></td></tr>
-    		<%	
     		}
     		
     		%>
@@ -239,7 +267,10 @@
 	} //end if(CommonConfiguration.showUsersToPublic()){
 	%>
 
-	
+	<script>
+	$("tr.who:even").css("background-color", "#D7E0ED");
+	$("tr.who:odd").css("background-color", "#ffffff");
+	</script>
 	
 	<!-- end maintext -->
 
