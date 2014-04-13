@@ -1,7 +1,12 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=iso-8859-1" language="java" import="org.joda.time.DateTime,org.joda.time.format.DateTimeFormatter,org.joda.time.format.ISODateTimeFormat,java.util.StringTokenizer,java.lang.StringBuffer,java.util.GregorianCalendar,org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator" %>
+<%@ page contentType="text/html; charset=iso-8859-1" language="java" import="org.ecocean.servlet.ServletUtilities,org.joda.time.DateTime,org.joda.time.format.DateTimeFormatter,org.joda.time.format.ISODateTimeFormat,java.util.StringTokenizer,java.lang.StringBuffer,java.util.GregorianCalendar,org.ecocean.*, javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator" %>
 <%
-Shepherd myShepherd=new Shepherd();
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
+
+Shepherd myShepherd=new Shepherd(context);
 
 //handle some cache-related security
 response.setHeader("Cache-Control","no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -48,18 +53,18 @@ public int getNumLengths(double[] lengths) {
 
 <html>
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
   <style type="text/css">
     <!--
@@ -81,7 +86,7 @@ public int getNumLengths(double[] lengths) {
 <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
 </jsp:include>
 <div id="main">
-<p><h1 class="intro"><%=CommonConfiguration.getHTMLTitle() %> Statistics</h1></p>
+<p><h1 class="intro"><%=CommonConfiguration.getHTMLTitle(context) %> Statistics</h1></p>
 
 <%
 myShepherd.beginDBTransaction();
