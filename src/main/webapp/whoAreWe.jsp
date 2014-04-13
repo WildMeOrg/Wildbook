@@ -1,12 +1,13 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-        <%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.ArrayList,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*" %>
+        <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*" %>
 <%
 
 //setup our Properties object to hold all properties
 	Properties props=new Properties();
 	String langCode="en";
 	
-
+	String context="context0";
+	context=ServletUtilities.getContext(request);
 	
 	//set up the file input stream
 	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
@@ -17,13 +18,13 @@
 
 <html>
 <head>
-<title><%=CommonConfiguration.getHTMLTitle() %></title>
+<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription() %>" />
-<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords() %>" />
-<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
-<link href="<%=CommonConfiguration.getCSSURLLocation(request) %>" rel="stylesheet" type="text/css" />
-<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
+<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>" />
+<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>" />
+<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>" />
+<link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>" rel="stylesheet" type="text/css" />
+<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>" />
 
 
   <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
@@ -65,7 +66,7 @@
 		<ul>
 			<li><a href="#leaders"><%=props.getProperty("leaders") %></a></li>
 			<%
-			if(CommonConfiguration.showUsersToPublic()){
+			if(CommonConfiguration.showUsersToPublic(context)){
 			%>	
 				<li><a href="#collaborators"><%=props.getProperty("collaborators") %></a></li>
 			<%
@@ -125,9 +126,9 @@
 
 			<p>&nbsp;</p>
 	<%
-	if(CommonConfiguration.showUsersToPublic()){
+	if(CommonConfiguration.showUsersToPublic(context)){
 
-	Shepherd myShepherd = new Shepherd();
+	Shepherd myShepherd = new Shepherd(context);
 	 myShepherd.beginDBTransaction();
      ArrayList<User> allUsers=myShepherd.getAllUsers();
      int numUsers=allUsers.size();
@@ -153,7 +154,7 @@
            	String profilePhotoURL="images/empty_profile.jpg";
 		    
     		if(thisUser.getUserImage()!=null){
-    			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName()+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+    			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
 
     		}
     		%>
