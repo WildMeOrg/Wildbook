@@ -2171,15 +2171,18 @@ public class Shepherd {
 
   public ArrayList<User> getAllUsers() {
     Collection c;
+    ArrayList<User> list = new ArrayList<User>();
     Extent userClass = pm.getExtent(User.class, true);
     Query users = pm.newQuery(userClass);
     try {
       c = (Collection) (users.execute());
-      ArrayList<User> list = new ArrayList<User>(c);
+      if(c!=null){
+        list = new ArrayList<User>(c);
+      }
       users.closeAll();
       return list;
     } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute Shepherd.getAllUsers. Returning a null collection because I didn't have a transaction to use.");
+      //System.out.println("Error encountered when trying to execute Shepherd.getAllUsers. Returning a null collection because I didn't have a transaction to use.");
       npe.printStackTrace();
       return null;
     }

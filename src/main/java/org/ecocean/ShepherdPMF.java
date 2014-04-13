@@ -45,7 +45,7 @@ public class ShepherdPMF {
     if(pmfs==null){pmfs=new TreeMap<String,PersistenceManagerFactory>();}
     
     try {
-      if (!pmfs.containsKey(context)) {
+      if ((!pmfs.containsKey(context))||(pmfs.get(context).isClosed())) {
 
         Properties dnProperties = new Properties();
 
