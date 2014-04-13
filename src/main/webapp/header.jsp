@@ -19,7 +19,13 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-
+  
+<style type="text/css">
+/* A class used by the jQuery UI CSS framework for their dialogs. */
+.ui-front {
+    z-index:1000000 !important; /* The default is 100. !important overrides the default. */
+}
+</style>
 <%
 
 String context="context0";
