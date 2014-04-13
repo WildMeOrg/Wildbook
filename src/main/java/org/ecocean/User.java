@@ -43,7 +43,7 @@ public class User implements java.io.Serializable {
   	private String password ;
   	private String salt;
   	
-  	String currentContext;
+  	//String currentContext;
   	
   	
   	private boolean acceptedUserAgreement=false;
@@ -228,7 +228,7 @@ public class User implements java.io.Serializable {
     
     public void setAcceptedUserAgreement(boolean accept){this.acceptedUserAgreement=accept;}
 
-    public String getCurrentContext(){return currentContext;}
-    public void setCurrentContext(String newContext){currentContext=newContext;}
+    //public String getCurrentContext(){return currentContext;}
+    //public void setCurrentContext(String newContext){currentContext=newContext;}
     
 }
