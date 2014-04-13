@@ -498,9 +498,7 @@
 				<column jdbc-type="BIGINT" allows-null="true" />
 		        </field>
 			                
-            <field name="currentContext">	
-		        	<column length="100"/>
-		        </field>
+         
 					
 					</field>
 		 </class>
