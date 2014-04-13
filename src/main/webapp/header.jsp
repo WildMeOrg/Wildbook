@@ -374,7 +374,7 @@ if(CommonConfiguration.isCatalogEditable(context)){
 <table width="810px">
 	<tr>
 		<td class="caption" class="caption" style="text-align: left;" align="left">
-		<table><tr><td>Find record:</td><td><form name="form2" method="get" action="individuals.jsp">
+		<table><tr><td>Find record:</td><td><form name="form2" method="get" action="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp">
             <input name="number" type="text" id="shark" size="25"/>
             <input type="hidden" name="langCode" value="<%=langCode%>"/>
             <input name="Go" type="submit" id="Go2" value="Go"/>
