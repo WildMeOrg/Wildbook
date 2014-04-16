@@ -46,7 +46,7 @@
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
 	//haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
-	haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+	haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
 		
 
     Properties localeprops = new Properties();
