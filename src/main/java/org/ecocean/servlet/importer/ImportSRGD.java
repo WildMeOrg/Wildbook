@@ -317,9 +317,11 @@ public class ImportSRGD extends HttpServlet {
                 
                 if(myShepherd.isOccurrence(occurID)){
                   occur=myShepherd.getOccurrence(occurID);
-                  occur.addEncounter(enc);
-                  occur.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc.getCatalogNumber() + ".</p>");
-                  
+                  boolean isNew=occur.addEncounter(enc);
+                  if(isNew){
+                    occur.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc.getCatalogNumber() + ".</p>");
+                  }
+                
                 }
                 else{
                   occur=new Occurrence(occurID,enc);
@@ -478,7 +480,10 @@ public class ImportSRGD extends HttpServlet {
                   else{
                     indie.setIndividualID(individualID);
                   }
+                  
+                  //OK to generically add it as the addEncounter() method will ignore it if already added to marked individual
                   indie.addEncounter(enc2);
+
                   if((indie.getSex()==null)||(indie.getSex()!=enc2.getSex())){
                     indie.setSex(enc2.getSex());
                     indie.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set sex to " + enc2.getSex() + ".</p>");

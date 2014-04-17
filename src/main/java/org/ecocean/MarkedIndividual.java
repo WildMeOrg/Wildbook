@@ -122,10 +122,21 @@ public class MarkedIndividual implements java.io.Serializable {
       //get and therefore set the haplotype if necessary
       getHaplotype();
       
-      boolean ok=encounters.add(newEncounter);
-      numberEncounters++;
-      resetMaxNumYearsBetweenSightings();
-      return ok; 
+      boolean isNew=true;
+      for(int i=0;i<encounters.size();i++) {
+        Encounter tempEnc=(Encounter)encounters.get(i);
+        if(tempEnc.getEncounterNumber().equals(newEncounter.getEncounterNumber())) {
+          isNew=false;
+        }
+      }
+      
+      //prevent duplicate addition of encounters
+      if(isNew){
+        encounters.add(newEncounter);
+        numberEncounters++;
+        resetMaxNumYearsBetweenSightings();
+      }
+      return isNew; 
      
  }
 
@@ -137,9 +148,7 @@ public class MarkedIndividual implements java.io.Serializable {
   public boolean removeEncounter(Encounter getRidOfMe){
 
       numberEncounters--;
-      
-      
-      
+
       boolean changed=false;
       for(int i=0;i<encounters.size();i++) {
         Encounter tempEnc=(Encounter)encounters.get(i);
@@ -148,7 +157,7 @@ public class MarkedIndividual implements java.io.Serializable {
           i--;
           changed=true;
           }
-        }
+      }
       resetMaxNumYearsBetweenSightings();
       
       //reset haplotype

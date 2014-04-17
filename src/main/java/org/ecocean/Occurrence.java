@@ -53,12 +53,22 @@ public class Occurrence implements java.io.Serializable{
     
   }
   
-  public void addEncounter(Encounter enc){
+  public boolean addEncounter(Encounter enc){
     if(encounters==null){encounters=new ArrayList<Encounter>();}
-    encounters.add(enc);
+    
+    //prevent duplicate addition
+    boolean isNew=true;
+    for(int i=0;i<encounters.size();i++) {
+      Encounter tempEnc=(Encounter)encounters.get(i);
+      if(tempEnc.getEncounterNumber().equals(enc.getEncounterNumber())) {
+        isNew=false;
+      }
+    }
+    
+    if(isNew){encounters.add(enc);}
     
     //if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
-    
+    return isNew;
     
   }
   
