@@ -52,8 +52,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
   haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
 
     Properties localeprops = new Properties();
-   //localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
-   localeprops=ShepherdProperties.getProperties("locationIDdetecion.properties", "");
+   localeprops=ShepherdProperties.getProperties("locationIDGPS.properties", "");
 
    List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies",context);
    int numSpecies=allSpecies.size();
@@ -152,7 +151,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
             thisEncLat=enc.getLatitudeAsDouble();
             thisEncLong=enc.getLongitudeAsDouble();
           }
-          //let's see if locationIDdetecion.properties has a location we can use
+          //let's see if locationIDGPS.properties has a location we can use
           else{
             if(useLocales){
                    try {
