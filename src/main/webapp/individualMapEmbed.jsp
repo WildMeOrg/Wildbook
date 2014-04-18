@@ -39,8 +39,7 @@ context=ServletUtilities.getContext(request);
 
 		  
   Properties localesProps = new Properties();
-  //localesProps.load(getClass().getResourceAsStream("/bundles/locationIDdetecion.properties"));
-  localesProps = ShepherdProperties.getProperties("locationIDdetecion.properties", "");
+  localesProps = ShepherdProperties.getProperties("locationIDGPS.properties", "");
 	  
 		  
 		  
@@ -189,7 +188,7 @@ String lastLatLong="";
 					  if(((indieEnc.getDecimalLatitude())!=null)&&(indieEnc.getDecimalLongitude()!=null)){
 							 thisLatLong=indieEnc.getDecimalLatitude()+","+indieEnc.getDecimalLongitude();
 					  }
-					  //let's try to get this from locationIDdetecion.properties
+					  //let's try to get this from locationIDGPS.properties
 					  else if(localesProps.getProperty(indieEnc.getLocationID())!=null){
 								 thisLatLong=localesProps.getProperty(indieEnc.getLocationID());
 					  }
@@ -272,7 +271,7 @@ String lastLatLong="";
 	 if(((thisEnc.getDecimalLatitude())!=null)&&(thisEnc.getDecimalLongitude()!=null)){
 		 thisLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
 	 }
-	 //let's try to get this from locationIDdetecion.properties
+	 //let's try to get this from locationIDGPS.properties
 	 else{
 		 
 		 if(localesProps.getProperty(thisEnc.getLocationID())!=null){
