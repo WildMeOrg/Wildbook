@@ -64,24 +64,6 @@ public class CommonConfiguration {
         ioe.printStackTrace();
         //return null;
       }
-      
-
-      
-      //String shepherdDataDir="shepherd_data_dir";
-      
-      //new context code here
-     
-      /*
-      Properties contextsProps=ShepherdProperties.getContextsProperties();
-      if(contextsProps.getProperty(context+"DataDir")!=null){
-        shepherdDataDir=contextsProps.getProperty(context+"DataDir");
-        
-      }
-      
-      
-      props=loadOverrideProps(shepherdDataDir);
-      */
-
 
     return props;
   }
@@ -259,11 +241,16 @@ public class CommonConfiguration {
   }
 
   public static ArrayList<String> getSequentialPropertyValues(String propertyPrefix, String context){
-    initialize(context);
+    Properties myProps=initialize(context);
+    //System.out.println(myProps.toString());
     ArrayList<String> returnThese=new ArrayList<String>();
+    
+    //System.out.println("Looking for: "+propertyPrefix);
+    
     int iter=0;
-    while(getProperty(propertyPrefix+iter,context)!=null){
-      returnThese.add(getProperty((propertyPrefix+iter),context));
+    while(myProps.getProperty(propertyPrefix+iter)!=null){
+      //System.out.println("Found: "+propertyPrefix+iter);
+      returnThese.add(myProps.getProperty((propertyPrefix+iter)));
       iter++;
     }
     
