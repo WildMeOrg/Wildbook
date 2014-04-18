@@ -49,8 +49,7 @@
 		
 
     Properties localeprops = new Properties();
-   //localeprops.load(getClass().getResourceAsStream("/bundles/locationIDdetecion.properties"));
-   localeprops = ShepherdProperties.getProperties("locationIDdetecion.properties", "");
+    localeprops = ShepherdProperties.getProperties("locationIDGPS.properties", "");
 	
     
     //get our Shepherd
