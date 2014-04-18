@@ -386,7 +386,7 @@ if(CommonConfiguration.isCatalogEditable(context)){
 		<table><tr><td><%=props.getProperty("findRecord") %></td><td><form name="form2" method="get" action="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp">
             <input name="number" type="text" id="shark" size="25"/>
             <input type="hidden" name="langCode" value="<%=langCode%>"/>
-            <input name="Go" type="submit" id="Go2" value="Go"/>
+            <input name="Go" type="submit" id="Go2" value="<%=props.getProperty("search")%>"/>
           </form></td></table>
 		 
 		          
