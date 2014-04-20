@@ -102,7 +102,7 @@ context=ServletUtilities.getContext(request);
 			Shepherd myShepherd=new Shepherd("context0");
 			myShepherd.beginDBTransaction();
 			%>
-             <strong><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser()).replaceAll("\r","<br />")%></strong></p>
+             <em><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser()).replaceAll("\r","<br />")%></em></p>
             
             <%
             
