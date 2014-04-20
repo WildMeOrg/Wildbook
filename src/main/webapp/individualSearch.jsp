@@ -42,10 +42,9 @@ context=ServletUtilities.getContext(request);
 
 //let's load out properties
   Properties props = new Properties();
-  String langCode = "en";
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
   props = ShepherdProperties.getProperties("individualSearch.properties", langCode);
 	

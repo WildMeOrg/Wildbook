@@ -36,7 +36,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     //set the response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-    String langCode="en";
+    String langCode=ServletUtilities.getLanguageCode(request);
     
     String context="context0";
     context=ServletUtilities.getContext(request);
@@ -53,7 +53,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
 
     Properties localeprops = new Properties();
    //localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
-   localeprops=ShepherdProperties.getProperties("locales.properties", "");
+   localeprops=ShepherdProperties.getProperties("locationIDdetecion.properties", "");
 
    List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies",context);
    int numSpecies=allSpecies.size();
@@ -152,7 +152,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
             thisEncLat=enc.getLatitudeAsDouble();
             thisEncLong=enc.getLongitudeAsDouble();
           }
-          //let's see if locales.properties has a location we can use
+          //let's see if locationIDdetecion.properties has a location we can use
           else{
             if(useLocales){
                    try {

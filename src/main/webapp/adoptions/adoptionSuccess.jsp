@@ -28,7 +28,9 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
 
 
-  String langCode = "en";
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
 
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");

@@ -541,4 +541,45 @@ public static String getContext(HttpServletRequest request){
   return context;
 }
 
+
+public static String getLanguageCode(HttpServletRequest request){
+  String context=ServletUtilities.getContext(request);
+  
+  //worst case scenario default to English
+  String langCode="en";
+  
+  //try to detect a default if defined
+  if(CommonConfiguration.getProperty("defaultLanguage", context)!=null){
+    langCode=CommonConfiguration.getProperty("defaultLanguage", context);
+  }
+
+  
+  ArrayList<String> supportedLanguages=new ArrayList<String>();
+  if(CommonConfiguration.getSequentialPropertyValues("language", context)!=null){
+    supportedLanguages=CommonConfiguration.getSequentialPropertyValues("language", context);
+  }    
+      
+  //if specified directly, always accept the override
+  if(request.getParameter("langCode")!=null){
+    if(supportedLanguages.contains(request.getParameter("langCode"))){return request.getParameter("langCode");}
+  }
+  
+
+  //the request cookie is the next thing we check. this should be the primary means of figuring langCode out
+  Cookie[] cookies = request.getCookies();
+  if(cookies!=null){
+    for(Cookie cookie : cookies){
+      if("wildbookLangCode".equals(cookie.getName())){
+          if(supportedLanguages.contains(cookie.getValue())){return cookie.getValue();}
+      }
+    }
+  }
+  
+  //finally, we will check the URL vs values defined in context.properties to see if we can set the right context
+  //TBD - future - detect browser supported language codes and locale from the HTTPServletRequest object
+  
+  return langCode;
+}
+
+
 }
