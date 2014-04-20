@@ -528,7 +528,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <td colspan="2">
   <table class="measurements">
   <tr>
-  <th>Type</th><th>Size</th><th>Units</th><c:if test="${!empty samplingProtocols}"><th>Sampling Protocol</th></c:if>
+  <th><%=props.getProperty("type") %></th><th><%=props.getProperty("size") %></th><th><%=props.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th><%=props.getProperty("samplingProtocol") %></th></c:if>
   </tr>
   <c:forEach items="${items}" var="item">
     <tr>
