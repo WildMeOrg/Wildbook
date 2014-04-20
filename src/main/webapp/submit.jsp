@@ -339,8 +339,10 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 </tr>
 <%
 //add locationID to fields selectable
-%>
 
+
+if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()>0){
+%>
 <tr class="form_row">
 			<td class="form_label1"><strong><%=props.getProperty("locationID")%>:</strong></td>
 		<td>
@@ -371,7 +373,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 </td>
 	</tr>
 <%
-
+}
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
@@ -429,10 +431,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 	
 		&deg;
 		<br/>
-		<br/> GPS coordinates are in the decimal degrees
-		format. Do you have GPS coordinates in a different format? <a
-			href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click
-		here to find a converter.</a>
+		<br/> <%=props.getProperty("gpsConverter") %>
 		</td>
 	</tr>
 	
@@ -469,7 +468,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 %>
 
 <tr class="form_row">
-  <td class="form_label"><strong>Status:</strong></td>
+  <td class="form_label"><strong><%=props.getProperty("status") %></strong></td>
   <td colspan="2"><select name="livingStatus" id="livingStatus">
     <option value="alive" selected="selected">Alive</option>
     <option value="dead">Dead</option>
