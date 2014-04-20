@@ -191,8 +191,7 @@ public class SubmitAction extends Action {
 
 
       	try {
-        	//props.load(getClass().getResourceAsStream("/bundles/submitActionClass.properties"));
-        	props=ShepherdProperties.getProperties("submitActionClass.properties.properties", "");
+        	props=ShepherdProperties.getProperties("submitActionClass.properties", "");
 
         	Enumeration m_enum = props.propertyNames();
         	while (m_enum.hasMoreElements()) {
