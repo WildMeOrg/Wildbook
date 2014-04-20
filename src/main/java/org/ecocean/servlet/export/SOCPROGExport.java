@@ -95,10 +95,10 @@ public class SOCPROGExport extends HttpServlet{
         //load the optional locales
         Properties props = new Properties();
         try {
-          //props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
-          props=ShepherdProperties.getProperties("locales.properties", "");
+          //props.load(getClass().getResourceAsStream("/bundles/locationIDdetecion.properties"));
+          props=ShepherdProperties.getProperties("locationIDdetecion.properties", "");
         } catch (Exception e) {
-          //System.out.println("     Could not load locales.properties in class GenalexExportCodominantMSDataBySize.");
+          //System.out.println("     Could not load locationIDdetecion.properties in class GenalexExportCodominantMSDataBySize.");
           e.printStackTrace();
         }
         

@@ -43,10 +43,9 @@ context=ServletUtilities.getContext(request);
   }
 
 //let's load encounterSearch.properties
-  String langCode = "en";
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
   Properties calprops = new Properties();
   //calprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/calendar.properties"));
   calprops = ShepherdProperties.getProperties("calendar.properties", langCode);

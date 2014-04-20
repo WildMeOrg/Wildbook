@@ -26,8 +26,9 @@ String context="context0";
 context=ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
   Properties props = new Properties();
-  String langCode = "en";
-
+ // String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
 
 
   //set up the file input stream

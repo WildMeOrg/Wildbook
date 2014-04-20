@@ -39,11 +39,9 @@ context=ServletUtilities.getContext(request);
 
 //setup our Properties object to hold all properties
   Properties props = new Properties();
-  String langCode = "en";
-
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
 
   //set up the file input stream
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/header.properties"));
