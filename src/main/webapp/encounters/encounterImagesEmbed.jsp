@@ -43,12 +43,9 @@ File thisEncounterDir = new File(encountersDir, imageEncNum);
 
 
 //handle translation
-String langCode = "en";
+//String langCode = "en";
+String langCode=ServletUtilities.getLanguageCode(request);
 
-//check what language is requested
-if (session.getAttribute("langCode") != null) {
-  langCode = (String) session.getAttribute("langCode");
-}
 
 //let's load encounters.properties
 Properties encprops = new Properties();

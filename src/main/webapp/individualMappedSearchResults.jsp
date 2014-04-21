@@ -33,10 +33,9 @@
   context=ServletUtilities.getContext(request);
 
     //let's load encounterSearch.properties
-    String langCode = "en";
-    if (session.getAttribute("langCode") != null) {
-      langCode = (String) session.getAttribute("langCode");
-    }
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
+    
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
     map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode);
@@ -50,8 +49,8 @@
 		
 
     Properties localeprops = new Properties();
-   //localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
-   localeprops = ShepherdProperties.getProperties("locales.properties", "");
+   //localeprops.load(getClass().getResourceAsStream("/bundles/locationIDdetecion.properties"));
+   localeprops = ShepherdProperties.getProperties("locationIDdetecion.properties", "");
 	
     
     //get our Shepherd

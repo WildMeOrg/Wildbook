@@ -52,12 +52,10 @@ try {
   myShepherd.beginDBTransaction();
   Encounter enc=myShepherd.getEncounter(encNum);
 
-  String langCode = "en";
+  //String langCode = "en";
 
-  //check what language is requested
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
 
   
   
