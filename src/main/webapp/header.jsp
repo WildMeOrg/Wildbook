@@ -13,8 +13,8 @@ response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page a
 response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility 
 
 //setup our Properties object to hold all properties
-	Properties props=new Properties();
-	String langCode="en";
+	//Properties props=new Properties();
+	//String langCode="en";
 	
 	
 
