@@ -130,6 +130,9 @@ public class Util {
   }
   
   private static String findLabel(String key, String langCode, String context) {
+    
+    //System.out.println("Trying to find key: "+key+" with langCode "+langCode);
+    
     /*
     Locale locale = Locale.US;
     if (langCode != null) {
