@@ -292,7 +292,7 @@ public class IndividualQueryProcessor {
 
 
     // Measurement filters-----------------------------------------------
-    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs("us",context);
+    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs("en",context);
     String measurementPrefix = "measurement";
     StringBuilder measurementFilter = new StringBuilder(); //"( collectedData.contains(measurement) && (");
     boolean atLeastOneMeasurement = false;
@@ -365,7 +365,7 @@ public class IndividualQueryProcessor {
 
 
     // BiologicalMeasurement filters-----------------------------------------------
-    List<MeasurementDesc> bioMeasurementDescs = Util.findBiologicalMeasurementDescs("us",context);
+    List<MeasurementDesc> bioMeasurementDescs = Util.findBiologicalMeasurementDescs("en",context);
     String bioMeasurementPrefix = "biomeasurement";
     StringBuilder bioMeasurementFilter = new StringBuilder();
     bioMeasurementFilter.append("encounters.contains(enc) && enc.tissueSamples.contains(dce322) ");
