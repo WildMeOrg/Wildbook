@@ -40,14 +40,20 @@
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsAnalysis.properties"));
     encprops = ShepherdProperties.getProperties("individualSearchResultsAnalysis.properties", langCode);
 
+ 
+    //get our Shepherd
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    
+    
+    
     
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
 	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
+   
     
-    //get our Shepherd
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    
     Shepherd myShepherd = new Shepherd(context);
     
     DecimalFormat df = new DecimalFormat("#.##");
