@@ -26,7 +26,9 @@ String context="context0";
 context=ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
   Properties props = new Properties();
-  String langCode = "en";
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
   props = ShepherdProperties.getProperties("submit.properties", langCode);
 

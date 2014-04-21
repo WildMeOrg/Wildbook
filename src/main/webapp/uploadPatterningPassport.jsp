@@ -29,10 +29,8 @@ context=ServletUtilities.getContext(request);
 	myShepherd.beginDBTransaction();
 	
     //setup our Properties object to hold all properties
-    String langCode = "en";
-    if (session.getAttribute("langCode") != null) {
-        langCode = (String) session.getAttribute("langCode");
-    }
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
     
    String mediaId = request.getParameter("mediaId");
    String encounterId = request.getParameter("encounterId");

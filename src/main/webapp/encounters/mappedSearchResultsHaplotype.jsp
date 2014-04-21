@@ -35,9 +35,8 @@
 
     //let's load encounterSearch.properties
     String langCode = "en";
-    if (session.getAttribute("langCode") != null) {
-      langCode = (String) session.getAttribute("langCode");
-    }
+    Str//ing langCode=ServletUtilities.getLanguageCode(request);
+    
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
     encprops=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode);

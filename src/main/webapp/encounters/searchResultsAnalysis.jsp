@@ -40,10 +40,9 @@
   DecimalFormat df = new DecimalFormat("#.##");
 
     //let's load encounterSearch.properties
-    String langCode = "en";
-    if (session.getAttribute("langCode") != null) {
-      langCode = (String) session.getAttribute("langCode");
-    }
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
+    
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
     encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode);
