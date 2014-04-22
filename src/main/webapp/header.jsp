@@ -379,7 +379,7 @@ if(CommonConfiguration.isCatalogEditable(context)){
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
 	
-<div id="header_menu" style="background-color: #D7E0ED">
+<div id="header_menu" style="background-color: #D7E0ED;clear: left">
 <table width="810px">
 	<tr>
 		<td class="caption" class="caption" style="text-align: left;" align="left">
