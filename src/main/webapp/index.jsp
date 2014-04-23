@@ -56,6 +56,10 @@ context=ServletUtilities.getContext(request);
 	  		newRole4.setContext("context0");
 	  		myShepherd.getPM().makePersistent(newRole4);
 			
+			Role newRole7=new Role("tomcat","rest");
+	  		newRole7.setContext("context0");
+	  		myShepherd.getPM().makePersistent(newRole7);
+			
 			  		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
 	  		

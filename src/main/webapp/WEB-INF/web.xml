@@ -77,7 +77,8 @@
                 [main]
                 realmA = org.ecocean.security.ShepherdRealm
                 roles.unauthorizedUrl = /accessDenied.jsp 
-                
+                authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
+				
                 #this application will use all the default
                 #filters (see link above)
                 #for example the default login page is /login.jsp
@@ -92,6 +93,7 @@
                 #and admin areas
                 [urls]
                 
+				/rest/** = authcBasicWildbook
                 /appadmin/** = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[admin]
