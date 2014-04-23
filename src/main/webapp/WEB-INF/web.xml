@@ -77,6 +77,7 @@
                 [main]
                 realmA = org.ecocean.security.ShepherdRealm
                 roles.unauthorizedUrl = /accessDenied.jsp 
+				authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
 
                 
                 authc.loginUrl = /login.jsp
@@ -95,7 +96,7 @@
                 #and admin areas
                 [urls]
                 
-                /rest/** = anon
+                /rest/** = authcBasicWildbook,roles[rest]
                 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
                 
