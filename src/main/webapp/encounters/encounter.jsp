@@ -544,7 +544,7 @@ margin-bottom: 8px !important;
 
 <!-- START IDENTITY ATTRIBUTE -->								
 
-  <p><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <strong>Identity</strong></p>
+  <p><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("identity") %></strong></p>
       
       
 								
@@ -2058,7 +2058,7 @@ $("a#country").click(function() {
   </table>
   
   <br />
-  <p><img align="absmiddle" src="../images/Note-Book-icon.png" width="40px" height="40px" /> <strong>Observation Attributes</strong></p>
+  <p><img align="absmiddle" src="../images/Note-Book-icon.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("observationAttributes") %></strong></p>
 <!-- START TAXONOMY ATTRIBUTE -->    
 <%
     if(CommonConfiguration.showProperty("showTaxonomy",context)){
@@ -2629,7 +2629,7 @@ $("a#comments").click(function() {
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8">
 
-<p><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <strong>Metadata</strong></p>
+<p><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <strong><%=encprops.getProperty("metadata") %></strong></p>
 								
 								<!-- START WORKFLOW ATTRIBUTE -->
  								<%
@@ -3040,7 +3040,7 @@ $("a#autocomments").click(function() {
 </c:if>
 <table>
 <tr>
-<th class="measurement">Type</th><th class="measurement">Size</th><th class="measurement">Units</th><c:if test="${!empty samplingProtocols}"><th class="measurement">Sampling Protocol</th></c:if>
+<th class="measurement"><%=encprops.getProperty("type") %></th><th class="measurement"><%=encprops.getProperty("size") %></th><th class="measurement"><%=encprops.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th class="measurement">Sampling Protocol</th></c:if>
 </tr>
 <c:forEach var="item" items="${measurements}">
  <% 
@@ -3242,7 +3242,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 </c:if>
 <table>
 <tr>
-    <td>Serial Number:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.serialNumber}"/></td>
+    <td><%=encprops.getProperty("serialNumber") %></td><td><c:out value="${empty acousticTag ? '' : acousticTag.serialNumber}"/></td>
 </tr>
 <tr>
     <td>ID:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.idNumber}"/></td>
@@ -3272,7 +3272,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         <input type="hidden" name="tagType" value="acousticTag"/>
         <input type="hidden" name="id" value="${acousticTag.id}"/>
         <table>
-          <tr><td class="formLabel">Serial number:</td></tr>
+          <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
           <tr><td><input name="acousticTagSerial" value="${acousticTag.serialNumber}"/></td></tr>
           <tr><td class="formLabel">ID:</td></tr>
           <tr><td><input name="acousticTagId" value="${acousticTag.idNumber}"/></td></tr>
@@ -3324,7 +3324,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     <td>Name:</td><td><c:out value="${satelliteTag.name}"/></td>
 </tr>
 <tr>
-    <td>Serial Number:</td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.serialNumber}"/></td>
+    <td><%=encprops.getProperty("serialNumber") %></td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.serialNumber}"/></td>
 </tr>
 <tr>
     <td>Argos PTT Number:</td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.argosPttNumber}"/></td>
@@ -3353,7 +3353,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
  <input type="hidden" name="id" value="${satelliteTag.id}"/>
  <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
-    <tr><td class="formLabel">Name:</td></tr>
+    <tr><td class="formLabel"><%=encprops.getProperty("name") %></td></tr>
     <tr><td>
       <select name="satelliteTagName">
       <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
@@ -3368,9 +3368,9 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       </c:forEach>
       </select>
     </td></tr>
-    <tr><td class="formLabel">Serial number:</td></tr>
+    <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
     <tr><td><input name="satelliteTagSerial" value="${satelliteTag.serialNumber}"/></td></tr>
-    <tr><td class="formLabel">Argos PTT Number:</td></tr>
+    <tr><td class="formLabel">Argos PTT:</td></tr>
     <tr><td><input name="satelliteTagArgosPttNumber" value="${satelliteTag.argosPttNumber}"/></td></tr>
     <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
  </table>
