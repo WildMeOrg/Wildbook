@@ -187,7 +187,7 @@ margin-bottom: 8px !important;
   
   
 
-<script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9&language=<%=langCode %>"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="javascript/GeoJSON.js"></script>
 
@@ -310,9 +310,9 @@ margin-bottom: 8px !important;
     	  controlUI.appendChild(controlText);
     	  //toggle the text of the button
     	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = 'Exit Fullscreen';
+    	      controlText.innerHTML = '<%=map_props.getProperty("exitFullscreen") %>';
     	    } else {
-    	      controlText.innerHTML = 'Fullscreen';
+    	      controlText.innerHTML = '<%=map_props.getProperty("fullscreen") %>';
     	    }
 
     	  // Setup the click event listeners: toggle the full screen
@@ -645,7 +645,7 @@ if (request.getQueryString() != null) {
 
  <td valign="top">
  <table id="haplotable" style="display:none">
- <tr><th>Haplotype Color Key</th></tr>
+ <tr><th><%=map_props.getProperty("haplotypeColorKey") %></th></tr>
                     <%
                     String haploColor="CC0000";
                    if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){

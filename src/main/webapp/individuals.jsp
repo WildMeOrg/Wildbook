@@ -515,12 +515,11 @@ $("a#nickname").click(function() {
           <form name="setxsexshark" action="IndividualSetSex" method="post">
 
             <select name="selectSex" size="1" id="selectSex">
-              <option value="unknown">unknown</option>
-              <option value="male">male</option>
-              <option value="female">female</option>
-            </select><br> <input name="individual" type="hidden" value="<%=name%>"
-                                 id="individual"> <input name="Add" type="submit" id="Add"
-                                                         value="<%=update %>">
+              <option value="unknown"><%=props.getProperty("unknown") %></option>
+              <option value="male"><%=props.getProperty("male") %></option>
+              <option value="female"><%=props.getProperty("female") %></option>
+            </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" /> 
+            <input name="Add" type="submit" id="Add" value="<%=update %>" />
           </form>
         </td>
       </tr>
@@ -1834,7 +1833,7 @@ String communityName="";
 
             
     <tr><td colspan="2">
-            	<input name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="Update" />
+            	<input name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>" />
    			</td>
    	</tr>
    			
