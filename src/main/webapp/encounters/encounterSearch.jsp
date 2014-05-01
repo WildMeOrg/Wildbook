@@ -331,7 +331,7 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
         geoXml.parse(filename);
         
     	var iw = new google.maps.InfoWindow({
-    		content:'Loading and rendering map data...',
+    		content:'<%=encprops.getProperty("loadingMapData") %>',
     		position:center});
          
     	iw.open(map);
@@ -442,7 +442,7 @@ function FSControl(controlDiv, map) {
       
       <div id="map_overlay_buttons">
  
-          <input type="button" value="Load Markers" onclick="setOverlays();" />&nbsp;
+          <input type="button" value="<%=encprops.getProperty("loadMarkers") %>" onclick="setOverlays();" />&nbsp;
  
 
       </div>
