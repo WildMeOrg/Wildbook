@@ -411,9 +411,9 @@ function FSControl(controlDiv, map) {
   controlUI.appendChild(controlText);
   //toggle the text of the button
    if($("#map_canvas").hasClass("full_screen_map")){
-      controlText.innerHTML = 'Exit Fullscreen';
+      controlText.innerHTML = '<%=encprops.getProperty("exitFullscreen")%>';
     } else {
-      controlText.innerHTML = 'Fullscreen';
+      controlText.innerHTML = '<%=encprops.getProperty("fullscreen")%>';
     }
 
   // Setup the click event listeners: toggle the full screen
