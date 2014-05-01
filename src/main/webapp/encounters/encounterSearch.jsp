@@ -27,6 +27,10 @@
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
+
+String langCode=ServletUtilities.getLanguageCode(request);
+
+
 %>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
 
@@ -69,7 +73,7 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode %>"></script>
 <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
@@ -128,8 +132,7 @@ margin-bottom: 8px !important;
 
 //let's load encounterSearch.properties
   //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
+
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
   encprops=ShepherdProperties.getProperties("encounterSearch.properties", langCode);
@@ -163,9 +166,9 @@ margin-bottom: 8px !important;
   <%
 		if(request.getParameter("referenceImageName")!=null){
 		%>
-<p><strong>Reference Image</strong></p>
+<p><strong><%=encprops.getProperty("referenceImage") %></strong></p>
 
-<p>You have selected this image as a reference for comparison with the results of this search</p>
+<p><%=encprops.getProperty("selectedReference") %></p>
 <input name="referenceImageName" type="hidden"
        value="<%=request.getParameter("referenceImageName") %>"/>
 
@@ -181,13 +184,13 @@ margin-bottom: 8px !important;
 										Encounter thisEnc = myShepherd.getEncounter(encNum);
 										%>
 								
-										<tr><td><span class="caption">Location: <%=thisEnc.getLocation() %></span></td></tr>
-										<tr><td><span class="caption">Location ID: <%=thisEnc.getLocationID() %></span></td></tr>
-										<tr><td><span class="caption">Date: <%=thisEnc.getDate() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("location") %> <%=thisEnc.getLocation() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %> <%=thisEnc.getLocationID() %></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("date") %> <%=thisEnc.getDate() %></span></td></tr>
 										<%
 										if(thisEnc.getIndividualID()!=null){
 										%>
-											<tr><td><span class="caption">Identified as: 
+											<tr><td><span class="caption"><%=encprops.getProperty("identifiedAs") %> 
 											<%
 											if(!thisEnc.getIndividualID().equals("Unassigned")){
 											%>
@@ -207,7 +210,7 @@ margin-bottom: 8px !important;
 										<%
 										}
 										%>
-										<tr><td><span class="caption">Encounter: <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
+										<tr><td><span class="caption"><%=encprops.getProperty("encounter") %> <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
 										
 
 										
@@ -217,7 +220,7 @@ margin-bottom: 8px !important;
 										%>
 											<tr>
 											
-											<td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
+											<td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %> <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
 										<%
 										}
 										%>
@@ -237,7 +240,7 @@ margin-bottom: 8px !important;
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a>
       <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
-        color="#000000">Location filter (map)</font></a></h4>
+        color="#000000"><%=encprops.getProperty("locationFilter") %></font></a></h4>
 
 
     
@@ -433,10 +436,7 @@ function FSControl(controlDiv, map) {
     </script>
 
     <div id="map">
-      <p>Use the arrow and +/- keys to navigate to a portion of the globe of interest, then click
-        and drag the <img src="../javascript/zoomin.gif" align="absmiddle"/> icon to select the
-        specific search boundaries. You can also use the text boxes below the map to specify exact
-        boundaries.</p>
+      <p><%=encprops.get("useTheArrow") %></p>
 
       <div id="map_canvas" style="width: 770px; height: 510px; "></div>
       
@@ -446,9 +446,9 @@ function FSControl(controlDiv, map) {
  
 
       </div>
-      <p>Northeast corner latitude: <input type="text" id="ne_lat" name="ne_lat"></input> longitude:
+      <p><%=encprops.getProperty("northeastCorner") %> <%=encprops.getProperty("latitude") %> <input type="text" id="ne_lat" name="ne_lat"></input> <%=encprops.getProperty("longitude") %>
         <input type="text" id="ne_long" name="ne_long"></input><br/><br/>
-        Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input> longitude:
+        <%=encprops.getProperty("southwestCorner") %> <%=encprops.getProperty("latitude") %> <input type="text" id="sw_lat" name="sw_lat"></input> <%=encprops.getProperty("longitude") %>
         <input type="text" id="sw_long" name="sw_long"></input></p>
     </div>
 
@@ -459,11 +459,10 @@ function FSControl(controlDiv, map) {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Location filters (text)</font></a></h4>
+      <font color="#000000"><%=encprops.get("locationFilterText") %></font></a></h4>
 
     <div id="location" style="display:none; ">
-      <p>Use the fields below to filter the search by a location string (e.g. "Mexico") or to a
-        specific, pre-defined location identifier.</p>
+      <p><%=encprops.getProperty("locationInstructions") %></p>
 
       <p><strong><%=encprops.getProperty("locationNameContains")%>:</strong>
         <input name="locationField" type="text" size="60"> <br>
@@ -564,7 +563,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Date filters</font></a></h4>
+      <font color="#000000"><%=encprops.getProperty("dateFilters") %></font></a></h4>
   </td>
 </tr>
 
@@ -572,8 +571,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <tr>
   <td>
     <div id="date" style="display:none;">
-      <p>Use the fields below to limit the timeframe of your search.</p>
-      <strong><%=encprops.getProperty("sightingDates")%>:</strong><br/>
+      <p><%=encprops.getProperty("dateInstructions") %></p>
+      <strong><%=encprops.getProperty("sightingDates")%></strong><br/>
       <table width="720">
         <tr>
           <td width="670"><label><em>
@@ -765,14 +764,14 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Observation attribute filters</font></a></h4>
+      <font color="#000000"><%=encprops.getProperty("observationFilters") %></font></a></h4>
   </td>
 </tr>
 
 <tr>
   <td>
     <div id="observation" style="display:none; ">
-      <p>Use the fields below to filter your search based on observed attributes.</p>
+      <p><%=encprops.getProperty("observationInstructions") %></p>
 
       <p>
       <table align="left">
@@ -1067,14 +1066,13 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Identity filters</font></a></h4>
+      <font color="#000000"><%=encprops.getProperty("identityFilters") %></font></a></h4>
   </td>
 </tr>
 <tr>
   <td>
     <div id="identity" style="display:none; ">
-      <p>Use the fields below to limit your search to marked individuals with the following
-        properties.</p>
+      <p><%=encprops.getProperty("identityInstructions") %></p>
       <input name="resightOnly" type="checkbox" id="resightOnly" value="true" /> <%=encprops.getProperty("include")%> 
    
    <select name="numResights" id="numResights">
@@ -1135,18 +1133,18 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
      <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
        src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-       <font color="#000000">Tags</font></a></h4>
+       <font color="#000000"><%=encprops.getProperty("tagsTitle") %></font></a></h4>
      </td>
  </tr>
  <tr>
     <td>
         <div id="tags" style="display:none;">
-        <p>Use the fields below to limit your search to specific tags.</p>
+        <p><%=encprops.getProperty("tagsInstructions") %></p>
         <c:if test="${showMetalTags}">
             <% 
               pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); 
             %>
-            <h5>Metal Tags</h5>
+            <h5><%=encprops.getProperty("metalTags") %></h5>
             <table>
             <c:forEach items="${metalTagDescs}" var="metalTagDesc">
                 <tr>
@@ -1156,9 +1154,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
             </table>
         </c:if>
         <c:if test="${showAcousticTag}">
-          <h5>Acoustic Tag</h5>
+          <h5><%=encprops.getProperty("acousticTags") %></h5>
           <table>
-          <tr><td>Serial number:</td><td><input name="acousticTagSerial"/></td></tr>
+          <tr><td><%=encprops.getProperty("serialNumber") %></td><td><input name="acousticTagSerial"/></td></tr>
           <tr><td>ID:</td><td><input name="acousticTagId"/></td></tr>
           </table>
         </c:if>
@@ -1166,18 +1164,18 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
           <%
             pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
            %>
-          <h5>Satellite Tag</h5>
+          <h5><%=encprops.getProperty("satelliteTag") %></h5>
           <table>
-          <tr><td>Name:</td><td>
+          <tr><td><%=encprops.getProperty("name") %></td><td>
             <select name="satelliteTagName">
-                <option value="None">None</option>
+                <option value="None"><%=encprops.getProperty("none") %></option>
                 <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
                     <option value="${satelliteTagName}">${satelliteTagName}</option>
                 </c:forEach>
             </select>
           </td></tr>
-          <tr><td>Serial Number:</td><td><input name="satelliteTagSerial"/></td></tr>
-          <tr><td>Argos PTT Number</td><td><input name="satelliteTagArgosPttNumber"/></td></tr>
+          <tr><td><%=encprops.getProperty("serialNumber") %></td><td><input name="satelliteTagSerial"/></td></tr>
+          <tr><td><%=encprops.getProperty("argosPTT") %></td><td><input name="satelliteTagArgosPttNumber"/></td></tr>
           </table>
         </c:if>
         </div>
@@ -1190,13 +1188,13 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Biological samples and analyses filters</font></a></h4>
+      <font color="#000000"><%=encprops.getProperty("biologicalSamples") %></font></a></h4>
   </td>
 </tr>
 <tr>
   <td>
     <div id="genetics" style="display:none; ">
-      <p>Use the fields below to limit your search to encounters with available biological samples and resulting analyses.</p>
+      <p><%=encprops.getProperty("biologicalInstructions") %></p>
       
       <p><strong><%=encprops.getProperty("hasTissueSample")%>: </strong>
             <label> 
@@ -1382,14 +1380,14 @@ else {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Metadata filters</font></a></h4>
+      <font color="#000000"><%=encprops.getProperty("metadataFilters") %></font></a></h4>
   </td>
 </tr>
 
 <tr>
   <td>
     <div id="metadata" style="display:none; ">
-      <p>Use the fields below to limit your search by catalog metadata fields.</p>
+      <p><%=encprops.getProperty("metadataInstructions") %></p>
       <table width="720px" align="left">
         <tr>
           <td width="154">
