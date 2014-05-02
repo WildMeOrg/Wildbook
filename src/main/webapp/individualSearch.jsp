@@ -94,7 +94,7 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode %>"></script>
 <script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
@@ -250,7 +250,7 @@ if(compareAgainst.getGeneticSex()!=null){
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a> <a
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
-      color="#000000">Location filter (map)</font></a></h4>
+      color="#000000"><%=props.getProperty("locationFilter") %></font></a></h4>
   </td>
 </tr>
 <tr>
@@ -343,7 +343,7 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
         geoXml.parse(filename);
         
     	var iw = new google.maps.InfoWindow({
-    		content:'Loading and rendering map data...',
+    		content:'<%=props.getProperty("loadingMapData") %>',
     		position:center});
          
     	iw.open(map);
@@ -422,9 +422,9 @@ function FSControl(controlDiv, map) {
   controlUI.appendChild(controlText);
   //toggle the text of the button
    if($("#map_canvas").hasClass("full_screen_map")){
-      controlText.innerHTML = 'Exit Fullscreen';
+      controlText.innerHTML = '<%=props.getProperty("exitFullscreen") %>';
     } else {
-      controlText.innerHTML = 'Fullscreen';
+      controlText.innerHTML = '<%=props.getProperty("fullscreen") %>';
     }
 
   // Setup the click event listeners: toggle the full screen
@@ -447,10 +447,7 @@ function FSControl(controlDiv, map) {
     </script>
 
     <div id="map">
-      <p>Use the arrow and +/- keys to navigate to a portion of the globe of interest, then click
-        and drag the <img src="javascript/zoomin.gif" align="absmiddle"/> icon to select the
-        specific search boundaries. You can also use the text boxes below the map to specify exact
-        boundaries.</p>
+      <p><%=props.getProperty("useTheArrow") %></p>
 
       <div id="map_canvas" style="width: 770px; height: 510px; ">
       		<div style="padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px; z-index: 0; position: absolute; right: 95px; top: 0px; " >
@@ -460,13 +457,13 @@ function FSControl(controlDiv, map) {
       
       <div id="map_overlay_buttons">
  
-          <input type="button" value="Load Markers" onclick="setOverlays();" />&nbsp;
+          <input type="button" value="<%=props.getProperty("loadMarkers") %>" onclick="setOverlays();" />&nbsp;
  
 
       </div>
-      <p>Northeast corner latitude: <input type="text" id="ne_lat" name="ne_lat"></input> longitude:
+      <p><%=props.getProperty("northeastCorner") %> <%=props.getProperty("latitude") %> <input type="text" id="ne_lat" name="ne_lat"></input> <%=props.getProperty("longitude") %>
         <input type="text" id="ne_long" name="ne_long"></input><br/><br/>
-        Southwest corner latitude: <input type="text" id="sw_lat" name="sw_lat"></input> longitude:
+        <%=props.getProperty("southwestCorner") %> <%=props.getProperty("latitude") %> <input type="text" id="sw_lat" name="sw_lat"></input> <%=props.getProperty("longitude") %>
         <input type="text" id="sw_long" name="sw_long"></input></p>
     </div>
 
@@ -478,13 +475,12 @@ function FSControl(controlDiv, map) {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-      color="#000000">Location filters (text)</font></a></h4>
+      color="#000000"><%=props.getProperty("locationFilterText") %></font></a></h4>
 
     <div id="location" style="display:none; ">
-      <p>Use the fields below to filter the search by a location string (e.g. "Mexico") or to a
-        specific, pre-defined location identifier.</p>
+      <p><%=props.getProperty("locationInstructions") %></p>
 
-      <p><strong><%=props.getProperty("locationNameContains")%>:</strong>
+      <p><strong><%=props.getProperty("locationNameContains")%></strong>
         <input name="locationField" type="text" size="60"> <br>
         <em><%=props.getProperty("leaveBlank")%>
         </em>
@@ -542,15 +538,15 @@ function FSControl(controlDiv, map) {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-      color="#000000">Date filters</font></a></h4>
+      color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
   </td>
 </tr>
 
 <tr>
   <td>
     <div id="date" style="display:none;">
-      <p>Use the fields below to limit the timeframe of your search.</p>
-      <strong><%=props.getProperty("sightingDates")%>:</strong><br/>
+      <p><%=props.getProperty("dateInstructions") %></p>
+      <strong><%=props.getProperty("sightingDates")%></strong><br/>
       <table width="720">
         <tr>
           <td width="670"><label><em>
@@ -731,7 +727,7 @@ function FSControl(controlDiv, map) {
       %>
       <c:if test="${showReleaseDate}">
         <p><strong><%= props.getProperty("releaseDate") %></strong></p>
-        <p>From: <input id="releaseDateFrom" name="releaseDateFrom"/> to <input id="releaseDateTo" name="releaseDateTo"/></p>
+        <p><%=props.getProperty("from") %> <input id="releaseDateFrom" name="releaseDateFrom"/> <%=props.getProperty("to") %> <input id="releaseDateTo" name="releaseDateTo"/></p>
       </c:if>
 
 <!--  date of birth and death -->      
@@ -742,8 +738,8 @@ function FSControl(controlDiv, map) {
 <table>
 
 	<tr>
-		<td>Start: <input type="text" id="DOBstart" name="DOBstart" /></td>
-		<td>End: <input type="text" id="DOBend" name="DOBend" /></td>
+		<td><%=props.getProperty("start") %> <input type="text" id="DOBstart" name="DOBstart" /></td>
+		<td><%=props.getProperty("end") %> <input type="text" id="DOBend" name="DOBend" /></td>
 	</tr>
 </table>
 	      <p><strong><%=props.getProperty("timeOfDeath")%>:</strong> <span class="para"><a
@@ -752,8 +748,8 @@ function FSControl(controlDiv, map) {
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
 	<table>
 	<tr>
-		<td>Start: <input type="text" id="DODstart" name="DODstart" /></td>
-		<td>End: <input type="text" id="DODend" name="DODend" /></td>
+		<td><%=props.getProperty("start") %> <input type="text" id="DODstart" name="DODstart" /></td>
+		<td><%=props.getProperty("end") %> <input type="text" id="DODend" name="DODend" /></td>
 	</tr>
 </table>
       <script>
@@ -775,7 +771,7 @@ function FSControl(controlDiv, map) {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-      color="#000000">Observation attribute filters</font></a></h4>
+      color="#000000"><%=props.getProperty("observationFilters") %></font></a></h4>
   </td>
 </tr>
 
@@ -783,7 +779,7 @@ function FSControl(controlDiv, map) {
 <tr>
   <td>
     <div id="observation" style="display:none; ">
-      <p>Use the fields below to filter your search based on observed attributes.</p>
+      <p><%=props.getProperty("observationInstructions") %></p>
 
 							<input type="hidden" name="approved" value="acceptedEncounters"></input>
 							<input name="unapproved" type="hidden" value="allEncounters"></input>
@@ -793,16 +789,16 @@ function FSControl(controlDiv, map) {
           <td>
           <table width="357" align="left">
 					<tr>
-						<td width="62"><strong>Sex is: </strong></td>
+						<td width="62"><strong><%=props.getProperty("sex") %> </strong></td>
 						<td width="76"><label> <input name="male"
-							type="checkbox" id="male" value="male" checked> Male</label></td>
+							type="checkbox" id="male" value="male" checked> <%=props.getProperty("male") %></label></td>
 
 						<td width="79"><label> <input name="female"
 							type="checkbox" id="female" value="female" checked>
-						Female</label></td>
+						<%=props.getProperty("female") %></label></td>
 						<td width="112"><label> <input name="unknown"
 							type="checkbox" id="unknown" value="unknown" checked>
-						Unknown</label></td>
+						<%=props.getProperty("unknown") %></label></td>
 					</tr>
 				</table>
           </td>
@@ -873,7 +869,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 %>
 <tr>
-  <td><strong><%=props.getProperty("lifeStage")%>:</strong>
+  <td><strong><%=props.getProperty("lifeStage")%></strong>
   <select name="lifeStageField" id="lifeStageField">
   	<option value="" selected="selected"></option>
   <%
@@ -1094,21 +1090,21 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
         href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
         src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-        color="#000000">Tags</font></a></h4>
+        color="#000000"><%=props.getProperty("tagsTitle") %></font></a></h4>
     </td>
   </tr>
   
   <tr>
     <td>
         <div id="tags" style="display:none;">
-            <p>Use the fields below to limit your search to encounters with the specified tag(s)</p>
+            <p><%=props.getProperty("tagsInstructions") %></p>
             
             
             <c:if test="${showMetalTags}">
                 <% 
                   pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); 
                 %>
-            <h5>Metal Tags</h5>
+            <h5><%=props.getProperty("metalTags") %></h5>
             <table>
             <c:forEach items="${metalTagDescs}" var="metalTagDesc">
                 <tr>
@@ -1122,10 +1118,10 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             
             
             <c:if test="${showAcousticTag}">
-              <h5>Acoustic Tag</h5>
+              <h5><%=props.getProperty("acousticTags") %></h5>
               <table>
-              <tr><td>Serial number:</td><td><input name="acousticTagSerial"/></td></tr>
-              <tr><td>ID:</td><td><input name="acousticTagId"/></td></tr>
+              <tr><td><%=props.getProperty("serialNumber") %></td><td><input name="acousticTagSerial"/></td></tr>
+              <tr><td><%=props.getProperty("id") %></td><td><input name="acousticTagId"/></td></tr>
               </table>
             </c:if>
             
@@ -1134,18 +1130,18 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
               <%
                 pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
                %>
-              <h5>Satellite Tag</h5>
+              <h5><%=props.getProperty("satelliteTag") %></h5>
               <table>
-              <tr><td>Name:</td><td>
+              <tr><td><%=props.getProperty("name") %></td><td>
                 <select name="satelliteTagName">
-                    <option value="None">None</option>
+                    <option value="None"><%=props.getProperty("none") %></option>
                     <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
                         <option value="${satelliteTagName}">${satelliteTagName}</option>
                     </c:forEach>
                 </select>
               </td></tr>
-                   <tr><td>Serial Number:</td><td><input name="satelliteTagSerial"/></td></tr>
-              <tr><td>Argos PTT Number</td><td><input name="satelliteTagArgosPttNumber"/></td></tr>
+                   <tr><td><%=props.getProperty("serialNumber") %></td><td><input name="satelliteTagSerial"/></td></tr>
+              <tr><td><%=props.getProperty("argosPTT") %></td><td><input name="satelliteTagArgosPttNumber"/></td></tr>
               </table>
             
               </table>
@@ -1162,7 +1158,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; ">
     	<a href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none">
     		<img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> 
-    		<font color="#000000">Biological samples and analyses filters</font>
+    		<font color="#000000"><%=props.getProperty("biologicalSamples") %></font>
     	</a>
     </h4>
   </td>
@@ -1171,7 +1167,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <tr>
   <td>
     <div id="genetics" style="display:none; ">
-      <p>Use the fields below to limit your search to marked individuals with available biological samples and resulting analyses.</p>
+      <p><%=props.getProperty("biologicalInstructions") %></p>
       
          
   
@@ -1179,12 +1175,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
   <br /><p><em><%=props.getProperty("fastOptions") %></em></p>
-      <p><strong><%=props.getProperty("hasTissueSample")%>: </strong>
+      <p><strong><%=props.getProperty("hasTissueSample")%> </strong>
             <label> 
             	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
             </label>
       </p>
-            <p><strong><%=props.getProperty("hasHaplotype")%>: </strong>
+            <p><strong><%=props.getProperty("hasHaplotype")%> </strong>
             <label> 
             	<input name="hasHaplotype" type="checkbox" id="hasHaplotype" value="hasHaplotype" />
             </label>
@@ -1198,7 +1194,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             
             %>
             
-            <p><strong><%=props.getProperty("hasMSMarkers")%>: </strong>
+            <p><strong><%=props.getProperty("hasMSMarkers")%> </strong>
             <label> 
             	<input name="hasMSMarkers" type="checkbox" id="hasMSMarkers" value="hasMSMarkers" <%=hasMSMarkerChecked %>/>
             </label>
@@ -1206,7 +1202,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <br /><p><em><%=props.getProperty("slowOptions") %></em></p>
       
 
-      <p><strong><%=props.getProperty("haplotype")%>:</strong> <span class="para"><a
+      <p><strong><%=props.getProperty("haplotype")%></strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>haplotype"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
@@ -1377,7 +1373,7 @@ else {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-      color="#000000">Identity filters</font></a></h4>
+      color="#000000"><%=props.getProperty("identityFilters") %></font></a></h4>
   </td>
 </tr>
 
@@ -1483,7 +1479,7 @@ else {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><img
       src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-      color="#000000">Social filters</font></a></h4>
+      color="#000000"><%=props.getProperty("socialFilters") %></font></a></h4>
   </td>
 </tr>
 <tr>
