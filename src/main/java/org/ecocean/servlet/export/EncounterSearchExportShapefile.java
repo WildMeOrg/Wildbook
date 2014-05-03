@@ -134,7 +134,15 @@ public class EncounterSearchExportShapefile extends HttpServlet{
             featureBuilder.add(enc.getDecimalLatitudeAsDouble());
             featureBuilder.add(enc.getDecimalLongitudeAsDouble());
             
+            String genusSpeciesString="";
+            if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){
+              genusSpeciesString = enc.getGenus()+" "+enc.getSpecificEpithet();
+            }
+            featureBuilder.add(genusSpeciesString);
+            
             SimpleFeature feature = featureBuilder.buildFeature(null);
+            
+            
             collection.add(feature);
           }
         }
@@ -302,6 +310,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
       builder.add("URL", String.class);
       builder.add("Latitude", Double.class);
       builder.add("Longitude", Double.class);
+      builder.add("GenusSpecies", String.class); 
 
       // build the type
       final SimpleFeatureType LOCATION = builder.buildFeatureType();
