@@ -45,7 +45,7 @@
 
 <div id="header"><img name="masthead"
                       src="<%=CommonConfiguration.getURLToMastheadGraphic() %>" width="810"
-                      height="209" border="0" usemap="#m_masthead" alt=""/></div>
+                      height="120" border="0" usemap="#m_masthead" alt=""/></div>
 <div id="header_menu">
   <ul id="pmenu">
     <li style="background: #000066;"><a

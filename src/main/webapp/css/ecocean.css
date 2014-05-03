@@ -17,6 +17,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+html{
+
+ background-color: #00487f;
+     background-image: url('/images/flukebook_bg.jpg');
+     background-repeat: no-repeat;
+     background-attachment: fixed;
+background-size: cover;
+}
+
 /* ECOCEAN STYLE SHEET */
 body {
   margin: 0px;
@@ -92,20 +101,31 @@ a.launchPopup {
 
 /* Layout */
 #wrapper {
+  margin-left: 3px;
+     padding-left: 5px;
+ 
+     width: auto;
+    
+/*
   margin: 0px;
   padding: 0px;
   height: auto;
   width: auto;
   background-color: #fff;
+*/
 }
 
 #page {
   width: 811px;
   text-align: left;
-  padding: 0px;
+  padding: 5px;
   margin: 0 auto 0 auto;
-  background-color: #fff;
-  min-height: 800px;
+  background-color: #FFFFFF;
+      min-height: 100%; /* min. height for modern browser */
+      height:auto !important; /* important rule for modern Browser */
+      height:100%; /* min. height for IE */
+    overflow: hidden !important; /* FF scroll-bar */
+  
 }
 
 #pathway {
@@ -122,7 +142,7 @@ a.launchPopup {
   float: left;
   margin: 0;
   padding: 0;
-  height: 209px;
+  height: 120px;
   width: 810px;
   background-color: #03f;
   clear: both;
@@ -144,6 +164,12 @@ a.launchPopup {
   clear: both;
   width: 810px;
   min-height: 500px;
+  background-color: #FFFFFF;
+  margin-left: 0px;
+  margin-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  
 }
 
 #leftcol {
@@ -162,7 +188,6 @@ a.launchPopup {
 #maincol-wide {
   float: left;
   width: 605px;
-  overflow: hidden;
 }
 
 #maincol-wide-solo {
@@ -339,7 +364,7 @@ div.module h3 {
   font-weight: bold;
   margin: 0px 0px 4px 0px;
   padding: 2px 0px 2px 3px;
-  background: #D7E0ED;
+  background-color: #3385b4;
   color: #282460;
   text-indent: 4px;
   clear: both;
@@ -1183,7 +1208,7 @@ way to fit your requirements.
 /* Set up the list items */
 #pmenu li {
   float: left;
-  background: #7484ad;
+  background: #868b8f;
   z-index: 99;
 }
 
@@ -1196,7 +1221,7 @@ way to fit your requirements.
 /* Make the hovered list color persist */
 #pmenu li:hover > a {
   background: #dfd7ca;
-  color: #c00;
+  color: #0f6097;
   z-index: 99;
 }
 
@@ -1238,25 +1263,25 @@ way to fit your requirements.
 * html #pmenu li a:hover {
   position: relative;
   background: #dfd7ca;
-  color: #c00;
+  color: #0f6097;
   z-index: 99;
 }
 
 /* For accessibility of the top level menu when tabbing */
 #pmenu li a:active, #pmenu li a:focus {
   background: #dfd7ca;
-  color: #c00;
+  color: #0f6097;
   z-index: 99;
 }
 
 /* Set up the pointers for the sub level indication */
 #pmenu li.fly {
-  background: #7484ad;
+  background: #868b8f;
   z-index: 99;
 }
 
 #pmenu li.drop {
-  background: #7484ad;
+  background: #868b8f;
   z-index: 99;
 }
 
