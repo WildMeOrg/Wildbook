@@ -1,13 +1,20 @@
 package org.ecocean.servlet.export;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
+
 import java.lang.StringBuffer;
+
 import javax.jdo.Query;
+
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.ecocean.genetics.*;
+import org.ecocean.servlet.ServletUtilities;
+
 import java.net.URI;
 import java.text.NumberFormat;;
 
@@ -38,7 +45,9 @@ public class GenePopExport extends HttpServlet{
     PrintWriter out = response.getWriter();
     
     //get our Shepherd
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
 
 
 

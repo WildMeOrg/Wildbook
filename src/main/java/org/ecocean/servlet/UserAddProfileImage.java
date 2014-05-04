@@ -23,6 +23,7 @@ import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
+
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -34,6 +35,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -54,12 +56,15 @@ public class UserAddProfileImage extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    
+    String context="context0";
+    //context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/users");
     if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -74,7 +79,7 @@ public class UserAddProfileImage extends HttpServlet {
     String fullPathFilename="";
 
     try {
-      MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576)); 
+      MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576)); 
       Part part;
       while ((part = mp.readNextPart()) != null) {
         String name = part.getName();
@@ -139,16 +144,16 @@ public class UserAddProfileImage extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success!</strong> I have successfully uploaded the user profile image file.");
 
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?isEdit=true&username=" + username + "#editUser\">Return to User Management.</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0&isEdit=true&username=" + username + "#editUser\">Return to User Management.</a></p>\n");
+          out.println(ServletUtilities.getFooter(context));
           //String message = "An additional image file has been uploaded for encounter #" + encounterNumber + ".";
           //ServletUtilities.informInterestedParties(request, encounterNumber, message);
         } else {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure!</strong> This User account is currently being modified by another user. Please wait a few seconds before trying to add this image again.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp\">Return to User Management</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0\">Return to User Management</a></p>\n");
+          out.println(ServletUtilities.getFooter(context));
 
         }
       } else {
@@ -156,19 +161,19 @@ public class UserAddProfileImage extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to upload your image file. I cannot find the username that you intended it for in the database.");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
     } catch (IOException lEx) {
       lEx.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to upload your image file. Please contact the webmaster about this message.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     } catch (NullPointerException npe) {
       npe.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to upload an image as no file was specified.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
     out.close();
   }

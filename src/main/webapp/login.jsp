@@ -19,23 +19,26 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties" %>
 <%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %>
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 <%@ taglib uri="/WEB-INF/struts-logic.tld" prefix="logic" %>
 
 <%
 
+String context="context0";
+context=ServletUtilities.getContext(request);
+
   //setup our Properties object to hold all properties
-  String langCode = "en";
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
 
 
 //set up the file input stream
   Properties props = new Properties();
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/login.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/login.properties"));
+  props = ShepherdProperties.getProperties("login.properties", langCode);
 
 
 %>
@@ -55,15 +58,15 @@
   </script>
 
   <head>
-    <title><%=CommonConfiguration.getHTMLTitle() %>
+    <title><%=CommonConfiguration.getHTMLTitle(context) %>
     </title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="Description"
-          content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+          content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
     <meta name="Keywords"
-          content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-    <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-    <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+          content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+    <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+    <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
           rel="stylesheet" type="text/css"/>
 
     <style type="text/css">
@@ -134,15 +137,20 @@
               <form action="LoginUser" method="post">
     <table align="left" border="0" cellspacing="0" cellpadding="3">
         <tr>
-            <td>Username:</td>
+            <td><%=props.getProperty("username") %></td>
             <td><input type="text" name="username" maxlength="50" /></td>
         </tr>
         <tr>
-            <td>Password:</td>
+            <td><%=props.getProperty("password") %></td>
             <td><input type="password" name="password" maxlength="50" /></td>
         </tr>
         <tr>
-            <td colspan="2" align="right"><input type="submit" name="submit" value="Login" /></td>
+        <td colspan="2" align="left">
+        <input type="checkbox" name="rememberMe" value="true"/> <%=props.getProperty("rememberMe") %> 
+        </td>
+        </tr>
+        <tr>
+            <td colspan="2" align="right"><input type="submit" name="submit" value="<%=props.getProperty("login") %>" /></td>
         </tr>
     </table>
 </form>

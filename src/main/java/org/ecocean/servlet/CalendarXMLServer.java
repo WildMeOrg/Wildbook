@@ -26,10 +26,12 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServlet;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 import java.util.Iterator;
+
 import org.ecocean.*;
 
 
@@ -62,7 +64,9 @@ public class CalendarXMLServer extends HttpServlet {
         
         
     //establish a shepherd to manage DB interactions
-    Shepherd myShepherd=new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd=new Shepherd(context);
     
     
     int numResults=0;

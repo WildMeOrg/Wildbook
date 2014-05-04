@@ -45,7 +45,6 @@ public class ScanTask implements Serializable {
   private Vector workItems = new Vector();
   private Vector workResults = new Vector();
   private boolean isFinished = false;
-  //public Properties props=new Properties();
   private String submitter = "";
   private boolean deleteOnFinish = true;
   private String user = "Unknown";

@@ -29,6 +29,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -76,7 +77,9 @@ public class InterconnectSubmitSpots extends HttpServlet {
 
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     String num = " ";
@@ -179,7 +182,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
         } else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<p>You are not allowed to modify spot data for an encounter that belongs to a shark. Please remove the encounter from the shark before attempting to modify its spot data.</p>");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           ok2add = false;
           myShepherd.rollbackDBTransaction();
 
@@ -190,7 +193,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<p>The spot pattern was only partially transmitted, resulting in a NullPointerException.</p>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         npe.printStackTrace();
         ok2add = false;
       } catch (Exception lock) {
@@ -198,7 +201,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<p>This encounter object is in a locked state and may be in use by another user or may be locked in error.</p>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         lock.printStackTrace();
         ok2add = false;
       }
@@ -240,7 +243,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
             out.println("<p><input name=\"addtlFile\" type=\"submit\" id=\"addtlFile\" value=\"Upload spot image file\"></p>");
             out.println("</form><p><i>Other options: </i></p>");
             String message = "Spot-matching data was uploaded for encounter#" + num + ".";
-            ServletUtilities.informInterestedParties(request, num, message);
+            ServletUtilities.informInterestedParties(request, num, message,context);
 
           }
           //check for right-side spot submissions
@@ -264,7 +267,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
             out.println("<p><input name=\"addtlFile\" type=\"submit\" id=\"addtlFile\" value=\"Upload spot image file\"></p>");
             out.println("</form><p><i>Other options: </i></p>");
             String message = "Spot-matching data was uploaded for encounter#" + num + ".";
-            ServletUtilities.informInterestedParties(request, num, message);
+            ServletUtilities.informInterestedParties(request, num, message,context);
 
           } else if ((enc.getSpots() != null) && (!haveData) && (side.equals("left"))) {
             out.println("<p>You didn't submit any data!</p>");
@@ -273,7 +276,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
           }
           ;
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + num + "\">Return to encounter #" + num + "</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
         } catch (Exception genericE) {
           locked = true;
           genericE.printStackTrace();
@@ -294,7 +297,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
       try {
         out.println(ServletUtilities.getHeader(request));
         out.println("<p>You did not specify a valid number for this encounter: " + num + "</p>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       } catch (Exception e) {
         out.println("I couldn't find the template file to write to, but the spots were added successfully.");
         e.printStackTrace();

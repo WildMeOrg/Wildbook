@@ -95,7 +95,7 @@ public class MarkedIndividual implements java.io.Serializable {
 
     this.individualID = individualID;
     encounters.add(enc);
-    dataFiles = new Vector();
+    //dataFiles = new Vector();
     numberEncounters = 1;
     this.sex = enc.getSex();
     numUnidentifiableEncounters = 0;
@@ -122,10 +122,21 @@ public class MarkedIndividual implements java.io.Serializable {
       //get and therefore set the haplotype if necessary
       getHaplotype();
       
-      boolean ok=encounters.add(newEncounter);
-      numberEncounters++;
-      resetMaxNumYearsBetweenSightings();
-      return ok; 
+      boolean isNew=true;
+      for(int i=0;i<encounters.size();i++) {
+        Encounter tempEnc=(Encounter)encounters.get(i);
+        if(tempEnc.getEncounterNumber().equals(newEncounter.getEncounterNumber())) {
+          isNew=false;
+        }
+      }
+      
+      //prevent duplicate addition of encounters
+      if(isNew){
+        encounters.add(newEncounter);
+        numberEncounters++;
+        resetMaxNumYearsBetweenSightings();
+      }
+      return isNew; 
      
  }
 
@@ -137,9 +148,7 @@ public class MarkedIndividual implements java.io.Serializable {
   public boolean removeEncounter(Encounter getRidOfMe){
 
       numberEncounters--;
-      
-      
-      
+
       boolean changed=false;
       for(int i=0;i<encounters.size();i++) {
         Encounter tempEnc=(Encounter)encounters.get(i);
@@ -148,7 +157,7 @@ public class MarkedIndividual implements java.io.Serializable {
           i--;
           changed=true;
           }
-        }
+      }
       resetMaxNumYearsBetweenSightings();
       
       //reset haplotype
@@ -186,7 +195,7 @@ public class MarkedIndividual implements java.io.Serializable {
     Properties localesProps = new Properties();
     if(useLocales){
       try {
-        localesProps.load(ShepherdPMF.class.getResourceAsStream("/bundles/locales.properties"));
+        localesProps=ShepherdProperties.getProperties("locationIDGPS.properties", "");
       } 
       catch (Exception ioe) {
         ioe.printStackTrace();
@@ -696,14 +705,18 @@ public class MarkedIndividual implements java.io.Serializable {
   }
 
   public void addInterestedResearcher(String email) {
-    interestedResearchers.add(email);
+    if(interestedResearchers==null){interestedResearchers=new Vector();}
+      interestedResearchers.add(email);
+    
   }
 
   public void removeInterestedResearcher(String email) {
-    for (int i = 0; i < interestedResearchers.size(); i++) {
-      String rName = (String) interestedResearchers.get(i);
-      if (rName.equals(email)) {
-        interestedResearchers.remove(i);
+    if(interestedResearchers!=null){
+      for (int i = 0; i < interestedResearchers.size(); i++) {
+        String rName = (String) interestedResearchers.get(i);
+        if (rName.equals(email)) {
+          interestedResearchers.remove(i);
+        }
       }
     }
   }
@@ -718,6 +731,7 @@ public class MarkedIndividual implements java.io.Serializable {
    * @param  dataFile  the satellite tag data file to be added
    */
   public void addDataFile(String dataFile) {
+    if(dataFiles==null){dataFiles = new Vector();}
     dataFiles.add(dataFile);
   }
 
@@ -727,7 +741,10 @@ public class MarkedIndividual implements java.io.Serializable {
    * @param  dataFile  The satellite data file, as a String, to be removed.
    */
   public void removeDataFile(String dataFile) {
-    dataFiles.remove(dataFile);
+    if(dataFiles!=null)
+    {
+      dataFiles.remove(dataFile);
+    }
   }
 
   public int getNumberTrainableEncounters() {

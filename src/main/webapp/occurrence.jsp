@@ -24,6 +24,9 @@
 
 <%
 
+String context="context0";
+context=ServletUtilities.getContext(request);
+
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -33,7 +36,7 @@
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
   //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -41,19 +44,18 @@
 
 //setup our Properties object to hold all properties
   Properties props = new Properties();
-  String langCode = "en";
-
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
 
 
   //load our variables for the submit page
 
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/occurrence.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/occurrence.properties"));
+  props = ShepherdProperties.getProperties("occurrence.properties", langCode);
 
   String name = request.getParameter("number").trim();
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
 
 
 
@@ -67,18 +69,18 @@
 <html>
 <head>
 
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
         
 
 
@@ -158,9 +160,6 @@
   </script>
   
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>
-  
 
 <!--  FACEBOOK LIKE BUTTON -->
 <div id="fb-root"></div>
@@ -193,6 +192,10 @@
 
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
+
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+  
+
 <div id="main">
 
 
@@ -239,7 +242,7 @@ if(sharky.getGroupBehavior()!=null){
 <%
 }
 %>
-&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a id="groupB" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%><a id="groupB" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
@@ -254,7 +257,7 @@ if(sharky.getGroupBehavior()!=null){
             <%=props.getProperty("groupBehavior") %>:
         
         <%
-        if(CommonConfiguration.getProperty("occurrenceGroupBehavior0")==null){
+        if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){
         %>
         <textarea name="behaviorComment" type="text" id="behaviorComment" maxlength="500"></textarea> 
         <%
@@ -270,10 +273,10 @@ if(sharky.getGroupBehavior()!=null){
    				int taxNum=0;
    				while(hasMoreStages){
    	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
-   	  				if(CommonConfiguration.getProperty(currentLifeStage)!=null){
+   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
    	  				%>
    	  	 
-   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage)%>"><%=CommonConfiguration.getProperty(currentLifeStage)%></option>
+   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
    	  				<%
    					taxNum++;
       				}
@@ -321,7 +324,7 @@ if(sharky.getIndividualCount()!=null){
 <%
 }
 %>
-&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable()) {%><a id="indies" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%><a id="indies" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
@@ -393,7 +396,7 @@ if(sharky.getLocationID()!=null){
 
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex") %></strong></td>
     <%
-      if (isOwner && CommonConfiguration.useSpotPatternRecognition()) {
+      if (isOwner && CommonConfiguration.useSpotPatternRecognition(context)) {
     %>
 
     	<td align="left" valign="top" bgcolor="#99CCFF">
@@ -416,7 +419,7 @@ if(sharky.getLocationID()!=null){
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
         
-          imgName = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
+          imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
         
   %>
   <tr>
@@ -495,7 +498,7 @@ if(sharky.getLocationID()!=null){
     </td>
 
     <%
-      if (CommonConfiguration.useSpotPatternRecognition()) {
+      if (CommonConfiguration.useSpotPatternRecognition(context)) {
     %>
     <%if (((enc.getSpots().size() == 0) && (enc.getRightSpots().size() == 0)) && (isOwner)) {%>
     <td class="lineitem">&nbsp;</td>
@@ -574,8 +577,8 @@ if(sharky.getLocationID()!=null){
 			
 			int  numColumns=3;
 			int numThumbs=0;
-			  if (CommonConfiguration.allowAdoptions()) {
-				  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name);
+			  if (CommonConfiguration.allowAdoptions(context)) {
+				  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
 				  int numAdoptions = adoptions.size();
 				  if(numAdoptions>0){
 					  numColumns=2;
@@ -613,14 +616,14 @@ if(sharky.getLocationID()!=null){
 									String thumbLink="";
 									boolean video=true;
 									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
+										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
 										video=false;
 									}
 									else{
 										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
 										
 									}
-									String link="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
+									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
 						
 							%>
 
@@ -752,7 +755,7 @@ if(sharky.getLocationID()!=null){
                     <br/>
 
                     <%
-                      if (CommonConfiguration.showEXIFData()) {
+                      if (CommonConfiguration.showEXIFData(context)) {
                    
             	if(!thumbLink.endsWith("video.jpg")){
            		 %>							
@@ -948,7 +951,7 @@ if(sharky.getLocationID()!=null){
 </p>
 </div>
 <%
-  if (CommonConfiguration.isCatalogEditable()) {
+  if (CommonConfiguration.isCatalogEditable(context)) {
 %>
 <p>
 
