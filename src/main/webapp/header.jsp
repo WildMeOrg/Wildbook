@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.apache.commons.lang.WordUtils,org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.ShepherdProperties,org.apache.commons.lang.WordUtils,org.ecocean.CommonConfiguration, java.util.Properties" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -22,6 +22,9 @@
 
 <%
 
+String langCode=ServletUtilities.getLanguageCode(request);
+
+String context=ServletUtilities.getContext(request);
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -30,21 +33,12 @@
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
 //setup our Properties object to hold all properties
-  Properties props = new Properties();
-  String langCode = "en";
-
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
-
-  //set up the file input stream
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/header.properties"));
-
+ Properties props = ShepherdProperties.getProperties("header.properties", langCode);
 
 %>
 
 <div id="header"><img name="masthead"
-                      src="<%=CommonConfiguration.getURLToMastheadGraphic() %>" width="810"
+                      src="<%=CommonConfiguration.getURLToMastheadGraphic(context) %>" width="810"
                       height="120" border="0" usemap="#m_masthead" alt=""/></div>
 <div id="header_menu">
   <ul id="pmenu">
@@ -119,11 +113,11 @@
       						int cNum=0;
 							while(moreStates){
 	  								String currentLifeState = "encounterState"+cNum;
-	  								if(CommonConfiguration.getProperty(currentLifeState)!=null){
+	  								if(CommonConfiguration.getProperty(currentLifeState,context)!=null){
 	  									%>
 										<li>
-        									<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState) %>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;">
-        										<%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState))+" "))%>
+        									<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState,context) %>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;">
+        										<%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState,context))+" "))%>
         									</a>
         								</li>
 										<%
@@ -213,15 +207,15 @@
           <td><![endif]-->
       <ul>
         <%
-          if (CommonConfiguration.getWikiLocation()!=null) {
+          if (CommonConfiguration.getWikiLocation(context)!=null) {
         %>
         <li><a
-          href="<%=CommonConfiguration.getWikiLocation() %>library_access_policy"
+          href="<%=CommonConfiguration.getWikiLocation(context) %>library_access_policy"
           target="_blank" class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("accessPolicy")%>
         </a></li>
         <li><a
-          href="<%=CommonConfiguration.getWikiLocation() %>"
+          href="<%=CommonConfiguration.getWikiLocation(context) %>"
           target="_blank" class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userWiki")%>
         </a></li>
@@ -240,7 +234,7 @@
         </a></li>
                 
         <%
-        if(CommonConfiguration.useSpotPatternRecognition()){
+        if(CommonConfiguration.useSpotPatternRecognition(context)){
         %>
          <li><a
 	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/software/software.jsp"
@@ -262,10 +256,10 @@
 		
         
         <%
-          if (CommonConfiguration.getTapirLinkURL() != null) {
+          if (CommonConfiguration.getTapirLinkURL(context) != null) {
         %>
         <li><a
-          href="<%=CommonConfiguration.getTapirLinkURL() %>"
+          href="<%=CommonConfiguration.getTapirLinkURL(context) %>"
           class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("tapirLink")%>
         </a></li>
@@ -273,10 +267,10 @@
         
         
                 <%
-	          if (CommonConfiguration.getIPTURL() != null) {
+	          if (CommonConfiguration.getIPTURL(context) != null) {
 	        %>
 	        <li><a
-	          href="<%=CommonConfiguration.getIPTURL() %>"
+	          href="<%=CommonConfiguration.getIPTURL(context) %>"
 	          class="enclose"
 	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("iptLink")%>
 	        </a></li>
@@ -292,7 +286,7 @@
         <%
           
 
-          if (CommonConfiguration.allowAdoptions()) {
+          if (CommonConfiguration.allowAdoptions(context)) {
         %>
         <li class="drop"><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp"
@@ -333,7 +327,7 @@
         
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/javadoc/index.html" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Javadoc</a></li>
 <%
-if(CommonConfiguration.isCatalogEditable()){
+if(CommonConfiguration.isCatalogEditable(context)){
 %>						
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/import.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Data Import</a></li>
 <%
