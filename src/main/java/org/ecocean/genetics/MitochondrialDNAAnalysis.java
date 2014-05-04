@@ -26,19 +26,19 @@ public class MitochondrialDNAAnalysis extends GeneticAnalysis{
   public String getHaplotype(){return haplotype.trim();}
   public void setHaplotype(String newHaplo){this.haplotype=newHaplo;};
   
-  public String getColorCode(String haplotype){
-    initializeColorCodes();
+  public String getColorCode(String haplotype, String context){
+    initializeColorCodes(context);
     return haploColorProps.getProperty(haplotype);
    }
 
 
 
-  private static void initializeColorCodes() {
+  private static void initializeColorCodes(String context) {
     //set up the file input stream
     if (haploColorProps.size() == 0) {
       try {
         //haploColorProps.load(CommonConfiguration.class.getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-        haploColorProps=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+        haploColorProps=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
       } catch (Exception ioe) {
         ioe.printStackTrace();
       }

@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Hashtable;
 
 import org.json.*;
-
 import org.ecocean.*;
+import org.ecocean.servlet.ServletUtilities;
 
 public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
 
@@ -36,24 +36,28 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     //set the response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-    String langCode="en";
+    String langCode=ServletUtilities.getLanguageCode(request);
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     
     //let's load encounterSearch.properties
     
     Properties map_props = new Properties();
-    map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
-
+    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
+    map_props=ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode);
+    
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-  haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+  haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
 
     Properties localeprops = new Properties();
-   localeprops.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+   localeprops=ShepherdProperties.getProperties("locationIDGPS.properties", "");
 
-   List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies");
+   List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies",context);
    int numSpecies=allSpecies.size();
   
-   List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor");
+   List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor",context);
    int numSpeciesColors=allSpeciesColors.size();
    
    Hashtable<String, String> speciesTable=new Hashtable<String,String>();
@@ -64,7 +68,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
    }
     
     //get our Shepherd
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
 
   Random ran= new Random();
 
@@ -147,7 +151,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
             thisEncLat=enc.getLatitudeAsDouble();
             thisEncLong=enc.getLongitudeAsDouble();
           }
-          //let's see if locales.properties has a location we can use
+          //let's see if locationIDGPS.properties has a location we can use
           else{
             if(useLocales){
                    try {
@@ -177,7 +181,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              point.put("catalogNumber",enc.getCatalogNumber());
              point.put("rootURL",CommonConfiguration.getURLLocation(request));
              point.put("individualID",enc.getIndividualID());
-             point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName());
+             point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
              point.put("date",enc.getDate());
              
              

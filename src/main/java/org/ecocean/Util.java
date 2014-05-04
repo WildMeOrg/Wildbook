@@ -7,15 +7,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
-//import java.util.Properties;
+import java.util.Properties;
 import java.util.ResourceBundle;
+
 
 //import javax.jdo.JDOException;
 //import javax.jdo.JDOHelper;
 import javax.jdo.Query;
 //import javax.jdo.PersistenceManagerFactory;
 
+
 import org.ecocean.tag.MetalTag;
+
 
 //use Point2D to represent cached GPS coordinates
 import com.reijns.I3S.Point2D;
@@ -33,32 +36,32 @@ public class Util {
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
   
-  public static List<MeasurementDesc> findMeasurementDescs(String langCode) {
+  public static List<MeasurementDesc> findMeasurementDescs(String langCode,String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
-    List<String> types = CommonConfiguration.getIndexedValues(MEASUREMENT);
+    List<String> types = CommonConfiguration.getIndexedValues(MEASUREMENT,context);
     if (types.size() > 0) {
-      List<String> units = CommonConfiguration.getIndexedValues(UNITS);
+      List<String> units = CommonConfiguration.getIndexedValues(UNITS,context);
       for (int i = 0; i < types.size() && i < units.size(); i++) {
         String type = types.get(i);
         String unit = units.get(i);
-        String typeLabel = findLabel(type, langCode);
-        String unitsLabel = findLabel(unit, langCode);
+        String typeLabel = findLabel(type, langCode,context);
+        String unitsLabel = findLabel(unit, langCode,context);
         list.add(new MeasurementDesc(type, typeLabel, unit, unitsLabel));
       }
     }
     return list;
   }
   
-  public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode) {
+  public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
-    List<String> types = CommonConfiguration.getIndexedValues(BIOLOGICALMEASUREMENT);
+    List<String> types = CommonConfiguration.getIndexedValues(BIOLOGICALMEASUREMENT,context);
     if (types.size() > 0) {
-      List<String> units = CommonConfiguration.getIndexedValues(BIOLOGICALMEASUREMENTUNITS);
+      List<String> units = CommonConfiguration.getIndexedValues(BIOLOGICALMEASUREMENTUNITS,context);
       for (int i = 0; i < types.size() && i < units.size(); i++) {
         String type = types.get(i);
         String unit = units.get(i);
-        String typeLabel = findLabel(type, langCode);
-        String unitsLabel = findLabel(unit, langCode);
+        String typeLabel = findLabel(type, langCode, context);
+        String unitsLabel = findLabel(unit, langCode, context);
         list.add(new MeasurementDesc(type, typeLabel, unit, unitsLabel));
       }
     }
@@ -71,19 +74,19 @@ public class Util {
    * @param langCode
    * @return
    */
-  public static List<OptionDesc> findSamplingProtocols(String langCode) {
-    List<String> values = CommonConfiguration.getIndexedValues("samplingProtocol");
+  public static List<OptionDesc> findSamplingProtocols(String langCode,String context) {
+    List<String> values = CommonConfiguration.getIndexedValues("samplingProtocol",context);
     List<OptionDesc> list = new ArrayList<OptionDesc>();
     for (String key : values) {
-      String label = findLabel(key, langCode);
+      String label = findLabel(key, langCode,context);
       list.add(new OptionDesc(key, label));
     }
     return list;
   }
   
-  public static String getLocalizedSamplingProtocol(String samplingProtocol, String langCode) {
+  public static String getLocalizedSamplingProtocol(String samplingProtocol, String langCode, String context) {
     if (samplingProtocol != null) {
-      List<OptionDesc> samplingProtocols = findSamplingProtocols(langCode);
+      List<OptionDesc> samplingProtocols = findSamplingProtocols(langCode,context);
       for (OptionDesc optionDesc : samplingProtocols) {
         if (optionDesc.name.equals(samplingProtocol)) {
           return optionDesc.display;
@@ -93,11 +96,11 @@ public class Util {
     return null;
   }
   
-  public static List<MetalTagDesc> findMetalTagDescs(String langCode) {
-    List<String> metalTagLocations = CommonConfiguration.getIndexedValues(METAL_TAG_LOCATION);
+  public static List<MetalTagDesc> findMetalTagDescs(String langCode,String context) {
+    List<String> metalTagLocations = CommonConfiguration.getIndexedValues(METAL_TAG_LOCATION,context);
     List<MetalTagDesc> list = new ArrayList<MetalTagDesc>();
     for (String location : metalTagLocations) {
-      String locationLabel = findLabel(location, langCode);
+      String locationLabel = findLabel(location, langCode,context);
       list.add(new MetalTagDesc(location, locationLabel));
     }
     return list;
@@ -122,11 +125,15 @@ public class Util {
     return null;
   }
   
-  public static List<String> findSatelliteTagNames() {
-    return CommonConfiguration.getIndexedValues(SATELLITE_TAG_NAME);
+  public static List<String> findSatelliteTagNames(String context) {
+    return CommonConfiguration.getIndexedValues(SATELLITE_TAG_NAME,context);
   }
   
-  private static String findLabel(String key, String langCode) {
+  private static String findLabel(String key, String langCode, String context) {
+    
+    //System.out.println("Trying to find key: "+key+" with langCode "+langCode);
+    
+    /*
     Locale locale = Locale.US;
     if (langCode != null) {
       locale = new Locale(langCode);
@@ -138,7 +145,12 @@ public class Util {
     catch (MissingResourceException ex) {
       System.out.println("Error finding bundle or key for key: " + key);
     }
-    return key;
+    return key;*/
+    
+    Properties myProps = ShepherdProperties.getProperties("commonConfigurationLabels.properties", langCode, context);
+    return myProps.getProperty(key+".label");
+    
+    
   }
   
   public static String quote(String arg) {
@@ -211,12 +223,12 @@ public class Util {
     
   }
   
-  public synchronized static ArrayList<Point2D> getCachedGPSCoordinates(boolean refresh) {
+  public synchronized static ArrayList<Point2D> getCachedGPSCoordinates(boolean refresh,String context) {
     try {
       if ((coords == null)||(refresh)) {
 
         //execute the JDOQL
-        Shepherd myShepherd=new Shepherd();
+        Shepherd myShepherd=new Shepherd(context);
         Query query=myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null");
         Collection<Encounter> c = (Collection<Encounter>) (query.execute());
         ArrayList<Encounter> encs=new ArrayList<Encounter>(c);

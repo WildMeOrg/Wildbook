@@ -81,7 +81,8 @@
                 [main]
                 realmA = org.ecocean.security.ShepherdRealm
                 roles.unauthorizedUrl = /accessDenied.jsp 
-                
+                authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
+				
                 #this application will use all the default
                 #filters (see link above)
                 #for example the default login page is /login.jsp
@@ -96,13 +97,13 @@
                 #and admin areas
                 [urls]
                 
+				/rest/** = authcBasicWildbook
                 /appadmin/** = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[admin]
                 /InterconnectSubmitSpots = authc, roles[admin]
 		/interconnectSubmitSpots= authc, roles[admin]
 		/GenePopExport = authc, roles[admin]
-		/ResetCommonConfiguration = authc, roles[admin]
 		/individualSearch.jsp = authc, roles[admin]
 		
 		/individualSearchResultsExport.jsp = authc, roles[admin]
@@ -438,10 +439,7 @@
     <servlet-class>org.ecocean.servlet.DontTrack</servlet-class>
   </servlet>
   
-    <servlet>
-      <servlet-name>ResetCommonConfiguration</servlet-name>
-      <servlet-class>org.ecocean.servlet.ResetCommonConfiguration</servlet-class>
-  </servlet>
+ 
 
   <servlet>
     <servlet-name>UpdateEmailAddress</servlet-name>
@@ -966,11 +964,7 @@
       <servlet-name>TissueSampleSetHaplotype</servlet-name>
       <url-pattern>/TissueSampleSetHaplotype</url-pattern>
   </servlet-mapping>
-  
-      <servlet-mapping>
-        <servlet-name>ResetCommonConfiguration</servlet-name>
-        <url-pattern>/ResetCommonConfiguration</url-pattern>
-  </servlet-mapping>
+
   
       <servlet-mapping>
         <servlet-name>DeleteAllDataPermanently</servlet-name>
