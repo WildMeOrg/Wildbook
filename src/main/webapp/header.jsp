@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.ShepherdProperties,org.apache.commons.lang.WordUtils,org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="java.util.ArrayList,org.ecocean.ContextConfiguration,org.ecocean.servlet.ServletUtilities,org.ecocean.ShepherdProperties,org.apache.commons.lang.WordUtils,org.ecocean.CommonConfiguration, java.util.Properties" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -355,4 +355,139 @@ if(CommonConfiguration.isCatalogEditable(context)){
     <%}%>
 
   </ul>
+</div>
+
+
+<!-- define our JavaScript -->
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
+	
+<div id="header_menu" style="background-color: #D7E0ED;clear: left">
+<table width="810px">
+	<tr>
+		<td class="caption" class="caption" style="text-align: left;" align="left">
+		<table><tr><td><%=props.getProperty("findRecord") %></td><td><form name="form2" method="get" action="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp">
+            <input name="number" type="text" id="shark" size="25"/>
+            <input type="hidden" name="langCode" value="<%=langCode%>"/>
+            <input name="Go" type="submit" id="Go2" value="<%=props.getProperty("search")%>"/>
+          </form></td></table>
+		 
+		          
+		</td>
+		
+		<%
+		ArrayList<String> supportedLanguages=CommonConfiguration.getSequentialPropertyValues("language", context);
+		int numSupportedLanguages=supportedLanguages.size();
+		
+		if(numSupportedLanguages>1){
+		%>
+			<td class="caption" class="caption" style="text-align: left;" align="left">
+				<table align="left">
+				<tr>
+					<td><%=props.getProperty("selectLanguage") %></td>
+					<td>
+					
+					<%
+					for(int h=0;h<numSupportedLanguages;h++){
+						String selected="";
+						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
+						String myLang=supportedLanguages.get(h);
+					%>
+						<img style="cursor: pointer" id="flag_<%=myLang %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+						<script type="text/javascript">
+	
+							$( "#flag_<%=myLang%>" ).click(function() {
+		
+								//alert( "Handler for .change() called with new value: "+$( "#langCode option:selected" ).text() +" with value "+ $( "#langCode option:selected").val());
+								$.cookie("wildbookLangCode", "<%=myLang%>", {
+			   						path    : '/',          //The value of the path attribute of the cookie 
+			                           //(default: path of page that created the cookie).
+		   
+			   						secure  : false          //If set to true the secure attribute of the cookie
+			                           //will be set and the cookie transmission will
+			                           //require a secure protocol (defaults to false).
+								});
+			
+								//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
+								location.reload(true);
+			
+							});
+	
+						</script>
+					<%
+					}
+					%>
+				
+			
+					</td>
+				</tr>
+			</table>
+			
+			<td>
+		
+		<%
+		}
+		
+		
+		
+		ArrayList<String> contextNames=ContextConfiguration.getContextNames();
+		int numContexts=contextNames.size();
+		if(numContexts>1){
+		%>
+		
+		<td  class="caption" style="text-align: right;" align="right">
+			<table align="right">
+				<tr>
+					<td><%=props.getProperty("switchContext") %></td>
+					<td>
+						<form>
+							<select id="context" name="context">
+					<%
+					for(int h=0;h<numContexts;h++){
+						String selected="";
+						if(ServletUtilities.getContext(request).equals(("context"+h))){selected="selected=\"selected\"";}
+					%>
+					
+						<option value="context<%=h%>" <%=selected %>><%=contextNames.get(h) %></option>
+					<%
+					}
+					%>
+							</select>
+						</form>
+			
+					</td>
+				</tr>
+			</table>
+		 
+		</td>
+			<%
+		}
+		%>
+		
+	<script type="text/javascript">
+		
+	$( "#context" ).change(function() {
+			
+  			//alert( "Handler for .change() called with new value: "+$( "#context option:selected" ).text() +" with value "+ $( "#context option:selected").val());
+  			$.cookie("wildbookContext", $( "#context option:selected").val(), {
+  			   path    : '/',          //The value of the path attribute of the cookie 
+  			                           //(default: path of page that created the cookie).
+			   
+  			   secure  : false          //If set to true the secure attribute of the cookie
+  			                           //will be set and the cookie transmission will
+  			                           //require a secure protocol (defaults to false).
+  			});
+  			
+  			//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
+  			location.reload(true);
+  			
+		});
+	
+	</script>
+
+
+	
+	</tr>
+</table>
+
 </div>
