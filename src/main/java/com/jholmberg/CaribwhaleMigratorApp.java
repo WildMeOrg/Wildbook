@@ -9,6 +9,8 @@ import org.ecocean.servlet.*;
 import org.ecocean.genetics.*;
 import org.ecocean.social.*;
 
+import org.ecocean.servlet.ServletUtilities;
+
 //import basic IO
 import java.io.*;
 import java.util.*;
@@ -68,7 +70,9 @@ public class CaribwhaleMigratorApp {
 		
 		//well, we need a shepherd for sure!
 		
-		Shepherd myShepherd=new Shepherd();
+		String context="context0";
+		
+		Shepherd myShepherd=new Shepherd(context);
 		myShepherd.beginDBTransaction();
 		
 

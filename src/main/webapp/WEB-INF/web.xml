@@ -187,10 +187,10 @@
                		/IndividualSetYearOfDeath = authc, roles[admin]
 
                		
-               		/index.jsp = authc
+               		/index.jsp = anon
                		/individuals.jsp = authc
                		/individualSearchResults.jsp = authc
-               		/encounters/encounter.jsp = authc
+               		/encounters/encounter.jsp = anon
                		/encounters/searchResults.jsp = authc
 		
 					/login.jsp = anon
