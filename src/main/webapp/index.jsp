@@ -193,42 +193,14 @@ You too can assist with research, by submitting photos and sighting data. The in
       <!-- end maincol -->
       <div id="rightcol">
 
- <div class="module">
-            <h3>Latest News</h3>
-            <span class="caption">Add your news items here... </span><span class="caption"><br/>
-</span> <br/>
-          </div>
+
 
           <div class="module">
             <h3>Data Sharing</h3>
             <img src="images/OBIS_logo.gif" /><br/>
           </div>
 
-        <div class="module">
-          <h3>Find Record</h3>
-
-          <form name="form2" method="get" action="individuals.jsp">
-            <em>Enter a marked animal number, encounter number, animal nickname, or alternate
-              ID.</em><br/>
-            <input name="number" type="text" id="shark" size="25"/>
-            <input type="hidden" name="langCode" value="<%=langCode%>"/><br/>
-            <input name="Go" type="submit" id="Go2" value="Go"/>
-          </form>
-
-        </div>
-
-
-        <div class="module">
-          <h3>RSS/Atom Feeds</h3>
-
-          <p align="left"><a href="rss.xml"><img src="images/rssfeed.gif"
-                                                 width="80" height="15" border="0"
-                                                 alt="RSS News Feed"/></a></p>
-
-          <p align="left"><a href="atom.xml"><img
-            src="images/atom-feed-icon.gif" border="0" alt="ATOM News Feed"/></a></p>
-        </div>
-
+    
 
       </div>
       <!-- end rightcol --></div>
