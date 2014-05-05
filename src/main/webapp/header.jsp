@@ -166,10 +166,10 @@ context=ServletUtilities.getContext(request);
         		<%=props.getProperty("viewMySubmissions")%>
         	</a>
         </li>
-        <%
-        }
-        %>
+     <%
      
+     }
+     %>
 
 
       </ul>
@@ -238,6 +238,19 @@ context=ServletUtilities.getContext(request);
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userWiki")%>
         </a></li>
         <% } %>
+
+	<%
+      if(request.getUserPrincipal()!=null){
+      %>
+        <li>
+        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/myAccount.jsp" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">
+        		<%=props.getProperty("myAccount")%>
+        	</a>
+        </li>
+     <%
+     
+     }
+     %>
 
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp"
