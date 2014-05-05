@@ -428,6 +428,17 @@ public class Shepherd {
     if(size>0){return true;}
     return false;
   }
+  
+  public boolean doesUserHaveAnyRoleInContext(String username, String context) {
+    String filter = "this.username == '" + username + "' && this.context == '"+context+"'";
+    Extent encClass = pm.getExtent(Role.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    int size=c.size();
+    acceptedEncounters.closeAll();
+    if(size>0){return true;}
+    return false;
+  }
 
   public String getAllRolesForUserAsString(String username) {
     String filter = "this.username == '" + username + "'";
