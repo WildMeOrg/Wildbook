@@ -197,8 +197,8 @@
                		/encounters/searchResults.jsp = authc
 		
 					/login.jsp = anon
-					/index.jsp = authc
-					/ = authc
+				
+					
 
 					
 					/KinalyzerExport = authc, roles[admin]
