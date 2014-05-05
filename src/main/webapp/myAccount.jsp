@@ -206,20 +206,19 @@ String context="context0";
             
             <%=props.getProperty("roles4") %> <%=ContextConfiguration.getNameForContext(("context"+d)) %> 
                         	<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5" disabled="disabled">
-                        		<option value=""></option>
-								<%
+                        		<%
 								for(int q=0;q<numRoles;q++){
-									String selected="";
-									if((request.getParameter("isEdit")!=null)&&(myShepherd.getUser(request.getParameter("username").trim())!=null)){
-										if(myShepherd.doesUserHaveRole(request.getParameter("username").trim(),roles.get(q),("context"+d))){
-											selected="selected=\"true\"";
+									//String selected="";
+									if(myShepherd.getUser(request.getUserPrincipal().getName())!=null){
+										if(myShepherd.doesUserHaveRole(request.getUserPrincipal().getName(),roles.get(q),("context"+d))){
+											%>
+											<option value="<%=roles.get(q)%>"><%=roles.get(q)%></option>
+											<% 
 										}
 									}
 									
 					    		    	
-								%>
-             					 <option value="<%=roles.get(q)%>" <%=selected%>><%=roles.get(q)%></option>
-              					<%
+								
 								}
 								%>
                                 
