@@ -100,6 +100,11 @@ public class UserAddProfileImage extends HttpServlet {
 
 
         if (part.isFile()) {
+          
+          if(request.getRequestURL().indexOf("MyAccount")!=-1){
+            username=request.getUserPrincipal().getName();
+          }
+          
           FilePart filePart = (FilePart) part;
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());
           if (fileName != null) {
@@ -142,9 +147,18 @@ public class UserAddProfileImage extends HttpServlet {
           myShepherd.commitDBTransaction();
           myShepherd.closeDBTransaction();
           out.println(ServletUtilities.getHeader(request));
+          
+          
           out.println("<strong>Success!</strong> I have successfully uploaded the user profile image file.");
 
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0&isEdit=true&username=" + username + "#editUser\">Return to User Management.</a></p>\n");
+          if(request.getRequestURL().indexOf("MyAccount")!=-1){
+            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp\">Return to My Account.</a></p>\n");
+            
+          }
+          else{
+          
+            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0&isEdit=true&username=" + username + "#editUser\">Return to User Management.</a></p>\n");
+          }
           out.println(ServletUtilities.getFooter(context));
           //String message = "An additional image file has been uploaded for encounter #" + encounterNumber + ".";
           //ServletUtilities.informInterestedParties(request, encounterNumber, message);
