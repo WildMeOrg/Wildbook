@@ -61,6 +61,10 @@ public class UserRemoveProfileImage extends HttpServlet {
 
     //fileName=request.getParameter("filename").replaceAll("%20"," ");
     username = request.getParameter("username");
+    
+    if(request.getRequestURL().indexOf("MyAccount")!=-1){
+      username=request.getUserPrincipal().getName();
+    }
 
     myShepherd.beginDBTransaction();
     if (myShepherd.getUser(username)!=null) {
@@ -86,7 +90,15 @@ public class UserRemoveProfileImage extends HttpServlet {
         out.println("<strong>Failure:</strong> No such user exists in the library.");
         
       }
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0&isEdit=true&username=" + username + "#editUser\">Return to User Management</a></p>\n");
+      
+      if(request.getRequestURL().indexOf("MyAccount")!=-1){
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp\">Return to My Account.</a></p>\n");
+        
+      }
+      else{
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0&isEdit=true&username=" + username + "#editUser\">Return to User Management</a></p>\n");
+      }
+      
       out.println(ServletUtilities.getFooter(context));
       //String message = "An image file named " + fileName + " has been removed from encounter#" + encounterNumber + ".";
       //ServletUtilities.informInterestedParties(request, encounterNumber, message);
