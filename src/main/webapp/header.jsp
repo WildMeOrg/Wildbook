@@ -317,7 +317,18 @@ if(request.getUserPrincipal()!=null){
 							          class="enclose"
 							          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">User Management
         </a></li>
-						
+	<%
+      if(request.getUserPrincipal()!=null){
+      %>
+        <li>
+        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/myAccount.jsp" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">
+        		<%=props.getProperty("myAccount")%>
+        	</a>
+        </li>
+     <%
+     
+     }
+     %>
 					<%
 					
 					if((request.getParameter("isAdmin")!=null)&&(request.getParameter("isAdmin").equals("true"))) {%>

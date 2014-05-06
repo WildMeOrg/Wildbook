@@ -198,6 +198,12 @@
                		/IndividualSetYearOfBirth = authc, roles[researcher]
                		/IndividualSetYearOfDeath = authc, roles[researcher]
 			/KinalyzerExport = authc, roles[researcher]
+			
+			/myAccount.jsp = authc
+					/UserSelfUpdate = authc
+					
+				    /MyAccountAddProfileImage = authc
+				    /MyAccountRemoveProfileImage = authc
 
             </param-value>
         </init-param>
@@ -488,6 +494,11 @@
     <servlet>
       <servlet-name>UserCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
+  </servlet>
+  
+      <servlet>
+      <servlet-name>UserSelfUpdate</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserSelfUpdate</servlet-class>
   </servlet>
   
       <servlet>
@@ -1058,6 +1069,11 @@
           <url-pattern>/UserCreate</url-pattern>
   </servlet-mapping>
   
+    <servlet-mapping>
+          <servlet-name>UserSelfUpdate</servlet-name>
+          <url-pattern>/UserSelfUpdate</url-pattern>
+  </servlet-mapping>
+  
      <servlet-mapping>
             <servlet-name>UserDelete</servlet-name>
             <url-pattern>/UserDelete</url-pattern>
@@ -1087,6 +1103,11 @@
       <servlet-mapping>
         <servlet-name>UserAddProfileImage</servlet-name>
         <url-pattern>/UserAddProfileImage</url-pattern>
+  </servlet-mapping>
+  
+   <servlet-mapping>
+        <servlet-name>UserAddProfileImage</servlet-name>
+        <url-pattern>/MyAccountAddProfileImage</url-pattern>
   </servlet-mapping>
   
       <servlet-mapping>
@@ -1305,6 +1326,11 @@
     <servlet-mapping>
       <servlet-name>UserRemoveProfileImage</servlet-name>
       <url-pattern>/UserRemoveProfileImage</url-pattern>
+  </servlet-mapping>
+  
+        <servlet-mapping>
+      <servlet-name>UserRemoveProfileImage</servlet-name>
+      <url-pattern>/MyAccountRemoveProfileImage</url-pattern>
   </servlet-mapping>
 
 
