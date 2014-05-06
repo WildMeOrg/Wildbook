@@ -211,21 +211,17 @@ context=ServletUtilities.getContext(request);
 }
 %>
 
-<h1 class="intro">Success</h1>
+<h1 class="intro"><%=props.getProperty("success") %></h1>
 
-<p><strong>Thank you for submitting your encounter! </strong></p>
+<p><strong><%=props.getProperty("thankYou") %></strong></p>
 
-<p>For future reference, this encounter has been assigned the number
-  <strong><%=number%></strong>.</p>
+<p><%=props.getProperty("futureReference") %> <strong><%=number%></strong>.</p>
 
-<p>If you have any questions, please reference this number when <a
-  href="mailto:<%=CommonConfiguration.getAutoEmailAddress(context) %>">contacting
-  us.</a></p>
+<p><%=props.getProperty("futureReference") %><%=props.getProperty("futureReference") %> <a href="mailto:<%=CommonConfiguration.getAutoEmailAddress(context) %>"><%=CommonConfiguration.getAutoEmailAddress(context) %></a></p>
 
-<p><a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>&langCode=<%=langCode%>">View
-  encounter #<%=number%></a>. <em>This may initially take a minute or more to fully load as we dynamically copy-protect your
-  new image(s).</em></p>
+<p>
+	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
+</p>
 <%
 
 
