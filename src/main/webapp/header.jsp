@@ -175,33 +175,33 @@ context=ServletUtilities.getContext(request);
 
 
 <ul id="pmenu">
-<li style="background:#909090;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>" style="margin:0px 0 0px 0px; position:relative; width:50px; height:25px; z-index:100;"><strong>Home</strong></a></li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:45px; height:25px;z-index:100;"><strong>Learn</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li style="background:#909090;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>" style="margin:0px 0 0px 0px; position:relative; width:50px; height:25px; z-index:100;"><strong><%=props.getProperty("home") %></strong></a></li>
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp" style="margin:0px 0 0px 0px; position:relative; width:70px; height:25px;z-index:100;"><strong><%=props.getProperty("learn") %></strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/photographing.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;">How to Photograph</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/publications.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;">Publications</a></li>
-		<li><a href="http://www.wildme.org/wildbook" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;">Learn about Wildbook</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/photographing.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;"><%=props.getProperty("howToPhotograph") %></a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/publications.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;"><%=props.getProperty("publications") %></a></li>
+		<li><a href="http://www.wildme.org/wildbook" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;"><%=props.getProperty("learnAboutShepherd") %></a></li>
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
 </li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/submit.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px;z-index:100;"><strong>Participate</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/submit.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px;z-index:100;"><strong><%=props.getProperty("participate") %></strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 
-	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/submit.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Report an Encounter</a></li>
-	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/wiki/doku.php?id=how_to_join_sharkgrid" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Join sharkGrid</a></li>
-	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptashark.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">Adopt a Shark</a></li>
+	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/submit.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;"><%=props.getProperty("report") %></a></li>
+	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/wiki/doku.php?id=how_to_join_sharkgrid" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;">sharkGrid</a></li>
+	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptashark.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:160px; height:25px;z-index:100;"><%=props.getProperty("adoptAShark") %></a></li>
 	
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
 </li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;"><strong>View Sharks</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp" style="margin:0px 0 0px 0px; position:relative; width:75px; height:25px; z-index:100;"><strong><%=props.getProperty("individuals") %></strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px;z-index:99;">View All Sharks</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:150px; height:25px;z-index:99;"><%=props.getProperty("viewAll") %> <%=props.getProperty("individuals") %></a></li>
 
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
@@ -273,7 +273,7 @@ if(request.getUserPrincipal()!=null){
 
       </ul>
       <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong>Search</strong>
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp" style="margin:0px 0 0px 0px; position:relative; width:70px; height:25px; z-index:100;"><strong><%=props.getProperty("search") %></strong>
 
 <!--[if IE 7]><!--></a><!--<![endif]-->
 
@@ -283,11 +283,11 @@ if(request.getUserPrincipal()!=null){
 	<ul>
 	
 
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;z-index:99;">Encounter Search</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearch.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;z-index:99;">Individual Search</a></li>
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchComparison.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;z-index:99;">Search Comparison</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;z-index:99;"><%=props.getProperty("encounterSearch") %></a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearch.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;z-index:99;"><%=props.getProperty("individualSearch") %></a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchComparison.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;z-index:99;"><%=props.getProperty("locationSearch") %></a></li>
 		
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/googleSearch.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;">Google Search</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/googleSearch.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:170px; height:25px;"><%=props.getProperty("googleSearch") %></a></li>
 	
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
@@ -296,27 +296,11 @@ if(request.getUserPrincipal()!=null){
 
 
 		  
-                    <li <%if(session.getAttribute("logged") != null) {%>class="drop"<%}%>><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px; z-index:100;"><strong>Administer</strong>
+                    <li <%if(session.getAttribute("logged") != null) {%>class="drop"<%}%>><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp" style="margin:0px 0 0px 0px; position:relative; width:85px; height:25px; z-index:100;"><strong><%=props.getProperty("administer")%></strong>
 				 							<!--[if IE 7]><!--></a><!--<![endif]-->
 						<!--[if lte IE 6]><table><tr><td><![endif]-->
 						<ul>
-							<li>
-								<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/wiki/doku.php?id=ecocean_library_access_policy" target="_blank" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Access Policy</a>
-							 </li>
-							 <li>   
-								<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/wiki" target="_blank" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">User Wiki</a>
-							</li>
-
 						
-					
-						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/software.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;" >Client Software</a></li>
-						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/scanTaskAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">sharkGrid</a></li>
-						
-							<li><a
-							          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp?context=context0"
-							          class="enclose"
-							          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">User Management
-        </a></li>
 	<%
       if(request.getUserPrincipal()!=null){
       %>
@@ -328,29 +312,46 @@ if(request.getUserPrincipal()!=null){
      <%
      
      }
-     %>
+     %>							<li>
+								<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/wiki/doku.php?id=ecocean_library_access_policy" target="_blank" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;"><%=props.getProperty("accessPolicy")%></a>
+							 </li>
+							 <li>   
+								<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/wiki" target="_blank" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;"><%=props.getProperty("userWiki")%></a>
+							</li>
+
+						
+					
+						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/software.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;" ><%=props.getProperty("software")%></a></li>
+						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/scanTaskAdmin.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">sharkGrid</a></li>
+						
+							<li><a
+							          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp?context=context0"
+							          class="enclose"
+							          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userManagement")%>
+        </a></li>
+
 					<%
 					
 					if((request.getParameter("isAdmin")!=null)&&(request.getParameter("isAdmin").equals("true"))) {%>
 					
-	        			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;" >General</a></li>
+	        			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;" ><%=props.getProperty("general")%></a></li>
      <li><a
 	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/logs.jsp"
 	          class="enclose"
 	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">Logs
         </a></li>            			
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/tapirlink/admin/configurator.php?resource=RhincodonTypus" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">TapirLink</a></li>
-	        			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/kwAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Photo Keywords</a></li>
-						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/stats.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Statistics</a></li>
+	        			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/kwAdmin.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;"><%=props.getProperty("photoKeywords")%></a></li>
+						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/stats.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Statistics</a></li>
 						
 						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/javadoc/index.html" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Javadoc</a></li>
 						
 						
-						<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px; z-index:100;"><strong>Adoptions</strong> <img src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/white_triangle.gif" border="0" align="absmiddle"><!--[if IE 7]><!--></a><!--<![endif]-->
+						<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px; z-index:100;"><strong><%=props.getProperty("adoptions")%></strong> <img src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/white_triangle.gif" border="0" align="absmiddle"><!--[if IE 7]><!--></a><!--<![endif]-->
 		<!--[if lte IE 6]><table><tr><td><![endif]-->
 		<ul>
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp" class="enclose" style="margin:0px 0 0px 80px; position:relative; width:190px; height:25px;z-index:99;">Create/edit adoption</a></li>
-			<li style="margin:0px 0 0px 80px; position:relative; width:191px; height:26px;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/allAdoptions.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">View all adoptions</a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp" class="enclose" style="margin:0px 0 0px 80px; position:relative; width:190px; height:25px;z-index:99;"><%=props.getProperty("createEditAdoption")%></a></li>
+			<li style="margin:0px 0 0px 80px; position:relative; width:191px; height:26px;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/allAdoptions.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;"><%=props.getProperty("viewAllAdoptions")%></a></li>
 		
 		</ul>
 		<!--[if lte IE 6]></td></tr></table></a><![endif]-->
@@ -364,7 +365,7 @@ if(request.getUserPrincipal()!=null){
 				 </li>
                  
                  
-                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/whoAreWe.jsp" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px; z-index:100;"><strong>People/Partners </strong>
+                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/whoAreWe.jsp" style="margin:0px 0 0px 0px; position:relative; width:85px; height:25px; z-index:100;"><strong><%=props.getProperty("peoplePartners")%></strong>
   
             <!--[if IE 7]><!--></a><!--<![endif]-->
 
@@ -373,7 +374,7 @@ if(request.getUserPrincipal()!=null){
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 	
-		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/whoAreWe.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px z-index:99;">Who We Are</a></li>
+		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/whoAreWe.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:243px; height:25px z-index:99;"><%=props.getProperty("whoWeAre")%></a></li>
 
 	</ul>
     
@@ -383,22 +384,22 @@ if(request.getUserPrincipal()!=null){
                 
                 
         
-<li class="drop"><a href="https://www.facebook.com/wildmeorg" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:45px; height:25px; z-index:100;"><strong>News</strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li class="drop"><a href="https://www.facebook.com/wildmeorg" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:60px; height:25px; z-index:100;"><strong><%=props.getProperty("news")%></strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
-<li><a href="https://www.facebook.com/wildmeorg" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:130px; height:25px; z-index:100;">View Wild Me News</a></li>
+<li><a href="https://www.facebook.com/wildmeorg" target="_blank" style="margin:0px 0 0px 0px; position:relative; width:150px; height:25px; z-index:100;"><%=props.getProperty("wildMeNews")%></a></li>
 </ul>
 
   
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
     
            
-<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/contactus.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px; z-index:100;"><strong>Contact Us</strong></a></li>
+<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/contactus.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px; z-index:100;"><strong><%=props.getProperty("contactUs")%></strong></a></li>
 <%if(request.getRemoteUser()==null) {%>
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong>Login</strong></a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong><%=props.getProperty("login")%></strong></a></li>
 <%} else {%>
 
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp?langCode=<%=langCode%>" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong>Logout</strong></a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong><%=props.getProperty("logout")%></strong></a></li>
 <%}%>
 
 </ul>
