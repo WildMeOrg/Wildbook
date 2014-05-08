@@ -44,16 +44,31 @@ public class EncounterQueryProcessor {
     }
     //end location filter--------------------------------------------------------------------------------------
 
-    //filter for username------------------------------------------
-    if((request.getParameter("username")!=null)&&(!request.getParameter("username").equals(""))) {
-      String locString=request.getParameter("username").replaceAll("%20", " ").trim();
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(submitterID == \""+locString+"\")";
-      }
-      else{filter+=" && (submitterID == \""+locString+"\")";}
-      prettyPrint.append("Username is \""+locString+"\".<br />");
+    //------------------------------------------------------------------
+    //username filters-------------------------------------------------
+    String[] usernames=request.getParameterValues("username");
+    if((usernames!=null)&&(!usernames[0].equals("None"))){
+          prettyPrint.append("Assigned to one of the following usernames: ");
+          int kwLength=usernames.length;
+            String locIDFilter="(";
+            for(int kwIter=0;kwIter<kwLength;kwIter++) {
+              String kwParam=usernames[kwIter].replaceAll("%20", " ").trim();
+              if(!kwParam.equals("")){
+                if(locIDFilter.equals("(")){
+                  locIDFilter+=" submitterID == \""+kwParam+"\"";
+                }
+                else{
+                  locIDFilter+=" || submitterID == \""+kwParam+"\"";
+                }
+                prettyPrint.append(kwParam+" ");
+              }
+            }
+            locIDFilter+=" )";
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append("<br />");
     }
-    //end username filter--------------------------------------------------------------------------------------
+    //end username filters-----------------------------------------------
 
 
 
