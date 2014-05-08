@@ -1041,19 +1041,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 				}
 				%>
   
-<tr>
-  <td><strong><%=encprops.getProperty("submitterName")%>:</strong>
-    <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
-    </em>
-  </td>
-</tr>
 
-<tr>
-  <td><strong><%=encprops.getProperty("filenameField")%>:</strong>
-    <input name="filenameField" type="text" size="60"> <br> <em><%=encprops.getProperty("filenamesBlank")%>
-    </em>
-  </td>
-</tr>
 
 </table>
 </p>
@@ -1391,7 +1379,7 @@ else {
       <table width="720px" align="left">
         <tr>
           <td width="154">
-          <p><strong><%=encprops.getProperty("types2search")%></strong>:</p>
+          <p><strong><%=encprops.getProperty("types2search")%></strong></p>
      		<%
      		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
      		int numProps=values.size();
@@ -1410,6 +1398,52 @@ else {
 			</p>
 		</td>
         </tr>
+		
+		<tr>
+  <td><br /><strong><%=encprops.getProperty("submitterName")%>:</strong>
+    <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
+    </em>
+  </td>
+</tr>
+
+<tr>
+  <td><br /><strong><%=encprops.getProperty("filenameField")%>:</strong>
+    <input name="filenameField" type="text" size="60"> <br /> <em><%=encprops.getProperty("filenamesBlank")%>
+    </em>
+  </td>
+</tr>
+
+<tr>
+<td>
+
+      <%
+        ArrayList<User> users = myShepherd.getAllUsers();
+        int numUsers = users.size();
+
+      %>
+	<br /><strong><%=encprops.getProperty("username")%></strong><br />
+      <select multiple size="5" name="username" id="username">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < numUsers; n++) {
+            String username = users.get(n).getUsername();
+            String userFullName=username;
+            if(users.get(n).getFullName()!=null){
+            	userFullName=users.get(n).getFullName();
+            }
+            
+        	%>
+        	<option value="<%=username%>"><%=userFullName%></option>
+        	<%
+          }
+        %>
+      </select>
+
+
+</td>
+</tr>
+
+		
       </table>
     </div>
   </td>
