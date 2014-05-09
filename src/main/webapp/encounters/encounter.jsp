@@ -3037,7 +3037,7 @@ $("a#autocomments").click(function() {
 </c:if>
 <table>
 <tr>
-<th class="measurement"><%=encprops.getProperty("type") %></th><th class="measurement"><%=encprops.getProperty("size") %></th><th class="measurement"><%=encprops.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th class="measurement">Sampling Protocol</th></c:if>
+<th class="measurement"><%=encprops.getProperty("type") %></th><th class="measurement"><%=encprops.getProperty("size") %></th><th class="measurement"><%=encprops.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th class="measurement"><%=encprops.getProperty("samplingProtocol") %></th></c:if>
 </tr>
 <c:forEach var="item" items="${measurements}">
  <% 
