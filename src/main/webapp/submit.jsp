@@ -40,36 +40,7 @@ context=ServletUtilities.getContext(request);
 
 
 
-  //load our variables for the submit page
-  String title = props.getProperty("submit_title");
-  String submit_maintext = props.getProperty("submit_maintext");
-  String submit_reportit = props.getProperty("reportit");
-  String submit_language = props.getProperty("language");
-  String what_do = props.getProperty("what_do");
-  String read_overview = props.getProperty("read_overview");
-  String see_all_encounters = props.getProperty("see_all_encounters");
-  String see_all_sharks = props.getProperty("see_all_sharks");
-  String report_encounter = props.getProperty("report_encounter");
-  String log_in = props.getProperty("log_in");
-  String contact_us = props.getProperty("contact_us");
-  String search = props.getProperty("search");
-  String encounter = props.getProperty("encounter");
-  String shark = props.getProperty("shark");
-  String join_the_dots = props.getProperty("join_the_dots");
-  String menu = props.getProperty("menu");
-  String last_sightings = props.getProperty("last_sightings");
-  String more = props.getProperty("more");
-  String ws_info = props.getProperty("ws_info");
-  String about = props.getProperty("about");
-  String contributors = props.getProperty("contributors");
-  String forum = props.getProperty("forum");
-  String blog = props.getProperty("blog");
-  String area = props.getProperty("area");
-  String match = props.getProperty("match");
-  String click2learn = props.getProperty("click2learn");
-
-  //link path to submit page with appropriate language
-  String submitPath = "submit.jsp?langCode=" + langCode;
+  
 
 %>
 
@@ -99,7 +70,7 @@ context=ServletUtilities.getContext(request);
          * the value.length returns the length of the information entered
          * in the Submitter's Name field.
          */
-        requiredfields += "\n   *  Your name";
+        requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
       }
 
         /*         
@@ -115,7 +86,7 @@ context=ServletUtilities.getContext(request);
         */
 
       if (requiredfields != "") {
-        requiredfields = "Please correctly enter the following fields:\n" + requiredfields;
+        requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
         alert(requiredfields);
 // the alert function will popup the alert window
         return false;
