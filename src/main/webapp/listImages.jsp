@@ -2,9 +2,8 @@
 <%@ page contentType="text/xml; charset=utf-8" language="java" import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%
-
-
-	Shepherd myShepherd=new Shepherd();
+String context="context0";
+	Shepherd myShepherd=new Shepherd(context);
 
 %>
 
