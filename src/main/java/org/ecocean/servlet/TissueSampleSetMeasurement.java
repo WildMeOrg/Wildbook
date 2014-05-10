@@ -154,13 +154,14 @@ public class TissueSampleSetMeasurement extends HttpServlet {
     }
     else {
       myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the measurements. I cannot find the encounter or tissue sample that you intended in the database.");
       out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();
-    myShepherd.closeDBTransaction();
+    
   } 
   
 

@@ -155,27 +155,31 @@ myShepherd.commitDBTransaction();
       <div id="maincol-wide-solo">
 
         <div id="maintext">
-          <h1 class="intro">Overview</h1>
+        
+        
+        <!-- Start sample localized HTML -->
+          <h1 class="intro"><%=props.getProperty("overview") %></h1>
 
-          <p class="caption">Welcome to Wildbook! This is the main landing page of this project. You can customize this page (index.jsp) to present details about your project and species.</p>
+          <p class="caption"><%=props.getProperty("overview_maintext") %></p>
           <br/>
         </div>
 
         <div>
-          <h1 class="intro">Data Contributors</h1>
+          <h1 class="intro"><%=props.getProperty("dataContributorsHeader") %></h1>
 
-          <p class="caption">A great optional area to discuss who is contributing data to this
-            library...</p>
+          <p class="caption"><%=props.getProperty("dataContributors") %></p>
         </div>
 
         <div id="context">
-          <h1 class="intro">Contact us</h1>
+          <h1 class="intro"><%=props.getProperty("contactUsHeader") %></h1>
 
-          <p class="caption">A great place to talk about who is running this mark-recapture
-            library...</p>
+          <p class="caption"><%=props.getProperty("whoRuns") %></p>
 
-          <p class="caption"><a href="contactus.jsp">Please contact us
-            with your questions.</a></p>
+          <p class="caption"><a href="contactus.jsp"><%=props.getProperty("contactUs") %></a></p>
+          
+          <!-- End sample localized HTML -->
+          
+          
         </div>
 
 
