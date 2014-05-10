@@ -365,7 +365,7 @@ if(request.getUserPrincipal()!=null){
 				 </li>
                  
                  
-                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/whoAreWe.jsp" style="margin:0px 0 0px 0px; position:relative; width:85px; height:25px; z-index:100;"><strong><%=props.getProperty("peoplePartners")%></strong>
+                  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/whoAreWe.jsp" style="margin:0px 0 0px 0px; position:relative; width:75px; height:25px; z-index:100;"><strong><%=props.getProperty("peoplePartners")%></strong>
   
             <!--[if IE 7]><!--></a><!--<![endif]-->
 
@@ -396,10 +396,10 @@ if(request.getUserPrincipal()!=null){
            
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/contactus.jsp" style="margin:0px 0 0px 0px; position:relative; width:80px; height:25px; z-index:100;"><strong><%=props.getProperty("contactUs")%></strong></a></li>
 <%if(request.getRemoteUser()==null) {%>
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong><%=props.getProperty("login")%></strong></a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp" style="margin:0px 0 0px 0px; position:relative; width:65px; height:25px; z-index:100;"><strong><%=props.getProperty("login")%></strong></a></li>
 <%} else {%>
 
-			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp" style="margin:0px 0 0px 0px; position:relative; width:55px; height:25px; z-index:100;"><strong><%=props.getProperty("logout")%></strong></a></li>
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/logout.jsp" style="margin:0px 0 0px 0px; position:relative; width:65px; height:25px; z-index:100;"><strong><%=props.getProperty("logout")%></strong></a></li>
 <%}%>
 
 </ul>
