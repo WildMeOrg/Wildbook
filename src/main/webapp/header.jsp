@@ -379,7 +379,11 @@ if(CommonConfiguration.isCatalogEditable(context)){
 <!-- define our JavaScript -->
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
-	
+	<script>
+  $(function() {
+    $( "[id^=flag_]" ).tooltip();
+  });
+</script>
 <div id="header_menu" style="background-color: #D7E0ED;clear: left">
 <table width="810px">
 	<tr>
@@ -411,7 +415,7 @@ if(CommonConfiguration.isCatalogEditable(context)){
 						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
 						String myLang=supportedLanguages.get(h);
 					%>
-						<img style="cursor: pointer" id="flag_<%=myLang %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
 						<script type="text/javascript">
 	
 							$( "#flag_<%=myLang%>" ).click(function() {
