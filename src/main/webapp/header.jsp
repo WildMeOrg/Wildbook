@@ -160,7 +160,11 @@ context=ServletUtilities.getContext(request);
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
 	
-	
+<script>
+  $(function() {
+    $( "[id^=flag_]" ).tooltip();
+  });
+</script>
 
 	<div id="header"><img name="masthead" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/masthead.jpg" width="810px" height="300px" border="0" usemap="#m_masthead" alt="">
 
@@ -440,7 +444,7 @@ if(request.getUserPrincipal()!=null){
 						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
 						String myLang=supportedLanguages.get(h);
 					%>
-						<img style="cursor: pointer" id="flag_<%=myLang %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
 						<script type="text/javascript">
 	
 							$( "#flag_<%=myLang%>" ).click(function() {
