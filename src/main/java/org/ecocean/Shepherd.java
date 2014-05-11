@@ -2611,6 +2611,22 @@ public class Shepherd {
     acceptedEncounters.closeAll();
     return al;
   }
+  
+  /**
+   * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance of such it finds.
+   * @param myID The individual ID to return in any case.
+   * @return
+   */
+  public MarkedIndividual getMarkedIndividualCaseInsensitive(String myID) {
+    String filter = "this.individualID.toLowerCase() == \""+myID.toLowerCase()+"\"";
+    Extent encClass = pm.getExtent(MarkedIndividual.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList al = new ArrayList(c);
+    acceptedEncounters.closeAll();
+    if((al!=null)&&(al.size()>0)){return (MarkedIndividual)al.get(1);}
+    return null;
+  }
 
   public ArrayList getEncountersByAlternateID(String altID) {
     String filter = "this.otherCatalogNumbers.startsWith('" + altID + "')";
