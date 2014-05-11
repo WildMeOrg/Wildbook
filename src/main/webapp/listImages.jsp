@@ -55,7 +55,7 @@ while(allSharks.hasNext()){
 					String imagePath=(String)enc.getAdditionalImageNames().get(i);
 					%>
 		
-					<img href="http://www.whaleshark.org/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
+					<img href="http://www.whaleshark.org/shepherd_data_dir/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
 		
 					<%
 	
@@ -69,7 +69,7 @@ while(allSharks.hasNext()){
 				String imagePath=enc.getSpotImageFileName();
 				%>
 					
-					<img href="http://www.whaleshark.org/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
+					<img href="http://www.whaleshark.org/shepherd_data_dir/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
 					
 				<%
 			}
@@ -79,7 +79,7 @@ while(allSharks.hasNext()){
 						String imagePath=enc.getRightSpotImageFileName();
 						%>
 							
-							<img href="http://www.whaleshark.org/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
+							<img href="http://www.whaleshark.org/shepherd_data_dir/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
 							
 						<%
 			}
