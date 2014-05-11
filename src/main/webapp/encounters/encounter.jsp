@@ -1779,13 +1779,30 @@ $("a#country").click(function() {
 				<div id="dialogSubmitter" title="<%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("submitter")%>)" style="display:none">  
 					<form name="setPersonalDetails" action="../EncounterSetSubmitterPhotographerContactInfo" method="post">
   						<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    						<%
+    						
+    						String sName="";
+    						if(enc.getSubmitterName()!=null){sName=enc.getSubmitterName();}
+    						String sEmail="";
+    						if(enc.getSubmitterEmail()!=null){sEmail=enc.getSubmitterEmail();}
+    						String sPhone="";
+    						if(enc.getSubmitterPhone()!=null){sPhone=enc.getSubmitterPhone();}
+    						String sAddress="";
+    						if(enc.getSubmitterAddress()!=null){sAddress=enc.getSubmitterAddress();}
+    						String sOrg="";
+    						if(enc.getSubmitterOrganization()!=null){sOrg=enc.getSubmitterOrganization();}
+    						String sProject="";
+    						if(enc.getSubmitterProject()!=null){sProject=enc.getSubmitterProject();}
+    						
+    						%>
+    						
     						<tr>
       							<td>
        								<input type="hidden" name="contact" value="submitter" />
 									<%=encprops.getProperty("name")%><br />
           						</td>
           						<td>
-          							<input name="name" type="text" size="20" maxlength="100" /> 
+          							<input name="name" type="text" size="20" value="<%=sName %>" maxlength="100"></input> 
           						</td>
           					</tr>          
           					<tr>
@@ -1793,7 +1810,7 @@ $("a#country").click(function() {
           							<%=encprops.getProperty("email")%><br />
           						</td>
           						<td>
-          							<input name="email" type="text" size="20" /> 
+          							<input name="email" type="text" value="<%=sEmail %>" size="20"></input> 
           						</td>
           					</tr>
           					<tr>
@@ -1801,7 +1818,7 @@ $("a#country").click(function() {
           							<%=encprops.getProperty("phone")%>
           						</td>
           						<td>
-          							<input name="phone" type="text" size="20" maxlength="100" /> 
+          							<input name="phone" type="text" size="20" value="<%=sPhone %>" maxlength="100"></input>
           						</td>
           					</tr>
           					<tr>
@@ -1809,7 +1826,7 @@ $("a#country").click(function() {
           							<%=encprops.getProperty("address")%>
           						</td>
           						<td>
-          							<input name="address" type="text" size="20" maxlength="100" /> 
+          							<input name="address" type="text" size="20" value="<%=sAddress %>" maxlength="100"></input> 
           						</td>
           					</tr>
           					<tr>
@@ -1817,7 +1834,7 @@ $("a#country").click(function() {
            							<%=encprops.getProperty("submitterOrganization")%>
           						</td>
           						<td>
-          							<input name="submitterOrganization" type="text" size="20" maxlength="100" /> 
+          							<input name="submitterOrganization" type="text" size="20" value="<%=sOrg %>" maxlength="100"></input>
           						</td>
           					</tr>
           					<tr>
@@ -1825,7 +1842,7 @@ $("a#country").click(function() {
           							<%=encprops.getProperty("submitterProject")%>
 	   							</td>
 	   							<td>
-	   								<input name="submitterProject" type="text" size="20" maxlength="100" /> 
+	   								<input name="submitterProject" type="text" size="20" value="<%=sProject %>" maxlength="100"></input> 
 	            				</td>
 	            			</tr>
           					<tr>
@@ -1895,6 +1912,19 @@ $("a#country").click(function() {
 						<div id="dialogPhotographer" title="<%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("photographer")%>)" style="display:none">  
 							<form action="../EncounterSetSubmitterPhotographerContactInfo" method="post">
   								<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    									<%
+    						
+    						String pName="";
+    						if(enc.getPhotographerName()!=null){pName=enc.getPhotographerName();}
+    						String pEmail="";
+    						if(enc.getPhotographerEmail()!=null){pEmail=enc.getPhotographerEmail();}
+    						String pPhone="";
+    						if(enc.getPhotographerPhone()!=null){pPhone=enc.getPhotographerPhone();}
+    						String pAddress="";
+    						if(enc.getPhotographerAddress()!=null){pAddress=enc.getPhotographerAddress();}
+    						
+    						%>
+    								
     								<tr>
       									<td>
        										<input type="hidden" name="contact" value="photographer" />
@@ -1902,7 +1932,7 @@ $("a#country").click(function() {
           									<%=encprops.getProperty("name")%><br />
           								</td>
           								<td>
-          									<input name="name" type="text" size="20" maxlength="100" /> 
+          									<input name="name" type="text" size="20" value="<%=pName %>" maxlength="100"></input> 
           								</td>
           							</tr>
           							<tr>
@@ -1910,7 +1940,7 @@ $("a#country").click(function() {
           									<%=encprops.getProperty("email")%><br />
           								</td>
           								<td>
-          									<input name="email" type="text" size="20" /> 
+          									<input name="email" type="text" value="<%=pEmail %>" size="20"></input> 
           								</td>
           							</tr>
           							<tr>
@@ -1918,7 +1948,7 @@ $("a#country").click(function() {
           									<%=encprops.getProperty("phone")%>
           								</td>
           								<td>
-          									<input name="phone" type="text" size="20" maxlength="100" /> 
+          									<input name="phone" type="text" size="20" value="<%=pPhone %>" maxlength="100"></input>
           								</td>
           							</tr>
           							<tr>
@@ -1926,7 +1956,7 @@ $("a#country").click(function() {
           									<%=encprops.getProperty("address")%>
           								</td>
           								<td>
-          									<input name="address" type="text" size="20" maxlength="100" /> 
+          									<input name="address" type="text" size="20" value="<%=pAddress %>" maxlength="100"></input> 
           								</td>
           							</tr>
           							<tr>
