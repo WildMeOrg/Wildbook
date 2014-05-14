@@ -47,6 +47,7 @@
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.5</version>
+	  <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -251,18 +252,24 @@
       <artifactId>metadata-extractor</artifactId>
       <version>2.4.0-beta-1</version>
     </dependency>
+<!--
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8.2</version>
       <scope>test</scope>
     </dependency>
+	-->
+    
     <dependency>
-      <groupId>net.sourceforge.jwebunit</groupId>
-      <artifactId>jwebunit-htmlunit-plugin</artifactId>
-      <version>2.5</version>
-      <scope>test</scope>
+        <groupId>net.sourceforge.jwebunit</groupId>
+        <artifactId>jwebunit-htmlunit-plugin</artifactId>
+        <version>3.2</version>
+		<scope>test</scope>
     </dependency>
+	
+	
+	
     <!-- shepherd local jars, not in public maven repos -->
     <dependency>
     <groupId>dilib</groupId>
@@ -275,6 +282,12 @@
           <artifactId>gt-main</artifactId>
           <version>${geotools.version}</version>
     </dependency>
+	
+	<dependency>
+    <groupId>xml-apis</groupId>
+    <artifactId>xml-apis</artifactId>
+    <version>1.4.01</version>
+</dependency>
     
       <dependency>
         <groupId>org.geotools</groupId>
@@ -309,8 +322,43 @@
         </resource>
     </resources>
   
+
+  
     <plugins>
     
+	   <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-clean-plugin</artifactId>
+            <version>2.4.1</version>
+            <configuration>
+                <filesets>
+                    <fileset>
+                        <directory>shepherd_derby_database</directory>
+                        <includes>
+                            <include>**/*</include>
+                        </includes>
+                        <followSymlinks>false</followSymlinks>
+                    </fileset>
+					                    <fileset>
+                        <directory>webapps</directory>
+                        <includes>
+                            <include>**/*</include>
+                        </includes>
+                        <followSymlinks>false</followSymlinks>
+                    </fileset>
+					<fileset>
+                        <directory>${basedir}</directory>
+                        <includes>
+                            <include>derby.log</include>
+							<include>shepherd_derby_database</include>
+							<include>webapps</include>
+                        </includes>
+                        <followSymlinks>false</followSymlinks>
+                    </fileset>
+                </filesets>
+            </configuration>
+        </plugin>
+	
  <plugin>
    <groupId>org.apache.maven.plugins</groupId>
    <artifactId>maven-javadoc-plugin</artifactId>
@@ -398,8 +446,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
+
+          <source>1.7</source>
+          <target>1.7</target>
+
         </configuration>
       </plugin>
       <plugin>
