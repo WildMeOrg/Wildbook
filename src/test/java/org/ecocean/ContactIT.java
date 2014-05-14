@@ -19,8 +19,11 @@
 
 package org.ecocean;
 
-import net.sourceforge.jwebunit.junit.WebTestCase;
-
+//import net.sourceforge.jwebunit.junit.WebTestCase;
+import static net.sourceforge.jwebunit.junit.JWebUnit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 /**
  * Created by IntelliJ IDEA.
  * User: mmcbride
@@ -28,16 +31,25 @@ import net.sourceforge.jwebunit.junit.WebTestCase;
  * Time: 2:18 PM
  * To change this template use File | Settings | File Templates.
  */
-public class ContactIT extends WebTestCase {
-  public void setUp() throws Exception {
-    super.setUp();
+public class ContactIT {
+  
+  @Before
+  public void prepare() throws Exception {
+    //super.setUp();
     setBaseUrl("http://localhost:9090/wildbook");
   }
 
+  @Test
   public void testContactUs() {
+    setScriptingEnabled(false);
     beginAt("/index.jsp");
     clickLinkWithExactText("Contact Us");
     assertResponseCode(200);
-    assertTextPresent("We welcome your comments");
+    assertTextPresent("Provide information about how to contact your organization.");
+  }
+  
+  @After
+  public void close() {
+    closeBrowser();
   }
 }

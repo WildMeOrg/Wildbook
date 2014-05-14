@@ -1,6 +1,6 @@
 /*
- * The Shepherd Project - A Mark-Recapture Framework
- * Copyright (C) 2011 Jason Holmberg
+ * Wildbook - A Mark-Recapture Framework
+ * Copyright (C) 2011-2014 Jason Holmberg
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,7 +19,12 @@
 
 package org.ecocean;
 
-import net.sourceforge.jwebunit.junit.WebTestCase;
+//import net.sourceforge.jwebunit.junit.WebTestCase;
+import static net.sourceforge.jwebunit.junit.JWebUnit.*;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Created by IntelliJ IDEA.
@@ -28,13 +33,17 @@ import net.sourceforge.jwebunit.junit.WebTestCase;
  * Time: 2:18 PM
  * To change this template use File | Settings | File Templates.
  */
-public class AdminIT extends WebTestCase {
-  public void setUp() throws Exception {
-    super.setUp();
+public class AdminIT {
+  
+  @Before
+  public void prepare() throws Exception {
+    //super.setUp();
     setBaseUrl("http://localhost:9090/wildbook");
   }
 
+  @Test
   public void testResourcesAreProtected() {
+    setScriptingEnabled(false);
     beginAt("/index.jsp");
     gotoPage("/appadmin/admin.jsp");
     assertResponseCode(200);
@@ -55,12 +64,19 @@ public class AdminIT extends WebTestCase {
   }
 */
 
-  protected void login() {
+  @Test
+  public void testLogin() {
+    setScriptingEnabled(false);
     beginAt("/index.jsp");
     clickLinkWithExactText("Log in");
     setTextField("username", "tomcat");
     setTextField("password", "tomcat123");
     submit();
     assertTextPresent("Login success!");
+  }
+  
+  @After
+  public void close() {
+    closeBrowser();
   }
 }

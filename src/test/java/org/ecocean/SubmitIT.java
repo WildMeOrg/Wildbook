@@ -19,17 +19,26 @@
 
 package org.ecocean;
 
-import net.sourceforge.jwebunit.junit.WebTestCase;
+//import net.sourceforge.jwebunit.junit.WebTestCase;
+import static net.sourceforge.jwebunit.junit.JWebUnit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * tests for /submit.jsp
  */
-public class SubmitIT extends WebTestCase {
-  public void setUp() throws Exception {
-    super.setUp();
+public class SubmitIT {
+  
+  @Before
+  public void prepare() throws Exception {
+    //super.setUp();
     setBaseUrl("http://localhost:9090/wildbook");
   }
+  
+  @Test
   public void testSubmit() {
+    setScriptingEnabled(false);
     beginAt("/index.jsp");
     clickLinkWithExactText("Participate");
     // necessary fields
@@ -49,5 +58,10 @@ public class SubmitIT extends WebTestCase {
     setTextField("theFile1", "src/main/webapp/images/logbook.gif");
     submit("Submit");
     assertResponseCode(200);
+  }
+  
+  @After
+  public void close() {
+    closeBrowser();
   }
 }
