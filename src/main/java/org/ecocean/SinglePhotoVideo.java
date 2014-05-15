@@ -132,7 +132,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   }
   
   public String getCorrespondingUsername(){return correspondingUsername;}
-  public void setCorrespondingUsername(String username){this.correspondingUsername=correspondingUsername;}
+  public void setCorrespondingUsername(String username){this.correspondingUsername=username;}
 
   
   
