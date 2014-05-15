@@ -332,6 +332,7 @@
             <field name="correspondingEncounterNumber">
                 <column name="CORRESPONDINGENCOUNTERNUMBER" />
             </field>
+
             <field name="dataCollectionEventID" primary-key="true"
                 value-strategy="native">
                 <column name="DATACOLLECTIONEVENTID" />
@@ -383,7 +384,9 @@
 
         <class name="SinglePhotoVideo" identity-type="application">
             <inheritance strategy="new-table" />
-			 
+			 <field name="correspondingUsername">
+                <column name="CORRESPONDINGUSERNAME" />
+            </field>
             <field name="filename">
                 <column name="FILENAME" />
             </field>
