@@ -25,6 +25,9 @@
 
 <%
 
+
+String context="context0";
+
 //get language
 String langCode = ServletUtilities.getLanguageCode(request);
 
@@ -32,8 +35,7 @@ String langCode = ServletUtilities.getLanguageCode(request);
 Properties props=ShepherdProperties.getProperties("users.properties", langCode,context);
 
 
-String context="context0";
-//context=ServletUtilities.getContext(request);
+
   	
   	
   Shepherd myShepherd = new Shepherd(context);
