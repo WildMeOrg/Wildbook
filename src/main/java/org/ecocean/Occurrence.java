@@ -179,7 +179,7 @@ public class Occurrence implements java.io.Serializable{
     }
   }
   
-  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder) {
+  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
     //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
     Vector haveData=new Vector();
     Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
@@ -187,7 +187,7 @@ public class Occurrence implements java.io.Serializable{
     Properties localesProps = new Properties();
     if(useLocales){
       try {
-        localesProps=ShepherdProperties.getProperties("locationIDGPS.properties", "");
+        localesProps=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
       } 
       catch (Exception ioe) {
         ioe.printStackTrace();

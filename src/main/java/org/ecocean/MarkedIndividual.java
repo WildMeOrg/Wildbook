@@ -185,9 +185,9 @@ public class MarkedIndividual implements java.io.Serializable {
   }
 
   public Vector returnEncountersWithGPSData(){
-    return returnEncountersWithGPSData(false,false);
+    return returnEncountersWithGPSData(false,false,"context0");
   }
-  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder) {
+  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
     //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
     Vector haveData=new Vector();
     Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
