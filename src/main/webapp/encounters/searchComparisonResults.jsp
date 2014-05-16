@@ -39,7 +39,7 @@
     
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchComparisonResults.properties"));
-    encprops=ShepherdProperties.getProperties("searchComparisonResults.properties", langCode);
+    encprops=ShepherdProperties.getProperties("searchComparisonResults.properties", langCode, context);
     
     
     Properties haploprops = new Properties();

@@ -195,7 +195,7 @@ public class MarkedIndividual implements java.io.Serializable {
     Properties localesProps = new Properties();
     if(useLocales){
       try {
-        localesProps=ShepherdProperties.getProperties("locationIDGPS.properties", "");
+        localesProps=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
       } 
       catch (Exception ioe) {
         ioe.printStackTrace();

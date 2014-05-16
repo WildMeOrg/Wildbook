@@ -52,7 +52,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
   haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
 
     Properties localeprops = new Properties();
-   localeprops=ShepherdProperties.getProperties("locationIDGPS.properties", "");
+   localeprops=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
 
    List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies",context);
    int numSpecies=allSpecies.size();
