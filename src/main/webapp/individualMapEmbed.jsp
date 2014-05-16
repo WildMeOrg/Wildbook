@@ -88,12 +88,12 @@ context=ServletUtilities.getContext(request);
   if(request.getParameter("name")!=null){
 	  String name = request.getParameter("name");
 	  MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);
-	  haveGPSData = sharky.returnEncountersWithGPSData(true, true);
+	  haveGPSData = sharky.returnEncountersWithGPSData(true, true,context);
   }
   else if(request.getParameter("occurrence_number")!=null){
 	  String name = request.getParameter("occurrence_number");
 	  Occurrence sharky=myShepherd.getOccurrence(name);
-	  haveGPSData = sharky.returnEncountersWithGPSData(false, false);
+	  haveGPSData = sharky.returnEncountersWithGPSData(false, false,context);
   }
   
   
@@ -176,8 +176,8 @@ String lastLatLong="";
 	  
 	  for(int g=0;g<numParticipatingIndies;g++){
 		  MarkedIndividual indie=myShepherd.getMarkedIndividual(occurIndies.get(g));
-		  if(indie.returnEncountersWithGPSData(true,false).size()>0){
-			  Vector encsWithGPS=indie.returnEncountersWithGPSData(true,true);
+		  if(indie.returnEncountersWithGPSData(true,false,context).size()>0){
+			  Vector encsWithGPS=indie.returnEncountersWithGPSData(true,true,context);
 			  int numEncsWithGPS=encsWithGPS.size();
 			  for(int j=0;j<numEncsWithGPS;j++){
 				  //if(!haveGPSData.contains(encsWithGPS.get(j))){
