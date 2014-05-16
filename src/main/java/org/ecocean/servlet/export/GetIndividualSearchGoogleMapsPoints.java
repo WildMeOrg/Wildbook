@@ -111,7 +111,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
       for(int i=0;i<numIndividuals;i++) {
         MarkedIndividual indie=(MarkedIndividual)rIndividuals.get(i);
         
-        Vector rEncounters=indie.returnEncountersWithGPSData(useLocales,true); 
+        Vector rEncounters=indie.returnEncountersWithGPSData(useLocales,true,context); 
         int numEncs=rEncounters.size();
         
         //set up move path
