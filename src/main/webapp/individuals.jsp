@@ -50,7 +50,7 @@ context=ServletUtilities.getContext(request);
   //load our variables for the submit page
 
  // props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
-  props = ShepherdProperties.getProperties("individuals.properties", langCode);
+  props = ShepherdProperties.getProperties("individuals.properties", langCode,context);
 	
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");

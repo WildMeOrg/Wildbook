@@ -45,7 +45,7 @@ context=ServletUtilities.getContext(request);
 
   //set up the file input stream
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/header.properties"));
-  props = ShepherdProperties.getProperties("header.properties", langCode);
+  props = ShepherdProperties.getProperties("header.properties", langCode, context);
 
 
 %>

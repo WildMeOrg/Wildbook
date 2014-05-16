@@ -43,7 +43,7 @@ context=ServletUtilities.getContext(request);
 
   Properties props = new Properties();
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/overview.properties"));
-  props = ShepherdProperties.getProperties("overview.properties", langCode);
+  props = ShepherdProperties.getProperties("overview.properties", langCode,context);
 
 
 

@@ -34,7 +34,7 @@ context=ServletUtilities.getContext(request);
   //set up the file input stream
   Properties props = new Properties();
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/error.properties"));
-  props = ShepherdProperties.getProperties("error.properties", langCode);
+  props = ShepherdProperties.getProperties("error.properties", langCode,context);
 
 %>
 <%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %>

@@ -38,7 +38,7 @@
     
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
-    map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode);
+    map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode,context);
 	  
 
     
@@ -49,7 +49,7 @@
 		
 
     Properties localeprops = new Properties();
-    localeprops = ShepherdProperties.getProperties("locationIDGPS.properties", "");
+    localeprops = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
 	
     
     //get our Shepherd
