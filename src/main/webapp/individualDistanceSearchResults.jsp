@@ -36,7 +36,7 @@
     String langCode=ServletUtilities.getLanguageCode(request);
     
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualDistanceSearchResults.properties"));
-    props = ShepherdProperties.getProperties("individualDistanceSearchResults.properties", langCode);
+    props = ShepherdProperties.getProperties("individualDistanceSearchResults.properties", langCode,context);
 
 
 

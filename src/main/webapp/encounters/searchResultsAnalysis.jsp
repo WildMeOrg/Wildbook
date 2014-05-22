@@ -45,7 +45,7 @@
     
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
-    encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode);
+    encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
     
     
     Properties haploprops = new Properties();

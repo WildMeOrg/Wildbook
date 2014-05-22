@@ -38,7 +38,7 @@ context=ServletUtilities.getContext(request);
 //set up the file input stream
   Properties props = new Properties();
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/login.properties"));
-  props = ShepherdProperties.getProperties("login.properties", langCode);
+  props = ShepherdProperties.getProperties("login.properties", langCode,context);
 
 
 %>

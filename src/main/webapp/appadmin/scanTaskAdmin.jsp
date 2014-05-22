@@ -77,7 +77,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
     
 
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-  props=ShepherdProperties.getProperties("submit.properties", langCode);
+  props=ShepherdProperties.getProperties("submit.properties", langCode, context);
 
   //load our variables for the submit page
   String title = props.getProperty("submit_title");

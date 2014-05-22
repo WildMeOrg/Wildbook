@@ -135,7 +135,7 @@ margin-bottom: 8px !important;
 
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchComparison.properties"));
-  encprops=ShepherdProperties.getProperties("searchComparison.properties", langCode);
+  encprops=ShepherdProperties.getProperties("searchComparison.properties", langCode, context);
 
   
   //let's determine if this is location 1 or 2
