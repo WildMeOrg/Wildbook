@@ -98,6 +98,8 @@ public class Encounter implements java.io.Serializable {
   
   // If Encounter spanned more than one day, date of release
   private Date releaseDate;
+  
+  private Long releaseDateLong;
 
   //Size of the individual in meters
   private Double size;
@@ -1147,12 +1149,20 @@ public class Encounter implements java.io.Serializable {
   //public void setDateAdded(long date){dateAdded=date;}
   //public long getDateAdded(){return dateAdded;}
 
-  public Date getReleaseDate() {
+  public Date getReleaseDateDONOTUSE() {
     return releaseDate;
   }
+  
+   public Date getReleaseDate() {
+    if((releaseDateLong!=null)&&(releaseDateLong>0)){
+      Date mDate=new Date(releaseDateLong);
+      return mDate;
+    }
+    return null;
+  }
 
-  public void setReleaseDate(Date releaseDate) {
-    this.releaseDate = releaseDate;
+  public void setReleaseDate(Long releaseDate) {
+    this.releaseDateLong = releaseDate;
   }
 
   public void setDWCDecimalLatitude(double lat) {
