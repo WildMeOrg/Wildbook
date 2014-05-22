@@ -145,7 +145,7 @@
             </field>
 
             <field name="releaseDate" persistence-modifier="persistent">
-                <column jdbc-type="DATE" allows-null="true"/>
+                <column jdbc-type="BIGINT" allows-null="true"/>
             </field>
 
             <field name="maximumDepthInMeters"

@@ -415,7 +415,7 @@ public class SubmitAction extends Action {
         String dateFormatPattern = CommonConfiguration.getProperty("releaseDateFormat",context);
         try {
           SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-          enc.setReleaseDate(simpleDateFormat.parse(dateStr));
+          enc.setReleaseDate(simpleDateFormat.parse(dateStr).getTime());
         } catch (Exception e) {
           enc.addComments("<p>Reported release date was problematic: " + dateStr + "</p>");
         }
