@@ -48,7 +48,7 @@ context=ServletUtilities.getContext(request);
   
   Properties calprops = new Properties();
   //calprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/calendar.properties"));
-  calprops = ShepherdProperties.getProperties("calendar.properties", langCode);
+  calprops = ShepherdProperties.getProperties("calendar.properties", langCode, context);
 
 
 

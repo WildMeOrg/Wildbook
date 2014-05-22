@@ -34,12 +34,12 @@ context=ServletUtilities.getContext(request);
   //load our variables for the submit page
 
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
-  props = ShepherdProperties.getProperties("individuals.properties", langCode);
+  props = ShepherdProperties.getProperties("individuals.properties", langCode, context);
 
 
 		  
   Properties localesProps = new Properties();
-  localesProps = ShepherdProperties.getProperties("locationIDGPS.properties", "");
+  localesProps = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
 	  
 		  
 		  

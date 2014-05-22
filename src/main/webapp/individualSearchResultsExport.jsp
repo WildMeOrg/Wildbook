@@ -36,7 +36,7 @@
     String langCode=ServletUtilities.getLanguageCode(request);
     
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsExport.properties"));
-    props = ShepherdProperties.getProperties("individualSearchResultsExport.properties", langCode);
+    props = ShepherdProperties.getProperties("individualSearchResultsExport.properties", langCode,context);
 
 
     int startNum = 1;

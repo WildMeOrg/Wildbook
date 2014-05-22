@@ -62,7 +62,7 @@ context=ServletUtilities.getContext(request);
   //set up the file input stream
   //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/removeEmailAddress.properties"));
-  props = ShepherdProperties.getProperties("removeEmailAddress.properties", langCode);
+  props = ShepherdProperties.getProperties("removeEmailAddress.properties", langCode,context);
 
 
   //load our variables for the submit page

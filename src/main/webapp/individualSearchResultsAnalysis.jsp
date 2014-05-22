@@ -38,7 +38,7 @@
   
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsAnalysis.properties"));
-    encprops = ShepherdProperties.getProperties("individualSearchResultsAnalysis.properties", langCode);
+    encprops = ShepherdProperties.getProperties("individualSearchResultsAnalysis.properties", langCode,context);
 
  
     //get our Shepherd

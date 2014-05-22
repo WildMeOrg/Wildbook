@@ -59,7 +59,7 @@ try {
 
   
   
-  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode);
+  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 //handle translation
 
   

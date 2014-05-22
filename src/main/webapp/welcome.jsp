@@ -63,7 +63,7 @@ context=ServletUtilities.getContext(request);
   //set up the file input stream
   Properties props = new Properties();
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/welcome.properties"));
-  props = ShepherdProperties.getProperties("welcome.properties", langCode);
+  props = ShepherdProperties.getProperties("welcome.properties", langCode,context);
 
 
   session = request.getSession(true);

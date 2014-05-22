@@ -38,7 +38,7 @@ context=ServletUtilities.getContext(request);
 
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
-  encprops=ShepherdProperties.getProperties("searchResults.properties", langCode);
+  encprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
   
 
   Shepherd myShepherd = new Shepherd(context);
