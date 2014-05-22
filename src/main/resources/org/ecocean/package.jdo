@@ -144,7 +144,7 @@
                 <column jdbc-type="BIGINT" allows-null="true" />
             </field>
 
-            <field name="releaseDate" persistence-modifier="persistent">
+            <field name="releaseDateLong" persistence-modifier="persistent">
                 <column jdbc-type="BIGINT" allows-null="true"/>
             </field>
 
