@@ -70,11 +70,16 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   
 
-  //Properties props = new Properties();
+  Properties props = new Properties();
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/overview.properties"));
 
   
-  Properties props = ShepherdProperties.getProperties("overview.properties", langCode);
+	try{
+		props = ShepherdProperties.getProperties("overview.properties", langCode);
+	}
+	catch(Exception e){
+		e.printStackTrace();
+	}
 
   
 
