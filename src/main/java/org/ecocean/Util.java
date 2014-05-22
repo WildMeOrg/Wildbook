@@ -77,9 +77,19 @@ public class Util {
   public static List<OptionDesc> findSamplingProtocols(String langCode,String context) {
     List<String> values = CommonConfiguration.getIndexedValues("samplingProtocol",context);
     List<OptionDesc> list = new ArrayList<OptionDesc>();
+    
+    /*
     for (String key : values) {
       String label = findLabel(key, langCode,context);
       list.add(new OptionDesc(key, label));
+    }
+    */
+    int valuesSize=values.size();
+    for(int i=0;i<valuesSize;i++){
+      String key="samplingProtocol"+i;
+      String label = findLabel(key, langCode,context);
+      list.add(new OptionDesc(key, label));
+      
     }
     return list;
   }
