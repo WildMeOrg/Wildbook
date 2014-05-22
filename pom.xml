@@ -10,12 +10,12 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <datanucleus.version>3.2.0-release</datanucleus.version>
-    <datanucleus.jdo.api.version>3.2.0-release</datanucleus.jdo.api.version>
+    <datanucleus.version>3.3.0-release</datanucleus.version>
+    <datanucleus.jdo.api.version>3.2.8</datanucleus.jdo.api.version>
     <datanucleus.enhancer.version>3.1.1</datanucleus.enhancer.version>
-    <datanucleus.spatial.version>3.2.0-release</datanucleus.spatial.version>
-    <datanucleus.rest.version>3.2.0-release</datanucleus.rest.version>
-    <datanucleus.jodatime.version>3.2.0-release</datanucleus.jodatime.version>
+    <datanucleus.spatial.version>3.2.4</datanucleus.spatial.version>
+    <datanucleus.rest.version>3.2.2</datanucleus.rest.version>
+    <datanucleus.jodatime.version>3.2.1</datanucleus.jodatime.version>
     <datanucleus.jpa.version>2.1.8</datanucleus.jpa.version>
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
      <geotools.version>8.3</geotools.version>
@@ -186,7 +186,7 @@
     <dependency>
       <groupId>org.datanucleus</groupId>
       <artifactId>datanucleus-core</artifactId>
-      <version>${datanucleus.version}</version>
+      <version>3.2.13</version>
       <scope>${datanucleus.lib.scope}</scope>
     </dependency>
     <dependency>
@@ -198,7 +198,7 @@
     <dependency>
       <groupId>org.datanucleus</groupId>
       <artifactId>datanucleus-rdbms</artifactId>
-      <version>${datanucleus.version}</version>
+      <version>3.2.12</version>
       <scope>${datanucleus.lib.scope}</scope>
     </dependency>
     <dependency>
@@ -270,12 +270,20 @@
 	
 	
 	
-    <!-- shepherd local jars, not in public maven repos -->
+    <!-- wildbook local jars, not in public maven repos -->
     <dependency>
     <groupId>dilib</groupId>
       <artifactId>dilib</artifactId>
       <version>1.0</version>
     </dependency>
+	
+	    <dependency>
+    <groupId>sqljdbc4</groupId>
+      <artifactId>sqljdbc4</artifactId>
+      <version>1.0</version>
+    </dependency>
+	
+	<!-- end local repo dependencies-->
     
     <dependency>
           <groupId>org.geotools</groupId>
