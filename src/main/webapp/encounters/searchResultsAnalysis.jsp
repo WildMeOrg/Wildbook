@@ -144,6 +144,19 @@
  				}
  				
  			}
+ 			
+ 			
+ 	 		//let's prep the HashTable for the assigned users pie chart
+ 	 		  ArrayList<User> allUsers=myShepherd.getAllUsers(); 
+ 	 		  int numUsers= allUsers.size();
+ 	 		  Hashtable<String,Integer> usersHashtable = new Hashtable<String,Integer>();
+ 	 			for(int gg=0;gg<numUsers;gg++){
+ 	 				String thisUser=allUsers.get(gg).getUsername();
+ 	 				if(thisUser!=null){
+ 	 					usersHashtable.put(thisUser, new Integer(0));
+ 	 				}
+ 	 				
+ 	 			}
  	
  			
  			//let's prep the data structures for the discovery curve
@@ -233,6 +246,15 @@
 			 if(countriesHashtable.containsKey(thisEnc.getCountry())){
 	      		   Integer thisInt = countriesHashtable.get(thisEnc.getCountry())+1;
 	      		   countriesHashtable.put(thisEnc.getCountry(), thisInt);
+	      	 		//numCountryEntries++;  
+			 }
+		 }
+		 
+		 //check the Encounter user
+		 if(thisEnc.getSubmitterID()!=null){
+			 if(usersHashtable.containsKey(thisEnc.getSubmitterID())){
+	      		   Integer thisInt = usersHashtable.get(thisEnc.getSubmitterID())+1;
+	      		   usersHashtable.put(thisEnc.getSubmitterID(), thisInt);
 	      	 		//numCountryEntries++;  
 			 }
 		 }
@@ -541,6 +563,39 @@
         countriesChart.draw(countriesData, countriesOptions);
       }
       
+      //users chart
+      google.setOnLoadCallback(drawUsersChart);
+     function drawUsersChart() {
+       var usersData = new google.visualization.DataTable();
+       usersData.addColumn('string', 'User');
+       usersData.addColumn('number', 'No. Encounters Assigned');
+       usersData.addRows([
+         <%
+         Enumeration<String> usersKeys=usersHashtable.keys();
+
+         while(usersKeys.hasMoreElements()){
+       	  String keyName=usersKeys.nextElement();
+       	 %>
+         ['<%=keyName%>',    <%=usersHashtable.get(keyName) %>]
+		  <%
+		  if(usersKeys.hasMoreElements()){
+		  %>
+		  ,
+		  <%
+		  }
+        }
+		 %>
+         
+       ]);
+    var usersOptions = {
+         width: 450, height: 300,
+         title: 'Reported Encounters per Assigned User',
+         
+       };
+     var usersChart = new google.visualization.PieChart(document.getElementById('userschart_div'));
+       usersChart.draw(usersData, usersOptions);
+     }
+      
       
       //discovery curve
       google.setOnLoadCallback(drawDiscoveryCurve);
@@ -761,6 +816,7 @@
 		%>
  	<div id="discoveryCurve_div"></div>
  	<div id="frequency_div"></div>
+ 	<div id="userschart_div"></div>
  <%
  
      } 
