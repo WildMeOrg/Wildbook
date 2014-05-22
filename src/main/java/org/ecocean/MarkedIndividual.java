@@ -1136,6 +1136,7 @@ public class MarkedIndividual implements java.io.Serializable {
   
   public ArrayList<TissueSample> getAllTissueSamples() {
     ArrayList<TissueSample> al = new ArrayList<TissueSample>();
+    if(encounters!=null){
     int numEncounters = encounters.size();
     for (int i = 0; i < numEncounters; i++) {
       Encounter enc = (Encounter) encounters.get(i);
@@ -1147,6 +1148,8 @@ public class MarkedIndividual implements java.io.Serializable {
       }
     }
     return al;
+    }
+    return null;
   }
   
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideo() {
@@ -1366,6 +1369,7 @@ public boolean hasLocus(String locus){
 
 public boolean hasMsMarkers(){
   ArrayList<TissueSample> samples=getAllTissueSamples();
+  if(samples!=null){
   int numSamples=samples.size();
   for(int i=0;i<numSamples;i++){
       TissueSample sample=samples.get(i);
@@ -1379,6 +1383,7 @@ public boolean hasMsMarkers(){
           }
         }
       }
+  }
   }
   return false;
 }
