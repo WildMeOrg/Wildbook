@@ -43,7 +43,7 @@ public class EncounterSetReleaseDate extends HttpServlet {
           SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
           try {
             Date releaseDate = simpleDateFormat.parse(releaseDateStr);
-            enc.setReleaseDate(releaseDate);
+            enc.setReleaseDate(releaseDate.getTime());
             sb.append(MessageFormat.format("Release Date set to {0}", releaseDateStr));
           } catch (Exception e) {
             sb.append(MessageFormat.format("Error reading release date {0}. Expecting value in format {1}", releaseDateStr, pattern));
