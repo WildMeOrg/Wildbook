@@ -31,6 +31,10 @@
 
   <%
 
+  
+  //get our Shepherd
+  String context="context0";
+  context=ServletUtilities.getContext(request);
 
     //let's load encounterSearch.properties
     //String langCode = "en";
@@ -40,10 +44,7 @@
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsAnalysis.properties"));
     encprops = ShepherdProperties.getProperties("individualSearchResultsAnalysis.properties", langCode,context);
 
- 
-    //get our Shepherd
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+
     
     
     
