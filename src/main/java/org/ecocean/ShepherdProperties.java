@@ -3,6 +3,7 @@ package org.ecocean;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class ShepherdProperties {
@@ -47,7 +48,9 @@ public class ShepherdProperties {
       //otherwise load the embedded commonConfig
 
       try {
-        props.load(ShepherdProperties.class.getResourceAsStream("/bundles/"+langCode+fileName));
+        InputStream inputStream=ShepherdProperties.class.getResourceAsStream("/bundles/"+langCode+fileName);
+        props.load(inputStream);
+        inputStream.close();
       }
       catch (IOException ioe) {
         ioe.printStackTrace();
@@ -60,7 +63,9 @@ public class ShepherdProperties {
   public static Properties getContextsProperties(){
     Properties props=new Properties();
       try {
-        props.load(ShepherdProperties.class.getResourceAsStream("/bundles/contexts.properties"));
+        InputStream inputStream = ShepherdProperties.class.getResourceAsStream("/bundles/contexts.properties");
+        props.load(inputStream);
+        inputStream.close();
       }
       catch (IOException ioe) {
         ioe.printStackTrace();
