@@ -50,7 +50,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 //let's load encounters.properties
 Properties encprops = new Properties();
 //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
-encprops=ShepherdProperties.getProperties("encounter.properties", langCode);
+encprops=ShepherdProperties.getProperties("encounter.properties", langCode,context);
 
 
 Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);

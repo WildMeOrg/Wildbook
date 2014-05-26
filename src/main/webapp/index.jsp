@@ -55,16 +55,9 @@ context=ServletUtilities.getContext(request);
 	//test comment
 	
 	//language setup
-	String langCode="en";
-	if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
-	if(request.getParameter("langCode")!=null){
-		if(request.getParameter("langCode").equals("en")) {langCode="en";}
-		if(request.getParameter("langCode").equals("fr")) {langCode="fr";}
-		if(request.getParameter("langCode").equals("de")) {langCode="de";}
-		if(request.getParameter("langCode").equals("es")) {langCode="es";}
-	}
-	Properties props=new Properties();
-	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/overview.properties"));
+	String langCode=ServletUtilities.getLanguageCode(request);
+
+	Properties props=ShepherdProperties.getProperties("overview.properties", langCode,context);
 	
 	//adding a comment here
 	

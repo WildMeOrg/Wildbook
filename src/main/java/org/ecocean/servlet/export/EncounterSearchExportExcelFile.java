@@ -83,7 +83,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
         //load the optional locales
         Properties props = new Properties();
         try {
-          props=ShepherdProperties.getProperties("locationIDGPS.properties", "");
+          props=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
         
         } catch (Exception e) {
           System.out.println("     Could not load locales.properties EncounterSearchExportExcelFile.");
