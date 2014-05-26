@@ -37,7 +37,7 @@
     
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
-    map_props=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode);
+    map_props=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode, context);
 
     
     

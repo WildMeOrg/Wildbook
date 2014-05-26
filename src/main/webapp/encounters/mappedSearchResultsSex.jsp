@@ -39,7 +39,7 @@
     
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
-    encprops=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode);
+    encprops=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode, context);
 
     
     

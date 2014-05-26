@@ -52,7 +52,7 @@ context=ServletUtilities.getContext(request);
   //load our variables for the submit page
 
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/occurrence.properties"));
-  props = ShepherdProperties.getProperties("occurrence.properties", langCode);
+  props = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
 
   String name = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);

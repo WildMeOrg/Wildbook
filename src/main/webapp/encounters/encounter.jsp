@@ -37,7 +37,7 @@
         Properties props = new Properties();
         //set up the file input stream
         //props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
-        props=ShepherdProperties.getProperties("newIndividualNumbers.properties", "");
+        props=ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
 
 
         //let's see if the property is defined
@@ -121,7 +121,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   //Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
-  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode);
+  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 
 
   pageContext.setAttribute("num", num);

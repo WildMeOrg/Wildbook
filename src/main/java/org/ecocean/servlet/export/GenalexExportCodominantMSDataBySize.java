@@ -97,7 +97,7 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
         Properties props = new Properties();
         try {
           //props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
-          props=ShepherdProperties.getProperties("locationIDGPS.properties", "");
+          props=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
           
         } catch (Exception e) {
           System.out.println("     Could not load locationIDGPS.properties in class GenalexExportCodominantMSDataBySize.");
