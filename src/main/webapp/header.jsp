@@ -174,6 +174,11 @@ context=ServletUtilities.getContext(request);
 </map>
 
 </div>
+	<script type="text/javascript">
+  $(function() {
+    $( "[id^=flag_]" ).tooltip();
+  });
+</script>
 <div id="header_menu">
 
 
