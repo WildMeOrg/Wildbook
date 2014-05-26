@@ -383,6 +383,9 @@ public class ServletUtilities {
     else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
       isOwner = true;
     }
+    else if(request.isUserInRole("admin")){
+      isOwner = true;
+    }
     return isOwner;
   }
 
@@ -393,9 +396,12 @@ public class ServletUtilities {
     int numEncs = encounters.size();
     for (int y = 0; y < numEncs; y++) {
       Encounter enc = (Encounter) encounters.get(y);
-      if (request.isUserInRole(enc.getLocationCode())) {
+      if (isUserAuthorizedForEncounter(enc,request)) {
         return true;
       }
+    }
+    if(request.isUserInRole("admin")){
+      return true;
     }
     return false;
   }
@@ -408,9 +414,12 @@ public class ServletUtilities {
     int numEncs = encounters.size();
     for (int y = 0; y < numEncs; y++) {
       Encounter enc = (Encounter) encounters.get(y);
-      if (request.isUserInRole(enc.getLocationCode())) {
+      if (isUserAuthorizedForEncounter(enc,request)) {
         return true;
       }
+    }
+    if(request.isUserInRole("admin")){
+      return true;
     }
     return false;
   }
