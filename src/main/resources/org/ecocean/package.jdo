@@ -525,6 +525,53 @@
 		 		
 		 </class>
         
+		
+			<class name="Story" identity-type="application" table="STORY">
+		            
+
+		            <field name="storyID" primary-key="true" column="STORY_ID">
+			    				<column length="100"/>
+					</field>
+					
+					 <field name="storyTellerName" column="STORY_TELLER_NAME">
+			    				<column length="100"/>
+					</field>
+					
+					<field name="storyTellerEmail" column="STORY_TELLER_EMAIL">
+			    				<column length="100"/>
+					</field>
+					
+					<field name="storyMediaURL" column="STORY_MEDIA_URL">
+			    				<column length="256"/>
+					</field>
+					
+					<field name="storyText">
+									<column jdbc-type="LONGVARCHAR" />
+					</field>
+					
+					<field name="correspondingEncounterNumber">
+			    				<column length="256"/>
+					</field>
+					
+					<field name="correspondingMarkedIndividualID">
+			    				<column length="256"/>
+					</field>
+					
+					<field name="correspondingOccurrenceID">
+			    				<column length="256"/>
+					</field>
+					
+					<field name="correspondingSocialUnitName">
+			    				<column length="256"/>
+					</field>
+					
+					  <field name="correspondingThumbnailSinglePhotoVideo" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo">
+				</field>
+					
+			</class>		
+		
+
+
 
         
 		
