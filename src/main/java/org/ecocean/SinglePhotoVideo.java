@@ -17,6 +17,9 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   //use for User objects
   String correspondingUsername;
   
+  //Use for Story objects
+  String correspondingStoryID;
+  
   /*
   private String thumbnailFilename;
   private String thumbnailFullFileSystemPath;
@@ -133,6 +136,9 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   
   public String getCorrespondingUsername(){return correspondingUsername;}
   public void setCorrespondingUsername(String username){this.correspondingUsername=username;}
+
+  public String getCorrespondingStoryID(){return correspondingStoryID;}
+  public void setCorrespondingStoryID(String userID){this.correspondingStoryID=userID;}
 
   
   
