@@ -31,11 +31,14 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.output.*;
 /////
 
+/*
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.User;
+*/
+import org.ecocean.*;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
@@ -45,10 +48,15 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import java.text.SimpleDateFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record
@@ -102,6 +110,8 @@ private final String UPLOAD_DIRECTORY = "/tmp";
   }
 
 
+    //File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/users");
+    //if(!encountersDir.exists()){encountersDir.mkdir();}
 
 
   public static final String ERROR_PROPERTY_MAX_LENGTH_EXCEEDED = "The maximum upload length has been exceeded by the client.";
@@ -111,18 +121,28 @@ private final String UPLOAD_DIRECTORY = "/tmp";
 
 		HashMap fv = new HashMap();
 
+		HttpSession session = request.getSession(false);
     String context="context0";
     //context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 System.out.println("in context " + context);
+		//request.getSession()getServlet().getServletContext().getRealPath("/"));
+		String rootDir = getServletContext().getRealPath("/");
+System.out.println("rootDir=" + rootDir);
 
-    //setup data dir
-    String rootWebappPath = getServletContext().getRealPath("/");
-    File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
-    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/users");
-    if(!encountersDir.exists()){encountersDir.mkdir();}
+
+/*
+		boolean directoryCreated = false;
+		try {
+			if ((!thisEncounterDir.exists()) && (!spamBot)) {
+          created = thisEncounterDir.mkdir();
+        }
+        ;
+      } catch (SecurityException sec) {
+        System.out.println("Security exception thrown while trying to created the directory for a new encounter!");
+      }
+      //System.out.println("Created?: "+created);
+*/
     
     //set up for response
     response.setContentType("text/html");
@@ -133,23 +153,32 @@ System.out.println("in context " + context);
     String username = "None";
     String fullPathFilename="";
 
-		boolean fileSuccess = false;
+		boolean fileSuccess = false;  //kinda pointless now as we just build sentFiles list now at this point (do file work at end)
 		String doneMessage = "";
+		List<String> filesOK = new ArrayList<String>();
+		List<String> filesBad = new ArrayList<String>();
+
+		List<FileItem> formFiles = new ArrayList<FileItem>();
+
   	Calendar date = Calendar.getInstance();
 
 		if (ServletFileUpload.isMultipartContent(request)) {
 			try {
 				List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
-							
+
 				for(FileItem item : multiparts){
 					if (item.isFormField()) {  //plain field
-						fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString()));
+						fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString().trim()));  //TODO do we want trim() here??? -jon
 System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString() + ")");
 
 					} else {  //file
-						String name = new File(item.getName()).getName();
-System.out.println("file name = " + name);
-						item.write( new File(UPLOAD_DIRECTORY + File.separator + name));
+//System.out.println("content type???? " + item.getContentType());   TODO note, the helpers only check extension
+						if (myShepherd.isAcceptableImageFile(item.getName()) || myShepherd.isAcceptableVideoFile(item.getName()) ) {
+							formFiles.add(item);
+							filesOK.add(item.getName());
+						} else {
+							filesBad.add(item.getName());
+						}
 					}
 				}
 
@@ -164,6 +193,9 @@ System.out.println("file name = " + name);
 			doneMessage = "Sorry this Servlet only handles file upload request";
 		}
 
+		session.setAttribute("filesOKMessage", (filesOK.isEmpty() ? "none" : Arrays.toString(filesOK.toArray())));
+		session.setAttribute("filesBadMessage", (filesBad.isEmpty() ? "none" : Arrays.toString(filesBad.toArray())));
+
 		if (fileSuccess) {
 
         ///request.getRequestDispatcher("/result.jsp").forward(request, response);
@@ -175,27 +207,22 @@ System.out.println("file name = " + name);
 
 //////////////////////////////////////////// START
 
-      //date = theForm.getDate();
       //uniqueID = theForm.getUniqueID();
 
 
-/*
-      //check for spamBots
-      boolean spamBot = false;
-      StringBuffer spamFields = new StringBuffer();
-      spamFields.append(theForm.getSubmitterPhone());
-      spamFields.append(theForm.getSubmitterName());
-      spamFields.append(theForm.getPhotographerPhone());
-      spamFields.append(theForm.getPhotographerName());
-      spamFields.append(theForm.getLocation());
-      spamFields.append(theForm.getComments());
-      if(theForm.getBehavior()!=null){spamFields.append(theForm.getBehavior());}
+//{submitterID=tomcat, submitterProject=, photographerEmail=, metalTag(left)=, sex=unknown, measurement(weight)=34234, location=, acousticTagId=, behavior=yow behavior..., measurement(weightunits)=kilograms, acousticTagSerial=, photographerName=, lifeStage=sub-adult, submitterAddress=, satelliteTagSerial=, releaseDate=, photographerPhone=, measurement(lengthunits)=meters, measurement(weightsamplingProtocol)=samplingProtocol0, measurement(length)=, submitterOrganization=, photographerAddress=, longitude=, year=2014, lat=, measurement(lengthsamplingProtocol)=samplingProtocol0, submitterEmail=, minutes=00, elevation=, measurement(height)=, measurement(heightsamplingProtocol)=samplingProtocol0, scars=None, submitterPhone=, submitterName=tomcat, hour=-1, livingStatus=alive, depth=, country=, satelliteTagName=Wild Life Computers, metalTag(right)=, month=1, measurement(heightunits)=meters, Submit=Send encounter report, informothers=, day=0, satelliteTagArgosPttNumber=, comments=}
 
+      //check for spamBots   TODO possibly move this to Util for general/global usage?
+      boolean spamBot = false;
+			String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", "photographerPhone", "location", "comments", "behavior"};
+      StringBuffer spamFields = new StringBuffer();
+			for (int i = 0 ; i < spamFieldsToCheck.length ; i++) {
+      	spamFields.append(fv.get(spamFieldsToCheck[i]).toString());
+			}
 
       if (spamFields.toString().toLowerCase().indexOf("porn") != -1) {
         spamBot = true;
       }
-
       if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
         spamBot = true;
       }
@@ -204,22 +231,15 @@ System.out.println("file name = " + name);
       //else if(spamFields.toString().toLowerCase().trim().equals("")){spamBot=true;}
       //else if((theForm.getSubmitterID()!=null)&&(theForm.getSubmitterID().equals("N%2FA"))) {spamBot=true;}
 
-*/
 
+      String locCode = "";
+System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
+			if ((fv.get("locationID") != null) && !fv.get("locationID").toString().equals("")) {
+				locCode = fv.get("locationID").toString();
 
-/*
-      locCode = "";
-      if((locationID!=null)&&(!locationID.trim().equals(""))){
-		locCode=locationID;
-	  }
-	  //see if the location code can be determined and set based on the location String reported
-      else{
-      	String locTemp = location.toLowerCase().trim();
+			} else {  //see if the location code can be determined and set based on the location String reported
+      	String locTemp = fv.get("location").toString().toLowerCase();
       	Properties props = new Properties();
-
-
-      	int numAllowedPhotos = 4;
-
 
       	try {
         	props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
@@ -238,7 +258,7 @@ System.out.println("file name = " + name);
 
   	} //end else
 	//end location code setter
-*/
+
 
 		//TODO this should live somewhere else as constant? (e.g. to build in form as well)
 		String[] scarType = new String[]{"None", "Tail (caudal) fin", "1st dorsal fin", "2nd dorsal fin", "Left pectoral fin", "Right pectoral fin", "Head", "Body"};
@@ -304,54 +324,66 @@ System.out.println("file name = " + name);
       String data = null;
 */
 
-      //File encountersDir = new File(getServlet().getServletContext().getRealPath("/encounters"));
+System.out.println("about to do int stuff");
 
-/*
-      String rootWebappPath = getServlet().getServletContext().getRealPath("/");
-      File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-      if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+			//need some ints for day/month/year/hour
+			int day = 0, month = 0, year = 0, hour = 0;
+			try { day = Integer.parseInt(fv.get("day").toString()); } catch (NumberFormatException e) { day = 0; }
+			try { month = Integer.parseInt(fv.get("month").toString()); } catch (NumberFormatException e) { month = 0; }
+			try { year = Integer.parseInt(fv.get("year").toString()); } catch (NumberFormatException e) { year = 0; }
+			try { hour = Integer.parseInt(fv.get("hour").toString()); } catch (NumberFormatException e) { hour = 0; }
+			String guess = "no estimate provided";
+			if ((fv.get("guess") != null) && !fv.get("guess").toString().equals("")) {
+				guess = fv.get("guess").toString();
+			}
 
-      File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-      if(!encountersDir.exists()){encountersDir.mkdir();}
-      File thisEncounterDir = new File(encountersDir, uniqueID);
+System.out.println("about to do enc()");
 
-      boolean created = false;
-      try {
-        if ((!thisEncounterDir.exists()) && (!spamBot)) {
-          created = thisEncounterDir.mkdir();
-        }
-        ;
-      } catch (SecurityException sec) {
-        System.out.println("Security exception thrown while trying to created the directory for a new encounter!");
-      }
-      //System.out.println("Created?: "+created);
-  
+	//public SinglePhotoVideo(String correspondingEncounterNumber, FileItem formFile, String context) {
+  //public SinglePhotoVideo(String correspondingEncounterNumber, File file) {
+  //public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
+			Encounter enc = new Encounter(day, month, year, hour, fv.get("minutes").toString(), guess, fv.get("location").toString(), fv.get("submitterName").toString(), fv.get("submitterEmail").toString(), null);
+			//Encounter enc = new Encounter();
+			String encID = enc.generateEncounterNumber();
+			enc.setEncounterNumber(encID);
+System.out.println("hey, i think i may have made an encounter, encID=" + encID);
+System.out.println("enc ?= " + enc.toString());
 
+			String encDataDir = ServletUtilities.dataDir(context, rootDir, "encounters");
+			ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
+			for (FileItem item : formFiles) {
+				/* this will actually write file to filesystem (or [FUTURE] wherever)
+				   TODO: either (a) undo this if any failure of writing encounter; or (b) dont write til success of enc. */
+				try {
+					//SinglePhotoVideo spv = new SinglePhotoVideo(encID, item, context, encDataDir);
+					SinglePhotoVideo spv = new SinglePhotoVideo(enc, item, context, encDataDir);
+					//images.add(spv);
+					enc.addSinglePhotoVideo(spv);
+				} catch (Exception ex) {
+					System.out.println("failed to save " + item.toString() + ": " + ex.toString());
+				}
+			}
 
-*/
 
       //now let's add our encounter to the database
-      ///////////////////Encounter enc = new Encounter(day, month, year, hour, minutes, guess, location, submitterName, submitterEmail, images);
 
-/*
-      enc.setComments(comments.replaceAll("\n", "<br>"));
-      if (theForm.getReleaseDate() != null && theForm.getReleaseDate().length() > 0) {
-        String dateStr = ServletUtilities.preventCrossSiteScriptingAttacks(theForm.getReleaseDate());
+      enc.setComments(fv.get("comments").toString().replaceAll("\n", "<br>"));
+      if (fv.get("releaseDate") != null && fv.get("releaseDate").toString().length() > 0) {
         String dateFormatPattern = CommonConfiguration.getProperty("releaseDateFormat",context);
         try {
           SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-          enc.setReleaseDate(simpleDateFormat.parse(dateStr));
+          enc.setReleaseDate(simpleDateFormat.parse(fv.get("releaseDate").toString()));
         } catch (Exception e) {
-          enc.addComments("<p>Reported release date was problematic: " + dateStr + "</p>");
+          enc.addComments("<p>Reported release date was problematic: " + fv.get("releaseDate") + "</p>");
         }
       }
-      if(theForm.getBehavior()!=null){
-  			enc.setBehavior(behavior);
+      if (fv.get("behavior") != null && fv.get("behavior").toString().length() > 0) {
+  			enc.setBehavior(fv.get("behavior").toString());
   		}
-      if(theForm.getLifeStage()!=null){
-        enc.setLifeStage(lifeStage);
-      }
+      if (fv.get("lifeStage") != null && fv.get("lifeStage").toString().length() > 0) {
+  			enc.setLifeStage(fv.get("lifeStage").toString());
+  		}
+/*
       Map<String, Object> measurements = theForm.getMeasurements();
       for (String key : measurements.keySet()) {
         if (!key.endsWith("units") && !key.endsWith("samplingProtocol")) {
@@ -647,19 +679,21 @@ System.out.println("file name = " + name);
       enc.setDWCDateAdded(strOutputDateTime);
       enc.setDWCDateLastModified(strOutputDateTime);
 
-      String newnum = "";
-      if (!spamBot) {
-        newnum = myShepherd.storeNewEncounter(enc, uniqueID);
-
-        Logger log = LoggerFactory.getLogger(SubmitAction.class);
-	    log.info("New encounter submission: <a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + uniqueID+"\">"+uniqueID+"</a>");
 
 
-      }
+*/
+			String newnum = "";
+			if (!spamBot) {
+				newnum = myShepherd.storeNewEncounter(enc, encID);
+
+				Logger log = LoggerFactory.getLogger(SubmitAction.class);
+				log.info("New encounter submission: <a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
+System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+			}
 
       if (newnum.equals("fail")) {
         request.setAttribute("number", "fail");
-        return null;
+        return;
       }
 
 
@@ -669,21 +703,22 @@ System.out.println("file name = " + name);
       //return a forward to display.jsp
       System.out.println("Ending data submission.");
       if (!spamBot) {
-        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + uniqueID);
+        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
       } else {
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/spambot.jsp");
       }
     }
 
     myShepherd.closeDBTransaction();
-    return null;
+    //return null;
   }
-*/
+
 
 
   //private Map<String, Object> metalTags = new HashMap<String, Object>();
 
 /////////////////////////////////////////////END
+/*
 		}
 
 System.out.println("hey what is fv hashMap now? -> " + fv.toString());
@@ -694,8 +729,9 @@ System.out.println("hey what is fv hashMap now? -> " + fv.toString());
     out.close();
 System.out.println("done??????");
   }
-
+*/
 
 }
-  
-  
+
+
+
