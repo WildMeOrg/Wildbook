@@ -77,7 +77,7 @@ context=ServletUtilities.getContext(request);
           value="<%=CommonConfiguration.getGoogleSearchKey(context) %>"/> <input
           type="hidden" name="cof" value="FORID:11"/> <input type="text"
                                                              name="q" size="25"/> <input
-          type="submit" name="sa" value="<%=props.getProperty("search")"/>
+          type="submit" name="sa" value="<%=props.getProperty("search") %>"/>
         </form>
         <script type="text/javascript"
                 src="http://www.google.com/coop/cse/brand?form=searchbox_<%=CommonConfiguration.getGoogleSearchKey(context) %>"></script>
