@@ -73,7 +73,17 @@ public class Util {
 	public static String generateUUID() {
 		return UUID.randomUUID().toString();
 	}
-    
+
+	public static boolean isUUID(String s) {
+		boolean ok = true;
+		try {
+			UUID u = UUID.fromString(s);
+		} catch (java.lang.IllegalArgumentException e) {
+			ok = false;
+		}
+		return ok;
+	}
+
   /**
    * Returns a map of sampling protocols, where the key is the name of protocol, and the
    * value is the user-friendly, localized label.
