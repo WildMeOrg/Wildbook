@@ -573,7 +573,7 @@ catch (Exception e) {
         <input name="number" type="hidden" value="<%=imageEncNum%>" id="shark">
         <strong><img align="absmiddle"
                      src="../images/upload_small.gif"/> <%=encprops.getProperty("addfile") %>:</strong><br/>
-        <input name="file2add" type="file" size="20">
+        <input name="file2add" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" type="file" size="20">
 
         <p><input name="addtlFile" type="submit" id="addtlFile"
                   value="Upload"></p></form>
