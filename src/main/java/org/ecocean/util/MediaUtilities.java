@@ -21,10 +21,14 @@ package org.ecocean.util;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.MetadataException;
-import com.drew.metadata.exif.ExifDirectory;
-import java.awt.*;
+import com.drew.metadata.*;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.RenderingHints;
 import java.awt.color.ColorSpace;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.color.ICC_Profile;
@@ -37,7 +41,9 @@ import java.awt.image.ColorModel;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
@@ -164,12 +170,12 @@ public final class MediaUtilities {
     // Search metadata for orientation change to apply.
     try {
       Metadata md = ImageMetadataReader.readMetadata(f);
-      ExifDirectory dir = (ExifDirectory)md.getDirectory(ExifDirectory.class);
+      Directory dir = md.getDirectory(ExifIFD0Directory.class);
       if (dir == null) {
         return img;
       }
       // Check orientation & define transform.
-      int orientation = dir.getInt(ExifDirectory.TAG_ORIENTATION);
+      int orientation = dir.getInt(ExifIFD0Directory.TAG_ORIENTATION);
       AffineTransform tx = getOrientationTransform(img, orientation);
       // Transform image.
       if (tx != null) {
@@ -408,5 +414,19 @@ public final class MediaUtilities {
     g2.drawString(text, 4, yPos + fm.getHeight() - fm.getMaxDescent());
     g2.dispose();
     return tmp;
+  }
+
+  /**
+   * Extracts all the EXIF tags from the specified Metadata instance.
+   * @param md {@code Metadata} instance from image file
+   * @return list of {@code Tag} instances
+   */
+  public static List<Tag> extractMetadataTags(Metadata md) {
+    List<Tag> list = new ArrayList<Tag>();
+    for (Directory dir : md.getDirectories()) {
+      for (Tag tag : dir.getTags())
+        list.add(tag);
+    }
+    return list;
   }
 }

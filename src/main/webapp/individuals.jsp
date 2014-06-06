@@ -19,8 +19,8 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, 	   
-		 org.joda.time.DateTime,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.util.MediaUtilities,
+		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
 
 <%
 
@@ -1139,18 +1139,10 @@ $("a#deathdate").click(function() {
               if(exifImage.exists()){              
               	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               	// iterate through metadata directories
-              	Iterator directories = metadata.getDirectoryIterator();
-              	while (directories.hasNext()) {
-                	Directory directory = (Directory) directories.next();
-                	// iterate through tags and print to System.out
-                	Iterator tags = directory.getTagIterator();
-                	while (tags.hasNext()) {
-                  		Tag tag = (Tag) tags.next();
-
+                for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
           				%>
-								<%=tag.toString() %><br/>
-								<%
-                    }
+  								<%=tag.toString() %><br/>
+  								<%
                 }
               } //end if
               else{
