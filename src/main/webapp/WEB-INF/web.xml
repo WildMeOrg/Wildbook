@@ -438,6 +438,11 @@
     <servlet-name>EncounterApprove</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterApprove</servlet-class>
   </servlet>
+  
+    <servlet>
+    <servlet-name>EncounterForm</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterForm</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetIdentifiable</servlet-name>
@@ -1206,6 +1211,11 @@
   <servlet-mapping>
     <servlet-name>EncounterSetTags</servlet-name>
     <url-pattern>/EncounterSetTags</url-pattern>
+  </servlet-mapping>
+  
+   <servlet-mapping>
+    <servlet-name>EncounterForm</servlet-name>
+    <url-pattern>/EncounterForm</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
