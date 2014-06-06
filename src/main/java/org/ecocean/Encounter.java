@@ -648,18 +648,8 @@ public class Encounter implements java.io.Serializable {
 	}
 
 
-	public String dir(String dataDir) {
-		return dataDir + File.separator + this.subdir();
-/*
-		String id = this.getEncounterNumber();
-		String d = "";
-		if (Util.isUUID(id)) {  //new-world
-			d = dataDir + File.separator + id.charAt(0) + File.separator + id.charAt(1) + File.separator + id;
-		} else {  //old-world
-			d = dataDir + File.separator + id;
-		}
-		return d;
-*/
+	public String dir(String baseDir) {
+		return baseDir + File.separator + "encounters" + File.separator + this.subdir();
 	}
 
 	//subdir() is kind of a utility function, which can be called as enc.subdir() or Encounter.subdir(IDSTRING) as needed
