@@ -126,7 +126,9 @@ context=ServletUtilities.getContext(request);
       }
       new_message.append("Location: " + enc.getLocation() + "\n");
       new_message.append("Date: " + enc.getDate() + "\n");
-      new_message.append("Sex: " + enc.getSex() + "\n");
+      if(enc.getSex()!=null){
+      	new_message.append("Sex: " + enc.getSex() + "\n");
+      }
       new_message.append("Submitter: " + enc.getSubmitterName() + "\n");
       new_message.append("Email: " + enc.getSubmitterEmail() + "\n");
       new_message.append("Photographer: " + enc.getPhotographerName() + "\n");

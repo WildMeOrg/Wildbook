@@ -493,9 +493,11 @@ if(sharky.getLocationID()!=null){
     %>
 
 
-
-    <td class="lineitem"><%=enc.getSex()%>
-    </td>
+<%
+String sexValue="&nbsp;";
+if(enc.getSex()!=null){sexValue=enc.getSex();}
+%>
+    <td class="lineitem"><%=sexValue %></td>
 
     <%
       if (CommonConfiguration.useSpotPatternRecognition(context)) {

@@ -500,7 +500,11 @@ $("a#nickname").click(function() {
 
 
 </p>
-<p><%=sex %>: <%=sharky.getSex()%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
+<%
+String sexValue="";
+if(sharky.getSex()!=null){sexValue=sharky.getSex();}
+%>
+<p><%=sex %>: <%=sexValue %> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
   <%
     //edit sex
     if (CommonConfiguration.isCatalogEditable(context) && isOwner) {%>
@@ -811,11 +815,11 @@ $("a#deathdate").click(function() {
     </td>
     <%
       }
+    String encSexValue="";
+    if(enc.getSex()!=null){encSexValue=enc.getSex();}
     %>
 
-
-
-    <td class="lineitem"><%=enc.getSex()%>
+    <td class="lineitem"><%=encSexValue %>
     </td>
 
     <%

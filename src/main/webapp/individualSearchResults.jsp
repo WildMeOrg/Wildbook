@@ -316,7 +316,11 @@
     <td class="lineitem"><%=indie.getMaxNumYearsBetweenSightings()%>
     </td>
 
-    <td class="lineitem"><%=indie.getSex()%>
+<%
+String sexValue="";
+if(indie.getSex()!=null){sexValue=indie.getSex();}
+%>
+    <td class="lineitem"><%=sexValue %>
     </td>
 
     <td class="lineitem"><%=indie.participatesInTheseLocationIDs().size()%>

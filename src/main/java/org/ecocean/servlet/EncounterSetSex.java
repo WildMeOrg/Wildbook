@@ -94,7 +94,7 @@ public class EncounterSetSex extends HttpServlet {
           myShepherd.beginDBTransaction();
           Encounter changeMe = myShepherd.getEncounter(request.getParameter("number"));
           setDateLastModified(changeMe);
-          String oldSex = "Unknown";
+          String oldSex = "null";
 
 
           try {
@@ -102,7 +102,11 @@ public class EncounterSetSex extends HttpServlet {
             if (changeMe.getSex() != null) {
               oldSex = changeMe.getSex();
             }
-            changeMe.setSex(request.getParameter("selectSex"));
+            if(request.getParameter("selectSex")!=null){
+              changeMe.setSex(request.getParameter("selectSex"));
+            }
+            else{changeMe.setSex(null);}
+            
             changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed sex from " + oldSex + " to " + request.getParameter("selectSex") + ".</p>");
           } catch (Exception le) {
             System.out.println("Hit locked exception on action: " + action);

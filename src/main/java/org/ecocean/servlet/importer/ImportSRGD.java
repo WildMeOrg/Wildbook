@@ -484,7 +484,7 @@ public class ImportSRGD extends HttpServlet {
                   //OK to generically add it as the addEncounter() method will ignore it if already added to marked individual
                   indie.addEncounter(enc2);
 
-                  if((indie.getSex()==null)||(indie.getSex()!=enc2.getSex())){
+                  if((indie.getSex()==null)||((enc2.getSex()!=null)&&(indie.getSex()!=enc2.getSex()))){
                     indie.setSex(enc2.getSex());
                     indie.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set sex to " + enc2.getSex() + ".</p>");
                     

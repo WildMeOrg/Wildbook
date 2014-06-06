@@ -221,14 +221,20 @@
  	 	}
  		 
  	    //sex pie chart 	 
- 		if(thisEnc.getSex().equals("male")){
- 		   Integer thisInt = sexHashtable1.get("male")+1;
-  		   sexHashtable1.put("male", thisInt);
- 		}
- 		else if(thisEnc.getSex().equals("female")){
-  		   Integer thisInt = sexHashtable1.get("female")+1;
-  		   sexHashtable1.put("female", thisInt);
- 		}
+ 	    if(thisEnc.getSex()!=null){
+ 			if(thisEnc.getSex().equals("male")){
+ 		   		Integer thisInt = sexHashtable1.get("male")+1;
+  		   		sexHashtable1.put("male", thisInt);
+ 			}
+ 			else if(thisEnc.getSex().equals("female")){
+  		   		Integer thisInt = sexHashtable1.get("female")+1;
+  		   		sexHashtable1.put("female", thisInt);
+ 			}
+ 			else{
+ 	    		Integer thisInt = sexHashtable1.get("unknown")+1;
+   		    	sexHashtable1.put("unknown", thisInt);
+ 	    	}
+ 	    }
  	    else{
  	    	Integer thisInt = sexHashtable1.get("unknown")+1;
    		    sexHashtable1.put("unknown", thisInt);
@@ -332,15 +338,21 @@
       	   }
  	 	}
  		 
- 	    //sex pie chart 	 
- 		if(thisEnc.getSex().equals("male")){
- 		   Integer thisInt = sexHashtable2.get("male")+1;
-  		   sexHashtable2.put("male", thisInt);
- 		}
- 		else if(thisEnc.getSex().equals("female")){
-  		   Integer thisInt = sexHashtable2.get("female")+1;
-  		   sexHashtable2.put("female", thisInt);
- 		}
+ 	    //sex pie chart 
+ 	    if(thisEnc.getSex()!=null){
+ 			if(thisEnc.getSex().equals("male")){
+ 		   		Integer thisInt = sexHashtable2.get("male")+1;
+  		   		sexHashtable2.put("male", thisInt);
+ 			}
+ 			else if(thisEnc.getSex().equals("female")){
+  		   		Integer thisInt = sexHashtable2.get("female")+1;
+  		   		sexHashtable2.put("female", thisInt);
+ 			}
+ 			else{
+ 	    		Integer thisInt = sexHashtable2.get("unknown")+1;
+   		    	sexHashtable2.put("unknown", thisInt);
+ 	    	}
+ 	    }
  	    else{
  	    	Integer thisInt = sexHashtable2.get("unknown")+1;
    		    sexHashtable2.put("unknown", thisInt);
