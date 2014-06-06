@@ -349,14 +349,14 @@ System.out.println("about to do enc()");
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
 System.out.println("enc ?= " + enc.toString());
 
-			String encDataDir = ServletUtilities.dataDir(context, rootDir, "encounters");
+			String baseDir = ServletUtilities.dataDir(context, rootDir);
 			ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
 			for (FileItem item : formFiles) {
 				/* this will actually write file to filesystem (or [FUTURE] wherever)
 				   TODO: either (a) undo this if any failure of writing encounter; or (b) dont write til success of enc. */
 				try {
 					//SinglePhotoVideo spv = new SinglePhotoVideo(encID, item, context, encDataDir);
-					SinglePhotoVideo spv = new SinglePhotoVideo(enc, item, context, encDataDir);
+					SinglePhotoVideo spv = new SinglePhotoVideo(enc, item, context, baseDir);
 					//images.add(spv);
 					enc.addSinglePhotoVideo(spv);
 				} catch (Exception ex) {

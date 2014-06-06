@@ -2,7 +2,7 @@
 <configuration>
 
 <appender name="SUBMISSIONFILE" class="ch.qos.logback.core.FileAppender">
-	<file>../webapps/ROOT/logs/encounter-submission.htm</file>
+	<file>./webapps/ROOT/logs/encounter-submission.htm</file>
    <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
       <layout class="ch.qos.logback.classic.html.HTMLLayout">
         <pattern>%date%thread%mdc%level%logger%msg</pattern>
@@ -10,7 +10,7 @@
 </appender>
 
 <appender name="ENCOUNTERDELETEFILE" class="ch.qos.logback.core.FileAppender">
-	<file>../webapps/ROOT/logs/encounter-delete.htm</file>
+	<file>./webapps/ROOT/logs/encounter-delete.htm</file>
    <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
       <layout class="ch.qos.logback.classic.html.HTMLLayout">
         <pattern>%date%thread%mdc%level%logger%msg</pattern>
@@ -18,7 +18,7 @@
 </appender>
 
 <appender name="USERFILE" class="ch.qos.logback.core.FileAppender">
-	<file>../webapps/ROOT/logs/user-access.htm</file>
+	<file>./webapps/ROOT/logs/user-access.htm</file>
    <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
       <layout class="ch.qos.logback.classic.html.HTMLLayout">
         <pattern>%date%thread%mdc%level%logger%msg</pattern>
@@ -26,7 +26,7 @@
 </appender>
 
 <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-	<file>../webapps/ROOT/logs/logback-debug.htm</file>
+	<file>./webapps/ROOT/logs/logback-debug.htm</file>
    <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
       <layout class="ch.qos.logback.classic.html.HTMLLayout">
         <pattern>%date%thread%mdc%level%logger%msg</pattern>
