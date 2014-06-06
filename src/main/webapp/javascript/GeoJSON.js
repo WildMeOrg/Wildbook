@@ -29,7 +29,7 @@ var GeoJSON = function( geojson, options, map, bounds,aspect ){
 				bounds.extend(googleObj.getPosition());
 				map.fitBounds(bounds);
 				google.maps.event.addListener(googleObj,'click', function() {
-					(new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/individuals.jsp?number='+geojsonGeometry.individualID+'\">'+geojsonGeometry.individualID+'</a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/'+geojsonGeometry.dataDirectoryName+'/encounters/'+geojsonGeometry.catalogNumber+'/thumb.jpg\"></td><td>Date: '+geojsonGeometry.date+'<br /><br /><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/encounters/encounter.jsp?number='+geojsonGeometry.catalogNumber+'\" >Go to encounter</a></td></tr></table>'})).open(map, this);		
+					(new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/individuals.jsp?number='+geojsonGeometry.individualID+'\">'+geojsonGeometry.individualID+'</a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/'+geojsonGeometry.dataDirectoryName+'/encounters/'+geojsonGeometry.encSubdir+'/thumb.jpg\"></td><td>Date: '+geojsonGeometry.date+'<br /><br /><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/encounters/encounter.jsp?number='+geojsonGeometry.catalogNumber+'\" >Go to encounter</a></td></tr></table>'})).open(map, this);		
 					
 				});
 

@@ -62,14 +62,21 @@ public class IndividualSetSex extends HttpServlet {
 
       myShepherd.beginDBTransaction();
       MarkedIndividual changeMe = myShepherd.getMarkedIndividual(request.getParameter("individual"));
-      String oldSex = "Unknown";
+      String oldSex = "null";
+      String newSex = "null";
       try {
 
         if (changeMe.getSex() != null) {
           oldSex = changeMe.getSex();
         }
-        changeMe.setSex(request.getParameter("selectSex"));
-        changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed sex from " + oldSex + " to " + request.getParameter("selectSex") + ".</p>");
+        if(request.getParameter("selectSex")!=null){
+          changeMe.setSex(request.getParameter("selectSex"));
+          newSex=request.getParameter("selectSex");
+         }
+        else{changeMe.setSex(null);}
+        //changeMe.setSex(request.getParameter("selectSex"));
+        
+        changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed sex from " + oldSex + " to " + newSex + ".</p>");
       } catch (Exception le) {
         //System.out.println("Hit locked exception on action: "+action);
         locked = true;

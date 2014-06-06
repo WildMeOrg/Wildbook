@@ -418,8 +418,9 @@ if(sharky.getLocationID()!=null){
       
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
+				String encSubdir = thisEnc.subdir();
         
-          imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
+          imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + encSubdir + "/thumb.jpg";
         
   %>
   <tr>
@@ -493,9 +494,11 @@ if(sharky.getLocationID()!=null){
     %>
 
 
-
-    <td class="lineitem"><%=enc.getSex()%>
-    </td>
+<%
+String sexValue="&nbsp;";
+if(enc.getSex()!=null){sexValue=enc.getSex();}
+%>
+    <td class="lineitem"><%=sexValue %></td>
 
     <%
       if (CommonConfiguration.useSpotPatternRecognition(context)) {
