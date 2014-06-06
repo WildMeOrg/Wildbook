@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.util.MediaUtilities, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -458,34 +458,26 @@ String srcurl=encountersDir.getAbsolutePath()+"/"+addText;
                   	
               		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               		// iterate through metadata directories
-              		Iterator directories = metadata.getDirectoryIterator();
-              		while (directories.hasNext()) {
-              	  		Directory directory = (Directory) directories.next();
-              	  		// iterate through tags and print to System.out
-              	  		Iterator tags = directory.getTagIterator();
-              	  		while (tags.hasNext()) {
-              	    		Tag tag = (Tag) tags.next();
-
-          					%>
-								<%=tag.toString() %><br/>
-								<%
-              	  } //end while
-             	} //end while
-              } //end if
-              else{
+                  for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
+                    %>
+                    <%=tag.toString() %><br/>
+                    <%
+                  }
+                } //end if
+                else{
             	  %>
 		            <p>File not found on file system. No EXIF data available.</p>
-          		<%  
+            		<%
+                }
+             } //end try
+              catch(Exception e){
+                %>
+                <p>Cannot read metadata for this file.</p>
+                <%
+                System.out.println("Cannot read metadata for: "+addTextFile);
+                e.printStackTrace();
               }
-           } //end try
-            catch(Exception e){
-            %>
-            <p>Cannot read metadata for this file.</p>
-            <%
-            System.out.println("Cannot read metadata for: "+addTextFile);
-            e.printStackTrace();
-            }
-              } //end if
+            } //end if
  
                 %>
    									</span>
