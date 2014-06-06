@@ -142,7 +142,6 @@
 		   
 		   /ImportSRGD = authc, roles[admin]
 		        /IndividualCreate = authc, roles[admin]
-		        /EncounterForm = authc, roles[admin]
 		        /OccurrenceCreate = authc, roles[admin]
 		        /OccurrenceRemoveEncounter = authc, roles[admin]
 		        /IndividualRemoveEncounter = authc, roles[admin]
