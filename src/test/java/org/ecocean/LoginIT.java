@@ -78,10 +78,7 @@ public class LoginIT {
     assertTextPresent("Database login");
   }
   
-  @After
-  public void close() {
-    closeBrowser();
-  }
+
   
   @After
   public void close() {
