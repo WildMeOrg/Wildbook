@@ -97,7 +97,9 @@ public class MarkedIndividual implements java.io.Serializable {
     encounters.add(enc);
     //dataFiles = new Vector();
     numberEncounters = 1;
-    this.sex = enc.getSex();
+    if(enc.getSex()!=null){
+      this.sex = enc.getSex();
+    }
     numUnidentifiableEncounters = 0;
     maxYearsBetweenResightings=0;
   }
@@ -597,7 +599,9 @@ public class MarkedIndividual implements java.io.Serializable {
    * Sets the sex of this MarkedIndividual.
    */
   public void setSex(String newSex) {
-    sex = newSex;
+    if(newSex!=null){sex = newSex;}
+    else{sex=null;}
+    
   }
 
 

@@ -500,7 +500,11 @@ $("a#nickname").click(function() {
 
 
 </p>
-<p><%=sex %>: <%=sharky.getSex()%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
+<%
+String sexValue="";
+if(sharky.getSex()!=null){sexValue=sharky.getSex();}
+%>
+<p><%=sex %>: <%=sexValue %> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
   <%
     //edit sex
     if (CommonConfiguration.isCatalogEditable(context) && isOwner) {%>
@@ -748,7 +752,8 @@ $("a#deathdate").click(function() {
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
         
-          imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.getEncounterNumber() + "/thumb.jpg";
+							//String encSubdir = thisEnc.subdir();
+          imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.subdir() + "/thumb.jpg";
         
   %>
   <tr>
@@ -811,11 +816,11 @@ $("a#deathdate").click(function() {
     </td>
     <%
       }
+    String encSexValue="";
+    if(enc.getSex()!=null){encSexValue=enc.getSex();}
     %>
 
-
-
-    <td class="lineitem"><%=enc.getSex()%>
+    <td class="lineitem"><%=encSexValue %>
     </td>
 
     <%
@@ -961,17 +966,21 @@ $("a#deathdate").click(function() {
 									//String encNum=stzr.nextToken();
 									//int fileNamePos=combined.lastIndexOf("BREAK")+5;
 									//String fileName=combined.substring(fileNamePos).replaceAll("%20"," ");
+
+									Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
+									String encSubdir = thisEnc.subdir();
+
 									String thumbLink="";
 									boolean video=true;
 									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
+										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
 										video=false;
 									}
 									else{
 										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
 										
 									}
-									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+thumbLocs.get(countMe).getCorrespondingEncounterNumber()+"/"+thumbLocs.get(countMe).getFilename();
+									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getFilename();
 						
 							%>
 
@@ -1024,7 +1033,7 @@ $("a#deathdate").click(function() {
                       <%
 
                         int kwLength = keywords.length;
-                        Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
+                        //Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
                       %>
                       
                       
@@ -1134,7 +1143,7 @@ $("a#deathdate").click(function() {
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
-              File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
+              File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
               if(exifImage.exists()){              
               	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               	// iterate through metadata directories

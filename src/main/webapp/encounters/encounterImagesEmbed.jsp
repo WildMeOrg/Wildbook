@@ -39,7 +39,6 @@ String rootWebappPath = getServletContext().getRealPath("/");
 File webappsDir = new File(rootWebappPath).getParentFile();
 File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-File thisEncounterDir = new File(encountersDir, imageEncNum);
 
 
 //handle translation
@@ -53,7 +52,10 @@ Properties encprops = new Properties();
 encprops=ShepherdProperties.getProperties("encounter.properties", langCode,context);
 
 
+String encDataDir = ServletUtilities.dataDir(context, rootWebappPath, "encounters");
 Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
+File thisEncounterDir = new File(imageEnc.dir(encDataDir));
+String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + "/" + imageEnc.dir("encounters");
 
 
 
@@ -250,12 +252,12 @@ int imageCount = 0;
       }
       if (request.getParameter("isOwner").equals("true") && (!isBMP) && (!isVideo)) {
     %>
-    <a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=imageEncNum%>/<%=addTextFile%>" class="highslide" onclick="return hs.expand(this)"
+    <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" class="highslide" onclick="return hs.expand(this)"
        title="Click to enlarge">
       <%
       } else if (request.getParameter("isOwner").equals("true")||(request.getParameter("loggedIn").equals("true"))) {
       %>
-      <a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=addText%>" 
+      <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>"
         <%
         if(!isVideo){
         %>
@@ -270,8 +272,14 @@ int imageCount = 0;
          <%
         }
 
-        String thumbLocation = "file-" + thisEncounterDir.getAbsolutePath() + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg";
-        File processedImage = new File(thisEncounterDir.getAbsolutePath() + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg");
+        String thumbPath = thisEncounterDir.getAbsolutePath() + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg";
+        String thumbLocation = "file-" + thumbPath;
+        String srcurl = images.get(myImage).getFullFileSystemPath();
+        //String thumbLocation = "file-" + images.get(myImage).getFullFileSystemPath();// + File.separator + images.get(myImage).getFilename();
+//System.out.println(">>>>>>>>>>>>>>>>>>>>>> thumbLocation = " + thumbLocation);
+        //File processedImage = new File(thisEncounterDir.getAbsolutePath() + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg");
+        File processedImage = new File(thumbPath);
+//System.out.println(">>>>>>>>____________>> processedImage = " + processedImage.getAbsolutePath());
 
 
         int intWidth = 250;
@@ -319,8 +327,7 @@ int imageCount = 0;
         haveRendered = true;
         //System.out.println("Using DynamicImage to render thumbnail: "+imageEncNum);
         //System.gc();
-String srcurl=encountersDir.getAbsolutePath()+"/"+addText;
-//System.out.println("srcurl="+srcurl);
+//System.out.println("srcurl="+srcurl + " --> thumbLocation=" + thumbLocation);
       %>
       <di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>"
               imgParams="rendering=speed,quality=low" border="0"
@@ -337,7 +344,7 @@ String srcurl=encountersDir.getAbsolutePath()+"/"+addText;
         </di:text>
       </di:img>
       <img width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
-           src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
+           src="<%=encUrlDir%>/<%=(images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
       if (request.getParameter("isOwner").equals("true")) {
     %>
     </a>
@@ -356,7 +363,7 @@ String srcurl=encountersDir.getAbsolutePath()+"/"+addText;
     %> <%
   } else {
   %> <img id="img<%=images.get(myImage).getDataCollectionEventID()%> " width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
-          src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
+          src="<%=encUrlDir%>/<%=(images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
           valign="left"> <%
 	if (session.getAttribute("logged")!=null) {
 				%></a>

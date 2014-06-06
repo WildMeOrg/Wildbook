@@ -5,7 +5,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ecocean.Util;
 import org.ecocean.genetics.TissueSample;
+import org.ecocean.Encounter;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.output.*;
+import org.apache.commons.io.FilenameUtils;
+
 
 public class SinglePhotoVideo extends DataCollectionEvent {
 
@@ -49,7 +59,51 @@ public class SinglePhotoVideo extends DataCollectionEvent {
     this.filename = file.getName();
     this.fullFileSystemPath = file.getAbsolutePath();
   }
-  
+
+	public SinglePhotoVideo(Encounter enc, FileItem formFile, String context, String dataDir) throws Exception {
+//TODO FUTURE: should use context to find out METHOD of storage (e.g. remote, amazon, etc) and switch accordingly?
+    super(enc.getEncounterNumber(), type);
+
+		String encID = enc.getEncounterNumber();
+		if ((encID == null) || encID.equals("")) {
+			throw new Exception("called SinglePhotoVideo(enc) with Encounter missing an ID");
+		}
+
+		//TODO generalize this when we encorporate METHOD?
+		//File dir = new File(dataDir + File.separator + correspondingEncounterNumber.charAt(0) + File.separator + correspondingEncounterNumber.charAt(1), correspondingEncounterNumber);
+		File dir = new File(enc.dir(dataDir));
+		if (!dir.exists()) { dir.mkdirs(); }
+
+		String origFilename = new File(formFile.getName()).getName();
+		this.filename = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(origFilename);
+
+		File file = new File(dir, this.filename);
+    this.fullFileSystemPath = file.getAbsolutePath();
+		formFile.write(file);  //TODO catch errors and return them, duh
+System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
+	}
+
+/*
+	public SinglePhotoVideo(String correspondingEncounterNumber, FileItem formFile, String context, String dataDir) throws Exception {
+//TODO FUTURE: should use context to find out METHOD of storage (e.g. remote, amazon, etc) and switch accordingly?
+    super(correspondingEncounterNumber, type);
+
+		//TODO generalize this when we encorporate METHOD?
+		//File dir = new File(dataDir + File.separator + correspondingEncounterNumber.charAt(0) + File.separator + correspondingEncounterNumber.charAt(1), correspondingEncounterNumber);
+		File dir = new File(this.dir(correspondingEncounterNumber, dataDir));
+		if (!dir.exists()) { dir.mkdirs(); }
+
+		String origFilename = new File(formFile.getName()).getName();
+		this.filename = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(origFilename);
+
+		File file = new File(dir, this.filename);
+    this.fullFileSystemPath = file.getAbsolutePath();
+		formFile.write(file);  //TODO catch errors and return them, duh
+System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
+	}
+
+*/
+
   /**
    * Returns the photo or video represented by this object as a java.io.File
    * This is a convenience method.
@@ -62,7 +116,11 @@ public class SinglePhotoVideo extends DataCollectionEvent {
     else{return null;}
   }
   
-  
+
+	public String asUrl(Encounter enc, String baseDir) {
+		return "/" + enc.dir(baseDir + "/encounters") + "/" + this.filename;
+	}
+
   /*
   public File getThumbnailFile(){
     if(thumbnailFullFileSystemPath!=null){

@@ -213,15 +213,21 @@
       	   		}
  	 		}
  		 
- 	    //sex pie chart 	 
- 		if(thisEnc.getSex().equals("male")){
- 		   Integer thisInt = sexHashtable.get("male")+1;
-  		   sexHashtable.put("male", thisInt);
- 		}
- 		else if(thisEnc.getSex().equals("female")){
-  		   Integer thisInt = sexHashtable.get("female")+1;
-  		   sexHashtable.put("female", thisInt);
- 		}
+ 	    //sex pie chart 
+ 	    if(thisEnc.getSex()!=null){
+ 			if(thisEnc.getSex().equals("male")){
+ 		   		Integer thisInt = sexHashtable.get("male")+1;
+  		   		sexHashtable.put("male", thisInt);
+ 			}
+ 			else if(thisEnc.getSex().equals("female")){
+  		   		Integer thisInt = sexHashtable.get("female")+1;
+  		   		sexHashtable.put("female", thisInt);
+ 			}
+ 	    	else{
+ 	    		Integer thisInt = sexHashtable.get("unknown")+1;
+   		    	sexHashtable.put("unknown", thisInt);
+ 	    	}
+ 	    }
  	    else{
  	    	Integer thisInt = sexHashtable.get("unknown")+1;
    		    sexHashtable.put("unknown", thisInt);

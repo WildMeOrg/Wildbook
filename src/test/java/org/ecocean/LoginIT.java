@@ -82,5 +82,10 @@ public class LoginIT {
   public void close() {
     closeBrowser();
   }
+  
+  @After
+  public void close() {
+    closeBrowser();
+  }
 
 }
