@@ -37,7 +37,7 @@ context=ServletUtilities.getContext(request);
   File webappsDir = new File(rootWebappPath).getParentFile();
   File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  File thisEncounterDir = new File(encountersDir, number);
+  File thisEncounterDir = new File(encountersDir, Encounter.subdir(number));
 
 
 %>
@@ -77,7 +77,7 @@ context=ServletUtilities.getContext(request);
             String addText = "";
             if (request.getParameter("imageName") != null) {
               addText = request.getParameter("imageName");
-              addText = encountersDir.getAbsolutePath()+"/" + request.getParameter("number") + "/" + addText;
+              addText = encountersDir.getAbsolutePath()+"/" + Encounter.subdir(request.getParameter("number")) + "/" + addText;
 
             } 
             else {
@@ -88,7 +88,7 @@ context=ServletUtilities.getContext(request);
               if (myShepherd.isAcceptableVideoFile(addText)) {
                 addText = getServletContext().getRealPath("/")+"/images/video_thumb.jpg";
               } else {
-                addText = encountersDir.getAbsolutePath()+"/"+ request.getParameter("number") + "/" + addText;
+                addText = encountersDir.getAbsolutePath()+"/"+ Encounter.subdir(request.getParameter("number")) + "/" + addText;
               }
               myShepherd.rollbackDBTransaction();
               myShepherd.closeDBTransaction();
@@ -140,7 +140,7 @@ context=ServletUtilities.getContext(request);
             
 
 
-            String thumbLocation = "file-"+encountersDir.getAbsolutePath()+"/" + number + "/thumb.jpg";
+            String thumbLocation = "file-"+encountersDir.getAbsolutePath()+"/" + Encounter.subdir(number) + "/thumb.jpg";
 
             //generate the thumbnail image
           %>
