@@ -35,7 +35,9 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 import javax.jdo.Query;
+//import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+//import javax.servlet.http.HttpSession;
 
 import java.io.*;
 import java.net.URL;
@@ -580,6 +582,19 @@ public static String getLanguageCode(HttpServletRequest request){
   
   return langCode;
 }
+
+
+	public static String dataDir(String context, String rootWebappPath) {
+		File webappsDir = new File(rootWebappPath).getParentFile();
+		File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+		return shepherdDataDir.getAbsolutePath();
+	}
+
+	//like above, but can pass a subdir to append
+	public static String dataDir(String context, String rootWebappPath, String subdir) {
+		return dataDir(context, rootWebappPath) + File.separator + subdir;
+	}
 
 
 }
