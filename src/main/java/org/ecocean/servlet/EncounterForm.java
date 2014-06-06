@@ -372,7 +372,7 @@ System.out.println("enc ?= " + enc.toString());
         String dateFormatPattern = CommonConfiguration.getProperty("releaseDateFormat",context);
         try {
           SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-          enc.setReleaseDate(simpleDateFormat.parse(fv.get("releaseDate").toString()));
+          enc.setReleaseDate(simpleDateFormat.parse(fv.get("releaseDate").toString()).getTime());
         } catch (Exception e) {
           enc.addComments("<p>Reported release date was problematic: " + fv.get("releaseDate") + "</p>");
         }
