@@ -1358,3 +1358,65 @@ table.tissueSample td {
     -moz-border-radius: ;
 }
 
+#dropzone-previews {
+	border-radius: 8px;
+	background-color: rgba(50,50,50, 0.2);
+	padding: 10px;
+	min-height: 100px;
+	margin: 0 20px 0 2px;
+}
+
+#dropzone-previews:hover {
+	background-color: rgba(50,50,50, 0.3);
+}
+
+.input-file-drop {
+	position: relative;
+	overflow: hidden;
+	border-radius: 8px;
+	background-color: rgba(50,50,50, 0.2);
+	padding: 30px 10px 10px 10px;
+	text-align: center;
+	min-width: 50%;
+	min-height: 100px;
+	margin: 0 20px 0 2px;
+	cursor: pointer;
+}
+
+.input-file-drop:hover {
+	background-color: rgba(50,50,50, 0.3);
+}
+
+
+.input-file-drop input.ie {
+	margin: 14px;
+	padding: 10px;
+	font-size: 1.1em;
+}
+
+.input-file-drop input.nonIE {
+	cursor: pointer;
+	position: absolute;
+	left: 0;
+	top: 0;
+	opacity: 0;
+	filter: alpha(opacity=0);
+	width: 100%;
+	height: 100%;
+}
+
+#input-file-list {
+	padding: 8px;
+	color: #666;
+	font-size: 0.8em;
+}
+
+
+
+
+
+
+
+
+
+
