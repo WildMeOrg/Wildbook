@@ -257,7 +257,7 @@ context=ServletUtilities.getContext(request);
   for (int f = 0; f < rEncounters.size(); f++) {
 
     Encounter enc = (Encounter) rEncounters.get(f);
-		String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + "/" + enc.dir("encounters");
+		String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
     count++;
     numResults++;

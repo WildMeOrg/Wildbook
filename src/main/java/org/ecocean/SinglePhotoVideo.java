@@ -118,7 +118,7 @@ System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
   
 
 	public String asUrl(Encounter enc, String baseDir) {
-		return "/" + enc.dir(baseDir + "/encounters") + "/" + this.filename;
+		return "/" + enc.dir(baseDir) + "/" + this.filename;
 	}
 
   /*
