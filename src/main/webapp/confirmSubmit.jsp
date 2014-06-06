@@ -112,14 +112,14 @@ context=ServletUtilities.getContext(request);
   String informMe = "";
 
 	String rootDir = getServletContext().getRealPath("/");
-	String encDataDir = ServletUtilities.dataDir(context, rootDir, "encounters");
+	String baseDir = ServletUtilities.dataDir(context, rootDir);
 
   if (!number.equals("fail")) {
 
     myShepherd.beginDBTransaction();
     try {
       Encounter enc = myShepherd.getEncounter(number);
-			thisEncounterDir = new File(enc.dir(encDataDir));
+			thisEncounterDir = new File(enc.dir(baseDir));
       if ((enc.getAdditionalImageNames() != null) && (enc.getAdditionalImageNames().size() > 0)) {
         addText = (String)enc.getAdditionalImageNames().get(0);
       }
