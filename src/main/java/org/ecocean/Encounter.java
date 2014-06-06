@@ -667,7 +667,7 @@ public class Encounter implements java.io.Serializable {
 		return subdir(this.getEncounterNumber());
 	}
 
-	public String subdir(String id) {
+	public static String subdir(String id) {
 		String d = id;  //old-world
 		if (Util.isUUID(id)) {  //new-world
 			d = id.charAt(0) + File.separator + id.charAt(1) + File.separator + id;
