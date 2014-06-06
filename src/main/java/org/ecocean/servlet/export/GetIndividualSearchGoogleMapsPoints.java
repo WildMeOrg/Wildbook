@@ -181,6 +181,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              movePathCoords[yh]=coord;
              point.put("coordinates", coord);
              point.put("catalogNumber",enc.getCatalogNumber());
+             point.put("encSubdir",enc.subdir());
              point.put("rootURL",CommonConfiguration.getURLLocation(request));
              point.put("individualID",enc.getIndividualID());
              point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));

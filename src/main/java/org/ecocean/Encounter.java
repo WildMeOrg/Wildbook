@@ -28,10 +28,12 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.GregorianCalendar;
+import java.io.*;
 import org.ecocean.genetics.*;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
+import org.ecocean.Util;
 
 
 /**
@@ -639,6 +641,40 @@ public class Encounter implements java.io.Serializable {
   public String getEncounterNumber() {
     return catalogNumber;
   }
+
+
+	public String generateEncounterNumber() {
+		return Util.generateUUID();
+	}
+
+
+	public String dir(String dataDir) {
+		return dataDir + File.separator + this.subdir();
+/*
+		String id = this.getEncounterNumber();
+		String d = "";
+		if (Util.isUUID(id)) {  //new-world
+			d = dataDir + File.separator + id.charAt(0) + File.separator + id.charAt(1) + File.separator + id;
+		} else {  //old-world
+			d = dataDir + File.separator + id;
+		}
+		return d;
+*/
+	}
+
+	//subdir() is kind of a utility function, which can be called as enc.subdir() or Encounter.subdir(IDSTRING) as needed
+	public String subdir() {
+		return subdir(this.getEncounterNumber());
+	}
+
+	public String subdir(String id) {
+		String d = id;  //old-world
+		if (Util.isUUID(id)) {  //new-world
+			d = id.charAt(0) + File.separator + id.charAt(1) + File.separator + id;
+		}
+		return d;
+	}
+
 
   /**
    * Returns the date of this encounter.
@@ -1721,7 +1757,7 @@ public class Encounter implements java.io.Serializable {
      }
      return false; 
     }
-    
+
     public String getState(){return state;}
     
     public void setState(String newState){this.state=newState;}

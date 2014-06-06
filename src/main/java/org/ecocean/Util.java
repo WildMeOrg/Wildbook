@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.UUID;
 
 
 //import javax.jdo.JDOException;
@@ -68,6 +69,21 @@ public class Util {
     return list;
   }
   
+	//a hook to UUID generator
+	public static String generateUUID() {
+		return UUID.randomUUID().toString();
+	}
+
+	public static boolean isUUID(String s) {
+		boolean ok = true;
+		try {
+			UUID u = UUID.fromString(s);
+		} catch (java.lang.IllegalArgumentException e) {
+			ok = false;
+		}
+		return ok;
+	}
+
   /**
    * Returns a map of sampling protocols, where the key is the name of protocol, and the
    * value is the user-friendly, localized label.
@@ -230,7 +246,7 @@ public class Util {
     public String getLocationLabel() {
       return locationLabel;
     }
-    
+
   }
   
   public synchronized static ArrayList<Point2D> getCachedGPSCoordinates(boolean refresh,String context) {
