@@ -119,7 +119,11 @@ public class TrackerFeed extends HttpServlet {
           myShepherd.beginDBTransaction();
           Encounter enc = myShepherd.getEncounter(mo.encounterNumber);
           moDate = enc.getDate();
-          moSex = enc.getSex();
+          
+          
+          if(enc.getSex()!=null){moSex = enc.getSex();}
+          else{moSex="unknown";}
+          
           moLocation = enc.getVerbatimLocality();
           moIndividualName = enc.getIndividualID();
           if (mo.getSize() > 0) {

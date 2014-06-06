@@ -359,7 +359,8 @@ public class Encounter implements java.io.Serializable {
    * Acceptable values are "Male" or "Female"
    */
   public void setSex(String thesex) {
-    sex = thesex;
+    if(thesex!=null){sex = thesex;}
+    else{sex=null;}
   }
 
   /**

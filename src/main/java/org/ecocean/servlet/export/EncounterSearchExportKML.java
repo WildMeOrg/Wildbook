@@ -128,8 +128,9 @@ public class EncounterSearchExportKML extends HttpServlet{
               }
               catch(Exception npe){npe.printStackTrace();System.out.println("NPE on size for encounter: "+enc.getCatalogNumber());}
             
-            
-              descHTML += "<p> <strong>Sex:</strong> " + enc.getSex() + "</p>";
+              if(enc.getSex()!=null){
+                descHTML += "<p> <strong>Sex:</strong> " + enc.getSex() + "</p>";
+              }
               if ((enc.getComments()!=null)&&(!enc.getComments().equals(""))) {
                 descHTML += "<p> <strong>Comments:</strong> " + enc.getComments() + "</p>";
               }
