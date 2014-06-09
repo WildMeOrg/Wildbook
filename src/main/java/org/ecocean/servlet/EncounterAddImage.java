@@ -106,7 +106,7 @@ public class EncounterAddImage extends HttpServlet {
           FilePart filePart = (FilePart) part;
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());
           if (fileName != null) {
-						fileName = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(fileName);
+						//fileName = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(fileName);
             //File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ Encounter.subdir(encounterNumber));
             File thisSharkDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
             if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
