@@ -8,6 +8,7 @@ import java.util.List;
 import org.ecocean.Util;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.Encounter;
+import org.ecocean.servlet.ServletUtilities;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -74,35 +75,14 @@ public class SinglePhotoVideo extends DataCollectionEvent {
 		File dir = new File(enc.dir(dataDir));
 		if (!dir.exists()) { dir.mkdirs(); }
 
-		String origFilename = new File(formFile.getName()).getName();
-		this.filename = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(origFilename);
+		//String origFilename = new File(formFile.getName()).getName();
+		this.filename = ServletUtilities.cleanFileName(new File(formFile.getName()).getName());
 
 		File file = new File(dir, this.filename);
     this.fullFileSystemPath = file.getAbsolutePath();
 		formFile.write(file);  //TODO catch errors and return them, duh
 System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
 	}
-
-/*
-	public SinglePhotoVideo(String correspondingEncounterNumber, FileItem formFile, String context, String dataDir) throws Exception {
-//TODO FUTURE: should use context to find out METHOD of storage (e.g. remote, amazon, etc) and switch accordingly?
-    super(correspondingEncounterNumber, type);
-
-		//TODO generalize this when we encorporate METHOD?
-		//File dir = new File(dataDir + File.separator + correspondingEncounterNumber.charAt(0) + File.separator + correspondingEncounterNumber.charAt(1), correspondingEncounterNumber);
-		File dir = new File(this.dir(correspondingEncounterNumber, dataDir));
-		if (!dir.exists()) { dir.mkdirs(); }
-
-		String origFilename = new File(formFile.getName()).getName();
-		this.filename = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(origFilename);
-
-		File file = new File(dir, this.filename);
-    this.fullFileSystemPath = file.getAbsolutePath();
-		formFile.write(file);  //TODO catch errors and return them, duh
-System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
-	}
-
-*/
 
   /**
    * Returns the photo or video represented by this object as a java.io.File
