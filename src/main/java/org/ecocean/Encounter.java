@@ -652,6 +652,19 @@ public class Encounter implements java.io.Serializable {
 		return baseDir + File.separator + "encounters" + File.separator + this.subdir();
 	}
 
+
+	//like above, but class method so you pass the encID
+	public static String dir(String baseDir, String id) {
+		return baseDir + File.separator + "encounters" + File.separator + subdir(id);
+	}
+
+
+	//like above, but can pass a File in for base
+	public static String dir(File baseDir, String id) {
+		return baseDir.getAbsolutePath() + File.separator + "encounters" + File.separator + subdir(id);
+	}
+
+
 	//subdir() is kind of a utility function, which can be called as enc.subdir() or Encounter.subdir(IDSTRING) as needed
 	public String subdir() {
 		return subdir(this.getEncounterNumber());
