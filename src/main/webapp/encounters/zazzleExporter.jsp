@@ -115,9 +115,7 @@ if (myShepherd.isEncounter(num)) {
         %>
 
 
-  	 <!-- indie ID and nickname rendering -->
-  	<di:text x="710" y="1106" font="Dakota Regular-plain-65" fillPaint="#000000" ><%=individualID %></di:text>
-  	<di:text x="710" y="1236" font="Dakota Regular-plain-65" fillPaint="#000000" ><%=nickname %></di:text>
+
  
   	<%
 
@@ -168,16 +166,20 @@ if (myShepherd.isEncounter(num)) {
     double origycenter = (ymin+ymax)/2.0;
     double origaspect = (ymax-ymin)/(xmax-xmin);
 
+    //circle radii
+    int outerCircleRadius = 50;
+    int innerCircleRadius = 36;
+    
     // My estimation of where spots can go without running outside shark
     // silhouette in image file from James Weyenberg
-    int boxleft = 275;
-    int boxright = 1775;
+    int boxleft = 3*outerCircleRadius;
+    int boxright = 1725;
     
     //this is actually the bottom limit of your region for spot definition, measured down from top of graphic
-    int boxtop = 1000;
+    int boxtop = 1400-3*outerCircleRadius;
     		
    //this is actually the top limit for spot definition, measured down in pixels from the top of the graphic 		
-    int boxbot = 375;
+    int boxbot = 3*outerCircleRadius;
     
     
     double boxxcenter = (boxleft+boxright)/2.0;
@@ -250,9 +252,9 @@ if (myShepherd.isEncounter(num)) {
           
   %>
 
- <di:circle x="<%=theX %>" y="<%=theY %>" radius="48" fillPaint="<%=outerColors[colorPair] %>"></di:circle>
+ <di:circle x="<%=theX %>" y="<%=theY %>" radius="<%=outerCircleRadius %>" fillPaint="<%=outerColors[colorPair] %>"></di:circle>
 
-<di:circle x="<%=offsetX %>" y="<%=offsetY %>" radius="36" fillPaint="<%=innerColors[colorPair] %>"></di:circle>
+<di:circle x="<%=offsetX %>" y="<%=offsetY %>" radius="<%=innerCircleRadius %>" fillPaint="<%=innerColors[colorPair] %>"></di:circle>
  
   <%
   if(request.getParameter("debug")!=null){
@@ -281,6 +283,14 @@ if (myShepherd.isEncounter(num)) {
     
     
 %>
+
+  	 <!-- indie ID and nickname rendering -->
+  	<di:text x="575" y="1601" font="Dakota Regular-plain-65" fillPaint="#000000" align="center"><%=individualID %></di:text>
+  	<di:text x="575" y="1701" font="Dakota Regular-plain-65" fillPaint="#000000" align="center"><%=nickname %></di:text>
+ 
+ 
+
+	<di:image x="1550" y="1400" srcurl="../images/wild-me-logo-200x200.png" width="200" height="200"  />
 </di:img>
 
 <!-- Put the image URL in now -->
