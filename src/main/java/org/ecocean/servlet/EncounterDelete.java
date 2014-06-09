@@ -90,7 +90,7 @@ public class EncounterDelete extends HttpServlet {
           Encounter backUpEnc = myShepherd.getEncounterDeepCopy(enc2trash.getEncounterNumber());
 
           String savedFilename = request.getParameter("number") + ".dat";
-          File thisEncounterDir = new File(encountersDir.getAbsolutePath()+"/" + request.getParameter("number"));
+          File thisEncounterDir = new File(Encounter.dir(shepherdDataDir, request.getParameter("number")));
           if(!thisEncounterDir.exists()){thisEncounterDir.mkdir();}
 
           File serializedBackup = new File(thisEncounterDir, savedFilename);

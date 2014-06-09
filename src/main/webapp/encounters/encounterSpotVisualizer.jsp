@@ -144,9 +144,9 @@ if (myShepherd.isEncounter(num)) {
   //now let's set up the image mapping variables as needed
   String fileloc = "";
   if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-    fileloc = (enc.getEncounterNumber() + "/extractRight" + num + ".jpg");
+    fileloc = (enc.subdir() + "/extractRight" + num + ".jpg");
   } else {
-    fileloc = (enc.getEncounterNumber() + "/extract" + num + ".jpg");
+    fileloc = (enc.subdir() + "/extract" + num + ".jpg");
   }
   InputStream encStream = null;
   boolean canDirectMap = true;
@@ -182,7 +182,7 @@ if (myShepherd.isEncounter(num)) {
   	}
   	StringBuffer xmlData = new StringBuffer();
 
-  	String thumbLocation = "file-" + encountersDir.getAbsolutePath()+"/"+ num + "/" + side + "SideSpotsMapped.jpg";
+  	String thumbLocation = "file-" + encountersDir.getAbsolutePath()+"/"+ Encounter.subdir(num) + "/" + side + "SideSpotsMapped.jpg";
 	
 	%>
 	<di:img width="<%=encImageWidth%>"
