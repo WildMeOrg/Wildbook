@@ -344,11 +344,12 @@
   <tr valign="top">
 
       <%
-							Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
-							//String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + "/" + enc.dir("encounters");
-							String encSubdir = thisEnc.subdir();
 							for(int columns=0;columns<3;columns++){
 								if(countMe<thumbLocs.size()) {
+									Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
+									//String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + "/" + enc.dir("encounters");
+									String encSubdir = thisEnc.subdir();
+
 									String thumbLink="";
 									boolean video=true;
 									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
