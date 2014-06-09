@@ -315,16 +315,18 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 
 		//TODO this should live somewhere else as constant? (e.g. to build in form as well)
 		String[] scarType = new String[]{"None", "Tail (caudal) fin", "1st dorsal fin", "2nd dorsal fin", "Left pectoral fin", "Right pectoral fin", "Head", "Body"};
-		int scarNum = 0;
+		int scarNum = -1;
 		try {
 			scarNum = Integer.parseInt(fv.get("scars").toString());
 		} catch (NumberFormatException e) {
-			scarNum = 0;
+			scarNum = -1;
 		}
 		if ((scarNum < 0) || (scarNum > 7)) {
-			scarNum = 0;
+			scarNum = -1;
 		}
-		fv.put("scars", scarType[scarNum]);
+		if (scarNum >= 0) {
+			fv.put("scars", scarType[scarNum]);
+		}
 
 
 System.out.println("about to do int stuff");
