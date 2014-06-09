@@ -175,13 +175,16 @@ public final class MediaUtilities {
         return img;
       }
       // Check orientation & define transform.
-      int orientation = dir.getInt(ExifIFD0Directory.TAG_ORIENTATION);
-      AffineTransform tx = getOrientationTransform(img, orientation);
-      // Transform image.
-      if (tx != null) {
-        BufferedImage tmp = transformImage(img, tx);
-        img.flush();
-        img = tmp;
+      if (dir.containsTag(ExifIFD0Directory.TAG_ORIENTATION))
+      {
+        int orientation = dir.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+        AffineTransform tx = getOrientationTransform(img, orientation);
+        // Transform image.
+        if (tx != null) {
+          BufferedImage tmp = transformImage(img, tx);
+          img.flush();
+          img = tmp;
+        }
       }
     } catch (ImageProcessingException ex) {
       throw new IOException(ex);
