@@ -107,7 +107,8 @@ public class EncounterAddImage extends HttpServlet {
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());
           if (fileName != null) {
 						fileName = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(fileName);
-            File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ Encounter.subdir(encounterNumber));
+            //File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ Encounter.subdir(encounterNumber));
+            File thisSharkDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
             if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
             File finalFile=new File(thisSharkDir, fileName);
             fullPathFilename=finalFile.getCanonicalPath();
@@ -118,7 +119,8 @@ public class EncounterAddImage extends HttpServlet {
       }
       
 
-      File thisEncounterDir = new File(encountersDir, encounterNumber);
+      //File thisEncounterDir = new File(encountersDir, Encounter.subdir(encounterNumber));
+			File thisEncounterDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
       
       myShepherd.beginDBTransaction();
       if (myShepherd.isEncounter(encounterNumber)) {

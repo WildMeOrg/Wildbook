@@ -85,7 +85,7 @@ public class ResurrectDeletedEncounter extends HttpServlet {
       //ok, let's get the encounter object back from the .dat file
       String datFilename = request.getParameter("number") + ".dat";
       //File thisEncounterDat=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+request.getParameter("number")+File.separator+datFilename);
-      File thisEncounterDat = new File(encountersDir.getAbsolutePath() + "/" + request.getParameter("number") + "/" + datFilename);
+      File thisEncounterDat = new File(Encounter.dir(shepherdDataDir, request.getParameter("number")) + "/" + datFilename);
 
 
       if (thisEncounterDat.exists()) {
