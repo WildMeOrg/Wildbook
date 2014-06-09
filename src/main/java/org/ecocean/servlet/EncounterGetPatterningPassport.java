@@ -67,7 +67,8 @@ public class EncounterGetPatterningPassport extends HttpServlet {
       PatterningPassport ppFile = (PatterningPassport)ppIt.next();
       if ((ppFile != null) && (ppFile.getEncounterId()!=null))
       {
-        File thisEncounterDir = new File(encountersDir, ppFile.getEncounterId());
+        ///File thisEncounterDir = new File(encountersDir, ppFile.getEncounterId());
+				File thisEncounterDir = new File(Encounter.dir(shepherdDataDir, ppFile.getEncounterId()));
         File thisPPFileObject = new File(thisEncounterDir, (ppFile.getMediaId()+"_pp.xml"));
         if(thisPPFileObject.exists()){responseMsg += "::: The PP file also exists!<br/>";}
         

@@ -692,7 +692,7 @@ public class WriteOutScanTask extends HttpServlet {
       //if(!encountersDir.exists()){encountersDir.mkdir();}
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"Scan.xml");
-      File file = new File(encountersDir.getAbsolutePath()+"/"+ num + "/lastFull" + fileAddition + "Scan.xml");
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "Scan.xml");
 
       
       
@@ -817,7 +817,7 @@ public class WriteOutScanTask extends HttpServlet {
       //if(!encountersDir.exists()){encountersDir.mkdir();}
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"I3SScan.xml");
-      File file = new File(encountersDir.getAbsolutePath()+"/"+ num + "/lastFull" + fileAddition + "I3SScan.xml");
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "I3SScan.xml");
 
 
       FileWriter mywriter = new FileWriter(file);
@@ -895,6 +895,8 @@ public class WriteOutScanTask extends HttpServlet {
     }
   }
 
+
+/***   commented out (not called .. yet!) 2014-06-09 jon (via jason)
 
   public boolean writeBoostedResult(String encNumber, MatchObject[] swirs, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd, Properties props) {
 
@@ -983,7 +985,13 @@ public class WriteOutScanTask extends HttpServlet {
       if (rightSide) {
         fileAddition = "Right";
       }
-      File file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastBoost" + fileAddition + "Scan.xml")));
+
+      //setup data dir
+      String rootWebappPath = getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName("context0"));  //TODO need real context!
+      //File file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastBoost" + fileAddition + "Scan.xml")));
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastBoost" + fileAddition + "Scan.xml");
 
 
       FileWriter mywriter = new FileWriter(file);
@@ -999,6 +1007,8 @@ public class WriteOutScanTask extends HttpServlet {
       return false;
     }
   } //end writeResult method
+
+*/
 
 
 }

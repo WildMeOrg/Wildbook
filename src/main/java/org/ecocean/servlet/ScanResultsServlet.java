@@ -144,7 +144,7 @@ public class ScanResultsServlet extends HttpServlet {
       File webappsDir = new File(rootWebappPath).getParentFile();
       File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
       //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
-      File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+      //File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       //if(!encountersDir.exists()){encountersDir.mkdir();}
 
       //in case this is a right-side scan, change file name to save to
@@ -153,7 +153,8 @@ public class ScanResultsServlet extends HttpServlet {
         fileAddition = "Right";
       }
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"Scan.xml");
-      File file = new File(encountersDir.getAbsoluteFile()+"/"+ num + "/lastFull" + fileAddition + "Scan.xml");
+      //File file = new File(encountersDir.getAbsoluteFile()+"/"+ num + "/lastFull" + fileAddition + "Scan.xml");
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "Scan.xml");
 
 
       FileWriter mywriter = new FileWriter(file);
