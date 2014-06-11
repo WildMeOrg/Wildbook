@@ -1411,7 +1411,10 @@ table.tissueSample td {
 	font-size: 0.8em;
 }
 
-
+/* generic "notice me!" error text? */
+.error {
+	color: #820;
+}
 
 
 
