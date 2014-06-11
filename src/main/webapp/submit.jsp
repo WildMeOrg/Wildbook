@@ -40,6 +40,8 @@ context=ServletUtilities.getContext(request);
   props = ShepherdProperties.getProperties("submit.properties", langCode,context);
 
 
+	long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
+	long maxSizeBytes = maxSizeMB * 1048576;
 
   
 
@@ -898,7 +900,11 @@ function updateList(inp) {
 	if (inp.files && inp.files.length) {
 		var all = [];
 		for (var i = 0 ; i < inp.files.length ; i++) {
-			all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+			if (inp.files[i].size > <%=maxSizeBytes%>) {
+				all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
+			} else {
+				all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+			}
 		}
 		f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
 	} else {
