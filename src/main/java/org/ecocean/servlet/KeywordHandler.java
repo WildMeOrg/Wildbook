@@ -88,9 +88,9 @@ public class KeywordHandler extends HttpServlet {
       } 
       else if ((action.equals("removeWord")) && (request.getParameter("keyword") != null)) {
         myShepherd.beginDBTransaction();
-        Keyword word = myShepherd.getKeyword(request.getParameter("keyword"));
+        Keyword word = myShepherd.getKeyword(request.getParameter("keyword").trim());
         String desc = word.getReadableName();
-        myShepherd.throwAwayKeyword(word);
+        myShepherd.getPM().deletePersistent(word);
         myShepherd.commitDBTransaction();
 
         //confirm success
