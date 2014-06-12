@@ -631,7 +631,7 @@ public class Shepherd {
     Iterator keywords = getAllKeywords();
 	while (keywords.hasNext()) {
       Keyword kw = (Keyword) keywords.next();
-      if((kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
+      if((kw.getReadableName().trim().equals(readableName.trim()))||(kw.getIndexname().trim().equals(readableName.trim()))){return kw;}
   	}
   return null;
 
