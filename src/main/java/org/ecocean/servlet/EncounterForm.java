@@ -321,7 +321,7 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 
   	} //end else
 		//end location code setter
-
+		fv.put("locCode", locCode);
 
 		//TODO this should live somewhere else as constant? (e.g. to build in form as well)
 		String[] scarType = new String[]{"None", "Tail (caudal) fin", "1st dorsal fin", "2nd dorsal fin", "Left pectoral fin", "Right pectoral fin", "Head", "Body"};
@@ -692,7 +692,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
         enc.setSubmitterID("N/A");
       }
       if (!getVal(fv, "locCode").equals("")) {
-        enc.setLocationCode(getVal(fv, "locCode"));
+        enc.setLocationCode("locCode");
       }
       if (!getVal(fv, "country").equals("")) {
         enc.setCountry(getVal(fv, "country"));
