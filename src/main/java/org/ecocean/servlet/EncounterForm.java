@@ -682,7 +682,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
         enc.setSubmitterID("N/A");
       }
       if (!getVal(fv, "locCode").equals("")) {
-        enc.setLocationCode("locCode");
+        enc.setLocationCode(locCode);
       }
       if (!getVal(fv, "country").equals("")) {
         enc.setCountry(getVal(fv, "country"));
