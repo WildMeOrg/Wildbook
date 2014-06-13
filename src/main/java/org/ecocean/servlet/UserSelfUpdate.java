@@ -71,7 +71,7 @@ public class UserSelfUpdate extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean createThisUser = false;
 
-    String addedRoles="";
+    //String addedRoles="";
     boolean isEdit=true;
      
 
@@ -148,7 +148,7 @@ public class UserSelfUpdate extends HttpServlet {
         
         
         //now handle roles
-        
+        /*
         //if this is not a new user, we need to blow away all old roles
         ArrayList<Role> preexistingRoles=new ArrayList<Role>();
         if(!createThisUser){
@@ -191,7 +191,7 @@ public class UserSelfUpdate extends HttpServlet {
           }
         }
         //end role processing
-        
+        */
         
 
         myShepherd.commitDBTransaction();    
