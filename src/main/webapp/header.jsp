@@ -414,11 +414,7 @@ if(request.getUserPrincipal()!=null){
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
 	
-<script type="text/javascript">
-$(function() {
-    $( "[id^=flag_]" ).tooltip();
-  });
-</script>
+
 	
 <div id="header_menu" style="background-color: #D7E0ED;clear: left">
 <table width="810px">
