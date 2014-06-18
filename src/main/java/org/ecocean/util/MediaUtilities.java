@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
@@ -421,14 +422,18 @@ public final class MediaUtilities {
 
   /**
    * Extracts all the EXIF tags from the specified Metadata instance.
+   * This method ignores all GPS-related tags for data security reasons
+   * (identifiers starting with &quot;GPS&quot;).
    * @param md {@code Metadata} instance from image file
    * @return list of {@code Tag} instances
    */
   public static List<Tag> extractMetadataTags(Metadata md) {
     List<Tag> list = new ArrayList<Tag>();
     for (Directory dir : md.getDirectories()) {
-      for (Tag tag : dir.getTags())
-        list.add(tag);
+      for (Tag tag : dir.getTags()) {
+        if (!tag.getTagName().toUpperCase(Locale.US).startsWith("GPS"))
+          list.add(tag);
+      }
     }
     return list;
   }
