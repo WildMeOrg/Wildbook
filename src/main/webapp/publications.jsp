@@ -97,7 +97,13 @@
 		<p>&nbsp;</p>
 	
 		<a name="scipubs"></a><strong>Scientific publications</strong>
-		<p><em>The following reports and publications have either directly used data from whaleshark.org or contributed to its ultimate development and launch in 2003.</em></p>
+		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
+		
+		
+		<p>Rohner CA, Pierce SJ, Marshall AD, Weeks SJ, Bennett MB, Richardson AJ (2013) Trends in sightings and environmental influences on a coastal aggregation of manta rays and whale sharks. Mar Ecol Prog Ser 482: 153–168, 2013.
+		<br />
+		<a href="http://www.int-res.com/articles/meps_oa/m482p153.pdf">Web link</a>
+		</p>
 		
 		<p>McKinney J, Hoffmayer ER, Holmberg J, Graham R, de la Parra R et al. (2013) Regional connectivity of whale sharks demonstrated using photo-identification - Western Atlantic, 1999 - 2013. PeerJ PrePrints 1:e98v1
 		<br />
