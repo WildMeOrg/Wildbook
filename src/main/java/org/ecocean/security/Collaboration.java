@@ -95,38 +95,54 @@ public class Collaboration implements java.io.Serializable {
 		}
 	}
 
+
 	//fetch all collabs for the user
-	public static ArrayList collaborationsForUser(HttpServletRequest request) {
-		return collaborationsForUser(request, null);
+	public static ArrayList collaborationsForCurrentUser(HttpServletRequest request) {
+		return collaborationsForCurrentUser(request, null);
 	}
 
-	//like above, but can specify a status
-	public static ArrayList collaborationsForUser(HttpServletRequest request, String status) {
+	//like above, but can specify a state
+	public static ArrayList collaborationsForCurrentUser(HttpServletRequest request, String state) {
 		String context = ServletUtilities.getContext(request);
-		Shepherd myShepherd = new Shepherd(context);
 		if (request.getUserPrincipal() == null) { return null; }  //TODO is this cool?
 		String username = request.getUserPrincipal().getName();
 System.out.println(" collabs4username->"+username);
+		return collaborationsForUser(context, username, state);
+	}
 
+	public static ArrayList collaborationsForUser(String context, String username) {
+		return collaborationsForUser(context, username, null);
+	}
+
+	public static ArrayList collaborationsForUser(String context, String username, String state) {
+//TODO cache!!!
 		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE (username1 == '" + username + "') || (username2 == '" + username + "')";
-		if (status != null) {
-			queryString += " && STATUS == '" + status + "'";
+		if (state != null) {
+			queryString += " && STATE == '" + state + "'";
 		}
 System.out.println("qry -> " + queryString);
+		Shepherd myShepherd = new Shepherd(context);
 		Query query = myShepherd.getPM().newQuery(queryString);
     //ArrayList got = myShepherd.getAllOccurrences(query);
     return myShepherd.getAllOccurrences(query);
 	}
 
-/*
-    int numMatchingOccurs = got.size();
+	public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
+		ArrayList<Collaboration> all = collaborationsForUser(context, u1);
+		for (Collaboration c : all) {
+			if (c.username1.equals(u2) || c.username2.equals(u2)) return c;
+		}
+		return null;
+	}
 
-    for(int y=0;y<numMatchingOccurs;y++){
-    	Occurrence occur=(Occurrence)matchingOccurs.get(y);
-    	
-    	ArrayList<String> pairs=occur.getCorrespondingHaplotypePairsForMarkedIndividuals(myShepherd);
-    	int numPairs = pairs.size();
-*/
+	public static boolean canCollaborate(String context, String u1, String u2) {
+		if ((u1 == null) || (u2 == null) || u1.equals("") || u2.equals("") || u1.equals("N/A") || u2.equals("N/A")) return true; //TODO not sure???
+		if (u1.equals(u2)) return true;
+		Collaboration c = collaborationBetweenUsers(context, u1, u2);
+		if (c == null) return false;
+		if (c.state.equals(STATE_APPROVED)) return true;
+		return false;
+	}
 
 
 	public static boolean securityEnabled(String context) {
@@ -142,22 +158,23 @@ System.out.println("qry -> " + queryString);
 
 	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
 		String context = ServletUtilities.getContext(request);
-		if (!securityEnabled(context)) { return true; }
+		if (!securityEnabled(context)) return true;
+		//if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
 
-		if (request.getUserPrincipal() == null) { return false; }  //???
+		if (request.getUserPrincipal() == null) return false;  //???
 		String username = request.getUserPrincipal().getName();
 System.out.println("username->"+username);
-
 		String owner = enc.getAssignedUsername();
-		if ((owner == null) || owner.equals("")) { return true; }  //anon-owned is "fair game" to anyone
-		if (owner.equals(username)) { return true; }  //easy
-
-///TODO real maths
-		return false;
+		if ((owner == null) || owner.equals("") || owner.equals("N/A")) return true;  //anon-owned is "fair game" to anyone
+System.out.println("owner->" + owner);
+System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
+		return canCollaborate(context, owner, username);
 	}
 
 	//public boolean canUserAccessEncounter(Encounter enc, String username, String context) {
 	//}
+
+
 
 	public static boolean doesQueryExcludeUser(Query query, HttpServletRequest request) {
 System.out.println("query>>>> " + query.toString());
