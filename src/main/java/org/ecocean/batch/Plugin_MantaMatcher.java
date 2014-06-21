@@ -270,6 +270,5 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
     // Wait for process to finish, to avoid overload of processes.
     if (p.waitFor() == 0)
       fOut.delete();
-    assert MantaMatcherUtilities.checkMatcherFilesExist(imageFile);
   }
 }
