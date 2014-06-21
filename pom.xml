@@ -247,11 +247,6 @@
       <version>2.6.2</version>
     </dependency>
     <dependency>
-      <groupId>com.adobe.xmp</groupId>
-      <artifactId>xmpcore</artifactId>
-      <version>5.1.2</version>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8.2</version>
