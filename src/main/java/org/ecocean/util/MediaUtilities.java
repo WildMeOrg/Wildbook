@@ -70,25 +70,19 @@ public final class MediaUtilities {
   public static final String REGEX_SUFFIX_FOR_WEB_IMAGES = "(?i:(jpe?g?|png|gif))$";
   /** Regex pattern string suffix for matching video filenames (case-insensitive, capturing group). */
   public static final String REGEX_SUFFIX_FOR_MOVIES = "(?i:(mp4|mpg|mov|wmv|avi|flv))$";
-  /** Instance for writing JPEG images. */
-  private static ImageWriter iwJPEG;
-  /** Instance for writing JPEG images. */
-  private static ImageWriteParam iwpJPEG;
 
-  static {
+  /**
+   * Gets a JPEG {@code ImageWriter} instance.
+   */
+  private static ImageWriter getImageWriter_JPEG() throws IOException {
     // Obtain ImageWriter instance for JPEG images.
-    for (Iterator<ImageWriter> iter = ImageIO.getImageWritersByMIMEType("image/jpeg"); iter.hasNext();)
-    {
+    for (Iterator<ImageWriter> iter = ImageIO.getImageWritersByMIMEType("image/jpeg"); iter.hasNext();) {
       ImageWriter iw = iter.next();
       ImageWriteParam iwp = iw.getDefaultWriteParam();
-      if (iwJPEG == null ||
-          (!iwpJPEG.canWriteCompressed() && iwp.canWriteCompressed()) ||
-          (!iwpJPEG.canWriteProgressive() && iwp.canWriteProgressive()))
-      {
-        iwJPEG = iw;
-        iwpJPEG = iwp;
-      }
+      if (iwp.canWriteCompressed() && iwp.canWriteProgressive())
+        return iw;
     }
+    throw new IOException("No JPEG ImageWriter available");
   }
 
   private MediaUtilities() {}
@@ -188,10 +182,11 @@ public final class MediaUtilities {
         }
       }
     } catch (ImageProcessingException ex) {
-      throw new IOException(ex);
+      // Warn, and return original.
+      log.warn("Unable to read metadata for image: " + f.getAbsolutePath(), ex);
     } catch (MetadataException ex) {
       // Warn, and return original.
-      log.warn(ex.getMessage(), ex);
+      log.warn("Unable to read metadata for image: " + f.getAbsolutePath(), ex);
     }
     // Return image.
     return img;
@@ -205,7 +200,11 @@ public final class MediaUtilities {
    * @throws IOException if an I/O problem occurs
    */
   public static BufferedImage loadImageAsSRGB(File f) throws IOException {
-    return convertToSRGB(loadImage(f));
+    BufferedImage bi = loadImage(f);
+    BufferedImage img = convertToSRGB(bi);
+    if (img != bi)
+      bi.flush();
+    return img;
   }
 
   /**
@@ -301,28 +300,31 @@ public final class MediaUtilities {
         throw new IOException("File already exists");
       }
     }
-    if (iwJPEG == null) {
-      throw new IOException("No JPEG ImageWriter available");
+    ImageWriter iw = getImageWriter_JPEG();
+    ImageWriteParam iwp = iw.getDefaultWriteParam();
+    if (iwp.canWriteCompressed()) {
+      iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+      iwp.setCompressionQuality(quality);
     }
-    synchronized(iwJPEG) {
-      iwpJPEG.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-      iwpJPEG.setCompressionQuality(quality);
-      iwpJPEG.setProgressiveMode(progressive ? ImageWriteParam.MODE_DEFAULT : ImageWriteParam.MODE_DISABLED);
+    if (iwp.canWriteProgressive()) {
+      iwp.setProgressiveMode(progressive ? ImageWriteParam.MODE_DEFAULT : ImageWriteParam.MODE_DISABLED);
+    }
 
-      ImageOutputStream ios = null;
+    ImageOutputStream ios = null;
+    try {
+      ios = ImageIO.createImageOutputStream(f);
+      iw.setOutput(ios);
+      iw.write(null, new IIOImage(img, null, null), iwp);
+      iw.reset();
+    } finally {
+      iw.dispose();
       try {
-        ios = ImageIO.createImageOutputStream(f);
-        iwJPEG.setOutput(ios);
-        iwJPEG.write(null, new IIOImage(img, null, null), iwpJPEG);
-      } finally {
-        try {
-          if (ios != null) {
-            ios.flush();
-            ios.close();
-          }
-        } catch (Exception ex) {
-          ex.printStackTrace();
+        if (ios != null) {
+          ios.flush();
+          ios.close();
         }
+      } catch (Exception ex) {
+        ex.printStackTrace();
       }
     }
   }
@@ -337,13 +339,15 @@ public final class MediaUtilities {
     if (image == null)
       throw new NullPointerException("Invalid (null) image specified");
     final ColorModel cm = image.getColorModel();
-    BufferedImage img = image;
     // If not using sRGB colorspace, convert to sRGB before processing.
     if (cm != null && !cm.getColorSpace().isCS_sRGB()) {
+      BufferedImage img = null;
       ColorConvertOp cco = new ColorConvertOp(CS_sRGB, null);
       img = cco.filter(image, null);
+      image.flush();
+      return img;
     }
-    return img;
+    return image;
   }
 
   /**

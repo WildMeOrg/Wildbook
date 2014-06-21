@@ -574,18 +574,18 @@ public final class BatchProcessor implements Runnable {
             File src = media.get(0).getFile();
             File dst = new File(src.getParentFile(), "thumb.jpg");
             if (dst.exists()) {
-              log.warn(String.format("Thumbnail for encounter %s already exists", enc.getCatalogNumber()));
-              continue;
-            }
-            // TODO: If video file, copy placeholder image? Just ignores and lets JSP handle it for now.
-            if (MediaUtilities.isAcceptableImageFile(src)) {
-              // Resize image to thumbnail & write to file.
-              try {
-                createThumbnail(src, dst, 100, 75);
-                log.trace(String.format("Created thumbnail image for encounter %s", enc.getCatalogNumber()));
-              }
-              catch (Exception ex) {
-                log.warn(String.format("Failed to create thumbnail correctly: %s", dst.getAbsolutePath()), ex);
+              log.info(String.format("Thumbnail for encounter %s already exists", enc.getCatalogNumber()));
+            } else {
+              // TODO: If video file, copy placeholder image? Just ignores and lets JSP handle it for now.
+              if (MediaUtilities.isAcceptableImageFile(src)) {
+                // Resize image to thumbnail & write to file.
+                try {
+                  createThumbnail(src, dst, 100, 75);
+                  log.trace(String.format("Created thumbnail image for encounter %s", enc.getCatalogNumber()));
+                }
+                catch (Exception ex) {
+                  log.warn(String.format("Failed to create thumbnail correctly: %s", dst.getAbsolutePath()), ex);
+                }
               }
             }
             // Process copyright-overlaid thumbnail for each media item.
@@ -595,15 +595,15 @@ public final class BatchProcessor implements Runnable {
               src = spv.getFile();
               dst = new File(src.getParentFile(), spv.getDataCollectionEventID() + ".jpg");
               if (dst.exists()) {
-                log.warn(String.format("Thumbnail image %s already exists", spv.getDataCollectionEventID()));
-                continue;
-              }
-              try {
-                createThumbnailWithOverlay(src, dst, 250, 200, copyText);
-//                log.trace(String.format("Created thumbnail for media item %s", spv.getDataCollectionEventID()));
-              }
-              catch (Exception ex) {
-                log.warn(String.format("Failed to create thumbnail correctly: %s", dst.getAbsolutePath()), ex);
+                log.info(String.format("Thumbnail image %s already exists", spv.getDataCollectionEventID()));
+              } else {
+                try {
+                  createThumbnailWithOverlay(src, dst, 250, 200, copyText);
+//                  log.trace(String.format("Created thumbnail for media item %s", spv.getDataCollectionEventID()));
+                }
+                catch (Exception ex) {
+                  log.warn(String.format("Failed to create thumbnail correctly: %s", dst.getAbsolutePath()), ex);
+                }
               }
               counter++;
             }
@@ -668,9 +668,9 @@ public final class BatchProcessor implements Runnable {
   private static void createThumbnail(File src, File dst, int w, int h) throws ImageReadException, IOException {
     BufferedImage img = MediaUtilities.loadImageAsSRGB(src);
     BufferedImage out = MediaUtilities.rescaleImage(img, w, h, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+    img.flush();
     MediaUtilities.saveImageJPEG(out, dst, false, 0.6f, false);
     out.flush();
-    img.flush();
   }
 
   /**
@@ -686,9 +686,9 @@ public final class BatchProcessor implements Runnable {
   private static void createThumbnailWithOverlay(File src, File dst, int w, int h, String text) throws ImageReadException, IOException {
     BufferedImage img = MediaUtilities.loadImageAsSRGB(src);
     BufferedImage out = MediaUtilities.rescaleImageWithTextOverlay(img, w, h, text);
+    img.flush();
     MediaUtilities.saveImageJPEG(out, dst, false, 0.6f, false);
     out.flush();
-    img.flush();
   }
 
   /**
