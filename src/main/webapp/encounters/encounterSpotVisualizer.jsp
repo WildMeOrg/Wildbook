@@ -51,6 +51,8 @@ context=ServletUtilities.getContext(request);
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //if(!encountersDir.exists()){encountersDir.mkdir();}
+    
+    File encounterDir = new File(Encounter.dir(shepherdDataDir, num));
 
   if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
     side = "Right";
@@ -99,7 +101,7 @@ if (myShepherd.isEncounter(num)) {
 <tr>
 <td>
 <p><font size="4"><strong><%=side%>-side Spot
-  Visualization for Encounter Number: <a
+  Visualization for Encounter:<br /> <a
     href="encounter.jsp?number=<%=num%>"><%=enc.getEncounterNumber()%>
   </a>
 </strong></font></p>
@@ -144,14 +146,14 @@ if (myShepherd.isEncounter(num)) {
   //now let's set up the image mapping variables as needed
   String fileloc = "";
   if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-    fileloc = (enc.getEncounterNumber() + "/extractRight" + num + ".jpg");
+    fileloc = "extractRight" + num + ".jpg";
   } else {
-    fileloc = (enc.getEncounterNumber() + "/extract" + num + ".jpg");
+    fileloc = "extract" + num + ".jpg";
   }
   InputStream encStream = null;
   boolean canDirectMap = true;
   Dimension imageDimensions = null;
-  FileInputStream fip=new FileInputStream(new File(encountersDir.getAbsolutePath()+"/" + fileloc));
+  FileInputStream fip=new FileInputStream(new File(encounterDir.getAbsolutePath()+"/" + fileloc));
   try {
     //connEnc = encURL.openConnection();
     //System.out.println("Opened new encounter connection");
@@ -163,7 +165,7 @@ if (myShepherd.isEncounter(num)) {
     System.out.println("I failed to get the image input stream while using the spotVisualizer");
     canDirectMap = false;
 	%>
-	<p>I could not connect to and find the spot image at: <%=(encountersDir.getAbsolutePath()+"/" + fileloc) %></p>
+	<p>I could not connect to and find the spot image at: <%=(encounterDir.getAbsolutePath()+"/" + fileloc) %></p>
 
 	<%
   }
@@ -182,7 +184,7 @@ if (myShepherd.isEncounter(num)) {
   	}
   	StringBuffer xmlData = new StringBuffer();
 
-  	String thumbLocation = "file-" + encountersDir.getAbsolutePath()+"/"+ num + "/" + side + "SideSpotsMapped.jpg";
+  	String thumbLocation = "file-" + encountersDir.getAbsolutePath()+"/"+ Encounter.subdir(num) + "/" + side + "SideSpotsMapped.jpg";
 	
 	%>
 	<di:img width="<%=encImageWidth%>"
@@ -191,9 +193,11 @@ if (myShepherd.isEncounter(num)) {
         threading="limited" fillPaint="#000000" align="top" valign="left"
         output="<%=thumbLocation %>">
         <%
-        System.out.println(encountersDir.getAbsolutePath()+"/"+fileloc);
-        String src_url=encountersDir.getAbsolutePath()+"/"+fileloc;
+        //System.out.println(encountersDir.getAbsolutePath()+"/"+fileloc);
+        String src_url=encounterDir.getAbsolutePath()+"/"+fileloc;
+        //String src_ur_value=encounterDir.getAbsolutePath()+"/"+addText;
         %>
+    
   	<di:image srcurl="<%=src_url%>"/>
   	<%
 
@@ -282,7 +286,7 @@ if (myShepherd.isEncounter(num)) {
 </di:img>
 
 <!-- Put the image URL in now -->
-<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=(num+"/"+side+"SideSpotsMapped.jpg")%>" border="0" align="left" valign="left">
+<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=(Encounter.subdir(num)+"/"+side+"SideSpotsMapped.jpg")%>" border="0" align="left" valign="left">
 
 
 

@@ -113,7 +113,9 @@ public class EncounterSearchExportShapefile extends HttpServlet{
             featureBuilder.add((new java.sql.Date(enc.getDateInMilliseconds())));
             featureBuilder.add(enc.getCatalogNumber());
             featureBuilder.add(enc.isAssignedToMarkedIndividual());
-            featureBuilder.add(enc.getSex());
+            if(enc.getSex()!=null){
+              featureBuilder.add(enc.getSex());
+            }
             String haploString="";
             if(enc.getTissueSamples().size()>0){
               List<TissueSample> samples=enc.getTissueSamples();

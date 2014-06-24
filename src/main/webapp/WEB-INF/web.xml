@@ -209,7 +209,6 @@
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
-
             </param-value>
         </init-param>
     </filter>
@@ -647,6 +646,11 @@
     <servlet-name>IndividualCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualCreate</servlet-class>
   </servlet>
+
+  <servlet>
+    <servlet-name>EncounterForm</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterForm</servlet-class>
+  </servlet>
   
     <servlet>
       <servlet-name>OccurrenceCreate</servlet-name>
@@ -1067,6 +1071,12 @@
     <servlet-name>IndividualCreate</servlet-name>
     <url-pattern>/IndividualCreate</url-pattern>
   </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterForm</servlet-name>
+    <url-pattern>/EncounterForm</url-pattern>
+  </servlet-mapping>
+  
   
     <servlet-mapping>
       <servlet-name>OccurrenceCreate</servlet-name>

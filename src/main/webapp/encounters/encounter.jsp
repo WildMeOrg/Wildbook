@@ -2217,7 +2217,11 @@ $("a#livingStatus").click(function() {
 <!-- END ALIVE-DEAD ATTRIBUTE -->  
 
 <!--  START SEX SECTION --> 
-<p class="para"><%=encprops.getProperty("sex") %>&nbsp;<%=enc.getSex()%> 
+<%
+String sex="";
+if(enc.getSex()!=null){sex=enc.getSex();}
+%>
+<p class="para"><%=encprops.getProperty("sex") %>&nbsp;<%=sex %> 
 <%
 if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {	
  %>

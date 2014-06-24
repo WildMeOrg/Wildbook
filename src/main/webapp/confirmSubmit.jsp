@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.*,java.io.File,java.util.Properties, java.util.StringTokenizer, java.util.Vector, java.util.concurrent.ThreadPoolExecutor" %>
+         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.*,java.io.File,java.util.Properties, java.util.StringTokenizer, java.util.Vector, java.util.concurrent.ThreadPoolExecutor, javax.servlet.http.HttpSession" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 <%
@@ -27,6 +27,13 @@ String context="context0";
 context=ServletUtilities.getContext(request);
   String number = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);
+	//HttpSession session = request.getSession(false);
+
+
+	String filesOKMessage = "";
+	if (session.getAttribute("filesOKMessage") != null) { filesOKMessage = session.getAttribute("filesOKMessage").toString(); }
+	String filesBadMessage = "";
+	if (session.getAttribute("filesBadMessage") != null) { filesBadMessage = session.getAttribute("filesBadMessage").toString(); }
 
 //setup our Properties object to hold all properties
   Properties props = new Properties();
@@ -53,7 +60,7 @@ context=ServletUtilities.getContext(request);
   if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   if(!encountersDir.exists()){encountersDir.mkdir();}
-  File thisEncounterDir = new File(encountersDir, number);
+  File thisEncounterDir = null;// = new File();  //gets set after we have encounter
 
 
 %>
@@ -103,11 +110,16 @@ context=ServletUtilities.getContext(request);
   String submitter = "";
   String informOthers = "";
   String informMe = "";
+
+	String rootDir = getServletContext().getRealPath("/");
+	String baseDir = ServletUtilities.dataDir(context, rootDir);
+
   if (!number.equals("fail")) {
 
     myShepherd.beginDBTransaction();
     try {
       Encounter enc = myShepherd.getEncounter(number);
+			thisEncounterDir = new File(enc.dir(baseDir));
       if ((enc.getAdditionalImageNames() != null) && (enc.getAdditionalImageNames().size() > 0)) {
         addText = (String)enc.getAdditionalImageNames().get(0);
       }
@@ -126,7 +138,9 @@ context=ServletUtilities.getContext(request);
       }
       new_message.append("Location: " + enc.getLocation() + "\n");
       new_message.append("Date: " + enc.getDate() + "\n");
-      new_message.append("Sex: " + enc.getSex() + "\n");
+      if(enc.getSex()!=null){
+      	new_message.append("Sex: " + enc.getSex() + "\n");
+      }
       new_message.append("Submitter: " + enc.getSubmitterName() + "\n");
       new_message.append("Email: " + enc.getSubmitterEmail() + "\n");
       new_message.append("Photographer: " + enc.getPhotographerName() + "\n");
@@ -166,8 +180,10 @@ context=ServletUtilities.getContext(request);
   //File file2process = new File(getServletContext().getRealPath(("/" + addText)));
 
   File file2process = new File(addText);
-  
-  if((file2process.exists())&&(myShepherd.isAcceptableImageFile(file2process.getName()))){
+	File thumbFile = new File(thumbLocation.substring(5));
+
+
+  if(file2process.exists() && myShepherd.isAcceptableImageFile(file2process.getName())){
   	int intWidth = 100;
   	int intHeight = 75;
   	int thumbnailHeight = 75;
@@ -214,6 +230,9 @@ context=ServletUtilities.getContext(request);
 <h1 class="intro"><%=props.getProperty("success") %></h1>
 
 <p><strong><%=props.getProperty("thankYou") %></strong></p>
+
+<p><strong><%=props.getProperty("confirmFilesOK") %>:</strong> <%=filesOKMessage %></p>
+<p><strong><%=props.getProperty("confirmFilesBad") %>:</strong> <%=filesBadMessage %></p>
 
 <p><%=props.getProperty("futureReference") %> <strong><%=number%></strong>.</p>
 

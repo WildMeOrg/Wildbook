@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.CommonConfiguration, org.ecocean.Shepherd, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 <html>
 <%
 
@@ -37,6 +37,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
   session.setMaxInactiveInterval(6000);
   String num = request.getParameter("number");
+	String encSubdir = Encounter.subdir(num);
   Shepherd myShepherd = new Shepherd(context);
   if (request.getParameter("writeThis") == null) {
     myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
@@ -142,14 +143,14 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     File finalXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ num + "/lastFullRightI3SScan.xml");
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightI3SScan.xml");
 
 
       side2 = "right";
       fileSider = "&rightSide=true";
     } else {
       //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullI3SScan.xml");
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
     }
     if (finalXMLFile.exists()) {
   %>
@@ -182,13 +183,13 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     try {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullRightScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightScan.xml");
 
 
         side = "right";
       } else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
 
       }
       doc = xmlReader.read(file);
@@ -469,9 +470,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     System.out.println("Base URL is: " + baseURL);
     if (xmlOK) {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        feedURL = baseURL + num + "/lastFullRightScan.xml?";
+        feedURL = baseURL + encSubdir + "/lastFullRightScan.xml?";
       } else {
-        feedURL = baseURL + num + "/lastFullScan.xml?";
+        feedURL = baseURL + encSubdir + "/lastFullScan.xml?";
       }
     }
     String rightSA = "";

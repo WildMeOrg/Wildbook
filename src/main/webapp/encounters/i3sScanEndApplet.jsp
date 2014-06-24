@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.CommonConfiguration, org.ecocean.Shepherd, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 <html>
 <%
 
@@ -48,7 +48,8 @@ context=ServletUtilities.getContext(request);
   //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdir();}
-  File thisEncounterDir = new File(encountersDir, num);
+	String encSubdir = Encounter.subdir(num);
+  //File thisEncounterDir = new File(encountersDir, encSubdir);   //never used??
  
 %>
 
@@ -128,12 +129,12 @@ context=ServletUtilities.getContext(request);
     String fileSider = "";
     File finalXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullRightScan.xml");
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightScan.xml");
 
       side2 = "right";
       fileSider = "&rightSide=true";
     } else {
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullScan.xml");
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
 
     }
     if (finalXMLFile.exists()) {
@@ -167,12 +168,12 @@ context=ServletUtilities.getContext(request);
     try {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullRightI3SScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightI3SScan.xml");
 
         side = "right";
       } else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullI3SScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
       }
       doc = xmlReader.read(file);
       root = doc.getRootElement();
@@ -378,9 +379,9 @@ context=ServletUtilities.getContext(request);
     System.out.println("Base URL is: " + baseURL);
     if (xmlOK) {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        feedURL = baseURL + num + "/lastFullRightI3SScan.xml?";
+        feedURL = baseURL + encSubdir + "/lastFullRightI3SScan.xml?";
       } else {
-        feedURL = baseURL + num + "/lastFullI3SScan.xml?";
+        feedURL = baseURL + encSubdir + "/lastFullI3SScan.xml?";
       }
     }
     String rightSA = "";
