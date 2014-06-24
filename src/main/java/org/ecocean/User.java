@@ -68,6 +68,7 @@ public class User implements java.io.Serializable {
   	  setUsername(username);
   	  setPassword(password);
   	  setSalt(salt);
+			setReceiveEmails(true);
   	  RefreshDate();
   	  this.lastLogin=-1;
   	}

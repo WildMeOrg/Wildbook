@@ -272,7 +272,8 @@
        							<%
    								if(photos.size()>0){ 
    									SinglePhotoVideo myPhoto=photos.get(0);
-   									String imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + myPhoto.getCorrespondingEncounterNumber() + "/thumb.jpg";
+   									//String imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + myPhoto.getCorrespondingEncounterNumber() + "/thumb.jpg";
+   									String imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + temp.subdir() + "/thumb.jpg";
    			                       
    								%>                         
                             		<a href="individuals.jsp?number=<%=indie.getName()%>"><img src="<%=imgName%>" alt="<%=indie.getName()%>" border="0"/></a>
@@ -316,7 +317,11 @@
     <td class="lineitem"><%=indie.getMaxNumYearsBetweenSightings()%>
     </td>
 
-    <td class="lineitem"><%=indie.getSex()%>
+<%
+String sexValue="";
+if(indie.getSex()!=null){sexValue=indie.getSex();}
+%>
+    <td class="lineitem"><%=sexValue %>
     </td>
 
     <td class="lineitem"><%=indie.participatesInTheseLocationIDs().size()%>

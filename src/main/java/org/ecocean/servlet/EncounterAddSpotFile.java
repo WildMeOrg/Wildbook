@@ -107,7 +107,8 @@ public class EncounterAddSpotFile extends HttpServlet {
 
         }
 
-        File thisEncounterDir = new File(encountersDir, encounterNumber);
+        //File thisEncounterDir = new File(encountersDir, Encounter.subdir(encounterNumber));
+				File thisEncounterDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
         if (part.isFile()) {
           FilePart filePart = (FilePart) part;
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());

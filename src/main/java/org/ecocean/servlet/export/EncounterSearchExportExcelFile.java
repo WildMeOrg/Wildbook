@@ -274,7 +274,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
                 System.out.println("     I hit an error getting locales in searchResults.jsp.");
               }
             }
-            if (!enc.getSex().equals("unknown")) {
+            if ((enc.getSex()!=null)&&(!enc.getSex().equals("unknown"))) {
               Label lSex = new Label(25, count, enc.getSex());
               sheet.addCell(lSex);
             }

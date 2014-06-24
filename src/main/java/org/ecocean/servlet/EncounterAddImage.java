@@ -28,6 +28,9 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
+import org.ecocean.Util;
+
+import org.apache.commons.io.FilenameUtils;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -38,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+
 
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record
@@ -97,12 +101,14 @@ public class EncounterAddImage extends HttpServlet {
         }
 
 
+////TODO this will need to be generified for offsite storage prob via SinglePhotoVideo? as in EncounterForm?
         if (part.isFile()) {
           FilePart filePart = (FilePart) part;
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());
           if (fileName != null) {
-
-            File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ encounterNumber);
+						//fileName = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(fileName);
+            //File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ Encounter.subdir(encounterNumber));
+            File thisSharkDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
             if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
             File finalFile=new File(thisSharkDir, fileName);
             fullPathFilename=finalFile.getCanonicalPath();
@@ -113,7 +119,8 @@ public class EncounterAddImage extends HttpServlet {
       }
       
 
-      File thisEncounterDir = new File(encountersDir, encounterNumber);
+      //File thisEncounterDir = new File(encountersDir, Encounter.subdir(encounterNumber));
+			File thisEncounterDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
       
       myShepherd.beginDBTransaction();
       if (myShepherd.isEncounter(encounterNumber)) {

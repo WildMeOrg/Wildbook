@@ -297,10 +297,11 @@ public class WriteOutScanTask extends HttpServlet {
 
 
           //boost sex
-          if (encA.getSex().equals(encB.getSex())) {
+          if ((encA.getSex()!=null)&&(encB.getSex()!=null)&&(encA.getSex().equals(encB.getSex()))) {
             boostString += (encA.getSex() + ",");
             predictInput[0] = encA.getSex();
-          } else {
+          } 
+          else {
             boostString += "unknown,";
             predictInput[0] = "unknwon";
           }
@@ -616,7 +617,11 @@ public class WriteOutScanTask extends HttpServlet {
           Element enc = match.addElement("encounter");
           enc.addAttribute("number", firstEnc.getEncounterNumber());
           enc.addAttribute("date", firstEnc.getDate());
-          enc.addAttribute("sex", firstEnc.getSex());
+          
+          if(firstEnc.getSex()!=null){ enc.addAttribute("sex", firstEnc.getSex());}
+          else{ enc.addAttribute("sex", "unknown");}
+         
+          
           enc.addAttribute("assignedToShark", firstEnc.getIndividualID());
           if(firstEnc.getSizeAsDouble()!=null){enc.addAttribute("size", (firstEnc.getSize() + " meters"));}
           enc.addAttribute("location", firstEnc.getLocation());
@@ -634,7 +639,13 @@ public class WriteOutScanTask extends HttpServlet {
           Encounter secondEnc = myShepherd.getEncounter(num);
           enc2.addAttribute("number", num);
           enc2.addAttribute("date", secondEnc.getDate());
-          enc2.addAttribute("sex", secondEnc.getSex());
+          
+          
+          //enc2.addAttribute("sex", secondEnc.getSex());
+          if(secondEnc.getSex()!=null){ enc2.addAttribute("sex", secondEnc.getSex());}
+          else{ enc2.addAttribute("sex", "unknown");}
+         
+          
           enc2.addAttribute("assignedToShark", secondEnc.getIndividualID());
           if(secondEnc.getSizeAsDouble()!=null){enc2.addAttribute("size", (secondEnc.getSize() + " meters"));}
           else{enc2.addAttribute("size", "unknown");}
@@ -681,7 +692,7 @@ public class WriteOutScanTask extends HttpServlet {
       //if(!encountersDir.exists()){encountersDir.mkdir();}
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"Scan.xml");
-      File file = new File(encountersDir.getAbsolutePath()+"/"+ num + "/lastFull" + fileAddition + "Scan.xml");
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "Scan.xml");
 
       
       
@@ -730,7 +741,12 @@ public class WriteOutScanTask extends HttpServlet {
             Element enc = match.addElement("encounter");
             enc.addAttribute("number", mo.getEncounterNumber());
             enc.addAttribute("date", mo.getDate());
-            enc.addAttribute("sex", mo.getSex());
+            
+            if(mo.getSex()!=null){enc.addAttribute("sex", mo.getSex());}
+            else{enc.addAttribute("sex", "unknown");}
+            
+            
+            
             enc.addAttribute("assignedToShark", mo.getIndividualName());
             enc.addAttribute("size", (new Double(mo.getSize())).toString());
 
@@ -801,7 +817,7 @@ public class WriteOutScanTask extends HttpServlet {
       //if(!encountersDir.exists()){encountersDir.mkdir();}
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"I3SScan.xml");
-      File file = new File(encountersDir.getAbsolutePath()+"/"+ num + "/lastFull" + fileAddition + "I3SScan.xml");
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "I3SScan.xml");
 
 
       FileWriter mywriter = new FileWriter(file);
@@ -880,6 +896,8 @@ public class WriteOutScanTask extends HttpServlet {
   }
 
 
+/***   commented out (not called .. yet!) 2014-06-09 jon (via jason)
+
   public boolean writeBoostedResult(String encNumber, MatchObject[] swirs, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd, Properties props) {
 
     try {
@@ -922,7 +940,11 @@ public class WriteOutScanTask extends HttpServlet {
             Element enc = match.addElement("encounter");
             enc.addAttribute("number", mo.getEncounterNumber());
             enc.addAttribute("date", mo.getDate());
-            enc.addAttribute("sex", mo.getSex());
+            
+            
+            if(mo.getSex()!=null){enc.addAttribute("sex", mo.getSex());}
+            else{enc.addAttribute("sex", "unknown");}
+            
             enc.addAttribute("assignedToShark", mo.getIndividualName());
             enc.addAttribute("size", ((new Double(mo.getSize())).toString() + " meters"));
             //	vertexPointMatch[] firstScores=mo.getScores();
@@ -963,7 +985,13 @@ public class WriteOutScanTask extends HttpServlet {
       if (rightSide) {
         fileAddition = "Right";
       }
-      File file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastBoost" + fileAddition + "Scan.xml")));
+
+      //setup data dir
+      String rootWebappPath = getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName("context0"));  //TODO need real context!
+      //File file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastBoost" + fileAddition + "Scan.xml")));
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastBoost" + fileAddition + "Scan.xml");
 
 
       FileWriter mywriter = new FileWriter(file);
@@ -979,6 +1007,8 @@ public class WriteOutScanTask extends HttpServlet {
       return false;
     }
   } //end writeResult method
+
+*/
 
 
 }
