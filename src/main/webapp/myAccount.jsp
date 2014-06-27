@@ -85,12 +85,9 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
       <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
     <div id="main">
-     
-  
 
-      <h1 class="intro"><%=(props.getProperty("userAccount")+" "+request.getUserPrincipal()) %></h1>
-   
-    
+	<h1 class="intro"><%=(props.getProperty("userAccount")+" "+request.getUserPrincipal()) %></h1>
+
 	<p>
 
     	

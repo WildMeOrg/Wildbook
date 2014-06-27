@@ -985,6 +985,7 @@ tr.paging {
 }
 
 .lineitem {
+	position: relative;
   font-size: 10px;
   border-bottom: #999;
   border-width: 0 0 1px 0;
@@ -1411,7 +1412,126 @@ table.tissueSample td {
 	font-size: 0.8em;
 }
 
+div.row-lock {
+	position: absolute;
+	left: -30px;
+	top: 10px;
+	width: 30px;
+	height: 27px;
+}
 
+div.row-lock.new {
+	background: url(../images/lock-icon.png) no-repeat;
+	cursor: pointer;
+}
+div.row-lock.pending {
+	background: url(../images/lock-icon-pending.png) no-repeat;
+}
+div.row-lock.blocked {
+	background: url(../images/lock-icon-no.png) no-repeat;
+}
+
+.blockUI.blockOverlay {
+	background: #888 url(../images/checkerboard.png) !important;
+	opacity: 0.65 !important;
+}
+
+tr.no-access td {
+	opacity: 0.5;
+}
+tr.no-access:hover td {
+	opacity: 1.0;
+}
+
+/*
+.no-access img {
+	opacity: 0.5;
+}
+*/
+
+
+.popup {
+	background-color: #FFF;
+	position: fixed;
+	padding: 10px;
+	left: 5%;
+	top: 2%;
+	width: 90%;
+	min-height: 200px;
+	border: solid 2px #888;
+	z-index: 300;
+}
+
+.scroll {
+	overflow-y: auto;
+}
+
+.popup .scroll {
+	max-height: 300px;
+}
+
+.throbbing {
+	background: url(../images/throbber.gif) no-repeat left top;
+	padding-left: 25px;
+	min-height: 25px;
+}
+
+
+.collaboration-failure {
+	color: #A21;
+}
+.collaboration-success {
+	color: #2A4;
+}
+
+#notifications {
+	font-size: 0.9em;
+	position: absolute;
+	top: 40px;
+	right: 2px;
+}
+
+#notifications div {
+	padding: 4px;
+	color: rgba(0,0,0,0);
+	cursor: pointer;
+	border-radius: 3px;
+}
+
+#notifications div:hover {
+	background-color: #DDD;
+	color: rgba(0,0,0,0.5);
+}
+
+.notification-pill {
+	color: #FFF;
+	background-color: #F12;
+	border-radius: 7px;
+	font-weight: bold;
+	padding: 1px 5px 1px 5px;
+	margin: 1px 3px 1px 3px;
+	opacity: 0.6;
+}
+
+#notifications div:hover .notification-pill {
+	opacity: 1.0;
+}
+
+
+
+.collaboration-invite-notification {
+	margin: 3px;
+	padding: 1px 3px 1px 3px;
+	background-color: #DDD;
+	clear: both;
+	height: 1.8em;
+}
+.collaboration-invite-notification:hover {
+	background-color: #DDE;
+}
+.collaboration-invite-notification input {
+	float: right;
+}
 
 
 

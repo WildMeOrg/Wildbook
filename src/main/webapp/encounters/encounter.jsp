@@ -20,7 +20,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*, org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -38,7 +38,6 @@
         //set up the file input stream
         //props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
         props=ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
-
 
         //let's see if the property is defined
         if (props.getProperty(lcode) != null) {
@@ -123,6 +122,10 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 
+	Properties collabProps = new Properties();
+ 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+
+
 
   pageContext.setAttribute("num", num);
 
@@ -130,6 +133,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
+System.out.println("???? query=" + kwQuery);
   boolean proceed = true;
   boolean haveRendered = false;
 
@@ -458,6 +462,31 @@ margin-bottom: 8px !important;
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
+						boolean visible = enc.canUserAccess(request);
+
+						if (!visible) {
+							ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
+							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+							if ((c == null) || (c.getState() == null)) {
+								String name = enc.getSubmitterName();
+								if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
+								cmsg += "<div style=\"padding: 10px; background-color: rgba(100,100,100,0.2);\"><div>" + collabProps.getProperty("clickCollaborateMessage") + "</div>";
+								cmsg += "<div style=\"padding: 10px;\" id=\"collab-controls\"><input type=\"button\" value=\"" + name + "\" onClick=\"tryCollab()\" /></div></div>";
+							}
+							cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+							cmsg = cmsg.replace("'", "\\'");
+%><script type="text/javascript">
+	var encOwner = '<%=enc.getAssignedUsername()%>';
+$(document).ready(function() { $.blockUI({ message: '<%= cmsg %>'}) });
+function tryCollab() {
+	collaborateCall(encOwner, 'window.history.back()');
+}
+</script><%
+						}
+
+System.out.println("visible is " + visible);
+
       			pageContext.setAttribute("enc", enc);
       			String livingStatus = "";
       			if ((enc.getLivingStatus()!=null)&&(enc.getLivingStatus().equals("dead"))) {

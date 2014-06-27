@@ -6,7 +6,7 @@ var allCollab = {};
 function initialize() {
 console.log('ready!');
 
-	$('.collaboration-button').each(function(i, el) {
+	$('.collaboration-button.new').each(function(i, el) {
 		var jel = $(el);
 		var uid = jel.data('collabowner');
 		var name = jel.data('collabownername');
@@ -57,39 +57,133 @@ function collaborateClick(el) {
 }
 
 
-function collaborateCall(uid) {
+function collaborateCall(uid, callback) {
 	$('#collab-controls').html('<div class="throbbing">&nbsp;</div>');
 	$.ajax({
-		url: baseUrl + '/Collaborate?json=1&username=' + uid,
+		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uid,
 		dataType: 'json',
-		success: function(d) { collaborateCallDone(d); },
-		error: function(a,x,b) { collaborateCallDone({ success: false, message: 'Error: ' + a + '/' + b }); },
+		success: function(d) { collaborateCallDone(d, callback); },
+		error: function(a,x,b) { collaborateCallDone({ success: false, message: 'Error: ' + a + '/' + b }, callback); },
 		type: 'GET'
 	});
 }
 
 
+var colMultiCount = 0;
 function collaborateCallMulti() {
-	$('#collab-controls').html('<div class="throbbing">NOT YET IMPLEMENTED</div>');
-	$('#collab-multi input').each(function(i,el) {
-console.log(el);
+	var sel = $('#collab-multi input:checked');
+	if (sel.length < 1) return;
+	$('#collab-controls').html('<div class="throbbing">&nbsp;</div>');
+	colMultiCount = sel.length;
+	sel.each(function(i,el) {
+		$.ajax({
+			url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + el.value,
+			dataType: 'json',
+			success: function(d) { collaborateCallMultiDone(d); },
+			error: function(a,x,b) { collaborateCallMultiDone({ success: false, message: 'Error: ' + a + '/' + b }); },
+			type: 'GET'
+		});
 	});
 }
 
 
-function collaborateCallDone(data) {
-	console.log(data);
+function collaborateCallDone(data, callback) {
+	if (!callback) callback = '$(\'.popup\').remove();';
+	console.log('invite sent reponse: %o', data);
+	var h = '';
+/*
+	if (data.success) {
+		h += '<p class="collaboration-success">' + data.message + '</p>';
+	} else {
+		h += '<p class="collaboration-failure">' + data.message + '</p>';
+	}
+*/
+	h += '<p><input type="button" value="OK" onClick="' + callback + '" /></p>';
+	$('#collab-controls div').removeClass('throbbing').html(h);
+}
+
+
+function collaborateCallMultiDone(data, num) {
+	//if (!callback) callback = '$(\'.popup\').remove();';
+	var callback = '$(\'.popup\').remove();';
+	console.log('[%d] invite sent reponse: %o', colMultiCount, data);
+	colMultiCount--;
+	if (colMultiCount > 0) return;
+
 	var h = '';
 	if (data.success) {
 		h += '<p class="collaboration-success">' + data.message + '</p>';
 	} else {
 		h += '<p class="collaboration-failure">' + data.message + '</p>';
 	}
-	h += '<p><input type="button" value="OK" onClick="$(\'.popup\').remove();" /></p>';
+	h += '<p><input type="button" value="OK" onClick="' + callback + '" /></p>';
 	$('#collab-controls div').removeClass('throbbing').html(h);
 }
 
 
+
+
+function updateNotificationsWidget() {
+	var n = $('#notifications');
+	if (!n.length) return;
+	$.ajax({
+		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&getNotificationsWidget=1',
+		dataType: 'json',
+		success: function(d) {
+console.log(d);
+			if (d.success && d.content) n.html(d.content);
+		},
+		type: 'GET'
+	});
+}
+
+
+
+//TODO some day this should be general, i guess
+function showNotifications(el) {
+	var p = popup();
+	p.css({width: '50%', left: '25%', top: '10%'});
+	p.append('<div class="scroll throbbing" />');
+	p.show();
+	$.ajax({
+		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&getNotifications=1',
+		dataType: 'json',
+		success: function(d) {
+console.log(d);
+			p.find('.scroll').removeClass('throbbing').html(d.content);
+			$('.collaboration-invite-notification input').click(function(ev) { clickApproveDeny(ev); });
+		},
+		error: function(a,x,b) {
+			p.find('.scroll').removeClass('throbbing').html('error');
+		},
+		type: 'GET'
+	});
+}
+
+
+function clickApproveDeny(ev) {
+	var which = ev.target.getAttribute('class');
+	var jel = $(ev.target);
+	var uname = jel.parent().data('username');
+	var p = jel.parent();
+	p.html('').addClass('throbbing');
+	$.ajax({
+		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uname + '&approve=' + which,
+		dataType: 'json',
+		success: function(d) {
+			if (d.success) {
+				p.remove();
+				updateNotificationsWidget();
+			} else {
+				p.removeClass('throbbing').html(d.message);
+			}
+		},
+		error: function(a,x,b) {
+			p.html('error');
+		},
+		type: 'GET'
+	});
+}
 
 
 //TODO general usage???

@@ -55,20 +55,58 @@ public class Collaborate extends HttpServlet {
 
 
     String username = request.getParameter("username");
+		String approve = request.getParameter("approve");
+		String currentUsername = ((request.getUserPrincipal() == null) ? "" : request.getUserPrincipal().getName());
     boolean useJson = !(request.getParameter("json") == null);
-System.out.println("useJson = "+useJson);
 
 		HashMap rtn = new HashMap();
 		rtn.put("success", false);
 
+
 		if (request.getUserPrincipal() == null) {
 			rtn.put("message", props.getProperty("inviteResponseMessageAnon"));
+
+		} else if (request.getParameter("getNotificationsWidget") != null) {
+			rtn.put("content", Collaboration.getNotificationsWidgetHtml(request));
+			rtn.put("success", "true");
+
+		} else if (request.getParameter("getNotifications") != null) {
+			ArrayList<Collaboration> collabs = Collaboration.collaborationsForUser(context, currentUsername, Collaboration.STATE_INITIALIZED);
+System.out.println(collabs);
+			String html = "";
+			for (Collaboration c : collabs) {
+				if (!c.getUsername1().equals(currentUsername)) {  //this user did not initiate
+					html += "<div class=\"collaboration-invite-notification\" data-username=\"" + c.getUsername1() + "\">" + c.getUsername1() + " <input class=\"yes\" type=\"button\" value=\"" + props.getProperty("buttonApprove") + "\" /> <input class=\"no\" type=\"button\" value=\"" + props.getProperty("buttonDeny") + "\" /></div>";
+				}
+			}
+			String button = "<p><input onClick=\"$('.popup').remove()\" type=\"button\" value=\"close\" /></p>";
+			if (html.equals("")) {
+				rtn.put("content", props.getProperty("notificationsNone") + button);
+			} else {
+				rtn.put("content", "<h2>" + props.getProperty("notificationsTitle") + "</h2>" + html + button);
+			}
 
 		} else if ((username == null) || username.equals("")) {
 			rtn.put("message", props.getProperty("inviteResponseMessageNoUsername"));
 
+		} else if ((approve != null) && !approve.equals("")) {
+			Collaboration collab = Collaboration.collaborationBetweenUsers(context, currentUsername, username);
+			if ((collab == null) || !collab.getState().equals(Collaboration.STATE_INITIALIZED)) {
+				rtn.put("message", props.getProperty("approvalResponseMessageBad"));
+			} else if (approve.equals("yes")) {
+				myShepherd.beginDBTransaction();
+				collab.setState(Collaboration.STATE_APPROVED);
+				myShepherd.commitDBTransaction();
+				rtn.put("success", true);
+			} else {
+				myShepherd.beginDBTransaction();
+				collab.setState(Collaboration.STATE_REJECTED);
+				myShepherd.commitDBTransaction();
+				rtn.put("success", true);
+			}
+
+		//plain old invite!
 		} else {
-			String currentUsername = request.getUserPrincipal().getName();
 			Collaboration collab = Collaboration.collaborationBetweenUsers(context, currentUsername, username);
 			if (collab != null) {
 				rtn.put("message", props.getProperty("inviteResponseMessageAlready"));
@@ -76,6 +114,7 @@ System.out.println("useJson = "+useJson);
 			} else {
 				collab = Collaboration.create(currentUsername, username);
   			myShepherd.storeNewCollaboration(collab);
+				rtn.put("message", props.getProperty("inviteResponseMessageSent"));
 				rtn.put("success", true);
 			}
 		}
@@ -100,12 +139,6 @@ System.out.println(json);
 			if (rtn.get("message") != null) out.println("<p class=\"collaboration-invite-message\">" + rtn.get("message") + "</p>");
 			out.println(ServletUtilities.getFooter(context));
 		}
-/*
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-        out.println("<strong>Success!</strong> I have successfully removed user account '" + username + "'.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
-*/
 
 		out.close();
   }
