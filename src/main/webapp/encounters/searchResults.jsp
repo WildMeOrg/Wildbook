@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.Collaboration, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*" %>
 
 
 <html>
@@ -39,7 +39,20 @@ context=ServletUtilities.getContext(request);
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
   encprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
+
+  Properties collabProps = new Properties();
+  collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
   
+//TODO generalize this import of i18n text to javascript hash
+%>
+<script type="text/javascript">
+var textCollab = {
+	invitePromptOne: '<%= collabProps.getProperty("invitePromptOne") %>',
+	invitePromptMany: '<%= collabProps.getProperty("invitePromptMany") %>',
+	invitePromptManyOther: '<%= collabProps.getProperty("invitePromptManyOther") %>'
+};
+</script>
+<%
 
   Shepherd myShepherd = new Shepherd(context);
 
@@ -254,9 +267,12 @@ context=ServletUtilities.getContext(request);
   //Vector haveGPSData = new Vector();
   int count = 0;
 
-  for (int f = 0; f < rEncounters.size(); f++) {
+	ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
 
+  for (int f = 0; f < rEncounters.size(); f++) {
     Encounter enc = (Encounter) rEncounters.get(f);
+		boolean visible = enc.canUserAccess(request);
+System.out.println("visible="+visible);
 		String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
     count++;
@@ -268,8 +284,24 @@ context=ServletUtilities.getContext(request);
 
     if ((numResults >= startNum) && (numResults <= endNum)) {
 %>
-<tr class="lineitem">
+<tr class="lineitem<%= (visible ? "" : " no-access") %>">
   <td width="100" class="lineitem">
+
+<%
+	if (!visible) {
+		Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
+		String collabClass = "pending";
+		String clickMessage = "";
+		if ((c == null) || (c.getState() == null)) {
+			clickMessage = collabProps.getProperty("clickCollaborateMessage");
+			collabClass = "new";
+		} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
+			collabClass = "blocked";
+		}
+%>
+	<div title="<%= collabProps.getProperty("deniedMessage")%> <%= clickMessage %>" class="row-lock <%= collabClass %> collaboration-button" data-collabowner="<%= enc.getAssignedUsername() %>" data-collabownername="<%= enc.getSubmitterName()%>">&nbsp;</div>
+<% } %>
+
   <%
    if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
    %>

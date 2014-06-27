@@ -96,6 +96,14 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 
+//TODO this should do other steps?  maybe? like notify user??
+// NOTE the first user, by convention, is the initiator
+	public static Collaboration create(String u1, String u2) {
+		Collaboration c = new Collaboration(u1,u2);
+  //storeNewCollaboration(Collaboration collab) {
+		return c;
+	}
+
 	//fetch all collabs for the user
 	public static ArrayList collaborationsForCurrentUser(HttpServletRequest request) {
 		return collaborationsForCurrentUser(request, null);
@@ -104,7 +112,7 @@ public class Collaboration implements java.io.Serializable {
 	//like above, but can specify a state
 	public static ArrayList collaborationsForCurrentUser(HttpServletRequest request, String state) {
 		String context = ServletUtilities.getContext(request);
-		if (request.getUserPrincipal() == null) { return null; }  //TODO is this cool?
+		if (request.getUserPrincipal() == null) return null;  //TODO is this cool?
 		String username = request.getUserPrincipal().getName();
 System.out.println(" collabs4username->"+username);
 		return collaborationsForUser(context, username, state);
@@ -116,9 +124,9 @@ System.out.println(" collabs4username->"+username);
 
 	public static ArrayList collaborationsForUser(String context, String username, String state) {
 //TODO cache!!!
-		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE (username1 == '" + username + "') || (username2 == '" + username + "')";
+		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username + "') || (username2 == '" + username + "'))";
 		if (state != null) {
-			queryString += " && STATE == '" + state + "'";
+			queryString += " && state == '" + state + "'";
 		}
 System.out.println("qry -> " + queryString);
 		Shepherd myShepherd = new Shepherd(context);
@@ -128,11 +136,14 @@ System.out.println("qry -> " + queryString);
 	}
 
 	public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
+		return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
+/*
 		ArrayList<Collaboration> all = collaborationsForUser(context, u1);
 		for (Collaboration c : all) {
 			if (c.username1.equals(u2) || c.username2.equals(u2)) return c;
 		}
 		return null;
+*/
 	}
 
 	public static boolean canCollaborate(String context, String u1, String u2) {
@@ -140,16 +151,44 @@ System.out.println("qry -> " + queryString);
 		if (u1.equals(u2)) return true;
 		Collaboration c = collaborationBetweenUsers(context, u1, u2);
 		if (c == null) return false;
-		if (c.state.equals(STATE_APPROVED)) return true;
+		if (c.getState().equals(STATE_APPROVED)) return true;
 		return false;
+	}
+
+	public static Collaboration findCollaborationWithUser(String username, ArrayList all) {
+		ArrayList<Collaboration> collabs = all;
+		for (Collaboration c : collabs) {
+			if (c.username1.equals(username) || c.username2.equals(username)) return c;
+		}
+		return null;
+	}
+
+
+	public static String getNotificationsWidgetHtml(HttpServletRequest request) {
+		String context = "context0";
+		context = ServletUtilities.getContext(request);
+		String langCode = ServletUtilities.getLanguageCode(request);
+		Properties collabProps = new Properties();
+ 		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+		String notif = "";  //collabProps.getProperty("notificationsNone");
+
+		if (request.getUserPrincipal() == null) return notif;
+		String username = request.getUserPrincipal().getName();
+
+		ArrayList<Collaboration> collabs = collaborationsForCurrentUser(request);
+		int n = 0;
+		for (Collaboration c : collabs) {
+			if (c.username2.equals(username) && c.getState().equals(STATE_INITIALIZED)) n++;
+		}
+		if (n > 0) notif = "<div onClick=\"return showNotifications(this);\">" + collabProps.getProperty("notifications") + " <span class=\"notification-pill\">" + n + "</span></div>";
+		return notif;
 	}
 
 
 	public static boolean securityEnabled(String context) {
 		String enabled = CommonConfiguration.getProperty("collaborationSecurityEnabled", context);
 		if ((enabled == null) || !enabled.equals("true")) {
-			return true;
-			//return false;
+			return false;
 		} else {
 			return true;
 		}
@@ -159,7 +198,7 @@ System.out.println("qry -> " + queryString);
 	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
 		String context = ServletUtilities.getContext(request);
 		if (!securityEnabled(context)) return true;
-		//if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
+		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
 
 		if (request.getUserPrincipal() == null) return false;  //???
 		String username = request.getUserPrincipal().getName();

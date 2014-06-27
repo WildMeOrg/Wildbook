@@ -34,6 +34,8 @@ import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
+import org.ecocean.security.Collaboration;
+import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -1871,6 +1873,11 @@ public class Encounter implements java.io.Serializable {
         }
         return false;
     }
+
+		//convenience function to Collaboration permissions
+		public boolean canUserAccess(HttpServletRequest request) {
+			return Collaboration.canUserAccessEncounter(this, request);
+		}
     
     
 }
