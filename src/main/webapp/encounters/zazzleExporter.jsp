@@ -204,8 +204,8 @@ if (myShepherd.isEncounter(num)) {
        if(request.getParameter("debug")!=null){
        %>
        <!-- helpers -->
- 	<di:text x="1490" y="160" font="Dakota Regular-plain-20" fillPaint="#000000" >outheight: <%=outheight %></di:text>
- 	<di:text x="1490" y="200" font="Dakota Regular-plain-20" fillPaint="#000000" >origheight: <%=origheight %></di:text>
+ 	<di:text x="1490" y="160" font="Multicolore Regular-plain-20" fillPaint="#000000" >outheight: <%=outheight %></di:text>
+ 	<di:text x="1490" y="200" font="Multicolore Regular-plain-20" fillPaint="#000000" >origheight: <%=origheight %></di:text>
  	 <%
        }
        visualAspect="vertical";
@@ -216,8 +216,8 @@ if (myShepherd.isEncounter(num)) {
     if(request.getParameter("debug")!=null){
   	 %>
  <!-- helpers -->
- 	<di:text x="1490" y="240" font="Dakota Regular-plain-20" fillPaint="#000000" >factor: <%=factor %></di:text>
- 	<di:text x="1490" y="280" font="Dakota Regular-plain-20" fillPaint="#000000" >aspect: <%=visualAspect %></di:text>
+ 	<di:text x="1490" y="240" font="Multicolore Regular-plain-20" fillPaint="#000000" >factor: <%=factor %></di:text>
+ 	<di:text x="1490" y="280" font="Multicolore Regular-plain-20" fillPaint="#000000" >aspect: <%=visualAspect %></di:text>
  <%
     }
     int currentSpotNum=0;
@@ -259,16 +259,16 @@ if (myShepherd.isEncounter(num)) {
   <%
   if(request.getParameter("debug")!=null){
   	if(myX==xmin){%>
-  		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=outerColors[currentSpotNum] %>" >xmin</di:text>
+  		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Multicolore Regular-plain-20" fillPaint="<%=outerColors[currentSpotNum] %>" >xmin</di:text>
   	<%}
   	if(myX==xmax){%>
-		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=outerColors[currentSpotNum] %>" >xmax</di:text>
+		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Multicolore Regular-plain-20" fillPaint="<%=outerColors[currentSpotNum] %>" >xmax</di:text>
 	<%}
   	if(myY==ymin){%>
-		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=outerColors[currentSpotNum] %>" >ymin</di:text>
+		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Multicolore Regular-plain-20" fillPaint="<%=outerColors[currentSpotNum] %>" >ymin</di:text>
 	<%}
   	if(myY==ymax){%>
-		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Dakota Regular-plain-20" fillPaint="<%=outerColors[currentSpotNum] %>" >ymax</di:text>
+		<di:text x="<%=(theX+11) %>" y="<%=theY %>" font="Multicolore Regular-plain-20" fillPaint="<%=outerColors[currentSpotNum] %>" >ymax</di:text>
 	<%}
   }
   
@@ -285,8 +285,8 @@ if (myShepherd.isEncounter(num)) {
 %>
 
   	 <!-- indie ID and nickname rendering -->
-  	<di:text x="575" y="1601" font="Dakota Regular-plain-65" fillPaint="#000000" align="center"><%=individualID %></di:text>
-  	<di:text x="575" y="1701" font="Dakota Regular-plain-65" fillPaint="#000000" align="center"><%=nickname %></di:text>
+  	<di:text x="575" y="1601" font="Multicolore-plain-36fillPaint="#000000" align="center"><%=individualID %></di:text>
+  	<di:text x="575" y="1701" font="Multicolore-plain-36" fillPaint="#000000" align="center"><%=nickname %></di:text>
  
  
 
@@ -295,8 +295,6 @@ if (myShepherd.isEncounter(num)) {
 
 <!-- Put the image URL in now -->
 <img src="/<%=enc.dir(CommonConfiguration.getDataDirectoryName(context)) %>/<%=(side+"Zazzle.jpg")%>" border="0" align="left" valign="left">
-
-
 
 
 
