@@ -27,7 +27,7 @@ context=ServletUtilities.getContext(request);
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
-    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //if(!encountersDir.exists()){encountersDir.mkdir();}
 
   if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
@@ -100,7 +100,7 @@ if (myShepherd.isEncounter(num)) {
   	}
   	//StringBuffer xmlData = new StringBuffer();
 
-  	String thumbLocation = "file-" + encountersDir.getAbsolutePath()+"/"+ num + "/" + side + "Zazzle.jpg";
+  	String thumbLocation = "file-" + enc.dir(shepherdDataDir,enc.getCatalogNumber())+"/"+side+"Zazzle.jpg";
 	
 	%>
 	<di:img width="2100"
@@ -294,7 +294,7 @@ if (myShepherd.isEncounter(num)) {
 </di:img>
 
 <!-- Put the image URL in now -->
-<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=(num+"/"+side+"Zazzle.jpg")%>" border="0" align="left" valign="left">
+<img src="/<%=enc.dir(CommonConfiguration.getDataDirectoryName(context)) %>/<%=(side+"Zazzle.jpg")%>" border="0" align="left" valign="left">
 
 
 
