@@ -22,8 +22,8 @@
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor" %>
 <%
 
-String context="context0";
-context=ServletUtilities.getContext(request);
+//String context="context0";
+String context=ServletUtilities.getContext(request);
   //concurrency examination for creation and removal threads
   ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
 
@@ -79,32 +79,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
   props=ShepherdProperties.getProperties("submit.properties", langCode, context);
 
-  //load our variables for the submit page
-  String title = props.getProperty("submit_title");
-  String submit_maintext = props.getProperty("submit_maintext");
-  String submit_reportit = props.getProperty("reportit");
-  String submit_language = props.getProperty("language");
-  String what_do = props.getProperty("what_do");
-  String read_overview = props.getProperty("read_overview");
-  String see_all_encounters = props.getProperty("see_all_encounters");
-  String see_all_sharks = props.getProperty("see_all_sharks");
-  String report_encounter = props.getProperty("report_encounter");
-  String log_in = props.getProperty("log_in");
-  String contact_us = props.getProperty("contact_us");
-  String search = props.getProperty("search");
-  String encounter = props.getProperty("encounter");
-  String shark = props.getProperty("shark");
-  String join_the_dots = props.getProperty("join_the_dots");
-  String menu = props.getProperty("menu");
-  String last_sightings = props.getProperty("last_sightings");
-  String more = props.getProperty("more");
-  String ws_info = props.getProperty("ws_info");
-  String about = props.getProperty("about");
-  String contributors = props.getProperty("contributors");
-  String forum = props.getProperty("forum");
-  String blog = props.getProperty("blog");
-  String area = props.getProperty("area");
-  String match = props.getProperty("match");
 
 
 %>
@@ -159,10 +133,15 @@ String langCode=ServletUtilities.getLanguageCode(request);
   try {
 
 %>
+<pclass="caption">Your scanTasks are shown below. Click <b>Expand All scanTasks</b> to see all of the tasks in the grid for all users.</p>
+<p>
+	<a style="color: blue" class="caption" id="clickExpandButton">[+] Expand All scanTasks</a><br />
+	<a style="color: blue" class="caption" id="clickCollapseButton">[-] Collapse All scanTasks</a>
+</p>
 
 <h3>Pending scanTasks</h3>
-<table border="1" cellpadding="2">
-  <tr>
+<table border="1" cellpadding="2" class="scanTaskAdmin">
+  <tr class="<%=request.getUserPrincipal().toString() %>">
     <td bgcolor="#CCCCCC"><strong>Identifier</strong></td>
     <td bgcolor="#CCCCCC"><strong>User</strong></td>
     <td bgcolor="#CCCCCC"><strong>Completion</strong></td>
@@ -186,8 +165,12 @@ String langCode=ServletUtilities.getLanguageCode(request);
           numTaskTot = numGenerated;
         }
 
+        String trClassname="";
+        if(st.getSubmitter().equals(request.getUserPrincipal().toString())){
+        	trClassname=request.getUserPrincipal().toString();
+        }
   %>
-  <tr>
+  <tr class="<%=trClassname %>">
     <td><%=scanNum%>. <%=st.getUniqueNumber()%>
     </td>
     <td><%=st.getSubmitter()%>
@@ -240,8 +223,9 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
 <h3>Completed scanTasks</h3>
-<table border="1" cellpadding="2">
-  <tr>
+
+  <table border="1" cellpadding="2" class="scanTaskAdmin">
+  <tr class="<%=request.getUserPrincipal().toString() %>">
     <td width="62" bgcolor="#CCCCCC"><strong>Identifier</strong></td>
     <td width="32" bgcolor="#CCCCCC"><strong>User</strong></td>
     <td bgcolor="#CCCCCC"><strong>Results</strong></td>
@@ -268,8 +252,12 @@ String langCode=ServletUtilities.getLanguageCode(request);
         }
 
         scanNum++;
+        String trClassname="";
+        if(st.getSubmitter().equals(request.getUserPrincipal().toString())){
+        	trClassname=request.getUserPrincipal().toString();
+        }
   %>
-  <tr>
+  <tr class="<%=trClassname %>">
 
     <td><%=st.getUniqueNumber()%>
     </td>
@@ -337,6 +325,25 @@ String langCode=ServletUtilities.getLanguageCode(request);
     }
   %>
 </table>
+
+<script>
+var rows = $('table.scanTaskAdmin tr');
+
+var thisUsersRows=$('table.scanTaskAdmin tr.<%=request.getUserPrincipal().toString() %>').show();
+rows.not( thisUsersRows ).hide();
+
+$('#clickExpandButton').click(function() {
+    var mine = rows.filter('.<%=request.getUserPrincipal().toString() %>');
+    rows.not( mine ).show();
+});
+
+$('#clickCollapseButton').click(function() {
+	var mine = rows.filter('.<%=request.getUserPrincipal().toString() %>');
+    rows.not( mine ).hide();
+});
+
+
+</script>
 
 <h3>gridManager statistics</h3>
 
