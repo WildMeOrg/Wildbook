@@ -124,7 +124,7 @@ context=ServletUtilities.getContext(request);
 			thisEncounterDir = new File(enc.dir(baseDir));
 			String thisEncDirString=Encounter.dir(shepherdDataDir,enc.getCatalogNumber());
 			thisEncounterDir=new File(thisEncDirString);
-			if(!thisEncounterDir.exists()){thisEncounterDir.mkdir();System.out.println("I am making the encDir: "+thisEncDirString);}
+			if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
 			
 			
 			
