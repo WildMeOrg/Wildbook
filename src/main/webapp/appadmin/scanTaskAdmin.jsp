@@ -135,8 +135,8 @@ String langCode=ServletUtilities.getLanguageCode(request);
 %>
 <pclass="caption">Your scanTasks are shown below. Click <b>Expand All scanTasks</b> to see all of the tasks in the grid for all users.</p>
 <p>
-	<a style="color: blue" class="caption" id="clickExpandButton">[+] Expand All scanTasks</a><br />
-	<a style="color: blue" class="caption" id="clickCollapseButton">[-] Collapse All scanTasks</a>
+	<a style="cursor:pointer;color: blue" class="caption" id="clickExpandButton">[+] Expand All scanTasks</a>
+	<a style="cursor:pointer;color: blue;display:none;" class="caption" id="clickCollapseButton">[-] Collapse All scanTasks</a>
 </p>
 
 <h3>Pending scanTasks</h3>
@@ -343,11 +343,15 @@ rows.not( thisUsersRows ).hide();
 $('#clickExpandButton').click(function() {
     var mine = rows.filter('.<%=request.getUserPrincipal().toString() %>');
     rows.not( mine ).show();
+    $('#clickExpandButton').hide();
+    $('#clickCollapseButton').show();
 });
 
 $('#clickCollapseButton').click(function() {
 	var mine = rows.filter('.<%=request.getUserPrincipal().toString() %>');
     rows.not( mine ).hide();
+    $('#clickExpandButton').show();
+    $('#clickCollapseButton').hide();
 });
 
 
