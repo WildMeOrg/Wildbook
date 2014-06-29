@@ -133,7 +133,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   try {
 
 %>
-<pclass="caption">Your scanTasks are shown below. Click <b>Expand All scanTasks</b> to see all of the tasks in the grid for all users.</p>
+<p class="caption">Your scanTasks are shown below. Click <b>Expand All scanTasks</b> to see all of the tasks in the grid for all users.</p>
 <p>
 	<a style="cursor:pointer;color: blue" class="caption" id="clickExpandButton">[+] Expand All scanTasks</a>
 	<a style="cursor:pointer;color: blue;display:none;" class="caption" id="clickCollapseButton">[-] Collapse All scanTasks</a>
