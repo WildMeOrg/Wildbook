@@ -171,11 +171,17 @@ String langCode=ServletUtilities.getLanguageCode(request);
         }
 
         String trClassname="";
+        String styleString="";
         if(st.getSubmitter().equals(request.getUserPrincipal().toString())){
-        	trClassname=request.getUserPrincipal().toString();
+        	trClassname="class=\""+request.getUserPrincipal().toString()+"\"";
+        	styleString="style=\"display:none;\"";
         }
+        
+        
+   
+        
   %>
-  <tr class="<%=trClassname %>">
+  <tr <%=trClassname %> <%=styleString %>>
     <td><%=scanNum%>. <%=st.getUniqueNumber()%>
     </td>
     <td><%=st.getSubmitter()%>
@@ -279,11 +285,13 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
         scanNum++;
         String trClassname="";
+        String styleString="";
         if(st.getSubmitter().equals(request.getUserPrincipal().toString())){
-        	trClassname=request.getUserPrincipal().toString();
+        	trClassname="class=\""+request.getUserPrincipal().toString()+"\"";
+        	styleString="style=\"display:none;\"";
         }
   %>
-  <tr class="<%=trClassname %>">
+  <tr <%=trClassname %> <%=styleString %>>
 
     <td><%=st.getUniqueNumber()%>
     </td>
