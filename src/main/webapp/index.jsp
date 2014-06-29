@@ -207,6 +207,11 @@ table.adopter td.image {
 				<a href="ttp://www.coml.org/"><img src="images/coml.gif" alt="Data sharing with the census of marine life" border="0" />
 				</a></p>
 			</div>
+			
+							<div class="module">
+		    	<h1 class="intro">Development</h1>
+		    	<p class="caption"><img border="1"  style="padding:2px; border:1px; margin:2px;" align="left" src="http://www.wildme.org/wildbook/lib/exe/fetch.php?w=150&amp;media=jason_profile.jpg" class="media" title="jason_profile.jpg" alt="jason_profile.jpg" width="75">Wildbook for Whale Sharks is maintained and developed by <a href="https://www.facebook.com/holmbergius">Jason Holmberg (Information Architect)</a> with significant support and input from the <a href="whoAreWe.jsp#collaborators">research community</a>.</p>
+			</div>
 					
 
 	  </div><!-- end maincol -->
