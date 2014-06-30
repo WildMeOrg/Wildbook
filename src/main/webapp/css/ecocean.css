@@ -1432,7 +1432,6 @@ div.row-lock.blocked {
 }
 
 .blockUI.blockOverlay {
-	background: #888 url(../images/checkerboard.png) !important;
 	opacity: 0.65 !important;
 }
 
@@ -1487,7 +1486,7 @@ tr.no-access:hover td {
 #notifications {
 	font-size: 0.9em;
 	position: absolute;
-	top: 40px;
+	top: 4px;
 	right: 2px;
 }
 
@@ -1495,11 +1494,13 @@ tr.no-access:hover td {
 	padding: 4px;
 	color: rgba(0,0,0,0);
 	cursor: pointer;
+	border: 1px solid rgba(0,0,0,0);
 	border-radius: 3px;
 }
 
 #notifications div:hover {
 	background-color: #DDD;
+	border-color: #888;
 	color: rgba(0,0,0,0.5);
 }
 
