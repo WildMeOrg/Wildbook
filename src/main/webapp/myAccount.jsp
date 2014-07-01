@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
-<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.util.Properties" %>
+<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties" %>
 
 
 <%
@@ -239,6 +239,30 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
             </form>
             </tr>
             </table>
+<%
+		Properties collabProps = new Properties();
+ 		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+		ArrayList<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+		String me = request.getUserPrincipal().getName();
+		String h = "";
+		for (Collaboration c : collabs) {
+			String cls = "state-" + c.getState();
+			String msg = "state_" + c.getState();
+			String click = "";
+
+			if (c.getUsername1().equals(me)) {
+				h += "<div class=\"mine " + cls + "\"><span class=\"who\">to <b>" + c.getUsername2() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span></div>";
+			} else {
+				if (msg.equals("state_initialized")) {
+					msg = "state_initialized_me";
+					click = "onClick=\"showNotifications();\" ";
+				}
+				h += "<div " + click + "class=\"notmine " + cls + "\"><span class=\"who\">from <b>" + c.getUsername1() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span></div>";
+			}
+		}
+		if (!h.equals("")) out.println("<div class=\"collab-list\"><h1>" + collabProps.getProperty("collaborationTitle") + "</h1>" + h + "</div>");
+
+%>
     	
     </p>
 
