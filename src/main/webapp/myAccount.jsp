@@ -255,9 +255,11 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
 			} else {
 				if (msg.equals("state_initialized")) {
 					msg = "state_initialized_me";
-					click = "onClick=\"showNotifications();\" ";
+					click = " <span class=\"invite-response-buttons\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+					click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
+					click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
 				}
-				h += "<div " + click + "class=\"notmine " + cls + "\"><span class=\"who\">from <b>" + c.getUsername1() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span></div>";
+				h += "<div class=\"notmine " + cls + "\"><span class=\"who\">from <b>" + c.getUsername1() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 			}
 		}
 		if (!h.equals("")) out.println("<div class=\"collab-list\"><h1>" + collabProps.getProperty("collaborationTitle") + "</h1>" + h + "</div>");

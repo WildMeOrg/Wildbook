@@ -1573,12 +1573,6 @@ div.collab-list span.state {
 	border-radius: 3px;
 }
 
-div.state-initialized.notmine {
-	cursor: pointer;
-}
-div.state-initialized.notmine span.state:hover {
-	color: #FFF;
-}
 
 div.state-initialized span.state {
 	background-color: #AA1;

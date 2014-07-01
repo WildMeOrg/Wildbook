@@ -164,9 +164,9 @@ console.log(d);
 function clickApproveDeny(ev) {
 	var which = ev.target.getAttribute('class');
 	var jel = $(ev.target);
-	var uname = jel.parent().data('username');
 	var p = jel.parent();
-	p.html('').addClass('throbbing');
+	var uname = p.data('username');
+	p.html('&nbsp;').addClass('throbbing');
 	$.ajax({
 		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uname + '&approve=' + which,
 		dataType: 'json',
@@ -179,7 +179,7 @@ function clickApproveDeny(ev) {
 			}
 		},
 		error: function(a,x,b) {
-			p.html('error');
+			p.removeClass('throbbing').html('error');
 		},
 		type: 'GET'
 	});
