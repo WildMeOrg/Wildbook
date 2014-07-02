@@ -7,6 +7,7 @@ var CRtool = {
 	rect: [],
 	iconsOn: true,
 	shiftDown: false,
+	_lastTouch: [0,0],
 
 	styles: {
 		stroke: 'rgba(255,255,0,0.6)',
@@ -60,18 +61,24 @@ var CRtool = {
 		if (!this.oCanvas) return;
 
 		var me = this;
+		this.oCanvas.ontouchmove = function(ev) {
+			me.eventPosFix(ev);
+			me._lastTouch = [ev.offsetX, ev.offsetY];
+			me.mmove(ev);
+		};
+		this.oCanvas.ontouchstart = function(ev) {
+			me.eventPosFix(ev);
+			me.mdown(ev);
+		};
+		this.oCanvas.ontouchend = function(ev) {
+			ev.offsetX = me._lastTouch[0];
+			ev.offsetY = me._lastTouch[1];
+			me.mup(ev);
+		};
+
 		this.oCanvas.addEventListener('mousedown', function(ev) { me.mdown(ev); }, false);
 		this.oCanvas.addEventListener('mouseup', function(ev) { me.mup(ev); }, false);
 		this.oCanvas.addEventListener('mousemove', function(ev) { me.mmove(ev); }, false);
-
-/*
-		//this.oCanvas.addEventListener('touchmove', function(ev) { me.info(ev.); }, false);
-		this.oCanvas.addEventListener('mousedown', function(ev) { this.info(123); });
-
-		this.oCanvas.addEventListener('touchdown', function(ev) { me.mdown(ev); }, false);
-		this.oCanvas.addEventListener('touchup', function(ev) { me.mup(ev); }, false);
-		this.oCanvas.addEventListener('touchmove', function(ev) { me.mmove(ev); }, false);
-*/
 
 		this.scale = this.imgEl.naturalWidth / this.imgEl.width;
 		this.oCanvas.width = this.imgEl.width;
@@ -414,6 +421,32 @@ if (this.shiftDown) a = Math.floor(a / (Math.PI/4) + 0.5) * (Math.PI/4);
 		this.iCtx.drawImage(this.iconImgs[icon], 0, 0, 12, 12, nx - 6, ny - 6, 12, 12);
 
 		this.oCtx.drawImage(this.iCanvas, x, y);
+	},
+
+
+	//make sure we have an offsetX,offsetY
+	eventPosFix: function(ev) {
+		if (ev.target && !ev.offsetX) {
+			var pos = this.absPos(ev.target);
+			ev.offsetX = ev.pageX - pos[0];
+			ev.offsetY = ev.pageY - pos[1];
+		}
+	},
+
+	absPos: function(el) {
+		if (!el) return false;
+		var g = el.getClientRects();  //seems good enough for touch-friendly devices so lets use just this
+		return [ g[0].left, g[0].top ];
+
+		var p = [0,0];
+		if (el.offsetTop) p[0] = el.offsetLeft;
+		if (el.offsetLeft) p[1] = el.offsetLeft;
+		var pp = this.absPos(p.parentElement);
+		if (pp) {
+			p[0] += pp[0];
+			p[1] += pp[1];
+		}
+		return p;
 	},
 
 }
