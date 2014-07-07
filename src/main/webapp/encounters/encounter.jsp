@@ -465,24 +465,26 @@ margin-bottom: 8px !important;
 						boolean visible = enc.canUserAccess(request);
 
 						if (!visible) {
+							String blocker = "";
 							ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
 							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
 							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+							String uid = null;
+							String name = null;
 							if ((c == null) || (c.getState() == null)) {
-								String name = enc.getSubmitterName();
+								uid = enc.getAssignedUsername();
+								name = enc.getSubmitterName();
 								if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
-								cmsg += "<div style=\"padding: 10px; background-color: rgba(100,100,100,0.2);\"><div>" + collabProps.getProperty("clickCollaborateMessage") + "</div>";
-								cmsg += "<div style=\"padding: 10px;\" id=\"collab-controls\"><input type=\"button\" value=\"" + name + "\" onClick=\"tryCollab()\" /></div></div>";
 							}
-							cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+
 							cmsg = cmsg.replace("'", "\\'");
-%><script type="text/javascript">
-	var encOwner = '<%=enc.getAssignedUsername()%>';
-$(document).ready(function() { $.blockUI({ message: '<%= cmsg %>'}) });
-function tryCollab() {
-	collaborateCall(encOwner, 'window.history.back()');
-}
-</script><%
+							if (uid != null) {
+								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
+							} else {
+								cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
+							}
+							out.println(blocker);
 						}
 
 
