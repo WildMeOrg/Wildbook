@@ -1004,6 +1004,7 @@ tr.paging {
 
 #encounter_report, #encounter_contact {
   font-size: 13px;
+	padding-left: 20px;
   width: 100%;
 }
 
@@ -1420,6 +1421,15 @@ div.row-lock {
 	height: 27px;
 }
 
+td.lock-td {
+	position: relative;
+}
+
+td.lock-td div.row-lock {
+	left: auto !important;
+	right: 4px;
+}
+
 div.row-lock.new {
 	background: url(../images/lock-icon.png) no-repeat;
 	cursor: pointer;
@@ -1435,9 +1445,12 @@ div.row-lock.blocked {
 	opacity: 0.65 !important;
 }
 
+table.no-access,
 tr.no-access td {
 	opacity: 0.5;
 }
+
+table.no-access:hover,
 tr.no-access:hover td {
 	opacity: 1.0;
 }
@@ -1487,7 +1500,7 @@ tr.no-access:hover td {
 	font-size: 0.9em;
 	position: absolute;
 	top: 4px;
-	right: 2px;
+	right: -50px;
 }
 
 #notifications div {
