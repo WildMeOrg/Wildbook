@@ -51,7 +51,7 @@ public class JavascriptGlobals extends HttpServlet {
     Shepherd myShepherd = new Shepherd(context);
 		String username = ((request.getUserPrincipal() == null) ? "" : request.getUserPrincipal().getName());
 
-		//String langCode = ServletUtilities.getLanguageCode(request);
+		String langCode = ServletUtilities.getLanguageCode(request);
 		//Properties props = new Properties();
 		//props = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
@@ -59,7 +59,16 @@ public class JavascriptGlobals extends HttpServlet {
 
 		rtn.put("context", context);
 		rtn.put("username", username);
+		rtn.put("langCode", langCode);
 		rtn.put("baseUrl", request.getContextPath());
+
+		HashMap props = new HashMap();
+		HashMap lang = new HashMap();
+
+		lang.put("collaboration", ShepherdProperties.getProperties("collaboration.properties", langCode, context));
+
+		props.put("lang", lang);
+		rtn.put("properties", props);
 
     response.setContentType("text/javascript");
     response.setCharacterEncoding("UTF-8");
@@ -69,6 +78,8 @@ public class JavascriptGlobals extends HttpServlet {
     out.close();
   }
 
+
+//wildbookGlobals.properties.lang.collaboration.invitePromptOne
 
 }
   
