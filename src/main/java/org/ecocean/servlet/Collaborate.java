@@ -56,6 +56,7 @@ public class Collaborate extends HttpServlet {
 
     String username = request.getParameter("username");
 		String approve = request.getParameter("approve");
+		String optionalMessage = request.getParameter("message");
 		String currentUsername = ((request.getUserPrincipal() == null) ? "" : request.getUserPrincipal().getName());
     boolean useJson = !(request.getParameter("json") == null);
 
@@ -114,6 +115,15 @@ System.out.println(collabs);
 			} else {
 				collab = Collaboration.create(currentUsername, username);
   			myShepherd.storeNewCollaboration(collab);
+
+				//TODO move emailing to .create()  ??
+				String emailSubject = props.getProperty("inviteEmailSubject").replaceFirst("%s", ContextConfiguration.getNameForContext(context));
+				String emailBody = props.getProperty("inviteEmailBody").replaceFirst("%s", ContextConfiguration.getNameForContext(context)).replaceFirst("%s", username).replaceFirst("%s", "http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp");
+				if ((optionalMessage != null) && !optionalMessage.equals("")) {
+					emailBody += "\n\n" + props.getProperty("inviteEmailHasMessage") + "\n" + optionalMessage;
+				}
+System.out.println(emailBody);
+
 				rtn.put("message", props.getProperty("inviteResponseMessageSent"));
 				rtn.put("success", true);
 			}

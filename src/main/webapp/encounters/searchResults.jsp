@@ -43,16 +43,6 @@ context=ServletUtilities.getContext(request);
   Properties collabProps = new Properties();
   collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
   
-//TODO generalize this import of i18n text to javascript hash
-%>
-<script type="text/javascript">
-var textCollab = {
-	invitePromptOne: '<%= collabProps.getProperty("invitePromptOne") %>',
-	invitePromptMany: '<%= collabProps.getProperty("invitePromptMany") %>',
-	invitePromptManyOther: '<%= collabProps.getProperty("invitePromptManyOther") %>'
-};
-</script>
-<%
 
   Shepherd myShepherd = new Shepherd(context);
 
@@ -272,7 +262,6 @@ var textCollab = {
   for (int f = 0; f < rEncounters.size(); f++) {
     Encounter enc = (Encounter) rEncounters.get(f);
 		boolean visible = enc.canUserAccess(request);
-System.out.println("visible="+visible);
 		String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
     count++;
@@ -288,19 +277,8 @@ System.out.println("visible="+visible);
   <td width="100" class="lineitem">
 
 <%
-	if (!visible) {
-		Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
-		String collabClass = "pending";
-		String clickMessage = "";
-		if ((c == null) || (c.getState() == null)) {
-			clickMessage = collabProps.getProperty("clickCollaborateMessage");
-			collabClass = "new";
-		} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
-			collabClass = "blocked";
-		}
+	if (!visible) out.println(enc.collaborationLockHtml(collabs));
 %>
-	<div title="<%= collabProps.getProperty("deniedMessage")%> <%= clickMessage %>" class="row-lock <%= collabClass %> collaboration-button" data-collabowner="<%= enc.getAssignedUsername() %>" data-collabownername="<%= enc.getSubmitterName()%>">&nbsp;</div>
-<% } %>
 
   <%
    if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 

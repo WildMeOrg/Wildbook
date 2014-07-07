@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, 	   
-		 org.joda.time.DateTime,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
+		 org.joda.time.DateTime,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration" %>
 
 <%
 String context="context0";
@@ -91,6 +91,7 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
 
 
+	ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
 
 %>
 
@@ -745,10 +746,12 @@ $("a#deathdate").click(function() {
   <%
     Encounter[] dateSortedEncs = sharky.getDateSortedEncounters();
 
+
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
       Encounter enc = dateSortedEncs[i];
       
+				boolean visible = enc.canUserAccess(request);
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
         
@@ -756,8 +759,12 @@ $("a#deathdate").click(function() {
           imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.subdir() + "/thumb.jpg";
         
   %>
-  <tr>
-      <td class="lineitem"><%=enc.getDate()%>
+	<tr class="lineitem<%= (visible ? "" : " no-access") %>">
+      <td class="lineitem">
+<%
+	if (!visible) out.println(enc.collaborationLockHtml(collabs));
+%>
+<%=enc.getDate()%>(<%=visible%>)
     </td>
     <td class="lineitem">
     <% 
@@ -969,6 +976,7 @@ $("a#deathdate").click(function() {
 
 									Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
 									String encSubdir = thisEnc.subdir();
+									boolean visible = thisEnc.canUserAccess(request);
 
 									String thumbLink="";
 									boolean video=true;
@@ -986,7 +994,7 @@ $("a#deathdate").click(function() {
 
    
     
-      <table align="left" width="<%=100/numColumns %>%">
+      <table class="<%=(visible ? "" : "no-access")%>" align="left" width="<%=100/numColumns %>%">
         <tr>
           <td valign="top">
 			
@@ -1040,6 +1048,8 @@ $("a#deathdate").click(function() {
 
                       <tr>
                         <td>
+xxxxxx
+	<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
                         	<span class="caption"><%=props.getProperty("location") %>: 
                         		<%
                         		if(thisEnc.getLocation()!=null){
@@ -1203,7 +1213,8 @@ $("a#deathdate").click(function() {
             if(!thumbLink.endsWith("video.jpg")){
  %>
 <tr>
-  <td>
+  <td class="lock-td">
+<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
   	<span class="caption"><%=props.getProperty("location") %>: 
 	                        		<%
 	                        		if(thisEnc.getLocation()!=null){

@@ -123,7 +123,7 @@ System.out.println(" collabs4username->"+username);
 	}
 
 	public static ArrayList collaborationsForUser(String context, String username, String state) {
-//TODO cache!!!
+//TODO cache!!!  (may be hit a lot)
 		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username + "') || (username2 == '" + username + "'))";
 		if (state != null) {
 			queryString += " && state == '" + state + "'";
@@ -198,7 +198,7 @@ System.out.println("qry -> " + queryString);
 	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
 		String context = ServletUtilities.getContext(request);
 		if (!securityEnabled(context)) return true;
-		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
+		//if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
 
 		if (request.getUserPrincipal() == null) return false;  //???
 		String username = request.getUserPrincipal().getName();
@@ -213,7 +213,24 @@ System.out.println("canCollaborate? " + canCollaborate(context, owner, username)
 	//public boolean canUserAccessEncounter(Encounter enc, String username, String context) {
 	//}
 
+	public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {
+  	ArrayList<Encounter> all = occ.getEncounters();
+		if ((all == null) || (all.size() < 1)) return true;
+		for (Encounter enc : all) {
+			if (canUserAccessEncounter(enc, request)) return true;  //one is good enough (either owner or in collab or no security etc)
+		}
+		return false;
+	}
 
+
+	public static boolean canUserAccessMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
+  	Vector<Encounter> all = mi.getEncounters();
+		if ((all == null) || (all.size() < 1)) return true;
+		for (Encounter enc : all) {
+			if (canUserAccessEncounter(enc, request)) return true;  //one is good enough (either owner or in collab or no security etc)
+		}
+		return false;
+	}
 
 	public static boolean doesQueryExcludeUser(Query query, HttpServletRequest request) {
 System.out.println("query>>>> " + query.toString());
@@ -226,6 +243,7 @@ System.out.println("username->"+username);
 
 		return false;
 	}
+
 
 
 }

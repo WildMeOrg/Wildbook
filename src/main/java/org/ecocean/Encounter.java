@@ -1874,11 +1874,23 @@ public class Encounter implements java.io.Serializable {
         return false;
     }
 
-		//convenience function to Collaboration permissions
-		public boolean canUserAccess(HttpServletRequest request) {
-			return Collaboration.canUserAccessEncounter(this, request);
+	//convenience function to Collaboration permissions
+	public boolean canUserAccess(HttpServletRequest request) {
+		return Collaboration.canUserAccessEncounter(this, request);
+	}
+
+
+	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
+	public String collaborationLockHtml(ArrayList<Collaboration> collabs) {
+		Collaboration c = Collaboration.findCollaborationWithUser(this.getAssignedUsername(), collabs);
+		String collabClass = "pending";
+		if ((c == null) || (c.getState() == null)) {
+			collabClass = "new";
+		} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
+			collabClass = "blocked";
 		}
-    
-    
+		return "<div class=\"row-lock " + collabClass + " collaboration-button\" data-collabowner=\"" + this.getAssignedUsername() + "\" data-collabownername=\"" + this.getSubmitterName() + "\">&nbsp;</div>";
+	}
+
 }
 
