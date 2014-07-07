@@ -110,6 +110,14 @@ public static Properties getContextsProperties(){
     
   }
   
+  
+  public static String getVersion() {
+   if(props.getProperty("application.version")!=null){
+		return props.getProperty("application.version");
+   }
+   return "Version Unknown";
+  }
+  
 }
 
   

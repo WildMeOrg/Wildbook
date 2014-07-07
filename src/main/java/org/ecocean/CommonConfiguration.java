@@ -186,9 +186,6 @@ public class CommonConfiguration {
     return getProperty("htmlTitle",context).trim();
   }
 
-  public static String getVersion(String context) {
-    return getProperty("application.version",context).trim();
-  }
 
   public static String getCSSURLLocation(HttpServletRequest request, String context) {
     return (request.getScheme() + "://" +
