@@ -119,7 +119,15 @@ context=ServletUtilities.getContext(request);
     myShepherd.beginDBTransaction();
     try {
       Encounter enc = myShepherd.getEncounter(number);
+      
+      
 			thisEncounterDir = new File(enc.dir(baseDir));
+			String thisEncDirString=Encounter.dir(shepherdDataDir,enc.getCatalogNumber());
+			thisEncounterDir=new File(thisEncDirString);
+			if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
+			
+			
+			
       if ((enc.getAdditionalImageNames() != null) && (enc.getAdditionalImageNames().size() > 0)) {
         addText = (String)enc.getAdditionalImageNames().get(0);
       }
