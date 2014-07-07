@@ -418,7 +418,7 @@ if(sharky.getLocationID()!=null){
       
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
-				String encSubdir = thisEnc.subdir();
+				String encSubdir = enc.subdir();
         
           imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + encSubdir + "/thumb.jpg";
         
@@ -1027,6 +1027,7 @@ else {
       </td>
 </tr>
 </table>
+Hello!
 </div><!-- end maintext -->
 <jsp:include page="footer.jsp" flush="true"/>
 </div><!-- end main-wide -->
@@ -1034,7 +1035,7 @@ else {
       <%
     
   } catch (Exception eSharks_jsp) {
-    System.out.println("Caught and handled an exception in individuals.jsp!");
+    System.out.println("Caught and handled an exception in occurrence.jsp!");
     eSharks_jsp.printStackTrace();
   }
 
