@@ -114,7 +114,7 @@ System.out.println(collabs);
 				System.out.println("collab already exists, state=" + collab.getState());
 			} else {
 				collab = Collaboration.create(currentUsername, username);
-  			myShepherd.storeNewCollaboration(collab);
+  			////////myShepherd.storeNewCollaboration(collab);
 
 				//TODO move emailing to .create()  ??
 				String emailSubject = props.getProperty("inviteEmailSubject").replaceFirst("%s", ContextConfiguration.getNameForContext(context));

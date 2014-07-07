@@ -20,9 +20,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, 	   
-		 org.joda.time.DateTime,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration" %>
+		 org.joda.time.DateTime,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, com.google.gson.Gson" %>
 
 <%
+String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
   //handle some cache-related security
@@ -44,13 +45,17 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
 
   //load our variables for the submit page
 
  // props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
   props = ShepherdProperties.getProperties("individuals.properties", langCode,context);
+
+	Properties collabProps = new Properties();
+ 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+  
 	
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
@@ -126,6 +131,62 @@ if (request.getParameter("number")!=null) {
 			MarkedIndividual indie=myShepherd.getMarkedIndividual(name);
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
+
+
+			boolean visible = indie.canUserAccess(request);
+
+			if (!visible) {
+  			ArrayList<String> uids = indie.getAllAssignedUsers();
+				ArrayList<String> possible = new ArrayList<String>();
+				for (String u : uids) {
+					Collaboration c = null;
+					if (collabs != null) c = Collaboration.findCollaborationWithUser(u, collabs);
+					if ((c == null) || (c.getState() == null)) {
+						User user = myShepherd.getUser(u);
+						String fullName = u;
+						if (user.getFullName()!=null) fullName = user.getFullName();
+						possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
+					}
+				}
+possible.add("foo:Fu Bar");
+				if (possible.size() > 0) {
+					String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+					cmsg = cmsg.replace("'", "\\'");
+
+    			String arr = new Gson().toJson(possible);
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+				}
+
+
+/*
+
+				String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+				if (uids.size() < 2) {
+					cmsg += "<div style=\"padding: 10px; background-color: rgba(100,100,100,0.2);\"><div>" + collabProps.getProperty("clickCollaborateMessage") + "</div>";
+				} else {
+					cmsg += "<div style=\"padding: 10px; background-color: rgba(100,100,100,0.2);\"><div>" + collabProps.getProperty("invitePromptMultiple") + " " + collabProps.getProperty("invitePromptMany") + "</div>";
+				}
+
+				for (String u : uids) {
+					Collaboration c = Collaboration.findCollaborationWithUser(u, collabs);
+					if ((c == null) || (c.getState() == null)) {
+						User user = myShepherd.getUser(u);
+						String name = u;
+						if (user.getFullName()!=null) name = user.getFullName();
+						if (uids.size() < 2) {
+							cmsg += "<div style=\"padding: 10px;\" id=\"collab-controls\"><input type=\"button\" value=\"" + name + "\" onClick=\"collaborateCall('" + u + "', 'window.history.back()')\" /></div></div>";
+						} else {
+						}
+				}
+				if (uids.size() < 2) {
+					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+				} else {
+					cmsg += "<p><input type=\"button\" onClick=\"\" value=\"OK\" /> <input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+				}
+				//cmsg = cmsg.replace("'", "\\'");
+*/
+			}
+
 			for(int p=0;p<numEncs;p++){
 				Encounter metaEnc = (Encounter)myEncs.get(p);
 				int numImgs=metaEnc.getImages().size();
@@ -317,6 +378,7 @@ onunload="GUnload()" <%}%>>
 
 
 <div id="main">
+<%=blocker%>
 
 <%
   if (CommonConfiguration.allowAdoptions(context)) {
@@ -751,7 +813,7 @@ $("a#deathdate").click(function() {
     for (int i = 0; i < total; i++) {
       Encounter enc = dateSortedEncs[i];
       
-				boolean visible = enc.canUserAccess(request);
+				boolean visible = true; //enc.canUserAccess(request);  ///TODO technically we dont need this encounter-level locking!!!
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
         
@@ -764,7 +826,7 @@ $("a#deathdate").click(function() {
 <%
 	if (!visible) out.println(enc.collaborationLockHtml(collabs));
 %>
-<%=enc.getDate()%>(<%=visible%>)
+<%=enc.getDate()%>
     </td>
     <td class="lineitem">
     <% 

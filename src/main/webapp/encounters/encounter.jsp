@@ -485,7 +485,6 @@ function tryCollab() {
 </script><%
 						}
 
-System.out.println("visible is " + visible);
 
       			pageContext.setAttribute("enc", enc);
       			String livingStatus = "";

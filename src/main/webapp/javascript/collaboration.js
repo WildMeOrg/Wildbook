@@ -36,9 +36,13 @@ console.log('uid=%s name=%s', uid, name);
 function collaborateMultiClick(el) {
 	var jel = $(el);
 	var users = jel.data('multiuser').split(',');
-
 	var p = popup();
+	var h = _collaborateMultiHtml(users);
+	p.append(h);
+	p.show();
+return;
 
+/*
 	var cancelButton = '<input type="button" value="Cancel" onClick="$(\'.popup\').remove();" />';
 
 	var num = users.length;
@@ -59,9 +63,32 @@ function collaborateMultiClick(el) {
 		h += '<div><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></div>';
 		h += '</div><p id="collab-controls"><input type="button" value="Send" onClick="collaborateCallMulti();" /> ' + cancelButton + '</p>';
 	}
+*/
+}
 
-	p.append(h);
-	p.show();
+
+
+function _collaborateMultiHtml(users) {
+	var cancelButton = '<input type="button" value="Cancel" onClick="$(\'.popup\').remove();" />';
+	var num = users.length;
+
+	var h = '';
+	if (num == 1) {
+		var u = users[0].split(':');
+		h += '<p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, u[1]) + '</b></p>';
+		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p>';
+		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + u[0] + '\');" /> ' + cancelButton + '</p>';
+
+	} else {
+		h += '<p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptMultiple + ' ' + wildbookGlobals.properties.lang.collaboration.invitePromptMany + '</b></p><div id="collab-multi">';
+		for (var i = 0 ; i < num ; i++) {
+			var u = users[i].split(':');
+			h += '<div><input type="checkbox" value="' + u[0] + '" id="collab-' + u[0] + '" /><label for="id-' + u[0] + '">' + u[1] + '</label></div>';
+		}
+		h += '<div><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></div>';
+		h += '</div><p id="collab-controls"><input type="button" value="Send" onClick="collaborateCallMulti();" /> ' + cancelButton + '</p>';
+	}
+	return h;
 }
 
 
