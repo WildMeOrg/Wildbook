@@ -399,6 +399,17 @@ if(CommonConfiguration.isCatalogEditable(context)){
 <div id="header_menu" style="background-color: #D7E0ED;clear: left">
 <table width="810px">
 	<tr>
+		<td width="100%" colspan="4" class="caption" style="font-size: 0.7em;" align="right">
+			<table>
+				<tr>
+					<td>
+						<a target="_blank" href="http://www.wildme.org/wildbook">Wildbook <%=ContextConfiguration.getVersion() %></a>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>	
+	<tr>
 		<td class="caption" class="caption" style="text-align: left;" align="left">
 		<table><tr><td><%=props.getProperty("findRecord") %></td><td><form name="form2" method="get" action="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp">
             <input name="number" type="text" id="shark" size="25"/>
@@ -518,10 +529,10 @@ if(CommonConfiguration.isCatalogEditable(context)){
 		});
 	
 	</script>
-
+ 
 
 	
 	</tr>
-</table>
 
+	</table>
 </div>
