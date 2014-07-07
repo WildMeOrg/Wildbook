@@ -1027,7 +1027,7 @@ else {
       </td>
 </tr>
 </table>
-Hello!
+
 </div><!-- end maintext -->
 <jsp:include page="footer.jsp" flush="true"/>
 </div><!-- end main-wide -->
