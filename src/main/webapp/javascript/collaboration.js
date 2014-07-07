@@ -97,12 +97,20 @@ function collaborateClick(el) {
 	var uid = jel.data('collabowner');
 	if (!uid || (uid == "") || !allCollab[uid]) return;
 	var name = jel.data('collabownername');
-
+	var h = _collaborateHtml(uid, name);
 	var p = popup();
+	p.append(h);
+	p.show();
+}
 
+
+function _collaborateHtml(uid, name) {
 	var cancelButton = '<input type="button" value="Cancel" onClick="$(\'.popup\').remove();" />';
-
 	var num = $.map(allCollab, function(n, i) { return i; }).length;
+	if (num < 1) {
+		allCollab[uid] = { name: name };
+		num = 1;
+	}
 
 	var h = '';
 	if (num == 1) {
@@ -122,9 +130,7 @@ function collaborateClick(el) {
 		h += '<div><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></div>';
 		h += '</div><p id="collab-controls"><input type="button" value="Send" onClick="collaborateCallMulti();" /> ' + cancelButton + '</p>';
 	}
-
-	p.append(h);
-	p.show();
+	return h;
 }
 
 

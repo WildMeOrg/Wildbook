@@ -148,44 +148,18 @@ if (request.getParameter("number")!=null) {
 						possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
 					}
 				}
-possible.add("foo:Fu Bar");
-				if (possible.size() > 0) {
-					String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
-					cmsg = cmsg.replace("'", "\\'");
+				String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+				cmsg = cmsg.replace("'", "\\'");
 
+				if (possible.size() > 0) {
     			String arr = new Gson().toJson(possible);
 					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
-				}
-
-
-/*
-
-				String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
-				if (uids.size() < 2) {
-					cmsg += "<div style=\"padding: 10px; background-color: rgba(100,100,100,0.2);\"><div>" + collabProps.getProperty("clickCollaborateMessage") + "</div>";
 				} else {
-					cmsg += "<div style=\"padding: 10px; background-color: rgba(100,100,100,0.2);\"><div>" + collabProps.getProperty("invitePromptMultiple") + " " + collabProps.getProperty("invitePromptMany") + "</div>";
-				}
-
-				for (String u : uids) {
-					Collaboration c = Collaboration.findCollaborationWithUser(u, collabs);
-					if ((c == null) || (c.getState() == null)) {
-						User user = myShepherd.getUser(u);
-						String name = u;
-						if (user.getFullName()!=null) name = user.getFullName();
-						if (uids.size() < 2) {
-							cmsg += "<div style=\"padding: 10px;\" id=\"collab-controls\"><input type=\"button\" value=\"" + name + "\" onClick=\"collaborateCall('" + u + "', 'window.history.back()')\" /></div></div>";
-						} else {
-						}
-				}
-				if (uids.size() < 2) {
 					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
-				} else {
-					cmsg += "<p><input type=\"button\" onClick=\"\" value=\"OK\" /> <input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
 				}
-				//cmsg = cmsg.replace("'", "\\'");
-*/
 			}
+
 
 			for(int p=0;p<numEncs;p++){
 				Encounter metaEnc = (Encounter)myEncs.get(p);
