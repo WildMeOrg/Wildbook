@@ -727,11 +727,11 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 <c:if test="${showMetalTags and !empty metalTags}">
 <tr class="form_row">
-  <td class="form_label"><strong>Metal Tags:</strong></td>
+  <td class="form_label"><strong><%=props.getProperty("physicalTags") %></strong></td>
   <td colspan="2">
     <table class="metalTags">
     <tr>
-      <th>Location</th><th>Tag Number</th>
+      <th><%=props.getProperty("location") %></th><th><%=props.getProperty("tagNumber") %></th>
     </tr>
     <c:forEach items="${metalTags}" var="metalTagDesc">
       <tr>
@@ -746,15 +746,15 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 <c:if test="${showAcousticTag}">
 <tr class="form_row">
-    <td class="form_label"><strong>Acoustic Tag:</strong></td>
+    <td class="form_label"><strong><%=props.getProperty("acousticTag") %></strong></td>
     <td colspan="2">
       <table class="acousticTag">
       <tr>
-      <td>Serial number:</td>
+      <td><%=props.getProperty("serialNumber") %></td>
       <td><input name="acousticTagSerial"/></td>
       </tr>
       <tr>
-        <td>ID:</td>
+        <td><%=props.getProperty("id") %></td>
         <td><input name="acousticTagId"/></td>
       </tr>
       </table>
@@ -767,11 +767,11 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
 %>
 <tr class="form_row">
-    <td class="form_label"><strong>Satellite Tag:</strong></td>
+    <td class="form_label"><strong><%=props.getProperty("satelliteTag") %></strong></td>
     <td colspan="2">
       <table class="satelliteTag">
       <tr>
-        <td>Name:</td>
+        <td><%=props.getProperty("name") %></td>
         <td>
             <select name="satelliteTagName">
               <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
@@ -781,11 +781,11 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         </td>
       </tr>
       <tr>
-        <td>Serial number:</td>
+        <td><%=props.getProperty("serialNumber") %></td>
         <td><input name="satelliteTagSerial"/></td>
       </tr>
       <tr>
-        <td>Argos PTT Number:</td>
+        <td><%=props.getProperty("argosNumber") %></td>
         <td><input name="satelliteTagArgosPttNumber"/></td>
       </tr>
       </table>
