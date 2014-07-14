@@ -169,9 +169,9 @@ while(it.hasNext()) {
 	
 
 	numPhotos=numPhotos+tempEnc.getAdditionalImageNames().size();
-	if(tempEnc.getLocationCode().startsWith("1a1")) {
-		numNingalooPhotos+=tempEnc.getAdditionalImageNames().size();
-	}
+	//if(tempEnc.getLocationCode().startsWith("1a1")) {
+	//	numNingalooPhotos+=tempEnc.getAdditionalImageNames().size();
+	//}
 	
 	
 	//calculate the number of submitter contributors
@@ -185,7 +185,7 @@ while(it.hasNext()) {
 				if (contributors.indexOf(token)==-1) {
 					contributors.append(token);
 					numContributors++;
-					if(tempEnc.getLocationCode().startsWith("1a1")) {numNingalooContributors++;}
+					//if(tempEnc.getLocationCode().startsWith("1a1")) {numNingalooContributors++;}
 					if(tempEnc.getYear()>=2008){numContributors2008to2010++;}
 					
 				}
@@ -194,7 +194,7 @@ while(it.hasNext()) {
 		else if (contributors.indexOf(tempEnc.getSubmitterEmail())==-1) {
 			contributors.append(tempEnc.getSubmitterEmail());
 			numContributors++;
-			if(tempEnc.getLocationCode().startsWith("1a")) {numNingalooContributors++;}
+			//if(tempEnc.getLocationCode().startsWith("1a")) {numNingalooContributors++;}
 			if(tempEnc.getYear()>=2008){numContributors2008to2010++;}
 		}
 	}
@@ -213,7 +213,7 @@ while(it.hasNext()) {
 				if (contributors.indexOf(token)==-1) {
 					contributors.append(token);
 					numContributors++;
-					if(tempEnc.getLocationCode().startsWith("1a")) {numNingalooContributors++;}
+					//if(tempEnc.getLocationCode().startsWith("1a")) {numNingalooContributors++;}
 					if(tempEnc.getYear()>=2008){numContributors2008to2010++;}
 				}
 			}
@@ -221,7 +221,7 @@ while(it.hasNext()) {
 		else if (contributors.indexOf(tempEnc.getPhotographerEmail())==-1) {
 			contributors.append(tempEnc.getPhotographerEmail());
 			numContributors++;
-			if(tempEnc.getLocationCode().startsWith("1a")) {numNingalooContributors++;}
+			//if(tempEnc.getLocationCode().startsWith("1a")) {numNingalooContributors++;}
 			if(tempEnc.getYear()>=2008){numContributors2008to2010++;}
 		}
 	}
@@ -240,21 +240,40 @@ while(it.hasNext()) {
 		if(tempEnc.getEncounterNumber().substring(0,8).indexOf(yearString)!=-1){
 			encNumArray[r]++;
 			//calculate the utilization rates
-			if(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
+			if((tempEnc.getIndividualID()!=null)&&(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned"))){
 				encNumUtilizedArray[r]++;
 			}	
+		}
+		else if(tempEnc.getDWCDateAdded()!=null){
+			//GregorianCalendar greg=new GregorianCalendar();
+			DateTimeFormatter parser    = ISODateTimeFormat.dateTimeParser();
+        	DateTimeFormatter formatter = ISODateTimeFormat.dateTimeNoMillis();
+
+        	DateTime dateTimeHere     = parser.parseDateTime(tempEnc.getDWCDateAdded());
+			if (dateTimeHere.getYear()==(2003+r)){
+				encNumArray[r]++;
+				//calculate the utilization rates
+				if((tempEnc.getIndividualID()!=null)&&(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+					encNumUtilizedArray[r]++;
+				}	
+				
+				
+			}
+			//greg.setTimeInMillis();
+			
 		}
 	}
 	
 
 	
 	//examine ningaloo length data
+	/*
 	if((tempEnc.getLocationCode().startsWith("1a"))&&(tempEnc.getYear()>=1995)&&(tempEnc.getYear()<=nowYear)&&((tempEnc.getSizeAsDouble()!=null)&&(tempEnc.getSize()>0))) {
 		int thisYearDiff=tempEnc.getYear()-1995;
 		avgLength[thisYearDiff]=avgLength[thisYearDiff]+tempEnc.getSize();
 		numLengthEncounters[thisYearDiff]++;
 	}
-	
+	*/
 	
 	
 }
