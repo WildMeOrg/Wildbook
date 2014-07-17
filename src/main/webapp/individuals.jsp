@@ -2251,7 +2251,8 @@ else {
 
 
 <p><%=matchingRecord %>: <strong><%=name%>
-</strong><br/>
+</strong></p>
+<p>
   <%=tryAgain %>
 </p>
 
@@ -2262,11 +2263,21 @@ else {
     name="sharky_button" type="submit" id="sharky_button"
     value="<%=getRecord %>"></form>
 </p>
-<p><font color="#990000"><a href="encounters/searchResults.jsp"><%=allEncounters %>
-</a></font></p>
+<p>
+	<font color="#990000">
+		<a href="encounters/encounterSearch.jsp">
+			<%=props.getProperty("searchEncounters") %>
+		</a>
+	</font>
+</p>
 
-<p><font color="#990000"><a href="individualSearchResults.jsp"><%=allIndividuals %>
-</a></font></p>
+<p>
+	<font color="#990000">
+		<a href="individualSearch.jsp">
+			<%=props.getProperty("searchIndividuals") %>
+		</a>
+	</font>
+</p>
 <%
       }
 	  %>
