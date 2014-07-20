@@ -81,16 +81,16 @@ context=ServletUtilities.getContext(request);
 		  <h1 class="intro">Client Software </h1>
 		</div>
 		<p>Click on a link below to download the appropriate software client.</p>
-			<p><a href="interconnect/mac/Interconnect.jar"><strong>Interconnect</strong></a><br />
+			<p><a href="software/Interconnect.zip"><strong>Interconnect</strong></a><br />
 			  <em>Purpose</em>: Spot mapping and submission to the Wildbook library<br />
-		    <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 1.5</a> or higher </p>
+		    <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 7</a> or higher </p>
 			<p><a href="http://www.getpaint.net/"><strong>Paint.NET</strong> (Windows only, external link) </a><br />
               <em>Purpose</em>: Image pre-processing <br />
               <em>Requirements</em>: <a href="http://msdn2.microsoft.com/en-us/netframework/aa731542.aspx">.NET 2.0</a></p>
 			
 			<p><a href="spot/spot.jnlp"><strong>Spot!</strong></a><br />
               <em>Purpose</em>: Mapping 2D images to 3D models for perspective correction <br />
-              <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 1.5</a> or higher   
+              <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 7</a> or higher   
               
               
               
@@ -103,7 +103,7 @@ context=ServletUtilities.getContext(request);
             
             <p><a href="http://www.whaleshark.org/wiki/doku.php?id=how_to_join_sharkgrid"><strong>sharkGrid Client</strong></a><br />
 	    			  <em>Purpose</em>: Contribute processing power to match patterns<br />
-		    <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 1.6</a> or higher</p>
+		    <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 7</a> or higher</p>
             
             
 	</div>
