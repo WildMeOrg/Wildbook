@@ -272,7 +272,7 @@ public class IndividualAddEncounter extends HttpServlet {
               String rootWebappPath = getServletContext().getRealPath("/");
               File webappsDir = new File(rootWebappPath).getParentFile();
               File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-              if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+              if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
               File rssFile = new File(shepherdDataDir,"rss.xml");
 
               ServletUtilities.addRSSEntry(rssTitle, rssLink, rssDescription, rssFile);

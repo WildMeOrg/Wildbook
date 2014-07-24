@@ -67,9 +67,9 @@ public class EncounterAddImage extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-    if(!encountersDir.exists()){encountersDir.mkdir();}
+    if(!encountersDir.exists()){encountersDir.mkdirs();}
     
     //set up for response
     response.setContentType("text/html");
@@ -109,7 +109,7 @@ public class EncounterAddImage extends HttpServlet {
 						//fileName = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(fileName);
             //File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ Encounter.subdir(encounterNumber));
             File thisSharkDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
-            if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
+            if(!thisSharkDir.exists()){thisSharkDir.mkdirs();}
             File finalFile=new File(thisSharkDir, fileName);
             fullPathFilename=finalFile.getCanonicalPath();
             long file_size = filePart.writeTo(finalFile);

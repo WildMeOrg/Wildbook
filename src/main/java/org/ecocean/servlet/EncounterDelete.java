@@ -68,22 +68,29 @@ public class EncounterDelete extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-    if(!encountersDir.exists()){encountersDir.mkdir();}
+    if(!encountersDir.exists()){encountersDir.mkdirs();}
     
     boolean isOwner = true;
 
 
-    if (!(request.getParameter("number") == null)) {
-      String message = "Encounter #" + request.getParameter("number") + " was deleted from the database.";
+    if (request.getParameter("number") != null) {
+      String message = "Encounter " + request.getParameter("number") + " was deleted from the database.";
       ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       myShepherd.beginDBTransaction();
       Encounter enc2trash = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2trash);
 
-
-      if (enc2trash.isAssignedToMarkedIndividual().equals("Unassigned")) {
+      if(enc2trash.getOccurrenceID()!=null) {
+        myShepherd.commitDBTransaction();
+        out.println(ServletUtilities.getHeader(request));
+        out.println("Encounter " + request.getParameter("number") + " is assigned to an Occurrence and cannot be deleted until it has been removed from that occurrence.");
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
+        
+        out.println(ServletUtilities.getFooter(context));
+      }
+      else if ((enc2trash.getIndividualID()==null)||(enc2trash.isAssignedToMarkedIndividual().equals("Unassigned"))) {
 
         try {
 
@@ -91,7 +98,11 @@ public class EncounterDelete extends HttpServlet {
 
           String savedFilename = request.getParameter("number") + ".dat";
           File thisEncounterDir = new File(Encounter.dir(shepherdDataDir, request.getParameter("number")));
-          if(!thisEncounterDir.exists()){thisEncounterDir.mkdir();}
+          if(!thisEncounterDir.exists()){
+            thisEncounterDir.mkdirs();
+            System.out.println("Trying to create the folder to store a dat file in EncounterDelete2: "+thisEncounterDir.getAbsolutePath());
+          
+          }
 
           File serializedBackup = new File(thisEncounterDir, savedFilename);
           FileOutputStream fout = new FileOutputStream(serializedBackup);
@@ -145,9 +156,12 @@ public class EncounterDelete extends HttpServlet {
 		  es.shutdown();
 
 
-        } else {
+        } 
+        else {
           out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Failure:</strong> I have NOT removed encounter " + request.getParameter("number") + " from the database. This encounter is currently being modified by another user.");
+          out.println("<strong>Failure:</strong> I have NOT removed encounter " + request.getParameter("number") + " from the database. An exception occurred in the deletion process.");
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
+          
           ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
@@ -163,7 +177,9 @@ public class EncounterDelete extends HttpServlet {
       } else {
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("Encounter# " + request.getParameter("number") + " is assigned to an individual and cannot be rejected until it has been removed from that individual.");
+        out.println("Encounter " + request.getParameter("number") + " is assigned to a Marked Individual and cannot be deleted until it has been removed from that individual.");
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
+        
         out.println(ServletUtilities.getFooter(context));
       }
     } else {
