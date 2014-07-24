@@ -33,9 +33,9 @@
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
   File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  //if(!encountersDir.exists()){encountersDir.mkdir();}
+  //if(!encountersDir.exists()){encountersDir.mkdirs();}
   
     int startNum = 1;
     int endNum = 45;
