@@ -327,16 +327,16 @@ public class SubmitAction extends Action {
       String rootWebappPath = getServlet().getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
       File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-      if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
 
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-      if(!encountersDir.exists()){encountersDir.mkdir();}
+      if(!encountersDir.exists()){encountersDir.mkdirs();}
       File thisEncounterDir = new File(encountersDir, uniqueID);
 
       boolean created = false;
       try {
         if ((!thisEncounterDir.exists()) && (!spamBot)) {
-          created = thisEncounterDir.mkdir();
+          created = thisEncounterDir.mkdirs();
         }
         ;
       } catch (SecurityException sec) {

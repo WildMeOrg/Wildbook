@@ -59,7 +59,7 @@ public class DeleteAdoption extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
     
     myShepherd.beginDBTransaction();
