@@ -587,7 +587,7 @@ public static String getLanguageCode(HttpServletRequest request){
 	public static String dataDir(String context, String rootWebappPath) {
 		File webappsDir = new File(rootWebappPath).getParentFile();
 		File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
 		return shepherdDataDir.getAbsolutePath();
 	}
 
