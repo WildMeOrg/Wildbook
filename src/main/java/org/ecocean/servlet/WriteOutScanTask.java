@@ -687,9 +687,9 @@ public class WriteOutScanTask extends HttpServlet {
       String rootWebappPath = getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
       File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-      //if(!encountersDir.exists()){encountersDir.mkdir();}
+      //if(!encountersDir.exists()){encountersDir.mkdirs();}
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"Scan.xml");
       File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "Scan.xml");
@@ -812,9 +812,9 @@ public class WriteOutScanTask extends HttpServlet {
       String rootWebappPath = getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
       File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-      //if(!encountersDir.exists()){encountersDir.mkdir();}
+      //if(!encountersDir.exists()){encountersDir.mkdirs();}
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"I3SScan.xml");
       File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "I3SScan.xml");

@@ -35,9 +35,9 @@ context=ServletUtilities.getContext(request);
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
   File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  //if(!encountersDir.exists()){encountersDir.mkdir();}
+  //if(!encountersDir.exists()){encountersDir.mkdirs();}
   //File thisEncounterDir = new File(encountersDir, number);
 
 //setup our Properties object to hold all properties
@@ -2256,7 +2256,8 @@ else {
 
 
 <p><%=matchingRecord %>: <strong><%=name%>
-</strong><br/>
+</strong></p>
+<p>
   <%=tryAgain %>
 </p>
 
@@ -2267,11 +2268,21 @@ else {
     name="sharky_button" type="submit" id="sharky_button"
     value="<%=getRecord %>"></form>
 </p>
-<p><font color="#990000"><a href="encounters/searchResults.jsp"><%=allEncounters %>
-</a></font></p>
+<p>
+	<font color="#990000">
+		<a href="encounters/encounterSearch.jsp">
+			<%=props.getProperty("searchEncounters") %>
+		</a>
+	</font>
+</p>
 
-<p><font color="#990000"><a href="individualSearchResults.jsp"><%=allIndividuals %>
-</a></font></p>
+<p>
+	<font color="#990000">
+		<a href="individualSearch.jsp">
+			<%=props.getProperty("searchIndividuals") %>
+		</a>
+	</font>
+</p>
 <%
       }
 	  %>

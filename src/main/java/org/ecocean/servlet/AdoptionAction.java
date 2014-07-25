@@ -81,9 +81,9 @@ public class AdoptionAction extends Action {
       String rootWebappPath = getServlet().getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
       File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
       File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
-      if(!adoptionsDir.exists()){adoptionsDir.mkdir();}  
+      if(!adoptionsDir.exists()){adoptionsDir.mkdirs();}  
 
       //get the form to read data from
       AdoptionForm theForm = (AdoptionForm) form;
@@ -170,7 +170,7 @@ public class AdoptionAction extends Action {
       boolean created = false;
       try {
         if ((!thisAdoptionDir.exists()) && adoptionSuccess) {
-          created = thisAdoptionDir.mkdir();
+          created = thisAdoptionDir.mkdirs();
         }
         
       } 
