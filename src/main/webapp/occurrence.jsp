@@ -20,10 +20,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, 	   
-		 com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
+		 com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, com.google.gson.Gson" %>
 
 <%
 
+String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
 
@@ -53,6 +54,9 @@ context=ServletUtilities.getContext(request);
 
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/occurrence.properties"));
   props = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
+
+	Properties collabProps = new Properties();
+ 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
   String name = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);
@@ -210,6 +214,36 @@ context=ServletUtilities.getContext(request);
 
       Occurrence sharky = myShepherd.getOccurrence(name);
       boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(sharky, request);
+
+
+			ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+			boolean visible = sharky.canUserAccess(request);
+
+			if (!visible) {
+  			ArrayList<String> uids = sharky.getAllAssignedUsers();
+				ArrayList<String> possible = new ArrayList<String>();
+				for (String u : uids) {
+					Collaboration c = null;
+					if (collabs != null) c = Collaboration.findCollaborationWithUser(u, collabs);
+					if ((c == null) || (c.getState() == null)) {
+						User user = myShepherd.getUser(u);
+						String fullName = u;
+						if (user.getFullName()!=null) fullName = user.getFullName();
+						possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
+					}
+				}
+				String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+				cmsg = cmsg.replace("'", "\\'");
+
+				if (possible.size() > 0) {
+    			String arr = new Gson().toJson(possible);
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+				} else {
+					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
+				}
+			}
+			out.println(blocker);
 
 %>
 
@@ -418,7 +452,7 @@ if(sharky.getLocationID()!=null){
       
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
-				String encSubdir = thisEnc.subdir();
+				String encSubdir = enc.subdir();
         
           imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + encSubdir + "/thumb.jpg";
         
