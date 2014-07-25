@@ -1425,6 +1425,12 @@ td.lock-td {
 	position: relative;
 }
 
+div.lock-right {
+	float: right;
+	position: relative;
+}
+
+
 td.lock-td div.row-lock {
 	left: auto !important;
 	right: 4px;
