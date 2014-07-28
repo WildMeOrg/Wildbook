@@ -31,6 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.*;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 import com.google.gson.Gson;
 
 public class Collaborate extends HttpServlet {
@@ -114,28 +116,34 @@ System.out.println(collabs);
 				System.out.println("collab already exists, state=" + collab.getState());
 			} else {
 				collab = Collaboration.create(currentUsername, username);
-  			////////myShepherd.storeNewCollaboration(collab);
+  			myShepherd.storeNewCollaboration(collab);
 
 				//TODO move emailing to .create()  ??
-				String emailSubject = props.getProperty("inviteEmailSubject").replaceFirst("%s", ContextConfiguration.getNameForContext(context));
-				String emailBody = props.getProperty("inviteEmailBody").replaceFirst("%s", ContextConfiguration.getNameForContext(context)).replaceFirst("%s", username).replaceFirst("%s", "http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp");
-				if ((optionalMessage != null) && !optionalMessage.equals("")) {
-					emailBody += "\n\n" + props.getProperty("inviteEmailHasMessage") + "\n" + optionalMessage;
+				User recip = myShepherd.getUser(username);
+				if ((recip != null) && recip.getReceiveEmails() && (recip.getEmailAddress() != null) && !recip.getEmailAddress().equals("")) {
+					String toAddress = recip.getEmailAddress();
+					String emailSubject = props.getProperty("inviteEmailSubject").replaceFirst("%s", ContextConfiguration.getNameForContext(context));
+					String emailBody = props.getProperty("inviteEmailBody").replaceFirst("%s", ContextConfiguration.getNameForContext(context)).replaceFirst("%s", username).replaceFirst("%s", "http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp");
+					if ((optionalMessage != null) && !optionalMessage.equals("")) {
+						emailBody += "\n\n" + props.getProperty("inviteEmailHasMessage") + "\n" + optionalMessage;
+					}
+					System.out.println("/Collaborate: attempting email to (" + username + ") " + toAddress);
+					ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+					es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), toAddress, emailSubject, emailBody, null, context));
+				} else {
+					System.out.println("/Collaborate: skipping email to uid=" + username);
 				}
-System.out.println(emailBody);
 
 				rtn.put("message", props.getProperty("inviteResponseMessageSent"));
 				rtn.put("success", true);
 			}
 		}
 
-System.out.println(rtn);
     PrintWriter out = response.getWriter();
 		if (useJson) {
     	response.setContentType("application/json");
     	response.setCharacterEncoding("UTF-8");
     	String json = new Gson().toJson(rtn);
-System.out.println(json);
 			out.println(json);
 
 		} else {
