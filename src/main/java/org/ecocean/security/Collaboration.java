@@ -224,12 +224,15 @@ System.out.println("canCollaborate? " + canCollaborate(context, owner, username)
 
 
 	public static boolean canUserAccessMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
+		return true;  //FOR NOW(?) anyone can get to individual always
+/*
   	Vector<Encounter> all = mi.getEncounters();
 		if ((all == null) || (all.size() < 1)) return true;
 		for (Encounter enc : all) {
 			if (canUserAccessEncounter(enc, request)) return true;  //one is good enough (either owner or in collab or no security etc)
 		}
 		return false;
+*/
 	}
 
 	public static boolean doesQueryExcludeUser(Query query, HttpServletRequest request) {
