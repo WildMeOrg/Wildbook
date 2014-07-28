@@ -75,17 +75,17 @@ function _collaborateMultiHtml(users) {
 	var h = '';
 	if (num == 1) {
 		var u = users[0].split(':');
-		h += '<p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, u[1]) + '</b></p>';
-		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p>';
+		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, u[1]) + '</b></p>';
+		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p></div>';
 		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + u[0] + '\');" /> ' + cancelButton + '</p>';
 
 	} else {
-		h += '<p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptMultiple + ' ' + wildbookGlobals.properties.lang.collaboration.invitePromptMany + '</b></p><div id="collab-multi">';
+		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptMultiple + ' ' + wildbookGlobals.properties.lang.collaboration.invitePromptMany + '</b></p><div id="collab-multi">';
 		for (var i = 0 ; i < num ; i++) {
 			var u = users[i].split(':');
 			h += '<div><input type="checkbox" value="' + u[0] + '" id="collab-' + u[0] + '" /><label for="id-' + u[0] + '">' + u[1] + '</label></div>';
 		}
-		h += '<div><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></div>';
+		h += '<div><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></div></div>';
 		h += '</div><p id="collab-controls"><input type="button" value="Send" onClick="collaborateCallMulti();" /> ' + cancelButton + '</p>';
 	}
 	return h;
@@ -114,12 +114,12 @@ function _collaborateHtml(uid, name) {
 
 	var h = '';
 	if (num == 1) {
-		h += '<p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, allCollab[uid].name) + '</b></p>';
-		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p>';
+		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, allCollab[uid].name) + '</b></p>';
+		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p></div>';
 		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + uid + '\');" /> ' + cancelButton + '</p>';
 
 	} else {
-		h += '<p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptMany + '</b></p><div id="collab-multi">';
+		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptMany + '</b></p><div id="collab-multi">';
 		h += '<div><input type="checkbox" checked value="' + uid + '" id="collab-' + uid + '" /><label for="id-' + u + '">' + allCollab[uid].name + ' (' + allCollab[uid].count + ' item' + ((allCollab[uid].count == 1) ? '' : 's') + ')</label></div>';
 		h += '<p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptManyOther + '</b></p>';
 		for (var u in allCollab) {
@@ -128,7 +128,7 @@ function _collaborateHtml(uid, name) {
 			}
 		}
 		h += '<div><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></div>';
-		h += '</div><p id="collab-controls"><input type="button" value="Send" onClick="collaborateCallMulti();" /> ' + cancelButton + '</p>';
+		h += '</div></div><p id="collab-controls"><input type="button" value="Send" onClick="collaborateCallMulti();" /> ' + cancelButton + '</p>';
 	}
 	return h;
 }
@@ -170,14 +170,9 @@ function collaborateCallDone(data, callback) {
 	if (!callback) callback = '$(\'.popup\').remove();';
 	console.log('invite sent reponse: %o', data);
 	var h = '';
-/*
-	if (data.success) {
-		h += '<p class="collaboration-success">' + data.message + '</p>';
-	} else {
-		h += '<p class="collaboration-failure">' + data.message + '</p>';
-	}
-*/
 	h += '<p><input type="button" value="OK" onClick="' + callback + '" /></p>';
+
+	$('#collab-response').html('<p class="collaboration-' + (data.success ? "success" : "failure") + '">' + data.message + '</p>');
 	$('#collab-controls div').removeClass('throbbing').html(h);
 }
 
@@ -190,12 +185,9 @@ function collaborateCallMultiDone(data, num) {
 	if (colMultiCount > 0) return;
 
 	var h = '';
-	if (data.success) {
-		h += '<p class="collaboration-success">' + data.message + '</p>';
-	} else {
-		h += '<p class="collaboration-failure">' + data.message + '</p>';
-	}
 	h += '<p><input type="button" value="OK" onClick="' + callback + '" /></p>';
+
+	$('#collab-response').html('<p class="collaboration-' + (data.success ? "success" : "failure") + '">' + data.message + '</p>');
 	$('#collab-controls div').removeClass('throbbing').html(h);
 }
 
