@@ -1,0 +1,65 @@
+
+#vm-wrapper {
+	min-width: 500px;
+	min-height: 400px;
+	position: relative;
+	border: solid 1px #888;
+}
+
+
+#vm-target-wrapper {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 49%;
+	height: 100%;
+}
+
+#vm-candidates-wrapper {
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 49%;
+	height: 100%;
+}
+
+
+.img-wrapper {
+	position: relative;
+}
+
+#vm-target-main {
+	height: 75%;
+	text-align: center;
+}
+
+#vm-target-main img {
+	height: 100%;
+}
+
+#vm-target-small img {
+	margin: 6px 2px 0 2px;
+	cursor: pointer;
+	height: 100%;
+}
+
+#vm-target-small img:hover {
+	outline: solid 3px rgba(205,255,0,0.8);
+}
+
+
+#vm-target-main div {
+	position: absolute;
+	background-color: rgba(0,0,0, 0.3);
+	color: #FFF;
+	padding: 2px;
+	text-align: center;
+	width: 100%;
+	bottom: 0;
+}
+
+#vm-target-small {
+	height: 15%;
+	position: relative;
+}
+
