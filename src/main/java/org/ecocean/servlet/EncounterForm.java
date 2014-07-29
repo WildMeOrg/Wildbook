@@ -288,8 +288,10 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 			if ((fv.get("locationID") != null) && !fv.get("locationID").toString().equals("")) {
 				locCode = fv.get("locationID").toString();
 
-			} else {  //see if the location code can be determined and set based on the location String reported
-      	String locTemp = getVal(fv, "location");
+			} 
+		//see if the location code can be determined and set based on the location String reported
+			else if (fv.get("location") != null) {  
+      	String locTemp = getVal(fv, "location").toLowerCase();
       	Properties props = new Properties();
 
       	try {
