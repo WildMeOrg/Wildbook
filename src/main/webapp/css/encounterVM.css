@@ -70,8 +70,116 @@
 #vm-candidates-controls {
 	position: absolute;
 	background-color: #EEF;
-	width: 100%;
+	width: 98%;
 	bottom: 0;
 	height: 15%;
 }
+
+
+#vm-candidates-imgs {
+	height: 100%;
+	overflow-y: scroll;
+}
+
+#vm-candidates-imgs .candidate {
+	margin-bottom: 4px;
+	background-color: #DDD;
+	padding: 2px;
+	position: relative;
+}
+
+#vm-candidates-imgs .info {
+	position: absolute;
+	background-color: rgba(0,0,0,0.4);
+	color: white;
+	font-size: 0.8em;
+	padding: 4px;
+	text-align: center;
+	bottom: 0;
+}
+
+#vm-candidates-imgs .candidate:hover {
+	background-color: #CC4;
+}
+
+#vm-candidates-imgs img.thumb {
+	cursor: pointer;
+	cursor: -webkit-zoom-in;
+	height: 75px;
+	margin: 2px;
+}
+
+#vm-candidates-imgs img:hover {
+	outline: 3px solid #333;
+}
+
+
+#candidate-zoom {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 40;
+	display: none;
+	background-color: #99A;
+}
+
+#candidate-zoom #close, #candidate-zoom #use {
+	position: absolute;
+	right: 0;
+	background-color: rgba(0,0,0, 0.5);
+	padding: 4px;
+	cursor: pointer;
+	color: #FFF;
+	font-size: 0.9em;
+	font-weight: bold;
+}
+#candidate-zoom #close:hover, #candidate-zoom #use:hover {
+	background-color: #555;
+	color: #FF0;
+}
+
+#candidate-zoom #close {
+	top: 0;
+}
+#candidate-zoom #use {
+	bottom: 0;
+}
+
+#candidate-zoom img {
+	width: 100%;
+}
+
+
+#candidate-full-zoom {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 98%;
+	z-index: 200;
+	border: solid 4px black;
+	padding: 5px;
+	background-color: #88A;
+	display: none;
+}
+
+#candidate-full-zoom img {
+	vertical-align: top;
+	width: 49%;
+}
+
+#candidate-full-zoom .close-button {
+	cursor: pointer;
+	position: absolute;
+	right: 0;
+	top: 0;
+	background-color: #DD8;
+	padding: 10px;
+	font-size: 1.5em;
+}
+
+
+
+
 
