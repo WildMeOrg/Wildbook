@@ -295,6 +295,16 @@ margin-bottom: 8px !important;
 		'<%=CommonConfiguration.getProperty("patterningCode2")%>'
 	];
 
+<%
+	String locs = "";
+	for (int i = 0 ; i < 31 ; i++) {
+		locs += "\t'" + CommonConfiguration.getProperty("locationID" + i) + "',\n";
+	}
+%>
+
+	var regions = [
+<%=locs%>];
+
 	var encounterNumber = false;
 	$('body').ready(function() {
 		initVM($('#vm-content'), encounterNumber);

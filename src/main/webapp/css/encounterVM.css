@@ -21,6 +21,8 @@
 	top: 0;
 	width: 49%;
 	height: 100%;
+	padding-left: 4px;
+	border-left: 3px solid #333;
 }
 
 
@@ -61,5 +63,15 @@
 #vm-target-small {
 	height: 15%;
 	position: relative;
+}
+
+
+
+#vm-candidates-controls {
+	position: absolute;
+	background-color: #EEF;
+	width: 100%;
+	bottom: 0;
+	height: 15%;
 }
 

@@ -1,14 +1,17 @@
 
 var encData = false;
 
+var candidateCriteria = {};
+
 function initVM(el, encID) {
 	if (!el || !encID) return;
 console.log('got encID='+encID);
 	var wrapper = $('<div id="vm-wrapper" />');
 	wrapper.append('<div id="vm-target-wrapper"><div id="vm-target-main" class="img-wrapper" /><div id="vm-target-small" /></div>');
-	wrapper.append('<div id="vm-candidates-wrapper" />');
+	wrapper.append('<div id="vm-candidates-wrapper"><div id="vm-candidates-imgs" /><div id="vm-candidates-controls" /></div>');
 	el.append(wrapper);
 	fetchTarget(encID);
+	createControls();
 }
 
 
@@ -61,5 +64,34 @@ function niceKeywords(keywords) {
 		k.push(keywords[i].readableName);
 	}
 	return k.join(', ');
+}
+
+
+function createControls() {
+	var h = '<select name="patterningCode">';
+	for (var i = 0 ; i < patterningCodes.length ; i++) {
+		var sel = (candidateCriteria.patterningCode == patterningCodes[i] ? ' selected' : '');
+		h += '<option' + sel + '>' + patterningCodes[i] + '</option>';
+	}
+	h += '</select>';
+
+	var sex = ['unknown', 'female', 'male'];
+	h += '<select name="sex">';
+	for (var i = 0 ; i < sex.length ; i++) {
+		var sel = (candidateCriteria.sex == sex[i] ? ' selected' : '');
+		h += '<option' + sel + '>' + sex[i] + '</option>';
+	}
+	h += '</select>';
+
+	h += '<select name="locationID">';
+	for (var i = 0 ; i < regions.length ; i++) {
+		var sel = (candidateCriteria.locationID == regions[i] ? ' selected' : '');
+		h += '<option' + sel + '>' + regions[i] + '</option>';
+	}
+	h += '</select>';
+
+	h += '<select name="mma-compat"><option>MMA-compatible</option><option>not MMA-compatible</option></select>';
+
+	$('#vm-candidates-controls').html(h);
 }
 
