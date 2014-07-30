@@ -333,6 +333,7 @@ margin-bottom: 8px !important;
 </head>
 
 <body>
+<div id="candidate-full-zoom"></div>
 
 	<div id="wrapper">
 		<div id="page">
@@ -363,9 +364,13 @@ margin-bottom: 8px !important;
       			//if(CommonConfiguration.getProperty(()){}
     			%>
  
-<script>encounterNumber = <%=num%>;</script>
 
+<script>encounterNumber = '<%=enc.getCatalogNumber()%>';</script>
 <div id="vm-content"></div>
+
+<div>
+	<input type="button" value="full page zoom [z]" onClick="candidateFullZoom()" />
+</div>
 
 
 

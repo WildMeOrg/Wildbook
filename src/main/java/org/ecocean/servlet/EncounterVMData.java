@@ -34,6 +34,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Iterator;
 
 import com.google.gson.Gson;
 
@@ -68,22 +69,67 @@ public class EncounterVMData extends HttpServlet {
 		if (request.getParameter("number") != null) {
 			myShepherd.beginDBTransaction();
 			Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
-			ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
-			String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/" + enc.getCatalogNumber();
 
-			ArrayList images = new ArrayList();
-			for(SinglePhotoVideo s : spvs) {
-				if (myShepherd.isAcceptableImageFile(s.getFilename())) {
-					HashMap i = new HashMap();
-					i.put("url", "/" + dataDir + "/" + s.getFilename());
-					List k = s.getKeywords();
-					i.put("keywords", k);
-					images.add(i);
+			if (enc == null) {
+				rtn.put("error", "invalid Encounter number");
+
+			} else if (request.getParameter("candidates") != null) {
+				ArrayList candidates = new ArrayList();
+				String filter = "this.catalogNumber != \"" + enc.getCatalogNumber() + "\"";
+				String[] fields = {"locationID", "sex", "patterningCode"};
+				for (String f : fields) {
+					String val = request.getParameter(f);
+					if (val != null) filter += " && this." + f + " == \"" + val + "\"";  //TODO safely quote!  sql injection etc
 				}
-			}
+System.out.println("candidate filter => " + filter);
+
+				Iterator all = myShepherd.getAllEncounters("catalogNumber", filter);
+				while (all.hasNext()) {
+					Encounter cand = (Encounter)all.next();
+					HashMap e = new HashMap();
+					e.put("id", cand.getCatalogNumber());
+					e.put("releaseDate", cand.getReleaseDate());
+					e.put("locationID", cand.getLocationID());
+					ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
+					ArrayList images = new ArrayList();
+					String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/";
+					for (SinglePhotoVideo s : spvs) {
+						if (myShepherd.isAcceptableImageFile(s.getFilename())) {
+							HashMap i = new HashMap();
+							i.put("url", "/" + dataDir + "/" + cand.getCatalogNumber() + "/" + s.getFilename());
+							List k = s.getKeywords();
+							i.put("keywords", k);
+							images.add(i);
+						}
+					}
+					e.put("images", images);
+					candidates.add(e);
+				}
+				rtn.put("candidates", candidates);
+
+			} else {
+				ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+				String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/" + enc.getCatalogNumber();
+
+				ArrayList images = new ArrayList();
+				for (SinglePhotoVideo s : spvs) {
+					if (myShepherd.isAcceptableImageFile(s.getFilename())) {
+						HashMap i = new HashMap();
+						i.put("url", "/" + dataDir + "/" + s.getFilename());
+						List k = s.getKeywords();
+						i.put("keywords", k);
+						images.add(i);
+					}
+				}
 		
-			rtn.put("id", enc.getCatalogNumber());
-			rtn.put("images", images);
+				rtn.put("id", enc.getCatalogNumber());
+				rtn.put("patterningCode", enc.getPatterningCode());
+				rtn.put("sex", enc.getSex());
+				rtn.put("locationID", enc.getLocationID());
+				rtn.put("releaseDate", enc.getReleaseDate());
+				rtn.put("images", images);
+			}
+
 
 		} else {
 			rtn.put("error", "invalid Encounter number");
@@ -92,6 +138,7 @@ public class EncounterVMData extends HttpServlet {
 
     out.println(new Gson().toJson(rtn));
     out.close();
+		myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
   }
 
