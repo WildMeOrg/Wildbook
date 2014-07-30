@@ -361,8 +361,10 @@ margin-bottom: 8px !important;
 						if (match == null) match = spvs.get(0);
 
 						String imgUrl = "";
+						String matchFilename = "";
 						if (match != null) {
-							imgUrl = "/" + dataDir + "/" + match.getFilename();
+							matchFilename = match.getFilename();
+							imgUrl = "/" + dataDir + "/" + matchFilename;
 							//List k = match.getKeywords();
 						}
 
@@ -389,6 +391,14 @@ margin-bottom: 8px !important;
 		//sometimes .toWork() doesnt fire via .init() above.  wtf?  TODO fix!
 		window.setTimeout(function() { CRtool.toWork(); }, 1100);
 	});
+
+
+	function crSave() {
+		var base64 = document.getElementById('cr-work-canvas').toDataURL("image/png").substr(22);
+console.log('<%=matchFilename%>');
+console.log('have base64 to send to server for ' + encounterNumber);
+	}
+
 </script>
 
 <div style="position: relative; padding: 10px; background-color: #888; width: 100%; height: 400px;">
