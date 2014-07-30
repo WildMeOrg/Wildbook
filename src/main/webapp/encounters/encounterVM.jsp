@@ -137,7 +137,7 @@ File encounterDir = new File(encountersDir, num);
 <html>
 
 <head prefix="og:http://ogp.me/ns#">
-  <title><%=CommonConfiguration.getHTMLTitle() %> - <%=encprops.getProperty("encounter") %> <%=num%>
+  <title><%=CommonConfiguration.getHTMLTitle() %> - Visual Matching Tool - <%=encprops.getProperty("encounter") %> <%=num%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
