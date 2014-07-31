@@ -26,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -51,7 +52,9 @@ public class EncounterSetIdentifiable extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -102,7 +105,7 @@ public class EncounterSetIdentifiable extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> Encounter #" + request.getParameter("number") + " was successfully added back into the visual database.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -110,7 +113,7 @@ public class EncounterSetIdentifiable extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-        ArrayList<String> allStates2=CommonConfiguration.getSequentialPropertyValues("encounterState");
+        ArrayList<String> allStates2=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
         int allStatesSize2=allStates2.size();
         if(allStatesSize2>0){
           for(int i=0;i<allStatesSize2;i++){
@@ -118,14 +121,14 @@ public class EncounterSetIdentifiable extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         String message = "Encounter #" + request.getParameter("number") + " was accepted back into the visual database.";
-        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message);
+        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Encounter #" + request.getParameter("number") + " was NOT successfully added back into the visual database. This encounter is currently being modified by another user. Please try this operation again in a few seconds.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -133,21 +136,21 @@ public class EncounterSetIdentifiable extends HttpServlet {
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
         }out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-        ArrayList<String> allStates5=CommonConfiguration.getSequentialPropertyValues("encounterState");
+        ArrayList<String> allStates5=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
         int allStatesSize5=allStates5.size();
         if(allStatesSize5>0){
           for(int i=0;i<allStatesSize5;i++){
             String stateName=allStates5.get(i);
             out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
           }
-        }out.println(ServletUtilities.getFooter());
+        }out.println(ServletUtilities.getFooter(context));
 
 
       }
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't know which encounter you're trying to reaccept.");
-      ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+      ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
       int allStatesSize=allStates.size();
       if(allStatesSize>0){
         for(int i=0;i<allStatesSize;i++){
@@ -156,7 +159,7 @@ public class EncounterSetIdentifiable extends HttpServlet {
         }
       }
       out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-      ArrayList<String> allStates3=CommonConfiguration.getSequentialPropertyValues("encounterState");
+      ArrayList<String> allStates3=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
       int allStatesSize3=allStates3.size();
       if(allStatesSize3>0){
         for(int i=0;i<allStatesSize3;i++){
@@ -164,7 +167,7 @@ public class EncounterSetIdentifiable extends HttpServlet {
           out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
         }
       }
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
 

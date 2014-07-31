@@ -19,7 +19,11 @@
 
 package org.ecocean;
 
-import net.sourceforge.jwebunit.junit.WebTestCase;
+//import net.sourceforge.jwebunit.junit.WebTestCase;
+import static net.sourceforge.jwebunit.junit.JWebUnit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Created by IntelliJ IDEA.
@@ -28,11 +32,21 @@ import net.sourceforge.jwebunit.junit.WebTestCase;
  * Time: 2:17 PM
  * To change this template use File | Settings | File Templates.
  */
-public class IndividualsIT extends WebTestCase {
-  public void setUp() throws Exception {
-    super.setUp();
+public class IndividualsIT {
+  
+  @Before
+  public void prepare() throws Exception {
+    //super.setUp();
   }
+  
+  @Test
   public void testDummy() {
+    setScriptingEnabled(false);
 
+  }
+  
+  @After
+  public void close() {
+    closeBrowser();
   }
 }

@@ -29,7 +29,6 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-
 import java.util.Enumeration;
 
 import javax.servlet.ServletConfig;
@@ -79,6 +78,9 @@ public class EncounterSetPatterningPassport extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     String responseMsg = "";
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
 
     String mediaId = "";
     String encounterId = "";
@@ -119,7 +121,7 @@ public class EncounterSetPatterningPassport extends HttpServlet {
     // update it only if there is a stream
     if (mediaId != null && encounterId != null && xmlFile != null) {
       responseMsg += this.setPassportForMediaObject(mediaId, encounterId,
-          xmlFile);
+          xmlFile,context);
     } else {
       responseMsg += "<br/>Not enough data to setPassportForMediaObject. <ul><li>"
           + mediaId + "<li>" + encounterId + "</ul> ";
@@ -128,13 +130,13 @@ public class EncounterSetPatterningPassport extends HttpServlet {
     // response
     out.println(ServletUtilities.getHeader(request));
     out.println(responseMsg);
-    out.println(ServletUtilities.getFooter());
+    out.println(ServletUtilities.getFooter(context));
     out.close();
 
     return;
   }
 
-  public String setPassportForMediaObject(String mediaId, String encounterId, File xmlFile) {
+  public String setPassportForMediaObject(String mediaId, String encounterId, File xmlFile,String context) {
     String returnString = "";
     FileInputStream passportXmlStream;
 
@@ -157,13 +159,15 @@ public class EncounterSetPatterningPassport extends HttpServlet {
     // Set contexts/locations for PP
     // NOTE: need to do this from servlet, because servletContext is referenced.
     
+
+    
     // Setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration
-        .getDataDirectoryName());
+        .getDataDirectoryName(context));
 
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
     // Get the Encounter object for this
     Encounter enc = null;
     if (myShepherd.isEncounter(encounterId)) {
@@ -196,14 +200,14 @@ public class EncounterSetPatterningPassport extends HttpServlet {
     pp.setMediaId(mediaId);
 
     // apply the data (node of pattern matching xml) to the patterningPassport
-    Boolean setSuccess = pp.setPassportDataXml(xmlString);
+    Boolean setSuccess = pp.setPassportDataXml(xmlString,context);
     if (setSuccess.equals(Boolean.TRUE)) {
       returnString += "PatterningPassport successfully attached!<br/>";
       
       // TEMP -> 
       System.out.println("-----\n");
       System.out.println("Here is the patterning passport OBJECT's data: \n");
-      System.out.println(pp.getPassportDataXml());
+      System.out.println(pp.getPassportDataXml(context));
       // <- TEMP
       
       myShepherd.commitDBTransaction();

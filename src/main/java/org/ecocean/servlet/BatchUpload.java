@@ -21,6 +21,7 @@ package org.ecocean.servlet;
 import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.Part;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,10 +34,12 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import org.ecocean.*;
 import org.ecocean.batch.BatchData;
 import org.ecocean.batch.BatchMedia;
@@ -316,6 +319,9 @@ public final class BatchUpload extends DispatchServlet {
   public void uploadBatchData(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       HttpSession session = req.getSession();
+      
+      String context="context0";
+      context=ServletUtilities.getContext(req);
 
       Locale loc = req.getLocale();
       ResourceBundle bundle = getResources(loc);
@@ -325,7 +331,7 @@ public final class BatchUpload extends DispatchServlet {
       session.setAttribute(SESSION_KEY_WARNINGS, warnings);
 
       // Setup folder/file paths.
-      File batchDataDir = new File(getDataDir(), BATCH_DATA_DIR);
+      File batchDataDir = new File(getDataDir(context), BATCH_DATA_DIR);
       if (!batchDataDir.exists()) {
         if (!batchDataDir.mkdirs()) {
           errors.add(bundle.getString("batchUpload.error.MakeDir"));
@@ -336,7 +342,7 @@ public final class BatchUpload extends DispatchServlet {
       // (Millisecond precision should be good enough for non-automated code.)
       String uniq = DataUtilities.createUniqueId();
       // Process submitted files.
-      MultipartParser mp = new MultipartParser(req, CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576);
+      MultipartParser mp = new MultipartParser(req, CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576);
       Part part = null;
       String type = "batchInd";
       while ((part = mp.readNextPart()) != null) {
@@ -479,6 +485,9 @@ public final class BatchUpload extends DispatchServlet {
   public void confirmBatchDataUpload(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       HttpSession session = req.getSession(false);
+      
+      String context="context0";
+      context=ServletUtilities.getContext(req);
 
       Locale loc = req.getLocale();
       ResourceBundle bundle = getResources(loc);
@@ -516,10 +525,10 @@ public final class BatchUpload extends DispatchServlet {
       if (errors.isEmpty()) {
 
         // NOTE: This might be updated to use Servlet 3.0 API asynchronous task mechanism in future.
-        proc = new BatchProcessor(data.listInd, data.listEnc, errors, warnings, loc);
+        proc = new BatchProcessor(data.listInd, data.listEnc, errors, warnings, loc,context);
         proc.setMapMedia(data.mapMedia);
         proc.setListSam(data.listSam);
-        proc.setServletContext(getServletContext());
+        proc.setServletContext(getServletContext(),context);
         proc.setUser(req.getRemoteUser());
         log.info(String.format("Assigning batch processor for user %s: %s", req.getRemoteUser(), proc));
         processMap.put(req.getRemoteUser(), proc);
@@ -600,7 +609,9 @@ public final class BatchUpload extends DispatchServlet {
           List<String> errors, ResourceBundle bundle) throws IOException {
 
     // Get reference to persistent store.
-    Shepherd shepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(req);
+    Shepherd shepherd = new Shepherd(context);
 
     // Validate individuals.
     List<String> indIDs = new ArrayList<String>();
@@ -619,12 +630,12 @@ public final class BatchUpload extends DispatchServlet {
     }
 
     // Get valid values of certain data.
-    List<String> listSex = CommonConfiguration.getSequentialPropertyValues("sex");
-    List<String> listTax = CommonConfiguration.getSequentialPropertyValues("genusSpecies");
-    List<String> listLS = CommonConfiguration.getSequentialPropertyValues("lifeStage");
-    List<String> listPC = CommonConfiguration.getSequentialPropertyValues("patterningCode");
-    List<String> listLoc = CommonConfiguration.getSequentialPropertyValues("locationID");
-    List<String> listSP = CommonConfiguration.getSequentialPropertyValues("samplingProtocol");
+    List<String> listSex = CommonConfiguration.getSequentialPropertyValues("sex",context);
+    List<String> listTax = CommonConfiguration.getSequentialPropertyValues("genusSpecies",context);
+    List<String> listLS = CommonConfiguration.getSequentialPropertyValues("lifeStage",context);
+    List<String> listPC = CommonConfiguration.getSequentialPropertyValues("patterningCode",context);
+    List<String> listLoc = CommonConfiguration.getSequentialPropertyValues("locationID",context);
+    List<String> listSP = CommonConfiguration.getSequentialPropertyValues("samplingProtocol",context);
 
     // Validate encounters.
     Map<String, Encounter> mapEnc = new HashMap<String, Encounter>();
@@ -742,8 +753,8 @@ public final class BatchUpload extends DispatchServlet {
 
 
     // Get valid values of certain data.
-    List<String> listMT = CommonConfiguration.getSequentialPropertyValues("measurement");
-    List<String> listMU = CommonConfiguration.getSequentialPropertyValues("measurementUnits");
+    List<String> listMT = CommonConfiguration.getSequentialPropertyValues("measurement",context);
+    List<String> listMU = CommonConfiguration.getSequentialPropertyValues("measurementUnits",context);
 
     // Check/assign measurements.
     Set<Measurement> badMeaNoEnc = new LinkedHashSet<Measurement>();
@@ -804,7 +815,7 @@ public final class BatchUpload extends DispatchServlet {
 
     // Validate/assign media, and assign target filename on local filesystem.
     // This does NOT download the media items, just prepares data relating to them.
-    File usersDir = CommonConfiguration.getUsersDataDirectory(getServletContext());
+    File usersDir = CommonConfiguration.getUsersDataDirectory(getServletContext(), context);
     File dataDir = new File(usersDir, req.getRemoteUser());
     Map<SinglePhotoVideo, BatchMedia> map = new HashMap<SinglePhotoVideo, BatchMedia>();
     Set<String> spvNames = new HashSet<String>();
@@ -927,7 +938,7 @@ public final class BatchUpload extends DispatchServlet {
     }
 
     // Get valid values of certain data.
-    List<String> listTT = CommonConfiguration.getSequentialPropertyValues("tissueType");
+    List<String> listTT = CommonConfiguration.getSequentialPropertyValues("tissueType",context);
 
     // Check/assign samples.
     Set<TissueSample> badSamNoEnc = new LinkedHashSet<TissueSample>();
@@ -1088,7 +1099,7 @@ public final class BatchUpload extends DispatchServlet {
       x.setMaximumElevationInMeters((Double)map.get(pre + "maximumElevationInMeters"));
       x.setLivingStatus((String)map.get(pre + "livingStatus"));
       x.setLifeStage((String)map.get(pre + "lifeStage"));
-      x.setReleaseDate((Date)map.get(pre + "releaseDate"));
+      x.setReleaseDate(((Date)map.get(pre + "releaseDate")).getTime());
       x.setSize((Double)map.get(pre + "size"));
       x.setSizeGuess((String)map.get(pre + "sizeGuess"));
       x.setPatterningCode((String)map.get(pre + "patterningCode"));

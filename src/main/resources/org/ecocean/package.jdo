@@ -144,8 +144,8 @@
                 <column jdbc-type="BIGINT" allows-null="true" />
             </field>
 
-            <field name="releaseDate" persistence-modifier="persistent">
-                <column jdbc-type="DATE" allows-null="true"/>
+            <field name="releaseDateLong" persistence-modifier="persistent">
+                <column jdbc-type="BIGINT" allows-null="true"/>
             </field>
 
             <field name="maximumDepthInMeters"
@@ -332,6 +332,7 @@
             <field name="correspondingEncounterNumber">
                 <column name="CORRESPONDINGENCOUNTERNUMBER" />
             </field>
+
             <field name="dataCollectionEventID" primary-key="true"
                 value-strategy="native">
                 <column name="DATACOLLECTIONEVENTID" />
@@ -383,7 +384,9 @@
 
         <class name="SinglePhotoVideo" identity-type="application">
             <inheritance strategy="new-table" />
-			 
+			 <field name="correspondingUsername">
+                <column name="CORRESPONDINGUSERNAME" />
+            </field>
             <field name="filename">
                 <column name="FILENAME" />
             </field>
@@ -491,14 +494,16 @@
 		        <field name="userURL">	
 		        	<column length="256"/>
 		        </field>
-		        <field name="userImage" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo"/>
+		        <field name="userImage" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo">
+				</field>
 		 					
 			<field name="lastLogin" persistence-modifier="persistent">
 				<column jdbc-type="BIGINT" allows-null="true" />
 		        </field>
 			                
-            </field>
+         
 					
+					</field>
 		 </class>
 		 
 		 
@@ -512,10 +517,61 @@
 		 			 <field name="rolename" column="ROLE_NAME">
 							 			    				<column length="100"/>
 		 			</field>
+					
+					<field name="context" column="CONTEXT">
+							 			    				<column length="100"/>
+		 			</field>
 		 		
 		 		
 		 </class>
         
+		
+			<class name="Story" identity-type="application" table="STORY">
+		            
+
+		            <field name="storyID" primary-key="true" column="STORY_ID">
+			    				<column length="100"/>
+					</field>
+					
+					 <field name="storyTellerName" column="STORY_TELLER_NAME">
+			    				<column length="100"/>
+					</field>
+					
+					<field name="storyTellerEmail" column="STORY_TELLER_EMAIL">
+			    				<column length="100"/>
+					</field>
+					
+					<field name="storyMediaURL" column="STORY_MEDIA_URL">
+			    				<column length="256"/>
+					</field>
+					
+					<field name="storyText">
+									<column jdbc-type="LONGVARCHAR" />
+					</field>
+					
+					<field name="correspondingEncounterNumber">
+			    				<column length="256"/>
+					</field>
+					
+					<field name="correspondingMarkedIndividualID">
+			    				<column length="256"/>
+					</field>
+					
+					<field name="correspondingOccurrenceID">
+			    				<column length="256"/>
+					</field>
+					
+					<field name="correspondingSocialUnitName">
+			    				<column length="256"/>
+					</field>
+					
+					  <field name="correspondingThumbnailSinglePhotoVideo" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo">
+				</field>
+					
+			</class>		
+		
+
+
 
         
 		

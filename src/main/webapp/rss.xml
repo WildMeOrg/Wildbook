@@ -18,20 +18,14 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   -->
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">  
+  <channel> 
+    <title>Need a title...</title>  
+    <link>Need a link...</link>  
+    <description>Need a description...</description>  
+    <language>en-us</language>  
+    <copyright>No copyright details provided.</copyright>  
+    <pubDate>Thu Apr 03 18:59:49 EDT 2014</pubDate>  
 
-<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
-  <channel>
-    <title>Need a title...</title>
-    <link>Need a link...</link>
-    <description>Need a description...</description>
-    <language>en-us</language>
-    <copyright>No copyright details provided.</copyright>
-    <pubDate>Wed Jun 02 16:17:15 EDT 2010</pubDate>
-    <item>
-      <title>Sample entry</title>
-      <link>No link...</link>
-      <description>Sample entry text...</description>
-    </item>
-
-  </channel>
+  </channel> 
 </rss>

@@ -38,22 +38,21 @@ public class SOCPROGExport extends HttpServlet{
     
     //set the response
     
-    
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     
 
- 
-    
     //set up the files
     String filename = "SOCPROGExport_" + request.getRemoteUser() + ".xls";
     
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-    if(!encountersDir.exists()){encountersDir.mkdir();}
+    if(!encountersDir.exists()){encountersDir.mkdirs();}
     File excelFile = new File(encountersDir.getAbsolutePath()+"/"+ filename);
 
     int numPopulations=2;
@@ -96,9 +95,9 @@ public class SOCPROGExport extends HttpServlet{
         //load the optional locales
         Properties props = new Properties();
         try {
-          props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+          props=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
         } catch (Exception e) {
-          //System.out.println("     Could not load locales.properties in class GenalexExportCodominantMSDataBySize.");
+          //System.out.println("     Could not load locationIDGPS.properties in class GenalexExportCodominantMSDataBySize.");
           e.printStackTrace();
         }
         
@@ -156,7 +155,7 @@ public class SOCPROGExport extends HttpServlet{
         Label popLabel9 = new Label(6, 0, "RecaptureStatus");
         sheet2.addCell(popLabel9);
         
-        List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
+        List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en",context);
         int numMeasurementTypes=measurementTypes.size();
         for(int j=0;j<numMeasurementTypes;j++){
           String measureName=measurementTypes.get(j).getType();
@@ -164,7 +163,7 @@ public class SOCPROGExport extends HttpServlet{
           sheet2.addCell(popLabelX);
         }
          
-        List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en");
+        List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
         int numBioMeasurementTypes=bioMeasurementTypes.size();
         for(int j=0;j<numBioMeasurementTypes;j++){
           String measureName=bioMeasurementTypes.get(j).getType();
@@ -353,7 +352,7 @@ public class SOCPROGExport extends HttpServlet{
         out.println(ServletUtilities.getHeader(request));
         out.println("<html><body><p><strong>Error encountered</strong> with file writing. Check the relevant log.</p>");
         out.println("<p>Please let the webmaster know you encountered an error at: SOCPROGExport servlet</p></body></html>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         out.close();
         outp.close();
         outp=null;
@@ -368,7 +367,7 @@ public class SOCPROGExport extends HttpServlet{
       out.println(ServletUtilities.getHeader(request));  
       out.println("<html><body><p><strong>Error encountered</strong></p>");
         out.println("<p>Please let the webmaster know you encountered an error at: SOCPROGExport servlet</p></body></html>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         out.close();
     }
 

@@ -77,7 +77,8 @@
                 [main]
                 realmA = org.ecocean.security.ShepherdRealm
                 roles.unauthorizedUrl = /accessDenied.jsp 
-                
+                authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
+				
                 #this application will use all the default
                 #filters (see link above)
                 #for example the default login page is /login.jsp
@@ -206,7 +207,12 @@
 						    		/IndividualSetYearOfBirth = authc, roles[admin]
                		/IndividualSetYearOfDeath = authc, roles[admin]
 						   /KinalyzerExport = authc, roles[admin]
-
+					
+					/myAccount.jsp = authc
+					/UserSelfUpdate = authc
+					
+				    /MyAccountAddProfileImage = authc
+				    /MyAccountRemoveProfileImage = authc
             </param-value>
         </init-param>
     </filter>
@@ -445,10 +451,7 @@
     <servlet-class>org.ecocean.servlet.DontTrack</servlet-class>
   </servlet>
   
-    <servlet>
-      <servlet-name>ResetCommonConfiguration</servlet-name>
-      <servlet-class>org.ecocean.servlet.ResetCommonConfiguration</servlet-class>
-  </servlet>
+ 
 
   <servlet>
     <servlet-name>UpdateEmailAddress</servlet-name>
@@ -475,6 +478,11 @@
     <servlet>
       <servlet-name>UserCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
+  </servlet>
+  
+    <servlet>
+      <servlet-name>UserSelfUpdate</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserSelfUpdate</servlet-class>
   </servlet>
   
       <servlet>
@@ -646,6 +654,11 @@
   <servlet>
     <servlet-name>IndividualCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualCreate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>EncounterForm</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterForm</servlet-class>
   </servlet>
   
     <servlet>
@@ -993,11 +1006,7 @@
       <servlet-name>TissueSampleSetHaplotype</servlet-name>
       <url-pattern>/TissueSampleSetHaplotype</url-pattern>
   </servlet-mapping>
-  
-      <servlet-mapping>
-        <servlet-name>ResetCommonConfiguration</servlet-name>
-        <url-pattern>/ResetCommonConfiguration</url-pattern>
-  </servlet-mapping>
+
   
       <servlet-mapping>
         <servlet-name>DeleteAllDataPermanently</servlet-name>
@@ -1031,6 +1040,11 @@
           <url-pattern>/UserCreate</url-pattern>
   </servlet-mapping>
   
+        <servlet-mapping>
+          <servlet-name>UserSelfUpdate</servlet-name>
+          <url-pattern>/UserSelfUpdate</url-pattern>
+  </servlet-mapping>
+  
      <servlet-mapping>
             <servlet-name>UserDelete</servlet-name>
             <url-pattern>/UserDelete</url-pattern>
@@ -1062,6 +1076,11 @@
         <url-pattern>/UserAddProfileImage</url-pattern>
   </servlet-mapping>
   
+     <servlet-mapping>
+        <servlet-name>UserAddProfileImage</servlet-name>
+        <url-pattern>/MyAccountAddProfileImage</url-pattern>
+  </servlet-mapping>
+  
       <servlet-mapping>
         <servlet-name>EncounterRemoveTissueSample</servlet-name>
         <url-pattern>/EncounterRemoveTissueSample</url-pattern>
@@ -1076,6 +1095,12 @@
     <servlet-name>IndividualCreate</servlet-name>
     <url-pattern>/IndividualCreate</url-pattern>
   </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterForm</servlet-name>
+    <url-pattern>/EncounterForm</url-pattern>
+  </servlet-mapping>
+  
   
     <servlet-mapping>
       <servlet-name>OccurrenceCreate</servlet-name>
@@ -1270,6 +1295,10 @@
       <url-pattern>/UserRemoveProfileImage</url-pattern>
   </servlet-mapping>
 
+      <servlet-mapping>
+      <servlet-name>UserRemoveProfileImage</servlet-name>
+      <url-pattern>/MyAccountRemoveProfileImage</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>WriteOutScanTask</servlet-name>

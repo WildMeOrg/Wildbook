@@ -4,8 +4,9 @@
 
 <%
 
-
-	Shepherd myShepherd=new Shepherd();
+String context="context0";
+context=ServletUtilities.getContext(request);
+	Shepherd myShepherd=new Shepherd(context);
 
 // pg_dump -Ft sharks > sharks.out
 
@@ -16,16 +17,16 @@
 
 <html>
 <head>
-<title><%=CommonConfiguration.getHTMLTitle() %></title>
+<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
-	content="<%=CommonConfiguration.getHTMLDescription() %>" />
+	content="<%=CommonConfiguration.getHTMLDescription(context) %>" />
 <meta name="Keywords"
-	content="<%=CommonConfiguration.getHTMLKeywords() %>" />
-<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
+	content="<%=CommonConfiguration.getHTMLKeywords(context) %>" />
+<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>" />
 
 <link rel="shortcut icon"
-	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
+	href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>" />
 </head>
 
 

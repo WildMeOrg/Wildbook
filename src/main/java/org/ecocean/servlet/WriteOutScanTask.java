@@ -57,7 +57,11 @@ public class WriteOutScanTask extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     //set up a shepherd for DB transactions
-    Shepherd myShepherd = new Shepherd();
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    
+    Shepherd myShepherd = new Shepherd(context);
     PrintWriter out = null;
     GridManager gm = GridManagerFactory.getGridManager();
 
@@ -106,9 +110,9 @@ public class WriteOutScanTask extends HttpServlet {
           righty = true;
         }
 
-        successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(), CommonConfiguration.getEpsilon(), CommonConfiguration.getSizelim(), CommonConfiguration.getMaxTriangleRotation(), CommonConfiguration.getC(), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd);
+        successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context);
 
-        successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5);
+        successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
 
         //write out the boosted results
         //if(request.getParameter("boost")!=null){
@@ -293,10 +297,11 @@ public class WriteOutScanTask extends HttpServlet {
 
 
           //boost sex
-          if (encA.getSex().equals(encB.getSex())) {
+          if ((encA.getSex()!=null)&&(encB.getSex()!=null)&&(encA.getSex().equals(encB.getSex()))) {
             boostString += (encA.getSex() + ",");
             predictInput[0] = encA.getSex();
-          } else {
+          } 
+          else {
             boostString += "unknown,";
             predictInput[0] = "unknwon";
           }
@@ -566,7 +571,7 @@ public class WriteOutScanTask extends HttpServlet {
 
   }
 
-  public boolean writeResult(MatchObject[] swirs, String num, String R, String epsilon, String Sizelim, String maxTriangleRotation, String C, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd) {
+  public boolean writeResult(MatchObject[] swirs, String num, String R, String epsilon, String Sizelim, String maxTriangleRotation, String C, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd, String context) {
 
 
     try {
@@ -612,7 +617,11 @@ public class WriteOutScanTask extends HttpServlet {
           Element enc = match.addElement("encounter");
           enc.addAttribute("number", firstEnc.getEncounterNumber());
           enc.addAttribute("date", firstEnc.getDate());
-          enc.addAttribute("sex", firstEnc.getSex());
+          
+          if(firstEnc.getSex()!=null){ enc.addAttribute("sex", firstEnc.getSex());}
+          else{ enc.addAttribute("sex", "unknown");}
+         
+          
           enc.addAttribute("assignedToShark", firstEnc.getIndividualID());
           if(firstEnc.getSizeAsDouble()!=null){enc.addAttribute("size", (firstEnc.getSize() + " meters"));}
           enc.addAttribute("location", firstEnc.getLocation());
@@ -630,7 +639,13 @@ public class WriteOutScanTask extends HttpServlet {
           Encounter secondEnc = myShepherd.getEncounter(num);
           enc2.addAttribute("number", num);
           enc2.addAttribute("date", secondEnc.getDate());
-          enc2.addAttribute("sex", secondEnc.getSex());
+          
+          
+          //enc2.addAttribute("sex", secondEnc.getSex());
+          if(secondEnc.getSex()!=null){ enc2.addAttribute("sex", secondEnc.getSex());}
+          else{ enc2.addAttribute("sex", "unknown");}
+         
+          
           enc2.addAttribute("assignedToShark", secondEnc.getIndividualID());
           if(secondEnc.getSizeAsDouble()!=null){enc2.addAttribute("size", (secondEnc.getSize() + " meters"));}
           else{enc2.addAttribute("size", "unknown");}
@@ -671,13 +686,13 @@ public class WriteOutScanTask extends HttpServlet {
       //setup data dir
       String rootWebappPath = getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-      //if(!encountersDir.exists()){encountersDir.mkdir();}
+      //if(!encountersDir.exists()){encountersDir.mkdirs();}
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"Scan.xml");
-      File file = new File(encountersDir.getAbsolutePath()+"/"+ num + "/lastFull" + fileAddition + "Scan.xml");
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "Scan.xml");
 
       
       
@@ -695,7 +710,7 @@ public class WriteOutScanTask extends HttpServlet {
     }
   } //end writeResult method
 
-  public boolean i3sWriteThis(Shepherd myShepherd, MatchObject[] matches, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff) {
+  public boolean i3sWriteThis(Shepherd myShepherd, MatchObject[] matches, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, String context) {
     try {
 
       System.out.println("scanWorkItemResultsHandler: Prepping to write I3S XML file for encounter " + num);
@@ -726,7 +741,12 @@ public class WriteOutScanTask extends HttpServlet {
             Element enc = match.addElement("encounter");
             enc.addAttribute("number", mo.getEncounterNumber());
             enc.addAttribute("date", mo.getDate());
-            enc.addAttribute("sex", mo.getSex());
+            
+            if(mo.getSex()!=null){enc.addAttribute("sex", mo.getSex());}
+            else{enc.addAttribute("sex", "unknown");}
+            
+            
+            
             enc.addAttribute("assignedToShark", mo.getIndividualName());
             enc.addAttribute("size", (new Double(mo.getSize())).toString());
 
@@ -791,13 +811,13 @@ public class WriteOutScanTask extends HttpServlet {
       //setup data dir
       String rootWebappPath = getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
       File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-      //if(!encountersDir.exists()){encountersDir.mkdir();}
+      //if(!encountersDir.exists()){encountersDir.mkdirs();}
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"I3SScan.xml");
-      File file = new File(encountersDir.getAbsolutePath()+"/"+ num + "/lastFull" + fileAddition + "I3SScan.xml");
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "I3SScan.xml");
 
 
       FileWriter mywriter = new FileWriter(file);
@@ -876,6 +896,8 @@ public class WriteOutScanTask extends HttpServlet {
   }
 
 
+/***   commented out (not called .. yet!) 2014-06-09 jon (via jason)
+
   public boolean writeBoostedResult(String encNumber, MatchObject[] swirs, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd, Properties props) {
 
     try {
@@ -918,7 +940,11 @@ public class WriteOutScanTask extends HttpServlet {
             Element enc = match.addElement("encounter");
             enc.addAttribute("number", mo.getEncounterNumber());
             enc.addAttribute("date", mo.getDate());
-            enc.addAttribute("sex", mo.getSex());
+            
+            
+            if(mo.getSex()!=null){enc.addAttribute("sex", mo.getSex());}
+            else{enc.addAttribute("sex", "unknown");}
+            
             enc.addAttribute("assignedToShark", mo.getIndividualName());
             enc.addAttribute("size", ((new Double(mo.getSize())).toString() + " meters"));
             //	vertexPointMatch[] firstScores=mo.getScores();
@@ -959,7 +985,13 @@ public class WriteOutScanTask extends HttpServlet {
       if (rightSide) {
         fileAddition = "Right";
       }
-      File file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastBoost" + fileAddition + "Scan.xml")));
+
+      //setup data dir
+      String rootWebappPath = getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName("context0"));  //TODO need real context!
+      //File file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastBoost" + fileAddition + "Scan.xml")));
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastBoost" + fileAddition + "Scan.xml");
 
 
       FileWriter mywriter = new FileWriter(file);
@@ -975,6 +1007,8 @@ public class WriteOutScanTask extends HttpServlet {
       return false;
     }
   } //end writeResult method
+
+*/
 
 
 }

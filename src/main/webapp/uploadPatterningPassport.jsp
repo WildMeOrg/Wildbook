@@ -23,14 +23,14 @@
          import="org.ecocean.CommonConfiguration, org.ecocean.Encounter, org.ecocean.MarkedIndividual, org.ecocean.Shepherd,org.ecocean.servlet.ServletUtilities,javax.jdo.Extent,javax.jdo.FetchPlan, javax.jdo.Query, java.util.Iterator, java.util.Properties" %>
 
 <%
-	Shepherd myShepherd = new Shepherd();
+String context="context0";
+context=ServletUtilities.getContext(request);
+	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.beginDBTransaction();
 	
     //setup our Properties object to hold all properties
-    String langCode = "en";
-    if (session.getAttribute("langCode") != null) {
-        langCode = (String) session.getAttribute("langCode");
-    }
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
     
    String mediaId = request.getParameter("mediaId");
    String encounterId = request.getParameter("encounterId");
@@ -44,18 +44,18 @@
 %>
 <html>
 <head>
-    <title><%=CommonConfiguration.getHTMLTitle() %>
-    </title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <meta name="Description"
-          content="<%=CommonConfiguration.getHTMLDescription() %>"/>
-    <meta name="Keywords"
-          content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-    <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-    <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
-          rel="stylesheet" type="text/css"/>
-    <link rel="shortcut icon"
-          href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
+  </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="Description"
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
+  <meta name="Keywords"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
+        rel="stylesheet" type="text/css"/>
+  <link rel="shortcut icon"
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 </head>
 
 <body>
