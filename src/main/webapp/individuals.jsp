@@ -300,7 +300,6 @@ table.tissueSample td {
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
 
 
-
 </head>
 
 <body <%if (request.getParameter("noscript") == null) {%>
@@ -313,7 +312,11 @@ onunload="GUnload()" <%}%>>
 </jsp:include>
   <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
+<!-- Wild Me v2 followers button -->
+<script src="http://www.whaleshark.org/javascript/wildme-v2/public/followers/js/lib.js"></script>
 
+<!-- Wild Me v2 adopt button -->
+<script src="//digital.cygnismedia.com/wildme-v2/public/adopt-form/js/wildmepayment.js"></script>
 
 <div id="main">
 
@@ -370,7 +373,16 @@ onunload="GUnload()" <%}%>>
 if(CommonConfiguration.isIntegratedWithWildMe(context)){
 %>
 <td>
-<a href="http://fb.wildme.org/wildme/public/profile/<%=sharky.getIndividualID()%>" target="_blank"><img src="images/wild-me-link.png" /></a>
+<div class="list-comment-follow2 custom1"  data-id="<%=CommonConfiguration.getProperty("wildMeDataSourcePrefix", context) %><%=request.getParameter("number") %>"></div></td>
+<%
+}
+%>
+
+<%
+if((request.getUserPrincipal()!=null)&&(request.getUserPrincipal().getName().equals("admin"))){
+%>
+<td>
+<div id="wildme-aboption-form"></div>
 </td>
 <%
 }
