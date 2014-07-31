@@ -19,14 +19,16 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,org.ecocean.Shepherd,org.ecocean.Encounter,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor" %>
 <%
 
+//String context="context0";
+String context=ServletUtilities.getContext(request);
   //concurrency examination for creation and removal threads
   ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
 
 //get a shepherd
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
 
 //summon thee a gridManager!
   GridManager gm = GridManagerFactory.getGridManager();
@@ -69,68 +71,32 @@
 
 //setup our Properties object to hold all properties
   Properties props = new Properties();
-  String langCode = "en";
+  //String langCode = "en";
 
-  //check what language is requested
-  if (request.getParameter("langCode") != null) {
-    if (request.getParameter("langCode").equals("fr")) {
-      langCode = "fr";
-    }
-    if (request.getParameter("langCode").equals("de")) {
-      langCode = "de";
-    }
-    if (request.getParameter("langCode").equals("es")) {
-      langCode = "es";
-    }
-  }
+String langCode=ServletUtilities.getLanguageCode(request);
+    
 
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  props=ShepherdProperties.getProperties("submit.properties", langCode, context);
 
-
-  //load our variables for the submit page
-  String title = props.getProperty("submit_title");
-  String submit_maintext = props.getProperty("submit_maintext");
-  String submit_reportit = props.getProperty("reportit");
-  String submit_language = props.getProperty("language");
-  String what_do = props.getProperty("what_do");
-  String read_overview = props.getProperty("read_overview");
-  String see_all_encounters = props.getProperty("see_all_encounters");
-  String see_all_sharks = props.getProperty("see_all_sharks");
-  String report_encounter = props.getProperty("report_encounter");
-  String log_in = props.getProperty("log_in");
-  String contact_us = props.getProperty("contact_us");
-  String search = props.getProperty("search");
-  String encounter = props.getProperty("encounter");
-  String shark = props.getProperty("shark");
-  String join_the_dots = props.getProperty("join_the_dots");
-  String menu = props.getProperty("menu");
-  String last_sightings = props.getProperty("last_sightings");
-  String more = props.getProperty("more");
-  String ws_info = props.getProperty("ws_info");
-  String about = props.getProperty("about");
-  String contributors = props.getProperty("contributors");
-  String forum = props.getProperty("forum");
-  String blog = props.getProperty("blog");
-  String area = props.getProperty("area");
-  String match = props.getProperty("match");
 
 
 %>
 
 <html>
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
   <style type="text/css">
     <!--
@@ -155,11 +121,11 @@
 </jsp:include>
 <div id="main">
 
-<div id="maincol-wide">
+<div id="maincol-wide-solo">
 
 <div id="maintext">
 <h1 class="intro">Grid Administration
-  <a href="<%=CommonConfiguration.getWikiLocation()%>sharkgrid" target="_blank"><img
+  <a href="<%=CommonConfiguration.getWikiLocation(context)%>sharkgrid" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a></h1>
 
 <%
@@ -167,10 +133,15 @@
   try {
 
 %>
+<p class="caption">Your scanTasks are shown below. Click <b>Expand All scanTasks</b> to see all of the tasks in the grid for all users.</p>
+<p>
+	<a style="cursor:pointer;color: blue" class="caption" id="clickExpandButton">[+] Expand All scanTasks</a>
+	<a style="cursor:pointer;color: blue;display:none;" class="caption" id="clickCollapseButton">[-] Collapse All scanTasks</a>
+</p>
 
 <h3>Pending scanTasks</h3>
-<table border="1" cellpadding="2">
-  <tr>
+<table border="1" cellpadding="2" class="scanTaskAdmin">
+  <tr class="<%=request.getUserPrincipal().toString() %>">
     <td bgcolor="#CCCCCC"><strong>Identifier</strong></td>
     <td bgcolor="#CCCCCC"><strong>User</strong></td>
     <td bgcolor="#CCCCCC"><strong>Completion</strong></td>
@@ -194,8 +165,18 @@
           numTaskTot = numGenerated;
         }
 
+        String trClassname="";
+        String styleString="";
+        if(st.getSubmitter().equals(request.getUserPrincipal().toString())){
+        	trClassname="class=\""+request.getUserPrincipal().toString()+"\"";
+        	styleString="style=\"display:none;\"";
+        }
+        
+        
+   
+        
   %>
-  <tr>
+  <tr <%=trClassname %> <%=styleString %>>
     <td><%=scanNum%>. <%=st.getUniqueNumber()%>
     </td>
     <td><%=st.getSubmitter()%>
@@ -248,8 +229,9 @@
 
 
 <h3>Completed scanTasks</h3>
-<table border="1" cellpadding="2">
-  <tr>
+
+  <table border="1" cellpadding="2" class="scanTaskAdmin">
+  <tr class="<%=request.getUserPrincipal().toString() %>">
     <td width="62" bgcolor="#CCCCCC"><strong>Identifier</strong></td>
     <td width="32" bgcolor="#CCCCCC"><strong>User</strong></td>
     <td bgcolor="#CCCCCC"><strong>Results</strong></td>
@@ -276,8 +258,14 @@
         }
 
         scanNum++;
+        String trClassname="";
+        String styleString="";
+        if(st.getSubmitter().equals(request.getUserPrincipal().toString())){
+        	trClassname="class=\""+request.getUserPrincipal().toString()+"\"";
+        	styleString="style=\"display:none;\"";
+        }
   %>
-  <tr>
+  <tr <%=trClassname %> <%=styleString %>>
 
     <td><%=st.getUniqueNumber()%>
     </td>
@@ -345,6 +333,29 @@
     }
   %>
 </table>
+
+<script>
+var rows = $('table.scanTaskAdmin tr');
+
+var thisUsersRows=$('table.scanTaskAdmin tr.<%=request.getUserPrincipal().toString() %>').show();
+rows.not( thisUsersRows ).hide();
+
+$('#clickExpandButton').click(function() {
+    var mine = rows.filter('.<%=request.getUserPrincipal().toString() %>');
+    rows.not( mine ).show();
+    $('#clickExpandButton').hide();
+    $('#clickCollapseButton').show();
+});
+
+$('#clickCollapseButton').click(function() {
+	var mine = rows.filter('.<%=request.getUserPrincipal().toString() %>');
+    rows.not( mine ).hide();
+    $('#clickExpandButton').show();
+    $('#clickCollapseButton').hide();
+});
+
+
+</script>
 
 <h3>gridManager statistics</h3>
 

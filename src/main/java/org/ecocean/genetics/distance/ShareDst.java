@@ -24,8 +24,8 @@ public class ShareDst{
 
   public final static int ploidy = 2;  // hard wired, for now
 
-  public ShareDst()
-  {
+
+  public ShareDst(String context){
     //setLayout (new GridBagLayout ());
 
 
@@ -124,7 +124,7 @@ public class ShareDst{
    * @parameter noDivide Whether to divide by 2r- for smaller output
    * @parameter lowTriangle Only show lower triangle for smaller output
    */
-  public static String getDistanceOuput(String individualNames[], String lociNames[],boolean noDivide, boolean lowTriangle, String EOL, String DELIM){
+  public static String getDistanceOuput(String individualNames[], String lociNames[],boolean noDivide, boolean lowTriangle, String EOL, String DELIM,String context){
 
     String output = "";
 		
@@ -148,7 +148,7 @@ public class ShareDst{
     
     //String individualNames[] = null;
     boolean namesPresent = true;
-    Shepherd myShepherd=new Shepherd();
+    Shepherd myShepherd=new Shepherd(context);
     myShepherd.beginDBTransaction();
     try{
 	//numLoci = NIBnumLoci.posIntValue ();

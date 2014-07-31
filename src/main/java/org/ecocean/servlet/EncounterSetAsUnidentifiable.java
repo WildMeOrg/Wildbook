@@ -30,6 +30,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -56,7 +57,9 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -93,7 +96,7 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have set encounter " + request.getParameter("number") + " as unidentifiable in the database.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
-          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
             for(int i=0;i<allStatesSize;i++){
@@ -101,23 +104,22 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
               out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
             }
           }
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           String message = "Encounter " + request.getParameter("number") + " was set as unidentifiable in the database.";
-          ServletUtilities.informInterestedParties(request, request.getParameter("number"),
-            message);
+          ServletUtilities.informInterestedParties(request, request.getParameter("number"),message,context);
 
           String emailUpdate = ServletUtilities.getText("dataOnlyUpdate.txt") + "\nEncounter: " + request.getParameter("number") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\n";
 
           Vector e_images = new Vector();
 
           emailUpdate = CommonConfiguration.appendEmailRemoveHashString(request, emailUpdate,
-            submitterEmail);
+            submitterEmail,context);
 
           
         //let's get ready for emailing
         ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
         
-        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitterEmail, ("Encounter update: " + request.getParameter("number")), emailUpdate, e_images));
+        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), submitterEmail, ("Encounter update: " + request.getParameter("number")), emailUpdate, e_images,context));
         es.shutdown();
           
           
@@ -126,7 +128,7 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I have NOT modified encounter " + request.getParameter("number") + " in the database because another user is currently modifying its entry. Please try this operation again in a few seconds.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
-          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState");
+          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
             for(int i=0;i<allStatesSize;i++){
@@ -134,19 +136,19 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
               out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
             }
           }
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
 
         }
 
       } else {
         out.println(ServletUtilities.getHeader(request));
         out.println("Encounter# " + request.getParameter("number") + " is assigned to an individual and cannot be set as unidentifiable until it has been removed from that individual.");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I do not know which encounter you are trying to remove.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
 

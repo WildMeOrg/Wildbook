@@ -19,10 +19,12 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration, org.ecocean.Encounter, org.ecocean.Shepherd, java.awt.*, java.io.File" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration, org.ecocean.Encounter, org.ecocean.Shepherd, java.awt.*, java.io.File" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 <%
+String context="context0";
+context=ServletUtilities.getContext(request);
   String number = request.getParameter("number").trim();
   int imageNum = 1;
   try {
@@ -33,27 +35,27 @@
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  File thisEncounterDir = new File(encountersDir, number);
+  File thisEncounterDir = new File(encountersDir, Encounter.subdir(number));
 
 
 %>
 
 <html>
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
 </head>
 
@@ -70,12 +72,12 @@
 
         <div id="maintext">
           <%
-          Shepherd myShepherd = new Shepherd();
+          Shepherd myShepherd = new Shepherd(context);
           try {
             String addText = "";
             if (request.getParameter("imageName") != null) {
               addText = request.getParameter("imageName");
-              addText = encountersDir.getAbsolutePath()+"/" + request.getParameter("number") + "/" + addText;
+              addText = encountersDir.getAbsolutePath()+"/" + Encounter.subdir(request.getParameter("number")) + "/" + addText;
 
             } 
             else {
@@ -86,7 +88,7 @@
               if (myShepherd.isAcceptableVideoFile(addText)) {
                 addText = getServletContext().getRealPath("/")+"/images/video_thumb.jpg";
               } else {
-                addText = encountersDir.getAbsolutePath()+"/"+ request.getParameter("number") + "/" + addText;
+                addText = encountersDir.getAbsolutePath()+"/"+ Encounter.subdir(request.getParameter("number")) + "/" + addText;
               }
               myShepherd.rollbackDBTransaction();
               myShepherd.closeDBTransaction();
@@ -138,7 +140,7 @@
             
 
 
-            String thumbLocation = "file-"+encountersDir.getAbsolutePath()+"/" + number + "/thumb.jpg";
+            String thumbLocation = "file-"+encountersDir.getAbsolutePath()+"/" + Encounter.subdir(number) + "/thumb.jpg";
 
             //generate the thumbnail image
           %>

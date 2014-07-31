@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*,java.util.ArrayList,java.util.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.ArrayList,java.util.*" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -21,22 +21,26 @@
 
 <%
 
+String context="context0";
+context=ServletUtilities.getContext(request);
+
 //setup our Properties object to hold all properties
   Properties props = new Properties();
-  String langCode = "en";
-
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
 
 
   //load our variables for the submit page
 
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
+  props = ShepherdProperties.getProperties("individuals.properties", langCode, context);
 
-  Properties localesProps = new Properties();
-  localesProps.load(getClass().getResourceAsStream("/bundles/locales.properties"));
+
 		  
+  Properties localesProps = new Properties();
+  localesProps = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
+	  
 		  
 		  
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
@@ -74,7 +78,7 @@
   String allEncounters = props.getProperty("allEncounters");
   String allIndividuals = props.getProperty("allIndividuals");
 
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
   
   
  
@@ -84,12 +88,12 @@
   if(request.getParameter("name")!=null){
 	  String name = request.getParameter("name");
 	  MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);
-	  haveGPSData = sharky.returnEncountersWithGPSData(true, true);
+	  haveGPSData = sharky.returnEncountersWithGPSData(true, true,context);
   }
   else if(request.getParameter("occurrence_number")!=null){
 	  String name = request.getParameter("occurrence_number");
 	  Occurrence sharky=myShepherd.getOccurrence(name);
-	  haveGPSData = sharky.returnEncountersWithGPSData(false, false);
+	  haveGPSData = sharky.returnEncountersWithGPSData(false, false,context);
   }
   
   
@@ -110,7 +114,6 @@ margin-bottom: 8px !important;
 </style>
 
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
 
 
 <p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>
@@ -173,8 +176,8 @@ String lastLatLong="";
 	  
 	  for(int g=0;g<numParticipatingIndies;g++){
 		  MarkedIndividual indie=myShepherd.getMarkedIndividual(occurIndies.get(g));
-		  if(indie.returnEncountersWithGPSData(true,false).size()>0){
-			  Vector encsWithGPS=indie.returnEncountersWithGPSData(true,true);
+		  if(indie.returnEncountersWithGPSData(true,false,context).size()>0){
+			  Vector encsWithGPS=indie.returnEncountersWithGPSData(true,true,context);
 			  int numEncsWithGPS=encsWithGPS.size();
 			  for(int j=0;j<numEncsWithGPS;j++){
 				  //if(!haveGPSData.contains(encsWithGPS.get(j))){
@@ -185,7 +188,7 @@ String lastLatLong="";
 					  if(((indieEnc.getDecimalLatitude())!=null)&&(indieEnc.getDecimalLongitude()!=null)){
 							 thisLatLong=indieEnc.getDecimalLatitude()+","+indieEnc.getDecimalLongitude();
 					  }
-					  //let's try to get this from locales.properties
+					  //let's try to get this from locationIDGPS.properties
 					  else if(localesProps.getProperty(indieEnc.getLocationID())!=null){
 								 thisLatLong=localesProps.getProperty(indieEnc.getLocationID());
 					  }
@@ -216,8 +219,11 @@ String lastLatLong="";
 					        	   map:map<%=zIndexString%>
 					        	});
 
+					           <%
+											String encSubdir = indieEnc.subdir();
+					           %>
 					             google.maps.event.addListener(marker,'click', function() {
-					                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indieEnc.isAssignedToMarkedIndividual()%>\"><%=indieEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=indieEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=indieEnc.getDate()%><br />Sex: <%=indieEnc.getSex()%><%if(indieEnc.getSizeAsDouble()!=null){%><br />Size: <%=indieEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=indieEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+					                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indieEnc.isAssignedToMarkedIndividual()%>\"><%=indieEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=encSubdir%>/thumb.jpg\"></td><td><%=props.getProperty("date")%> <%=indieEnc.getDate()%><%if(indieEnc.getSex()!=null){%><br /><%=props.getProperty("sex") %> <%=indieEnc.getSex()%><%}%><%if(indieEnc.getSizeAsDouble()!=null){%><br />Size: <%=indieEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=indieEnc.getEncounterNumber()%>\" ><%=props.getProperty("gotoEncounter") %></a></td></tr></table>'})).open(map, this);
 					              });
 					 
 						
@@ -268,7 +274,7 @@ String lastLatLong="";
 	 if(((thisEnc.getDecimalLatitude())!=null)&&(thisEnc.getDecimalLongitude()!=null)){
 		 thisLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
 	 }
-	 //let's try to get this from locales.properties
+	 //let's try to get this from locationIDGPS.properties
 	 else{
 		 
 		 if(localesProps.getProperty(thisEnc.getLocationID())!=null){
@@ -304,9 +310,12 @@ String lastLatLong="";
         	   position:latLng,
         	   map:map<%=zIndexString%>
         	});
+			<%
 
+						String encSubdir = thisEnc.subdir();
+			%>
             google.maps.event.addListener(marker,'click', function() {
-                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName()%>/encounters/<%=thisEnc.getEncounterNumber()%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><br />Sex: <%=thisEnc.getSex()%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=encSubdir%>/thumb.jpg\"></td><td><%=props.getProperty("date") %> <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br /><%=props.getProperty("sex") %> <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" ><%=props.getProperty("gotoEncounter") %></a></td></tr></table>'})).open(map, this);
              });
  
 	
@@ -416,9 +425,9 @@ String lastLatLong="";
     	  controlUI.appendChild(controlText);
     	  //toggle the text of the button
     	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = 'Exit Fullscreen';
+    	      controlText.innerHTML = '<%=props.getProperty("exitFullscreen")%>';
     	    } else {
-    	      controlText.innerHTML = 'Fullscreen';
+    	      controlText.innerHTML = '<%=props.getProperty("fullscreen")%>';
     	    }
 
     	  // Setup the click event listeners: toggle the full screen

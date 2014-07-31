@@ -113,8 +113,10 @@ public final class BatchProcessor implements Runnable {
   private Phase phase = Phase.NONE;
   /** Throwable instance produced by the batch processor (if any). */
   private Throwable thrown;
+  
+  private String context="context0";
 
-  public BatchProcessor(List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale locale) {
+  public BatchProcessor(List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale locale, String context) {
     this.listInd = listInd;
     this.listEnc = listEnc;
     this.errors = errors;
@@ -124,6 +126,7 @@ public final class BatchProcessor implements Runnable {
     counter = 0;
     maxCount = 1;
     log.debug(this.toString());
+    this.context=context;
   }
 
   public void setListMea(List<Measurement> listMea) {
@@ -181,13 +184,13 @@ public final class BatchProcessor implements Runnable {
    * which is required to access web application data files.
    * @param servletContext {@code ServletContext} from calling servlet
    */
-  public void setServletContext(ServletContext servletContext) {
+  public void setServletContext(ServletContext servletContext, String context) {
     if (servletContext == null)
       throw new NullPointerException();
     this.servletContext = servletContext;
     try {
-      this.dataDir = CommonConfiguration.getDataDirectory(servletContext);
-      this.dataDirUsers = CommonConfiguration.getUsersDataDirectory(servletContext);
+      this.dataDir = CommonConfiguration.getDataDirectory(servletContext, context);
+      this.dataDirUsers = CommonConfiguration.getUsersDataDirectory(servletContext, context);
     }
     catch (FileNotFoundException ex) {
       throw new RuntimeException("Unable to locate data folders", ex);
@@ -241,8 +244,8 @@ public final class BatchProcessor implements Runnable {
    * The plugin is specified via {@link CommonConfiguration#getBatchUploadPlugin()}.
    * @throws Exception 
    */
-  private void setupPlugin() throws Exception {
-    String s = CommonConfiguration.getBatchUploadPlugin();
+  private void setupPlugin(String context) throws Exception {
+    String s = CommonConfiguration.getBatchUploadPlugin(context);
     if (s == null || "".equals(s))
       return;
     try {
@@ -300,7 +303,7 @@ public final class BatchProcessor implements Runnable {
           maxCount += x.size() * 2;
       }
       // Find & instantiate plugin.
-      setupPlugin();
+      setupPlugin(context);
 
       // Start processing.
       status = Status.RUNNING;
@@ -321,7 +324,7 @@ public final class BatchProcessor implements Runnable {
       phase = Phase.MEDIA_DOWNLOAD;
       if (dataDirUser != null && !dataDirUser.exists())
         dataDirUser.mkdir();
-      final int MAX_SIZE = CommonConfiguration.getMaxMediaSizeInMegabytes();
+      final int MAX_SIZE = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
       List<SinglePhotoVideo> removeAsOversized = new ArrayList<SinglePhotoVideo>();
       for (Encounter enc : listEnc) {
         if (enc.getSinglePhotoVideo() != null) {
@@ -374,7 +377,7 @@ public final class BatchProcessor implements Runnable {
       }
 
       phase = Phase.PERSISTENCE;
-      Shepherd shepherd = new Shepherd();
+      Shepherd shepherd = new Shepherd(context);
       PersistenceManager pm = shepherd.getPM();
       try {
         shepherd.beginDBTransaction();

@@ -19,7 +19,6 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
 import org.ecocean.*;
 
 import javax.servlet.ServletConfig;
@@ -27,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -47,7 +47,10 @@ public class UserRemoveProfileImage extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    
+    String context="context0";
+    //context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -58,6 +61,10 @@ public class UserRemoveProfileImage extends HttpServlet {
 
     //fileName=request.getParameter("filename").replaceAll("%20"," ");
     username = request.getParameter("username");
+    
+    if(request.getRequestURL().indexOf("MyAccount")!=-1){
+      username=request.getUserPrincipal().getName();
+    }
 
     myShepherd.beginDBTransaction();
     if (myShepherd.getUser(username)!=null) {
@@ -83,8 +90,16 @@ public class UserRemoveProfileImage extends HttpServlet {
         out.println("<strong>Failure:</strong> No such user exists in the library.");
         
       }
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?isEdit=true&username=" + username + "#editUser\">Return to User Management</a></p>\n");
-      out.println(ServletUtilities.getFooter());
+      
+      if(request.getRequestURL().indexOf("MyAccount")!=-1){
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp\">Return to My Account.</a></p>\n");
+        
+      }
+      else{
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0&isEdit=true&username=" + username + "#editUser\">Return to User Management</a></p>\n");
+      }
+      
+      out.println(ServletUtilities.getFooter(context));
       //String message = "An image file named " + fileName + " has been removed from encounter#" + encounterNumber + ".";
       //ServletUtilities.informInterestedParties(request, encounterNumber, message);
         

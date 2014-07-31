@@ -23,6 +23,7 @@ import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
+
 import org.ecocean.*;
 import org.ecocean.util.*;
 
@@ -31,6 +32,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 import java.util.*;
 
@@ -56,11 +58,16 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    
+    
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    
+    Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
     
     //setup data dir
-    File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext());
+    File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext(), context);
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //if(!encountersDir.exists()){encountersDir.mkdir();}
@@ -261,7 +268,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
       // ====================================================================
       else if (action.equals("imageadd")) {
         
-        MultipartParser mp = new MultipartParser(request, CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576);
+        MultipartParser mp = new MultipartParser(request, CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576);
         Part part = null;
         while ((part = mp.readNextPart()) != null) {
           String name = part.getName();
@@ -380,7 +387,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Confirmed:</strong> I have successfully added your mantamatcher data image file.");
             out.println("<p><a href=\"" + request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
           }
           else if (action.equals("rescan")) {
             String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
@@ -395,7 +402,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             out.println("<strong>Confirmed:</strong> I have successfully removed your mantamatcher data image file.");
             out.println("<p><a href=\"" + request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
             out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-            out.println(ServletUtilities.getFooter());
+            out.println(ServletUtilities.getFooter(context));
           }
         }
         else {
@@ -408,14 +415,14 @@ public class EncounterAddMantaPattern extends HttpServlet {
           }
           out.println("<p><a href=\"" + request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
           out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
         }
       } 
       else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to execute this action. I cannot find the encounter that you intended it for in the database.");
         out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
     } 
     catch (IOException lEx) {
@@ -423,14 +430,14 @@ public class EncounterAddMantaPattern extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to execute the action.");
       out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
     catch (InterruptedException ex) {
       ex.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> Algorithm scanning process was unexpectedly interrupted.");
       out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
     finally {
       out.close();

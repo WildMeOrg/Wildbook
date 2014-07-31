@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.joda.time.format.*;
 import org.joda.time.*; 
-
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
 
@@ -43,8 +42,9 @@ public class SimpleCMROutput extends HttpServlet{
     
     //set the response
     
-    
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     String order = "";
     
     //determine the number of capture sessions
@@ -85,10 +85,10 @@ public class SimpleCMROutput extends HttpServlet{
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-    if(!encountersDir.exists()){encountersDir.mkdir();}
+    if(!encountersDir.exists()){encountersDir.mkdirs();}
     
     File inpFile = new File(encountersDir.getAbsolutePath()+"/"+ inpFilename);
 
@@ -153,7 +153,7 @@ public class SimpleCMROutput extends HttpServlet{
       out.println(ServletUtilities.getHeader(request));  
       out.println("<html><body><p><strong>Error encountered</strong></p>");
         out.println("<p>Please let the webmaster know you encountered an error at: "+this.getServletName()+" servlet.</p></body></html>");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         out.close();
     }
     myShepherd.rollbackDBTransaction();

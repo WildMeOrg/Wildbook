@@ -19,25 +19,33 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.ArrayList,org.ecocean.*,java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+         import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,org.ecocean.*,java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+
+<%
+String context="context0";
+context=ServletUtilities.getContext(request);
+%>
+
 <html>
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
 </head>
 
 <%
+
+
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -47,15 +55,16 @@
 
 
   //setup our Properties object to hold all properties
-  String langCode = "en";
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
 
 
   //set up the file input stream
   Properties props = new Properties();
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/welcome.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/welcome.properties"));
+  props = ShepherdProperties.getProperties("welcome.properties", langCode,context);
+
 
   session = request.getSession(true);
   session.putValue("logged", "true");
@@ -65,7 +74,7 @@
   ;
 %>
 
-<body bgcolor="#FFFFFF">
+<body>
 <div id="wrapper">
   <div id="page">
     <jsp:include page="header.jsp" flush="true">
@@ -88,12 +97,12 @@
           </strong>.
           </p>
 
-          <p><%=props.getProperty("grantedRole")%>
+          <p><%=props.getProperty("grantedRole")%><br />
 			<%
-			Shepherd myShepherd=new Shepherd();
+			Shepherd myShepherd=new Shepherd("context0");
 			myShepherd.beginDBTransaction();
 			%>
-             <strong><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser())%></strong></p>
+             <em><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser()).replaceAll("\r","<br />")%></em></p>
             
             <%
             
@@ -102,7 +111,7 @@
             
 	        Logger log = LoggerFactory.getLogger(getClass());
 	        log.info(request.getRemoteUser()+" logged in from IP address "+request.getRemoteAddr()+".");
-
+			
 	    %>
 
 

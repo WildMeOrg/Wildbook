@@ -30,6 +30,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
@@ -54,7 +55,9 @@ public class MassExposeGBIF extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
 
     //set up for response
     response.setContentType("text/html");
@@ -95,13 +98,13 @@ public class MassExposeGBIF extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println(("<strong>Success!</strong> I have successfully exposed " + count + " additional encounters to the GBIF."));
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
     //failure due to exception
     else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Failure!</strong> I could not change the GBIF status of unexposed encounters.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
 
     out.close();

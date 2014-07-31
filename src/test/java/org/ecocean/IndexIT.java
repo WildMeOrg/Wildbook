@@ -19,22 +19,41 @@
 
 package org.ecocean;
 
-import net.sourceforge.jwebunit.junit.WebTestCase;
+//import net.sourceforge.jwebunit.junit.WebTestCase;
+import static net.sourceforge.jwebunit.junit.JWebUnit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-public class IndexIT extends WebTestCase {
-  public void setUp() throws Exception {
-    super.setUp();
+
+public class IndexIT {
+
+  @Before
+  public void prepare() throws Exception {
+    //super.setUp();
     setBaseUrl("http://localhost:9090/wildbook");
   }
+  
+  @Test
   public void testHome() throws Exception {
+    setScriptingEnabled(false);
     beginAt("/");
     assertResponseCode(200);
     assertTextPresent("Encounter");
   }
 
+  @Test
   public void testIndex() throws Exception {
+    setScriptingEnabled(false);
     beginAt("/index.jsp");
     assertResponseCode(200);
     assertTextPresent("Encounter");
+    
+    
+  }
+  
+  @After
+  public void close() {
+    closeBrowser();
   }
 }
