@@ -46,7 +46,10 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
   	int numRoleDefinitions=roleDefinitions.size();
 
 
-	User thisUser=myShepherd.getUser(request.getUserPrincipal().getName());
+	User thisUser = null;
+	if (request.getUserPrincipal() != null) {
+		thisUser = myShepherd.getUser(request.getUserPrincipal().getName());
+	}
 
 //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -91,6 +94,7 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
 
 
 <%
+		if (thisUser == null) return;
 		String rootWebappPath = getServletContext().getRealPath("/");
 		File webappsDir = new File(rootWebappPath).getParentFile();
 		File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
