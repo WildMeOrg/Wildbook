@@ -88,7 +88,7 @@ System.out.println("candidate filter => " + filter);
 					Encounter cand = (Encounter)all.next();
 					HashMap e = new HashMap();
 					e.put("id", cand.getCatalogNumber());
-					e.put("releaseDate", cand.getReleaseDate());
+					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
 					e.put("locationID", cand.getLocationID());
 					ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
 					ArrayList images = new ArrayList();
@@ -126,7 +126,7 @@ System.out.println("candidate filter => " + filter);
 				rtn.put("patterningCode", enc.getPatterningCode());
 				rtn.put("sex", enc.getSex());
 				rtn.put("locationID", enc.getLocationID());
-				rtn.put("releaseDate", enc.getReleaseDate());
+				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
 				rtn.put("images", images);
 			}
 

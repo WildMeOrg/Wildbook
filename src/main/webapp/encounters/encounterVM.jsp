@@ -38,7 +38,6 @@
         //set up the file input stream
         props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
 
-
         //let's see if the property is defined
         if (props.getProperty(lcode) != null) {
           returnString = props.getProperty(lcode);
@@ -121,6 +120,8 @@ File encounterDir = new File(encountersDir, num);
 
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode);
 
+  Properties vmProps = ShepherdProperties.getProperties("visualMatcher.properties", langCode);
+
 
   pageContext.setAttribute("num", num);
 
@@ -137,7 +138,7 @@ File encounterDir = new File(encountersDir, num);
 <html>
 
 <head prefix="og:http://ogp.me/ns#">
-  <title><%=CommonConfiguration.getHTMLTitle() %> - Visual Matching Tool - <%=encprops.getProperty("encounter") %> <%=num%>
+  <title><%=CommonConfiguration.getHTMLTitle() %> - <%=vmProps.getProperty("vmTitle")%> - <%=encprops.getProperty("encounter") %> <%=num%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
@@ -369,7 +370,8 @@ margin-bottom: 8px !important;
 <div id="vm-content"></div>
 
 <div>
-	<input type="button" value="full page zoom [z]" onClick="candidateFullZoom()" />
+	<input type="button" value="<%=vmProps.getProperty("fullPageZoom")%>" onClick="candidateFullZoom()" />
+	<span id="zoom-message"></span>
 </div>
 
 
