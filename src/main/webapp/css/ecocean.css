@@ -1593,6 +1593,40 @@ div.collab-list span.state {
 }
 
 
+div.collab-log {
+	margin-top: 18px;
+}
+
+div.collab-log a {
+	font-weight: normal;
+}
+
+div.collab-log span.details {
+	font-size: 0.9em;
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	margin-left: 20px;
+}
+
+div.collab-log div.scrollbox {
+	max-height: 275px;
+	overflow-y: auto;
+}
+
+div.collab-log div.logrow {
+	font-size: 0.9em;
+	background-color: rgba(0,0,0,0.2);
+	margin: 2px;
+	padding: 2px;
+}
+
+div.collab-log span {
+	margin: 0 6px 0 6px;
+	padding: 2px;
+}
+
+
 div.state-initialized span.state {
 	background-color: #AA1;
 }

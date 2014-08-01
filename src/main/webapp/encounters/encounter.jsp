@@ -475,6 +475,10 @@ margin-bottom: 8px !important;
 								uid = enc.getAssignedUsername();
 								name = enc.getSubmitterName();
 								if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
+							} else if (c.getState().equals(Collaboration.STATE_INITIALIZED)) {
+								cmsg += "<p>" + collabProps.getProperty("deniedMessagePending") + "</p>";
+							} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
+								cmsg += "<p>" + collabProps.getProperty("deniedMessageRejected") + "</p>";
 							}
 
 							cmsg = cmsg.replace("'", "\\'");
