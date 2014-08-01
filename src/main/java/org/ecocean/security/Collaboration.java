@@ -114,7 +114,6 @@ public class Collaboration implements java.io.Serializable {
 		String context = ServletUtilities.getContext(request);
 		if (request.getUserPrincipal() == null) return null;  //TODO is this cool?
 		String username = request.getUserPrincipal().getName();
-System.out.println(" collabs4username->"+username);
 		return collaborationsForUser(context, username, state);
 	}
 
@@ -128,7 +127,7 @@ System.out.println(" collabs4username->"+username);
 		if (state != null) {
 			queryString += " && state == '" + state + "'";
 		}
-System.out.println("qry -> " + queryString);
+//System.out.println("qry -> " + queryString);
 		Shepherd myShepherd = new Shepherd(context);
 		Query query = myShepherd.getPM().newQuery(queryString);
     //ArrayList got = myShepherd.getAllOccurrences(query);
@@ -202,16 +201,14 @@ System.out.println("qry -> " + queryString);
 
 		if (request.getUserPrincipal() == null) return false;  //???
 		String username = request.getUserPrincipal().getName();
-System.out.println("username->"+username);
+//System.out.println("username->"+username);
 		String owner = enc.getAssignedUsername();
 		if ((owner == null) || owner.equals("") || owner.equals("N/A")) return true;  //anon-owned is "fair game" to anyone
-System.out.println("owner->" + owner);
-System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
+//System.out.println("owner->" + owner);
+//System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
 		return canCollaborate(context, owner, username);
 	}
 
-	//public boolean canUserAccessEncounter(Encounter enc, String username, String context) {
-	//}
 
 	public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {
   	ArrayList<Encounter> all = occ.getEncounters();
@@ -235,6 +232,7 @@ System.out.println("canCollaborate? " + canCollaborate(context, owner, username)
 */
 	}
 
+/*   CURRENTLY NOT USED
 	public static boolean doesQueryExcludeUser(Query query, HttpServletRequest request) {
 System.out.println("query>>>> " + query.toString());
 		String context = ServletUtilities.getContext(request);
@@ -246,6 +244,7 @@ System.out.println("username->"+username);
 
 		return false;
 	}
+*/
 
 
 
