@@ -37,11 +37,11 @@ import java.util.regex.Pattern;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.SinglePhotoVideo;
-import org.ecocean.util.FileUtilities;
-import org.ecocean.util.ListHelper;
-import org.ecocean.util.MantaMatcherUtilities;
-import org.ecocean.util.MediaUtilities;
-import org.ecocean.util.RegexFilenameFilter;
+import org.ecocean.mmutil.FileUtilities;
+import org.ecocean.mmutil.ListHelper;
+import org.ecocean.mmutil.MantaMatcherUtilities;
+import org.ecocean.mmutil.MediaUtilities;
+import org.ecocean.mmutil.RegexFilenameFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

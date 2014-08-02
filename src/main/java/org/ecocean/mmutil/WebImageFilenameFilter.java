@@ -1,4 +1,4 @@
-package org.ecocean.util;
+package org.ecocean.mmutil;
 
 /**
  * {@code FilenameFilter} which matches JPEG/PNG images.

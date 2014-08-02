@@ -32,7 +32,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.upload.FormFile;
 import org.apache.struts.upload.MultipartRequestHandler;
-import org.ecocean.util.DataUtilities;
+import org.ecocean.mmutil.DataUtilities;
 
 
 public class SubmitForm extends ActionForm {

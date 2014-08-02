@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*, org.ecocean.util.*, java.text.*, java.util.*,javax.jdo.*,java.io.File, org.ecocean.servlet.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*, org.ecocean.mmutil.*, java.text.*, java.util.*,javax.jdo.*,java.io.File, org.ecocean.servlet.*" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework

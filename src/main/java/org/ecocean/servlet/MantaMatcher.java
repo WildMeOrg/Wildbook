@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.*;
-import org.ecocean.util.MantaMatcherUtilities;
+import org.ecocean.mmutil.MantaMatcherUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -25,7 +25,7 @@ import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
 
 import org.ecocean.*;
-import org.ecocean.util.*;
+import org.ecocean.mmutil.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -35,6 +35,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
 import java.util.*;
+
+import org.ecocean.servlet.*;
 
 
 /**
