@@ -2189,7 +2189,7 @@ if(isOwner){
 </div><!-- end maintext -->
 </div><!-- end main-wide -->
 <%
-  if (CommonConfiguration.allowAdoptions()) {
+  if (CommonConfiguration.allowAdoptions(context)) {
 %>
 
 <div id="rightcol" style="vertical-align: top;">

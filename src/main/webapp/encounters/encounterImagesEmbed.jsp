@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.util.MediaUtilities, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.servlet.ServletUtilities" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.util.MediaUtilities, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -465,7 +465,7 @@ int imageCount = 0;
                   	
               		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               		// iterate through metadata directories
-                  for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
+                  for (Tag tag : org.ecocean.util.MediaUtilities.extractMetadataTags(metadata)) {
                     %>
                     <%=tag.toString() %><br/>
                     <%
