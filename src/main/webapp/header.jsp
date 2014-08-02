@@ -257,153 +257,175 @@ context=ServletUtilities.getContext(request);
           target="_blank" class="enclose"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userWiki")%>
         </a></li>
-        <% } %>
-
-	<%
+        <% 
+        
+          } 
 
 	if(request.isUserInRole("admin")){
-	
-      if(request.getUserPrincipal()!=null){
-      %>
-        <li>
-        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/myAccount.jsp" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">
-        		<%=props.getProperty("myAccount")%>
-        	</a>
-        </li>
-     <%
+
+		
+		
+	      if(request.getUserPrincipal()!=null){
+	      %>
+	        <li>
+	        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/myAccount.jsp" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">
+	        		<%=props.getProperty("myAccount")%>
+	        	</a>
+	        </li>
+	     <%
+	     
+	     }
+	     %>
      
-     }
-     %>
-
-
-        <li><a
-          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("general")%>
-        </a></li>
-
-        <%
-        if(CommonConfiguration.allowBatchUpload(context)){
-        %>
-        <li><a
-          href="http://<%=CommonConfiguration.getURLLocation(request) %>/BatchUpload/start"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("batchUpload")%>
-        </a></li>
-		<%
-          }
-		%>
-        
-        <li><a
-	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/logs.jsp"
+     
+	
+	
+	        <li><a
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp"
 	          class="enclose"
-	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("logs")%>
-        </a></li>
+	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("general")%>
+	        </a></li>
+	        
+        
+
+	        <%
+	        if(CommonConfiguration.allowBatchUpload(context)){
+	        %>
+	        <li><a
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/BatchUpload/start"
+	          class="enclose"
+	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("batchUpload")%>
+	        </a></li>
+			<%
+	          }
+			%>
+			
+		
+	        
+	        <li><a
+		          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/logs.jsp"
+		          class="enclose"
+		          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("logs")%>
+	        </a></li>
+	                
+	                
                 
-        <%
-        if(CommonConfiguration.useSpotPatternRecognition(context)){
-        %>
-         <li><a
-	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/software/software.jsp"
-	          class="enclose"
-	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("gridSoftware")%>
-        </a></li>
+	        <%
+	        if(CommonConfiguration.useSpotPatternRecognition(context)){
+	        %>
+	         <li><a
+		          href="http://<%=CommonConfiguration.getURLLocation(request) %>/software/software.jsp"
+		          class="enclose"
+		          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("gridSoftware")%>
+	        </a></li>
+	        <%
+	        }
+	        %>
 
+
+	
+			
+			<li><a
+		          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp?context=context0"
+		          class="enclose"
+		          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userManagement")%>
+	        </a></li>	
+			
 		
-	<li><a
-	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp?context=context0"
+	        
+	        <%
+	          if (CommonConfiguration.getTapirLinkURL(context) != null) {
+	        %>
+	        <li><a
+	          href="<%=CommonConfiguration.getTapirLinkURL(context) %>"
 	          class="enclose"
-	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userManagement")%>
-        </a></li>	
-		
-		
+	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("tapirLink")%>
+	        </a></li>
+	        <% } %>
+	        
         
-        <%
-          if (CommonConfiguration.getTapirLinkURL(context) != null) {
-        %>
-        <li><a
-          href="<%=CommonConfiguration.getTapirLinkURL(context) %>"
-          class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("tapirLink")%>
-        </a></li>
-        <% } %>
-        
-        
-                <%
-	          if (CommonConfiguration.getIPTURL(context) != null) {
+            <%
+	        if (CommonConfiguration.getIPTURL(context) != null) {
 	        %>
 	        <li><a
 	          href="<%=CommonConfiguration.getIPTURL(context) %>"
 	          class="enclose"
 	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("iptLink")%>
 	        </a></li>
-        <% } %>
+        	<% 
+        	} 
+        	%>
+        
+	        
+	    
+	        <li>
+	        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/kwAdmin.jsp"
+	               class="enclose"
+	               style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("photoKeywords")%>
+	        	</a>
+	        </li>
+	        
+
         
         
-    
-        <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/kwAdmin.jsp"
-               class="enclose"
-               style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("photoKeywords")%>
-        </a>
-        </li>
+	        <%
+	
+	
+	
+	          if (CommonConfiguration.allowAdoptions(context)) {
+	        %>
+	        <li class="drop"><a
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp"
+	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px; z-index: 100;"><strong><%=props.getProperty("adoptions")%>
+	        </strong>
+	          <img
+	            src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/white_triangle.gif"
+	            border="0" align="absmiddle"></a>
+	          <!--[if lte IE 6]>
+	          <table>
+	            <tr>
+	              <td><![endif]-->
+	          <ul>
+	            <li><a
+	              href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp"
+	              class="enclose"
+	              style="margin: 0px 0 0px 80px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("createEditAdoption")%>
+	            </a></li>
+	            <li
+	              style="margin: 0px 0 0px 80px; position: relative; width: 191px; height: 26px;"><a
+	              href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/allAdoptions.jsp"
+	              class="enclose"
+	              style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("viewAllAdoptions")%>
+	            </a></li>
+	
+	          </ul>
+	        </li>
+	
+	        <%
+	        }
+	          
+	        %>
+
+		     <li>
+		     <a
+	          href="http://www.wildme.org/wildbook" class="enclose" target="_blank"
+	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px; z-index:
+	          100;"><strong><%=props.getProperty("shepherdDoc")%></strong></a>
+	        </li>
         
-        <%
-        }
-        %>
-        
-        
-        <%
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/javadoc/index.html" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Javadoc</a></li>
+			<%
+			if(CommonConfiguration.isCatalogEditable(context)){
+			%>						
+			<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/import.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Data Import</a></li>
+			<%
 
-	if(request.isUserInRole("admin")){
-
-
-          if (CommonConfiguration.allowAdoptions(context)) {
-        %>
-        <li class="drop"><a
-          href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp"
-          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px; z-index: 100;"><strong><%=props.getProperty("adoptions")%>
-        </strong>
-          <img
-            src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/white_triangle.gif"
-            border="0" align="absmiddle"></a>
-          <!--[if lte IE 6]>
-          <table>
-            <tr>
-              <td><![endif]-->
-          <ul>
-            <li><a
-              href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp"
-              class="enclose"
-              style="margin: 0px 0 0px 80px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("createEditAdoption")%>
-            </a></li>
-            <li
-              style="margin: 0px 0 0px 80px; position: relative; width: 191px; height: 26px;"><a
-              href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/allAdoptions.jsp"
-              class="enclose"
-              style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("viewAllAdoptions")%>
-            </a></li>
-
-          </ul>
-        </li>
-
-        <%
-        }
-          }
-        %>
-
-	        <li><a
-          href="http://www.wildme.org/wildbook" class="enclose" target="_blank"
-          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px; z-index:
-          100;"><strong><%=props.getProperty("shepherdDoc")%></strong></a>
-        </li>
-        
-<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/javadoc/index.html" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Javadoc</a></li>
-<%
-if(CommonConfiguration.isCatalogEditable(context)){
-%>						
-<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/import.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Data Import</a></li>
-<%
-}
+			}
+			
+			
+			
+	} //end if admin
+	
 %>					
 
         <!--[if lte IE 6]></td></tr></table></a><![endif]-->
@@ -548,7 +570,7 @@ if(CommonConfiguration.isCatalogEditable(context)){
 		</td>
 			<%
 		}
-	}
+	
 		%>
 		
 	<script type="text/javascript">
