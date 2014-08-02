@@ -36,7 +36,7 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.Calendar;
 import java.util.Random;
-import org.ecocean.util.DataUtilities;
+import org.ecocean.mmutil.DataUtilities;
 
 
 public class AdoptionAction extends Action {

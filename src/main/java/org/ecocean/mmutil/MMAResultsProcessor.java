@@ -1,4 +1,4 @@
-package org.ecocean.util;
+package org.ecocean.mmutil;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;

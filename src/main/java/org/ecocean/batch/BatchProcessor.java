@@ -48,9 +48,9 @@ import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.servlet.BatchUpload;
-import org.ecocean.util.DataUtilities;
-import org.ecocean.util.FileUtilities;
-import org.ecocean.util.MediaUtilities;
+import org.ecocean.mmutil.DataUtilities;
+import org.ecocean.mmutil.FileUtilities;
+import org.ecocean.mmutil.MediaUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

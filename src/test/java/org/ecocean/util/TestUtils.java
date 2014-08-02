@@ -1,4 +1,4 @@
-package org.ecocean.util;
+package org.ecocean.mmutil;
 
 import java.util.Locale;
 import java.util.Random;

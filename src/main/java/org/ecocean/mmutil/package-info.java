@@ -3,4 +3,4 @@
  *
  * @author Giles Winstanley
  */
-package org.ecocean.util;
+package org.ecocean.mmutil;

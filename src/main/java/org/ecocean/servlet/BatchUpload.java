@@ -46,8 +46,8 @@ import org.ecocean.batch.BatchMedia;
 import org.ecocean.batch.BatchParser;
 import org.ecocean.batch.BatchProcessor;
 import org.ecocean.genetics.TissueSample;
-import org.ecocean.util.DataUtilities;
-import org.ecocean.util.MediaUtilities;
+import org.ecocean.mmutil.DataUtilities;
+import org.ecocean.mmutil.MediaUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
