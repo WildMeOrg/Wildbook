@@ -20,8 +20,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.util.MediaUtilities,org.ecocean.*,java.io.File, java.util.*" %>
-		import="org.ecocean.servlet.ServletUtilities"
+         import="org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.util.MediaUtilities,org.ecocean.*,java.io.File, java.util.*" %>
+		
 <html>
 <head>
 

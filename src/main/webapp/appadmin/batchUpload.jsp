@@ -34,7 +34,11 @@
 %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%
-	Shepherd myShepherd = new Shepherd();
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
+	Shepherd myShepherd = new Shepherd(context);
 	response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 	response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
 	response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
@@ -79,40 +83,40 @@
    * (e.g. gui.step2.enums.list0), and the {0} parameter is filled with the
    * resulting string from this method.
    */
-  private final String createOptionsList(int i, String langCode) throws IOException {
+  private final String createOptionsList(int i, String langCode, String context) throws IOException {
     List<String> list = new ArrayList<String>();
     List<String> temp = new ArrayList<String>();
     TreeSet<String> set = null;
     switch (i) {
       case 0:
       case 1:
-        list = CommonConfiguration.getSequentialPropertyValues("sex");
+        list = CommonConfiguration.getSequentialPropertyValues("sex", context);
         break;
       case 2:
-        temp = CommonConfiguration.getSequentialPropertyValues("genusSpecies");
+        temp = CommonConfiguration.getSequentialPropertyValues("genusSpecies", context);
         set = new TreeSet<String>();
         for (String s : temp)
           set.add(s.substring(0, s.indexOf(" ")));
         list.addAll(set);
         break;
       case 3:
-        temp = CommonConfiguration.getSequentialPropertyValues("genusSpecies");
+        temp = CommonConfiguration.getSequentialPropertyValues("genusSpecies", context);
         set = new TreeSet<String>();
         for (String s : temp)
           set.add(s.substring(s.indexOf(" ") + 1));
         list.addAll(set);
         break;
       case 4:
-        list = CommonConfiguration.getSequentialPropertyValues("locationID");
+        list = CommonConfiguration.getSequentialPropertyValues("locationID", context);
         break;
       case 5:
-        list = CommonConfiguration.getSequentialPropertyValues("livingStatus");
+        list = CommonConfiguration.getSequentialPropertyValues("livingStatus", context);
         break;
       case 6:
-        list = CommonConfiguration.getSequentialPropertyValues("lifeStage");
+        list = CommonConfiguration.getSequentialPropertyValues("lifeStage", context);
         break;
       case 7:
-        list = CommonConfiguration.getSequentialPropertyValues("patterningCode");
+        list = CommonConfiguration.getSequentialPropertyValues("patterningCode", context);
         break;
       case 8:
         Properties props = new Properties();
@@ -122,26 +126,26 @@
         list.add(props.getProperty("patternMatch"));
         break;
       case 9:
-        list = CommonConfiguration.getSequentialPropertyValues("measurement");
+        list = CommonConfiguration.getSequentialPropertyValues("measurement", context);
         break;
       case 10:
-        list = CommonConfiguration.getSequentialPropertyValues("measurementUnits");
+        list = CommonConfiguration.getSequentialPropertyValues("measurementUnits", context);
         break;
       case 11:
-        list = CommonConfiguration.getSequentialPropertyValues("samplingProtocol");
+        list = CommonConfiguration.getSequentialPropertyValues("samplingProtocol", context);
         break;
       case 12:
-        Shepherd shep = new Shepherd();
+        Shepherd shep = new Shepherd(context);
         for (Iterator iter = shep.getAllKeywords(); iter.hasNext();)
           list.add(((Keyword)iter.next()).getReadableName());
         shep.closeDBTransaction();
         shep = null;
         break;
       case 13:
-        list = CommonConfiguration.getSequentialPropertyValues("tissueType");
+        list = CommonConfiguration.getSequentialPropertyValues("tissueType", context);
         break;
       case 14: // FIXME
-        list = CommonConfiguration.getSequentialPropertyValues("preservationMethod");
+        list = CommonConfiguration.getSequentialPropertyValues("preservationMethod", context);
         break;
       default:
     }
@@ -163,13 +167,13 @@
 %>
 <html>
 <head>
-	<title><%=CommonConfiguration.getHTMLTitle() %></title>
+	<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription() %>"/>
-	<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-	<link href="<%=CommonConfiguration.getCSSURLLocation(request) %>" rel="stylesheet" type="text/css"/>
-	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+	<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
+	<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+	<link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css"/>
+	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
 </head>
 
@@ -228,15 +232,15 @@
       <% for (int i = 0; i <= 15; i++) { %>
         <li><%=bundle.getProperty("gui.step2.list" + i)%></li>
       <% } %>
-      <li><%=MessageFormat.format(bundle.getProperty("gui.step2.maxMediaSize"), CommonConfiguration.getMaxMediaSizeInMegabytes())%></li>
+      <li><%=MessageFormat.format(bundle.getProperty("gui.step2.maxMediaSize"), CommonConfiguration.getMaxMediaSizeInMegabytes(context))%></li>
       <% for (int i = 0; i <= 14; i++) { %>
-      <li><%=MessageFormat.format(bundle.getProperty("gui.step2.enums.list" + i), createOptionsList(i, langCode))%></li>
+      <li><%=MessageFormat.format(bundle.getProperty("gui.step2.enums.list" + i), createOptionsList(i, langCode, context))%></li>
       <% } %>
       </ul>
 			<p><%=bundle.getProperty("gui.step2.text2")%></p>
 
 <%
-  String batchPlugin = CommonConfiguration.getBatchUploadPlugin();
+  String batchPlugin = CommonConfiguration.getBatchUploadPlugin(context);
   if (batchPlugin != null) {
 %>
       <p class="pluginText"><%=bundle.getProperty("gui.step2.pluginText")%></p>

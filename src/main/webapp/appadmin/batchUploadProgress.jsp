@@ -32,6 +32,10 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://java.sun.com/jstl/fmt" prefix="fmt" %>
 <%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
   // Page internationalization.
   String langCode = "en";
   if (session.getAttribute("langCode") != null) {
@@ -65,20 +69,20 @@
 %>
 <html>
 <head>
-	<title><%=CommonConfiguration.getHTMLTitle() %></title>
+	<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription() %>"/>
-	<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-	<link href="<%=CommonConfiguration.getCSSURLLocation(request) %>" rel="stylesheet" type="text/css"/>
-	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+	<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
+	<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+	<link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css"/>
+	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
   <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/start/jquery-ui.css"/>
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <%  if (!proc.isTerminated() && !hasErrors) { %>
   <script language="javascript" type="text/javascript">
-    var INTERVAL = 1000 * <%=CommonConfiguration.getBatchUploadProgressRefresh()%>;
+    var INTERVAL = 1000 * <%=CommonConfiguration.getBatchUploadProgressRefresh(context)%>;
     var PHASE_NONE = "<%=bundle.getProperty("gui.progress.status.phase.NONE")%>";
     var PHASE_MEDIA_DOWNLOAD = "<%=bundle.getProperty("gui.progress.status.phase.MEDIA_DOWNLOAD")%>";
     var PHASE_PERSISTENCE = "<%=bundle.getProperty("gui.progress.status.phase.PERSISTENCE")%>";
@@ -126,7 +130,7 @@
     });
   </script>
   <noscript>
-    <meta http-equiv="refresh" content="<%=CommonConfiguration.getBatchUploadProgressRefresh() * 2%>"/>
+    <meta http-equiv="refresh" content="<%=CommonConfiguration.getBatchUploadProgressRefresh(context) * 2%>"/>
   </noscript>
 <%  } else { %>
   <script language="javascript" type="text/javascript">

@@ -149,8 +149,9 @@ context=ServletUtilities.getContext(request);
         									</a>
         								</li>
 										<%
-	  									}
 										cNum++;
+	  									
+										
   									}
   									else{
      									moreStates=false;
@@ -261,8 +262,7 @@ context=ServletUtilities.getContext(request);
 	<%
 
 	if(request.isUserInRole("admin")){
-	%>
-
+	
       if(request.getUserPrincipal()!=null){
       %>
         <li>
@@ -283,7 +283,7 @@ context=ServletUtilities.getContext(request);
         </a></li>
 
         <%
-        if(CommonConfiguration.allowBatchUpload()){
+        if(CommonConfiguration.allowBatchUpload(context)){
         %>
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/BatchUpload/start"
@@ -412,7 +412,7 @@ if(CommonConfiguration.isCatalogEditable(context)){
       <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 
     <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/contactus.jsp"
-           style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;"><strong><%=props.getProperty("contactUs")%>
+           style="margin:0px 0 0px 0px; position:relative; width:100px; height:25px; z-index:100;"><strong><%=props.getProperty("contactUs")%>
     </strong></a></li>
     <%if (request.getRemoteUser() == null) {%>
     <li><a
@@ -548,6 +548,7 @@ if(CommonConfiguration.isCatalogEditable(context)){
 		</td>
 			<%
 		}
+	}
 		%>
 		
 	<script type="text/javascript">

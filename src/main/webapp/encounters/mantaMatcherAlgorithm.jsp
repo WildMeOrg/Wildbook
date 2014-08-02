@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*, org.ecocean.util.*, java.text.*, java.util.*,javax.jdo.*,java.io.File" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*, org.ecocean.util.*, java.text.*, java.util.*,javax.jdo.*,java.io.File, org.ecocean.servlet.*" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -20,7 +20,10 @@
   --%>
 
 <%
-Shepherd myShepherd = new Shepherd();
+String context="context0";
+context=ServletUtilities.getContext(request);
+
+Shepherd myShepherd = new Shepherd(context);
 try {
   //get the encounter number
   String encNum = request.getParameter("encounterNumber");
@@ -35,7 +38,7 @@ try {
   boolean isAuthorized = request.isUserInRole("admin") || request.isUserInRole("imageProcessor");
 
   //let's set up references to our file system components
-  File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext());
+  File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext(), context);
 %>
 
 <%
