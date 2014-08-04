@@ -270,6 +270,10 @@
                 <join />
             </field>
 
+						<field name="mmaCompatible" persistence-modifier="persistent">
+							<column allows-null="true" />
+						</field>
+
 
             <field name="tissueSamples" persistence-modifier="persistent">
                 <collection element-type="org.ecocean.genetics.TissueSample"
