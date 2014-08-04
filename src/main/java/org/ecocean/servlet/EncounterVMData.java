@@ -81,6 +81,14 @@ public class EncounterVMData extends HttpServlet {
 					String val = request.getParameter(f);
 					if (val != null) filter += " && this." + f + " == \"" + val + "\"";  //TODO safely quote!  sql injection etc
 				}
+				String mma = request.getParameter("mmaCompatible");
+				if ((mma != null) && !mma.equals("")) {
+					if (mma.equals("true")) {
+						filter += " && this.mmaCompatible == true";
+					} else {
+						filter += " && (this.mmaCompatible == false || this.mmaCompatible == null)";
+					}
+				}
 System.out.println("candidate filter => " + filter);
 
 				Iterator all = myShepherd.getAllEncounters("catalogNumber", filter);
@@ -90,6 +98,7 @@ System.out.println("candidate filter => " + filter);
 					e.put("id", cand.getCatalogNumber());
 					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
 					e.put("locationID", cand.getLocationID());
+					e.put("individualID", cand.getIndividualID());
 					ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
 					ArrayList images = new ArrayList();
 					String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/";
@@ -126,7 +135,9 @@ System.out.println("candidate filter => " + filter);
 				rtn.put("patterningCode", enc.getPatterningCode());
 				rtn.put("sex", enc.getSex());
 				rtn.put("locationID", enc.getLocationID());
+				rtn.put("individualID", enc.getIndividualID());
 				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
+				rtn.put("mmaCompatible", enc.getMmaCompatible());
 				rtn.put("images", images);
 			}
 

@@ -269,7 +269,10 @@
   <%
    if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
    %>
+<div class="vm-img-wrapper">
   	<img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(enc.getEncounterNumber()+"/thumb.jpg")%>" />
+	<a href="encounterVM.jsp?number=<%=enc.getEncounterNumber()%>" title="<%=encprops.getProperty("vmShortDescription")%>" class="vm-button">Visual Matcher</a>
+</div>
   <%
    }
   %>

@@ -35,7 +35,6 @@ var CRtool = {
 		document.addEventListener('keyup', function(ev) { if (ev.keyCode == 16) { me.shiftDown = false;} });
 
 		if (!this.imgEl) return;
-		this.imgEl.onLoad = this.imageReady();
 
 		this.iCanvas = document.createElement('canvas');
 		this.iCanvas.width = 12;
@@ -43,6 +42,16 @@ var CRtool = {
 		this.iCanvas.style.display = 'none';
 		document.getElementsByTagName('body')[0].appendChild(this.iCanvas);
 		this.iCtx = this.iCanvas.getContext('2d');
+console.log('iCanvas init');
+
+		this.imgEl.onload = function() { me.imageReady(); };
+/*
+		if (this.imgEl.complete) {
+			this.imageReady();
+		} else {
+			this.imgEl.onload = this.imageReady;
+		}
+*/
 
 		//set up little handle icons
 		this.iconImgs = {};
@@ -51,14 +60,20 @@ var CRtool = {
 			this.iconImgs[i] = document.createElement('img');
 			this.iconImgs[i].style.display = 'none';
 			this.iconImgs[i].src = 'data:image/png;base64,' + this.iconPNGs[i];
+			//this.iconImgs[i].onLoad = function() { me.waitForIcons(); };
 			this.iconImgs[i].onLoad = this.waitForIcons();
 			document.getElementsByTagName('body')[0].appendChild(this.iconImgs[i]);
 		}
 	},
 
 	imageReady: function() {
+console.log('imageReady called');
+console.log('iCtx is %o', this.iCtx);
+console.log('oCtx is %o', this.oCtx);
+console.log('imgEl.width = ' + this.imgEl.width);
 		this.info('img size: <b>' + this.imgEl.naturalWidth + 'x' + this.imgEl.naturalHeight);
 		if (!this.oCanvas) return;
+console.log('starting imageReady');
 
 		var me = this;
 		this.oCanvas.ontouchmove = function(ev) {
@@ -90,13 +105,15 @@ var CRtool = {
 		);
 		this.oCtx.strokeStyle = this.styles.stroke;
 		this.oCtx.fillStyle = this.styles.fill;
-		//this.drawRect();  //has to wait for icons to load first!  see: waitForIcons()
+		this.drawRect();  //may be beat by waitForRect() but ... maybe not?
 		this.toWork();
 	},
 
 	waitForIcons: function() {
 		this._iconsLoading--;
+console.log('count? ' + this._iconsLoading);
 		if (this._iconsLoading > 0) return;
+console.log('drawingRect');
 		this.drawRect();
 	},
 

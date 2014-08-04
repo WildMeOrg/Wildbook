@@ -10,12 +10,19 @@ candidatesTitle: 'Candidate Encounters',
 anyPigmentation: 'Any pigmentation',
 anySex: 'Any sex',
 anyRegion: 'Any region',
+anyMma:'Any MMA',
 mmaCompat: 'MMA-compatible',
-mmmIncompat: 'Not MMA-compatible',
+mmaIncompat: 'Not MMA-compatible',
 searchButton: 'SEARCH',
 errorFetching: 'Error fetching data',
 candidatesNoMatch: 'No matching candidates.',
+matchButton: 'Match target and this candidate',
 searching: 'searching...',
+
+matchNew: 'No individual ID for target or candidate. Please enter a new or existing ID.',
+matchTarget: 'Target individual ID is <b>%s</b>.  Set candidate to this individual as well?',
+matchCandidate: 'Candidate individual ID is <b>%s</b>.  Set target to this individual as well?',
+matchConflict: 'Target and candidate have different individual IDs: <b>%s</b> (target) and <b>%s</b> (candidate).  Cannot resolve at this time.',
 			}
 		}
 	}
@@ -25,17 +32,22 @@ var encData = false;
 
 var candidateCriteria = {};
 var currentCandidate = {};
+var candidatesData = {};
 
 function initVM(el, encID) {
 	if (!el || !encID) return;
+	$('body').append('<div id="match-dialog" />');
 console.log('got encID='+encID);
 	var wrapper = $('<div id="vm-wrapper" />');
+	wrapper.append('<input id="match-button" type="button" value="' + wildbookGlobals.properties.lang.visualMatcher.matchButton + '" onClick="event.stopPropagation(); candidateUse()" />');
 	wrapper.append('<div id="vm-target-wrapper"><div class="title">' + wildbookGlobals.properties.lang.visualMatcher.targetTitle + '</div><div id="vm-target-main" class="img-wrapper" /><div id="vm-target-small" /><div id="small-note">' + wildbookGlobals.properties.lang.visualMatcher.targetOtherImages + '</div></div>');
 	wrapper.append('<div id="vm-candidates-wrapper"><div class="title">' + wildbookGlobals.properties.lang.visualMatcher.candidatesTitle + '</div><div id="vm-candidates-imgs" /><div id="vm-candidates-controls" /></div>');
 	el.append(wrapper);
 	fetchTarget(encID);
 	$('body').keydown(function(ev) { if (ev.which == 90) candidateFullZoom(); });
-	$('body').keyup(function(ev) { if (ev.which == 90) $('#candidate-full-zoom').hide(); });
+	$('body').keyup(function(ev) {
+		if ((ev.which == 90) || (ev.which == 27)) $('#candidate-full-zoom').hide();
+	});
 }
 
 
@@ -80,6 +92,7 @@ function gotTarget(d) {
 	candidateCriteria.locationID = d.locationID;
 	candidateCriteria.sex = d.sex;
 	candidateCriteria.patterningCode = d.patterningCode;
+	candidateCriteria.mmaCompatible = d.mmaCompatible;
 
 	createControls();
 	loadTarget(d);
@@ -106,6 +119,7 @@ console.log(url);
 
 
 function gotCandidates(data) {
+	candidatesData = {};
 	console.log(data);
 	if (data.error) {
 		$('#vm-candidates-imgs').html('<p class="error"><h2>' + wildbookGlobals.properties.lang.visualMatcher.errorFetching + '</h2>' + data.error + '</p>');
@@ -121,47 +135,85 @@ function gotCandidates(data) {
 		if (!data.candidates[c].images || !data.candidates[c].images.length) continue;
 		var h = '<div class="candidate" id="' + data.candidates[c].id + '">';
 		for (var i = 0 ; i < data.candidates[c].images.length ; i++) {
+			candidatesData[data.candidates[c].id] = data.candidates[c];
 			h += '<img title="' + imgInfo(data.candidates[c], i) + '" class="thumb" data-i="' + i + '" src="' + data.candidates[c].images[i].url + '" />';
 		}
 		//h += '<div class="info">' + [data.candidates[c].id, data.candidates[c].locationID, data.candidates[c].releaseDate].join(' | ') + '</div></div>';
 		h += '<div class="info">' + imgInfo(data.candidates[c]) + '</div></div>';
 		$('#vm-candidates-imgs').append(h);
 	}
-	$('#vm-candidates-imgs img').click(function() { candidateClick(this); });
+	$('#vm-candidates-imgs img').click(function(ev) { candidateClick(this, true); ev.stopPropagation(); });
+	$('#vm-candidates-imgs div.candidate').click(function() { candidateEncounterClick(this.id); });
 	$('#vm-candidates-imgs img').mouseover(function() { candidateHover(this); });
 }
 
 
-function candidateClick(el) {
+function candidateClick(el, doZoom) {
+	var eid = el.parentElement.getAttribute('id');
 	currentCandidate = {
 		i: el.getAttribute('data-i'),
-		eid: el.parentElement.getAttribute('id'),
 		src: el.src
 	};
-	candidateFullZoom();
+	for (var k in candidatesData[eid]) {
+		currentCandidate[k] = candidatesData[eid][k];
+	}
+	if (doZoom) candidateFullZoom();
 }
 
+function candidateEncounterClick(eid) {
+	candidateClick(document.getElementById(eid).children[0]);
+	candidateMakeActive(currentCandidate.id);
+}
+
+function candidateMakeActive(eid) {
+	$('#vm-candidates-imgs .selected').removeClass('selected');
+	$('#' + eid).addClass('selected').append($('#match-button'));
+	$('#match-button').show();
+}
 
 function candidateHover(el) {
+	var eid = el.parentElement.getAttribute('id');
 	currentCandidate = {
 		i: el.getAttribute('data-i'),
-		eid: el.parentElement.getAttribute('id'),
 		src: el.src
 	};
-
-	$('#zoom-message').html(wildbookGlobals.properties.lang.visualMatcher.zoomMessage.replace('%s', currentCandidate.eid).replace('%s', currentCandidate.i));
+	for (var k in candidatesData[eid]) {
+		currentCandidate[k] = candidatesData[eid][k];
+	}
+	$('#zoom-message').html(wildbookGlobals.properties.lang.visualMatcher.zoomMessage.replace('%s', currentCandidate.id).replace('%s', currentCandidate.i));
 }
 
 
 function candidateFullZoom() {
 	if (!currentCandidate.src) return;
-	$('#candidate-full-zoom').html('<img src="' + $('#vm-target-main img').attr('src') + '" /><img src="' + currentCandidate.src + '" /><div class="close-button" onClick="$(\'#candidate-full-zoom\').hide()">close</div>').show();
+	$('#candidate-full-zoom').html('<img src="' + $('#vm-target-main img').attr('src') + '" /><img src="' + currentCandidate.src + '" /><div class="close-button" onClick="$(\'#candidate-full-zoom\').hide()">close</div><div class="use-button" onClick="candidateUse()">use match</div>').show();
+	candidateMakeActive(currentCandidate.id);
 }
 
 
+function candidateUse() {
+	if (!currentCandidate) return;
+	var h = '<div><form action="" method="post">';
+	if (nullIndividual(encData.individualID) && nullIndividual(currentCandidate.individualID)) {
+		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchNew + '</p><div><input name="matchID" /><input type="submit" value="OK" />';
+	} else if (nullIndividual(encData.individualID)) {
+		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchCandidate.replace('%s', currentCandidate.individualID) + '<p><div><input name="matchID" type="hidden" value="' + currentCandidate.individualID + '" /><input type="submit" value="OK" />';
+	} else if (nullIndividual(currentCandidate.individualID)) {
+		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchTarget.replace('%s', encData.individualID) + '<p><div><input name="matchID" type="hidden" value="' + encData.individualID + '" /><input type="submit" value="OK" />';
+	} else {
+		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchConflict + '</p>';
+	}
+	h += ' <input style="margin-left: 25px;" type="button" value="Cancel" onClick="$(\'#match-dialog\').hide()" /></form></div>';
+
+	$('#match-dialog').html(h).show();
+}
+
 
 function imgInfo(data, i) {
-	var info = data.id + ' ';
+	var info = data.id;
+	if (!nullIndividual(data.individualID)) info += ' (' + data.individualID + ')';
+	info += ': ';
+	if (data.locationID && (data.locationID != 'None') && (data.locationID != '')) info += data.locationID + ' ';
 
 	if (data.dateInMilliseconds) {
 		var d = new Date(data.dateInMilliseconds);
@@ -177,6 +229,7 @@ function imgInfo(data, i) {
 		if (k.length) info += '; ' + k.join('|');
 		info += ']';
 	}
+	
 
 	return info;
 }
@@ -205,7 +258,15 @@ function createControls() {
 	}
 	h += '</select>';
 
-	h += '<select name="mmaCompatible"><option value="true">' + wildbookGlobals.properties.lang.visualMatcher.mmaCompat + '</option><option value="false">' + wildbookGlobals.properties.lang.visualMatcher.mmaIncompat + '</option></select>';
+	var mmaSelTrue = '';
+	var mmaSelFalse = '';
+	if (candidateCriteria.mmaCompatible) {
+		mmaSelTrue = 'selected';
+	} else if (candidateCriteria.mmaCompatible != undefined) {
+		mmaSelFalse = 'selected';
+	}
+
+	h += '<select name="mmaCompatible"><option value="">' + wildbookGlobals.properties.lang.visualMatcher.anyMma + '</option><option ' + mmaSelTrue + ' value="true">' + wildbookGlobals.properties.lang.visualMatcher.mmaCompat + '</option><option ' + mmaSelFalse + ' value="false">' + wildbookGlobals.properties.lang.visualMatcher.mmaIncompat + '</option></select>';
 
 	h += '<input type="button" value="' + wildbookGlobals.properties.lang.visualMatcher.searchButton + '" onClick="candidateSearch()" />';
 
@@ -220,6 +281,11 @@ function candidateSearch() {
 	});
 console.log(candidateCriteria);
 	findCandidates();
+}
+
+
+function nullIndividual(iid) {
+	return !(iid && (iid != '') && (iid != 'Unassigned'));
 }
 
 
