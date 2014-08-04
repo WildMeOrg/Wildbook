@@ -645,7 +645,7 @@
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
-              	File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
+              	File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
               	if(exifImage.exists()){
               		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               		// iterate through metadata directories
@@ -666,6 +666,7 @@
               	else{
             	 %>
 		            <p>File not found on file system. No EXIF data available.</p>
+		            <p>Looking in: <%=exifImage.getAbsolutePath() %></p>
           		<%  
               	}
               } //end try
