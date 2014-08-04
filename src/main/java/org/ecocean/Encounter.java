@@ -195,6 +195,8 @@ public class Encounter implements java.io.Serializable {
   private List<MetalTag> metalTags;
   private AcousticTag acousticTag;
   private SatelliteTag satelliteTag;
+
+  private boolean mmaCompatible = false;
   
   //start constructors
 
@@ -374,6 +376,13 @@ public class Encounter implements java.io.Serializable {
    *
    * @return any comments regarding observed scarring on the shark's body
    */
+
+	public boolean getMmaCompatible() {
+		return mmaCompatible;
+	}
+	public void setMmaCompatible(boolean b) {
+		mmaCompatible = b;
+	}
 
   public String getComments() {
     return occurrenceRemarks;
