@@ -121,7 +121,7 @@
 }
 
 #vm-candidates-imgs .candidate:hover {
-	background-color: #CC4;
+	background-color: #BBE;
 }
 
 #vm-candidates-imgs img.thumb {
@@ -191,14 +191,56 @@
 	width: 49%;
 }
 
+#candidate-full-zoom .use-button,
 #candidate-full-zoom .close-button {
 	cursor: pointer;
 	position: absolute;
 	right: 0;
-	top: 0;
 	background-color: #DD8;
 	padding: 10px;
 	font-size: 1.5em;
+}
+
+#candidate-full-zoom .use-button {
+	bottom: 0;
+}
+
+#candidate-full-zoom .close-button {
+	top: 0;
+}
+
+
+#vm-candidates-imgs .selected {
+	background-color: #CF3;
+}
+#vm-candidates-imgs .selected:hover {
+	background-color: #CD5;
+}
+
+.selected .info {
+	background-color: #AAA !important;
+	color: #333 !important;
+}
+
+
+#match-button {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	display: none;
+}
+
+#match-dialog {
+	position: fixed;
+	top: 15%;
+	width: 50%;
+	min-height: 200px;
+	left: 25%;
+	border: solid #555 3px;
+	background-color: #FFF;
+	padding: 8px;
+	display: none;
+	z-index: 300;
 }
 
 

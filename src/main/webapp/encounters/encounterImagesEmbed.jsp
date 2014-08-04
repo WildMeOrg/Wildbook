@@ -358,8 +358,19 @@ String srcurl=encountersDir.getAbsolutePath()+"/"+addText;
   %> <img id="img<%=images.get(myImage).getDataCollectionEventID()%> " width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
           src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(imageEncNum+"/"+images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
           valign="left"> <%
+
 	if (session.getAttribute("logged")!=null) {
 				%></a>
+
+<%
+		File tryCR = new File(images.get(myImage).getFullFileSystemPath().replaceFirst(".([^.]+)$", "-CR.png"));
+		if (tryCR.exists()) {
+			String crimg = addTextFile.replaceFirst(".([^.]+)$", "-CR.png");
+%><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>"><img src="/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(imageEncNum+"/"+crimg)%>" /></a><div class="note">Candidate Region</div></div><%
+		} else {
+%><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>" class="cr-button">[Create Candidate Region image]</a></div><%
+		}
+%>
                 <div 
             <%
             if(!isVideo){

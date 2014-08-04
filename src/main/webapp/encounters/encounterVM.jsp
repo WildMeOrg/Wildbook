@@ -370,7 +370,6 @@ margin-bottom: 8px !important;
 <div id="vm-content"></div>
 
 <div>
-	<input type="button" value="<%=vmProps.getProperty("fullPageZoom")%>" onClick="candidateFullZoom()" />
 	<span id="zoom-message"></span>
 </div>
 

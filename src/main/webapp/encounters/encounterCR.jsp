@@ -92,6 +92,7 @@ File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectory
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File encounterDir = new File(encountersDir, num);
 
+String crExistsUrl = null;
 
   //GregorianCalendar cal = new GregorianCalendar();
   //int nowYear = cal.get(1);
@@ -349,16 +350,19 @@ margin-bottom: 8px !important;
 
 						String filename = request.getParameter("filename");
 
-						SinglePhotoVideo crExists = null;
 						SinglePhotoVideo match = null;
 
 						for (SinglePhotoVideo s : spvs) {
 							if (myShepherd.isAcceptableImageFile(s.getFilename())) {
-								if (s.getFilename().contains("-cr.")) crExists = s; 
 								if (s.getFilename().equals(filename)) match = s;
 							}
 						}
 						if (match == null) match = spvs.get(0);
+
+						if (enc.getMmaCompatible()) {
+							File tryCR = new File(match.getFullFileSystemPath().replaceFirst(".([^.]+)$", "-CR.png"));
+							if (tryCR.exists()) crExistsUrl = match.getFilename().replaceFirst(".([^.]+)$", "-CR.png");
+						}
 
 						String imgUrl = "";
 						String matchFilename = "";
@@ -368,9 +372,8 @@ margin-bottom: 8px !important;
 							//List k = match.getKeywords();
 						}
 
-						String crExistsUrl = null;
-						if (crExists != null) {
-							crExistsUrl = "/" + dataDir + "/" + crExists.getFilename();
+						if (crExistsUrl != null) {
+							crExistsUrl = "/" + dataDir + "/" + crExistsUrl;
 						}
 
     			%>
@@ -395,8 +398,12 @@ margin-bottom: 8px !important;
 
 	function crSave() {
 		var base64 = document.getElementById('cr-work-canvas').toDataURL("image/png").substr(22);
+		$('#cr-form input[name="pngData"]').val(base64);
+/*
 console.log('<%=matchFilename%>');
 console.log('have base64 to send to server for ' + encounterNumber);
+*/
+		$('#cr-form').submit();
 	}
 
 </script>
@@ -411,11 +418,17 @@ console.log('have base64 to send to server for ' + encounterNumber);
 	</div>
 </div>
 
+<form method="POST" id="cr-form" action="../EncounterCR" >
+	<input type="hidden" name="encounterID" value="<%=num%>" />
+	<input type="hidden" name="matchFilename" value="<%=matchFilename%>" />
+	<input type="hidden" name="pngData" value="" />
+</form>
+
 
 <% if (crExistsUrl != null) { %>
 <div style="width: 100%; padding: 10px; background-color: #FCB; min-height: 110px; margin-top: 15px;">
-	<img src="<%=crExistsUrl%>" style="float: left; max-height: 90px;" />
-	<div><b>Note: a Candidate Region image already exists.  Saving will overwrite this.</b></div>
+	<img src="<%=crExistsUrl%>" style="float: left; max-height: 90px; margin: 8px;" />
+	<div style="padding-top: 20px;"><b>Note: a Candidate Region image already exists.  Saving will overwrite this.</b></div>
 </div>
 <%
 }
