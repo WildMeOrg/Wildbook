@@ -379,7 +379,7 @@
             %>
             
             >
-            <img src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge"/></a>
+            <img src="<%=thumbLink%>" alt="photo" border="1" title="<%=encprops.getProperty("clickEnlarge")%>"/></a>
 
             <div 
             <%
@@ -637,7 +637,7 @@
                       if (CommonConfiguration.showEXIFData(context)&&!thumbLink.endsWith("video.jpg")) {
                     %>
                     
-                    <p><strong>EXIF Data</strong></p>
+                    <p><strong>EXIF</strong></p>
 												
 				   <span class="caption">
 						<div class="scroll">
