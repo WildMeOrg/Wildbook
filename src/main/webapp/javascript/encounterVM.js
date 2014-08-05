@@ -1,33 +1,3 @@
-//wildbookGlobals.properties.lang.collaboration.invitePromptOne
-var wildbookGlobals = {
-	properties: {
-		lang: {
-			visualMatcher: {
-zoomMessage: 'Hit <b>Z</b> to zoom in on <b>Encounter %s</b>, image %s.',
-targetTitle: 'Encounter Target Image',
-targetOtherImages: 'Other available target images from this encounter',
-candidatesTitle: 'Candidate Encounters',
-anyPigmentation: 'Any pigmentation',
-anySex: 'Any sex',
-anyRegion: 'Any region',
-anyMma:'Any MMA',
-mmaCompat: 'MMA-compatible',
-mmaIncompat: 'Not MMA-compatible',
-searchButton: 'SEARCH',
-errorFetching: 'Error fetching data',
-candidatesNoMatch: 'No matching candidates.',
-matchButton: 'Match target and this candidate',
-searching: 'searching...',
-
-matchNew: 'No individual ID for target or candidate. Please enter a new or existing ID.',
-matchTarget: 'Target individual ID is <b>%s</b>.  Set candidate to this individual as well?',
-matchCandidate: 'Candidate individual ID is <b>%s</b>.  Set target to this individual as well?',
-matchConflict: 'Target and candidate have different individual IDs: <b>%s</b> (target) and <b>%s</b> (candidate).  Cannot resolve at this time.',
-			}
-		}
-	}
-};
-
 var encData = false;
 
 var candidateCriteria = {};

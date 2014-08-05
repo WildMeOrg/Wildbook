@@ -63,7 +63,9 @@ public class EncounterCR extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     boolean locked = false, isOwner = true;
     //boolean isAssigned = false;
 
@@ -95,11 +97,17 @@ public class EncounterCR extends HttpServlet {
 			}
 
 			if (rawPng != null) {
-//////////////////////// TODO use the 5.x enc.path stuff
+/*
+String rootWebappPath = getServletContext().getRealPath("/");
+String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
+File thisEncounterDir = new File(imageEnc.dir(baseDir));
+String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
+*/
 				String rootWebappPath = getServletContext().getRealPath("/");
-				File webappsDir = new File(rootWebappPath).getParentFile();
-				File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-				File encounterDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters/" + encID);
+				String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
+				//File webappsDir = new File(rootWebappPath).getParentFile();
+				//File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+				File encounterDir = new File(enc.dir(baseDir));
 				File sourceImg = new File(encounterDir, matchFilename);
 System.out.println(sourceImg.toString());
 				if (!sourceImg.exists()) {
@@ -107,7 +115,7 @@ System.out.println(sourceImg.toString());
 
 				} else {
 					int dot = matchFilename.lastIndexOf('.');
-					String crFilename = matchFilename.substring(0, dot) + "-CR.png";
+					String crFilename = matchFilename.substring(0, dot) + "_CR.png";
 					File crFile = new File(encounterDir, crFilename);
 System.out.println(sourceImg.toString() + " --> " + crFilename);
 					Files.write(crFile.toPath(), rawPng);
@@ -132,7 +140,7 @@ System.out.println(crFile.toString() + " written");
     	PrintWriter out = response.getWriter();
 			out.println(ServletUtilities.getHeader(request));
 			out.println("<p><strong>ERROR:</strong> " + errorMessage + "</p>");
-			out.println(ServletUtilities.getFooter());
+			out.println(ServletUtilities.getFooter(context));
     	out.close();
 		}
   }

@@ -660,6 +660,11 @@
     <servlet-name>EncounterForm</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterForm</servlet-class>
   </servlet>
+
+  <servlet>
+    <servlet-name>JavascriptGlobals</servlet-name>
+    <servlet-class>org.ecocean.servlet.JavascriptGlobals</servlet-class>
+  </servlet>
   
     <servlet>
       <servlet-name>OccurrenceCreate</servlet-name>
@@ -1109,6 +1114,11 @@
   <servlet-mapping>
     <servlet-name>EncounterForm</servlet-name>
     <url-pattern>/EncounterForm</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>JavascriptGlobals</servlet-name>
+    <url-pattern>/JavascriptGlobals.js</url-pattern>
   </servlet-mapping>
   
   
