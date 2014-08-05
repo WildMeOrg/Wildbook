@@ -62,15 +62,15 @@ abstract class DispatchServlet extends HttpServlet
   /**
    * @return The data directory used for web application storage.
    */
-  protected File getDataDir() throws FileNotFoundException {
-    return CommonConfiguration.getDataDirectory(getServletContext());
+  protected File getDataDir(String context) throws FileNotFoundException {
+    return CommonConfiguration.getDataDirectory(getServletContext(), context);
   }
 
   /**
    * @return The data directory used for web application storage.
    */
-  protected File getUsersDataDir() throws FileNotFoundException {
-    return CommonConfiguration.getUsersDataDirectory(getServletContext());
+  protected File getUsersDataDir(String context) throws FileNotFoundException {
+    return CommonConfiguration.getUsersDataDirectory(getServletContext(), context);
   }
 
   /**

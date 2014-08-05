@@ -20,11 +20,13 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -48,7 +50,9 @@ public class OccurrenceAddComment extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -84,14 +88,14 @@ public class OccurrenceAddComment extends HttpServlet {
         out.println("<strong>Failure:</strong> I did NOT add your comments. Another user is currently modifying the entry. Please try to add your comments again in a few seconds.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occurrence" + request.getParameter("number") + "</a></p>\n");
       }
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
 
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to add your comments.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occurrence " + request.getParameter("number") + "</a></p>\n");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
     myShepherd.closeDBTransaction();
 

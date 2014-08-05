@@ -20,21 +20,24 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, java.util.*, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.*, java.util.Vector" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
 <html>
 <head>
   <%
+  
+  String context="context0";
+  context=ServletUtilities.getContext(request);
 
     //let's load out properties
     Properties props = new Properties();
-    String langCode = "en";
-    if (session.getAttribute("langCode") != null) {
-      langCode = (String) session.getAttribute("langCode");
-    }
-    props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsExport.properties"));
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
+    
+    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsExport.properties"));
+    props = ShepherdProperties.getProperties("individualSearchResultsExport.properties", langCode,context);
 
 
 
@@ -66,38 +69,20 @@ if(request.getQueryString()!=null){
 }
 
   %>
-  <title><%=CommonConfiguration.getHTMLTitle() %>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
-  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
-  <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
-  
-   <script>
-   
-    $(function() {
-    <%
-    for(int f=0;f<numSessions;f++){
-    %>
-    	$( "#datepicker<%=f%>start" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
-      $( "#datepicker<%=f%>end" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
-    <%
-    }
-    %>
-    
-    });
-  
-  
-  </script>
+
   
 </head>
 <style type="text/css">
@@ -155,6 +140,24 @@ if(request.getQueryString()!=null){
 
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
+ <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+  
+   <script>
+   
+    $(function() {
+    <%
+    for(int f=0;f<numSessions;f++){
+    %>
+    	$( "#datepicker<%=f%>start" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+      $( "#datepicker<%=f%>end" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
+    <%
+    }
+    %>
+    
+    });
+  
+  
+  </script>
 <div id="main">
 <ul id="tabmenu">
 
@@ -222,7 +225,7 @@ if(request.getParameter("includeQueryComments")!=null){
 
 
 <p>
-<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=additionalParameters %>" method="GET">
+<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=additionalParameters %>" method="get">
 
 <%
 Enumeration params=request.getParameterNames();

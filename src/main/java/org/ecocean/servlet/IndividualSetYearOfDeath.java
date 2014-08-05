@@ -28,8 +28,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import org.joda.time.DateTime;
 
 
@@ -47,7 +49,9 @@ public class IndividualSetYearOfDeath extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -85,7 +89,7 @@ public class IndividualSetYearOfDeath extends HttpServlet {
         out.println("<strong>Success!</strong> I have successfully changed the time of death for individual " + sharky + " to " + timeOfDeath + ".</p>");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         String message = "The time of death for " + sharky + " was set to " + timeOfDeath + ".";
       } else {
 
@@ -93,14 +97,14 @@ public class IndividualSetYearOfDeath extends HttpServlet {
         out.println("<strong>Failure!</strong> This individual is currently being modified by another user. Please wait a few seconds before trying to modify this individual again.");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "#deathdate\">Return to " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
     } else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the individual's time of death. I cannot find the individual that you intended it for in the database, or the time was not specified.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();

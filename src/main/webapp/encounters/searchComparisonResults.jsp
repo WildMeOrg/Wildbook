@@ -1,6 +1,6 @@
 <%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
+  ~ Wildbook - A Mark-Recapture Framework
+  ~ Copyright (C) 2011-2014 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
   ~ modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,javax.jdo.Query,org.springframework.mock.web.MockHttpServletRequest,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,javax.jdo.Query,org.springframework.mock.web.MockHttpServletRequest,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
 
 
@@ -30,22 +30,25 @@
 
 
   <%
-
+  String context="context0";
+  context=ServletUtilities.getContext(request);
 
     //let's load encounterSearch.properties
-    String langCode = "en";
-    if (session.getAttribute("langCode") != null) {
-      langCode = (String) session.getAttribute("langCode");
-    }
+    //String langCode = "en";
+    String langCode=ServletUtilities.getLanguageCode(request);
+    
     Properties encprops = new Properties();
-    encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchComparisonResults.properties"));
-
+    //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchComparisonResults.properties"));
+    encprops=ShepherdProperties.getProperties("searchComparisonResults.properties", langCode, context);
+    
+    Properties measurementLabels=ShepherdProperties.getProperties("commonConfigurationLabels.properties", langCode, context);
+    
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
     
     //get our Shepherd
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
 
 
 
@@ -76,9 +79,9 @@
     
 
     //general stats summary setup
-	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en");
+	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en",context);
 	int numMeasurementTypes=measurementTypes.size();
-	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en");
+	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
 	int numBioMeasurementTypes=bioMeasurementTypes.size();
 	
 	
@@ -218,14 +221,20 @@
  	 	}
  		 
  	    //sex pie chart 	 
- 		if(thisEnc.getSex().equals("male")){
- 		   Integer thisInt = sexHashtable1.get("male")+1;
-  		   sexHashtable1.put("male", thisInt);
- 		}
- 		else if(thisEnc.getSex().equals("female")){
-  		   Integer thisInt = sexHashtable1.get("female")+1;
-  		   sexHashtable1.put("female", thisInt);
- 		}
+ 	    if(thisEnc.getSex()!=null){
+ 			if(thisEnc.getSex().equals("male")){
+ 		   		Integer thisInt = sexHashtable1.get("male")+1;
+  		   		sexHashtable1.put("male", thisInt);
+ 			}
+ 			else if(thisEnc.getSex().equals("female")){
+  		   		Integer thisInt = sexHashtable1.get("female")+1;
+  		   		sexHashtable1.put("female", thisInt);
+ 			}
+ 			else{
+ 	    		Integer thisInt = sexHashtable1.get("unknown")+1;
+   		    	sexHashtable1.put("unknown", thisInt);
+ 	    	}
+ 	    }
  	    else{
  	    	Integer thisInt = sexHashtable1.get("unknown")+1;
    		    sexHashtable1.put("unknown", thisInt);
@@ -329,15 +338,21 @@
       	   }
  	 	}
  		 
- 	    //sex pie chart 	 
- 		if(thisEnc.getSex().equals("male")){
- 		   Integer thisInt = sexHashtable2.get("male")+1;
-  		   sexHashtable2.put("male", thisInt);
- 		}
- 		else if(thisEnc.getSex().equals("female")){
-  		   Integer thisInt = sexHashtable2.get("female")+1;
-  		   sexHashtable2.put("female", thisInt);
- 		}
+ 	    //sex pie chart 
+ 	    if(thisEnc.getSex()!=null){
+ 			if(thisEnc.getSex().equals("male")){
+ 		   		Integer thisInt = sexHashtable2.get("male")+1;
+  		   		sexHashtable2.put("male", thisInt);
+ 			}
+ 			else if(thisEnc.getSex().equals("female")){
+  		   		Integer thisInt = sexHashtable2.get("female")+1;
+  		   		sexHashtable2.put("female", thisInt);
+ 			}
+ 			else{
+ 	    		Integer thisInt = sexHashtable2.get("unknown")+1;
+   		    	sexHashtable2.put("unknown", thisInt);
+ 	    	}
+ 	    }
  	    else{
  	    	Integer thisInt = sexHashtable2.get("unknown")+1;
    		    sexHashtable2.put("unknown", thisInt);
@@ -428,14 +443,14 @@
  	 
   %>
 
-  <title><%=CommonConfiguration.getHTMLTitle()%>
+  <title><%=CommonConfiguration.getHTMLTitle(context)%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription()%>"/>
-  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords()%>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor()%>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request)%>" rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon()%>"/>
+  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context)%>"/>
+  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context)%>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context)%>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context)%>" rel="stylesheet" type="text/css"/>
+  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
 
 
     <style type="text/css">
@@ -612,7 +627,7 @@ var selectedRectangle2;
 
         var options = {
           width: 450, height: 300,
-          title: 'Haplotype Distribution in Marked Individuals',
+          title: '<%=encprops.getProperty("haplotypeDistribution") %>',
           colors: [
                    <%
                    String haploColor="CC0000";
@@ -663,7 +678,7 @@ var selectedRectangle2;
         %>
         var options = {
           width: 450, height: 300,
-          title: 'Sex Distribution in Marked Individuals',
+          title: '<%=encprops.getProperty("sexDistribution") %>',
           colors: ['#0000FF','#FF00FF','<%=haploColor%>']
         };
 
@@ -705,7 +720,7 @@ var selectedRectangle2;
 
         var options = {
           width: 450, height: 300,
-          title: 'Haplotype Distribution in Marked Individuals',
+          title: '<%=encprops.getProperty("haplotypeDistribution") %>',
           colors: [
                    <%
                    haploColor="CC0000";
@@ -755,7 +770,7 @@ var selectedRectangle2;
         %>
         var options = {
           width: 450, height: 300,
-          title: 'Sex Distribution in Marked Individuals',
+          title: '<%=encprops.getProperty("sexDistribution") %>',
           colors: ['#0000FF','#FF00FF','<%=haploColor%>']
         };
 
@@ -791,8 +806,8 @@ var selectedRectangle2;
 <table width="810px">
 	<tr>
 		<td bgcolor="#EEEEFF">
-			<p><strong>Comparison Overview</strong></p>
-			<p>Shared marked individuals: <%=numMatchedIndividuals%></p>
+			<p><strong><%=encprops.getProperty("comparisonOverview")%></strong></p>
+			<p><%=encprops.getProperty("sharedMarkedIndividuals") %> <%=numMatchedIndividuals%></p>
 			
 			 <%
 			 
@@ -842,7 +857,7 @@ var selectedRectangle2;
 	
         		
 			%>
-			<p><strong>Haplotypes</strong><br />
+			<p><strong><%=encprops.getProperty("haplotypes") %></strong><br />
 			<%
 				try {
 				%>
@@ -956,41 +971,47 @@ else{
 </th>
 <tr>
 	<td>
-		<p>No. matching marked individuals: <%=query1Individuals.size() %></p>
+		<p><%=encprops.getProperty("numberMatchingMarkedIndividuals") %> <%=query1Individuals.size() %></p>
 	</td>
 	<td>
-		<p>No. matching marked individuals: <%=query2Individuals.size() %></p>
+		<p><%=encprops.getProperty("numberMatchingMarkedIndividuals") %> <%=query2Individuals.size() %></p>
 	</td>
 </tr>
 <tr>
 <td>
-<p><strong>Measurements</strong></p>
+<p><strong><%=encprops.getProperty("measurements") %></strong></p>
 <%
  		//measurement
 		
 		if(measurementTypes.size()>0){
+			
+			
+			
 			for(int b=0;b<numMeasurementTypes;b++){
+				String measurementType=measurementTypes.get(b).getType();
+				String measurementTypeLabel=measurementLabels.getProperty((measurementType+".label"));
+				String measurementTypeUnitsLabel=measurementLabels.getProperty((measurementTypes.get(b).getUnits()+".label"));
 			%>
-				<p>Mean <%= measurementTypes.get(b).getType()%>: 
+				<p><%=encprops.getProperty("mean") %> <%= measurementTypeLabel%>: 
 				<% 
 				
 				//now report averages
 				if(measurementValues1[b].getN()>0){
 				%>
-				&nbsp;<%=df.format(measurementValues1[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValues1[b].getStandardDeviation()) %>) N=<%=measurementValues1[b].getN() %><br />
+				&nbsp;<%=df.format(measurementValues1[b].getMean()) %>&nbsp;<%=measurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValues1[b].getStandardDeviation()) %>) N=<%=measurementValues1[b].getN() %><br />
 				<ul>
-					<li>Largest: <%=df.format(measurementValues1[b].getMax()) %> <%=measurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=largestIndies1[b] %>"><%=largestIndies1[b] %></a>)</li>
-					<li>Smallest: <%=df.format(measurementValues1[b].getMin()) %> <%=measurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=smallestIndies1[b] %>"><%=smallestIndies1[b] %></a>)</li>
-					<li>Mean for males: <%=df.format(measurementValuesMales1[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesMales1[b].getStandardDeviation()) %>) N=<%=measurementValuesMales1[b].getN() %></li>
-					<li>Mean for females: <%=df.format(measurementValuesFemales1[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesFemales1[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales1[b].getN() %></li>
-					<li>Mean for individuals newly marked in this period: <%=df.format(measurementValuesNew1[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesNew1[b].getStandardDeviation()) %>) N=<%=measurementValuesNew1[b].getN() %></li>
-					<li>Mean for individuals sighted before this period: <%=df.format(measurementValuesResights1[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesResights1[b].getStandardDeviation()) %>) N=<%=measurementValuesResights1[b].getN() %></li>	
+					<li><%=encprops.getProperty("largest") %> <%=df.format(measurementValues1[b].getMax()) %> <%=measurementTypeUnitsLabel %> (<a href="../individuals.jsp?number=<%=largestIndies1[b] %>"><%=largestIndies1[b] %></a>)</li>
+					<li><%=encprops.getProperty("smallest") %> <%=df.format(measurementValues1[b].getMin()) %> <%=measurementTypeUnitsLabel %> (<a href="../individuals.jsp?number=<%=smallestIndies1[b] %>"><%=smallestIndies1[b] %></a>)</li>
+					<li><%=encprops.getProperty("meanMales") %> <%=df.format(measurementValuesMales1[b].getMean()) %>&nbsp;<%=measurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesMales1[b].getStandardDeviation()) %>) N=<%=measurementValuesMales1[b].getN() %></li>
+					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(measurementValuesFemales1[b].getMean()) %>&nbsp;<%=measurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesFemales1[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales1[b].getN() %></li>
+					<li><%=encprops.getProperty("meanNewIndividuals") %> <%=df.format(measurementValuesNew1[b].getMean()) %>&nbsp;<%=measurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesNew1[b].getStandardDeviation()) %>) N=<%=measurementValuesNew1[b].getN() %></li>
+					<li><%=encprops.getProperty("meanExistingIndividuals") %> <%=df.format(measurementValuesResights1[b].getMean()) %>&nbsp;<%=measurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesResights1[b].getStandardDeviation()) %>) N=<%=measurementValuesResights1[b].getN() %></li>	
 				</ul>
 				<%
 				}
 				else{
 					%>
-					&nbsp;No measurement values available.
+					&nbsp;<%=encprops.getProperty("noMeasurements") %>
 					<%
 				}
 				
@@ -1001,38 +1022,41 @@ else{
 		}
 		else{
 			%>
-			<p>No measurement types defined.</p>
+			<p><%=encprops.getProperty("noMeasurementTypes") %></p>
 			<% 
 		}
 %>
 
-<p><strong>Biological/Chemical Measurements</strong></p>
+<p><strong><%=encprops.getProperty("bioChemMeasurements") %></strong></p>
 <%
  		//measurement
 		
 		if(bioMeasurementTypes.size()>0){
 			for(int b=0;b<numBioMeasurementTypes;b++){
+				
+				String biomeasurementTypeUnitsLabel=measurementLabels.getProperty((bioMeasurementTypes.get(b).getUnits()+".label"));
+				
 			%>
-				<p>Mean <%= bioMeasurementTypes.get(b).getType()%>: 
+				<p><%=encprops.getProperty("mean") %> <%= bioMeasurementTypes.get(b).getType()%>: 
 				<% 
 				
 				//now report averages
 				if(bioMeasurementValues1[b].getN()>0){
 				%>
-				&nbsp;<%=df.format(bioMeasurementValues1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValues1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValues1[b].getN() %><br />
+				&nbsp;<%=df.format(bioMeasurementValues1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValues1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValues1[b].getN() %><br />
 				<ul>
-					<li>Largest: <%=df.format(bioMeasurementValues1[b].getMax()) %> <%=bioMeasurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=bioLargestIndies1[b] %>"><%=bioLargestIndies1[b] %></a>)</li>
-					<li>Smallest: <%=df.format(bioMeasurementValues1[b].getMin()) %> <%=bioMeasurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=bioSmallestIndies1[b] %>"><%=bioSmallestIndies1[b] %></a>)</li>
-					<li>Mean for males: <%=df.format(bioMeasurementValuesMales1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesMales1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales1[b].getN() %></li>
-					<li>Mean for females: <%=df.format(bioMeasurementValuesFemales1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesFemales1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales1[b].getN() %></li>
-					<li>Mean for individuals newly marked in this period: <%=df.format(bioMeasurementValuesNew1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesNew1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesNew1[b].getN() %></li>
-					<li>Mean for individuals sighted before this period: <%=df.format(bioMeasurementValuesResights1[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesResights1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesResights1[b].getN() %></li>	
+					<li><%=encprops.getProperty("largest") %> <%=df.format(bioMeasurementValues1[b].getMax()) %> <%=biomeasurementTypeUnitsLabel %> (<a href="../individuals.jsp?number=<%=bioLargestIndies1[b] %>"><%=bioLargestIndies1[b] %></a>)</li>
+					<li><%=encprops.getProperty("smallest") %> <%=df.format(bioMeasurementValues1[b].getMin()) %> <%=biomeasurementTypeUnitsLabel %> (<a href="../individuals.jsp?number=<%=bioSmallestIndies1[b] %>"><%=bioSmallestIndies1[b] %></a>)</li>
+					<li><%=encprops.getProperty("meanMales") %> <%=df.format(bioMeasurementValuesMales1[b].getMean()) %>&nbsp;<%=biomeasurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesMales1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales1[b].getN() %></li>
+					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(bioMeasurementValuesFemales1[b].getMean()) %>&nbsp;<%=biomeasurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesFemales1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales1[b].getN() %></li>
+					<li><%=encprops.getProperty("meanNewIndividuals") %> <%=df.format(bioMeasurementValuesNew1[b].getMean()) %>&nbsp;<%=biomeasurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesNew1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesNew1[b].getN() %></li>
+					<li><%=encprops.getProperty("meanExistingIndividuals") %> <%=df.format(bioMeasurementValuesResights1[b].getMean()) %>&nbsp;<%=biomeasurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesResights1[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesResights1[b].getN() %></li>	
 				</ul>
 				<%
 				}
 				else{
 					%>
-					&nbsp;No measurement values available.
+					&nbsp;<%=encprops.getProperty("noMeasurements") %>
 					<%
 				}
 				
@@ -1043,40 +1067,44 @@ else{
 		}
 		else{
 			%>
-			<p>No measurement types defined.</p>
+			<p><%=encprops.getProperty("noMeasurementTypes") %></p>
 			<% 
 		}
 %>
 </td>
 
 <td>
-<p><strong>Measurements</strong></p>
+<p><strong><%=encprops.getProperty("measurements") %></strong></p>
 <%
  		//measurement
 		
 		if(measurementTypes.size()>0){
 			for(int b=0;b<numMeasurementTypes;b++){
+				String measurementType=measurementTypes.get(b).getType();
+				String measurementTypeLabel=measurementLabels.getProperty((measurementType+".label"));
+				String measurementTypeUnitsLabel=measurementLabels.getProperty((measurementTypes.get(b).getUnits()+".label"));
+				
 			%>
-				<p>Mean <%= measurementTypes.get(b).getType()%>: 
+				<p><%=encprops.getProperty("mean") %> <%=measurementTypeLabel %>: 
 				<% 
 				
 				//now report averages
 				if(measurementValues2[b].getN()>0){
 				%>
-				&nbsp;<%=df.format(measurementValues2[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValues2[b].getStandardDeviation()) %>) N=<%=measurementValues2[b].getN() %><br />
+				&nbsp;<%=df.format(measurementValues2[b].getMean()) %>&nbsp;<%=measurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValues2[b].getStandardDeviation()) %>) N=<%=measurementValues2[b].getN() %><br />
 				<ul>
-					<li>Largest: <%=df.format(measurementValues2[b].getMax()) %> <%=measurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=largestIndies2[b] %>"><%=largestIndies2[b] %></a>)</li>
-					<li>Smallest: <%=df.format(measurementValues2[b].getMin()) %> <%=measurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=smallestIndies2[b] %>"><%=smallestIndies2[b] %></a>)</li>
-					<li>Mean for males: <%=df.format(measurementValuesMales2[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesMales2[b].getStandardDeviation()) %>) N=<%=measurementValuesMales2[b].getN() %></li>
-					<li>Mean for females: <%=df.format(measurementValuesFemales2[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesFemales2[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales2[b].getN() %></li>
-					<li>Mean for individuals newly marked in this period: <%=df.format(measurementValuesNew2[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesNew2[b].getStandardDeviation()) %>) N=<%=measurementValuesNew2[b].getN() %></li>
-					<li>Mean for individuals sighted before this period: <%=df.format(measurementValuesResights2[b].getMean()) %>&nbsp;<%=measurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(measurementValuesResights2[b].getStandardDeviation()) %>) N=<%=measurementValuesResights2[b].getN() %></li>	
+					<li><%=encprops.getProperty("largest") %> <%=df.format(measurementValues2[b].getMax()) %> <%=measurementTypeUnitsLabel %> (<a href="../individuals.jsp?number=<%=largestIndies2[b] %>"><%=largestIndies2[b] %></a>)</li>
+					<li><%=encprops.getProperty("smallest") %> <%=df.format(measurementValues2[b].getMin()) %> <%=measurementTypeUnitsLabel %> (<a href="../individuals.jsp?number=<%=smallestIndies2[b] %>"><%=smallestIndies2[b] %></a>)</li>
+					<li><%=encprops.getProperty("meanMales") %> <%=df.format(measurementValuesMales2[b].getMean()) %>&nbsp;<%=measurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesMales2[b].getStandardDeviation()) %>) N=<%=measurementValuesMales2[b].getN() %></li>
+					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(measurementValuesFemales2[b].getMean()) %>&nbsp;<%=measurementTypeUnitsLabel %> (Std. Dev. <%=df.format(measurementValuesFemales2[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales2[b].getN() %></li>
+					<li><%=encprops.getProperty("meanNewIndividuals") %> <%=df.format(measurementValuesNew2[b].getMean()) %>&nbsp;<%=measurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesNew2[b].getStandardDeviation()) %>) N=<%=measurementValuesNew2[b].getN() %></li>
+					<li><%=encprops.getProperty("meanExistingIndividuals") %> <%=df.format(measurementValuesResights2[b].getMean()) %>&nbsp;<%=measurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesResights2[b].getStandardDeviation()) %>) N=<%=measurementValuesResights2[b].getN() %></li>	
 				</ul>
 				<%
 				}
 				else{
 					%>
-					&nbsp;No measurement values available.
+					&nbsp;<%=encprops.getProperty("noMeasurements") %>
 					<%
 				}
 				
@@ -1087,38 +1115,40 @@ else{
 		}
 		else{
 			%>
-			<p>No measurement types defined.</p>
+			<p><%=encprops.getProperty("noMeasurementTypes") %></p>
 			<% 
 		}
 %>
 
-<p><strong>Biological/Chemical Measurements</strong></p>
+<p><strong><%=encprops.getProperty("bioChemMeasurements") %></strong></p>
 <%
  		//measurement
 		
 		if(bioMeasurementTypes.size()>0){
 			for(int b=0;b<numBioMeasurementTypes;b++){
+				String biomeasurementTypeUnitsLabel=measurementLabels.getProperty((bioMeasurementTypes.get(b).getUnits()+".label"));
+				
 			%>
-				<p>Mean <%= bioMeasurementTypes.get(b).getType()%>: 
+				<p><%=encprops.getProperty("mean") %> <%= bioMeasurementTypes.get(b).getType()%>: 
 				<% 
 				
 				//now report averages
 				if(bioMeasurementValues2[b].getN()>0){
 				%>
-				&nbsp;<%=df.format(bioMeasurementValues2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValues2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValues2[b].getN() %><br />
+				&nbsp;<%=df.format(bioMeasurementValues2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValues2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValues2[b].getN() %><br />
 				<ul>
-					<li>Largest: <%=df.format(bioMeasurementValues2[b].getMax()) %> <%=bioMeasurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=bioLargestIndies2[b] %>"><%=bioLargestIndies2[b] %></a>)</li>
-					<li>Smallest: <%=df.format(bioMeasurementValues2[b].getMin()) %> <%=bioMeasurementTypes.get(b).getUnits() %> (<a href="../individuals.jsp?number=<%=bioSmallestIndies2[b] %>"><%=bioSmallestIndies2[b] %></a>)</li>
-					<li>Mean for males: <%=df.format(bioMeasurementValuesMales2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesMales2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales2[b].getN() %></li>
-					<li>Mean for females: <%=df.format(bioMeasurementValuesFemales2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesFemales2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales2[b].getN() %></li>
-					<li>Mean for individuals newly marked in this period: <%=df.format(bioMeasurementValuesNew2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesNew2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesNew2[b].getN() %></li>
-					<li>Mean for individuals sighted before this period: <%=df.format(bioMeasurementValuesResights2[b].getMean()) %>&nbsp;<%=bioMeasurementTypes.get(b).getUnits() %> (Std. Dev. <%=df.format(bioMeasurementValuesResights2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesResights2[b].getN() %></li>	
+					<li><%=encprops.getProperty("largest") %> <%=df.format(bioMeasurementValues2[b].getMax()) %> <%=biomeasurementTypeUnitsLabel %> (<a href="../individuals.jsp?number=<%=bioLargestIndies2[b] %>"><%=bioLargestIndies2[b] %></a>)</li>
+					<li><%=encprops.getProperty("smallest") %> <%=df.format(bioMeasurementValues2[b].getMin()) %> <%=biomeasurementTypeUnitsLabel %> (<a href="../individuals.jsp?number=<%=bioSmallestIndies2[b] %>"><%=bioSmallestIndies2[b] %></a>)</li>
+					<li><%=encprops.getProperty("meanMales") %> <%=df.format(bioMeasurementValuesMales2[b].getMean()) %>&nbsp;<%=biomeasurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesMales2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales2[b].getN() %></li>
+					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(bioMeasurementValuesFemales2[b].getMean()) %>&nbsp;<%=biomeasurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesFemales2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales2[b].getN() %></li>
+					<li><%=encprops.getProperty("meanNewIndividuals") %> <%=df.format(bioMeasurementValuesNew2[b].getMean()) %>&nbsp;<%=biomeasurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesNew2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesNew2[b].getN() %></li>
+					<li><%=encprops.getProperty("meanExistingIndividuals") %> <%=df.format(bioMeasurementValuesResights2[b].getMean()) %>&nbsp;<%=biomeasurementTypeUnitsLabel %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesResights2[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesResights2[b].getN() %></li>	
 				</ul>
 				<%
 				}
 				else{
 					%>
-					&nbsp;No measurement values available.
+					&nbsp;<%=encprops.getProperty("noMeasurements") %>
 					<%
 				}
 				
@@ -1129,7 +1159,7 @@ else{
 		}
 		else{
 			%>
-			<p>No measurement types defined.</p>
+			<p><%=encprops.getProperty("noMeasurementTypes") %></p>
 			<% 
 		}
 %>
@@ -1323,7 +1353,7 @@ else{
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html>
     <head>
-    <meta http-equiv="REFRESH" content="0;url=locationSearch.jsp" />
+    <meta http-equiv="REFRESH" content="0;url=searchComparison.jsp" />
     </head>
     <body>
     </body>
@@ -1333,5 +1363,4 @@ else{
     	
     <%	
     }
- 
-%>
+    %>

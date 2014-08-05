@@ -28,6 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 
 
@@ -47,15 +48,17 @@ public class ResurrectDeletedAdoption extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     //initialize shepherd
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
-    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    //if(!encountersDir.exists()){encountersDir.mkdirs();}
     
     //set up for response
     response.setContentType("text/html");
@@ -103,7 +106,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
           out.println("<strong>Success!</strong> I have successfully restored adoption " + request.getParameter("number") + " from accidental deletion.</p>");
 
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp?number=" + encounterNumber + "\">Return to adoption " + encounterNumber + "</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           //String message="The matched by type for encounter "+encounterNumber+" was changed from "+prevMatchedBy+" to "+matchedBy+".";
           //informInterestedParties(encounterNumber, message);
         } else {
@@ -112,7 +115,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
           out.println("<strong>Failure!</strong> This adoption cannot be restored due to an unknown error. Please contact the webmaster.");
 
           //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+encounterNumber+"\">Return to encounter "+encounterNumber+"</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
 
         }
 
@@ -121,7 +124,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
         out.println("<strong>Failure!</strong> I could not find the DAT file to restore this adoption from.");
 
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/encounter.jsp?number="+encounterNumber+"\">Return to encounter "+encounterNumber+"</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
 
@@ -130,7 +133,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to resurrect the adoption because I did not know which adoption you were referring to, or this adoption still exists in the database!");
       //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark "+request.getParameter("shark")+"</a></p>\n");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();

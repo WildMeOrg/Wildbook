@@ -20,50 +20,49 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.grid.GridManager,org.ecocean.grid.GridManagerFactory, java.util.Properties,java.util.ArrayList" %>
+         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities, java.util.Properties,java.util.ArrayList" %>
 
 
 <%
 
-  //grab a gridManager
-  GridManager gm = GridManagerFactory.getGridManager();
-  int numProcessors = gm.getNumProcessors();
-  int numWorkItems = gm.getIncompleteWork().size();
+String context="context0";
+context=ServletUtilities.getContext(request);
 
-  Shepherd myShepherd = new Shepherd();
+  
+
+  Shepherd myShepherd = new Shepherd(context);
   
   	
 
 //setup our Properties object to hold all properties
 
   //language setup
-  String langCode = "en";
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
 
   Properties props = new Properties();
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/overview.properties"));
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/overview.properties"));
+  props = ShepherdProperties.getProperties("overview.properties", langCode,context);
+
 
 
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle()%>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
-
-
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
   <style type="text/css">
     <!--
 

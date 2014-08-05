@@ -20,16 +20,20 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.CommonConfiguration, org.ecocean.Shepherd, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 <html>
 <%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
   session.setMaxInactiveInterval(6000);
   String num = request.getParameter("number");
-  Shepherd myShepherd = new Shepherd();
-  if (request.getParameter("writeThis") == null) {
-    myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
-  }
-  Shepherd altShepherd = new Shepherd();
+  //Shepherd myShepherd = new Shepherd(context);
+  //if (request.getParameter("writeThis") == null) {
+  //  myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
+  //}
+  //Shepherd altShepherd = new Shepherd(context);
   String sessionId = session.getId();
   boolean xmlOK = false;
   SAXReader xmlReader = new SAXReader();
@@ -40,16 +44,17 @@
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  //if(!encountersDir.exists()){encountersDir.mkdir();}
-  File thisEncounterDir = new File(encountersDir, num);
+  //if(!encountersDir.exists()){encountersDir.mkdirs();}
+	String encSubdir = Encounter.subdir(num);
+  //File thisEncounterDir = new File(encountersDir, encSubdir);   //never used??
  
 %>
 
 <head>
-  <title>Best matches for #<%=num%>
+  <title>Best matches for Encounter <%=num%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
   <meta http-equiv="expires" content="0">
@@ -124,12 +129,12 @@
     String fileSider = "";
     File finalXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullRightScan.xml");
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightScan.xml");
 
       side2 = "right";
       fileSider = "&rightSide=true";
     } else {
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullScan.xml");
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
 
     }
     if (finalXMLFile.exists()) {
@@ -163,12 +168,12 @@
     try {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullRightI3SScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightI3SScan.xml");
 
         side = "right";
       } else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + num + "/lastFullI3SScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
       }
       doc = xmlReader.read(file);
       root = doc.getRootElement();
@@ -197,7 +202,7 @@
 <p>
 
 <h2>I3S Scan Results <a
-  href="<%=CommonConfiguration.getWikiLocation()%>scan_results"
+  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
   target="_blank"><img src="../images/information_icon_svg.gif"
                        alt="Help" border="0" align="absmiddle"></a></h2>
 </p>
@@ -360,11 +365,11 @@
 <p>
   <%
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
-    String baseURL = "/"+CommonConfiguration.getDataDirectoryName()+"/encounters/";
+    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
 
 //myShepherd.rollbackDBTransaction();
-    myShepherd = null;
+   //myShepherd = null;
     doc = null;
     root = null;
     initresults = null;
@@ -374,9 +379,9 @@
     System.out.println("Base URL is: " + baseURL);
     if (xmlOK) {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        feedURL = baseURL + num + "/lastFullRightI3SScan.xml?";
+        feedURL = baseURL + encSubdir + "/lastFullRightI3SScan.xml?";
       } else {
-        feedURL = baseURL + num + "/lastFullI3SScan.xml?";
+        feedURL = baseURL + encSubdir + "/lastFullI3SScan.xml?";
       }
     }
     String rightSA = "";

@@ -34,7 +34,9 @@ public class TissueSampleSetMeasurement extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
-    Shepherd myShepherd=new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd=new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -61,12 +63,12 @@ public class TissueSampleSetMeasurement extends HttpServlet {
             
               //let's determine the units
               String units="";
-              if((request.getParameter("measurementType")!=null)&&(CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim())!=null)){
-                int index=CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim()).intValue();
+              if((request.getParameter("measurementType")!=null)&&(CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim(),context)!=null)){
+                int index=CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim(),context).intValue();
                 System.out.println("     TissueSampleSetMeasurement index: "+index);
-                if(CommonConfiguration.getProperty("biologicalMeasurementUnits"+index)!=null){
+                if(CommonConfiguration.getProperty(("biologicalMeasurementUnits"+index),context)!=null){
                   System.out.println("Found units!");
-                  units=CommonConfiguration.getProperty("biologicalMeasurementUnits"+index);
+                  units=CommonConfiguration.getProperty(("biologicalMeasurementUnits"+index),context);
                 }
               }
             
@@ -92,12 +94,12 @@ public class TissueSampleSetMeasurement extends HttpServlet {
             
               //let's determine the units
               String units="";
-              if((request.getParameter("measurementType")!=null)&&(CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim())!=null)){
-                int index=CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim()).intValue();
+              if((request.getParameter("measurementType")!=null)&&(CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim(),context)!=null)){
+                int index=CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim(),context).intValue();
                 System.out.println("     TissueSampleSetMeasurement index: "+index);
-                if(CommonConfiguration.getProperty("biologicalMeasurementUnits"+index)!=null){
+                if(CommonConfiguration.getProperty(("biologicalMeasurementUnits"+index),context)!=null){
                   System.out.println("Found units!");
-                  units=CommonConfiguration.getProperty("biologicalMeasurementUnits"+index);
+                  units=CommonConfiguration.getProperty(("biologicalMeasurementUnits"+index),context);
                 }
               }
               
@@ -139,26 +141,27 @@ public class TissueSampleSetMeasurement extends HttpServlet {
         out.println("<p><strong>Success!</strong> I have successfully set a biological\\chemical measurement value for tissue sample "+sampleID+".");
 
         out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
       else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.");
 
         out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
       }
       
     }
     else {
       myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the measurements. I cannot find the encounter or tissue sample that you intended in the database.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();
-    myShepherd.closeDBTransaction();
+    
   } 
   
 

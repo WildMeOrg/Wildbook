@@ -1,10 +1,13 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-	import="java.util.Calendar,java.util.GregorianCalendar,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.StringTokenizer, org.ecocean.*"%>
+	import="org.ecocean.servlet.ServletUtilities,java.util.Calendar,java.util.GregorianCalendar,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.StringTokenizer, org.ecocean.*"%>
 
 
 <%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
 
 //handle some cache-related security
 response.setHeader("Cache-Control","no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -20,11 +23,14 @@ if((request.getParameter("locCode")!=null)&&(!request.getParameter("locCode").eq
 }
 
 //let's load encounterSearch.properties
-String langCode="en";
-if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
+//String langCode="en";
+String langCode=ServletUtilities.getLanguageCode(request);
+
+
 Properties calprops=new Properties();
-calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.properties"));
-	
+//calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.properties"));
+calprops = ShepherdProperties.getProperties("calendar.properties", langCode, context);
+
 
 
 %>
@@ -33,18 +39,18 @@ calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.pro
 
 <head>
 
-<title><%=CommonConfiguration.getHTMLTitle() %></title>
+<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="Description"
-	content="<%=CommonConfiguration.getHTMLDescription() %>" />
+	content="<%=CommonConfiguration.getHTMLDescription(context) %>" />
 <meta name="Keywords"
-	content="<%=CommonConfiguration.getHTMLKeywords() %>" />
-<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>" />
-<link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+	content="<%=CommonConfiguration.getHTMLKeywords(context) %>" />
+<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>" />
+<link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
 	rel="stylesheet" type="text/css" />
 
 <link rel="shortcut icon"
-	href="<%=CommonConfiguration.getHTMLShortcutIcon() %>" />
+	href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>" />
 
 </head>
 
@@ -98,7 +104,7 @@ calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.pro
 			Calendar cal=Calendar.getInstance();
 			int nowYear = cal.get(Calendar.YEAR);
 			int nowMonth = cal.get(Calendar.MONTH)+1;
-			Shepherd myShepherd = new Shepherd();
+			Shepherd myShepherd = new Shepherd(context);
 			myShepherd.beginDBTransaction();
 			try{
 				

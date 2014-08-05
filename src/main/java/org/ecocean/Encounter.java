@@ -28,10 +28,12 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.GregorianCalendar;
+import java.io.*;
 import org.ecocean.genetics.*;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
+import org.ecocean.Util;
 
 
 /**
@@ -98,6 +100,8 @@ public class Encounter implements java.io.Serializable {
   
   // If Encounter spanned more than one day, date of release
   private Date releaseDate;
+  
+  private Long releaseDateLong;
 
   //Size of the individual in meters
   private Double size;
@@ -359,7 +363,8 @@ public class Encounter implements java.io.Serializable {
    * Acceptable values are "Male" or "Female"
    */
   public void setSex(String thesex) {
-    sex = thesex;
+    if(thesex!=null){sex = thesex;}
+    else{sex=null;}
   }
 
   /**
@@ -645,6 +650,43 @@ public class Encounter implements java.io.Serializable {
   public String getEncounterNumber() {
     return catalogNumber;
   }
+
+
+	public String generateEncounterNumber() {
+		return Util.generateUUID();
+	}
+
+
+	public String dir(String baseDir) {
+		return baseDir + File.separator + "encounters" + File.separator + this.subdir();
+	}
+
+
+	//like above, but class method so you pass the encID
+	public static String dir(String baseDir, String id) {
+		return baseDir + File.separator + "encounters" + File.separator + subdir(id);
+	}
+
+
+	//like above, but can pass a File in for base
+	public static String dir(File baseDir, String id) {
+		return baseDir.getAbsolutePath() + File.separator + "encounters" + File.separator + subdir(id);
+	}
+
+
+	//subdir() is kind of a utility function, which can be called as enc.subdir() or Encounter.subdir(IDSTRING) as needed
+	public String subdir() {
+		return subdir(this.getEncounterNumber());
+	}
+
+	public static String subdir(String id) {
+		String d = id;  //old-world
+		if (Util.isUUID(id)) {  //new-world
+			d = id.charAt(0) + File.separator + id.charAt(1) + File.separator + id;
+		}
+		return d;
+	}
+
 
   /**
    * Returns the date of this encounter.
@@ -1150,12 +1192,20 @@ public class Encounter implements java.io.Serializable {
   //public void setDateAdded(long date){dateAdded=date;}
   //public long getDateAdded(){return dateAdded;}
 
-  public Date getReleaseDate() {
+  public Date getReleaseDateDONOTUSE() {
     return releaseDate;
   }
+  
+   public Date getReleaseDate() {
+    if((releaseDateLong!=null)&&(releaseDateLong>0)){
+      Date mDate=new Date(releaseDateLong);
+      return mDate;
+    }
+    return null;
+  }
 
-  public void setReleaseDate(Date releaseDate) {
-    this.releaseDate = releaseDate;
+  public void setReleaseDate(Long releaseDate) {
+    this.releaseDateLong = releaseDate;
   }
 
   public void setDWCDecimalLatitude(double lat) {
@@ -1713,7 +1763,7 @@ public class Encounter implements java.io.Serializable {
      }
      return false; 
     }
-    
+
     public String getState(){return state;}
     
     public void setState(String newState){this.state=newState;}

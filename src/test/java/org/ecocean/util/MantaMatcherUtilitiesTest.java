@@ -1,4 +1,4 @@
-package org.ecocean.util;
+package org.ecocean.mmutil;
 
 import java.io.File;
 import java.util.Map;
