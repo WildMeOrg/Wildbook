@@ -20,20 +20,29 @@
 package org.ecocean.servlet.importer;
 
 import com.oreilly.servlet.multipart.*;
+
 import org.ecocean.*;
 import org.ecocean.servlet.*;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
+
 import au.com.bytecode.opencsv.CSVReader;
+
 import java.util.List;
+
 import org.joda.time.*;
 import org.joda.time.format.*;
+
 import java.lang.IllegalArgumentException;
+
 import org.ecocean.genetics.*;
+
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -53,17 +62,19 @@ public class ImportSRGD extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
 
     System.out.println("\n\nStarting ImportSRGD servlet...");
     
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File tempSubdir = new File(webappsDir, "temp");
-    if(!tempSubdir.exists()){tempSubdir.mkdir();}
+    if(!tempSubdir.exists()){tempSubdir.mkdirs();}
     System.out.println("\n\n     Finished directory creation...");
     
     
@@ -81,7 +92,7 @@ public class ImportSRGD extends HttpServlet {
     File finalFile=new File(tempSubdir,"temp.csv");
     
     try {
-      MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576));
+      MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576));
       Part part;
       while ((part = mp.readNextPart()) != null) {
         String name = part.getName();
@@ -102,7 +113,7 @@ public class ImportSRGD extends HttpServlet {
           if (fileName != null) {
             System.out.println("     Trying to upload file: "+fileName);
             //File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ encounterNumber);
-            //if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
+            //if(!thisSharkDir.exists()){thisSharkDir.mkdirs();}
             finalFile=new File(tempSubdir, fileName);
             filePart.writeTo(finalFile);
             successfullyWroteFile=true;
@@ -306,9 +317,11 @@ public class ImportSRGD extends HttpServlet {
                 
                 if(myShepherd.isOccurrence(occurID)){
                   occur=myShepherd.getOccurrence(occurID);
-                  occur.addEncounter(enc);
-                  occur.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc.getCatalogNumber() + ".</p>");
-                  
+                  boolean isNew=occur.addEncounter(enc);
+                  if(isNew){
+                    occur.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc.getCatalogNumber() + ".</p>");
+                  }
+                
                 }
                 else{
                   occur=new Occurrence(occurID,enc);
@@ -467,8 +480,11 @@ public class ImportSRGD extends HttpServlet {
                   else{
                     indie.setIndividualID(individualID);
                   }
+                  
+                  //OK to generically add it as the addEncounter() method will ignore it if already added to marked individual
                   indie.addEncounter(enc2);
-                  if((indie.getSex()==null)||(indie.getSex()!=enc2.getSex())){
+
+                  if((indie.getSex()==null)||((enc2.getSex()!=null)&&(indie.getSex()!=enc2.getSex()))){
                     indie.setSex(enc2.getSex());
                     indie.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set sex to " + enc2.getSex() + ".</p>");
                     
@@ -517,7 +533,7 @@ public class ImportSRGD extends HttpServlet {
           out.println("<p><a href=\"appadmin/import.jsp\">Return to the import page</a></p>" );
 
           
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           } 
       
     } 
@@ -525,13 +541,13 @@ public class ImportSRGD extends HttpServlet {
       lEx.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to upload your SRGD CSV. Please contact the webmaster about this message.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     } 
     catch (NullPointerException npe) {
       npe.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to import SRGD data as no file was specified.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
     out.close();
   }

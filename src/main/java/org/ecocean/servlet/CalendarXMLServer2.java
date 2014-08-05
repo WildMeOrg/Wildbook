@@ -25,13 +25,17 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServlet;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 import java.util.Iterator;
+
 import org.ecocean.*;
+
 import javax.jdo.Query;
 import javax.jdo.Extent;
+
 import java.lang.NumberFormatException;
 import java.util.StringTokenizer;
 
@@ -60,9 +64,10 @@ public class CalendarXMLServer2 extends HttpServlet {
       	out.println("<data>");
 		
       	
-      	
+      	String context="context0";
+        context=ServletUtilities.getContext(request);	
 		//establish a shepherd to manage DB interactions
-		Shepherd myShepherd=new Shepherd();
+		Shepherd myShepherd=new Shepherd(context);
 		
 		//change
 		Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
@@ -167,9 +172,11 @@ public class CalendarXMLServer2 extends HttpServlet {
       				if(tempEnc!=null){
       					if(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
       					
+      					  
+      					  
 							String sex="-";
 							MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.isAssignedToMarkedIndividual());
-							if((!sharky.getSex().equals("Unknown"))&&(!sharky.getSex().equals("unknown"))) {
+							if((sharky.getSex()!=null)&&(!sharky.getSex().toLowerCase().equals("unknown"))) {
 								if(sharky.getSex().equals("male")){
 									sex="M";
 								}
@@ -177,6 +184,9 @@ public class CalendarXMLServer2 extends HttpServlet {
 									sex="F";
 								}
 							}
+							
+							
+							
 
    							String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
    							outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
@@ -184,16 +194,22 @@ public class CalendarXMLServer2 extends HttpServlet {
    							outputXML+="<text><![CDATA["+tempEnc.getIndividualID()+"("+sex+")]]></text>";
    							outputXML+="<details></details></event>";
    							out.println(outputXML);
-      				 } else{
-      				 	String sex="-";
-      				 	if((!tempEnc.getSex().equals("Unknown"))&&(!tempEnc.getSex().equals("unknown"))) {
-							if(tempEnc.getSex().equals("male")){
-									sex="M";
-								}
-								else{
-									sex="F";
-								}
-						}
+      				} 
+      			else{
+      				 	
+      				   
+              String sex="-";
+              if((tempEnc.getSex()!=null)&&(!tempEnc.getSex().toLowerCase().equals("unknown"))) {
+                if(tempEnc.getSex().equals("male")){
+                  sex="M";
+                }
+                else{
+                  sex="F";
+                }
+              }
+      				 	
+      				 	
+      				 	
 						String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
 							outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
 							outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:01"+"</end_date>";

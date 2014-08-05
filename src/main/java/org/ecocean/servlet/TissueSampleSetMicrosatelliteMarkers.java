@@ -27,6 +27,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -44,7 +45,9 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -64,7 +67,7 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
       int numLoci=0;
       int numPloids=2; //most covered species will be diploids
       try{
-        numPloids=(new Integer(CommonConfiguration.getProperty("numPloids"))).intValue();
+        numPloids=(new Integer(CommonConfiguration.getProperty("numPloids",context))).intValue();
       }
       catch(Exception e){System.out.println("numPloids configuration value did not resolve to an integer.");e.printStackTrace();}
       
@@ -135,7 +138,7 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
         out.println("<strong>Success!</strong> I have successfully set the microsatellite markers for tissue sample " + request.getParameter("sampleID") + " for encounter "+encounterNumber+".</p>");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
         } 
       else {
 
@@ -143,7 +146,7 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user or is inaccessible. Please wait a few seconds before trying to modify this encounter again.");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
     } 
@@ -151,7 +154,7 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the microsatellite markers. I cannot find the encounter or tissue sample that you intended it for in the database.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();

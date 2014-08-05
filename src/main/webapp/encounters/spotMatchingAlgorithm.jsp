@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -20,21 +20,27 @@
   --%>
 
 <%
-if(CommonConfiguration.useSpotPatternRecognition()){
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+if(CommonConfiguration.useSpotPatternRecognition(context)){
 	
 	
 String encNum = request.getParameter("encounterNumber");
 
 
-Shepherd myShepherd = new Shepherd();
+Shepherd myShepherd = new Shepherd(context);
 		  
 //let's set up references to our file system components
-		  String rootWebappPath = getServletContext().getRealPath("/");
+		 
+			String rootWebappPath = getServletContext().getRealPath("/");
 		  File webappsDir = new File(rootWebappPath).getParentFile();
-		  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
+		  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 		  File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-		  File encounterDir = new File(encountersDir, encNum);
-
+		  //File encounterDir = new File(encountersDir, encNum);
+		
+		
+		File encounterDir = new File(Encounter.dir(shepherdDataDir, encNum));
 		
 try {
 	
@@ -49,16 +55,14 @@ try {
   myShepherd.beginDBTransaction();
   Encounter enc=myShepherd.getEncounter(encNum);
 
-  String langCode = "en";
+  //String langCode = "en";
 
-  //check what language is requested
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
 
   
   
-  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode);
+  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 //handle translation
 
   
@@ -77,6 +81,7 @@ try {
 
 %>
   <p><a name="spotpatternmatching"></a><strong>Spot Matching Algorithms (Modified Groth and I3S)</strong></p>
+
 
 
 	<!-- Display spot patterning so long as show_spotpatterning is not false in commonCOnfiguration.properties-->
@@ -108,7 +113,7 @@ try {
   						<em><%=ready%></em><br />
   
   						<%
-  						if(((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) && isOwner && CommonConfiguration.isCatalogEditable()) { %>
+  						if(((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0)) && isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
 							<font size="-1">
 								<a id="rmspots" class="launchPopup"><img align="absmiddle" src="../images/cancel.gif"/></a> <a id="rmspots" class="launchPopup">Remove spots</a>
 							</font> 
@@ -232,7 +237,7 @@ try {
 
   	<p>
     <%
-		 	if (request.getParameter("isOwner").equals("true")&&CommonConfiguration.useSpotPatternRecognition()&&((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
+		 	if (request.getParameter("isOwner").equals("true")&&CommonConfiguration.useSpotPatternRecognition(context)&&((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
 		 	
 
 		 			
@@ -253,8 +258,10 @@ try {
 		 			
 		 			String extractLocation="file-"+encounterDir.getAbsolutePath()+"/extract"+encNum+".jpg";
 		 			String extractRightLocation="file-"+encounterDir.getAbsolutePath()+"/extractRight"+encNum+".jpg";
-		 			String addText=encNum+"/"+enc.getSpotImageFileName();
-		 			String addTextRight=encNum+"/"+enc.getRightSpotImageFileName();
+		 			
+		 			
+		 			String addText=enc.getSpotImageFileName();
+		 			String addTextRight=enc.getRightSpotImageFileName();
 		 			//System.out.println(addText);
 		 			String height="";
 		 			String width="";
@@ -285,7 +292,7 @@ try {
 		 					%>
   							<di:img width="<%=intWidth%>" height="<%=intHeight%>" imgParams="rendering=speed,quality=low" expAfter="0" border="0" threading="limited" output="<%=extractLocation%>">
           						<%
-          						String src_ur_value=encountersDir.getAbsolutePath()+"/"+addText;
+          						String src_ur_value=encounterDir.getAbsolutePath()+"/"+addText;
           			
           						%>
     							<di:image srcurl="<%=src_ur_value%>"/>
@@ -318,7 +325,7 @@ try {
 										%>
   										<di:img width="<%=intWidthR%>" height="<%=intHeightR%>" imgParams="rendering=speed,quality=low" expAfter="0" threading="limited" border="0" output="<%=extractRightLocation%>">
           									<%
-          									String src_ur_value=encountersDir.getAbsolutePath()+"/"+addTextRight;
+          									String src_ur_value=encounterDir.getAbsolutePath()+"/"+addTextRight;
           									%>
     										<di:image srcurl="<%=src_ur_value%>"/>
   										</di:img> 
@@ -326,8 +333,8 @@ try {
 									}
 								}
 									
-								String fileloc="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(encNum+"/"+enc.getSpotImageFileName());
-								String filelocR="/"+CommonConfiguration.getDataDirectoryName()+"/encounters/"+(encNum+"/"+enc.getRightSpotImageFileName());
+								String fileloc="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getSpotImageFileName());
+								String filelocR="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getRightSpotImageFileName());
 					%>
 
 <p class="para"><strong><em>Spot data image files used for matching</em></strong><br/> 

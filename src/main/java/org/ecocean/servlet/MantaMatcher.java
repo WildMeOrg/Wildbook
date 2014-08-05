@@ -20,17 +20,20 @@ package org.ecocean.servlet;
 
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.Map;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.ecocean.*;
-import org.ecocean.util.MantaMatcherUtilities;
+import org.ecocean.mmutil.MantaMatcherUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +85,11 @@ public final class MantaMatcher extends DispatchServlet {
       if (num == null || "".equals(num.trim())) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified");
       }
-      Shepherd shepherd = new Shepherd();
+      
+      String context="context0";
+      context=ServletUtilities.getContext(req);
+      
+      Shepherd shepherd = new Shepherd(context);
       SinglePhotoVideo spv = shepherd.getSinglePhotoVideo(num);
       if (spv == null) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
@@ -113,7 +120,9 @@ public final class MantaMatcher extends DispatchServlet {
       if (num == null || "".equals(num.trim())) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified");
       }
-      Shepherd shepherd = new Shepherd();
+      String context="context0";
+      context=ServletUtilities.getContext(req);
+      Shepherd shepherd = new Shepherd(context);
       SinglePhotoVideo spv = shepherd.getSinglePhotoVideo(num);
       if (spv == null) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
@@ -141,6 +150,9 @@ public final class MantaMatcher extends DispatchServlet {
           throws IOException, URISyntaxException, ParseException, TemplateException {
     assert spv != null;
     assert mmaResults != null;
+    
+    String context="context0";
+    context=ServletUtilities.getContext(req);
 
     // Find FreeMarker config in ServletContext, or create if doesn't exist.
     Configuration conf = (Configuration)getServletContext().getAttribute("templateConfig");
@@ -151,7 +163,7 @@ public final class MantaMatcher extends DispatchServlet {
     }
 
     // URL prefix of the encounters folder (for image links).
-    String dir = "/" + CommonConfiguration.getDataDirectoryName() + "/encounters";
+    String dir = "/" + CommonConfiguration.getDataDirectoryName(context) + "/encounters";
     String encUrlPrefix = String.format("%s/", CommonConfiguration.getServerURL(req, dir));
     // Format string for encounter page URL (with placeholder).
     String pageFormat = "//" + CommonConfiguration.getURLLocation(req) + "/encounters/encounter.jsp?number=%s";

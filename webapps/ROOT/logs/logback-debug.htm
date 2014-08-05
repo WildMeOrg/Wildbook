@@ -1,0 +1,2814 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>Logback Log Messages</title>
+<style  type="text/css">
+table { margin-left: 2em; margin-right: 2em; border-left: 2px solid #AAA; }
+TR.even { background: #FFFFFF; }
+TR.odd { background: #EAEAEA; }
+TR.warn TD.Level, TR.error TD.Level, TR.fatal TD.Level {font-weight: bold; color: #FF4040 }
+TD { padding-right: 1ex; padding-left: 1ex; border-right: 2px solid #AAA; }
+TD.Time, TD.Date { text-align: right; font-family: courier, monospace; font-size: smaller; }
+TD.Thread { text-align: left; }
+TD.Level { text-align: right; }
+TD.Logger { text-align: left; }
+TR.header { background: #596ED5; color: #FFF; font-weight: bold; font-size: larger; }
+TD.Exception { background: #A2AEE8; font-family: courier, monospace;}
+</style>
+
+  </head>
+<body>
+<hr/>
+<p>Log session start time Thu Jul 31 03:21:02 EDT 2014</p><p></p>
+
+<table cellspacing="0">
+<tr class="header">
+<td class="Date">Date</td>
+<td class="Thread">Thread</td>
+<td class="MDC">MDC</td>
+<td class="Level">Level</td>
+<td class="Logger">Logger</td>
+<td class="Message">Message</td>
+</tr>
+
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,352</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.config.Ini</td>
+<td class="Message">Parsing [main]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,356</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.config.Ini</td>
+<td class="Message">Parsing [filters]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,356</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.config.Ini</td>
+<td class="Message">Parsing [urls]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,370</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.config.IniFactorySupport</td>
+<td class="Message">Creating instance from Ini [sections=main,urls]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,474</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.realm.AuthorizingRealm</td>
+<td class="Message">No authorizationCache instance set.  Checking for a cacheManager...</td>
+</tr>
+
+<tr class="info odd">
+<td class="Date">2014-07-31 03:21:02,474</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">INFO</td>
+<td class="Logger">org.apache.shiro.realm.AuthorizingRealm</td>
+<td class="Message">No cache or cacheManager properties have been set.  Authorization cache cannot be obtained.</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,475</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.config.IniFactorySupport</td>
+<td class="Message">Creating instance from Ini [sections=main,urls]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,478</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/DeleteAllDataPermanently] from String definition [authc, roles[destroyer]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,478</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/DeleteAllDataPermanently] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,479</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/DeleteAllDataPermanently] to filter [roles] with config [destroyer]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/appadmin/**] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/appadmin/**] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/appadmin/**] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/logs/**] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/logs/**] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/logs/**] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/RelationshipCreate] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/RelationshipCreate] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/RelationshipCreate] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/RelationshipDelete] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/RelationshipDelete] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/RelationshipDelete] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/MassSetInformOthers] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MassSetInformOthers] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MassSetInformOthers] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/MassExposeGBIF] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MassExposeGBIF] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,480</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MassExposeGBIF] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/MassSetLocationCodeFromLocationString] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MassSetLocationCodeFromLocationString] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MassSetLocationCodeFromLocationString] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/MassSwapLocationCode] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MassSwapLocationCode] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MassSwapLocationCode] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/UserCreate] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UserCreate] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UserCreate] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/UserDelete] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UserDelete] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UserDelete] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/appadmin/batch*] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/appadmin/batch*] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,481</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/appadmin/batch*] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/ResetCommonConfiguration] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/ResetCommonConfiguration] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/ResetCommonConfiguration] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/ResurrectDeletedEncounter] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/ResurrectDeletedEncounter] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/ResurrectDeletedEncounter] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/UserResetAcceptedUserAgreement] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UserResetAcceptedUserAgreement] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UserResetAcceptedUserAgreement] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/InterconnectSubmitSpots] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/InterconnectSubmitSpots] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/InterconnectSubmitSpots] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,482</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/interconnectSubmitSpots] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/interconnectSubmitSpots] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/interconnectSubmitSpots] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/ImportSRGD] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/ImportSRGD] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/ImportSRGD] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/appadmin/scanTaskAdmin.jsp] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/appadmin/scanTaskAdmin.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/appadmin/scanTaskAdmin.jsp] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/encounters/encounterSpotVisualizer.jsp] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/encounterSpotVisualizer.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/encounterSpotVisualizer.jsp] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/interconnect/mac/Interconnect.jar] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/interconnect/mac/Interconnect.jar] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,483</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/interconnect/mac/Interconnect.jar] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/UpdateEmailAddress] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UpdateEmailAddress] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UpdateEmailAddress] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/BatchUpload/**] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/BatchUpload/**] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/BatchUpload/**] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/MantaMatcher] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MantaMatcher] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MantaMatcher] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSetSubmitterID] from String definition [authc, roles[manager]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetSubmitterID] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetSubmitterID] to filter [roles] with config [manager]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,484</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSetTapirLinkExposure] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetTapirLinkExposure] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetTapirLinkExposure] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/GenePopExport] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/GenePopExport] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/GenePopExport] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/individualSearchResultsExport.jsp] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/individualSearchResultsExport.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/individualSearchResultsExport.jsp] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/encounters/exportSearchResults.jsp] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/exportSearchResults.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/exportSearchResults.jsp] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/encounters/searchComparison.jsp] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,485</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/searchComparison.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/searchComparison.jsp] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/encounters/searchComparisonResults.jsp] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/searchComparisonResults.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/searchComparisonResults.jsp] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/IndividualSetAlternateID] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualSetAlternateID] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualSetAlternateID] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSetScarring] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetScarring] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetScarring] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSetVerbatimEventDate] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetVerbatimEventDate] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetVerbatimEventDate] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSetLifeStage] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetLifeStage] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,486</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetLifeStage] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSetCountry] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetCountry] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetCountry] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSetTissueSample] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetTissueSample] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetTissueSample] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/TissueSampleSetHaplotype] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleSetHaplotype] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleSetHaplotype] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/TissueSampleSetMeasurement] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleSetMeasurement] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleSetMeasurement] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/TissueSampleRemoveHaplotype] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleRemoveHaplotype] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleRemoveHaplotype] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/TissueSampleRemoveBiologicalMeasurement] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleRemoveBiologicalMeasurement] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleRemoveBiologicalMeasurement] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/IndividualCreate] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,487</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualCreate] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualCreate] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/OccurrenceCreate] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceCreate] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceCreate] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/OccurrenceRemoveEncounter] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceRemoveEncounter] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceRemoveEncounter] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/IndividualRemoveEncounter] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualRemoveEncounter] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualRemoveEncounter] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/OccurrenceAddEncounter] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceAddEncounter] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceAddEncounter] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/IndividualAddEncounter] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualAddEncounter] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualAddEncounter] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/TissueSampleSetSexAnalysis] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleSetSexAnalysis] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleSetSexAnalysis] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/TissueSampleRemoveSexAnalysis] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,488</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleRemoveSexAnalysis] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/TissueSampleRemoveSexAnalysis] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterRemoveTissueSample] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterRemoveTissueSample] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterRemoveTissueSample] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSearchExportGeneGISFormat] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSearchExportGeneGISFormat] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSearchExportGeneGISFormat] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSearchExportKML] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSearchExportKML] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSearchExportKML] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSearchExportExcelFile] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSearchExportExcelFile] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSearchExportExcelFile] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSearchExportShapefile] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSearchExportShapefile] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSearchExportShapefile] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSearchExportEmailAddresses] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSearchExportEmailAddresses] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSearchExportEmailAddresses] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,489</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/OccurrenceSetIndividualCount] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceSetIndividualCount] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceSetIndividualCount] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/IndividualAddComment] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualAddComment] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualAddComment] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/SimpleCMROutput] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/SimpleCMROutput] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/SimpleCMROutput] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/GenalexExportCodominantMSDataBySize] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/GenalexExportCodominantMSDataBySize] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/GenalexExportCodominantMSDataBySize] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/SOCPROGExport] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/SOCPROGExport] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/SOCPROGExport] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/OccurrenceSetGroupBehavior] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceSetGroupBehavior] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceSetGroupBehavior] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSetBehavior] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,490</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetBehavior] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetBehavior] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/CJS] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/CJS] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/CJS] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/software.jsp] from String definition [authc, roles[researcher]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/software.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/software.jsp] to filter [roles] with config [researcher]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/SinglePhotoVideoRemoveKeyword] from String definition [authc, roles[imageProcessor]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/SinglePhotoVideoRemoveKeyword] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/SinglePhotoVideoRemoveKeyword] to filter [roles] with config [imageProcessor]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/SinglePhotoVideoAddKeyword] from String definition [authc, roles[imageProcessor]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/SinglePhotoVideoAddKeyword] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/SinglePhotoVideoAddKeyword] to filter [roles] with config [imageProcessor]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterRemoveImage] from String definition [authc, roles[imageProcessor]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterRemoveImage] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterRemoveImage] to filter [roles] with config [imageProcessor]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterAddImage] from String definition [authc, roles[imageProcessor]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterAddImage] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterAddImage] to filter [roles] with config [imageProcessor]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,491</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterAddMantaPattern] from String definition [authc, roles[imageProcessor]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterAddMantaPattern] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterAddMantaPattern] to filter [roles] with config [imageProcessor]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/KeywordHandler] from String definition [authc, roles[imageProcessor]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/KeywordHandler] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/KeywordHandler] to filter [roles] with config [imageProcessor]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/AdoptionAction] from String definition [authc, roles[adoption]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/AdoptionAction] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/AdoptionAction] to filter [roles] with config [adoption]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/AdoptionForm] from String definition [authc, roles[adoption]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/AdoptionForm] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/AdoptionForm] to filter [roles] with config [adoption]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/DeleteAdoption] from String definition [authc, roles[adoption]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/DeleteAdoption] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/DeleteAdoption] to filter [roles] with config [adoption]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/ResurrectDeletedAdoption] from String definition [authc, roles[adoption]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/ResurrectDeletedAdoption] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/ResurrectDeletedAdoption] to filter [roles] with config [adoption]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterSetState] from String definition [authc, roles[approve]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetState] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,492</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterSetState] to filter [roles] with config [approve]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterDelete] from String definition [authc, roles[approve]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterDelete] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterDelete] to filter [roles] with config [approve]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/xcalendar/**] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/xcalendar/**] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/xcalendar/**] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/individualSearch.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/individualSearch.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/individualSearch.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/individualSearchResultsAnalysis.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/individualSearchResultsAnalysis.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/individualSearchResultsAnalysis.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/individualMappedSearchResults.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/individualMappedSearchResults.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/individualMappedSearchResults.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/individualThumbnailSearchResults.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/individualThumbnailSearchResults.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/individualThumbnailSearchResults.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/encounters/encounterSearch.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/encounterSearch.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,493</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/encounterSearch.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/encounters/searchResults.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/searchResults.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/searchResults.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/encounters/searchResultsAnalysis.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/searchResultsAnalysis.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/searchResultsAnalysis.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/encounters/mappedSearchResults.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/mappedSearchResults.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/mappedSearchResults.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/encounters/mappedSearchResultsSex.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/mappedSearchResultsSex.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/mappedSearchResultsSex.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/encounters/mappedSearchResultsHaplotype.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/mappedSearchResultsHaplotype.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/encounters/mappedSearchResultsHaplotype.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/googleSearch.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/googleSearch.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/googleSearch.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/googleSearchResults.jsp] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/googleSearchResults.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/googleSearchResults.jsp] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/EncounterAddComment] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterAddComment] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,494</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/EncounterAddComment] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/OccurrenceAddComment] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceAddComment] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/OccurrenceAddComment] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/CalendarXMLServer] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/CalendarXMLServer] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/CalendarXMLServer] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/CalendarXMLServer2] from String definition [authc, roles[local]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/CalendarXMLServer2] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/CalendarXMLServer2] to filter [roles] with config [local]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/welcome.jsp] from String definition [authc]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/welcome.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/UserAddProfileImage] from String definition [authc]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UserAddProfileImage] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/UserRemoveProfileImage] from String definition [authc]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UserRemoveProfileImage] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/IndividualSetYearOfBirth] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualSetYearOfBirth] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualSetYearOfBirth] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/IndividualSetYearOfDeath] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualSetYearOfDeath] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/IndividualSetYearOfDeath] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/KinalyzerExport] from String definition [authc, roles[admin]]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/KinalyzerExport] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,495</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/KinalyzerExport] to filter [roles] with config [admin]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,496</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/myAccount.jsp] from String definition [authc]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,496</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/myAccount.jsp] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,496</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/UserSelfUpdate] from String definition [authc]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,496</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/UserSelfUpdate] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,496</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/MyAccountAddProfileImage] from String definition [authc]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,496</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MyAccountAddProfileImage] to filter [authc] with config [null]</td>
+</tr>
+
+<tr class="debug odd">
+<td class="Date">2014-07-31 03:21:02,496</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Creating chain [/MyAccountRemoveProfileImage] from String definition [authc]</td>
+</tr>
+
+<tr class="debug even">
+<td class="Date">2014-07-31 03:21:02,496</td>
+<td class="Thread">main</td>
+<td class="MDC"></td>
+<td class="Level">DEBUG</td>
+<td class="Logger">org.apache.shiro.web.filter.mgt.DefaultFilterChainManager</td>
+<td class="Message">Attempting to apply path [/MyAccountRemoveProfileImage] to filter [authc] with config [null]</td>
+</tr>

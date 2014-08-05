@@ -25,12 +25,15 @@
 
 <%
 
+String context="context0";
+context=ServletUtilities.getContext(request);
+
   //grab a gridManager
   GridManager gm = GridManagerFactory.getGridManager();
   int numProcessors = gm.getNumProcessors();
   int numWorkItems = gm.getIncompleteWork().size();
 
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
   
   	//check usernames and passwords
 	myShepherd.beginDBTransaction();
@@ -50,26 +53,34 @@
   	  	System.out.println("Creating tomcat roles...");
   	  		
   	  		Role newRole1=new Role("tomcat","admin");
+  	  		newRole1.setContext("context0");
   	  		myShepherd.getPM().makePersistent(newRole1);
 	  		Role newRole4=new Role("tomcat","destroyer");
+	  		newRole4.setContext("context0");
 	  		myShepherd.getPM().makePersistent(newRole4);
 	  		
 	  		Role newRole5=new Role("tomcat","manager");
+	  		newRole5.setContext("context0");
 	  		myShepherd.getPM().makePersistent(newRole5);
 	  		
 	  		Role newRole6=new Role("tomcat","adoption");
+	  		newRole6.setContext("context0");
 	  		myShepherd.getPM().makePersistent(newRole6);
 	  		
 	  		Role newRole7=new Role("tomcat","imageProcessor");
+	  		newRole7.setContext("context0");
 	  		myShepherd.getPM().makePersistent(newRole7);
 	  		
 	  		Role newRole8=new Role("tomcat","approve");
+	  		newRole8.setContext("context0");
 				  		myShepherd.getPM().makePersistent(newRole8);
 				  		
 				  		Role newRole9=new Role("tomcat","identifier");
+				  		newRole9.setContext("context0");
 							  		myShepherd.getPM().makePersistent(newRole9);
 							  		
 							  		Role newRole2=new Role("tomcat","researcher");
+							  		newRole2.setContext("context0");
 										  		myShepherd.getPM().makePersistent(newRole2);
 	  		
 	  		
@@ -100,18 +111,18 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title><%=CommonConfiguration.getHTMLTitle()%>
+  <title><%=CommonConfiguration.getHTMLTitle(context)%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
 
   <style type="text/css">
@@ -179,7 +190,7 @@
         </div>
         <!-- end menu --></div>
       <!-- end leftcol -->
-      <div id="maincol">
+      <div id="maincol-wide">
 
         <div id="maintext">
           <h1 class="intro">Overview</h1>
@@ -225,39 +236,7 @@ specific regions.</p>
 
       </div>
       <!-- end maincol -->
-      <div id="rightcol">
-
-
-        <div class="module">
-          <h3>Find Record</h3>
-
-          <form name="form2" method="get" action="individuals.jsp">
-            <em>Enter a marked animal number, encounter number, animal nickname, or alternate
-              ID.</em><br/>
-            <input name="number" type="text" id="shark" size="25"/>
-            <input type="hidden" name="langCode" value="<%=langCode%>"/><br/>
-            <input name="Go" type="submit" id="Go2" value="Go"/>
-          </form>
-
-        </div>
-        
-      
-
-
-        <div class="module">
-          <h3>RSS/Atom Feeds</h3>
-
-          <p align="left"><a href="rss.xml"><img src="images/rssfeed.gif"
-                                                 width="80" height="15" border="0"
-                                                 alt="RSS News Feed"/></a></p>
-
-          <p align="left"><a href="atom.xml"><img
-            src="images/atom-feed-icon.gif" border="0" alt="ATOM News Feed"/></a></p>
-        </div>
-
-
-      </div>
-      <!-- end rightcol --></div>
+  </div>
     <!-- end main -->
     <jsp:include page="footer.jsp" flush="true"/>
   </div>

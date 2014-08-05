@@ -23,18 +23,25 @@ import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
+
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
+import org.ecocean.Util;
+
+import org.apache.commons.io.FilenameUtils;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+
 
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record
@@ -52,15 +59,17 @@ public class EncounterAddImage extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-    if(!encountersDir.exists()){encountersDir.mkdir();}
+    if(!encountersDir.exists()){encountersDir.mkdirs();}
     
     //set up for response
     response.setContentType("text/html");
@@ -72,7 +81,7 @@ public class EncounterAddImage extends HttpServlet {
     String fullPathFilename="";
 
     try {
-      MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes() * 1048576)); 
+      MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576)); 
       Part part;
       while ((part = mp.readNextPart()) != null) {
         String name = part.getName();
@@ -92,13 +101,15 @@ public class EncounterAddImage extends HttpServlet {
         }
 
 
+////TODO this will need to be generified for offsite storage prob via SinglePhotoVideo? as in EncounterForm?
         if (part.isFile()) {
           FilePart filePart = (FilePart) part;
           fileName = ServletUtilities.cleanFileName(filePart.getFileName());
           if (fileName != null) {
-
-            File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ encounterNumber);
-            if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
+						//fileName = Util.generateUUID() + "-orig." + FilenameUtils.getExtension(fileName);
+            //File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ Encounter.subdir(encounterNumber));
+            File thisSharkDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
+            if(!thisSharkDir.exists()){thisSharkDir.mkdirs();}
             File finalFile=new File(thisSharkDir, fileName);
             fullPathFilename=finalFile.getCanonicalPath();
             long file_size = filePart.writeTo(finalFile);
@@ -108,7 +119,8 @@ public class EncounterAddImage extends HttpServlet {
       }
       
 
-      File thisEncounterDir = new File(encountersDir, encounterNumber);
+      //File thisEncounterDir = new File(encountersDir, Encounter.subdir(encounterNumber));
+			File thisEncounterDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
       
       myShepherd.beginDBTransaction();
       if (myShepherd.isEncounter(encounterNumber)) {
@@ -138,15 +150,15 @@ public class EncounterAddImage extends HttpServlet {
             out.println("<p><i>You should also reset the thumbnail image for this encounter. You can do so by <a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/resetThumbnail.jsp?number=" + encounterNumber + "\">clicking here.</a></i></p>");
           }
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
           String message = "An additional image file has been uploaded for encounter #" + encounterNumber + ".";
-          ServletUtilities.informInterestedParties(request, encounterNumber, message);
+          ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
         } else {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to add this image again.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-          out.println(ServletUtilities.getFooter());
+          out.println(ServletUtilities.getFooter(context));
 
         }
       } else {
@@ -154,19 +166,19 @@ public class EncounterAddImage extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to upload your image file. I cannot find the encounter that you intended it for in the database.");
-        out.println(ServletUtilities.getFooter());
+        out.println(ServletUtilities.getFooter(context));
 
       }
     } catch (IOException lEx) {
       lEx.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to upload your image file. Please contact the web master about this message.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     } catch (NullPointerException npe) {
       npe.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to upload an image as no file was specified.");
-      out.println(ServletUtilities.getFooter());
+      out.println(ServletUtilities.getFooter(context));
     }
     out.close();
   }

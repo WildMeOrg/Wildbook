@@ -26,10 +26,12 @@ import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServlet;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
 import java.util.Iterator;
+
 import org.ecocean.*;
 
 
@@ -62,7 +64,9 @@ public class CalendarXMLServer extends HttpServlet {
         
         
     //establish a shepherd to manage DB interactions
-    Shepherd myShepherd=new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd=new Shepherd(context);
     
     
     int numResults=0;
@@ -109,7 +113,7 @@ public class CalendarXMLServer extends HttpServlet {
                 
                   String sex="-";
                   MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.isAssignedToMarkedIndividual());
-                  if((!sharky.getSex().equals("Unknown"))&&(!sharky.getSex().equals("unknown"))) {
+                  if((sharky.getSex()!=null)&&(!sharky.getSex().toLowerCase().equals("unknown"))) {
                     if(sharky.getSex().equals("male")){
                       sex="M";
                     }
@@ -126,15 +130,19 @@ public class CalendarXMLServer extends HttpServlet {
                   out.println(outputXML);
                 } 
                 else{
+
+                  
                   String sex="-";
-                  if((!tempEnc.getSex().equals("Unknown"))&&(!tempEnc.getSex().equals("unknown"))) {
-                     if(tempEnc.getSex().equals("male")){
-                       sex="M";
-                     }
-                     else{
-                       sex="F";
-                     }
+                  if((tempEnc.getSex()!=null)&&(!tempEnc.getSex().toLowerCase().equals("unknown"))) {
+                    if(tempEnc.getSex().equals("male")){
+                      sex="M";
+                    }
+                    else{
+                      sex="F";
+                    }
                   }
+                  
+                  
                   String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
                   outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
                   outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:01"+"</end_date>";

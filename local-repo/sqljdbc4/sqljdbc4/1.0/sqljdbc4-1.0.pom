@@ -1,0 +1,8 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <name>sqljdbc4</name>
+  <groupId>sqljdbc4</groupId>
+  <artifactId>sqljdbc4</artifactId>
+  <version>1.0</version>
+  <packaging>jar</packaging>
+</project>

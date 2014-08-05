@@ -38,11 +38,12 @@ public class NotificationMailer implements Runnable {
   Session session;
   MimeMessage message;
   public Thread mailerObject;
+  String context="context0";
 
   /**
    * Constructor to create a new shepherd thread object
    */
-  public NotificationMailer(String host, String from, String to, String subject, String text, Vector images) {
+  public NotificationMailer(String host, String from, String to, String subject, String text, Vector images,String context) {
     mailerObject = new Thread(this, "NotificationMailer");
     this.host = host;
     this.to = to;
@@ -54,6 +55,7 @@ public class NotificationMailer implements Runnable {
     props.put("mail.smtp.host", host);
     session = Session.getDefaultInstance(props, null);
     message = new MimeMessage(session);
+    this.context=context;
   }
 
 
@@ -67,7 +69,7 @@ public class NotificationMailer implements Runnable {
 
 
   public void sendIt(String host3, String from3, String to3, String subject3, String text3, Vector images3) {
-	if(CommonConfiguration.sendEmailNotifications()){
+	if(CommonConfiguration.sendEmailNotifications(context)){
 		if (!(host3.equals("None"))) {
 	      try {
 	        //set up to, from, and the text of the message

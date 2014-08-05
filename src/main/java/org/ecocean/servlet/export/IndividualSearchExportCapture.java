@@ -1,9 +1,13 @@
 package org.ecocean.servlet.export;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
 import java.io.*;
 import java.util.*;
+
 import org.ecocean.*;
+import org.ecocean.servlet.ServletUtilities;
+
 import java.lang.StringBuffer;
 
 
@@ -29,8 +33,9 @@ public class IndividualSearchExportCapture extends HttpServlet{
     //set the response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-    
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
     myShepherd.beginDBTransaction();
     String order = "";
@@ -42,7 +47,7 @@ public class IndividualSearchExportCapture extends HttpServlet{
     int numIndividuals=rIndividuals.size();
     int numSharks=0;
     out.println("<pre>");
-    out.println("title='Example CAPTURE Export of Marked Individuals from the "+CommonConfiguration.getHTMLTitle()+"'");
+    out.println("title='Example CAPTURE Export of Marked Individuals from the "+CommonConfiguration.getHTMLTitle(context)+"'");
  
  
     try {

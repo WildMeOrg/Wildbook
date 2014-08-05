@@ -31,15 +31,16 @@ import java.util.ArrayList;
 public class GridCleanupThread implements Runnable {
 
   public Thread threadCleanupObject;
-
+private String context="context0";
 
   /**
    * Constructor to create a new thread object
    */
-  public GridCleanupThread() {
+  public GridCleanupThread(String context) {
 
     threadCleanupObject = new Thread(this, "gridCleanup");
     threadCleanupObject.start();
+    this.context=context;
   }
 
 
@@ -52,31 +53,10 @@ public class GridCleanupThread implements Runnable {
 
 
   public void cleanup() {
-    Shepherd myShepherd = new Shepherd();
+    Shepherd myShepherd = new Shepherd(context);
 
     myShepherd.beginDBTransaction();
 
-
-    //Iterator matchObjects=myShepherd.getAllMatchObjectsNoQuery();
-    //int count=0;
-    /*while (matchObjects.hasNext()) {
-
-        try{
-            matchObject mo=(matchObject)matchObjects.next();
-            myShepherd.throwAwayMatchObject(mo);
-            count++;
-            if((count % 5)==0){
-                myShepherd.commitDBTransaction();
-                myShepherd.beginDBTransaction();
-            }
-        }
-        catch(Exception e) {
-            System.out.println("I failed while constructing the workItems for a new scanTask.");
-            e.printStackTrace();
-            myShepherd.rollbackDBTransaction();
-            myShepherd.beginDBTransaction();
-        }
-    }*/
 
     //Iterator vpms=myShepherd.getAllPairsNoQuery();
     Extent encClass = myShepherd.getPM().getExtent(Pair.class, true);
