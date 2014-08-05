@@ -57,7 +57,9 @@ public class EncounterVMData extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    Shepherd myShepherd = new Shepherd();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/json");
     PrintWriter out = response.getWriter();
@@ -91,6 +93,14 @@ public class EncounterVMData extends HttpServlet {
 				}
 System.out.println("candidate filter => " + filter);
 
+/*
+String rootWebappPath = getServletContext().getRealPath("/");
+String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
+Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
+File thisEncounterDir = new File(imageEnc.dir(baseDir));
+String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
+*/
+
 				Iterator all = myShepherd.getAllEncounters("catalogNumber", filter);
 				while (all.hasNext()) {
 					Encounter cand = (Encounter)all.next();
@@ -101,11 +111,11 @@ System.out.println("candidate filter => " + filter);
 					e.put("individualID", cand.getIndividualID());
 					ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
 					ArrayList images = new ArrayList();
-					String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/";
+					String dataDir = CommonConfiguration.getDataDirectoryName(context);
 					for (SinglePhotoVideo s : spvs) {
 						if (myShepherd.isAcceptableImageFile(s.getFilename())) {
 							HashMap i = new HashMap();
-							i.put("url", "/" + dataDir + "/" + cand.getCatalogNumber() + "/" + s.getFilename());
+							i.put("url", "/" + dataDir + cand.dir("") + "/" + s.getFilename());
 							List k = s.getKeywords();
 							i.put("keywords", k);
 							images.add(i);
@@ -118,7 +128,7 @@ System.out.println("candidate filter => " + filter);
 
 			} else {
 				ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
-				String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/" + enc.getCatalogNumber();
+				String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
 				ArrayList images = new ArrayList();
 				for (SinglePhotoVideo s : spvs) {

@@ -84,13 +84,21 @@
 
 //get encounter number
 String num = request.getParameter("number").replaceAll("\\+", "").trim();
+String context="context0";
+context=ServletUtilities.getContext(request);
+
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
+String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
+/*
 File webappsDir = new File(rootWebappPath).getParentFile();
 File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File encounterDir = new File(encountersDir, num);
+File thisEncounterDir = new File(imageEnc.dir(baseDir));
+String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
+*/
 
 String crExistsUrl = null;
 
@@ -126,7 +134,7 @@ String crExistsUrl = null;
   pageContext.setAttribute("num", num);
 
 
-  Shepherd myShepherd = new Shepherd();
+  Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   boolean proceed = true;
@@ -138,23 +146,23 @@ String crExistsUrl = null;
 <html>
 
 <head prefix="og:http://ogp.me/ns#">
-  <title><%=CommonConfiguration.getHTMLTitle() %> - Candidate Region Tool - <%=encprops.getProperty("encounter") %> <%=num%>
+  <title><%=CommonConfiguration.getHTMLTitle(context) %> - Candidate Region Tool - <%=encprops.getProperty("encounter") %> <%=num%>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription() %>"/>
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
   <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords() %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor() %>"/>
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
   
   
 <!-- social meta start -->
-<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle() %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
+<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
 
 <link rel="canonical" href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
 
 <meta itemprop="name" content="<%=encprops.getProperty("encounter")%> <%=request.getParameter("number")%>" />
-<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
 <%
 if (request.getParameter("number")!=null) {
 	
@@ -165,8 +173,8 @@ if (request.getParameter("number")!=null) {
 				for(int b=0;b<numImgs;b++){
 				SinglePhotoVideo metaSPV=metaEnc.getImages().get(b);
 %>
-<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getFilename())%>" />
-<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName() %>/encounters/<%=(request.getParameter("number")+"/"+metaSPV.getFilename())%>" / >
+<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=(metaEnc.dir(baseDir)+"/"+metaSPV.getFilename())%>" />
+<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=(metaEnc.dir(baseDir)+"/"+metaSPV.getFilename())%>" / >
 <%
 			}
 		}
@@ -174,8 +182,8 @@ if (request.getParameter("number")!=null) {
 }
 %>
 
-<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle() %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
-<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription()%>" />
+<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
+<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
 
 <meta property="og:url" content="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
 
@@ -185,10 +193,10 @@ if (request.getParameter("number")!=null) {
 <!-- social meta end -->
 
   
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request) %>"
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>"
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon() %>"/>
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
   <style type="text/css">
     <!--
 
@@ -335,7 +343,7 @@ margin-bottom: 8px !important;
       
 				//let's see if this user has ownership and can make edits
       			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
-      			pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable());
+      			pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable(context));
       			boolean loggedIn = false;
       			try{
       				if(request.getUserPrincipal()!=null){loggedIn=true;}
@@ -346,7 +354,8 @@ margin-bottom: 8px !important;
       			//if(CommonConfiguration.getProperty(()){}
 
 						ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
-						String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/" + num;
+						//String dataDir = CommonConfiguration.getDataDirectoryName() + "/encounters/" + num;
+						String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
 						String filename = request.getParameter("filename");
 
@@ -360,8 +369,8 @@ margin-bottom: 8px !important;
 						if (match == null) match = spvs.get(0);
 
 						if (enc.getMmaCompatible()) {
-							File tryCR = new File(match.getFullFileSystemPath().replaceFirst(".([^.]+)$", "-CR.png"));
-							if (tryCR.exists()) crExistsUrl = match.getFilename().replaceFirst(".([^.]+)$", "-CR.png");
+							File tryCR = new File(match.getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.png"));
+							if (tryCR.exists()) crExistsUrl = match.getFilename().replaceFirst(".([^.]+)$", "_CR.png");
 						}
 
 						String imgUrl = "";

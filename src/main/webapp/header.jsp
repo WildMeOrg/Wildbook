@@ -456,9 +456,10 @@ context=ServletUtilities.getContext(request);
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
 	<script type="text/javascript">
   $(function() {
-    $( "[id^=flag_]" ).tooltip();
+    //$( "[id^=flag_]" ).tooltip();
   });
 </script>
+<script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/JavascriptGlobals.js"></script>
 <div id="header_menu" style="background-color: #D7E0ED;clear: left">
 <table width="810px">
 	<tr>
