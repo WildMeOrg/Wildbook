@@ -313,7 +313,7 @@ onunload="GUnload()" <%}%>>
   <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
 <!-- Wild Me v2 followers button -->
-<script src="http://www.whaleshark.org/javascript/wildme-v2/public/followers/js/lib.js"></script>
+<script src="//digital.cygnismedia.com/wildme-v2/public/followers/js/lib.js"></script>
 
 <!-- Wild Me v2 adopt button -->
 <script src="//digital.cygnismedia.com/wildme-v2/public/adopt-form/js/wildmepayment.js"></script>
