@@ -219,7 +219,7 @@ context=ServletUtilities.getContext(request);
 
 
 
-<table width="810px">
+<table class="collab-table">
 <tr>
   <td class="lineitem" bgcolor="#99CCFF"></td>
   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
