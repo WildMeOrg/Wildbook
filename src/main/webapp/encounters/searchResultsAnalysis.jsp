@@ -23,7 +23,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration" %>
 
 
 
@@ -51,6 +51,9 @@
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
 	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
+
+		Properties collabProps = new Properties();
+ 		collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
@@ -97,7 +100,10 @@
     String order = "";
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
-    
+
+		Vector blocked = Encounter.blocked(rEncounters, request);
+		boolean accessible = (blocked.size() < 1);
+
     //let's prep the HashTable for the haplo pie chart
     ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
     int numHaplos2 = allHaplos2.size();
@@ -406,6 +412,7 @@
 
 
 
+<% if (accessible) { %>
     
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
@@ -677,6 +684,7 @@
       
 </script>
 
+<% } %>
     
   </head>
  <body onunload="GUnload()">
@@ -719,6 +727,8 @@
    </tr>
 </table>
  
+<% if (accessible) { %>
+
  <p>
  Number matching encounters: <%=resultSize %>
  </p>
@@ -840,6 +850,13 @@
    rEncounters = null;
  
 %>
+
+
+<% } else {  //no access %>
+
+	<p><%=collabProps.getProperty("functionalityBlockedMessage")%></p>
+
+<% } %>
  <table>
   <tr>
     <td align="left">

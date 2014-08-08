@@ -231,5 +231,5 @@ public class User implements java.io.Serializable {
 
     //public String getCurrentContext(){return currentContext;}
     //public void setCurrentContext(String newContext){currentContext=newContext;}
-    
+
 }
