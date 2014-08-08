@@ -146,7 +146,7 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	public static boolean canCollaborate(String context, String u1, String u2) {
-		if ((u1 == null) || (u2 == null) || u1.equals("") || u2.equals("") || u1.equals("N/A") || u2.equals("N/A")) return true; //TODO not sure???
+		if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;  //TODO not sure???
 		if (u1.equals(u2)) return true;
 		Collaboration c = collaborationBetweenUsers(context, u1, u2);
 		if (c == null) return false;
@@ -155,6 +155,7 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	public static Collaboration findCollaborationWithUser(String username, ArrayList all) {
+		if (all == null) return null;
 		ArrayList<Collaboration> collabs = all;
 		for (Collaboration c : collabs) {
 			if (c.username1.equals(username) || c.username2.equals(username)) return c;
@@ -203,7 +204,7 @@ public class Collaboration implements java.io.Serializable {
 		String username = request.getUserPrincipal().getName();
 //System.out.println("username->"+username);
 		String owner = enc.getAssignedUsername();
-		if ((owner == null) || owner.equals("") || owner.equals("N/A")) return true;  //anon-owned is "fair game" to anyone
+		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
 //System.out.println("owner->" + owner);
 //System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
 		return canCollaborate(context, owner, username);
