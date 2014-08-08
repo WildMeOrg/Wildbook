@@ -471,7 +471,9 @@ margin-bottom: 8px !important;
 							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
 							String uid = null;
 							String name = null;
-							if ((c == null) || (c.getState() == null)) {
+							if (request.getUserPrincipal() == null) {
+								cmsg = "<p>Your submission is saved.</p>";
+							} if ((c == null) || (c.getState() == null)) {
 								uid = enc.getAssignedUsername();
 								name = enc.getSubmitterName();
 								if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
@@ -482,7 +484,7 @@ margin-bottom: 8px !important;
 							}
 
 							cmsg = cmsg.replace("'", "\\'");
-							if (uid != null) {
+							if (!User.isUsernameAnonymous(uid)) {
 								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
 							} else {
 								cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
