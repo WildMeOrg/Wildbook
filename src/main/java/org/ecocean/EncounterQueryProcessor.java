@@ -12,11 +12,20 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import java.io.*;
+
 import javax.jdo.Query;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.ecocean.Util.MeasurementDesc;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.Collaboration;
 
 public class EncounterQueryProcessor {
 
@@ -1180,6 +1189,9 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     Iterator<Encounter> allEncounters;
 
 
+		String currentUser = null;
+		if (request.getUserPrincipal() != null) currentUser = request.getUserPrincipal().getName();
+
     //Extent<Encounter> encClass=myShepherd.getPM().getExtent(Encounter.class, true);
     //Query query=myShepherd.getPM().newQuery(encClass);
     //if(!order.equals("")){query.setOrdering(order);}
@@ -1328,6 +1340,41 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 	//end photo filename filtering
 
   	query.closeAll();
+
+
+		//silo security logging
+		ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+		String url = request.getRequestURL().toString() + "?" + request.getQueryString();
+		Date now = new Date();
+
+		String context="context0";
+		context = ServletUtilities.getContext(request);
+		String rootWebappPath = request.getSession().getServletContext().getRealPath("/");
+		File webappsDir = new File(rootWebappPath).getParentFile();
+		File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+
+		for (int i = 0 ; i < rEncounters.size() ; i++) {
+			Encounter rEnc = (Encounter)rEncounters.get(i);
+			String owner = rEnc.getAssignedUsername();
+			if ((currentUser != null) && !currentUser.equals("") && (owner != null) && !owner.equals(currentUser)) {
+				Collaboration c = Collaboration.findCollaborationWithUser(owner, collabs);
+				if ((c != null) && c.getState().equals(Collaboration.STATE_APPROVED)) {  //log it
+
+					File userDir=new File(shepherdDataDir.getAbsolutePath() + "/users/" + owner);
+    			if(!userDir.exists()){userDir.mkdir();}
+					Writer logw = null;
+					try {
+						logw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(userDir, "collaboration.log"), true)));
+						logw.write(now.getTime() + "\t" + currentUser + "\t" + rEnc.getCatalogNumber() + "\t" + url + "\t" + prettyPrint.toString() + "\n");
+					} catch (IOException ex) {
+						System.out.println(ex);
+					} finally {
+						try { logw.close(); } catch (Exception ex) {}
+					}
+				}
+			}
+		}
+
     return (new EncounterQueryResult(rEncounters,filter,prettyPrint.toString()));
 
   }

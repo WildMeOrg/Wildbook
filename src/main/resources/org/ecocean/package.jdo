@@ -436,6 +436,25 @@
 		
 		
 		
+		<class name="org.ecocean.security.Collaboration" identity-type="application" table="COLLABORATIONS">
+			<field name="id" primary-key="true" >
+				<column name="ID" />
+			</field>
+			<field name="username1">
+				<column name="USERNAME1" />
+			</field>
+			<field name="username2" >
+				<column name="USERNAME2" />
+			</field>
+			<field name="dateTimeCreated">
+				<column  jdbc-type="BIGINT" allows-null="true" />
+			</field>
+			<field name="state">
+				<column name="STATE" />
+			</field>
+		</class>
+
+
 		<class name="User" identity-type="application" table="USERS">
 		            
 					 

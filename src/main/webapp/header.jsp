@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.ArrayList,org.ecocean.ContextConfiguration,org.ecocean.servlet.ServletUtilities,org.ecocean.ShepherdProperties,org.apache.commons.lang.WordUtils,org.ecocean.CommonConfiguration, java.util.Properties" %>
+         import="java.util.ArrayList,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, org.apache.commons.lang.WordUtils,org.ecocean.*, java.util.Properties" %>
 
 <%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011-2013 Jason Holmberg
+  ~ Wildbook - A Mark-Recapture Framework
+  ~ Copyright (C) 2011-2014 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
   ~ modify it under the terms of the GNU General Public License
@@ -19,7 +19,13 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-
+  
+<style type="text/css">
+/* A class used by the jQuery UI CSS framework for their dialogs. */
+.ui-front {
+    z-index:1000000 !important; /* The default is 100. !important overrides the default. */
+}
+</style>
 <%
 
 String langCode=ServletUtilities.getLanguageCode(request);
@@ -274,7 +280,7 @@ String context=ServletUtilities.getContext(request);
 		%>
 		
 	<li><a
-	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp"
+	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp?context=context0"
 	          class="enclose"
 	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userManagement")%>
         </a></li>	
@@ -386,13 +392,19 @@ if(CommonConfiguration.isCatalogEditable(context)){
 
 <!-- define our JavaScript -->
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.blockUI.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
 	<script type="text/javascript">
   $(function() {
-    $( "[id^=flag_]" ).tooltip();
+    var toTip = $( "[id^=flag_]" );
+		if (typeof toTip.tooltip != 'undefined') toTip.tooltip();
+    //$( "[id^=flag_]" ).tooltip();
   });
 </script>
-<div id="header_menu" style="background-color: #D7E0ED;clear: left">
+<script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/JavascriptGlobals.js"></script>
+<script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/collaboration.js"></script>
+<div id="header_menu" style="background-color: #D7E0ED;clear: left; position: relative;">
+	<div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
 <table width="810px">
 	<tr>
 		<td width="100%" colspan="4" class="caption" style="font-size: 0.7em;" align="right">
