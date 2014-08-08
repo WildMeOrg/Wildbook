@@ -1413,6 +1413,7 @@ table.tissueSample td {
 	font-size: 0.8em;
 }
 
+
 div.row-lock {
 	position: absolute;
 	left: -30px;
@@ -1478,6 +1479,10 @@ tr.no-access:hover td {
 	min-height: 200px;
 	border: solid 2px #888;
 	z-index: 300;
+
+/* generic "notice me!" error text? */
+.error {
+	color: #820;
 }
 
 .scroll {

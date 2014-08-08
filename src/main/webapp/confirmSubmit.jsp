@@ -57,9 +57,9 @@ context=ServletUtilities.getContext(request);
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
   File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-  if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  if(!encountersDir.exists()){encountersDir.mkdir();}
+  if(!encountersDir.exists()){encountersDir.mkdirs();}
   File thisEncounterDir = null;// = new File();  //gets set after we have encounter
 
 
@@ -119,7 +119,15 @@ context=ServletUtilities.getContext(request);
     myShepherd.beginDBTransaction();
     try {
       Encounter enc = myShepherd.getEncounter(number);
+      
+      
 			thisEncounterDir = new File(enc.dir(baseDir));
+			String thisEncDirString=Encounter.dir(shepherdDataDir,enc.getCatalogNumber());
+			thisEncounterDir=new File(thisEncDirString);
+			if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
+			
+			
+			
       if ((enc.getAdditionalImageNames() != null) && (enc.getAdditionalImageNames().size() > 0)) {
         addText = (String)enc.getAdditionalImageNames().get(0);
       }

@@ -69,9 +69,9 @@ public class IndividualCreate extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File individualsDir=new File(shepherdDataDir.getAbsolutePath()+"/individuals");
-    if(!individualsDir.exists()){individualsDir.mkdir();}
+    if(!individualsDir.exists()){individualsDir.mkdirs();}
 
     String newIndividualID="";
     if(request.getParameter("individual")!=null){
@@ -215,7 +215,7 @@ public class IndividualCreate extends HttpServlet {
 
 
             if (!(thisSharkDir.exists())) {
-              thisSharkDir.mkdir();
+              thisSharkDir.mkdirs();
             }
             ;
 

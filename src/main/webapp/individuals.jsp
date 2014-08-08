@@ -36,9 +36,9 @@ context=ServletUtilities.getContext(request);
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
   File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  //if(!encountersDir.exists()){encountersDir.mkdir();}
+  //if(!encountersDir.exists()){encountersDir.mkdirs();}
   //File thisEncounterDir = new File(encountersDir, number);
 
 //setup our Properties object to hold all properties
@@ -1049,7 +1049,7 @@ $("a#deathdate").click(function() {
             <%
             }
              %>
-              <img src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge"/>
+              <img src="<%=thumbLink%>" alt="photo" border="1" title="<%=props.getProperty("clickEnlarge")%>"/>
               <%
                 if (isOwner) {
               %>
@@ -1189,7 +1189,10 @@ xxxxxx
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
-              File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
+              
+            	  //File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
+              File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
+              	
               if(exifImage.exists()){              
               	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               	// iterate through metadata directories
@@ -2298,7 +2301,8 @@ else {
 
 
 <p><%=matchingRecord %>: <strong><%=name%>
-</strong><br/>
+</strong></p>
+<p>
   <%=tryAgain %>
 </p>
 
@@ -2309,11 +2313,21 @@ else {
     name="sharky_button" type="submit" id="sharky_button"
     value="<%=getRecord %>"></form>
 </p>
-<p><font color="#990000"><a href="encounters/searchResults.jsp"><%=allEncounters %>
-</a></font></p>
+<p>
+	<font color="#990000">
+		<a href="encounters/encounterSearch.jsp">
+			<%=props.getProperty("searchEncounters") %>
+		</a>
+	</font>
+</p>
 
-<p><font color="#990000"><a href="individualSearchResults.jsp"><%=allIndividuals %>
-</a></font></p>
+<p>
+	<font color="#990000">
+		<a href="individualSearch.jsp">
+			<%=props.getProperty("searchIndividuals") %>
+		</a>
+	</font>
+</p>
 <%
       }
 	  %>

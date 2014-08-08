@@ -35,9 +35,9 @@
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
   File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  //if(!encountersDir.exists()){encountersDir.mkdir();}
+  //if(!encountersDir.exists()){encountersDir.mkdirs();}
 
   
     int startNum = 0;
@@ -385,7 +385,7 @@
             
             >
 <% } else { %><a><% } %>
-            <img src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? "Click to enlarge" : "") %>" /></a>
+            <img src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
 
             <div 
             <%
@@ -643,7 +643,7 @@
                       if (CommonConfiguration.showEXIFData(context)&&!thumbLink.endsWith("video.jpg")) {
                     %>
                     
-                    <p><strong>EXIF Data</strong></p>
+                    <p><strong>EXIF</strong></p>
 												
 				   <span class="caption">
 						<div class="scroll">
@@ -651,7 +651,7 @@
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
-              	File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
+              	File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
               	if(exifImage.exists()){
               		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               		// iterate through metadata directories
@@ -672,6 +672,7 @@
               	else{
             	 %>
 		            <p>File not found on file system. No EXIF data available.</p>
+		            <p>Looking in: <%=exifImage.getAbsolutePath() %></p>
           		<%  
               	}
               } //end try

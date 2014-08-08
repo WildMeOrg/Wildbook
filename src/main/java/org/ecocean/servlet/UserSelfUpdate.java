@@ -62,16 +62,16 @@ public class UserSelfUpdate extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File usersDir=new File(shepherdDataDir.getAbsolutePath()+"/users");
-    if(!usersDir.exists()){usersDir.mkdir();}
+    if(!usersDir.exists()){usersDir.mkdirs();}
     
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean createThisUser = false;
 
-    String addedRoles="";
+    //String addedRoles="";
     boolean isEdit=true;
      
 
@@ -148,7 +148,7 @@ public class UserSelfUpdate extends HttpServlet {
         
         
         //now handle roles
-        
+        /*
         //if this is not a new user, we need to blow away all old roles
         ArrayList<Role> preexistingRoles=new ArrayList<Role>();
         if(!createThisUser){
@@ -191,7 +191,7 @@ public class UserSelfUpdate extends HttpServlet {
           }
         }
         //end role processing
-        
+        */
         
 
         myShepherd.commitDBTransaction();    
