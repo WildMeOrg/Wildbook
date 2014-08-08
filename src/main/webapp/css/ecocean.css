@@ -1657,6 +1657,10 @@ div.collab-log span {
 	padding: 2px;
 }
 
+.collab-table {  /*leave room for lock icon*/
+	width: 785px;
+	margin-left: 25px;
+}
 
 div.state-initialized span.state {
 	background-color: #AA1;
