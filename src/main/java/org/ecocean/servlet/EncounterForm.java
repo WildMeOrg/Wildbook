@@ -680,8 +680,6 @@ System.out.println("depth --> " + fv.get("depth").toString());
       }
       if (request.getRemoteUser() != null) {
         enc.setSubmitterID(request.getRemoteUser());
-      } else if (!getVal(fv, "submitterID").equals("")) {
-        enc.setSubmitterID(getVal(fv, "submitterID"));
       } else {
         enc.setSubmitterID("N/A");
       }
