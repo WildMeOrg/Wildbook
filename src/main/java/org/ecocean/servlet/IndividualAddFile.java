@@ -70,9 +70,9 @@ public class IndividualAddFile extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File individualsDir=new File(shepherdDataDir.getAbsolutePath()+"/individuals");
-    if(!individualsDir.exists()){individualsDir.mkdir();}
+    if(!individualsDir.exists()){individualsDir.mkdirs();}
 
 
     //set up for response
@@ -113,7 +113,7 @@ public class IndividualAddFile extends HttpServlet {
 
             //File individualsDir = new File(getServletContext().getRealPath(("/" + CommonConfiguration.getMarkedIndividualDirectory())));
             /*if (!individualsDir.exists()) {
-              individualsDir.mkdir();
+              individualsDir.mkdirs();
             }*/
 
 
@@ -121,7 +121,7 @@ public class IndividualAddFile extends HttpServlet {
 
 
             if (!(thisSharkDir.exists())) {
-              thisSharkDir.mkdir();
+              thisSharkDir.mkdirs();
             }
             ;
             long file_size = filePart.writeTo(

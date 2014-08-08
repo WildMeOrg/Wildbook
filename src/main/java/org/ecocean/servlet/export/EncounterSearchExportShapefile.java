@@ -60,9 +60,9 @@ public class EncounterSearchExportShapefile extends HttpServlet{
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-    //if(!encountersDir.exists()){encountersDir.mkdir();}
+    //if(!encountersDir.exists()){encountersDir.mkdirs();}
     
     Shepherd myShepherd = new Shepherd(context);
     Vector rEncounters = new Vector();
@@ -97,6 +97,18 @@ public class EncounterSearchExportShapefile extends HttpServlet{
       
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
         rEncounters = queryResult.getResult();
+
+				Vector blocked = Encounter.blocked(rEncounters, request);
+				if (blocked.size() > 0) {
+					response.setContentType("text/html");
+					PrintWriter out = response.getWriter();
+					out.println(ServletUtilities.getHeader(request));  
+					out.println("<html><body><p><strong>Access denied.</strong></p>");
+					out.println(ServletUtilities.getFooter(context));
+					out.close();
+					return;
+				}
+      
       
         int numMatchingEncounters=rEncounters.size();
       

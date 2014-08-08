@@ -143,9 +143,9 @@ public class ScanResultsServlet extends HttpServlet {
       String rootWebappPath = getServletContext().getRealPath("/");
       File webappsDir = new File(rootWebappPath).getParentFile();
       File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
       //File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-      //if(!encountersDir.exists()){encountersDir.mkdir();}
+      //if(!encountersDir.exists()){encountersDir.mkdirs();}
 
       //in case this is a right-side scan, change file name to save to
       String fileAddition = "";

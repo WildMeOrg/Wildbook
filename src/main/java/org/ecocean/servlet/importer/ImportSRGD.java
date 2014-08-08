@@ -72,9 +72,9 @@ public class ImportSRGD extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File tempSubdir = new File(webappsDir, "temp");
-    if(!tempSubdir.exists()){tempSubdir.mkdir();}
+    if(!tempSubdir.exists()){tempSubdir.mkdirs();}
     System.out.println("\n\n     Finished directory creation...");
     
     
@@ -113,7 +113,7 @@ public class ImportSRGD extends HttpServlet {
           if (fileName != null) {
             System.out.println("     Trying to upload file: "+fileName);
             //File thisSharkDir = new File(encountersDir.getAbsolutePath() +"/"+ encounterNumber);
-            //if(!thisSharkDir.exists()){thisSharkDir.mkdir();}
+            //if(!thisSharkDir.exists()){thisSharkDir.mkdirs();}
             finalFile=new File(tempSubdir, fileName);
             filePart.writeTo(finalFile);
             successfullyWroteFile=true;
