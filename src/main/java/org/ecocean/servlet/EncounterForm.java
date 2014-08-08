@@ -179,6 +179,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
   public static final String ERROR_PROPERTY_MAX_LENGTH_EXCEEDED = "The maximum upload length has been exceeded by the client.";
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("UTF-8");
 
 		HashMap fv = new HashMap();
 
@@ -224,12 +225,15 @@ System.out.println("rootDir=" + rootDir);
 
 		if (ServletFileUpload.isMultipartContent(request)) {
 			try {
-				List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
+				ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
+				upload.setHeaderEncoding("UTF-8");
+				List<FileItem> multiparts = upload.parseRequest(request);
+				//List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
 
 				for(FileItem item : multiparts){
 					if (item.isFormField()) {  //plain field
-						fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString().trim()));  //TODO do we want trim() here??? -jon
-System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString() + ")");
+						fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
+//System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString("UTF-8") + ")");
 
 					} else {  //file
 //System.out.println("content type???? " + item.getContentType());   TODO note, the helpers only check extension
