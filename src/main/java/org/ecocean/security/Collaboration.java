@@ -197,9 +197,9 @@ public class Collaboration implements java.io.Serializable {
 	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
 		String context = ServletUtilities.getContext(request);
 		if (!securityEnabled(context)) return true;
-		//if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
+		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
 
-		if (request.getUserPrincipal() == null) return false;  //???
+		if (request.getUserPrincipal() == null) return false;
 		String username = request.getUserPrincipal().getName();
 //System.out.println("username->"+username);
 		String owner = enc.getAssignedUsername();
