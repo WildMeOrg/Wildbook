@@ -88,9 +88,9 @@ private final String UPLOAD_DIRECTORY = "/tmp";
 	}
 
   private SatelliteTag getSatelliteTag(HashMap fv) {
-    String argosPttNumber =  fv.get("satelliteTagArgosPttNumber").toString();
-    String satelliteTagName = fv.get("satelliteTagName").toString();
-    String tagSerial = fv.get("satelliteTagSerial").toString();
+    String argosPttNumber =  getVal(fv, "satelliteTagArgosPttNumber");
+    String satelliteTagName = getVal(fv, "satelliteTagName");
+    String tagSerial = getVal(fv, "satelliteTagSerial");
     if (argosPttNumber.length() > 0 || tagSerial.length() > 0) {
       return new SatelliteTag(satelliteTagName, tagSerial, argosPttNumber);
     }
@@ -98,8 +98,8 @@ private final String UPLOAD_DIRECTORY = "/tmp";
   }
 
   private AcousticTag getAcousticTag(HashMap fv) {
-    String acousticTagId = fv.get("acousticTagId").toString();
-    String acousticTagSerial = fv.get("acousticTagSerial").toString();
+    String acousticTagId = getVal(fv, "acousticTagId");
+    String acousticTagSerial = getVal(fv, "acousticTagSerial");
     if (acousticTagId.length() > 0 || acousticTagSerial.length() > 0) {
       return new AcousticTag(acousticTagSerial, acousticTagId);
     }
@@ -113,11 +113,9 @@ private final String UPLOAD_DIRECTORY = "/tmp";
 
     for (String key : keys) {
       // The keys are the location
-      String value = fv.get("metalTag(" + key + ")").toString();
-      if (value != null) {
-        if (value.length() > 0) {
-          list.add(new MetalTag(value, key));
-        }
+      String value = getVal(fv, "metalTag(" + key + ")");
+      if (value.length() > 0) {
+        list.add(new MetalTag(value, key));
       }
     }
     return list;
@@ -218,11 +216,14 @@ System.out.println("rootDir=" + rootDir);
 		boolean fileSuccess = false;  //kinda pointless now as we just build sentFiles list now at this point (do file work at end)
 		String doneMessage = "";
 		List<String> filesOK = new ArrayList<String>();
-		List<String> filesBad = new ArrayList<String>();
+		HashMap<String, String> filesBad = new HashMap<String, String>();
 
 		List<FileItem> formFiles = new ArrayList<FileItem>();
 
   	Calendar date = Calendar.getInstance();
+
+		long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
+		long maxSizeBytes = maxSizeMB * 1048576;
 
 		if (ServletFileUpload.isMultipartContent(request)) {
 			try {
@@ -231,15 +232,17 @@ System.out.println("rootDir=" + rootDir);
 				for(FileItem item : multiparts){
 					if (item.isFormField()) {  //plain field
 						fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString().trim()));  //TODO do we want trim() here??? -jon
-System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString() + ")");
+//System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString() + ")");
 
 					} else {  //file
 //System.out.println("content type???? " + item.getContentType());   TODO note, the helpers only check extension
-						if (myShepherd.isAcceptableImageFile(item.getName()) || myShepherd.isAcceptableVideoFile(item.getName()) ) {
+						if (item.getSize() > maxSizeBytes) {
+							filesBad.put(item.getName(), "file is larger than " + maxSizeMB + "MB");
+						} else if (myShepherd.isAcceptableImageFile(item.getName()) || myShepherd.isAcceptableVideoFile(item.getName()) ) {
 							formFiles.add(item);
 							filesOK.add(item.getName());
 						} else {
-							filesBad.add(item.getName());
+							filesBad.put(item.getName(), "invalid type of file");
 						}
 					}
 				}
@@ -256,7 +259,12 @@ System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.ge
 		}
 
 		session.setAttribute("filesOKMessage", (filesOK.isEmpty() ? "none" : Arrays.toString(filesOK.toArray())));
-		session.setAttribute("filesBadMessage", (filesBad.isEmpty() ? "none" : Arrays.toString(filesBad.toArray())));
+		String badmsg = "";
+		for (String key : filesBad.keySet()) {
+			badmsg += key + " (" + getVal(filesBad, key) + ") ";
+		}
+		if (badmsg.equals("")) { badmsg = "none"; }
+		session.setAttribute("filesBadMessage", badmsg);
 
 		if (fileSuccess) {
 
@@ -270,7 +278,7 @@ System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.ge
 			String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", "photographerPhone", "location", "comments", "behavior"};
       StringBuffer spamFields = new StringBuffer();
 			for (int i = 0 ; i < spamFieldsToCheck.length ; i++) {
-      	spamFields.append(fv.get(spamFieldsToCheck[i]).toString());
+      	spamFields.append(getVal(fv, spamFieldsToCheck[i]));
 			}
 
       if (spamFields.toString().toLowerCase().indexOf("porn") != -1) {
@@ -290,8 +298,10 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 			if ((fv.get("locationID") != null) && !fv.get("locationID").toString().equals("")) {
 				locCode = fv.get("locationID").toString();
 
-			} else {  //see if the location code can be determined and set based on the location String reported
-      	String locTemp = fv.get("location").toString().toLowerCase();
+			} 
+		//see if the location code can be determined and set based on the location String reported
+			else if (fv.get("location") != null) {  
+      	String locTemp = getVal(fv, "location").toLowerCase();
       	Properties props = new Properties();
 
       	try {
@@ -311,13 +321,13 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 
   	} //end else
 		//end location code setter
-
+		fv.put("locCode", locCode);
 
 		//TODO this should live somewhere else as constant? (e.g. to build in form as well)
 		String[] scarType = new String[]{"None", "Tail (caudal) fin", "1st dorsal fin", "2nd dorsal fin", "Left pectoral fin", "Right pectoral fin", "Head", "Body"};
 		int scarNum = -1;
 		try {
-			scarNum = Integer.parseInt(fv.get("scars").toString());
+			scarNum = Integer.parseInt(getVal(fv, "scars"));
 		} catch (NumberFormatException e) {
 			scarNum = -1;
 		}
@@ -333,10 +343,10 @@ System.out.println("about to do int stuff");
 
 			//need some ints for day/month/year/hour (other stuff seems to be strings)
 			int day = 0, month = 0, year = 0, hour = 0;
-			try { day = Integer.parseInt(fv.get("day").toString()); } catch (NumberFormatException e) { day = 0; }
-			try { month = Integer.parseInt(fv.get("month").toString()); } catch (NumberFormatException e) { month = 0; }
-			try { year = Integer.parseInt(fv.get("year").toString()); } catch (NumberFormatException e) { year = 0; }
-			try { hour = Integer.parseInt(fv.get("hour").toString()); } catch (NumberFormatException e) { hour = 0; }
+			try { day = Integer.parseInt(getVal(fv, "day")); } catch (NumberFormatException e) { day = 0; }
+			try { month = Integer.parseInt(getVal(fv, "month")); } catch (NumberFormatException e) { month = 0; }
+			try { year = Integer.parseInt(getVal(fv, "year")); } catch (NumberFormatException e) { year = 0; }
+			try { hour = Integer.parseInt(getVal(fv, "hour")); } catch (NumberFormatException e) { hour = 0; }
 			String guess = "no estimate provided";
 			if ((fv.get("guess") != null) && !fv.get("guess").toString().equals("")) {
 				guess = fv.get("guess").toString();
@@ -344,7 +354,7 @@ System.out.println("about to do int stuff");
 
 System.out.println("about to do enc()");
 
-			Encounter enc = new Encounter(day, month, year, hour, fv.get("minutes").toString(), guess, fv.get("location").toString(), fv.get("submitterName").toString(), fv.get("submitterEmail").toString(), null);
+			Encounter enc = new Encounter(day, month, year, hour, getVal(fv, "minutes"), guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
 			//Encounter enc = new Encounter();
 			String encID = enc.generateEncounterNumber();
 			enc.setEncounterNumber(encID);
@@ -369,7 +379,7 @@ System.out.println("enc ?= " + enc.toString());
 
       //now let's add our encounter to the database
 
-      enc.setComments(fv.get("comments").toString().replaceAll("\n", "<br>"));
+      enc.setComments(getVal(fv, "comments").replaceAll("\n", "<br>"));
       if (fv.get("releaseDate") != null && fv.get("releaseDate").toString().length() > 0) {
         String dateFormatPattern = CommonConfiguration.getProperty("releaseDateFormat",context);
         try {
@@ -429,8 +439,8 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
       enc.setAcousticTag(getAcousticTag(fv));
       enc.setSatelliteTag(getSatelliteTag(fv));
-      enc.setSex(fv.get("sex").toString());
-      enc.setLivingStatus(fv.get("livingStatus").toString());
+      enc.setSex(getVal(fv, "sex"));
+      enc.setLivingStatus(getVal(fv, "livingStatus"));
 
       //let's handle genus and species for taxonomy
       try {
@@ -682,7 +692,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
         enc.setSubmitterID("N/A");
       }
       if (!getVal(fv, "locCode").equals("")) {
-        enc.setLocationCode(getVal(fv, "locCode"));
+        enc.setLocationCode(locCode);
       }
       if (!getVal(fv, "country").equals("")) {
         enc.setCountry(getVal(fv, "country"));

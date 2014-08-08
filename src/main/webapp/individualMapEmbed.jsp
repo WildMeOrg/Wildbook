@@ -219,6 +219,9 @@ String lastLatLong="";
 					        	   map:map<%=zIndexString%>
 					        	});
 
+					           <%
+											String encSubdir = indieEnc.subdir();
+					           %>
 					             google.maps.event.addListener(marker,'click', function() {
 					                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indieEnc.isAssignedToMarkedIndividual()%>\"><%=indieEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=indieEnc.subdir()%>/thumb.jpg\"></td><td><%=props.getProperty("date")%> <%=indieEnc.getDate()%><%if(indieEnc.getSex()!=null){%><br /><%=props.getProperty("sex") %> <%=indieEnc.getSex()%><%}%><%if(indieEnc.getSizeAsDouble()!=null){%><br />Size: <%=indieEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=indieEnc.getEncounterNumber()%>\" ><%=props.getProperty("gotoEncounter") %></a></td></tr></table>'})).open(map, this);
 					              });
@@ -307,7 +310,10 @@ String lastLatLong="";
         	   position:latLng,
         	   map:map<%=zIndexString%>
         	});
+			<%
 
+						String encSubdir = thisEnc.subdir();
+			%>
             google.maps.event.addListener(marker,'click', function() {
                  (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=thisEnc.subdir()%>/thumb.jpg\"></td><td><%=props.getProperty("date") %> <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br /><%=props.getProperty("sex") %> <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" ><%=props.getProperty("gotoEncounter") %></a></td></tr></table>'})).open(map, this);
              });

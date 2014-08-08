@@ -62,9 +62,9 @@ public class UserCreate extends HttpServlet {
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
+    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File usersDir=new File(shepherdDataDir.getAbsolutePath()+"/users");
-    if(!usersDir.exists()){usersDir.mkdir();}
+    if(!usersDir.exists()){usersDir.mkdirs();}
     
     //set up for response
     response.setContentType("text/html");
