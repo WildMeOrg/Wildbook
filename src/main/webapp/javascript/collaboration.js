@@ -70,6 +70,7 @@ return;
 
 function _collaborateMultiHtml(users) {
 	var cancelButton = '<input type="button" value="Cancel" onClick="$(\'.popup\').remove();" />';
+	if (inBlockedPage()) cancelButton = '<input type="button" value="Cancel" onClick="window.history.back();" />';
 	var num = users.length;
 
 	var h = '';
@@ -108,6 +109,7 @@ function collaborateClick(el) {
 
 function _collaborateHtml(uid, name) {
 	var cancelButton = '<input type="button" value="Cancel" onClick="$(\'.popup\').remove();" />';
+	if (inBlockedPage()) cancelButton = '<input type="button" value="Cancel" onClick="window.history.back();" />';
 	var num = $.map(allCollab, function(n, i) { return i; }).length;
 	if (num < 1) {
 		allCollab[uid] = { name: name };
@@ -175,6 +177,7 @@ function collaborateCallMulti() {
 
 function collaborateCallDone(data, callback) {
 	if (!callback) callback = '$(\'.popup\').remove();';
+	if (inBlockedPage()) callback = 'window.history.back()';
 	console.log('invite sent reponse: %o', data);
 	var h = '';
 	h += '<p><input type="button" value="OK" onClick="' + callback + '" /></p>';
@@ -199,7 +202,9 @@ function collaborateCallMultiDone(data, num) {
 }
 
 
-
+function inBlockedPage() {
+	return document.location.href.match('encounter.jsp|occurrence.jsp|individuals.jsp');
+}
 
 function updateNotificationsWidget() {
 	var n = $('#notifications');
