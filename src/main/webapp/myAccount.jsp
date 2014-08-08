@@ -262,7 +262,8 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
 				h += "<div class=\"notmine " + cls + "\"><span class=\"who\">from <b>" + c.getUsername1() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 			}
 		}
-		if (!h.equals("")) out.println("<div class=\"collab-list\"><h1>" + collabProps.getProperty("collaborationTitle") + "</h1>" + h + "</div>");
+		if (h.equals("")) h = "<p>none</p>";
+		out.println("<div class=\"collab-list\"><h1>" + collabProps.getProperty("collaborationTitle") + "</h1>" + h + "</div>");
 
 		String rootWebappPath = getServletContext().getRealPath("/");
 		File webappsDir = new File(rootWebappPath).getParentFile();
