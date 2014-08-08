@@ -25,7 +25,6 @@
 <html>
 <head>
 
-
 <%
 
 String context="context0";
@@ -114,6 +113,7 @@ context=ServletUtilities.getContext(request);
       rel="stylesheet" type="text/css"/>
 <link rel="shortcut icon"
       href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
+
 </head>
 
 <style type="text/css">
@@ -171,8 +171,13 @@ context=ServletUtilities.getContext(request);
 <div id="page">
 <jsp:include page="../header.jsp" flush="true">
 
+
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
+
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+
 <div id="main">
 
 <ul id="tabmenu">
