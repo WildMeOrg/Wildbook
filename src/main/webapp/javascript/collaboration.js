@@ -75,7 +75,8 @@ function _collaborateMultiHtml(users) {
 	var h = '';
 	if (num == 1) {
 		var u = users[0].split(':');
-		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, u[1]) + '</b></p>';
+		var uclick = '<span class="user-bio-button" title="info on ' + u[1] + '" onClick="openUserBio(\'' + u[0] + '\')">' + u[1] + '</span>';
+		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, uclick) + '</b></p>';
 		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p></div>';
 		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + u[0] + '\');" /> ' + cancelButton + '</p>';
 
@@ -83,7 +84,8 @@ function _collaborateMultiHtml(users) {
 		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptMultiple + ' ' + wildbookGlobals.properties.lang.collaboration.invitePromptMany + '</b></p><div id="collab-multi">';
 		for (var i = 0 ; i < num ; i++) {
 			var u = users[i].split(':');
-			h += '<div><input type="checkbox" value="' + u[0] + '" id="collab-' + u[0] + '" /><label for="id-' + u[0] + '">' + u[1] + '</label></div>';
+			var uclick = '<span class="user-bio-button" title="info on ' + u[1] + '" onClick="openUserBio(\'' + u[0] + '\')">' + u[1] + '</span>';
+			h += '<div><input type="checkbox" value="' + u[0] + '" id="collab-' + u[0] + '" /><label for="id-' + u[0] + '">' + uclick + '</label></div>';
 		}
 		h += '<div><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></div></div>';
 		h += '</div><p id="collab-controls"><input type="button" value="Send" onClick="collaborateCallMulti();" /> ' + cancelButton + '</p>';
@@ -114,17 +116,22 @@ function _collaborateHtml(uid, name) {
 
 	var h = '';
 	if (num == 1) {
-		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, allCollab[uid].name) + '</b></p>';
+		var uclick = '<span class="user-bio-button" title="info on ' + allCollab[uid].name + '" onClick="openUserBio(\'' + uid + '\')">' + allCollab[uid].name + '</span>';
+		//h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, allCollab[uid].name) + '</b></p>';
+		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, uclick) + '</b></p>';
 		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p></div>';
 		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + uid + '\');" /> ' + cancelButton + '</p>';
 
 	} else {
 		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptMany + '</b></p><div id="collab-multi">';
-		h += '<div><input type="checkbox" checked value="' + uid + '" id="collab-' + uid + '" /><label for="id-' + u + '">' + allCollab[uid].name + ' (' + allCollab[uid].count + ' item' + ((allCollab[uid].count == 1) ? '' : 's') + ')</label></div>';
+		var uclick = '<span class="user-bio-button" title="info on ' + allCollab[uid].name + '" onClick="openUserBio(\'' + uid + '\')">' + allCollab[uid].name + '</span>';
+		//h += '<div><input type="checkbox" checked value="' + uid + '" id="collab-' + uid + '" /><label for="id-' + u + '">' + allCollab[uid].name + ' (' + allCollab[uid].count + ' item' + ((allCollab[uid].count == 1) ? '' : 's') + ')</label></div>';
+		h += '<div><input type="checkbox" checked value="' + uid + '" id="collab-' + uid + '" /><label for="id-' + u + '">' + uclick + ' (' + allCollab[uid].count + ' item' + ((allCollab[uid].count == 1) ? '' : 's') + ')</label></div>';
 		h += '<p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptManyOther + '</b></p>';
 		for (var u in allCollab) {
 			if (u != uid) {
-				h += '<div><input type="checkbox" value="' + u + '" id="collab-' + u + '" /><label for="id-' + u + '">' + allCollab[u].name + ' (' + allCollab[u].count + ' item' + ((allCollab[u].count == 1) ? '' : 's') + ')</label></div>';
+				uclick = '<span class="user-bio-button" title="info on ' + allCollab[uid].name + '" onClick="openUserBio(\'' + uid + '\')">' + allCollab[uid].name + '</span>';
+				h += '<div><input type="checkbox" value="' + u + '" id="collab-' + u + '" /><label for="id-' + u + '">' + uclick + ' (' + allCollab[u].count + ' item' + ((allCollab[u].count == 1) ? '' : 's') + ')</label></div>';
 			}
 		}
 		h += '<div><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></div>';
@@ -273,3 +280,23 @@ function t(which, key) {
 }
 
 
+//TODO put this somewhere else
+function openUserBio(uname) {
+	var dlg = $('#popup-bio');
+	if (!dlg.length) {
+		dlg = $('<div id="popup-bio" />');
+		$('body').append(dlg);
+	}
+	dlg.dialog({
+		//draggable: false,
+		resizable: false,
+		width: 500
+	});
+console.log('ok?');
+	$.ajax({
+		url: wildbookGlobals.baseUrl + '/UserInfo?username=' + uname,
+		success: function(h) { $('#popup-bio').html(h) },
+		data: 'text',
+		type: 'GET'
+	});
+}

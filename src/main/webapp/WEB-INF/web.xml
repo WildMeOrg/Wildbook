@@ -157,6 +157,7 @@
 		         /EncounterSearchExportKML = authc, roles[admin]
 		         /UserCreate = authc, roles[admin]
 		         /UserDelete = authc, roles[admin]
+		         /UserInfo = authc
 		         /UserAddProfileImage = authc, roles[admin]
 		         /UserRemoveProfileImage = authc, roles[admin]
 				 
@@ -468,6 +469,11 @@
       <servlet>
         <servlet-name>UserDelete</servlet-name>
         <servlet-class>org.ecocean.servlet.UserDelete</servlet-class>
+  </servlet>
+
+      <servlet>
+        <servlet-name>UserInfo</servlet-name>
+        <servlet-class>org.ecocean.servlet.UserInfo</servlet-class>
   </servlet>
 
   <servlet>
@@ -1018,6 +1024,11 @@
      <servlet-mapping>
             <servlet-name>UserDelete</servlet-name>
             <url-pattern>/UserDelete</url-pattern>
+  </servlet-mapping>
+
+     <servlet-mapping>
+            <servlet-name>UserInfo</servlet-name>
+            <url-pattern>/UserInfo</url-pattern>
   </servlet-mapping>
   
         <servlet-mapping>

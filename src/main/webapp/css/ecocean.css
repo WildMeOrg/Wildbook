@@ -1638,3 +1638,19 @@ div.state-approved span.state {
 }
 
 
+.user-bio-button {
+	border: solid 1px #DDD;
+	border-radius: 3px;
+	background-color: #EEE;
+	padding: 1px 4px 1px 4px;
+	margin: 0 3px 0 3px;
+	cursor: pointer;
+}
+
+.user-bio-button:hover {
+	background-color: #FFE;
+}
+
+
+
+
