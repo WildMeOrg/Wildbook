@@ -1536,8 +1536,8 @@ tr.no-access:hover td {
 #notifications {
 	font-size: 0.9em;
 	position: absolute;
-	top: 4px;
-	right: -50px;
+	top: -70px;
+	right: 8px;
 }
 
 #notifications div {
