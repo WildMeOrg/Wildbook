@@ -156,12 +156,80 @@ String langCode=ServletUtilities.getLanguageCode(request);
       <div id="maincol-wide">
 
         <div id="maintext">
-          <h1 class="intro">Overview</h1>
+        
+        
+        
+        
+          <h1 class="intro">Flukebook: Where people and animals connect</h1>
 
-          <p class="caption">OceanSmart is a collaboration of researchers, naturalists, conservation organisations and citizen scientists, working together to create a visual database of encounters of individually catalogued marine animals in the Atlantic Ocean. The library is maintained and used by a consortium of marine biologists to collect and analyze sighting data to learn more about these amazing creatures.</p>
+<ul>
+	<li>Contribute sightings and follow individual cetaceans across time</li>
+	<li>Access powerful data management, analysis, and photoidentification tools</li>
+	<li>Connect with people who work with and are passionate about cetaceans</li>
+</ul>
+        
 
-<p class="caption">OceanSmart uses photographs of flukes, dorsal fins, and any scars, to distinguish between individual animals. Cutting-edge software supports rapid identification using pattern recognition and photo management tools.
-You too can assist with research, by submitting photos and sighting data. The information you submit will be used in mark-recapture studies to help with the global conservation of these magnificent species.</p>
+<h1 class="intro">What is Flukebook?</h1>
+
+<p class="caption">Flukebook is a free, online resource created to assist in the conservation of whales and dolphins in the Atlantic Ocean by improving our knowledge of them. Flukebook helps researchers manage, share, analyze, and archive cetacean data, and provides a portal for citizen scientists to contribute to marine conservation and enables them to follow individual animals they have met. Flukebook has photo-identification data for XXXX individuals of XX species with over XXX sightings ranging from 19XX to today.</p>
+        
+
+
+
+<h1 class="intro">Why use Flukebook?</h1>
+<p class="caption">There is a lot of data out there but until now it’s been scattered due to the sheer geographic range of the animals and the people who want to protect them. 
+For the first time, Flukebook provides a place for researchers, conservationists and citizen scientists to work together, consolidate existing research and fill in data gaps. With your help Flukebook will become the richest source of sighting data, providing invaluable information for scientists to collect and analyze to learn more about cetaceans, and ultimately help the global conservation of these magnificent species. 
+<h1 class="intro">Flukebook:</h1>
+<ul>
+	<li>Helps you manage your data</li>
+	<li>Provides free data backup </li>
+	<li>Keeps your data safe while offering different levels of sharing</li>
+	<li>Helps build networks and strengthens research</li>
+</ul>
+
+
+<h1 class="intro">Flukebook is easy to use</h1>
+
+<p class="caption">Everything is already built-in, all you need to do is upload your images along with sighting information and Flukebook does the rest – You’ll be led through matching your whales against the catalogue and how to contribute to growing global collaborations.
+</p>
+
+
+<h1 class="intro">How does Flukebook work?</h1>
+<p class="caption">Flukebook uses photographs of flukes, dorsal fins, and any scars, to distinguish between individual animals. Cutting-edge software supports rapid identification using pattern recognition and photo management tools. 
+Not a marine researcher? We need your help too. Anyone can contribute to Flukebook. All you need is to submit your photos and any other sighting information and Flukebook can do the rest. Eventually you can even follow an individual whale – find out who it’s friends with, where it goes, and who has seen them lately.
+</p>
+
+<h1 class="intro">What does Flukebook do?</h1>
+<h3 class="intro">Manage and backup your data</h2>
+<p class="caption">You can import photos and sightings data to Flukebook in many common picture formats (Jpeg, RAW, TIFF) and from common photo-management tools like Instagram, Photobucket, or Flickr. Once imported, you can view your sightings online, follow individuals you have identified, add metadata, manage individual data, and use all the other Flukebook features described here. Having your data in Flukebook serves as a free backup of data you have stored on your personal computer.
+Live data connection: We are developing a connection between Flukebook and sightings collections apps like Conserve.IO’s SpotterPRO app.
+</p>
+<h3 class="intro">Researchers control their own data</h2>
+<p class="caption">You keep full ownership and control access to your data in Flukebook. Flexible permission settings for data owners mean you can easily share different levels of access with collaborators and the public. Flukebook can be used within-organizations with access to all of the features without sharing any data. 
+</p>
+<h3 class="intro">Build networks and strengthen research</h2>
+<p class="caption"></p>Flukebook helps researchers, organizations and individuals to work together by enabling collaboration when photoidentification matches are made using the built-in matching software. The potential match list will be redacted if your sharing is turned off. You will be able to see that your individuals potentially match other datasets, but you cannot access the data until both data owners agree to privately and reciprocally share data access. By doing this, Flukebook allows for the simple compilation of datasets for multi-institutional collaborative projects. 
+</p>
+
+<p class="caption">All photographic, location, and supplementary data, once imported to Flukebook, are in the same format. This feature, together with the ability to share your data privately with specific collaborators, overcomes one of the major hurdles to combining disparate, international datasets. This makes Flukebook a powerful tool for researchers looking for collaborators, prospective graduate students, conservation groups looking for data to help advocacy goals, government developing management plans, and people hoping to change the world.
+</p>
+
+<h3 class="intro">Analysis tools</h2>
+<p class="caption">Flukebook provides tools for managing photoidentification, molecular sampling, and sightings databases and includes a growing number of features to help users work with additional software by linking to external programs, including ArcGIS, SOCPROG, Genepop, GenAIEx, WinBugs, and Google Earth. 
+</p>
+<p class="caption">
+Flukebook uses a newly designed automated fluke and dorsal fin matching program to accelerate within- and between-organization identifications. You can also use Flukebook to easily annotate weather parameters to your photoidentification or sightings dataset using the NCEP-DOE Reanalysis 2 dataset, provided by the US National Oceanographic and Atmospheric Association (NOAA). Flukebook uses this dataset to provide an estimate of wind speed and direction, temperature, and other variables for each time-location photograph or sighting in your dataset.
+ </p>
+<h3 class="intro">Archive – saving information for the future</h2>
+<p class="caption">Collecting animal identification data takes enormous time, effort, and funding, and can also impact the animals over time. We believe that these data provide invaluable records about citizens of the oceans and should be preserved for future generations. A generation from now, how will these populations have changed? After researchers have published their work, what will happen to their raw data? Will your data be available to help answer new questions about socio-ecology, haplotype evolution, and ocean scale change by the next generation of marine mammalogists? To support this, Flukebook’s infrastructure for archiving identification datasets that will be stored on servers at XXXXXX. 
+</p>
+        
+        
+        
+        
+        
+        
+        
         
         </div>
 
