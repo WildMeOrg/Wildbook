@@ -490,6 +490,10 @@ public class ImportSRGD extends HttpServlet {
                     
                   }
                   
+                  if((indie.getHaplotype()==null)&&(enc2.getHaplotype()!=null)){
+                    indie.doNotSetLocalHaplotypeReflection(enc2.getHaplotype());
+                  }
+                  
                   indie.resetMaxNumYearsBetweenSightings();
                   indie.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc2.getCatalogNumber() + ".</p>");
                   
