@@ -185,7 +185,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
 		HttpSession session = request.getSession(false);
     String context="context0";
-    //context=ServletUtilities.getContext(request);
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 System.out.println("in context " + context);
 		//request.getSession()getServlet().getServletContext().getRealPath("/"));
