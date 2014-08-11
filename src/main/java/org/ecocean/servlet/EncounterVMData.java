@@ -46,11 +46,6 @@ public class EncounterVMData extends HttpServlet {
     super.init(config);
   }
 
-  private void setDateLastModified(Encounter enc) {
-
-    String strOutputDateTime = ServletUtilities.getDate();
-    enc.setDWCDateLastModified(strOutputDateTime);
-  }
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     doPost(request, response);
@@ -60,20 +55,34 @@ public class EncounterVMData extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
-    //set up for response
-    response.setContentType("text/json");
-    PrintWriter out = response.getWriter();
     boolean locked = false, isOwner = true;
     //boolean isAssigned = false;
 		HashMap rtn = new HashMap();
+		boolean wantJson = true;
+		String redirUrl = null;
 
 
-		if (request.getParameter("number") != null) {
+		if (request.getUserPrincipal() == null) {
+			rtn.put("error", "no access");
+
+		} else if (request.getParameter("number") != null) {
 			myShepherd.beginDBTransaction();
 			Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
 
 			if (enc == null) {
 				rtn.put("error", "invalid Encounter number");
+
+			} else if (request.getParameter("matchID") != null) {
+				wantJson = false;
+      	if (ServletUtilities.isUserAuthorizedForEncounter(enc, request)) {
+					String matchID = request.getParameter("matchID");
+					//System.out.println("setting indiv id = " + matchID + " on enc id = " + enc.getCatalogNumber());
+					enc.setIndividualID(matchID);
+					myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+					redirUrl = "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
+				} else {
+					rtn.put("error", "unauthorized");
+				}
 
 			} else if (request.getParameter("candidates") != null) {
 				ArrayList candidates = new ArrayList();
@@ -160,11 +169,29 @@ String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + ima
 			rtn.put("error", "invalid Encounter number");
 		}
 
-
-    out.println(new Gson().toJson(rtn));
-    out.close();
-		myShepherd.commitDBTransaction();
+		//myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
+
+		if (redirUrl != null) {
+			response.sendRedirect(redirUrl);
+			return;
+		}
+
+    PrintWriter out = response.getWriter();
+
+		if (wantJson) {
+    	response.setContentType("text/json");
+    	out.println(new Gson().toJson(rtn));
+
+		} else {
+    	response.setContentType("text/html");
+			out.println(ServletUtilities.getHeader(request));
+			if (rtn.get("error") != null) out.println(rtn.get("error").toString());
+			if (rtn.get("message") != null) out.println(rtn.get("message").toString());
+			out.println(ServletUtilities.getFooter(context));
+		}
+
+    out.close();
   }
 
 }
