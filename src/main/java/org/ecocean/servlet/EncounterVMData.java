@@ -21,6 +21,7 @@ package org.ecocean.servlet;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.SinglePhotoVideo;
+import org.ecocean.MarkedIndividual;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 
@@ -75,9 +76,19 @@ public class EncounterVMData extends HttpServlet {
 			} else if (request.getParameter("matchID") != null) {
 				wantJson = false;
       	if (ServletUtilities.isUserAuthorizedForEncounter(enc, request)) {
-					String matchID = request.getParameter("matchID");
+					String matchID = ServletUtilities.cleanFileName(request.getParameter("matchID"));
 					//System.out.println("setting indiv id = " + matchID + " on enc id = " + enc.getCatalogNumber());
-					enc.setIndividualID(matchID);
+          MarkedIndividual indiv = myShepherd.getMarkedIndividual(matchID);
+					if (indiv == null) {  //must have sent a new one
+						indiv = new MarkedIndividual(matchID, enc);
+						indiv.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + matchID + ".</p>");
+						indiv.setDateTimeCreated(ServletUtilities.getDate());
+						myShepherd.addMarkedIndividual(indiv);
+          } 
+
+					enc.assignToMarkedIndividual(matchID);
+					enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
+					enc.setMatchedBy("Visual Matcher");
 					myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
 					redirUrl = "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
 				} else {
