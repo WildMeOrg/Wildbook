@@ -109,6 +109,10 @@ String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + ima
 					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
 					e.put("locationID", cand.getLocationID());
 					e.put("individualID", cand.getIndividualID());
+					e.put("patterningCode", cand.getPatterningCode());
+					e.put("sex", cand.getSex());
+					e.put("mmaCompatible", cand.getMmaCompatible());
+
 					ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
 					ArrayList images = new ArrayList();
 					String dataDir = CommonConfiguration.getDataDirectoryName(context);
