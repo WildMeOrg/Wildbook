@@ -1371,15 +1371,11 @@ table.tissueSample td {
 	border-radius: 2px;
 	padding: 1px 3px 1px 3px;
 	position: absolute;
-	margin: 0;
+	margin: 30px 0 0 0;
 	display: inline-block;
 }
-.vm-button {
-	opacity: 0.8;
-	background-color: #AAA;
-}
+
 .vm-button:hover {
-	opacity: 1.0;
 	background-color: #DD0;
 }
 
@@ -1391,6 +1387,12 @@ table.tissueSample td {
 	right: -4px;
 }
 
+
+.encounter-vm-button {
+	float: right;
+	margin-right: 13px;
+	font-size: 0.9em;
+}
 
 .enc-cr-wrapper {
 	padding: 5px;
