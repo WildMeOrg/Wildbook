@@ -164,13 +164,16 @@ function candidateFullZoom() {
 
 function candidateUse() {
 	if (!currentCandidate) return;
-	var h = '<div><form action="" method="post">';
+	var h = '<div><form action="../EncounterVMData" method="post">';
 	if (nullIndividual(encData.individualID) && nullIndividual(currentCandidate.individualID)) {
 		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchNew + '</p><div><input name="matchID" /><input type="submit" value="OK" />';
+		h += '<input type="hidden" name="number" value="' + encounterNumber + '" />';
 	} else if (nullIndividual(encData.individualID)) {
 		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchCandidate.replace('%s', currentCandidate.individualID) + '<p><div><input name="matchID" type="hidden" value="' + currentCandidate.individualID + '" /><input type="submit" value="OK" />';
+		h += '<input type="hidden" name="number" value="' + encounterNumber + '" />';
 	} else if (nullIndividual(currentCandidate.individualID)) {
 		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchTarget.replace('%s', encData.individualID) + '<p><div><input name="matchID" type="hidden" value="' + encData.individualID + '" /><input type="submit" value="OK" />';
+		h += '<input type="hidden" name="number" value="' + currentCandidate.id + '" />';
 	} else {
 		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchConflict + '</p>';
 	}

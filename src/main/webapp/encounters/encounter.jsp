@@ -546,6 +546,11 @@ margin-bottom: 8px !important;
 
   <p><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("identity") %></strong></p>
       
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<div class="encounter-vm-button">
+	<a href="encounterVM.jsp?number=<%=num%>">[Visual Matcher]</a>
+</div>
+<% } %>
       
 								
     							<%
@@ -622,7 +627,6 @@ margin-bottom: 8px !important;
       							%>
      							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" style="display:none">  
   									<p><em><%=encprops.getProperty("identityMessage") %></em></p>	
-  		
   									<%
   									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
   									%>		
