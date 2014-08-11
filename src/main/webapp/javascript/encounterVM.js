@@ -62,7 +62,7 @@ function gotTarget(d) {
 	candidateCriteria.locationID = d.locationID;
 	candidateCriteria.sex = d.sex;
 	candidateCriteria.patterningCode = d.patterningCode;
-	candidateCriteria.mmaCompatible = d.mmaCompatible;
+	//candidateCriteria.mmaCompatible = d.mmaCompatible;
 
 	createControls();
 	loadTarget(d);
@@ -100,6 +100,7 @@ function gotCandidates(data) {
 		return;
 	}
 
+	data.candidates = candidatesOrder(data.candidates, 'mmaCompatible');
 	$('#vm-candidates-imgs').html('');
 	for (var c = 0 ; c < data.candidates.length ; c++) {
 		if (!data.candidates[c].images || !data.candidates[c].images.length) continue;
@@ -257,5 +258,19 @@ console.log(candidateCriteria);
 function nullIndividual(iid) {
 	return !(iid && (iid != '') && (iid != 'Unassigned'));
 }
+
+function candidatesOrder(carr, field) {  //TODO fieldSSSSS
+	return carr.sort(function(a,b) { return _csort(a,b,field); });
+}
+
+function _csort(a, b, field) {
+	if (field == 'mmaCompatible') {
+		if (a.mmaCompatible) return 1;
+		return -1;
+	}
+	return 0;
+}
+
+
 
 
