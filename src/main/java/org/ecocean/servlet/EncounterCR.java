@@ -23,19 +23,15 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.mmutil.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Iterator;
-import java.io.File;
+import java.util.*;
+import java.io.*;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -97,19 +93,13 @@ public class EncounterCR extends HttpServlet {
 			}
 
 			if (rawPng != null) {
-/*
-String rootWebappPath = getServletContext().getRealPath("/");
-String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
-File thisEncounterDir = new File(imageEnc.dir(baseDir));
-String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
-*/
 				String rootWebappPath = getServletContext().getRealPath("/");
 				String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
 				//File webappsDir = new File(rootWebappPath).getParentFile();
 				//File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
 				File encounterDir = new File(enc.dir(baseDir));
 				File sourceImg = new File(encounterDir, matchFilename);
-System.out.println(sourceImg.toString());
+//System.out.println(sourceImg.toString());
 				if (!sourceImg.exists()) {
 					errorMessage = "source image does not exist";
 
@@ -117,11 +107,14 @@ System.out.println(sourceImg.toString());
 					int dot = matchFilename.lastIndexOf('.');
 					String crFilename = matchFilename.substring(0, dot) + "_CR.png";
 					File crFile = new File(encounterDir, crFilename);
-System.out.println(sourceImg.toString() + " --> " + crFilename);
+//System.out.println(sourceImg.toString() + " --> " + crFilename);
 					Files.write(crFile.toPath(), rawPng);
-System.out.println(crFile.toString() + " written");
+//System.out.println(crFile.toString() + " written");
 					enc.setMmaCompatible(true);
 					myShepherd.storeNewEncounter(enc, encID);
+					String procError = mmprocess(enc, sourceImg);
+//System.out.println("procError = " + procError);
+					if (procError != null) errorMessage = procError;
 				}
 			}
 		}
@@ -144,5 +137,31 @@ System.out.println(crFile.toString() + " written");
     	out.close();
 		}
   }
+
+
+	String mmprocess(Encounter enc, File baseFile) {
+		String error = null;
+		try {
+			Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(baseFile);
+System.out.println(mmFiles);
+			List<String> procArg = ListHelper.create("/usr/bin/mmprocess").add(mmFiles.get("O").getAbsolutePath()).add("4").add("1").add("2").asList();
+			ProcessBuilder pb = new ProcessBuilder(procArg);
+			pb.redirectErrorStream();
+
+			String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
+System.out.println("I am trying to execute the command: " + procArgStr);
+
+			Process process = pb.start();
+			process.waitFor();
+		} catch (IOException lEx) {
+			lEx.printStackTrace();
+			error = "Unable to execute mmprocess";
+		} catch (InterruptedException ex) {
+			ex.printStackTrace();
+			error = "mmprocess interrupted";
+		}
+		return error;
+	}
+
 
 }
