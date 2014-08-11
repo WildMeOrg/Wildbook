@@ -271,13 +271,17 @@ context=ServletUtilities.getContext(request);
 <tr class="lineitem">
   <td width="100" class="lineitem">
   <%
-   if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
+   if (enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned") && (enc.getSinglePhotoVideo()!=null) && (enc.getSinglePhotoVideo().size()>0)) {
    %>
 <div class="vm-img-wrapper">
   	<img src="<%= encUrlDir %>/thumb.jpg" />
 	<a href="encounterVM.jsp?number=<%=enc.getEncounterNumber()%>" title="<%=encprops.getProperty("vmShortDescription")%>" class="vm-button">Visual Matcher</a>
 </div>
   <%
+	} else {
+	%>
+  	<img src="<%= encUrlDir %>/thumb.jpg" />
+	<%
    }
   %>
   </td>
