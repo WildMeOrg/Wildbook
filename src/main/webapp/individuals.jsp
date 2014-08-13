@@ -299,11 +299,18 @@ table.tissueSample td {
 
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
 
+<!-- Wild Me v2 followers button -->
+<script src="//fb.wildme.org/wildme/public/followers/js/lib.js"></script>
+
+<!-- Wild Me v2 adopt button -->
+<script src="//fb.wildme.org/wildme/public/adopt-form/js/wildmepayment.js"></script>
+
 
 </head>
 
 <body <%if (request.getParameter("noscript") == null) {%>
 onunload="GUnload()" <%}%>>
+<div id="wildme-adoption-form"></div>
 <div id="wrapper">
 <div id="page">
 <jsp:include page="header.jsp" flush="true">
@@ -312,11 +319,6 @@ onunload="GUnload()" <%}%>>
 </jsp:include>
   <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
-<!-- Wild Me v2 followers button -->
-<script src="//fb.wildme.org/wildme/public/followers/js/lib.js"></script>
-
-<!-- Wild Me v2 adopt button -->
-<script src="//fb.wildme.org/wildme/public/adopt-form/js/wildmepayment.js"></script>
 
 <div id="main">
 
@@ -380,9 +382,13 @@ if(CommonConfiguration.isIntegratedWithWildMe(context)){
 
 <%
 if(request.getParameter("showAdoption")!=null){
+	String wildMeDataSourcePrefix="";
+	if((CommonConfiguration.getProperty("wildMeDataSourcePrefix", context)!=null)){
+		wildMeDataSourcePrefix=CommonConfiguration.getProperty("wildMeDataSourcePrefix", context);
+	}
 %>
 <td>
-<div id="wildme-adoption-form"></div>
+<div id="wildme-adoption-button" data-id="<%=wildMeDataSourcePrefix %><%=sharky.getIndividualID() %>"></div>
 </td>
 <%
 }
