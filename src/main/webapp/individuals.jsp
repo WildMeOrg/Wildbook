@@ -313,10 +313,10 @@ onunload="GUnload()" <%}%>>
   <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
 <!-- Wild Me v2 followers button -->
-<script src="//digital.cygnismedia.com/wildme-v2/public/followers/js/lib.js"></script>
+<script src="//fb.wildme.org/wildme/public/followers/js/lib.js"></script>
 
 <!-- Wild Me v2 adopt button -->
-<script src="//digital.cygnismedia.com/wildme-v2/public/adopt-form/js/wildmepayment.js"></script>
+<script src="//fb.wildme.org/wildme/public/adopt-form/js/wildmepayment.js"></script>
 
 <div id="main">
 
@@ -379,10 +379,10 @@ if(CommonConfiguration.isIntegratedWithWildMe(context)){
 %>
 
 <%
-if((request.getUserPrincipal()!=null)&&(request.getUserPrincipal().getName().equals("admin"))){
+if(request.getParameter("showAdoption")!=null){
 %>
 <td>
-<div id="wildme-aboption-form"></div>
+<div id="wildme-adoption-form"></div>
 </td>
 <%
 }
