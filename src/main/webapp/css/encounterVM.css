@@ -182,7 +182,7 @@
 	z-index: 200;
 	border: solid 4px black;
 	padding: 5px;
-	background-color: #88A;
+	background: #88A url(../images/wait.gif) no-repeat 75% 20%;
 	display: none;
 }
 
