@@ -135,6 +135,7 @@ public class EncounterVMData extends HttpServlet {
 						if (myShepherd.isAcceptableImageFile(s.getFilename())) {
 							HashMap i = new HashMap();
 							i.put("url", "/" + dataDir + cand.dir("") + "/" + s.getFilename());
+ 							i.put("thumbUrl", "/" + dataDir + cand.dir("") + "/" + s.getDataCollectionEventID() + ".jpg");
 							List k = s.getKeywords();
 							i.put("keywords", k);
 							images.add(i);
@@ -154,6 +155,7 @@ public class EncounterVMData extends HttpServlet {
 					if (myShepherd.isAcceptableImageFile(s.getFilename())) {
 						HashMap i = new HashMap();
 						i.put("url", "/" + dataDir + "/" + s.getFilename());
+ 						i.put("thumbUrl", "/" + dataDir + "/" + s.getDataCollectionEventID() + ".jpg");
 						List k = s.getKeywords();
 						i.put("keywords", k);
 						images.add(i);

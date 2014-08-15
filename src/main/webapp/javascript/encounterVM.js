@@ -107,7 +107,7 @@ function gotCandidates(data) {
 		var h = '<div class="candidate" id="' + data.candidates[c].id + '">';
 		for (var i = 0 ; i < data.candidates[c].images.length ; i++) {
 			candidatesData[data.candidates[c].id] = data.candidates[c];
-			h += '<img title="' + imgInfo(data.candidates[c], i) + '" class="thumb" data-i="' + i + '" src="' + data.candidates[c].images[i].url + '" />';
+			h += '<img title="' + imgInfo(data.candidates[c], i) + '" class="thumb" data-i="' + i + '" src="' + data.candidates[c].images[i].thumbUrl + '" />';
 		}
 		//h += '<div class="info">' + [data.candidates[c].id, data.candidates[c].locationID, data.candidates[c].releaseDate].join(' | ') + '</div></div>';
 		h += '<div class="info">' + imgInfo(data.candidates[c]) + '</div></div>';
@@ -121,9 +121,10 @@ function gotCandidates(data) {
 
 function candidateClick(el, doZoom) {
 	var eid = el.parentElement.getAttribute('id');
+	var i = el.getAttribute('data-i');
 	currentCandidate = {
-		i: el.getAttribute('data-i'),
-		src: el.src
+		i: i,
+		src: candidatesData[eid].images[i].url
 	};
 	for (var k in candidatesData[eid]) {
 		currentCandidate[k] = candidatesData[eid][k];
@@ -144,9 +145,10 @@ function candidateMakeActive(eid) {
 
 function candidateHover(el) {
 	var eid = el.parentElement.getAttribute('id');
+	var i = el.getAttribute('data-i');
 	currentCandidate = {
-		i: el.getAttribute('data-i'),
-		src: el.src
+		i: i,
+		src: candidatesData[eid].images[i].url
 	};
 	for (var k in candidatesData[eid]) {
 		currentCandidate[k] = candidatesData[eid][k];
