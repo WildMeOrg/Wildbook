@@ -112,7 +112,7 @@ public class EncounterCR extends HttpServlet {
 //System.out.println(crFile.toString() + " written");
 					enc.setMmaCompatible(true);
 					myShepherd.storeNewEncounter(enc, encID);
-					String procError = mmprocess(enc, sourceImg);
+					String procError = mmprocess(enc, crFile);
 //System.out.println("procError = " + procError);
 					if (procError != null) errorMessage = procError;
 				}
@@ -139,12 +139,10 @@ public class EncounterCR extends HttpServlet {
   }
 
 
-	String mmprocess(Encounter enc, File baseFile) {
+	String mmprocess(Encounter enc, File crFile) {
 		String error = null;
 		try {
-			Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(baseFile);
-System.out.println(mmFiles);
-			List<String> procArg = ListHelper.create("/usr/bin/mmprocess").add(mmFiles.get("O").getAbsolutePath()).add("4").add("1").add("2").asList();
+			List<String> procArg = ListHelper.create("/usr/bin/mmprocess").add(crFile.getAbsolutePath()).add("4").add("1").add("2").asList();
 			ProcessBuilder pb = new ProcessBuilder(procArg);
 			pb.redirectErrorStream();
 
