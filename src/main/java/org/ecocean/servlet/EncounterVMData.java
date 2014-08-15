@@ -57,7 +57,7 @@ public class EncounterVMData extends HttpServlet {
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     boolean locked = false, isOwner = true;
-    //boolean isAssigned = false;
+
 		HashMap rtn = new HashMap();
 		boolean wantJson = true;
 		String redirUrl = null;
@@ -90,12 +90,15 @@ public class EncounterVMData extends HttpServlet {
 					enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
 					enc.setMatchedBy("Visual Matcher");
 					myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+					myShepherd.commitDBTransaction();
+					//myShepherd.closeDBTransaction();
 					redirUrl = "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
 				} else {
 					rtn.put("error", "unauthorized");
 				}
 
 			} else if (request.getParameter("candidates") != null) {
+				rtn.put("_wantCandidates", true);
 				ArrayList candidates = new ArrayList();
 				String filter = "this.catalogNumber != \"" + enc.getCatalogNumber() + "\"";
 				String[] fields = {"locationID", "sex", "patterningCode"};
@@ -111,15 +114,7 @@ public class EncounterVMData extends HttpServlet {
 						filter += " && (this.mmaCompatible == false || this.mmaCompatible == null)";
 					}
 				}
-System.out.println("candidate filter => " + filter);
-
-/*
-String rootWebappPath = getServletContext().getRealPath("/");
-String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
-Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
-File thisEncounterDir = new File(imageEnc.dir(baseDir));
-String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
-*/
+//System.out.println("candidate filter => " + filter);
 
 				Iterator all = myShepherd.getAllEncounters("catalogNumber", filter);
 				while (all.hasNext()) {
@@ -145,10 +140,10 @@ String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + ima
 							images.add(i);
 						}
 					}
-					e.put("images", images);
+					if (!images.isEmpty()) e.put("images", images);
 					candidates.add(e);
 				}
-				rtn.put("candidates", candidates);
+				if (!candidates.isEmpty()) rtn.put("candidates", candidates);
 
 			} else {
 				ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
@@ -172,7 +167,7 @@ String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + ima
 				rtn.put("individualID", enc.getIndividualID());
 				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
 				rtn.put("mmaCompatible", enc.getMmaCompatible());
-				rtn.put("images", images);
+				if (!images.isEmpty()) rtn.put("images", images);
 			}
 
 
@@ -181,7 +176,7 @@ String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + ima
 		}
 
 		//myShepherd.commitDBTransaction();
-    myShepherd.closeDBTransaction();
+		//myShepherd.closeDBTransaction();
 
 		if (redirUrl != null) {
 			response.sendRedirect(redirUrl);
