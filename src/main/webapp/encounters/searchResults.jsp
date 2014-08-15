@@ -280,7 +280,7 @@ context=ServletUtilities.getContext(request);
   <td class="lineitem"><%=encprops.getProperty("unassigned")%>
 
   <%
-   		if (isOwner && enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned") && CommonConfiguration.isCatalogEditable(context) && (enc.getSinglePhotoVideo()!=null) && (enc.getSinglePhotoVideo().size()>0)) {
+   		if ((isOwner || request.isUserInRole("admin")) && enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned") && CommonConfiguration.isCatalogEditable(context) && (enc.getSinglePhotoVideo()!=null) && (enc.getSinglePhotoVideo().size()>0)) {
    %>
 	<a href="encounterVM.jsp?number=<%=enc.getEncounterNumber()%>" title="<%=encprops.getProperty("vmShortDescription")%>" class="vm-button">Visual Matcher</a>
   <%
