@@ -233,7 +233,7 @@ public final class MantaMatcherUtilities {
     sb.append(spv.getFile().getAbsolutePath()).append("\n\n");
     for (Encounter x : list) {
       if (!enc.getEncounterNumber().equals(x.getEncounterNumber()))
-        sb.append(encDir.getAbsolutePath()).append(File.separatorChar).append(x.getEncounterNumber()).append("\n");
+        sb.append(encDir.getAbsolutePath()).append(File.separatorChar).append(x.subdir()).append("\n");
     }
 
     // Clean resources.
@@ -302,7 +302,7 @@ public final class MantaMatcherUtilities {
     sb.append(spv.getFile().getAbsolutePath()).append("\n\n");
     for (Encounter x : list) {
       if (!enc.getEncounterNumber().equals(x.getEncounterNumber()))
-        sb.append(encDir.getAbsolutePath()).append(File.separatorChar).append(x.getEncounterNumber()).append("\n");
+        sb.append(encDir.getAbsolutePath()).append(File.separatorChar).append(x.subdir()).append("\n");
     }
 
     // Clean resources.
