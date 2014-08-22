@@ -530,6 +530,7 @@ public final class BatchUpload extends DispatchServlet {
         proc.setListSam(data.listSam);
         proc.setServletContext(getServletContext(),context);
         proc.setUser(req.getRemoteUser());
+        proc.setURLLocation(CommonConfiguration.getURLLocation(req));
         log.info(String.format("Assigning batch processor for user %s: %s", req.getRemoteUser(), proc));
         processMap.put(req.getRemoteUser(), proc);
 
@@ -1050,7 +1051,6 @@ public final class BatchUpload extends DispatchServlet {
 
     for (Map<String, Object> map : dataEnc) {
       Encounter x = new Encounter();
-      x.setState("approved"); // NOTE: Encounters are pre-approved.
 
       x.setCatalogNumber(map.get(pre + "catalogNumber").toString());
       Object tempEID = map.get(pre + "eventID");
