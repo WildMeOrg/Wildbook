@@ -62,7 +62,7 @@
 <logger name="org.ecocean.batch" level="INFO">
   <appender-ref ref="GENERICLOG" />
 </logger>
-<logger name="org.ecocean.util" level="INFO">
+<logger name="org.ecocean.mmutil" level="INFO">
   <appender-ref ref="GENERICLOG" />
 </logger>
 
