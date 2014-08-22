@@ -642,11 +642,11 @@ public final class BatchUpload extends DispatchServlet {
     Set<String> locIDs = new HashSet<String>();
     for (Encounter x : listEnc) {
       // Check for repetition.
-      if (mapEnc.containsKey(x.getEventID())) {
+      if (mapEnc.containsKey(x.getEncounterNumber())) {
         String msg = bundle.getString("batchUpload.verifyError.repeatEncounter");
-        errors.add(MessageFormat.format(msg, x.getEventID()));
+        errors.add(MessageFormat.format(msg, x.getEncounterNumber()));
       } else {
-        mapEnc.put(x.getEventID(), x);
+        mapEnc.put(x.getEncounterNumber(), x);
       }
       // Check/assign individual.
       // Individuals created on import have their Encounters assigned to them.
@@ -663,7 +663,7 @@ public final class BatchUpload extends DispatchServlet {
         // Check for existing individual in database.
         if (!shepherd.isMarkedIndividual(x.getIndividualID())) {
           String msg = bundle.getString("batchUpload.verifyError.encounterUnknownIndividual");
-          errors.add(MessageFormat.format(msg, x.getEventID(), x.getIndividualID()));
+          errors.add(MessageFormat.format(msg, x.getEncounterNumber(), x.getIndividualID()));
         }
       } else {
         MarkedIndividual ind = listInd.get(indIDs.indexOf(indID));
@@ -674,28 +674,28 @@ public final class BatchUpload extends DispatchServlet {
       String sex = x.getSex();
       if (!listSex.isEmpty() && !listSex.contains(sex)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidSex");
-        errors.add(MessageFormat.format(msg, x.getEventID(), sex));
+        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), sex));
       }
 
       // Check genus/species.
       String tax = x.getGenus() + " " + x.getSpecificEpithet();
       if (!listTax.isEmpty() && !listTax.contains(tax)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidTaxonomy");
-        errors.add(MessageFormat.format(msg, x.getEventID(), tax));
+        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), tax));
       }
 
       // Check life stage.
       String lifeStage = x.getLifeStage();
       if (lifeStage != null && !listLS.isEmpty() && !listLS.contains(lifeStage)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidLifeStage");
-        errors.add(MessageFormat.format(msg, x.getEventID(), lifeStage));
+        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), lifeStage));
       }
 
       // Check patterning code.
       String patterningCode = x.getPatterningCode();
       if (patterningCode != null && !listPC.isEmpty() && !listPC.contains(patterningCode)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidPatterningCode");
-        errors.add(MessageFormat.format(msg, x.getEventID(), patterningCode));
+        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), patterningCode));
       }
 
       // Check location.
@@ -706,12 +706,12 @@ public final class BatchUpload extends DispatchServlet {
       }
       if (locID == null) {
         String msg = bundle.getString("batchUpload.verifyError.encounterNoLocation");
-        errors.add(MessageFormat.format(msg, x.getEventID()));
+        errors.add(MessageFormat.format(msg, x.getEncounterNumber()));
       }
       else {
         if (!listLoc.contains(locID)) {
           String msg = bundle.getString("batchUpload.verifyError.encounterInvalidLocation");
-          errors.add(MessageFormat.format(msg, x.getEventID(), locID));
+          errors.add(MessageFormat.format(msg, x.getEncounterNumber(), locID));
         }
         else
           locIDs.add(locID);
@@ -828,7 +828,7 @@ public final class BatchUpload extends DispatchServlet {
     Set<String> badMedInvalidKeyword = new LinkedHashSet<String>();
     if (listMed != null) {
       for (BatchMedia bm : listMed) {
-        if (bm.getEventID() == null)
+        if (bm.getEncounterNumber() == null)
           badMedNoEnc.add(bm);
         // Check media URL.
         if (bm.getMediaURL() == null) {
@@ -890,12 +890,12 @@ public final class BatchUpload extends DispatchServlet {
         // Check for invalid media type.
         if (!MediaUtilities.isAcceptableMediaFile(filename))
           badMedInvalidType.add(filename.substring(filename.lastIndexOf(".") + 1));
-        if (bm.getEventID() != null) {
+        if (bm.getEncounterNumber() != null) {
           // Get encounter instance, and assign data.
           File f = new File(dataDir, filename);
-          Encounter enc = mapEnc.get(bm.getEventID());
+          Encounter enc = mapEnc.get(bm.getEncounterNumber());
           if (enc == null) {
-            badMedInvalidEnc.add(bm.getEventID());
+            badMedInvalidEnc.add(bm.getEncounterNumber());
           } else {
             SinglePhotoVideo spv = new SinglePhotoVideo(enc.getEncounterNumber(), f);
             enc.addSinglePhotoVideo(spv);
@@ -1052,7 +1052,10 @@ public final class BatchUpload extends DispatchServlet {
       Encounter x = new Encounter();
       x.setState("approved"); // NOTE: Encounters are pre-approved.
 
-      x.setEventID(map.get(pre + "eventID").toString());
+      x.setCatalogNumber(map.get(pre + "catalogNumber").toString());
+      Object tempEID = map.get(pre + "eventID");
+      if (tempEID != null)
+        x.setEventID(map.get(pre + "eventID").toString());
       x.setIndividualID((String)map.get(pre + "individualID"));
       x.setAlternateID((String)map.get(pre + "alternateID"));
 
@@ -1099,12 +1102,13 @@ public final class BatchUpload extends DispatchServlet {
       x.setMaximumElevationInMeters((Double)map.get(pre + "maximumElevationInMeters"));
       x.setLivingStatus((String)map.get(pre + "livingStatus"));
       x.setLifeStage((String)map.get(pre + "lifeStage"));
-      x.setReleaseDate(((Date)map.get(pre + "releaseDate")).getTime());
+      Date tempDate = (Date)map.get(pre + "releaseDate");
+      if (tempDate != null)
+        x.setReleaseDate(tempDate.getTime());
       x.setSize((Double)map.get(pre + "size"));
       x.setSizeGuess((String)map.get(pre + "sizeGuess"));
       x.setPatterningCode((String)map.get(pre + "patterningCode"));
       x.setDistinguishingScar((String)map.get(pre + "distinguishingScar"));
-      x.setCatalogNumber((String)map.get(pre + "catalogNumber"));
       x.setOtherCatalogNumbers((String)map.get(pre + "otherCatalogNumbers"));
       x.setDWCGlobalUniqueIdentifier((String)map.get(pre + "occurrenceID"));
       x.setOccurrenceRemarks((String)map.get(pre + "occurrenceRemarks"));
@@ -1181,12 +1185,12 @@ public final class BatchUpload extends DispatchServlet {
     String pre = "measurement.";
 
     for (Map<String, Object> map : dataMea) {
-      String encID = map.get(pre + "eventID").toString();
+      String encNum = map.get(pre + "encounterNumber").toString();
       String type = (String)map.get(pre + "type");
       String units = (String)map.get(pre + "units");
       Double val = (Double)map.get(pre + "value");
       String protocol = (String)map.get(pre + "protocol");
-      Measurement x = new Measurement(encID, type, val, units, protocol);
+      Measurement x = new Measurement(encNum, type, val, units, protocol);
       list.add(x);
     }
 
@@ -1206,7 +1210,7 @@ public final class BatchUpload extends DispatchServlet {
 
     for (Map<String, Object> map : dataMed) {
       BatchMedia x = new BatchMedia();
-      x.setEventID(map.get(pre + "eventID").toString());
+      x.setEncounterNumber(map.get(pre + "encounterNumber").toString());
       x.setMediaURL((String)map.get(pre + "mediaURL"));
       x.setCopyrightOwner((String)map.get(pre + "copyrightOwner"));
       x.setCopyrightStatement((String)map.get(pre + "copyrightStatement"));
@@ -1238,9 +1242,9 @@ public final class BatchUpload extends DispatchServlet {
     String pre = "sample.";
 
     for (Map<String, Object> map : dataSam) {
-      String encID = map.get(pre + "eventID").toString();
+      String encNum = map.get(pre + "encounterNumber").toString();
       String sampleID = (String)map.get(pre + "sampleID");
-      TissueSample x = new TissueSample(encID, sampleID);
+      TissueSample x = new TissueSample(encNum, sampleID);
       x.setTissueType((String)map.get(pre + "tissueType"));
       x.setAlternateSampleID((String)map.get(pre + "alternateID"));
       x.setStorageLabID((String)map.get(pre + "storageLab"));

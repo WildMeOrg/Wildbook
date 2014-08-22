@@ -9,8 +9,8 @@ import java.util.Arrays;
  * @author Giles Winstanley
  */
 public class BatchMedia {
-  /** EventID for item (links to an encounter in CSV file). */
-  private String eventID;
+  /** Encounter ID for item (links to an encounter in CSV file). */
+  private String encounterNumber;
   /** URL from which media item can be downloaded. */
   private String mediaURL;
   /** Copyright owner string. */
@@ -28,8 +28,8 @@ public class BatchMedia {
   /** Flag indicating whether item should be persisted to database. */
   private boolean persist = true;
 
-  public BatchMedia(String eventID, String mediaURL, String copyrightOwner, String copyrightStatement) {
-    this.eventID = eventID;
+  public BatchMedia(String encNum, String mediaURL, String copyrightOwner, String copyrightStatement) {
+    this.encounterNumber = encNum;
     this.mediaURL = mediaURL;
     this.copyrightOwner = copyrightOwner;
     this.copyrightStatement = copyrightStatement;
@@ -38,12 +38,12 @@ public class BatchMedia {
   public BatchMedia() {
   }
 
-  public String getEventID() {
-    return eventID;
+  public String getEncounterNumber() {
+    return encounterNumber;
   }
 
-  public void setEventID(String eventID) {
-    this.eventID = eventID;
+  public void setEncounterNumber(String encNum) {
+    this.encounterNumber = encNum;
   }
 
   public String getMediaURL() {
