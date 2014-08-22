@@ -19,17 +19,11 @@
 
 package org.ecocean.mmutil;
 
-import freemarker.template.Configuration;
-import freemarker.template.DefaultObjectWrapper;
-import freemarker.template.TemplateException;
-import freemarker.template.TemplateExceptionHandler;
-import freemarker.template.Version;
+import freemarker.template.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.jdo.Extent;
 import javax.jdo.Query;
 import org.ecocean.Encounter;
@@ -162,7 +156,8 @@ public final class MantaMatcherUtilities {
    * @param conf FreeMarker configuration
    * @param mmaResultsFile MantaMatcher algorithm results text file
    * @param spv {@code SinglePhotoVideo} instance for base reference image
-   * @param urlPrefixImage URL prefix for encounter folder (for image links)
+   * @param dataDir folder containing all webapp data (for deriving reference folders)
+   * @param dataDirUrlPrefix URL prefix for data folder (for image links)
    * @param pageUrlFormat Format string for encounter page URL (with <em>%s</em> placeholder)
    * @return A map containing parsed results ready for use with a FreeMarker template
    * @throws IOException
@@ -170,11 +165,11 @@ public final class MantaMatcherUtilities {
    * @throws TemplateException
    */
   @SuppressWarnings("unchecked")
-  public static String getResultsHtml(Configuration conf, File mmaResultsFile, SinglePhotoVideo spv, String urlPrefixImage, String pageUrlFormat) throws IOException, ParseException, TemplateException {
+  public static String getResultsHtml(Configuration conf, File mmaResultsFile, SinglePhotoVideo spv, File dataDir, String dataDirUrlPrefix, String pageUrlFormat) throws IOException, ParseException, TemplateException {
     // Load results file.
     String text = new String(FileUtilities.loadFile(mmaResultsFile));
     // Convert to HTML results page.
-    return MMAResultsProcessor.convertResultsToHtml(conf, text, spv, urlPrefixImage, pageUrlFormat);
+    return MMAResultsProcessor.convertResultsToHtml(conf, text, spv, dataDir, dataDirUrlPrefix, pageUrlFormat);
   }
 
   /**
