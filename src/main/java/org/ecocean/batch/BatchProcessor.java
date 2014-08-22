@@ -51,6 +51,9 @@ import org.ecocean.servlet.BatchUpload;
 import org.ecocean.mmutil.DataUtilities;
 import org.ecocean.mmutil.FileUtilities;
 import org.ecocean.mmutil.MediaUtilities;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,6 +96,8 @@ public final class BatchProcessor implements Runnable {
   private File dataDirUsers;
   /** Data folder specific to this user (acts as temporary storage area). */
   private File dataDirUser;
+  /** URL location, to allow remote access to resources (Darwin Core). */
+  private String urlLocation;
   /** ServletContext for web application, to allow access to resources. */
   private ServletContext servletContext;
   /** Username of person doing batch upload (for logging in comments). */
@@ -177,6 +182,18 @@ public final class BatchProcessor implements Runnable {
     if ("".equals(username.trim()))
       throw new IllegalArgumentException();
     this.user = username;
+  }
+
+  /**
+   * Sets the URL location to use for external data access.
+   * @param loc URL location of web resources (URL to root of servlet context).
+   */
+  public void setURLLocation(String loc) {
+    if (loc == null)
+      throw new NullPointerException();
+    if ("".equals(loc.trim()))
+      throw new IllegalArgumentException();
+    this.urlLocation = loc;
   }
 
   /**
@@ -415,7 +432,7 @@ public final class BatchProcessor implements Runnable {
           String uid = null;
           Object testEnc = null;
           do {
-            uid = DataUtilities.createUniqueEncounterId();
+            uid = enc.generateEncounterNumber();
             try {
               testEnc = pm.getObjectById(pm.newObjectIdInstance(Encounter.class, uid));
               log.trace("Unable to use UID for encounter; already exists: {}", uid);
@@ -424,23 +441,35 @@ public final class BatchProcessor implements Runnable {
               testEnc = null;
             }
           } while (testEnc != null);
-          enc.setCatalogNumber(uid);
+          enc.setEncounterNumber(uid);
+          // Populate Darwin Core attributes.
+          String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + uid;
+          enc.setDWCGlobalUniqueIdentifier(guid);
+          enc.setDWCImageURL(("http://" + urlLocation + "/encounters/encounter.jsp?number=" + uid));
+          DateTime dt = new DateTime();
+          DateTimeFormatter fmt = ISODateTimeFormat.date();
+          String strOutputDateTime = fmt.print(dt);
+          enc.setDWCDateAdded(strOutputDateTime);
+          enc.setDWCDateLastModified(strOutputDateTime);
+          // Set encounter state to "approved".
+          if (CommonConfiguration.getProperty("encounterState1", context) != null)
+            enc.setState(CommonConfiguration.getProperty("encounterState1", context));
           // Assign encounter ID to associated measurements.
           if (enc.getMeasurements() != null) {
             for (Measurement x : enc.getMeasurements()) {
-              x.setCorrespondingEncounterNumber(enc.getCatalogNumber());
+              x.setCorrespondingEncounterNumber(enc.getEncounterNumber());
             }
           }
           // Assign encounter ID to associated media.
           if (enc.getSinglePhotoVideo() != null) {
             for (SinglePhotoVideo x : enc.getSinglePhotoVideo()) {
-              x.setCorrespondingEncounterNumber(enc.getCatalogNumber());
+              x.setCorrespondingEncounterNumber(enc.getEncounterNumber());
             }
           }
           // Assign encounter ID to associated samples.
           if (enc.getTissueSamples() != null) {
             for (TissueSample x : enc.getTissueSamples()) {
-              x.setCorrespondingEncounterNumber(enc.getCatalogNumber());
+              x.setCorrespondingEncounterNumber(enc.getEncounterNumber());
             }
           }
           // Relocate associated media into encounter folder.
@@ -495,7 +524,7 @@ public final class BatchProcessor implements Runnable {
           } catch (Exception ex) {
             // Add error message for this encounter.
             String msg = bundle.getString("batchUpload.processError.persistEncounter");
-            msg = MessageFormat.format(msg, enc.getCatalogNumber());
+            msg = MessageFormat.format(msg, enc.getEncounterNumber());
             errors.add(msg);
             throw ex;
           }
@@ -525,7 +554,7 @@ public final class BatchProcessor implements Runnable {
             pm.makePersistent(ind);
           } catch (Exception ex) {
             String msg = bundle.getString("batchUpload.processError.assignEncounter");
-            msg = MessageFormat.format(msg, me.getKey().getCatalogNumber(), me.getValue());
+            msg = MessageFormat.format(msg, me.getKey().getEncounterNumber(), me.getValue());
             errors.add(msg);
             throw ex;
           }
@@ -564,7 +593,7 @@ public final class BatchProcessor implements Runnable {
         File encsDir = new File(dataDir, "encounters");
         for (Encounter enc : listEnc) {
           // Create folder for encounter.
-          File encDir = new File(encsDir, enc.getCatalogNumber());
+          File encDir = new File(enc.dir(dataDir.getAbsolutePath()));
           if (!encDir.exists()) {
             if (!encDir.mkdirs())
               log.warn(String.format("Unable to create encounter folder: %s", encDir.getAbsoluteFile()));
@@ -577,14 +606,14 @@ public final class BatchProcessor implements Runnable {
             File src = media.get(0).getFile();
             File dst = new File(src.getParentFile(), "thumb.jpg");
             if (dst.exists()) {
-              log.info(String.format("Thumbnail for encounter %s already exists", enc.getCatalogNumber()));
+              log.info(String.format("Thumbnail for encounter %s already exists", enc.getEncounterNumber()));
             } else {
               // TODO: If video file, copy placeholder image? Just ignores and lets JSP handle it for now.
               if (MediaUtilities.isAcceptableImageFile(src)) {
                 // Resize image to thumbnail & write to file.
                 try {
                   createThumbnail(src, dst, 100, 75);
-                  log.trace(String.format("Created thumbnail image for encounter %s", enc.getCatalogNumber()));
+                  log.trace(String.format("Created thumbnail image for encounter %s", enc.getEncounterNumber()));
                 }
                 catch (Exception ex) {
                   log.warn(String.format("Failed to create thumbnail correctly: %s", dst.getAbsolutePath()), ex);
@@ -704,10 +733,10 @@ public final class BatchProcessor implements Runnable {
     for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
       BatchMedia bp = mapMedia.get(spv);
       if (bp.isDownloaded() && !bp.isOversize()) {
-        File encDir = new File(new File(dataDir, "encounters"), enc.getCatalogNumber());
+        File encDir = new File(enc.dir(dataDir.getAbsolutePath()));
         if (!encDir.exists()) {
           if (!encDir.mkdirs())
-            throw new IOException("Unable to create folder for encounter " + enc.getCatalogNumber());
+            throw new IOException("Unable to create folder for encounter " + enc.getEncounterNumber());
         }
         File src = spv.getFile();
         File dst = new File(encDir, src.getName());
