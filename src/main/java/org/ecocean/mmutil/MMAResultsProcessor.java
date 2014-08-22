@@ -23,6 +23,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
+import org.ecocean.Encounter;
 import org.ecocean.SinglePhotoVideo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,7 @@ public final class MMAResultsProcessor {
    * then converts it to a formatted HTML results page (via FreeMarker).
    * @param conf FreeMarker configuration
    * @param spv {@code SinglePhotoVideo} instance denoting base reference image
+   * @param dataDir folder containing all webapp data (for deriving reference folders)
    * @param refUrlPrefix URL prefix to use for reference links
    * @param pageUrlFormat Format string for encounter page URL (with <em>%s</em> placeholder)
    * @return A map containing parsed results ready for use with a FreeMarker template
@@ -60,9 +62,9 @@ public final class MMAResultsProcessor {
    * @throws ParseException
    * @throws TemplateException
    */
-  static String convertResultsToHtml(Configuration conf, String text, SinglePhotoVideo spv, String refUrlPrefix, String pageUrlFormat) throws IOException, TemplateException, ParseException {
+  static String convertResultsToHtml(Configuration conf, String text, SinglePhotoVideo spv, File dataDir, String refUrlPrefix, String pageUrlFormat) throws IOException, TemplateException, ParseException {
     // Parse results from text file.
-    MMAResult matchResult = parseMatchResults(text, spv);
+    MMAResult matchResult = parseMatchResults(text, spv, dataDir);
     // Convert results to data model for template engine.
     Map model = convertResultsToTemplateModel(matchResult, spv, refUrlPrefix, pageUrlFormat);
 
@@ -116,21 +118,14 @@ public final class MMAResultsProcessor {
    * </ul>
    * @param matchResult MMAResult instance in which to place parsed data
    * @param spv {@code SinglePhotoVideo} instance denoting base reference image
-   * @param refUrlPrefix URL prefix to use for reference links
+   * @param dataDirUrlPrefix URL prefix to use for reference links
    * @param pageUrlFormat Format string for page URLs (with <em>%s</em> placeholder)
    * @return A map containing parsed results ready for use with a FreeMarker template
    * @throws FileNotFoundException if unable to find CR image files
    * @throws UnsupportedEncodingException if unable to encode a URL (unlikely)
    */
   @SuppressWarnings("unchecked")
-  private static Map convertResultsToTemplateModel(MMAResult matchResult, SinglePhotoVideo spv, String refUrlPrefix, String pageUrlFormat) throws FileNotFoundException, UnsupportedEncodingException {
-
-    // Construct test dir-path & URL-prefix from ref versions.
-    File testDir = spv.getFile().getParentFile();
-    String testUrlPrefix = String.format("%s%s", refUrlPrefix, testDir.getName());
-//    log.trace(String.format("testDir      : %s", testDir));
-//    log.trace(String.format("testUrlPrefix: %s", testUrlPrefix));
-//    log.trace(String.format("refUrlPrefix : %s", refUrlPrefix));
+  private static Map convertResultsToTemplateModel(MMAResult matchResult, SinglePhotoVideo spv, String dataDirUrlPrefix, String pageUrlFormat) throws FileNotFoundException, UnsupportedEncodingException {
 
     // Repackage data model into template model.
     Map model = new HashMap();
@@ -153,16 +148,20 @@ public final class MMAResultsProcessor {
       if (!fCR.isFile())
         throw new FileNotFoundException("File not found: " + fCR.getAbsolutePath());
       String nameCR = fCR.getName();
-      String nameCR_url = URLEncoder.encode(nameCR, "UTF-8");
+      String nameEH = nameCR.replace("_CR", "_EH");
+      String nameFT = nameCR.replace("_CR", "_FT");
+      String linkCR = convertFileToURL(dataDirUrlPrefix, fCR);
+      String linkEH = linkCR.replace("_CR", "_EH");
+      String linkFT = linkCR.replace("_CR", "_FT");
       String encUrl = String.format(pageUrlFormat, fCR.getParentFile().getName());
       modelResult.put("link", encUrl);
       modelResult.put("name", nameCR.substring(0, nameCR.indexOf("_CR")));
       modelResult.put("nameCR", nameCR);
-      modelResult.put("linkCR", String.format("%s/%s", testUrlPrefix, nameCR));
-      modelResult.put("nameEH", nameCR.replace("_CR", "_EH"));
-      modelResult.put("linkEH", String.format("%s/%s", testUrlPrefix, nameCR_url.replace("_CR", "_EH")));
-      modelResult.put("nameFT", nameCR.replace("_CR", "_FT"));
-      modelResult.put("linkFT", String.format("%s/%s", testUrlPrefix, nameCR_url.replace("_CR", "_FT")));
+      modelResult.put("linkCR", linkCR);
+      modelResult.put("nameEH", nameEH);
+      modelResult.put("linkEH", linkEH);
+      modelResult.put("nameFT", nameFT);
+      modelResult.put("linkFT", linkFT);
 //      log.trace("Processing: {}", modelResult.get("nameCR"));
       modelResult.put("featureCount", matchResult.featureCount);
       modelResult.put("timeTaken", matchResult.timeTaken);
@@ -171,6 +170,7 @@ public final class MMAResultsProcessor {
       List modelMatches = new ArrayList();
       modelResult.put("matches", modelMatches);
       for (MMAMatch match : test.getValue()) {
+//        log.trace(String.format("Match: %s", match));
         // Null-check needed in case referent wasn't found.
         if (match.fileRef == null)
           continue;
@@ -198,9 +198,12 @@ public final class MMAResultsProcessor {
           String fnCR = mmMap.get("CR").getName();
           String fnEH = mmMap.get("EH").getName();
           String fnFT = mmMap.get("FT").getName();
-          modelMatch.put("linkCR", String.format("%s%s/%s", refUrlPrefix, dir.getName(), fnCR));
-          modelMatch.put("linkEH", String.format("%s%s/%s", refUrlPrefix, dir.getName(), fnEH));
-          modelMatch.put("linkFT", String.format("%s%s/%s", refUrlPrefix, dir.getName(), fnFT));
+          String mlinkCR = convertFileToURL(dataDirUrlPrefix, mmMap.get("CR"));
+          String mlinkEH = convertFileToURL(dataDirUrlPrefix, mmMap.get("EH"));
+          String mlinkFT = convertFileToURL(dataDirUrlPrefix, mmMap.get("FT"));
+          modelMatch.put("linkCR", mlinkCR);
+          modelMatch.put("linkEH", mlinkEH);
+          modelMatch.put("linkFT", mlinkFT);
           modelMatches.add(modelMatch);
 //          log.trace(String.format("nameCR: %s", modelMatch.get("nameCR")));
 //          log.trace(String.format("nameEH: %s", modelMatch.get("nameEH")));
@@ -215,6 +218,18 @@ public final class MMAResultsProcessor {
     return model;
   }
 
+  private static final String convertFileToURL(String dataDirUrlPrefix, File file) throws UnsupportedEncodingException {
+    File dir = file.getParentFile();
+    String dirStr = dir.getAbsolutePath().replace(File.separatorChar, '/');
+    dirStr = dirStr.replaceFirst("^.*/encounters/", "");
+    String url = String.format("%s/%s/%s", dataDirUrlPrefix, dirStr, URLEncoder.encode(file.getName(), "UTF-8"));
+    log.trace(String.format("file            : %s", file.getAbsolutePath()));
+    log.trace(String.format("dataDirUrlPrefix: %s", dataDirUrlPrefix));
+    log.trace(String.format("dirStr          : %s", dirStr));
+    log.trace(String.format("url             : %s", url));
+    return url;
+  }
+
   /**
    * Checks the format of the results file text for specification conformance.
    * @param text text of results file
@@ -225,7 +240,7 @@ public final class MMAResultsProcessor {
     final String[] CHECKS = {
       "Manta Matcher version " + MMA_VER,
       "Reference Set: ",
-      "SIFT files found",
+//      "SIFT files found",
       "Test Image: ",
       "### Ranking List ###",
       "Confidence: "
@@ -241,9 +256,10 @@ public final class MMAResultsProcessor {
    * Parses the MMA results from the results text.
    * @param text text of results file
    * @param spv {@code SinglePhotoVideo} instance denoting base reference image
+   * @param dataDir folder containing all webapp data (for deriving reference folders)
    * @return MMAResult instance containing parsed data
    */
-  private static MMAResult parseMatchResults(String text, SinglePhotoVideo spv) throws IOException, ParseException {
+  private static MMAResult parseMatchResults(String text, SinglePhotoVideo spv, File dataDir) throws IOException, ParseException {
     if (!checkResultsFormat(text))
       throw new IOException("Invalid results file format");
     // Split results into sections.
@@ -260,7 +276,7 @@ public final class MMAResultsProcessor {
       else if (i == sections.length - 1)
         parseMatchResultsSummary(result, sections[i].trim());
       else
-        parseMatchResultsCore(result, sections[i].trim(), result.dirTest);
+        parseMatchResultsCore(result, sections[i].trim(), dataDir, result.dirTest);
     }
 
     return result;
@@ -270,11 +286,12 @@ public final class MMAResultsProcessor {
    * Parses the core section of MMA results text.
    * @param result MMAResult instance in which to place parsed data
    * @param text text of core section of the results file
+   * @param dataDir folder containing all webapp data (for deriving reference folders)
    * @param dirTest folder containing test images (for deriving reference folder)
    * @throws ParseException if there is a problem during parsing
    * @throws IOException if there is a problem locating {@code dirTest}
    */
-  private static void parseMatchResultsCore(MMAResult result, String text, File dirTest) throws ParseException, IOException {
+  private static void parseMatchResultsCore(MMAResult result, String text, File dataDir, File dirTest) throws ParseException, IOException {
     Scanner sc = null;
     try {
       sc = new Scanner(text).useDelimiter("[\\r\\n]+");
@@ -316,7 +333,8 @@ public final class MMAResultsProcessor {
           res.score = Float.parseFloat(mr.group(3));
           if (mr.group(4) != null) {
             res.bestMatch = mr.group(4);
-            File dir = new File(dirTest.getParentFile(), mr.group(2));
+            // Obtain encounter dir for matched image.
+            File dir = new File(Encounter.dir(dataDir, mr.group(2)));
             // Find matched image file (base image, not CR).
             res.fileRef = findReferenceFile(dir, res.bestMatch);
             // Only add items with a non-zero score (only lines with 'best match' anyway).
