@@ -183,7 +183,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
 		HashMap fv = new HashMap();
 
-		HttpSession session = request.getSession(false);
+		HttpSession session = request.getSession(true);
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
