@@ -25,21 +25,7 @@
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
-  String number = request.getParameter("number").trim();
-  int imageNum = 1;
-  try {
-    imageNum = (new Integer(request.getParameter("imageNum"))).intValue();
-  } catch (Exception cce) {
-  }
-  
-  //setup data dir
-  String rootWebappPath = getServletContext().getRealPath("/");
-  File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-  File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-  File thisEncounterDir = new File(encountersDir, Encounter.subdir(number));
-
-
+ 
 %>
 
 <html>
@@ -74,6 +60,23 @@ context=ServletUtilities.getContext(request);
           <%
           Shepherd myShepherd = new Shepherd(context);
           try {
+        	  
+        	  String number = request.getParameter("number").trim();
+        	  int imageNum = 1;
+        	  try {
+        	    imageNum = (new Integer(request.getParameter("imageNum"))).intValue();
+        	  } catch (Exception cce) {
+        	  }
+        	  
+        	  //setup data dir
+        	  String rootWebappPath = getServletContext().getRealPath("/");
+        	  File webappsDir = new File(rootWebappPath).getParentFile();
+        	  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+        	  File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+        	  File thisEncounterDir = new File(encountersDir, Encounter.subdir(number));
+
+
+        	  
             String addText = "";
             if (request.getParameter("imageName") != null) {
               addText = request.getParameter("imageName");
@@ -170,9 +173,12 @@ context=ServletUtilities.getContext(request);
 	
           <%
             }
-          myShepherd.rollbackDBTransaction();
-                  myShepherd.closeDBTransaction();
-        		  myShepherd=null;
+          if(!myShepherd.getPM().isClosed()){
+        	  myShepherd.rollbackDBTransaction();
+              myShepherd.closeDBTransaction();
+          }
+          
+         myShepherd=null;
           %>
         <!-- end maintext --></div>
       <!-- end maincol -->
