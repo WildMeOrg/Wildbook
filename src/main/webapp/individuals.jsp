@@ -19,10 +19,10 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory, 	   
-		 org.joda.time.DateTime,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*" %>
+         import="org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, com.google.gson.Gson" %>
 
 <%
+String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
   //handle some cache-related security
@@ -44,13 +44,17 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
 
   //load our variables for the submit page
 
  // props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
   props = ShepherdProperties.getProperties("individuals.properties", langCode,context);
+
+	Properties collabProps = new Properties();
+ 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+  
 	
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
@@ -91,6 +95,7 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
 
 
+	ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
 
 %>
 
@@ -125,6 +130,36 @@ if (request.getParameter("number")!=null) {
 			MarkedIndividual indie=myShepherd.getMarkedIndividual(name);
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
+
+
+			boolean visible = indie.canUserAccess(request);
+
+			if (!visible) {
+  			ArrayList<String> uids = indie.getAllAssignedUsers();
+				ArrayList<String> possible = new ArrayList<String>();
+				for (String u : uids) {
+					Collaboration c = null;
+					if (collabs != null) c = Collaboration.findCollaborationWithUser(u, collabs);
+					if ((c == null) || (c.getState() == null)) {
+						User user = myShepherd.getUser(u);
+						String fullName = u;
+						if (user.getFullName()!=null) fullName = user.getFullName();
+						possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
+					}
+				}
+				String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+				cmsg = cmsg.replace("'", "\\'");
+
+				if (possible.size() > 0) {
+    			String arr = new Gson().toJson(possible);
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+				} else {
+					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
+				}
+			}
+
+
 			for(int p=0;p<numEncs;p++){
 				Encounter metaEnc = (Encounter)myEncs.get(p);
 				int numImgs=metaEnc.getImages().size();
@@ -316,6 +351,7 @@ onunload="GUnload()" <%}%>>
 
 
 <div id="main">
+<%=blocker%>
 
 <%
   if (CommonConfiguration.allowAdoptions(context)) {
@@ -745,10 +781,12 @@ $("a#deathdate").click(function() {
   <%
     Encounter[] dateSortedEncs = sharky.getDateSortedEncounters();
 
+
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
       Encounter enc = dateSortedEncs[i];
       
+				boolean visible = true; //enc.canUserAccess(request);  ///TODO technically we dont need this encounter-level locking!!!
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
         
@@ -756,8 +794,12 @@ $("a#deathdate").click(function() {
           imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.subdir() + "/thumb.jpg";
         
   %>
-  <tr>
-      <td class="lineitem"><%=enc.getDate()%>
+	<tr class="lineitem<%= (visible ? "" : " no-access") %>">
+      <td class="lineitem">
+<%
+	if (!visible) out.println(enc.collaborationLockHtml(collabs));
+%>
+<%=enc.getDate()%>
     </td>
     <td class="lineitem">
     <% 
@@ -969,6 +1011,7 @@ $("a#deathdate").click(function() {
 
 									Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
 									String encSubdir = thisEnc.subdir();
+									boolean visible = thisEnc.canUserAccess(request);
 
 									String thumbLink="";
 									boolean video=true;
@@ -986,7 +1029,7 @@ $("a#deathdate").click(function() {
 
    
     
-      <table align="left" width="<%=100/numColumns %>%">
+      <table class="<%=(visible ? "" : "no-access")%>" align="left" width="<%=100/numColumns %>%">
         <tr>
           <td valign="top">
 			
@@ -1040,6 +1083,8 @@ $("a#deathdate").click(function() {
 
                       <tr>
                         <td>
+xxxxxx
+	<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
                         	<span class="caption"><%=props.getProperty("location") %>: 
                         		<%
                         		if(thisEnc.getLocation()!=null){
@@ -1142,41 +1187,13 @@ $("a#deathdate").click(function() {
 						<span class="caption">
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-              try{
               
             	  //File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
               File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
-              	
-              if(exifImage.exists()){              
-              	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              	// iterate through metadata directories
-              	Iterator directories = metadata.getDirectoryIterator();
-              	while (directories.hasNext()) {
-                	Directory directory = (Directory) directories.next();
-                	// iterate through tags and print to System.out
-                	Iterator tags = directory.getTagIterator();
-                	while (tags.hasNext()) {
-                  		Tag tag = (Tag) tags.next();
-
-          				%>
-								<%=tag.toString() %><br/>
-								<%
-                    }
-                }
-              } //end if
-              else{
-            	  %>
-		            <p>File not found on file system. No EXIF data available.</p>
-          		<%  
-              }
-            } //end try
-            catch(Exception e){
-            	 %>
-		            <p>Cannot read metadata for this file.</p>
-            	<%
-            	System.out.println("Cannout read metadata for: "+thumbLocs.get(countMe).getFilename());
-            	e.printStackTrace();
-            }
+              %>
+          	<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
+          	<%
+             
 
                   }
                 %>
@@ -1206,7 +1223,8 @@ $("a#deathdate").click(function() {
             if(!thumbLink.endsWith("video.jpg")){
  %>
 <tr>
-  <td>
+  <td class="lock-td">
+<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
   	<span class="caption"><%=props.getProperty("location") %>: 
 	                        		<%
 	                        		if(thisEnc.getLocation()!=null){
