@@ -369,8 +369,8 @@ margin-bottom: 8px !important;
 						if (match == null) match = spvs.get(0);
 
 						if (enc.getMmaCompatible()) {
-							File tryCR = new File(match.getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.png"));
-							if (tryCR.exists()) crExistsUrl = match.getFilename().replaceFirst(".([^.]+)$", "_CR.png");
+							File tryCR = new File(match.getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.jpg"));
+							if (tryCR.exists()) crExistsUrl = match.getFilename().replaceFirst(".([^.]+)$", "_CR.jpg");
 						}
 
 						String imgUrl = "";
@@ -407,8 +407,25 @@ margin-bottom: 8px !important;
 	});
 
 
+/* note: we now actually try jpeg, as file size is much smaller. but it will just return png if browser does not support jpeg
+   either way, we still have to check for data-size limitations (currently hardcoded at 2M which is tomcat default. */
 	function crSave() {
-		var base64 = document.getElementById('cr-work-canvas').toDataURL("image/png").substr(22);
+		var cvs = document.createElement('canvas');  //only used if we need to shrink it
+		var scale = 1;
+		var maxSize = 2000000;
+
+		var base64 = document.getElementById('cr-work-canvas').toDataURL("image/jpeg");
+		var i = base64.indexOf(';base64,');
+		if (i > -1) base64 = base64.substr(i + 8);
+console.log('1) base64.length = ' + base64.length);
+		while (base64.length > maxSize) {
+			scale *= 0.8;
+			CRtool.scaleCanvas(scale, CRtool.wCanvas, cvs);
+			base64 = cvs.toDataURL("image/jpeg");
+			var i = base64.indexOf(';base64,');
+			if (i > -1) base64 = base64.substr(i + 8);
+console.log(scale + ') base64.length = ' + base64.length);
+		}
 		$('#cr-form input[name="pngData"]').val(base64);
 /*
 console.log('<%=matchFilename%>');

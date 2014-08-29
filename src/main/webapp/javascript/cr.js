@@ -466,5 +466,15 @@ if (this.shiftDown) a = Math.floor(a / (Math.PI/4) + 0.5) * (Math.PI/4);
 		return p;
 	},
 
+
+	//really more of a utility than necessary part of the tool
+	scaleCanvas: function(scale, inCanvas, outCanvas) {
+		outCanvas.width = inCanvas.width * scale;
+		outCanvas.height = inCanvas.height * scale;
+		var oc = outCanvas.getContext('2d');
+		oc.drawImage(inCanvas, 0, 0, outCanvas.width, outCanvas.height);
+		return outCanvas;
+	},
+
 }
 
