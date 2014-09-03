@@ -122,10 +122,13 @@ private final String UPLOAD_DIRECTORY = "/tmp";
   }
 
 
-  private List<Measurement> getMeasurements(HashMap fv, String encID) {
+  private List<Measurement> getMeasurements(HashMap fv, String encID, String context) {
     List<Measurement> list = new ArrayList<Measurement>();
-		List<String> keys = Arrays.asList("weight", "length", "height");  //TODO programatically build from form
+		//List<String> keys = Arrays.asList("weight", "length", "height");  //TODO programatically build from form
 
+    //dynamically adapt to project-specific measurements
+		List<String> keys=CommonConfiguration.getSequentialPropertyValues("measurement", context);
+		
     for (String key : keys) {
       String value = getVal(fv, "measurement(" + key + ")");
       String units = getVal(fv, "measurement(" + key + "units)");
@@ -425,7 +428,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
         enc.addMetalTag(metalTag);
       }
 
-      List<Measurement> measurements = getMeasurements(fv, encID);
+      List<Measurement> measurements = getMeasurements(fv, encID, context);
       for (Measurement measurement : measurements) {
         enc.addMeasurement(measurement);
       }
