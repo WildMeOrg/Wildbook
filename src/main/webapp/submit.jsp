@@ -174,7 +174,7 @@ margin-bottom: 8px !important;
  }
  %>
  
-  <script>
+  <script type="text/javascript">
   $(function() {
     $( "#datepicker" ).datetimepicker({
       changeMonth: true,
@@ -184,6 +184,19 @@ margin-bottom: 8px !important;
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
     $( "#datepicker" ).datepicker( "option", "maxDate", "+1d" );
+  });
+  </script>
+  
+   <script type="text/javascript">
+  $(function() {
+    $( "#releasedatepicker" ).datepicker({
+      changeMonth: true,
+      changeYear: true,
+      dateFormat: 'yy-mm-dd'
+      
+    });
+    $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
+    $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
   });
   </script>
  
@@ -367,7 +380,9 @@ function FSControl(controlDiv, map) {
 <c:if test="${showReleaseDate}">
     <tr class="form_row">
     <td class="form_label"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
-    <td colspan="2"><input name="releaseDate"/> <%= props.getProperty("submit_releasedate_format") %></td>
+    <td colspan="2">  
+    	<input type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" />
+	</td>
     </tr>
 </c:if>
 
