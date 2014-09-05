@@ -347,16 +347,28 @@ System.out.println("about to do int stuff");
 			
 			//switch to datepicker
 			if(getVal(fv, "datepicker")!=null){
-			  System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
+			  //System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
         
-			  DateTimeFormatter parser1 = ISODateTimeFormat.dateHourMinute();
+			  DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 			  DateTime reportedDateTime=parser1.parseDateTime(getVal(fv, "datepicker").replaceAll(" ", "T"));
-			   try { day = new Integer(reportedDateTime.getDayOfMonth()); } catch (Exception e) { day = 0; }
-		      try { month = new Integer(reportedDateTime.getMonthOfYear()); } catch (Exception e) { month = 0; }
-		      try { year = new Integer(reportedDateTime.getYear()); } catch (Exception e) { year = 0; }
-		      try { hour = new Integer(reportedDateTime.getHourOfDay()); } catch (Exception e) { hour = 0; }
-		      try {minutes=(new Integer(reportedDateTime.getMinuteOfHour())).toString(); } catch (Exception e) {}
-			}
+			  System.out.println("Day of month is: "+reportedDateTime.getDayOfMonth()); 
+			  try { month = new Integer(reportedDateTime.getMonthOfYear()); } catch (Exception e) { month = 0; }
+		      
+			  //see if we can get a day, because we do want to support only yyy-MM too
+			  StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker"),"-");			  
+			  if(str.countTokens()>2){
+			    try { day = new Integer(reportedDateTime.getDayOfMonth()); } catch (Exception e) { day = 0; }
+			  }  
+		    try { year = new Integer(reportedDateTime.getYear()); } catch (Exception e) { year = 0; }
+		      
+        //see if we can get a time and hour, because we do want to support only yyy-MM too
+        StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");        
+        if(strTime.countTokens()>1){
+          try { hour = new Integer(reportedDateTime.getHourOfDay()); } catch (Exception e) { hour =-1; }
+          try {minutes=(new Integer(reportedDateTime.getMinuteOfHour())).toString(); } catch (Exception e) {}
+        } 
+        else{hour=-1;}
+		 }
 			
 			
 			
