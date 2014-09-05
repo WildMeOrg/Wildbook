@@ -183,7 +183,7 @@ margin-bottom: 8px !important;
       
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
-    $( "#datepicker" ).datepicker( "option", "maxDate", "+1d" );
+    
   });
   </script>
  
