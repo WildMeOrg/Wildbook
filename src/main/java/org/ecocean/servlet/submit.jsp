@@ -40,8 +40,6 @@ context=ServletUtilities.getContext(request);
   props = ShepherdProperties.getProperties("submit.properties", langCode,context);
 
 
-	long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
-	long maxSizeBytes = maxSizeMB * 1048576;
 
   
 
@@ -185,7 +183,7 @@ margin-bottom: 8px !important;
       
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
-    $( "#datepicker" ).datepicker( "option", "maxDate", "+1d" );
+    
   });
   </script>
  
@@ -669,11 +667,11 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 <c:if test="${showMetalTags and !empty metalTags}">
 <tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("physicalTags") %></strong></td>
+  <td class="form_label"><strong>Metal Tags:</strong></td>
   <td colspan="2">
     <table class="metalTags">
     <tr>
-      <th><%=props.getProperty("location") %></th><th><%=props.getProperty("tagNumber") %></th>
+      <th>Location</th><th>Tag Number</th>
     </tr>
     <c:forEach items="${metalTags}" var="metalTagDesc">
       <tr>
@@ -688,15 +686,15 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 <c:if test="${showAcousticTag}">
 <tr class="form_row">
-    <td class="form_label"><strong><%=props.getProperty("acousticTag") %></strong></td>
+    <td class="form_label"><strong>Acoustic Tag:</strong></td>
     <td colspan="2">
       <table class="acousticTag">
       <tr>
-      <td><%=props.getProperty("serialNumber") %></td>
+      <td>Serial number:</td>
       <td><input name="acousticTagSerial"/></td>
       </tr>
       <tr>
-        <td><%=props.getProperty("id") %></td>
+        <td>ID:</td>
         <td><input name="acousticTagId"/></td>
       </tr>
       </table>
@@ -709,11 +707,11 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
 %>
 <tr class="form_row">
-    <td class="form_label"><strong><%=props.getProperty("satelliteTag") %></strong></td>
+    <td class="form_label"><strong>Satellite Tag:</strong></td>
     <td colspan="2">
       <table class="satelliteTag">
       <tr>
-        <td><%=props.getProperty("name") %></td>
+        <td>Name:</td>
         <td>
             <select name="satelliteTagName">
               <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
@@ -723,11 +721,11 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         </td>
       </tr>
       <tr>
-        <td><%=props.getProperty("serialNumber") %></td>
+        <td>Serial number:</td>
         <td><input name="satelliteTagSerial"/></td>
       </tr>
       <tr>
-        <td><%=props.getProperty("argosNumber") %></td>
+        <td>Argos PTT Number:</td>
         <td><input name="satelliteTagArgosPttNumber"/></td>
       </tr>
       </table>
@@ -842,11 +840,7 @@ function updateList(inp) {
 	if (inp.files && inp.files.length) {
 		var all = [];
 		for (var i = 0 ; i < inp.files.length ; i++) {
-			if (inp.files[i].size > <%=maxSizeBytes%>) {
-				all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
-			} else {
-				all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
-			}
+			all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
 		}
 		f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
 	} else {
