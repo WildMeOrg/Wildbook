@@ -340,10 +340,26 @@ System.out.println("about to do int stuff");
 
 			//need some ints for day/month/year/hour (other stuff seems to be strings)
 			int day = 0, month = 0, year = 0, hour = 0;
-			try { day = Integer.parseInt(getVal(fv, "day")); } catch (NumberFormatException e) { day = 0; }
-			try { month = Integer.parseInt(getVal(fv, "month")); } catch (NumberFormatException e) { month = 0; }
-			try { year = Integer.parseInt(getVal(fv, "year")); } catch (NumberFormatException e) { year = 0; }
-			try { hour = Integer.parseInt(getVal(fv, "hour")); } catch (NumberFormatException e) { hour = 0; }
+			String minutes="";
+			//try { day = Integer.parseInt(getVal(fv, "day")); } catch (NumberFormatException e) { day = 0; }
+			//try { month = Integer.parseInt(getVal(fv, "month")); } catch (NumberFormatException e) { month = 0; }
+			//try { year = Integer.parseInt(getVal(fv, "year")); } catch (NumberFormatException e) { year = 0; }
+			
+			//switch to datepicker
+			if(getVal(fv, "datepicker")!=null){
+			  System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
+        
+			  DateTimeFormatter parser1 = ISODateTimeFormat.dateHourMinute();
+			  DateTime reportedDateTime=parser1.parseDateTime(getVal(fv, "datepicker").replaceAll(" ", "T"));
+			   try { day = new Integer(reportedDateTime.getDayOfMonth()); } catch (Exception e) { day = 0; }
+		      try { month = new Integer(reportedDateTime.getMonthOfYear()); } catch (Exception e) { month = 0; }
+		      try { year = new Integer(reportedDateTime.getYear()); } catch (Exception e) { year = 0; }
+		      try { hour = new Integer(reportedDateTime.getHourOfDay()); } catch (Exception e) { hour = 0; }
+		      try {minutes=(new Integer(reportedDateTime.getMinuteOfHour())).toString(); } catch (Exception e) {}
+			}
+			
+			
+			
 			String guess = "no estimate provided";
 			if ((fv.get("guess") != null) && !fv.get("guess").toString().equals("")) {
 				guess = fv.get("guess").toString();
@@ -351,7 +367,7 @@ System.out.println("about to do int stuff");
 
 System.out.println("about to do enc()");
 
-			Encounter enc = new Encounter(day, month, year, hour, getVal(fv, "minutes"), guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
+			Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
 			//Encounter enc = new Encounter();
 			String encID = enc.generateEncounterNumber();
 			enc.setEncounterNumber(encID);
