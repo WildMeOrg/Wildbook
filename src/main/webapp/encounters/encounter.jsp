@@ -1030,7 +1030,7 @@ $("a#occurrence").click(function() {
 %>
 <c:if test="${showReleaseDate}">
   <br /><em><%=encprops.getProperty("releaseDate") %></em>:
-    <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
+    <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
     <c:if test="${editable}">
         <font size="-1"><a id="releaseDate" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
     </c:if>
