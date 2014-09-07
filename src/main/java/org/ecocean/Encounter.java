@@ -704,7 +704,9 @@ public class Encounter implements java.io.Serializable {
     }
 
     if (hour != -1) {
-      time = String.format("%02d:%s", hour, minutes);
+      String localMinutes=minutes;
+      if(localMinutes.length()==1){localMinutes="0"+localMinutes;}
+      time = String.format("%02d:%s", hour, localMinutes);
     }
 
     if (day > 0) {
