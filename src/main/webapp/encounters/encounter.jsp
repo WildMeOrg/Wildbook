@@ -20,7 +20,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.DateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -518,15 +518,32 @@ margin-bottom: 8px !important;
       			//if(CommonConfiguration.getProperty(()){}
     			%>
     			
-    						  <script type="text/javascript">
-  $(function() {
+<script type="text/javascript">
+
+
+
+$(function() {
     $( "#datepicker" ).datetimepicker({
       changeMonth: true,
       changeYear: true,
       dateFormat: 'yy-mm-dd',
-      defaultDate: '<%=enc.getDate() %>',
-      hour: <%=enc.getHour() %>,
-      minute: <%=enc.getMinutes() %>,
+      
+      <%
+      //set a default date if we cann
+      if(enc.getDateInMilliseconds()>0){
+    	  
+    	  DateTime jodaTime = new DateTime(enc.getDateInMilliseconds());
+          DateTimeFormatter parser1 = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+          
+      %>
+      defaultDate: '<%=parser1.print(jodaTime) %>',
+      hour: <%=jodaTime.getHourOfDay() %>,
+      minute: <%=jodaTime.getMinuteOfHour() %>,
+      <%
+      }
+      %>
+      
+  
       altField: '#datepickerField',
       altFieldTimeOnly: false,
       maxDate: '+1d'
@@ -1161,7 +1178,7 @@ $("a#VBDate").click(function() {
           <div id="datepicker"></div>
           
           <p>
-           <%=encprops.getProperty("setDate")%> <input type="text" style="position: relative; z-index: 101;" id="datepickerField" name="datepicker" size="20" />
+           <%=encprops.getProperty("setDate")%> <input type="text" style="position: relative; z-index: 101;" id="datepickerField" name="datepicker" size="20" /><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
           </p>
           
           <br /> 

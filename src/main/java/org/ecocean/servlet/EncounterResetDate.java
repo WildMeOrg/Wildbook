@@ -65,7 +65,7 @@ public class EncounterResetDate extends HttpServlet {
     boolean isOwner = true;
 
    
-    if ((request.getParameter("number") != null) && (request.getParameter("datepicker") != null)) {
+    if ((request.getParameter("number") != null) ) {
       myShepherd.beginDBTransaction();
       Encounter fixMe = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(fixMe);
@@ -77,6 +77,14 @@ public class EncounterResetDate extends HttpServlet {
 
         oldDate = fixMe.getDate();
         
+        if ((request.getParameter("datepicker") == null)||(request.getParameter("datepicker").trim().equals(""))){
+          fixMe.setYear(0);
+          fixMe.setMonth(0);
+          fixMe.setDay(0);
+          fixMe.setHour(0);
+          newDate=fixMe.getDate();
+        }
+        else{
         
         /**
          * Old method of parsing
@@ -96,18 +104,24 @@ public class EncounterResetDate extends HttpServlet {
           DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
           DateTime reportedDateTime=parser1.parseDateTime(request.getParameter("datepicker").replaceAll(" ", "T"));
           //System.out.println("Day of month is: "+reportedDateTime.getDayOfMonth()); 
-          try { fixMe.setMonth(new Integer(reportedDateTime.getMonthOfYear())); } catch (Exception e) { fixMe.setMonth(0);}
-            
-          //see if we can get a day, because we do want to support only yyy-MM too
           StringTokenizer str=new StringTokenizer(request.getParameter("datepicker").replaceAll(" ", "T"),"-");        
-          if(str.countTokens()>2){
+          
+          int numTokens=str.countTokens();
+          if(numTokens>=1){
+            try { fixMe.setYear(new Integer(reportedDateTime.getYear())); } catch (Exception e) { fixMe.setYear(-1);}
+          }
+          if(numTokens>=2){
+            try { fixMe.setMonth(new Integer(reportedDateTime.getMonthOfYear())); } catch (Exception e) { fixMe.setMonth(-1);}
+          }
+          else{fixMe.setMonth(-1);}
+          //see if we can get a day, because we do want to support only yyy-MM too
+          if(str.countTokens()>=3){
             try { fixMe.setDay(new Integer(reportedDateTime.getDayOfMonth())); } catch (Exception e) { fixMe.setDay(0); }
           }
           else{fixMe.setDay(0);}
           
           
-          try { fixMe.setYear(new Integer(reportedDateTime.getYear())); } catch (Exception e) { fixMe.setYear(-1);}
-            
+          
           //see if we can get a time and hour, because we do want to support only yyy-MM too
           StringTokenizer strTime=new StringTokenizer(request.getParameter("datepicker").replaceAll(" ", "T"),"T");        
           if(strTime.countTokens()>1){
@@ -129,7 +143,7 @@ public class EncounterResetDate extends HttpServlet {
           }
         }
         
-        
+        } //end else 
       } catch (Exception le) {
         locked = true;
         le.printStackTrace();
