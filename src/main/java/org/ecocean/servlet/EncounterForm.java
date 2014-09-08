@@ -361,7 +361,7 @@ System.out.println("about to do int stuff");
         
 			  DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 			  DateTime reportedDateTime=parser1.parseDateTime(getVal(fv, "datepicker").replaceAll(" ", "T"));
-			  System.out.println("Day of month is: "+reportedDateTime.getDayOfMonth()); 
+			  //System.out.println("Day of month is: "+reportedDateTime.getDayOfMonth()); 
 			  try { month = new Integer(reportedDateTime.getMonthOfYear()); } catch (Exception e) { month = 0; }
 		      
 			  //see if we can get a day, because we do want to support only yyy-MM too
