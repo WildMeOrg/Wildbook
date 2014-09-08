@@ -172,6 +172,10 @@ margin-bottom: 8px !important;
  %>
  <script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
   <script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+ 
+  
+  
+  
  <%
  }
  %>
@@ -181,11 +185,15 @@ margin-bottom: 8px !important;
     $( "#datepicker" ).datetimepicker({
       changeMonth: true,
       changeYear: true,
-      dateFormat: 'yy-mm-dd'
+      dateFormat: 'yy-mm-dd',
+      maxDate: '+1d',
+      controlType: 'select'
       
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
-    $( "#datepicker" ).datepicker( "option", "maxDate", "+1d" );
+
+
+    
   });
   </script>
   
@@ -371,7 +379,7 @@ function FSControl(controlDiv, map) {
   </td>
   <td colspan="2">
   
-     <input type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
+     <input type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" /> yyyy-MM-dd HH:mm
 
     </td>
 </tr>
