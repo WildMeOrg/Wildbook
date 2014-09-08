@@ -1196,6 +1196,8 @@ public class Encounter implements java.io.Serializable {
     }
     return null;
   }
+   
+   public Long getReleaseDateLong(){return releaseDateLong;}
 
   public void setReleaseDate(Long releaseDate) {
     this.releaseDateLong = releaseDate;
@@ -1521,8 +1523,10 @@ public class Encounter implements java.io.Serializable {
       if(month>0){localMonth=month-1;}
       int localDay=1;
       if(day>0){localDay=day;}
-      //int localMinutes = Integer.parseInt(minutes);
-      GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay);
+      int myMinutes=0;
+      try{myMinutes = Integer.parseInt(minutes);}catch(Exception e){}
+      GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay,hour,myMinutes);
+
       dateInMilliseconds = gc.getTimeInMillis();
     }
     else{dateInMilliseconds=0;}
