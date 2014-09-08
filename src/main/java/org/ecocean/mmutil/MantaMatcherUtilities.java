@@ -306,4 +306,21 @@ public final class MantaMatcherUtilities {
 
     return sb.toString();
   }
+
+  /**
+   * Removes any previously generated algorithm match results for the
+   * specified encounter.
+   * It's recommended this method be called whenever any match critical data
+   * fields are changed (e.g. species/patterningCode/locationID).
+   * @param enc encounter for which to remove algorithm match results
+   */
+  public static void removeAlgorithmMatchResults(Encounter enc) {
+    for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
+      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+      mmFiles.get("TXT").delete();
+      mmFiles.get("CSV").delete();
+      mmFiles.get("TXT-REGIONAL").delete();
+      mmFiles.get("CSV-REGIONAL").delete();
+    }
+  }
 }
