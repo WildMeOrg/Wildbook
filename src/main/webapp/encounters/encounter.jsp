@@ -559,11 +559,28 @@ $(function() {
     $( "#releasedatepicker" ).datepicker({
       changeMonth: true,
       changeYear: true,
-      dateFormat: 'yy-mm-dd'
+      dateFormat: 'yy-mm-dd',
+      maxDate: '+1d',
+      altField: '#releasedatepickerField',
+      
+      
+      <%
+      //set a default date if we cann
+      if((enc.getReleaseDateLong()!=null)&&(enc.getReleaseDateLong()>0)){
+    	  
+    	  DateTime jodaTime = new DateTime(enc.getReleaseDateLong().longValue());
+          DateTimeFormatter parser1 = DateTimeFormat.forPattern("yyyy-MM-dd");
+          
+      %>
+      defaultDate: '<%=parser1.print(jodaTime) %>',
+      <%
+      }
+      %>
+      
       
     });
     $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
-    $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
+    
   });
   </script>
     			
@@ -1104,12 +1121,20 @@ $("a#occurrence").click(function() {
             <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate">
                 <input type="hidden" name="encounter" value="${num}"/>
             <table>
-                <tr><td><%=encprops.getProperty("releaseDateFormat") %></td></tr>
-                <c:set var="releaseDate">
-                    <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
-                </c:set>
-                <tr><td><input name="releaseDate" value="${releaseDate}"/></td></tr>
-                <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
+                
+                <tr><td>
+                
+                    <div id="releasedatepicker"></div>
+          
+          <p>
+           <%=encprops.getProperty("setReleaseDate")%> <input type="text" style="position: relative; z-index: 101;" id="releasedatepickerField" name="releasedatepicker" size="20" /><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
+          </p>
+          
+          <br /> 
+           <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" />
+        
+                
+                </td></tr>
             </table>
             </form>
         </td>
