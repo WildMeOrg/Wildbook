@@ -546,7 +546,8 @@ $(function() {
   
       altField: '#datepickerField',
       altFieldTimeOnly: false,
-      maxDate: '+1d'
+      maxDate: '+1d',
+      controlType: 'select'
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
   
@@ -1202,7 +1203,7 @@ $("a#VBDate").click(function() {
           <div id="datepicker"></div>
           
           <p>
-           <%=encprops.getProperty("setDate")%> <input type="text" style="position: relative; z-index: 101;" id="datepickerField" name="datepicker" size="20" /><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
+           <%=encprops.getProperty("setDate")%> <input type="text" style="position: relative; z-index: 101;" id="datepickerField" name="datepicker" size="20" /> yyyy-MM-dd HH:mm<br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
           </p>
           
           <br /> 
