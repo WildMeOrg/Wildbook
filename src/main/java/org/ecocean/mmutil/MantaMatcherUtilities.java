@@ -195,21 +195,21 @@ public final class MantaMatcherUtilities {
     // Build query filter based on encounter.
     StringBuilder sbf = new StringBuilder();
     if (enc.getSpecificEpithet()!= null) {
-      sbf.append("(this.specificEpithet == 'NULL'");
+      sbf.append("(this.specificEpithet == null");
       sbf.append(" || this.specificEpithet == '").append(enc.getSpecificEpithet()).append("'");
       sbf.append(")");
     }
     if (enc.getPatterningCode() != null) {
       if (sbf.length() > 0)
         sbf.append(" && ");
-      sbf.append("(this.patterningCode == 'NULL'");
+      sbf.append("(this.patterningCode == null");
       sbf.append(" || this.patterningCode == '").append(enc.getPatterningCode()).append("'");
       sbf.append(")");
     }
     if (enc.getSex() != null) {
       if (sbf.length() > 0)
         sbf.append(" && ");
-      sbf.append("(this.sex == 'NULL'");
+      sbf.append("(this.sex == null");
       sbf.append(" || this.sex == 'unknown'");
       sbf.append(" || this.sex == '").append(enc.getSex()).append("'");
       sbf.append(")");
@@ -264,21 +264,21 @@ public final class MantaMatcherUtilities {
     if (enc.getSpecificEpithet()!= null) {
       if (sbf.length() > 0)
         sbf.append(" && ");
-      sbf.append("(this.specificEpithet == 'NULL'");
+      sbf.append("(this.specificEpithet == null");
       sbf.append(" || this.specificEpithet == '").append(enc.getSpecificEpithet()).append("'");
       sbf.append(")");
     }
     if (enc.getPatterningCode() != null) {
       if (sbf.length() > 0)
         sbf.append(" && ");
-      sbf.append("(this.patterningCode == 'NULL'");
+      sbf.append("(this.patterningCode == null");
       sbf.append(" || this.patterningCode == '").append(enc.getPatterningCode()).append("'");
       sbf.append(")");
     }
     if (enc.getSex() != null) {
       if (sbf.length() > 0)
         sbf.append(" && ");
-      sbf.append("(this.sex == 'NULL'");
+      sbf.append("(this.sex == null");
       sbf.append(" || this.sex == 'unknown'");
       sbf.append(" || this.sex == '").append(enc.getSex()).append("'");
       sbf.append(")");
