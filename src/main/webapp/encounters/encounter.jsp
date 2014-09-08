@@ -585,8 +585,7 @@ $(function() {
       maxDate: '+1d'
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
-    //$( "#datepicker" ).datepicker( "option", "maxDate", "+1d" );
-   
+  
 
   });
   </script>
