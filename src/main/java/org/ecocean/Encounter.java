@@ -693,20 +693,19 @@ public class Encounter implements java.io.Serializable {
     if (year <= 0) {
       return "Unknown";
     } else if (month == -1) {
-      return (new Integer(year)).toString();
+      return Integer.toString(year);
     }
 
     if (hour != -1) {
-      time = (new Integer(hour)).toString() + ":" + minutes;
+      String localMinutes=minutes;
+      if(localMinutes.length()==1){localMinutes="0"+localMinutes;}
+      time = String.format("%02d:%s", hour, localMinutes);
     }
 
     if (day > 0) {
-
-      date = (new Integer(year)).toString() + "-" + (new Integer(month)).toString() + "-" + (new Integer(day)).toString() + " " + time;
-
+      date = String.format("%04d-%02d-%02d %s", year, month, day, time);
     } else {
-
-      date = (new Integer(year)).toString() + "-" + (new Integer(month)).toString() + " " + time;
+      date = String.format("%04d-%02d %s", year, month, time);
     }
 
     return date;
@@ -717,15 +716,12 @@ public class Encounter implements java.io.Serializable {
     if (year <= 0) {
       return "Unknown";
     } else if (month == -1) {
-      return (new Integer(year)).toString();
+      return Integer.toString(year);
     }
     if (day > 0) {
-
-      date = (new Integer(day)).toString() + "/" + (new Integer(month)).toString() + "/" + (new Integer(year)).toString();
-
+      date = String.format("%02d/%02d/%04d", day, month, year);
     } else {
-
-      date = (new Integer(month)).toString() + "/" + (new Integer(year)).toString();
+      date = String.format("%02d/%04d", month, year);
     }
 
     return date;
