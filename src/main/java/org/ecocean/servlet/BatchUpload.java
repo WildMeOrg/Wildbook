@@ -679,10 +679,12 @@ public final class BatchUpload extends DispatchServlet {
       }
 
       // Check genus/species.
-      String tax = x.getGenus() + " " + x.getSpecificEpithet();
-      if (!listTax.isEmpty() && !listTax.contains(tax)) {
-        String msg = bundle.getString("batchUpload.verifyError.encounterInvalidTaxonomy");
-        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), tax));
+      if (x.getGenus() != null && x.getSpecificEpithet() != null) {
+        String tax = x.getGenus() + " " + x.getSpecificEpithet();
+        if (!listTax.isEmpty() && !listTax.contains(tax)) {
+          String msg = bundle.getString("batchUpload.verifyError.encounterInvalidTaxonomy");
+          errors.add(MessageFormat.format(msg, x.getEncounterNumber(), tax));
+        }
       }
 
       // Check life stage.
