@@ -125,6 +125,19 @@ public class EncounterAddMantaPattern extends HttpServlet {
             mmFiles.get("CSV-REGIONAL").delete();
           }
           mmFiles = null;
+
+          // Check for any remaining CR images, and if none, clear MMA-compatible flag.
+          boolean hasCR = false;
+          for (SinglePhotoVideo mySPV : enc.getSinglePhotoVideo()) {
+            Map<String, File> mmaFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+            hasCR = hasCR & mmaFiles.get("CR").exists();
+            if (hasCR)
+              break;
+          }
+          if (!hasCR) {
+            enc.setMmaCompatible(false);
+            myShepherd.commitDBTransaction();
+          }
         } 
         catch (SecurityException thisE) {
           thisE.printStackTrace();
