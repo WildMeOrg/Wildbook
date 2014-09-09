@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.io.InputStream,java.io.FileInputStream,org.ecocean.servlet.ServletUtilities,javax.jdo.Query,org.ecocean.*,java.io.File, java.util.*, org.ecocean.security.Collaboration " %>
+         import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Directory,com.drew.metadata.Metadata, com.drew.metadata.Tag,org.ecocean.*,java.io.File, java.util.*" %>
 
 <html>
 <head>
@@ -93,9 +93,6 @@
     if (keywords == null) {
       keywords = new String[0];
     }
-
-		ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
-
 
     if (request.getParameter("noQuery") == null) {
 	  queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
@@ -350,7 +347,6 @@
 							for(int columns=0;columns<3;columns++){
 								if(countMe<thumbLocs.size()) {
 									Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
-									boolean visible = thisEnc.canUserAccess(request);
 									//String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + "/" + enc.dir("encounters");
 									String encSubdir = thisEnc.subdir();
 
@@ -369,10 +365,9 @@
 							%>
 
     <td>
-      <table class="<%= (visible ? "" : " no-access") %>">
+      <table>
         <tr>
           <td valign="top">
-<% if (visible) { %>
             <a href="<%=link%>" 
             
             <%
@@ -384,8 +379,7 @@
             %>
             
             >
-<% } else { %><a><% } %>
-            <img src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
+            <img src="<%=thumbLink%>" alt="photo" border="1" title="<%=encprops.getProperty("clickEnlarge")%>"/></a>
 
             <div 
             <%
@@ -650,10 +644,38 @@
 						<span class="caption">
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-            	File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
-            	%>
-            	<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
-            	<%
+              try{
+              	File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
+              	if(exifImage.exists()){
+              		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+              		// iterate through metadata directories
+              		Iterator directories = metadata.getDirectoryIterator();
+              		while (directories.hasNext()) {
+              	  		Directory directory = (Directory) directories.next();
+              	  		// iterate through tags and print to System.out
+              	  		Iterator tags = directory.getTagIterator();
+              	  		while (tags.hasNext()) {
+              	    		Tag tag = (Tag) tags.next();
+
+          					%>
+							<%=tag.toString() %><br/>
+							<%
+                  		}
+                	}
+              	} //end if
+              	else{
+            	 %>
+		            <p>File not found on file system. No EXIF data available.</p>
+		            <p>Looking in: <%=exifImage.getAbsolutePath() %></p>
+          		<%  
+              	}
+              } //end try
+              catch(Exception e){
+              %>
+              <p>Cannot read metadata for this file.</p>
+              <%
+              	e.printStackTrace();
+              }
              }
                 %>
    									</span>
@@ -676,9 +698,6 @@
 <tr>
   <td>
   		<span class="caption">
-<%
-	if (!visible) out.println("<div class=\"lock-right\">" + thisEnc.collaborationLockHtml(collabs) + "</div>");
-%>
   			<%=encprops.getProperty("location") %>: 
   			<%
   			try{
