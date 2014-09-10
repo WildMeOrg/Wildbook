@@ -101,7 +101,7 @@ public final class MantaMatcherUtilities {
     String name = f.getName();
     String regFormat = MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES;
     if (!name.matches("^.+\\." + regFormat))
-      throw new IllegalArgumentException("Invalid file type specified");
+      throw new IllegalArgumentException("Invalid file type specified: " + f.getName());
     String regex = "\\." + regFormat;
     File pf = f.getParentFile();
     File cr = new File(pf, name.replaceFirst(regex, "_CR.$1"));
