@@ -27,6 +27,7 @@ import javax.servlet.ServletContext;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Measurement;
+import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.genetics.TissueSample;
 
@@ -52,6 +53,8 @@ import org.ecocean.genetics.TissueSample;
  * @author Giles Winstanley
  */
 public abstract class BatchProcessorPlugin {
+  /** Shepherd instance for persisting data to database. */
+  private final Shepherd shepherd;
   /** List of individuals. */
   private List<MarkedIndividual> listInd;
   /** List of encounters. */
@@ -77,12 +80,17 @@ public abstract class BatchProcessorPlugin {
   /** Current &quot;item&quot; count (used for progress display). */
   private int counter;
 
-  public BatchProcessorPlugin(List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale loc) {
+  public BatchProcessorPlugin(Shepherd shepherd, List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale loc) {
+    this.shepherd = shepherd;
     this.listInd = listInd;
     this.listEnc = listEnc;
     this.errors = errors;
     this.warnings = warnings;
     this.locale = loc;
+  }
+
+  protected final Shepherd getShepherd() {
+    return shepherd;
   }
 
   public List<MarkedIndividual> getListInd() {
