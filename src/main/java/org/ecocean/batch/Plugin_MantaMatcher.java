@@ -52,9 +52,9 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
   /** Regex pattern string for matching CR image filenames. */
   private static final Pattern REGEX_CR = Pattern.compile("^(.+)_CR\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES + "$");
   /** Resources for internationalization. */
-  private ResourceBundle bundle;
+  private final ResourceBundle bundle;
   /** Collection of media files to process with mmprocess. */
-  private List<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>();
+  private final List<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>();
 
   public Plugin_MantaMatcher(Shepherd shepherd, List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale loc) {
     super(shepherd, listInd, listEnc, errors, warnings, loc);
