@@ -172,6 +172,11 @@ public final class MantaMatcher extends DispatchServlet {
     // Format string for encounter page URL (with placeholder).
     String pageFormat = "//" + CommonConfiguration.getURLLocation(req) + "/encounters/encounter.jsp?number=%s";
     // Parse MantaMatcher results files ready for display.
-    return MantaMatcherUtilities.getResultsHtml(conf, mmaResults, spv, dataDir, dataDirUrlPrefix, pageFormat);
+    Shepherd shepherd = new Shepherd(context);
+    try {
+      return MantaMatcherUtilities.getResultsHtml(shepherd, conf, mmaResults, spv, dataDir, dataDirUrlPrefix, pageFormat);
+    } finally {
+      shepherd.closeDBTransaction();
+    }
   }
 }

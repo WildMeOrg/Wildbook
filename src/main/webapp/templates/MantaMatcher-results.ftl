@@ -40,7 +40,7 @@
     <tr>
       <th>Rank</td>
       <th>Similarity<br/><span class="mma-small">(0:worst, 1:best)</span></td>
-      <th>Filename</td>
+      <th>Match details</td>
       <th>Matched image<br/><span class="mma-small">(opens in a new window)</span></td>
       <th>Query image</td>
     </tr>
@@ -49,7 +49,13 @@
     <tr>
       <td class="rank">${item.rank}</td>
       <td class="similarity">${item.score?string("0.######")}</td>
-      <td class="filename">${item.imgbase?html}</td>
+      <td class="filename">
+        <table id="mma-resultDetailsTable">
+          <tr><th>Individual ID:</th><td>${item.individualID!""}</td></tr>
+          <tr><th>Encounter&nbsp;date:</th><td>${item.encounterDate!""}</td></tr>
+          <tr><th>Pigmentation:</th><td>${item.pigmentation!""}</td></tr>
+        </table>
+      </td>
       <td class="matchedImage"><a href="${item.link!"#"}" target="_blank"><img src="${item.linkEH}" class="mma-matchImg"/></a></td>
       <td class="queryImage"><a href="${results[0].link!"#"}"><img src="${results[0].linkEH}" class="mma-queryImg"/></a></td>
     </tr>

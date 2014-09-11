@@ -78,6 +78,24 @@ body {
 #mma-results td.noMatches {
   color: #C00;
 }
+#mma-resultDetailsTable {
+  margin: 0;
+	border: none;
+}
+#mma-resultDetailsTable th, #mma-resultDetailsTable td {
+  margin: 0;
+	border: none;
+	padding: 3px;
+  vertical-align: top;
+  text-align: left;
+  font-size: 0.8em;
+}
+#mma-resultDetailsTable th {
+  vertical-align: top;
+  font-weight: bold;
+}
+#mma-resultDetailsTable td {
+}
 #mma-footer {
   margin: 1em 0;
   font-style: italic;
