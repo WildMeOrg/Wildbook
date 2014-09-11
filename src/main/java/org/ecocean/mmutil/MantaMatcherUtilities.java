@@ -165,11 +165,11 @@ public final class MantaMatcherUtilities {
    * @throws TemplateException
    */
   @SuppressWarnings("unchecked")
-  public static String getResultsHtml(Configuration conf, File mmaResultsFile, SinglePhotoVideo spv, File dataDir, String dataDirUrlPrefix, String pageUrlFormat) throws IOException, ParseException, TemplateException {
+  public static String getResultsHtml(Shepherd shepherd, Configuration conf, File mmaResultsFile, SinglePhotoVideo spv, File dataDir, String dataDirUrlPrefix, String pageUrlFormat) throws IOException, ParseException, TemplateException {
     // Load results file.
     String text = new String(FileUtilities.loadFile(mmaResultsFile));
     // Convert to HTML results page.
-    return MMAResultsProcessor.convertResultsToHtml(conf, text, spv, dataDir, dataDirUrlPrefix, pageUrlFormat);
+    return MMAResultsProcessor.convertResultsToHtml(shepherd, conf, text, spv, dataDir, dataDirUrlPrefix, pageUrlFormat);
   }
 
   /**
