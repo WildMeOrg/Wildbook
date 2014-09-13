@@ -4,7 +4,7 @@ Thank you for submitting data about your manta encounter. Wild Me uses this info
 
 The information that you have submitted has been encapsulated in an "encounter" that we track.  Each encounter is assigned a unique number, and you can view that encounter at any time using the link below or by going to MantaMatcher (http://www.mantamatcher.org).
 
-We will keep you informed of any changes to your submitted encounter, and email you if the shark is matched to another shark within MantaMatcher.  We will also let you know if/when and where your shark is resighted by other community members. 
+We will keep you informed of any changes to your submitted encounter, and email you if the manta is matched to another manta within MantaMatcher.  We will also let you know if/when and where your manta is resighted by other community members.
 
 Sincerely,
 Zaven Arzoumanian
