@@ -370,6 +370,7 @@ System.out.println("about to do int stuff");
 			    try { day = new Integer(reportedDateTime.getDayOfMonth()); } catch (Exception e) { day = 0; }
 			  }  
 		    try { year = new Integer(reportedDateTime.getYear()); } catch (Exception e) { year = 0; }
+		    if(year>((new GregorianCalendar()).YEAR+1)){year=0;}
 		      
         //see if we can get a time and hour, because we do want to support only yyy-MM too
         StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");        
