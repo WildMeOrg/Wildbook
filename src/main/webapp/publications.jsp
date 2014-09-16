@@ -99,6 +99,11 @@
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
 		
+			<p>Araujo G, Lucey A, Labaja J, So CL, Snow S, Ponzo A. (2014) Population structure and residency patterns of whale sharks, Rhincodon typus, at a provisioning site in Cebu, Philippines. PeerJ 2:e543
+		<br />
+		<a href="https://peerj.com/articles/543/">Web link</a>
+		</p>
+		
 		
 		<p>Rohner CA, Pierce SJ, Marshall AD, Weeks SJ, Bennett MB, Richardson AJ (2013) Trends in sightings and environmental influences on a coastal aggregation of manta rays and whale sharks. Mar Ecol Prog Ser 482: 153–168, 2013.
 		<br />
