@@ -453,7 +453,12 @@ public class ServletUtilities {
 
   }
 
-  public static String cleanFileName(String aTagFragment) {
+  
+  public static String cleanFileName(String myString){
+    return myString.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+  }
+  
+  /*public static String cleanFileName(String aTagFragment) {
     final StringBuffer result = new StringBuffer();
 
     final StringCharacterIterator iterator = new StringCharacterIterator(aTagFragment);
@@ -484,6 +489,7 @@ public class ServletUtilities {
     }
     return result.toString();
   }
+  */
 
   public static String preventCrossSiteScriptingAttacks(String description) {
     description = description.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
