@@ -1,4 +1,4 @@
-package com.ecostats;
+package com.ecostats.flukes;
 
 /*
  * Does image rotation. TODO 
