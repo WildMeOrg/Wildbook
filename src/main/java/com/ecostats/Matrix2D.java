@@ -19,7 +19,7 @@
  * 
  */
 
-package com.ecostats.flukes;
+package com.ecostats;
 
 import java.io.Serializable;
 import java.lang.Math;

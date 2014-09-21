@@ -1,4 +1,4 @@
-package com.ecostats.flukes.test;
+package com.ecostats.test;
 
 import static org.junit.Assert.*;
 
