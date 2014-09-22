@@ -303,86 +303,178 @@ public class FinTrace implements java.io.Serializable {
    * Simple basic get/set public methods 
    */
 
+  /**
+   * Gets the X coordinate tracing points
+   * @return double[] of X coordinate point values
+   */
   public double[] getX() {
     return x;
   }
 
+  /**
+   * Gets the X coordinate tracing point at point "i"
+   * @param i int: the array index of which point to return
+   * @return double of X coordinate point value
+   */
   public double getX(int i) {
     return x[i];
   }
 
+  /**
+   * Gets the Y coordinate tracing points
+   * @return double[] of Y coordinate point values
+   */
   public double[] getY() {
     return y;
   }
   
+  /**
+   * Gets the Y coordinate tracing point at point "i"
+   * @param i int: the array index of which point to return
+   * @return double of Y coordinate point value
+   */
   public double getY(int i) {
     return y[i];
   }
 
+  /**
+   * Get an array of feature types (i.e. TIP, NOTCH, NICK etc.) at each coordinate point 
+   * @return double[] of mark types
+   */
   public double[] getTypes() {
     return mark_types;
   }
 
+  /**
+   * Get a feature type (i.e. TIP, NOTCH, NICK etc.) at a coordinate point by index "i"
+   * @param i int : index of the point to return
+   * @return double as the mark type
+   */
   public double getType(int i) {
     return mark_types[i];
   }
 
+  /**
+   * Get the position values along the fin tracing
+   * @return double[] of the position values
+   */
   public double[] getPositions() {
     return mark_positions;
   }
   
+  /**
+   * Get a position at a coordinate point by index "i"
+   * @param i int : index of the point to return
+   * @return double as the position value
+   */  
   public double getPosition(int i) {
     return mark_positions[i];
   }
 
+  /**
+   * Sets all the X coordinate values as a single double array
+   * @param x double[] : Array of X coordinate locations
+   */
   public void setX(double[] x) {
     this.x = x;
   }
 
+  /**
+   * Sets a single X coordinate value at index
+   * @param index int : index of the value to set or replace
+   * @param x double : X coordinate value to set or replace
+   */
   public void setX(int index, double x) {
     this.x[index] = x;
   }
   
+  /**
+   * Sets all the Y coordinate values as a single double array
+   * @param y double[] : Array of Y coordinate locations
+   */
   public void setY(double[] y) {
     this.y = y;
   }
   
+  /**
+   * Sets a single Y coordinate value at index
+   * @param index int : index of the value to set or replace
+   * @param y double : Y coordinate value to set or replace
+   */
   public void setY(int index, double y) {
     this.y[index] = y;
   }
   
+  /**
+   * Sets all the mark types values as a single double array
+   * @param mark_types double[] : Array of mark types (one for each XY coordinate point)
+   */
   public void setTypes(double[] mark_types){
     this.mark_types = mark_types;
   }
 
+  /**
+   * Sets a single mark type value at index
+   * @param index int : index of the value to set or replace
+   * @param d double : mark type value to set or replace
+   */
   public void setType(int index, double d){
     this.mark_types[index] = d;
   }
 
+  /**
+   * Sets all the relative mark position values as a single double array
+   * @param mark_positions double[] : Arry of positions values to set
+   */
   public void setPositions(double[] mark_positions){
     this.mark_positions = mark_positions;
   }
   
+  /**
+   * Sets a single position value at index
+   * @param index int : index of the value to set or replace 
+   * @param mark_positions double : position value to set or replace
+   */
   public void setPosition(int index, double mark_positions){
     this.mark_positions[index] = mark_positions;
   }  
   
+  /**
+   * Returns the numer of XY points in the tracing 
+   * @return int as the size of the tracing
+   */
   public int size(){
     return this.x.length;
   }
   
+  /**
+   * Returns true if the notch is open, false otherwise
+   * @return boolean value if the notch is open or not
+   */
   public boolean getNotchOpen(){
     return this.notch_open;
   }
   
+  /**
+   * Sets if the fine is a fluke and has an open notch or not
+   * @param notch_open boolean: value if the notch is open or not
+   */
   public void setNotchOpen(boolean notch_open){
     this.notch_open = notch_open;
   }
   
+  /**
+   * Returns true if the fin is curled, false if not
+   * @return boolean value if the fin is curled or not
+   */
   public boolean getCurled(){
     return this.curled;
   }
   
+  /**
+   * Setf it the fin is curled or not
+   * @param curled boolean : value if the fin is curled or not
+   */
   public void setCurled(boolean curled){
     this.curled = curled;
   }  

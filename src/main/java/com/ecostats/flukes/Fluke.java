@@ -205,14 +205,26 @@ public class Fluke implements java.io.Serializable {
     return this.getVectorY(whatpart).toArray();
   }
   
+  /**
+   * Same as getX(LEFT)
+   * @return double[] of X point values for left fluke
+   */
   public double[] getXLeft(){
     return this.getX(LEFT);
   }
   
+  /**
+   * Same as getX(RIGHT)
+   * @return double[] of X point values for right fluke
+   */
   public double[] getXRight(){
     return this.getX(RIGHT);
   }
   
+  /**
+   * Same as getX(ALL)
+   * @return double[] of X point values
+   */
   public double[] getXAll(){
     return this.getX(ALL);
   }
@@ -226,14 +238,26 @@ public class Fluke implements java.io.Serializable {
     return this.getVectorY(whatpart).toArray();
   }
   
+  /**
+   * Same as getY(LEFT)
+   * @return double[] of Y point values of left fluke
+   */
   public double[] getYLeft(){
     return this.getY(LEFT);
   }
   
+  /**
+   * Same as getY(RIGHT)
+   * @return double[] of Y point values of right fluke
+   */
   public double[] getYRight(){
     return this.getY(RIGHT);
   }
   
+  /**
+   * Same as getY(ALL)
+   * @return double[] of Y point values
+   */
   public double[] getYAll(){
     return this.getY(ALL);
   }
@@ -247,14 +271,26 @@ public class Fluke implements java.io.Serializable {
     return this.getVectorMarkTypes(whatpart).toArray();
   }
 
+  /**
+   * Same as getMarkeTypes(LEFT)
+   * @return double[] of mark type values at each point along the left fluke tracing
+   */
   public double[] getMarkTypesLeft() {
     return this.getMarkTypes(LEFT);
   }
   
+  /**
+   * Same as getMarkeTypes(RIGHT)
+   * @return double[] of mark type values at each point along the right fluke tracing
+   */
   public double[] getMarkTypesRight() {
     return this.getMarkTypes(RIGHT);
   }
 
+  /**
+   * Same as getMarkeTypes(All)
+   * @return double[] of mark type values at each point along the fluke tracing
+   */
   public double[] getMarkTypesAll() {
     return this.getMarkTypes(ALL);
   }
@@ -268,14 +304,26 @@ public class Fluke implements java.io.Serializable {
     return this.getVectorPositions(whatpart).toArray();
   }
 
+  /**
+   * Same as getPositions(LEFT)
+   * @return double[] of position values at each point along the left fluke tracing
+   */
   public double[] getPositionsLeft() {
     return this.getPositions(LEFT);
   }
   
+  /**
+   * Same as getPositions(RIGHT)
+   * @return double[] of position values at each point along the right fluke tracing
+   */
   public double[] getPositionsRight() {
     return this.getPositions(RIGHT);
   }
 
+  /**
+   * Same as getPositions(ALL)
+   * @return double[] of position values at each point along the fluke tracing
+   */
   public double[] getPositionsAll() {
     return this.getPositions(ALL);
   }
@@ -292,26 +340,50 @@ public class Fluke implements java.io.Serializable {
     }
   }
   
+  /**
+   * Same as setFluke(LEFT,trace)
+   * @param trace FlukeTrace : the actual trace of the left fluke
+   */
   public void setLeftFluke(FinTrace trace) {
     this.left_fluke = trace;
   }
 
+  /**
+   * Same as setFluke(RIGHT,trace)
+   * @param trace FlukeTrace : the actual trace of the right fluke
+   */
   public void setRightFluke(FinTrace trace) {
     this.right_fluke = trace;
   }
 
+  /**
+   * Gets the left fluke object
+   * @return the left fluke object
+   */
   public FinTrace getLeftFluke() {
     return this.left_fluke;
   }
 
+  /**
+   * Gets the right fluke object
+   * @return the right fluke object
+   */
   public FinTrace getRightFluke() {
     return this.right_fluke;
   }
   
+  /**
+   * Gets the mark types along the fluke
+   * @return the left fluke object
+   */
   public double[] getMarkTypes(){
     return this.mark_types;
   }
   
+  /**
+   * Sets the mark types along the entire fluke
+   * @param mark_types double[]: Array of mark types
+   */
   public void setMarkTypes(double[] mark_types){
     this.mark_types = mark_types;
   }
@@ -352,18 +424,34 @@ public class Fluke implements java.io.Serializable {
     this.photo = new String(photo);
   }
 
+  /**
+   * Gets the match value comparison value relative to other flukes in the database
+   * @return double value of the calculated matching value
+   */
   public double getMatchValue() {
     return matchvalue;
   }
 
+  /**
+   * Sets the calculated matching value relative to other flukes in the database
+   * @param matchvalue
+   */
   public void setMatchValue(double matchvalue) {
     this.matchvalue = matchvalue;
   }
 
+  /**
+   * Gets the fluke ID value
+   * @return double ID value
+   */
   public double getId() {
     return id;
   }
 
+  /**
+   * Sets the fluke ID value
+   * @param id double : ID value to set
+   */
   public void setId(double id) {
     this.id = id;
   }
