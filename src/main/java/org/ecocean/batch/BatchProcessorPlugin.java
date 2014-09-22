@@ -23,10 +23,12 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import javax.servlet.ServletContext;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Measurement;
+import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.genetics.TissueSample;
 
@@ -52,10 +54,12 @@ import org.ecocean.genetics.TissueSample;
  * @author Giles Winstanley
  */
 public abstract class BatchProcessorPlugin {
+  /** Shepherd instance for persisting data to database. */
+  private final Shepherd shepherd;
   /** List of individuals. */
-  private List<MarkedIndividual> listInd;
+  private final List<MarkedIndividual> listInd;
   /** List of encounters. */
-  private List<Encounter> listEnc;
+  private final List<Encounter> listEnc;
   /** List of measurements. */
   private List<Measurement> listMea;
   /** Map of media-items to batch-photos used during batch processing. */
@@ -63,11 +67,11 @@ public abstract class BatchProcessorPlugin {
   /** List of samples. */
   private List<TissueSample> listSam;
   /** List of errors produced by the batch processor (fatal). */
-  private List<String> errors;
+  private final List<String> errors;
   /** List of warnings produced by the batch processor (non-fatal). */
-  private List<String> warnings;
+  private final List<String> warnings;
   /** Locale for internationalization. */
-  private Locale locale;
+  private final Locale locale;
   /** ServletContext for web application, to allow access to resources. */
   private ServletContext servletContext;
   /** Data folder for web application. */
@@ -77,7 +81,14 @@ public abstract class BatchProcessorPlugin {
   /** Current &quot;item&quot; count (used for progress display). */
   private int counter;
 
-  public BatchProcessorPlugin(List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale loc) {
+  public BatchProcessorPlugin(Shepherd shepherd, List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale loc) {
+    Objects.requireNonNull(shepherd, "Shepherd cannot be null");
+    Objects.requireNonNull(listInd, "Individuals list cannot be null");
+    Objects.requireNonNull(listEnc, "Encounters list cannot be null");
+    Objects.requireNonNull(errors, "Errors cannot be null");
+    Objects.requireNonNull(warnings, "Warnings cannot be null");
+    Objects.requireNonNull(loc, "Locale cannot be null");
+    this.shepherd = shepherd;
     this.listInd = listInd;
     this.listEnc = listEnc;
     this.errors = errors;
@@ -85,87 +96,91 @@ public abstract class BatchProcessorPlugin {
     this.locale = loc;
   }
 
-  public List<MarkedIndividual> getListInd() {
+  protected final Shepherd getShepherd() {
+    return shepherd;
+  }
+
+  public final List<MarkedIndividual> getListInd() {
     return listInd;
   }
 
-  public List<Encounter> getListEnc() {
+  public final List<Encounter> getListEnc() {
     return listEnc;
   }
 
-  protected List<Measurement> getListMea() {
+  protected final List<Measurement> getListMea() {
     return listMea;
   }
 
-  void setListMea(List<Measurement> listMea) {
+  final void setListMea(List<Measurement> listMea) {
     this.listMea = listMea;
   }
 
-  protected Map<SinglePhotoVideo, BatchMedia> getMapPhoto() {
+  final protected Map<SinglePhotoVideo, BatchMedia> getMapPhoto() {
     return mapPhoto;
   }
 
-  void setMapPhoto(Map<SinglePhotoVideo, BatchMedia> mapPhoto) {
+  final void setMapPhoto(Map<SinglePhotoVideo, BatchMedia> mapPhoto) {
     this.mapPhoto = mapPhoto;
   }
 
-  protected List<TissueSample> getListSam() {
+  final protected List<TissueSample> getListSam() {
     return listSam;
   }
 
-  void setListSam(List<TissueSample> listSam) {
+  final void setListSam(List<TissueSample> listSam) {
     this.listSam = listSam;
   }
 
-  protected List<String> getErrors() {
+  protected final List<String> getErrors() {
     return errors;
   }
 
-  protected void addError(String msg) {
+  protected final void addError(String msg) {
     errors.add(msg);
   }
 
-  protected List<String> getWarnings() {
+  protected final List<String> getWarnings() {
     return warnings;
   }
 
-  protected void addWarning(String msg) {
+  protected final void addWarning(String msg) {
     warnings.add(msg);
   }
 
-  protected Locale getLocale() {
+  protected final Locale getLocale() {
     return locale;
   }
 
-  protected ServletContext getServletContext() {
+  protected final ServletContext getServletContext() {
     return servletContext;
   }
 
-  void setServletContext(ServletContext servletContext) {
+  final void setServletContext(ServletContext servletContext) {
     this.servletContext = servletContext;
   }
 
-  protected File getDataDir() {
+  protected final File getDataDir() {
     return dataDir;
   }
 
-  void setDataDir(File dataDir) {
+  final void setDataDir(File dataDir) {
     this.dataDir = dataDir;
   }
 
-  protected void setMaxCount(int maxCount) {
+  protected final void setMaxCount(int maxCount) {
     this.maxCount = maxCount;
   }
 
-  int getMaxCount() {
+  final int getMaxCount() {
     return maxCount;
   }
 
-  protected void incrementCounter() {
+  protected final void incrementCounter() {
     this.counter++;
   }
 
-  int getCounter() {
+  final int getCounter() {
     return counter;
   }
 

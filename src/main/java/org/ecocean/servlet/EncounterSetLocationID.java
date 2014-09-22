@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import org.ecocean.mmutil.MantaMatcherUtilities;
 
 
 //Set alternateID for this encounter/sighting
@@ -99,6 +100,7 @@ public class EncounterSetLocationID extends HttpServlet {
         oldCode = changeMe.getLocationCode();
         changeMe.setLocationCode(request.getParameter("code").trim());
         changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed location code from " + oldCode + " to " + request.getParameter("code") + ".</p>");
+        MantaMatcherUtilities.removeAlgorithmMatchResults(changeMe);
 
       } catch (Exception le) {
         locked = true;

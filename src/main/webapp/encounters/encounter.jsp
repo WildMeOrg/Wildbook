@@ -20,7 +20,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.DateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -432,6 +432,41 @@ margin-bottom: 8px !important;
 </script>
 </head>
 
+<style type="text/css">
+
+.full_screen_map {
+position: absolute !important;
+top: 0px !important;
+left: 0px !important;
+z-index: 1 !imporant;
+width: 100% !important;
+height: 100% !important;
+margin-top: 0px !important;
+margin-bottom: 8px !important;
+
+
+/* css for timepicker */
+.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+.ui-timepicker-div dl { text-align: left; padding: 0 5px 0 0;}
+.ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
+.ui-timepicker-div dl dd { margin: 0 10px 10px 45%; }
+.ui-timepicker-div td { font-size: 90%; }
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+
+.ui-timepicker-rtl{ direction: rtl; }
+.ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
+.ui-timepicker-rtl dl dt{ float: right; clear: right; }
+.ui-timepicker-rtl dl dd { margin: 0 45% 10px 10px; }
+
+/*customizations*/
+.ui_tpicker_hour_label {margin-bottom:5px !important;}
+.ui_tpicker_minute_label {margin-bottom:5px !important;}
+
+
+
+</style>
+
+
 <body <%if (request.getParameter("noscript") == null) {%>
   onload="initialize()" <%}%>>
 
@@ -447,8 +482,12 @@ margin-bottom: 8px !important;
 <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
  <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+ <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+ 
+  <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+ 
 
-			
 			
 			<div id="main">
 			<%
@@ -484,6 +523,74 @@ if (request.getParameter("refreshImages") != null) {
       			String headerBGColor="FFFFFC";
       			//if(CommonConfiguration.getProperty(()){}
     			%>
+    			
+<script type="text/javascript">
+
+
+
+$(function() {
+    $( "#datepicker" ).datetimepicker({
+      changeMonth: true,
+      changeYear: true,
+      dateFormat: 'yy-mm-dd',
+      
+      <%
+      //set a default date if we cann
+      if(enc.getDateInMilliseconds()>0){
+    	  
+    	  DateTime jodaTime = new DateTime(enc.getDateInMilliseconds());
+          DateTimeFormatter parser1 = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+          
+      %>
+      defaultDate: '<%=parser1.print(jodaTime) %>',
+      hour: <%=jodaTime.getHourOfDay() %>,
+      minute: <%=jodaTime.getMinuteOfHour() %>,
+      <%
+      }
+      %>
+      
+  
+      altField: '#datepickerField',
+      altFieldTimeOnly: false,
+      maxDate: '+1d',
+      controlType: 'select'
+    });
+    $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+  
+
+  });
+  </script>
+  
+   <script type="text/javascript">
+  $(function() {
+    $( "#releasedatepicker" ).datepicker({
+      changeMonth: true,
+      changeYear: true,
+      dateFormat: 'yy-mm-dd',
+      maxDate: '+1d',
+      altField: '#releasedatepickerField',
+      
+      
+      <%
+      //set a default date if we cann
+      if((enc.getReleaseDateLong()!=null)&&(enc.getReleaseDateLong()>0)){
+    	  
+    	  DateTime jodaTime = new DateTime(enc.getReleaseDateLong().longValue());
+          DateTimeFormatter parser1 = DateTimeFormat.forPattern("yyyy-MM-dd");
+          
+      %>
+      defaultDate: '<%=parser1.print(jodaTime) %>',
+      <%
+      }
+      %>
+      
+      
+    });
+    $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
+    
+  });
+  </script>
+    			
     			
     			<table width="100%">
     				<tr>
@@ -1004,7 +1111,7 @@ $("a#occurrence").click(function() {
 %>
 <c:if test="${showReleaseDate}">
   <br /><em><%=encprops.getProperty("releaseDate") %></em>:
-    <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
+    <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
     <c:if test="${editable}">
         <font size="-1"><a id="releaseDate" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
     </c:if>
@@ -1021,12 +1128,20 @@ $("a#occurrence").click(function() {
             <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate">
                 <input type="hidden" name="encounter" value="${num}"/>
             <table>
-                <tr><td><%=encprops.getProperty("releaseDateFormat") %></td></tr>
-                <c:set var="releaseDate">
-                    <fmt:formatDate value="${enc.releaseDate}" pattern="dd/MM/yyyy"/>
-                </c:set>
-                <tr><td><input name="releaseDate" value="${releaseDate}"/></td></tr>
-                <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
+                
+                <tr><td>
+                
+                    <div id="releasedatepicker"></div>
+          
+          <p>
+           <%=encprops.getProperty("setReleaseDate")%> <input type="text" style="position: relative; z-index: 101;" id="releasedatepickerField" name="releasedatepicker" size="20" /><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
+          </p>
+          
+          <br /> 
+           <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" />
+        
+                
+                </td></tr>
             </table>
             </form>
         </td>
@@ -1089,66 +1204,15 @@ $("a#VBDate").click(function() {
 
     <tr>
       <td align="left" valign="top">
-        <form name="setxencshark" action="../EncounterResetDate" method="post">
-          <em><%=encprops.getProperty("day")%>
-          </em> <select name="day" id="day">
-          <option value="0">?</option>
-          <%
-            for (int pday = 1; pday < 32; pday++) {
-          %>
-          <option value="<%=pday%>"><%=pday%>
-          </option>
-          <%
-            }
-          %>
-        </select><br /> <em>&nbsp;<%=encprops.getProperty("month")%>
-        </em> <select name="month" id="month">
-          <option value="-1">?</option>
-          <%
-            for (int pmonth = 1; pmonth < 13; pmonth++) {
-          %>
-          <option value="<%=pmonth%>"><%=pmonth%>
-          </option>
-          <%
-            }
-          %>
-        </select><br /> <em>&nbsp;<%=encprops.getProperty("year")%>
-        </em> <select name="year" id="year">
-          <option value="-1">?</option>
-
-          <%
-            for (int pyear = nowYear; pyear > (nowYear - 50); pyear--) {
-          %>
-          <option value="<%=pyear%>"><%=pyear%>
-          </option>
-          <%
-            }
-          %>
-        </select><br /> <em>&nbsp;<%=encprops.getProperty("hour")%>
-        </em> <select name="hour" id="hour">
-          <option value="-1" selected>?</option>
-          <option value="6">6 am</option>
-          <option value="7">7 am</option>
-          <option value="8">8 am</option>
-          <option value="9">9 am</option>
-          <option value="10">10 am</option>
-          <option value="11">11 am</option>
-          <option value="12">12 pm</option>
-          <option value="13">1 pm</option>
-          <option value="14">2 pm</option>
-          <option value="15">3 pm</option>
-          <option value="16">4 pm</option>
-          <option value="17">5 pm</option>
-          <option value="18">6 pm</option>
-          <option value="19">7 pm</option>
-          <option value="20">8 pm</option>
-        </select><br /> <em>&nbsp;<%=encprops.getProperty("minutes")%>
-        </em> <select name="minutes" id="minutes">
-          <option value="00" selected>:00</option>
-          <option value="15">:15</option>
-          <option value="30">:30</option>
-          <option value="45">:45</option>
-        </select><br /> 
+        <form name="setencdate" action="../EncounterResetDate" method="post">
+          
+          <div id="datepicker"></div>
+          
+          <p>
+           <%=encprops.getProperty("setDate")%> <input type="text" style="position: relative; z-index: 101;" id="datepickerField" name="datepicker" size="20" /> yyyy-MM-dd HH:mm<br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
+          </p>
+          
+          <br /> 
         <input name="number" type="hidden" value="<%=num%>" id="number" /> 
         <input name="action" type="hidden" value="changeEncounterDate" /> 
         <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setDate")%>" />

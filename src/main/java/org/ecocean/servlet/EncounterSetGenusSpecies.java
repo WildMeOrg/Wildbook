@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.StringTokenizer;
+import org.ecocean.mmutil.MantaMatcherUtilities;
 
 
 //Set alternateID for this encounter/sighting
@@ -85,13 +86,13 @@ public class EncounterSetGenusSpecies extends HttpServlet {
 
         		myShark.setSpecificEpithet(specificEpithet.replaceAll(",","").replaceAll("_"," "));
         		myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set genus and species to: " + genus + " "+specificEpithet.replaceAll(",","").replaceAll("_"," "));
-
+        		MantaMatcherUtilities.removeAlgorithmMatchResults(myShark);
 	    }
 	    else if(genusSpecies.equals("unknown")){
 			myShark.setGenus(null);
         	myShark.setSpecificEpithet(null);
         	myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />Set genus and species to null.");
-
+        	MantaMatcherUtilities.removeAlgorithmMatchResults(myShark);
 		}
 	    //handle malformed Genus Species formats
 	    else{throw new Exception("The format of the genusSpecies parameter in servlet EncounterSetGenusSpecies did not have two tokens delimited by a space (e.g., \"Rhincodon typus\").");}

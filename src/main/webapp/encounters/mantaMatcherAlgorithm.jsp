@@ -49,6 +49,8 @@ try {
     List<SinglePhotoVideo> photos = enc.getSinglePhotoVideo();
     for (int t = 0; t < photos.size(); t++){
       SinglePhotoVideo spv = photos.get(t);
+      if (!MediaUtilities.isAcceptableImageFile(spv.getFile()))
+        continue;
       Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
       DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
       File matchOutputRegional = mmFiles.get("TXT-REGIONAL");
