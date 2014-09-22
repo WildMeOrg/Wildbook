@@ -170,41 +170,20 @@ margin-bottom: 8px !important;
  %>
  <script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
   <script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
- 
-  
-  
-  
  <%
  }
  %>
  
-  <script type="text/javascript">
+  <script>
   $(function() {
     $( "#datepicker" ).datetimepicker({
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: 'yy-mm-dd',
-      maxDate: '+1d',
-      controlType: 'select'
-      
-    });
-    $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
-
-
-    
-  });
-  </script>
-  
-   <script type="text/javascript">
-  $(function() {
-    $( "#releasedatepicker" ).datepicker({
       changeMonth: true,
       changeYear: true,
       dateFormat: 'yy-mm-dd'
       
     });
-    $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
-    $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
+    $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+    
   });
   </script>
  
@@ -377,7 +356,7 @@ function FSControl(controlDiv, map) {
   </td>
   <td colspan="2">
   
-     <input type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" /> yyyy-MM-dd HH:mm
+     <input type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
 
     </td>
 </tr>
@@ -388,9 +367,7 @@ function FSControl(controlDiv, map) {
 <c:if test="${showReleaseDate}">
     <tr class="form_row">
     <td class="form_label"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
-    <td colspan="2">  
-    	<input type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" />
-	</td>
+    <td colspan="2"><input name="releaseDate"/> <%= props.getProperty("submit_releasedate_format") %></td>
     </tr>
 </c:if>
 

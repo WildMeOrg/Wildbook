@@ -3,27 +3,16 @@ package org.ecocean.mmutil;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,12 +51,17 @@ public final class MMAResultsProcessor {
    * @throws ParseException
    * @throws TemplateException
    */
-  static String convertResultsToHtml(Configuration conf, String text, SinglePhotoVideo spv, File dataDir, String refUrlPrefix, String pageUrlFormat) throws IOException, TemplateException, ParseException {
-    // Parse results from text file.
-    MMAResult matchResult = parseMatchResults(text, spv, dataDir);
-    // Convert results to data model for template engine.
-    Map model = convertResultsToTemplateModel(matchResult, spv, refUrlPrefix, pageUrlFormat);
-
+  static String convertResultsToHtml(Shepherd shepherd, Configuration conf, String text, SinglePhotoVideo spv, File dataDir, String refUrlPrefix, String pageUrlFormat) throws IOException, TemplateException, ParseException {
+    // Create null data model for template engine.
+    Map model = null;
+    try {
+      // Parse results from text file.
+      MMAResult matchResult = parseMatchResults(text, spv, dataDir);
+      // Convert results to data model for template engine.
+      model = convertResultsToTemplateModel(shepherd, matchResult, spv, refUrlPrefix, pageUrlFormat);
+    } catch (Exception ex) {
+      // Handled by null model recognized by template.
+    }
     // Fill template and write to output file.
     Template temp = conf.getTemplate("MantaMatcher-results.ftl");
     StringWriter sw = new StringWriter();
@@ -113,6 +107,9 @@ public final class MMAResultsProcessor {
    *     <li><strong>linkEH</strong> - link to match EH image
    *     <li><strong>nameFT</strong> - name of match FT image
    *     <li><strong>linkFT</strong> - link to match FT image
+   *     <li><strong>individualID</strong> - individualID of match
+   *     <li><strong>encounterDate</strong> - encounter date of match
+   *     <li><strong>pigmentation</strong> - pigmentation of match
    *     </ul>
    *   </ul>
    * </ul>
@@ -125,7 +122,7 @@ public final class MMAResultsProcessor {
    * @throws UnsupportedEncodingException if unable to encode a URL (unlikely)
    */
   @SuppressWarnings("unchecked")
-  private static Map convertResultsToTemplateModel(MMAResult matchResult, SinglePhotoVideo spv, String dataDirUrlPrefix, String pageUrlFormat) throws FileNotFoundException, UnsupportedEncodingException {
+  private static Map convertResultsToTemplateModel(Shepherd shepherd, MMAResult matchResult, SinglePhotoVideo spv, String dataDirUrlPrefix, String pageUrlFormat) throws FileNotFoundException, UnsupportedEncodingException {
 
     // Repackage data model into template model.
     Map model = new HashMap();
@@ -147,13 +144,15 @@ public final class MMAResultsProcessor {
       File fCR = new File(pathCR);
       if (!fCR.isFile())
         throw new FileNotFoundException("File not found: " + fCR.getAbsolutePath());
+      String encId = fCR.getParentFile().getName();
+
       String nameCR = fCR.getName();
       String nameEH = nameCR.replace("_CR", "_EH");
       String nameFT = nameCR.replace("_CR", "_FT");
       String linkCR = convertFileToURL(dataDirUrlPrefix, fCR);
       String linkEH = linkCR.replace("_CR", "_EH");
       String linkFT = linkCR.replace("_CR", "_FT");
-      String encUrl = String.format(pageUrlFormat, fCR.getParentFile().getName());
+      String encUrl = String.format(pageUrlFormat, encId);
       modelResult.put("link", encUrl);
       modelResult.put("name", nameCR.substring(0, nameCR.indexOf("_CR")));
       modelResult.put("nameCR", nameCR);
@@ -175,7 +174,8 @@ public final class MMAResultsProcessor {
         if (match.fileRef == null)
           continue;
         File dir = match.fileRef.getParentFile();
-        String encUrlMatch = String.format(pageUrlFormat, dir.getName());
+        String matchEncId = dir.getName();
+        String encUrlMatch = String.format(pageUrlFormat, matchEncId);
         Map modelMatch = new HashMap();
         modelMatch.put("rank", match.rank);
         modelMatch.put("ref", dir.getName());
@@ -188,6 +188,12 @@ public final class MMAResultsProcessor {
 //        log.trace(String.format("link       : %s", modelMatch.get("link")));
 //        log.trace(String.format("score      : %s", modelMatch.get("score")));
 //        log.trace(String.format("imgbase    : %s", modelMatch.get("imgbase")));
+
+        // Fill details from match.
+        Encounter enc = shepherd.getEncounter(matchEncId);
+        modelMatch.put("individualID", enc.getIndividualID());
+        modelMatch.put("encounterDate", enc.getVerbatimEventDate());
+        modelMatch.put("pigmentation", enc.getPatterningCode());
 
         if (match.bestMatch != null) {
           modelMatch.put("nameCR", String.format("%s_CR", match.bestMatch));
@@ -240,7 +246,7 @@ public final class MMAResultsProcessor {
     final String[] CHECKS = {
       "Manta Matcher version " + MMA_VER,
       "Reference Set: ",
-//      "SIFT files found",
+      "SIFT files found",
       "Test Image: ",
       "### Ranking List ###",
       "Confidence: "

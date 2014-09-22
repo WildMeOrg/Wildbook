@@ -69,11 +69,13 @@ import org.slf4j.LoggerFactory;
  */
 public final class BatchProcessor implements Runnable {
   /** SLF4J logger instance for writing log entries. */
-  private static Logger log = LoggerFactory.getLogger(BatchProcessor.class);
+  private static final Logger log = LoggerFactory.getLogger(BatchProcessor.class);
+  /** Shepherd instance for persisting data to database. */
+  private Shepherd shepherd;
   /** List of individuals. */
-  private List<MarkedIndividual> listInd;
+  private final List<MarkedIndividual> listInd;
   /** List of encounters. */
-  private List<Encounter> listEnc;
+  private final List<Encounter> listEnc;
   /** List of measurements. */
   private List<Measurement> listMea;
   /** Map of media-items to batch-media used during batch processing. */
@@ -81,15 +83,15 @@ public final class BatchProcessor implements Runnable {
   /** List of samples. */
   private List<TissueSample> listSam;
   /** List of errors produced by the batch processor (fatal). */
-  private List<String> errors;
+  private final List<String> errors;
   /** List of warnings produced by the batch processor (non-fatal). */
-  private List<String> warnings;
+  private final List<String> warnings;
   /** Location of resources for internationalization. */
   private static final String RESOURCES = "bundles";
   /** Resources for internationalization. */
-  private Locale locale;
+  private final Locale locale;
   /** Resources for internationalization. */
-  private ResourceBundle bundle;
+  private final ResourceBundle bundle;
   /** Data folder for web application. */
   private File dataDir;
   /** Data folder for holding user-specific information (parent). */
@@ -267,9 +269,16 @@ public final class BatchProcessor implements Runnable {
       return;
     try {
       Class<?> k = Class.forName(s);
-      Class[] args = new Class[]{ List.class, List.class, List.class, List.class, Locale.class };
+      Class[] args = new Class[]{
+        Shepherd.class,  // Persistence
+        List.class,      // Individuals
+        List.class,      // Encounters
+        List.class,      // Errors
+        List.class,      // Warnings
+        Locale.class     // i18n
+      };
       Constructor<?> con = k.getDeclaredConstructor(args);
-      plugin = (BatchProcessorPlugin)con.newInstance(listInd, listEnc, errors, warnings, bundle.getLocale());
+      plugin = (BatchProcessorPlugin)con.newInstance(shepherd, listInd, listEnc, errors, warnings, bundle.getLocale());
       plugin.setServletContext(servletContext);
       plugin.setDataDir(dataDir);
       plugin.setListMea(listMea);
@@ -284,6 +293,7 @@ public final class BatchProcessor implements Runnable {
     }
   }
 
+  @Override
   public void run() {
     status = Status.INIT;
 
@@ -319,6 +329,10 @@ public final class BatchProcessor implements Runnable {
         if (x != null)
           maxCount += x.size() * 2;
       }
+
+      // Setup persistence infrastructure.
+      shepherd = new Shepherd(context);
+
       // Find & instantiate plugin.
       setupPlugin(context);
 
@@ -394,7 +408,6 @@ public final class BatchProcessor implements Runnable {
       }
 
       phase = Phase.PERSISTENCE;
-      Shepherd shepherd = new Shepherd(context);
       PersistenceManager pm = shepherd.getPM();
       try {
         shepherd.beginDBTransaction();
@@ -560,9 +573,6 @@ public final class BatchProcessor implements Runnable {
           }
         }
 
-        // Commit changes to store.
-        shepherd.commitDBTransaction();
-
         // Allow plugin to perform media processing.
         if (plugin != null) {
           phase = Phase.PLUGIN;
@@ -576,6 +586,9 @@ public final class BatchProcessor implements Runnable {
             throw ex;
           }
         }
+
+        // Commit changes to store.
+        shepherd.commitDBTransaction();
 
         // TODO: Nasty hack to get resources from a language folder.
         // Should be using the standard ResourceBundle lookup mechanism to find

@@ -20,6 +20,9 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.StringTokenizer;
 
 
 public class EncounterResetDate extends HttpServlet {
@@ -61,7 +65,7 @@ public class EncounterResetDate extends HttpServlet {
     boolean isOwner = true;
 
    
-    if ((request.getParameter("number") != null) && (request.getParameter("day") != null) && (request.getParameter("month") != null) && (request.getParameter("year") != null) && (request.getParameter("hour") != null) && (request.getParameter("minutes") != null)) {
+    if ((request.getParameter("number") != null) ) {
       myShepherd.beginDBTransaction();
       Encounter fixMe = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(fixMe);
@@ -72,11 +76,62 @@ public class EncounterResetDate extends HttpServlet {
       try {
 
         oldDate = fixMe.getDate();
+        
+        if ((request.getParameter("datepicker") == null)||(request.getParameter("datepicker").trim().equals(""))){
+          fixMe.setYear(0);
+          fixMe.setMonth(0);
+          fixMe.setDay(0);
+          fixMe.setHour(0);
+          newDate=fixMe.getDate();
+        }
+        else{
+        
+        /**
+         * Old method of parsing
         fixMe.setDay(Integer.parseInt(request.getParameter("day")));
         fixMe.setMonth(Integer.parseInt(request.getParameter("month")));
         fixMe.setYear(Integer.parseInt(request.getParameter("year")));
         fixMe.setHour(Integer.parseInt(request.getParameter("hour")));
         fixMe.setMinutes(request.getParameter("minutes"));
+        */
+        
+        
+        //new method using a datepicker
+        //switch to datepicker
+        //if(getVal(fv, "datepicker")!=null){
+          //System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
+          
+          DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+          DateTime reportedDateTime=parser1.parseDateTime(request.getParameter("datepicker").replaceAll(" ", "T"));
+          //System.out.println("Day of month is: "+reportedDateTime.getDayOfMonth()); 
+          StringTokenizer str=new StringTokenizer(request.getParameter("datepicker").replaceAll(" ", "T"),"-");        
+          
+          int numTokens=str.countTokens();
+          if(numTokens>=1){
+            try { fixMe.setYear(new Integer(reportedDateTime.getYear())); } catch (Exception e) { fixMe.setYear(-1);}
+          }
+          if(numTokens>=2){
+            try { fixMe.setMonth(new Integer(reportedDateTime.getMonthOfYear())); } catch (Exception e) { fixMe.setMonth(-1);}
+          }
+          else{fixMe.setMonth(-1);}
+          //see if we can get a day, because we do want to support only yyy-MM too
+          if(str.countTokens()>=3){
+            try { fixMe.setDay(new Integer(reportedDateTime.getDayOfMonth())); } catch (Exception e) { fixMe.setDay(0); }
+          }
+          else{fixMe.setDay(0);}
+          
+          
+          
+          //see if we can get a time and hour, because we do want to support only yyy-MM too
+          StringTokenizer strTime=new StringTokenizer(request.getParameter("datepicker").replaceAll(" ", "T"),"T");        
+          if(strTime.countTokens()>1){
+            try { fixMe.setHour(new Integer(reportedDateTime.getHourOfDay())); } catch (Exception e) { fixMe.setHour(-1); }
+            try {fixMe.setMinutes(new Integer(reportedDateTime.getMinuteOfHour()).toString()); } catch (Exception e) {}
+          } 
+          else{fixMe.setHour(-1);}
+       //}
+        
+        
         newDate = fixMe.getDate();
         fixMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed encounter date from " + oldDate + " to " + newDate + ".</p>");
 
@@ -88,7 +143,7 @@ public class EncounterResetDate extends HttpServlet {
           }
         }
         
-        
+        } //end else 
       } catch (Exception le) {
         locked = true;
         le.printStackTrace();
@@ -102,12 +157,12 @@ public class EncounterResetDate extends HttpServlet {
         myShepherd.commitDBTransaction();
         out.println("<strong>Success:</strong> I have changed the encounter date from " + oldDate + " to " + newDate + ".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        String message = "The date of encounter #" + request.getParameter("number") + " was changed from " + oldDate + " to " + newDate + ".";
+        String message = "The date of encounter " + request.getParameter("number") + " was changed from " + oldDate + " to " + newDate + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
 
         out.println("<strong>Failure:</strong> I have NOT changed the encounter date because another user is currently modifying this encounter. Please try this operation again in a few seconds.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
 
 
       }
@@ -116,7 +171,7 @@ public class EncounterResetDate extends HttpServlet {
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
     }
 

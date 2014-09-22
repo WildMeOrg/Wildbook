@@ -122,10 +122,13 @@ private final String UPLOAD_DIRECTORY = "/tmp";
   }
 
 
-  private List<Measurement> getMeasurements(HashMap fv, String encID) {
+  private List<Measurement> getMeasurements(HashMap fv, String encID, String context) {
     List<Measurement> list = new ArrayList<Measurement>();
-		List<String> keys = Arrays.asList("weight", "length", "height");  //TODO programatically build from form
+		//List<String> keys = Arrays.asList("weight", "length", "height");  //TODO programatically build from form
 
+    //dynamically adapt to project-specific measurements
+		List<String> keys=CommonConfiguration.getSequentialPropertyValues("measurement", context);
+		
     for (String key : keys) {
       String value = getVal(fv, "measurement(" + key + ")");
       String units = getVal(fv, "measurement(" + key + "units)");
@@ -337,10 +340,39 @@ System.out.println("about to do int stuff");
 
 			//need some ints for day/month/year/hour (other stuff seems to be strings)
 			int day = 0, month = 0, year = 0, hour = 0;
-			try { day = Integer.parseInt(getVal(fv, "day")); } catch (NumberFormatException e) { day = 0; }
-			try { month = Integer.parseInt(getVal(fv, "month")); } catch (NumberFormatException e) { month = 0; }
-			try { year = Integer.parseInt(getVal(fv, "year")); } catch (NumberFormatException e) { year = 0; }
-			try { hour = Integer.parseInt(getVal(fv, "hour")); } catch (NumberFormatException e) { hour = 0; }
+			String minutes="";
+			//try { day = Integer.parseInt(getVal(fv, "day")); } catch (NumberFormatException e) { day = 0; }
+			//try { month = Integer.parseInt(getVal(fv, "month")); } catch (NumberFormatException e) { month = 0; }
+			//try { year = Integer.parseInt(getVal(fv, "year")); } catch (NumberFormatException e) { year = 0; }
+			
+			//switch to datepicker
+			if(getVal(fv, "datepicker")!=null){
+			  //System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
+        
+			  DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+			  DateTime reportedDateTime=parser1.parseDateTime(getVal(fv, "datepicker").replaceAll(" ", "T"));
+			  //System.out.println("Day of month is: "+reportedDateTime.getDayOfMonth()); 
+			  try { month = new Integer(reportedDateTime.getMonthOfYear()); } catch (Exception e) { month = 0; }
+		      
+			  //see if we can get a day, because we do want to support only yyy-MM too
+			  StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker"),"-");			  
+			  if(str.countTokens()>2){
+			    try { day = new Integer(reportedDateTime.getDayOfMonth()); } catch (Exception e) { day = 0; }
+			  }  
+		    try { year = new Integer(reportedDateTime.getYear()); } catch (Exception e) { year = 0; }
+		    if(year>((new GregorianCalendar()).YEAR+1)){year=0;}
+		      
+        //see if we can get a time and hour, because we do want to support only yyy-MM too
+        StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");        
+        if(strTime.countTokens()>1){
+          try { hour = new Integer(reportedDateTime.getHourOfDay()); } catch (Exception e) { hour =-1; }
+          try {minutes=(new Integer(reportedDateTime.getMinuteOfHour())).toString(); } catch (Exception e) {}
+        } 
+        else{hour=-1;}
+		 }
+			
+			
+			
 			String guess = "no estimate provided";
 			if ((fv.get("guess") != null) && !fv.get("guess").toString().equals("")) {
 				guess = fv.get("guess").toString();
@@ -348,7 +380,7 @@ System.out.println("about to do int stuff");
 
 System.out.println("about to do enc()");
 
-			Encounter enc = new Encounter(day, month, year, hour, getVal(fv, "minutes"), guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
+			Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
 			//Encounter enc = new Encounter();
 			String encID = enc.generateEncounterNumber();
 			enc.setEncounterNumber(encID);
@@ -425,7 +457,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
         enc.addMetalTag(metalTag);
       }
 
-      List<Measurement> measurements = getMeasurements(fv, encID);
+      List<Measurement> measurements = getMeasurements(fv, encID, context);
       for (Measurement measurement : measurements) {
         enc.addMeasurement(measurement);
       }

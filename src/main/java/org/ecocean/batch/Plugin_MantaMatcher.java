@@ -19,29 +19,16 @@
 
 package org.ecocean.batch;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
-import org.ecocean.mmutil.FileUtilities;
-import org.ecocean.mmutil.ListHelper;
-import org.ecocean.mmutil.MantaMatcherUtilities;
-import org.ecocean.mmutil.MediaUtilities;
-import org.ecocean.mmutil.RegexFilenameFilter;
+import org.ecocean.mmutil.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,12 +52,12 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
   /** Regex pattern string for matching CR image filenames. */
   private static final Pattern REGEX_CR = Pattern.compile("^(.+)_CR\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES + "$");
   /** Resources for internationalization. */
-  private ResourceBundle bundle;
+  private final ResourceBundle bundle;
   /** Collection of media files to process with mmprocess. */
-  private List<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>();
+  private final List<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>();
 
-  public Plugin_MantaMatcher(List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale loc) {
-    super(listInd, listEnc, errors, warnings, loc);
+  public Plugin_MantaMatcher(Shepherd shepherd, List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale loc) {
+    super(shepherd, listInd, listEnc, errors, warnings, loc);
     bundle = ResourceBundle.getBundle("bundles/" + getClass().getSimpleName(), loc);
   }
 
@@ -167,6 +154,22 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
       incrementCounter();
       // Take a breath to avoid hogging resources through external calls.
       Thread.yield();
+
+      // Process encounters to determine which are now MMA-compatible.
+      for (Encounter enc : getListEnc()) {
+        boolean hasCR = false;
+        for (SinglePhotoVideo mySPV : enc.getSinglePhotoVideo()) {
+          if (MediaUtilities.isAcceptableImageFile(mySPV.getFile())) {
+            Map<String, File> mmaFiles = MantaMatcherUtilities.getMatcherFilesMap(mySPV);
+            hasCR = hasCR | mmaFiles.get("CR").exists();
+            if (hasCR)
+              break;
+          }
+        }
+        // If encounter is MMA-compatible, set flag.
+        if (hasCR)
+          enc.setMmaCompatible(true);
+      }
     }
   }
 

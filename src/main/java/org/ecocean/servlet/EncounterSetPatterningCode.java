@@ -5,6 +5,7 @@ import javax.servlet.http.*;
 import java.io.*;
 
 import org.ecocean.*;
+import org.ecocean.mmutil.MantaMatcherUtilities;
 
 
 public class EncounterSetPatterningCode extends HttpServlet {
@@ -43,6 +44,7 @@ public class EncounterSetPatterningCode extends HttpServlet {
         if(colorCode.equals("None")){enc.setPatterningCode(null);}
         else{
         	enc.setPatterningCode(colorCode);
+        MantaMatcherUtilities.removeAlgorithmMatchResults(enc);
 		}
 
 
