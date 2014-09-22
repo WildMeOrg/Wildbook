@@ -155,7 +155,8 @@ public class EncounterVMData extends HttpServlet {
 				for (SinglePhotoVideo s : spvs) {
 					if (myShepherd.isAcceptableImageFile(s.getFilename())) {
 						HashMap i = new HashMap();
-						i.put("url", "/" + dataDir + "/" + s.getFilename());
+						i.put("fullsizeUrl", "/" + dataDir + "/" + s.getFilename());
+ 						i.put("url", "/" + dataDir + "/" + s.getDataCollectionEventID() + "-mid.jpg");
  						i.put("thumbUrl", "/" + dataDir + "/" + s.getDataCollectionEventID() + ".jpg");
 						List k = s.getKeywords();
 						i.put("keywords", k);
