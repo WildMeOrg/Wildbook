@@ -100,7 +100,7 @@ File encounterDir = new File(encountersDir, num);
 				message = "could not write <b>" + scriptFile + "</b>: " + ex.toString();
 			}
 
-message += "<xmp>" + script + "</xmp>";
+//message += "<xmp>" + script + "</xmp>";
 		}
 
     		
