@@ -116,8 +116,8 @@ public class Matrix2D extends Array2DRowRealMatrix{
    * @return Matrix2D with values d added
    */
   public Matrix2D add(double d){
-		final RealMatrix rm = super.scalarAdd(d);
-		return new Matrix2D(rm);
+    final RealMatrix rm = super.scalarAdd(d);
+    return new Matrix2D(rm);
 	}
 
   /**
@@ -126,8 +126,8 @@ public class Matrix2D extends Array2DRowRealMatrix{
    * @param m RealMatrix : Matrix B element to add to Matrix A elements (define 'this' to be Matrix A in standard notation).
    * @return Matrix2D : Matrix with added element values
    */
-	public Matrix2D add(final RealMatrix m){
-    final RealMatrix rm = super.add(m);
+  public Matrix2D add(final RealMatrix m){
+	  final RealMatrix rm = super.add(m);
     return new Matrix2D(rm);
   }
   
@@ -162,7 +162,7 @@ public class Matrix2D extends Array2DRowRealMatrix{
     final RealMatrix rm = super.multiply(m);
     return new Matrix2D(rm);
   }
-
+  
   /**
    * Method add will do an element by element multiplication. 
    * Matrix m must be of the same dimensionality (i.e. row and column size must match).
