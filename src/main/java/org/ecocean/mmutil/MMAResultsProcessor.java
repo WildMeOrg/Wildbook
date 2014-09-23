@@ -192,7 +192,7 @@ public final class MMAResultsProcessor {
         // Fill details from match.
         Encounter enc = shepherd.getEncounter(matchEncId);
         modelMatch.put("individualID", enc.getIndividualID());
-        modelMatch.put("encounterDate", enc.getVerbatimEventDate());
+        modelMatch.put("encounterDate", enc.getDate());
         modelMatch.put("pigmentation", enc.getPatterningCode());
 
         if (match.bestMatch != null) {
