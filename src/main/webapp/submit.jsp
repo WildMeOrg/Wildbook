@@ -185,7 +185,8 @@ margin-bottom: 8px !important;
       changeYear: true,
       dateFormat: 'yy-mm-dd',
       maxDate: '+1d',
-      controlType: 'select'
+      controlType: 'select',
+      alwaysSetTime: false
       
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
