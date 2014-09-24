@@ -547,7 +547,8 @@ $(function() {
       altField: '#datepickerField',
       altFieldTimeOnly: false,
       maxDate: '+1d',
-      controlType: 'select'
+      controlType: 'select',
+      alwaysSetTime: false
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
   
