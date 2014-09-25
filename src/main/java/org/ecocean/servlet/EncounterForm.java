@@ -359,8 +359,8 @@ System.out.println("about to do int stuff");
 			  if(str.countTokens()>2){
 			    try { day = new Integer(reportedDateTime.getDayOfMonth()); } catch (Exception e) { day = 0; }
 			  }  
-		    try { year = new Integer(reportedDateTime.getYear()); } catch (Exception e) { year = 0; }
-		    if(year>((new GregorianCalendar()).YEAR+1)){year=0;}
+		    try { year = new Integer(reportedDateTime.getYear()); } catch (Exception e) { e.printStackTrace();year = 0; }
+		    if(year>(Calendar.getInstance().get(Calendar.YEAR)+1)){System.out.println("Year "+year+" was in the future and > "+Calendar.getInstance().get(Calendar.YEAR)+1+"! Setting to 0.");year=0;}
 		      
         //see if we can get a time and hour, because we do want to support only yyy-MM too
         StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");        
@@ -369,6 +369,11 @@ System.out.println("about to do int stuff");
           try {minutes=(new Integer(reportedDateTime.getMinuteOfHour())).toString(); } catch (Exception e) {}
         } 
         else{hour=-1;}
+        
+        
+        //System.out.println("At the end of time processing I see: "+year+"-"+month+"-"+day+" "+hour+":"+minutes);
+        
+        
 		 }
 			
 			
@@ -382,6 +387,7 @@ System.out.println("about to do enc()");
 
 			Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
 			//Encounter enc = new Encounter();
+			//System.out.println("Submission detected date: "+enc.getDate());
 			String encID = enc.generateEncounterNumber();
 			enc.setEncounterNumber(encID);
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
