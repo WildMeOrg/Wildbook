@@ -45,20 +45,21 @@ public final class MMAResultsProcessor {
    * @param spv {@code SinglePhotoVideo} instance denoting base reference image
    * @param dataDir folder containing all webapp data (for deriving reference folders)
    * @param refUrlPrefix URL prefix to use for reference links
-   * @param pageUrlFormat Format string for encounter page URL (with <em>%s</em> placeholder)
+   * @param pageUrlFormatEnc Format string for encounter page URL (with <em>%s</em> placeholder)
+   * @param pageUrlFormatInd Format string for individual page URL (with <em>%s</em> placeholder)
    * @return A map containing parsed results ready for use with a FreeMarker template
    * @throws IOException
    * @throws ParseException
    * @throws TemplateException
    */
-  static String convertResultsToHtml(Shepherd shepherd, Configuration conf, String text, SinglePhotoVideo spv, File dataDir, String refUrlPrefix, String pageUrlFormat) throws IOException, TemplateException, ParseException {
+  static String convertResultsToHtml(Shepherd shepherd, Configuration conf, String text, SinglePhotoVideo spv, File dataDir, String refUrlPrefix, String pageUrlFormatEnc, String pageUrlFormatInd) throws IOException, TemplateException, ParseException {
     // Create null data model for template engine.
     Map model = null;
     try {
       // Parse results from text file.
       MMAResult matchResult = parseMatchResults(text, spv, dataDir);
       // Convert results to data model for template engine.
-      model = convertResultsToTemplateModel(shepherd, matchResult, spv, refUrlPrefix, pageUrlFormat);
+      model = convertResultsToTemplateModel(shepherd, matchResult, spv, refUrlPrefix, pageUrlFormatEnc, pageUrlFormatInd);
     } catch (Exception ex) {
       // Handled by null model recognized by template.
     }
@@ -116,13 +117,14 @@ public final class MMAResultsProcessor {
    * @param matchResult MMAResult instance in which to place parsed data
    * @param spv {@code SinglePhotoVideo} instance denoting base reference image
    * @param dataDirUrlPrefix URL prefix to use for reference links
-   * @param pageUrlFormat Format string for page URLs (with <em>%s</em> placeholder)
+   * @param pageUrlFormatEnc Format string for encounter page URLs (with <em>%s</em> placeholder)
+   * @param pageUrlFormatInd Format string for individual page URLs (with <em>%s</em> placeholder)
    * @return A map containing parsed results ready for use with a FreeMarker template
    * @throws FileNotFoundException if unable to find CR image files
    * @throws UnsupportedEncodingException if unable to encode a URL (unlikely)
    */
   @SuppressWarnings("unchecked")
-  private static Map convertResultsToTemplateModel(Shepherd shepherd, MMAResult matchResult, SinglePhotoVideo spv, String dataDirUrlPrefix, String pageUrlFormat) throws FileNotFoundException, UnsupportedEncodingException {
+  private static Map convertResultsToTemplateModel(Shepherd shepherd, MMAResult matchResult, SinglePhotoVideo spv, String dataDirUrlPrefix, String pageUrlFormatEnc, String pageUrlFormatInd) throws FileNotFoundException, UnsupportedEncodingException {
 
     // Repackage data model into template model.
     Map model = new HashMap();
@@ -152,7 +154,7 @@ public final class MMAResultsProcessor {
       String linkCR = convertFileToURL(dataDirUrlPrefix, fCR);
       String linkEH = linkCR.replace("_CR", "_EH");
       String linkFT = linkCR.replace("_CR", "_FT");
-      String encUrl = String.format(pageUrlFormat, encId);
+      String encUrl = String.format(pageUrlFormatEnc, encId);
       modelResult.put("link", encUrl);
       modelResult.put("name", nameCR.substring(0, nameCR.indexOf("_CR")));
       modelResult.put("nameCR", nameCR);
@@ -175,23 +177,21 @@ public final class MMAResultsProcessor {
           continue;
         File dir = match.fileRef.getParentFile();
         String matchEncId = dir.getName();
-        String encUrlMatch = String.format(pageUrlFormat, matchEncId);
+        String encUrlMatch = String.format(pageUrlFormatEnc, matchEncId);
         Map modelMatch = new HashMap();
         modelMatch.put("rank", match.rank);
         modelMatch.put("ref", dir.getName());
         modelMatch.put("link", encUrlMatch);
         modelMatch.put("score", match.score);
         modelMatch.put("imgbase", match.bestMatch);
-//        log.trace(String.format("encUrlMatch: %s", modelMatch.get("encUrlMatch")));
-//        log.trace(String.format("rank       : %s", modelMatch.get("rank")));
-//        log.trace(String.format("ref        : %s", modelMatch.get("ref")));
-//        log.trace(String.format("link       : %s", modelMatch.get("link")));
-//        log.trace(String.format("score      : %s", modelMatch.get("score")));
-//        log.trace(String.format("imgbase    : %s", modelMatch.get("imgbase")));
 
         // Fill details from match.
         Encounter enc = shepherd.getEncounter(matchEncId);
-        modelMatch.put("individualID", enc.getIndividualID());
+        modelMatch.put("individualId", enc.getIndividualID());
+        if (enc.getIndividualID() != null && !"".equals(enc.getIndividualID()) && !"Unassigned".equals(enc.getIndividualID())) {
+          String indUrl = String.format(pageUrlFormatInd, enc.getIndividualID());
+          modelMatch.put("individualIdLink", indUrl);
+        }
         modelMatch.put("encounterDate", enc.getDate());
         modelMatch.put("pigmentation", enc.getPatterningCode());
 
@@ -201,9 +201,6 @@ public final class MMAResultsProcessor {
           modelMatch.put("nameFT", String.format("%s_FT", match.bestMatch));
           // Derive links to image files for this match.
           Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(match.fileRef);
-          String fnCR = mmMap.get("CR").getName();
-          String fnEH = mmMap.get("EH").getName();
-          String fnFT = mmMap.get("FT").getName();
           String mlinkCR = convertFileToURL(dataDirUrlPrefix, mmMap.get("CR"));
           String mlinkEH = convertFileToURL(dataDirUrlPrefix, mmMap.get("EH"));
           String mlinkFT = convertFileToURL(dataDirUrlPrefix, mmMap.get("FT"));
@@ -211,12 +208,6 @@ public final class MMAResultsProcessor {
           modelMatch.put("linkEH", mlinkEH);
           modelMatch.put("linkFT", mlinkFT);
           modelMatches.add(modelMatch);
-//          log.trace(String.format("nameCR: %s", modelMatch.get("nameCR")));
-//          log.trace(String.format("nameEH: %s", modelMatch.get("nameEH")));
-//          log.trace(String.format("nameFT: %s", modelMatch.get("nameFT")));
-//          log.trace(String.format("linkCR: %s", modelMatch.get("linkCR")));
-//          log.trace(String.format("linkEH: %s", modelMatch.get("linkEH")));
-//          log.trace(String.format("linkFT: %s", modelMatch.get("linkFT")));
         }
       }
     }
@@ -228,12 +219,7 @@ public final class MMAResultsProcessor {
     File dir = file.getParentFile();
     String dirStr = dir.getAbsolutePath().replace(File.separatorChar, '/');
     dirStr = dirStr.replaceFirst("^.*/encounters/", "");
-    String url = String.format("%s/%s/%s", dataDirUrlPrefix, dirStr, URLEncoder.encode(file.getName(), "UTF-8"));
-    log.trace(String.format("file            : %s", file.getAbsolutePath()));
-    log.trace(String.format("dataDirUrlPrefix: %s", dataDirUrlPrefix));
-    log.trace(String.format("dirStr          : %s", dirStr));
-    log.trace(String.format("url             : %s", url));
-    return url;
+    return String.format("%s/%s/%s", dataDirUrlPrefix, dirStr, URLEncoder.encode(file.getName(), "UTF-8"));
   }
 
   /**
