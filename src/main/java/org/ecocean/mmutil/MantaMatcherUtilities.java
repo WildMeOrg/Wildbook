@@ -158,18 +158,19 @@ public final class MantaMatcherUtilities {
    * @param spv {@code SinglePhotoVideo} instance for base reference image
    * @param dataDir folder containing all webapp data (for deriving reference folders)
    * @param dataDirUrlPrefix URL prefix for data folder (for image links)
-   * @param pageUrlFormat Format string for encounter page URL (with <em>%s</em> placeholder)
+   * @param pageUrlFormatEnc Format string for encounter page URL (with <em>%s</em> placeholder)
+   * @param pageUrlFormatInd Format string for individual page URL (with <em>%s</em> placeholder)
    * @return A map containing parsed results ready for use with a FreeMarker template
    * @throws IOException
    * @throws ParseException
    * @throws TemplateException
    */
   @SuppressWarnings("unchecked")
-  public static String getResultsHtml(Shepherd shepherd, Configuration conf, File mmaResultsFile, SinglePhotoVideo spv, File dataDir, String dataDirUrlPrefix, String pageUrlFormat) throws IOException, ParseException, TemplateException {
+  public static String getResultsHtml(Shepherd shepherd, Configuration conf, File mmaResultsFile, SinglePhotoVideo spv, File dataDir, String dataDirUrlPrefix, String pageUrlFormatEnc, String pageUrlFormatInd) throws IOException, ParseException, TemplateException {
     // Load results file.
     String text = new String(FileUtilities.loadFile(mmaResultsFile));
     // Convert to HTML results page.
-    return MMAResultsProcessor.convertResultsToHtml(shepherd, conf, text, spv, dataDir, dataDirUrlPrefix, pageUrlFormat);
+    return MMAResultsProcessor.convertResultsToHtml(shepherd, conf, text, spv, dataDir, dataDirUrlPrefix, pageUrlFormatEnc, pageUrlFormatInd);
   }
 
   /**

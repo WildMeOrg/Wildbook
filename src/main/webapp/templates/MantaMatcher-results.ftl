@@ -51,7 +51,7 @@
       <td class="similarity">${item.score?string("0.######")}</td>
       <td class="filename">
         <table id="mma-resultDetailsTable">
-          <tr><th>Individual ID:</th><td>${item.individualID!""}</td></tr>
+          <tr><th>Individual ID:</th><td><#if (item.individualIdLink)??><a href="${item.individualIdLink}" target="_blank">${item.individualId}</a><#else>&nbsp;</#if></td></tr>
           <tr><th>Encounter&nbsp;date:</th><td>${item.encounterDate!""}</td></tr>
           <tr><th>Pigmentation:</th><td>${item.pigmentation!""}</td></tr>
         </table>
