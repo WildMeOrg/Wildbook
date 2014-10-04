@@ -200,6 +200,21 @@ context=ServletUtilities.getContext(request);
           </td>
         </tr>
       </table>
+      <p>&nbsp;</p>
+      <table width="600" border="1">
+        <tr>
+          <td>
+            <p><font size="+1">Reset MMA-compatibility flag for all encounters</font></p>
+
+            <p>This resets the <em>mmaCompatible</em> flag for all encounters
+              based on the presence/absence of &quot;candidate region&quot; image files.</p>
+
+            <form name="resetMmaCompatibilityFlags" method="post" action="../MantaMatcher/resetMmaCompatible">
+                <input name="Update" type="submit" id="Update" value="Update">
+            </form>
+          </td>
+        </tr>
+      </table>
 
       <p>&nbsp;</p>
       <table width="600" border="1">

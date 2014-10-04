@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.text.ParseException;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -56,6 +58,7 @@ public final class MantaMatcher extends DispatchServlet {
     super.init();
     try {
       registerMethodGET("displayResults", "displayResultsRegional");
+      registerMethodPOST("resetMmaCompatible");
     }
     catch (DelegateNotFoundException ex) {
       throw new ServletException(ex);
@@ -67,6 +70,7 @@ public final class MantaMatcher extends DispatchServlet {
     return "MantaMatcherResults, Copyright 2014 Giles Winstanley / Wild Book / wildme.org";
   }
 
+  @Override
   protected void handleDelegateNotFound(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     res.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unsupported delegate method specified.");
   }
@@ -179,5 +183,92 @@ public final class MantaMatcher extends DispatchServlet {
     } finally {
       shepherd.closeDBTransaction();
     }
+  }
+
+  public void resetMmaCompatible(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    String context="context0";
+    context = ServletUtilities.getContext(req);
+    Shepherd shepherd = new Shepherd(context);
+    File dataDir = new File(ServletUtilities.dataDir(context, getServletContext().getRealPath("/")));
+
+    try {
+
+      // Perform MMA-compatible flag updates.
+      int ok = 0, changed = 0, failed = 0;
+      shepherd.beginDBTransaction();
+      for (Iterator iter = shepherd.getAllEncounters(); iter.hasNext();) {
+        Encounter enc = (Encounter)iter.next();
+        boolean hasCR = hasCR(enc, dataDir);
+        boolean encCR = enc.getMmaCompatible();
+        if ((hasCR && encCR) || (!hasCR && !encCR)) {
+          ok++;
+        }
+        else {
+          try {
+            enc.setMmaCompatible(hasCR);
+            changed++;
+          }
+          catch (Exception ex) {
+            failed++;
+            log.warn("Failed to set MMA-compatible flag for encounter: " + enc.getCatalogNumber(), ex);
+          }
+        }
+      }
+      shepherd.commitDBTransaction();
+      shepherd.closeDBTransaction();
+
+      // Write output to response.
+      res.setCharacterEncoding("UTF-8");
+      res.setContentType("text/html; charset=UTF-8");
+      PrintWriter out = res.getWriter();
+      out.println(ServletUtilities.getHeader(req));
+
+      if (failed > 0) {
+        out.println(String.format("<strong>Failure!</strong> I failed to reset all the MMA-compatibility flags; %d failed to update, %d were updated successfully, and %d were already correct.", failed, changed, ok));
+      } else {
+        out.println(String.format("<strong>Success!</strong> I have successfully reset the MMA-compatibility flag for %d encounters (%d were already correct).", changed, ok));
+      }
+
+      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(req) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
+      out.println(ServletUtilities.getFooter(context));
+
+      out.flush();
+      out.close();
+
+    } catch (Exception ex) {
+      shepherd.rollbackDBTransaction();
+      shepherd.closeDBTransaction();
+      handleException(req, res, ex);
+    }
+  }
+
+  /**
+   * Returns whether an encounter has any MMA-compatible &quot;candidate region&quot;
+   * images (which may be used to determine MMA-compatibility status).
+   * @param enc encounter to test
+   * @param dataDir data folder
+   * @return true if any CR images are found, false otherwise
+   */
+  private boolean hasCR(Encounter enc, File dataDir) {
+    // This implementation checks any SPVs stored for this encounter for the
+    // standard "_CR" filename suffix. If found, it double-checks that the
+    // base image (i.e. without "_CR" suffix) also exists, and returns true
+    // if both are found.
+    List<SinglePhotoVideo> spvs = enc.getSinglePhotoVideo();
+    for (SinglePhotoVideo spv : spvs) {
+      String s = spv.getFile().getName();
+      String bn = s.substring(0, s.lastIndexOf("."));
+      if (bn.endsWith("_CR")) {
+        for (SinglePhotoVideo spv2 : spvs) {
+          String s2 = spv.getFile().getName();
+          String bn2 = s.substring(0, s.lastIndexOf("."));
+          if (!spv2.equals(spv) && bn2.equals(bn + "_CR")) {
+            // Found SPV with both CR and base image; encounter is MMA-compatible!
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 }
