@@ -89,8 +89,20 @@ public final class MantaMatcherUtilities {
    * <li>File representing MantaMatcher feature photo (key: FT).</li>
    * <li>File representing MantaMatcher feature file (key: FEAT).</li>
    * </ul>
-   * All files are assumed to be in the same folder, and no checking is
-   * performed to see if they exist.
+   * All files are assumed to be in the same folder, and if existing
+   * web-compatible image files exist (based on file extension) they will be
+   * referenced, otherwise a generic name is used (with the same extension as
+   * the original file).
+   * <p>
+   * This allows simple determination of, for example, existence of a CR file
+   * for a specified original:
+   * <pre>
+   * Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+   * if (mmFiles.get("CR").exists()) {
+   *     // ...do something ...
+   * }
+   * </pre>
+   * 
    * The functionality is centralized here to reduce naming errors/conflicts.
    * @param f base image file from which to reference other algorithm files
    * @return Map of string to file for each MantaMatcher algorithm feature.
@@ -104,12 +116,23 @@ public final class MantaMatcherUtilities {
       throw new IllegalArgumentException("Invalid file type specified: " + f.getName());
     String regex = "\\." + regFormat;
     File pf = f.getParentFile();
-    File cr = new File(pf, name.replaceFirst(regex, "_CR.$1"));
-    File eh = new File(pf, name.replaceFirst(regex, "_EH.$1"));
-    File ft = new File(pf, name.replaceFirst(regex, "_FT.$1"));
+
+    // Locate web-compatible image files for each type (if possible).
+    // (This provides basic support if in future mmprocess allows original/CR
+    // files to have different file extensions.)
+    String baseName = name.replaceFirst(regex, "");
+    List<File> crOpts = MediaUtilities.listWebImageFiles(pf, baseName + "_CR");
+    List<File> ehOpts = MediaUtilities.listWebImageFiles(pf, baseName + "_EH");
+    List<File> ftOpts = MediaUtilities.listWebImageFiles(pf, baseName + "_FT");
+
+    // Use existing image files if possible, otherwise use generic name with same file extension.
+    File cr = crOpts.isEmpty() ? new File(pf, name.replaceFirst(regex, "_CR.$1")) : crOpts.get(0);
+    String crExt = cr.getName().substring(cr.getName().lastIndexOf(".") + 1);
+    File eh = ehOpts.isEmpty() ? new File(pf, name.replaceFirst(regex, "_EH." + crExt)) : ehOpts.get(0);
+    File ft = ftOpts.isEmpty() ? new File(pf, name.replaceFirst(regex, "_FT." + crExt)) : ftOpts.get(0);
     File feat = new File(pf, name.replaceFirst(regex, ".FEAT"));
     
-    Map<String, File> map = new HashMap<String, File>(7);
+    Map<String, File> map = new HashMap<String, File>(11);
     map.put("O", f);
     map.put("CR", cr);
     map.put("EH", eh);
