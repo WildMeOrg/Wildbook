@@ -42,8 +42,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -92,7 +95,7 @@ public final class MediaUtilities {
    * This method had been recreated here to allow static and centralized access;
    * original version requires a {@code Shepherd} instance.
    * @param filename filename of file to check
-   * @return true if filename is support, false otherwise
+   * @return true if filename is supported, false otherwise
    */
   public static boolean isAcceptableImageFile(String filename) {
     return (filename == null) ? false : filename.matches("^.+\\." + REGEX_SUFFIX_FOR_WEB_IMAGES);
@@ -103,7 +106,7 @@ public final class MediaUtilities {
    * This method had been recreated here to allow static and centralized access;
    * original version requires a {@code Shepherd} instance.
    * @param filename filename of file to check
-   * @return true if filename is support, false otherwise
+   * @return true if filename is supported, false otherwise
    */
   public static boolean isAcceptableVideoFile(String filename) {
     return (filename == null) ? false : filename.matches("^.+\\." + REGEX_SUFFIX_FOR_MOVIES);
@@ -112,7 +115,7 @@ public final class MediaUtilities {
   /**
    * Checks filename extension for supported image type.
    * @param file file to check
-   * @return true if filename is support, false otherwise
+   * @return true if filename is supported, false otherwise
    */
   public static boolean isAcceptableImageFile(File file) {
     return (file == null) ? false : isAcceptableImageFile(file.getName());
@@ -121,7 +124,7 @@ public final class MediaUtilities {
   /**
    * Checks filename extension for supported video type.
    * @param file file to check
-   * @return true if filename is support, false otherwise
+   * @return true if filename is supported, false otherwise
    */
   public static boolean isAcceptableVideoFile(File file) {
     return (file == null) ? false : isAcceptableVideoFile(file.getName());
@@ -130,7 +133,7 @@ public final class MediaUtilities {
   /**
    * Checks filename extension for supported media (photo/video) type.
    * @param filename filename of file to check
-   * @return true if filename is support, false otherwise
+   * @return true if filename is supported, false otherwise
    */
   public static boolean isAcceptableMediaFile(String filename) {
     return isAcceptableImageFile(filename) || isAcceptableVideoFile(filename);
@@ -139,10 +142,82 @@ public final class MediaUtilities {
   /**
    * Checks filename extension for supported media (photo/video) type.
    * @param file file to check
-   * @return true if filename is support, false otherwise
+   * @return true if filename is supported, false otherwise
    */
   public static boolean isAcceptableMediaFile(File file) {
     return isAcceptableImageFile(file) || isAcceptableVideoFile(file);
+  }
+
+  /**
+   * Checks filename extension for JPEG image type.
+   * @param file file to check
+   * @return true if filename is the correct format, false otherwise
+   */
+  public static boolean isFileType_JPEG(File file) {
+    return file.getName().matches("(?i:\\.(jpe?g))$");
+  }
+
+  /**
+   * Checks filename extension for PNG image type.
+   * @param file file to check
+   * @return true if filename is the correct format, false otherwise
+   */
+  public static boolean isFileType_PNG(File file) {
+    return file.getName().matches("(?i:\\.(png))$");
+  }
+
+  /**
+   * Checks filename extension for PNG image type.
+   * @param file file to check
+   * @return true if filename is the correct format, false otherwise
+   */
+  public static boolean isFileType_TIFF(File file) {
+    return file.getName().matches("(?i:\\.(tiff?))$");
+  }
+
+  /**
+   * Checks filename extension for PNG image type.
+   * @param file file to check
+   * @return true if filename is the correct format, false otherwise
+   */
+  public static boolean isFileType_BMP(File file) {
+    return file.getName().matches("(?i:\\.(bmp))$");
+  }
+
+  /**
+   * Lists all web-compatible image files in a folder matching the specified base name.
+   * @param dir folder in which to search
+   * @param baseName base name of web-compatible images for which to search
+   * @return list of files
+   */
+  public static List<File> listWebImageFiles(File dir, String baseName) {
+    RegexFilenameFilter ff = WebImageFilenameFilter.instance();
+    List<File> list = new LinkedList<>(Arrays.asList(dir.listFiles(ff)));
+    for (ListIterator<File> it = list.listIterator(); it.hasNext();) {
+      File f = it.next();
+      String s = f.getName();
+      if (!s.substring(0, s.lastIndexOf(".")).equals(baseName))
+        it.remove();
+    }
+    return list;
+  }
+
+  /**
+   * Lists all web-compatible image files in a folder matching the specified base name regex.
+   * @param dir folder in which to search
+   * @param baseNameRegex base name regex of web-compatible images for which to search
+   * @return list of files
+   */
+  public static List<File> listWebImageFilesRegex(File dir, String baseNameRegex) {
+    RegexFilenameFilter ff = WebImageFilenameFilter.instance();
+    List<File> list = new LinkedList<>(Arrays.asList(dir.listFiles(ff)));
+    for (ListIterator<File> it = list.listIterator(); it.hasNext();) {
+      File f = it.next();
+      String s = f.getName();
+      if (!s.substring(0, s.lastIndexOf(".")).matches(baseNameRegex))
+        it.remove();
+    }
+    return list;
   }
 
   /**
