@@ -107,69 +107,52 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
   void process() throws IOException, InterruptedException {
     for (SinglePhotoVideo spv : list) {
       // Find reference image (ideally ID, but CR in case of fall-back).
-      SinglePhotoVideo ref = findReferenceImageFile(spv);
-      if (ref == null) {
-        ref = spv;
-         String msg = MessageFormat.format(bundle.getString("plugin.warning.noReference"), spv.getFile().getName());
+      SinglePhotoVideo ref = findReferenceSPV(spv);
+      if (ref == null || !ref.getFile().exists()) {
+        String msg = MessageFormat.format(bundle.getString("plugin.warning.noReference"), spv.getFile().getName());
         addWarning(msg);
         log.warn(String.format("Unable to find associated reference image for: %s", spv.getFile().getName()));
+        incrementCounter();
+        continue;
       }
-
+      // Perform MM process.
+      mmprocess(ref.getFile());
+      // Check that mmprocess did something.
       Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(ref);
-      File fCR = mmFiles.get("CR");
-      if (!fCR.equals(spv.getFile()) && fCR.exists()) {
-        String msg = MessageFormat.format(bundle.getString("plugin.warning.duplicate"), fCR.getName());
+      File fEH = mmFiles.get("EH");
+      File fFT = mmFiles.get("FT");
+      File fFEAT = mmFiles.get("FEAT");
+      // Notify user & delete residual files if mmprocess failed.
+      if (!fEH.exists() || !fFT.exists() || !fFEAT.exists()) {
+        String msg = MessageFormat.format(bundle.getString("plugin.warning.mmprocess.failed"), spv.getFile().getName());
         addWarning(msg);
-        log.warn(String.format("Duplicate CR image found: %s", fCR.getAbsolutePath()));
-      } else if (!ref.getFile().exists()) {
-        String msg = MessageFormat.format(bundle.getString("plugin.warning.fileNotFound"), ref.getFile().getAbsolutePath());
-        addWarning(msg);
-        log.warn(String.format("Original image not found: %s", ref.getFile().getAbsolutePath()));
-      } else {
-        // Rename CR file if necessary.
-        if (ref == spv)
-          FileUtilities.copyFile(spv.getFile(), fCR);
-        else
-          spv.getFile().renameTo(fCR);
-        // Perform MM process.
-        mmprocess(ref.getFile());
-        // Check that mmprocess did something.
-        File fEH = mmFiles.get("EH");
-        File fFT = mmFiles.get("FT");
-        File fFEAT = mmFiles.get("FEAT");
-        if (!fEH.exists() || !fFT.exists() || !fFEAT.exists()) {
-          String msg = MessageFormat.format(bundle.getString("plugin.warning.mmprocess.failed"), spv.getFile().getName());
-          addWarning(msg);
-          log.warn(msg);
-        }
-        // Delete files if mmprocess couldn't create FEAT file.
-        if (fEH.exists() && fFT.exists() && !fFEAT.exists()) {
-          fFEAT.delete();
-          fFT.delete();
-          fEH.delete();
-          fCR.delete();
-        }
+        log.warn(msg);
+        fFEAT.delete();
+        fFT.delete();
+        fEH.delete();
       }
       // Increment progress counter.
       incrementCounter();
       // Take a breath to avoid hogging resources through external calls.
       Thread.yield();
+    }
 
-      // Process encounters to determine which are now MMA-compatible.
-      for (Encounter enc : getListEnc()) {
-        boolean hasCR = false;
-        for (SinglePhotoVideo mySPV : enc.getSinglePhotoVideo()) {
-          if (MediaUtilities.isAcceptableImageFile(mySPV.getFile())) {
-            Map<String, File> mmaFiles = MantaMatcherUtilities.getMatcherFilesMap(mySPV);
-            hasCR = hasCR | mmaFiles.get("CR").exists();
-            if (hasCR)
-              break;
-          }
+    // Process encounters to determine which are now MMA-compatible.
+    for (Encounter enc : getListEnc()) {
+      boolean hasCR = false;
+      for (SinglePhotoVideo mySPV : enc.getSinglePhotoVideo()) {
+        if (list.contains(mySPV))
+          continue;
+        if (MediaUtilities.isAcceptableImageFile(mySPV.getFile())) {
+          Map<String, File> mmaFiles = MantaMatcherUtilities.getMatcherFilesMap(mySPV);
+          hasCR = hasCR | mmaFiles.get("CR").exists();
+          if (hasCR)
+            break;
         }
-        // If encounter is MMA-compatible, set flag.
-        if (hasCR)
-          enc.setMmaCompatible(true);
       }
+      // If encounter is MMA-compatible, set flag.
+      if (hasCR)
+        enc.setMmaCompatible(true);
     }
   }
 
@@ -178,56 +161,51 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
    * @param spvCR CR image file for which to find ID image file
    * @return {@code SinglePhotoVideo} instance of the ID image, or null if not found.
    */
-  private SinglePhotoVideo findReferenceImageFile(SinglePhotoVideo spvCR) {
+  private SinglePhotoVideo findReferenceSPV(SinglePhotoVideo spvCR) {
     File fCR = spvCR.getFile();
     File found = null;
     Matcher m = REGEX_CR.matcher(fCR.getName());
     if (!m.matches())
       throw new IllegalArgumentException("Invalid CR image filename");
+
     // Check for existence of image without _CR suffix & same extension.
     File f = new File(fCR.getParentFile(), String.format("%s.%s", m.group(1), m.group(2)));
     if (f.exists()) {
       found = f;
+      log.trace(String.format("Found reference file for %s (%s)", fCR.getName(), found.getName()));
     }
     // Check for existence of image without _CR suffix & different extension.
     if (found == null)
     {
-      FilenameFilter ff = new RegexFilenameFilter(String.format("%s\\.%s", m.group(1), MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES));
-      File[] poss = fCR.getParentFile().listFiles(ff);
-      if (poss.length > 0)
-      {
-        found = poss[0];
-        if (poss.length > 1)
+      List<File> poss = MediaUtilities.listWebImageFiles(fCR.getParentFile(), m.group(1));
+      if (!poss.isEmpty()) {
+        found = poss.get(0);
+        log.trace(String.format("Found reference file for %s (%s)", fCR.getName(), found.getName()));
+        if (poss.size() > 1)
         {
           for (File x : poss)
             log.debug("Found multiple matching ID ref: " + x.getName());
         }
-      }
-    }
-    // Failed to find obvious matching SPV, so fall-back to top ID image.
-    if (found == null)
-    {
-      FilenameFilter ff = new RegexFilenameFilter(String.format("^%s[-_ ](?i:Id)(?!\\d).*\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES, m.group(1)));
-      File[] poss = fCR.getParentFile().listFiles(ff);
-      if (poss.length > 0)
-      {
-        found = poss[0];
-        if (poss.length > 1)
-        {
-          for (File x : poss)
-            log.debug("Found multiple matching ID ref: " + x.getName());
-        }
-      }
-    }
-    // If ID found, find SPV to match file.
-    if (found != null)
-    {
-      for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
-        if (spv.getFile().equals(found))
-          return spv;
       }
     }
     // Failed to find any match.
+    if (found == null)
+      return null;
+
+    // Find SPV relating to reference file.
+    for (SinglePhotoVideo x : findEncounterForSPV(spvCR).getSinglePhotoVideo()) {
+      if (x.getFile().equals(found))
+        return x;
+    }
+    return null;
+  }
+
+  private Encounter findEncounterForSPV(SinglePhotoVideo spv) {
+    assert spv != null;
+    for (Encounter enc : getListEnc()) {
+      if (enc.getCatalogNumber().equals(spv.getCorrespondingEncounterNumber()))
+        return enc;
+    }
     return null;
   }
 
