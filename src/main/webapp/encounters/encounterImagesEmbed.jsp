@@ -514,7 +514,7 @@ System.out.println("trying to fork/create " + thumbPath);
 
         </tr>
       </table>
-xxxx
+&nbsp;
 
     </div>
 
