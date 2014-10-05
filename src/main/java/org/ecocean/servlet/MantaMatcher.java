@@ -258,7 +258,7 @@ public final class MantaMatcher extends DispatchServlet {
       File encDir = new File(enc.dir(dataDir.getAbsolutePath()));
       String crName = s.substring(0, pos) + "_CR" + s.substring(pos);
       File crFile = new File(encDir, crName);
-      if (!crFile.exists()) {
+      if (crFile.exists()) {
         return true;
       }
     }
