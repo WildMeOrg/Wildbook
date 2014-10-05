@@ -27,7 +27,6 @@ import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -250,23 +249,17 @@ public final class MantaMatcher extends DispatchServlet {
    * @return true if any CR images are found, false otherwise
    */
   private boolean hasCR(Encounter enc, File dataDir) {
-    // This implementation checks any SPVs stored for this encounter for the
-    // standard "_CR" filename suffix. If found, it double-checks that the
-    // base image (i.e. without "_CR" suffix) also exists, and returns true
-    // if both are found.
-    List<SinglePhotoVideo> spvs = enc.getSinglePhotoVideo();
-    for (SinglePhotoVideo spv : spvs) {
+    // This implementation checks all SPVs for a file with the same filename
+    // but with "_CR" suffix, implying the CR file must have the same extension.
+    for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
       String s = spv.getFile().getName();
-      String bn = s.substring(0, s.lastIndexOf("."));
-      if (bn.endsWith("_CR")) {
-        for (SinglePhotoVideo spv2 : spvs) {
-          String s2 = spv.getFile().getName();
-          String bn2 = s.substring(0, s.lastIndexOf("."));
-          if (!spv2.equals(spv) && bn2.equals(bn + "_CR")) {
-            // Found SPV with both CR and base image; encounter is MMA-compatible!
-            return true;
-          }
-        }
+      int pos = s.lastIndexOf(".");
+
+      File encDir = new File(enc.dir(dataDir.getAbsolutePath()));
+      String crName = s.substring(0, pos) + "_CR" + s.substring(pos);
+      File crFile = new File(encDir, crName);
+      if (!crFile.exists()) {
+        return true;
       }
     }
     return false;
