@@ -102,6 +102,9 @@ System.out.println("before!");
 			while ((line = stdInput.readLine()) != null) {
 				System.out.println(">>>> " + line);
 			}
+			while ((line = stdError.readLine()) != null) {
+				System.out.println("!!!! " + line);
+			}
 			proc.waitFor();
 System.out.println("DONE?????");
 			////int returnCode = p.exitValue();
