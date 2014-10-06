@@ -36,7 +36,7 @@ public final class MMAResultsProcessor {
   /** SLF4J logger instance for writing log entries. */
   private static final Logger log = LoggerFactory.getLogger(MMAResultsProcessor.class);
   /** Version of MMA for which this code works. */
-  public static final String MMA_VER = "1.24a";
+  public static final String MMA_VER = "1.25a";
 
   /**
    * Parses the MantaMatcher results text file for the specified SPV,
@@ -55,9 +55,8 @@ public final class MMAResultsProcessor {
   static String convertResultsToHtml(Shepherd shepherd, Configuration conf, String text, SinglePhotoVideo spv, File dataDir, String refUrlPrefix, String pageUrlFormatEnc, String pageUrlFormatInd) throws IOException, TemplateException, ParseException {
     // Create null data model for template engine.
     Map model = null;
+    MMAResult matchResult = parseMatchResults(text, spv, dataDir);
     try {
-      // Parse results from text file.
-      MMAResult matchResult = parseMatchResults(text, spv, dataDir);
       // Convert results to data model for template engine.
       model = convertResultsToTemplateModel(shepherd, matchResult, spv, refUrlPrefix, pageUrlFormatEnc, pageUrlFormatInd);
     } catch (Exception ex) {
@@ -288,9 +287,10 @@ public final class MMAResultsProcessor {
     try {
       sc = new Scanner(text).useDelimiter("[\\r\\n]+");
       // Parse header info.
-      String s = sc.findInLine("Processing : (.+)");
+      String s = sc.findInLine("Processing : (.+) \\(original image: (.+)\\)");
       MatchResult mr = sc.match();
       String pathCR = mr.group(1);
+      String pathOriginal = mr.group(2);
 //      log.trace("Processing: {}", pathCR);
       sc.nextLine();
 
@@ -299,8 +299,9 @@ public final class MMAResultsProcessor {
       result.featureCount = Integer.parseInt(mr.group(1));
 //      log.trace("Feature Count: {}", result.featureCount);
       sc.nextLine();
+      sc.nextLine();
 
-      s = sc.findInLine("Matching [^:]+ : ([\\d.]+)");
+      s = sc.findInLine("time taken : ([\\d.]+)");
       mr = sc.match();
       result.timeTaken = Float.parseFloat(mr.group(1));
 //      log.trace("Time Taken: {}", result.timeTaken);
@@ -316,19 +317,20 @@ public final class MMAResultsProcessor {
       {
         sc.nextLine();
 
-        Pattern p = Pattern.compile("^(\\d+)\\) \\{([^{}]+)\\} \\[([\\d.]+)\\]\\s*(?:\\(best match: '([^']+)'\\))?$", Pattern.MULTILINE);
+        Pattern p = Pattern.compile("^(\\d+)\\) \\{([^{}]+)\\} \\[([\\d.]+)\\]\\s*(?:\\(best match: '([^']+)', path='([^']+)'\\))?$", Pattern.MULTILINE);
         List<MMAMatch> matches = new ArrayList<MMAMatch>();
         while ((s = sc.findInLine(p)) != null) {
           mr = sc.match();
           MMAMatch res = new MMAMatch();
           res.rank = Integer.parseInt(mr.group(1));
           res.score = Float.parseFloat(mr.group(3));
-          if (mr.group(4) != null) {
+          if (mr.group(4) != null && mr.group(5) != null) {
             res.bestMatch = mr.group(4);
+            res.bestMatchPath = mr.group(5);
             // Obtain encounter dir for matched image.
             File dir = new File(Encounter.dir(dataDir, mr.group(2)));
             // Find matched image file (base image, not CR).
-            res.fileRef = findReferenceFile(dir, res.bestMatch);
+            res.fileRef = findReferenceFile(dir, res.bestMatch, res.bestMatchPath);
             // Only add items with a non-zero score (only lines with 'best match' anyway).
             matches.add(res);
           }
@@ -437,26 +439,23 @@ public final class MMAResultsProcessor {
   }
 
   /**
-   * Utility method to locate an image file using its parent folder and root
-   * filename. Unfortunately the MMA currently doesn't reference the full
-   * filename, so this needs to be derived by examining the file-system for
-   * possible files matching the root name.
+   * Utility method to locate an original reference image file using a path
+   * reference to a related CR image file.
+   * This needs to be derived by examining the file-system.
    * @param dir folder in which to search
    * @param root root filename
+   * @param crPath path to CR image file
    * @return file reference
    * @throws IOException if there is a problem locating {@code dir}
    */
-  private static File findReferenceFile(File dir, String root) throws IOException {
-    StringBuilder sb = new StringBuilder();
-    sb.append("^").append(root).append("\\.").append(MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES);
-    FilenameFilter ff = new RegexFilenameFilter(sb.toString());
-    File[] files = dir.listFiles(ff);
-    if (files == null)
-      throw new FileNotFoundException("Folder not found: " + dir.getAbsolutePath());
-    if (files.length == 0)
+  private static File findReferenceFile(File dir, String root, String crPath) throws IOException {
+    if (dir == null || !dir.isDirectory())
+      throw new FileNotFoundException("Folder not found: " + dir);
+    List<File> files = MediaUtilities.listWebImageFiles(dir, root);
+    if (files.isEmpty())
       return null;
-    if (files.length > 1)
-      log.warn(String.format("Found %d matching image files in folder: %s", files.length, dir.getAbsolutePath()));
+    if (files.size() > 1)
+      log.warn(String.format("Found %d matching image files in folder: %s", files.size(), dir.getAbsolutePath()));
     // Double-check for existence of file.
     for (File f : files) {
       if (f.exists()) {
@@ -521,6 +520,8 @@ public final class MMAResultsProcessor {
     private float score;
     /** Filename root of match. */
     private String bestMatch;
+    /** Filename path of match. */
+    private String bestMatchPath;
     /** Reference file of matched image (base image, not CR, etc.). */
     private File fileRef;
 
@@ -531,6 +532,7 @@ public final class MMAResultsProcessor {
       sb.append("rank=").append(rank);
       sb.append(", score=").append(score);
       sb.append(", bestMatch=").append(bestMatch);
+      sb.append(", bestMatchPath=").append(bestMatchPath);
       sb.append(", fileRef=").append(fileRef == null ? "" : fileRef.getAbsolutePath());
       sb.append("}");
       return sb.toString();
