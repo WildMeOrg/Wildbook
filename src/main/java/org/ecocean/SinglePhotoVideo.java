@@ -179,5 +179,15 @@ System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
   public void setCorrespondingStoryID(String userID){this.correspondingStoryID=userID;}
 
   
+	public boolean mkThumb(String context) {
+		String cmd = CommonConfiguration.getProperty("imageResizeCommand", context);
+		if ((cmd == null) || cmd.equals("")) return false;
+System.out.println("yes? starting image proc");
+		ImageProcessor iproc = new ImageProcessor(context, 300, 200, "/tmp/in.jpg", "/tmp/out.jpg");
+		Thread t = new Thread(iproc);
+		t.start();
+System.out.println("yes. out.");
+		return true;
+	}
   
 }
