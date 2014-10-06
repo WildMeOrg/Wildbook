@@ -48,6 +48,7 @@ import org.ecocean.batch.BatchProcessor;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.mmutil.DataUtilities;
 import org.ecocean.mmutil.MediaUtilities;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -564,20 +565,19 @@ public final class BatchUpload extends DispatchServlet {
       }
 
       // Return progress (or error) as JSON object.
-      StringBuilder sb = new StringBuilder();
-      sb.append("{");
-      if (proc == null) {
-        sb.append("\"error\":true");
-      } else {
-        sb.append(String.format("\"status\":\"%s\"", proc.getStatus().toString()));
-        sb.append(String.format(", \"phase\":\"%s\"", proc.getPhase().toString()));
-        sb.append(String.format(", \"progress\":%d", (int)(100 * proc.getProgress())));
+      Map<String, Object> map = new HashMap<>();
+      if (proc == null)
+        map.put("error", "true");
+      else {
+        map.put("status", proc.getStatus().toString());
+        map.put("phase", proc.getPhase().toString());
+        map.put("progress", (int)(100 * proc.getProgress()));
       }
-      sb.append("}");
-//      log.trace("Prepared JSON response: " + sb.toString());
+      JSONObject jo = new JSONObject(map);
+
       res.setContentType("application/json; charset=UTF-8");
       res.setCharacterEncoding("UTF-8");
-      res.getOutputStream().write(sb.toString().getBytes("UTF-8"));
+      res.getOutputStream().write(jo.toString().getBytes("UTF-8"));
       res.getOutputStream().flush();
     } catch (Throwable th) {
       handleException(req, res, th);
