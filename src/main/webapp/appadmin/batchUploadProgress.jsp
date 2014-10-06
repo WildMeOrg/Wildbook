@@ -77,10 +77,25 @@ context=ServletUtilities.getContext(request);
 	<link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css"/>
 	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
-  <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/start/jquery-ui.css"/>
-  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-<%  if (!proc.isTerminated() && !hasErrors) { %>
+
+  <%-- NOTE: This page needs both JQuery & JQueryUI. --%>
+  <%-- JQuery in included by header.jsp, and JQueryUI script must be added after that. --%>
+  <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/start/jquery-ui.css"/>
+  <!--<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>-->
+
+</head>
+
+<body>
+<div id="wrapper">
+	<div id="page">
+		<jsp:include page="../header.jsp" flush="true">
+			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
+		</jsp:include>
+    <%-- NOTE: JQueryUI script placed here due to JQuery inclusion in header.jsp --%>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+		<div id="main">
+
+  <%  if (!proc.isTerminated() && !hasErrors) { %>
   <script language="javascript" type="text/javascript">
     var INTERVAL = 1000 * <%=CommonConfiguration.getBatchUploadProgressRefresh(context)%>;
     var PHASE_NONE = "<%=bundle.getProperty("gui.progress.status.phase.NONE")%>";
@@ -139,15 +154,6 @@ context=ServletUtilities.getContext(request);
     });
   </script>
 <%  } %>
-</head>
-
-<body>
-<div id="wrapper">
-	<div id="page">
-		<jsp:include page="../header.jsp" flush="true">
-			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-		</jsp:include>
-		<div id="main">
 
       <h1><%=bundle.getProperty("gui.progress.title")%></h1>
 

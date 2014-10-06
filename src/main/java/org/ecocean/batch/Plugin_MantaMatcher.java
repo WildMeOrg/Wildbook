@@ -106,7 +106,7 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
   @Override
   void process() throws IOException, InterruptedException {
     for (SinglePhotoVideo spv : list) {
-      // Find reference image (ideally ID, but CR in case of fall-back).
+      // Find reference image.
       SinglePhotoVideo ref = findReferenceSPV(spv);
       if (ref == null || !ref.getFile().exists()) {
         String msg = MessageFormat.format(bundle.getString("plugin.warning.noReference"), spv.getFile().getName());
@@ -130,6 +130,7 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
         fFEAT.delete();
         fFT.delete();
         fEH.delete();
+        spv.getFile().delete();
       }
       // Increment progress counter.
       incrementCounter();
