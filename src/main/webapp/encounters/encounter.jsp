@@ -541,6 +541,12 @@ margin-bottom: 8px !important;
       			//int numImages = enc.getAdditionalImageNames().size();
 				int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
       
+if (request.getParameter("refreshImages") != null) {
+	System.out.println("refreshing images!!! ==========");
+	enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
+	System.out.println("============ out ==============");
+}
+
 				//let's see if this user has ownership and can make edits
       			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
       			pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable(context));
