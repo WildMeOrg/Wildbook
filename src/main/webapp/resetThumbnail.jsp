@@ -108,13 +108,14 @@ context=ServletUtilities.getContext(request);
 
 
             File file2process = new File(addText);
-            String thumbLocation = "file-"+encountersDir.getAbsolutePath()+"/" + Encounter.subdir(number) + "/thumb.jpg";
+            String thumbPath = encountersDir.getAbsolutePath()+"/" + Encounter.subdir(number) + "/thumb.jpg";
+            String thumbLocation = "file-" + thumbPath;
 
 						//first try the new (optional) background method
 						SinglePhotoVideo spv = null;
 						if ((imageNum > 0) && (enc.getImages() != null)) spv = enc.getImages().get(imageNum - 1);
-						if ((spv != null) && spv.scaleTo(context, thumbnailWidth, thumbnailHeight, thumbLocation)) {
-							System.out.println("attempting to create " + thumbLocation + " in background.");
+						if ((spv != null) && spv.scaleTo(context, thumbnailWidth, thumbnailHeight, thumbPath)) {
+							System.out.println("attempting to create " + thumbPath + " in background.");
 
 
 						///// if that fails (not configured, etc) then use existing method:
