@@ -29,19 +29,6 @@
     langCode = (String) session.getAttribute("langCode");
   }
 
-  Throwable ex = (Throwable)request.getAttribute("javax.servlet.error.exception");
-  Integer exStatusCode = (Integer)request.getAttribute("javax.servlet.error.status_code");
-  String exType = (String)request.getAttribute("javax.servlet.error.exception_type");
-  String exMessage = (String)request.getAttribute("javax.servlet.error.message");
-  String exServletName = (String)request.getAttribute("javax.servlet.error.servlet_name");
-  if (exServletName == null)
-    exServletName = "Unknown";
-  String exRequestUri = (String)request.getAttribute("javax.servlet.error.request_uri");
-  if (exRequestUri == null)
-    exRequestUri = "Unknown";
-
-  Throwable thrown = (Throwable)request.getAttribute("thrown");
-
   //set up the file input stream
   Properties props = new Properties();
   props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/error.properties"));
@@ -59,68 +46,53 @@
   <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
+  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
   <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css"/>
+  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+  <style>
+    #main pre {
+      background: #CCC;
+      font-size: 0.75em;
+    }
+  </style>
 </head>
-
 
 <!-- Body -->
 
 <body bgcolor="#FFFFFF" link="#990000">
 <div id="wrapper">
+
   <div id="page">
     <jsp:include page="header.jsp" flush="true">
-
-    <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
+
     <div id="main">
 
       <div id="maincol-wide">
 
         <div id="maintext">
+
+
           <h1 class="intro">Error</h1>
-          <p>The following error occurred:</p>
-          <pre>
-<%
-  if (thrown != null) {
-    thrown.printStackTrace(response.getWriter());
-    request.getSession().removeAttribute("thrown");
-  }
-%>
-          </pre>
-<%
-  if (ex != null) {
-%>
-          <ul>
-            <li>Exception: <c:out value="${requestScope['javax.servlet.error.exception']}" /></li>
-            <li>Exception type: <c:out value="${requestScope['javax.servlet.error.exception_type']}" /></li>
-            <li>Exception message: <c:out value="${requestScope['javax.servlet.error.message']}" /></li>
-            <li>Request URI: <c:out value="${requestScope['javax.servlet.error.request_uri']}" /></li>
-            <li>Servlet name: <c:out value="${requestScope['javax.servlet.error.servlet_name']}" /></li>
-            <li>Status code: <c:out value="${requestScope['javax.servlet.error.status_code']}" /></li>
-          </ul>
-<%
-  } else {
-%>
-          <p>No error was found to be reported.</p>
-<%
-  }
-%>
-          <p><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp"><%=props.getProperty("clickHere")%></a></p>
-        </div>
+
+          <p>The following error occurred; please inform the system administrator:</p>
+
+          <c:set var="exception" value="${requestScope['javax.servlet.error.exception']}"/>
+          <pre><% exception.printStackTrace(new java.io.PrintWriter(out)); %></pre>
+
+
         <!-- end maintext --></div>
-      <!-- end maincol -->
+
+      <!-- end maincol --></div>
+
       <jsp:include page="footer.jsp" flush="true"/>
-    </div>
-    <!-- end page --></div>
-  <!--end wrapper -->
+
+    <!-- end main --></div>
+  <!-- end page --></div>
+<!--end wrapper -->
 </body>
 
 
