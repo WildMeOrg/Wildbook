@@ -1414,6 +1414,7 @@ table.tissueSample td {
 }
 
 
+
 div.row-lock {
 	position: absolute;
 	left: -30px;
@@ -1659,6 +1660,18 @@ div.state-approved span.state {
 
 .user-bio-button:hover {
 	background-color: #FFE;
+
+.img-watermark {
+	background-color: rgba(255,255,255,0.3);
+	position: absolute;
+	top: 75px;
+	left: -25px;
+	font-size: 0.85em;
+	width: 110%;
+	text-align: center;
+	padding: 13px;
+	transform: rotate(-21deg);
+	color: rgba(0,0,0,0.9);
 }
 
 

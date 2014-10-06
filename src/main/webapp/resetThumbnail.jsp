@@ -19,7 +19,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration, org.ecocean.Encounter, org.ecocean.Shepherd, java.awt.*, java.io.File" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration, org.ecocean.Encounter, org.ecocean.Shepherd, java.awt.*, java.io.File, org.ecocean.SinglePhotoVideo" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 <%
@@ -59,6 +59,7 @@ context=ServletUtilities.getContext(request);
         <div id="maintext">
           <%
           Shepherd myShepherd = new Shepherd(context);
+					Encounter enc = myShepherd.getEncounter(number);
           try {
         	  
         	  String number = request.getParameter("number").trim();
@@ -86,7 +87,6 @@ context=ServletUtilities.getContext(request);
             else {
               
               myShepherd.beginDBTransaction();
-              Encounter enc = myShepherd.getEncounter(number);
               addText = (String) enc.getAdditionalImageNames().get((imageNum - 1));
               if (myShepherd.isAcceptableVideoFile(addText)) {
                 addText = getServletContext().getRealPath("/")+"/images/video_thumb.jpg";
@@ -94,7 +94,7 @@ context=ServletUtilities.getContext(request);
                 addText = encountersDir.getAbsolutePath()+"/"+ Encounter.subdir(request.getParameter("number")) + "/" + addText;
               }
               myShepherd.rollbackDBTransaction();
-              myShepherd.closeDBTransaction();
+              //myShepherd.closeDBTransaction();
             }
 
             int intWidth = 100;
@@ -104,12 +104,19 @@ context=ServletUtilities.getContext(request);
 
 
             File file2process = new File(addText);
+            String thumbLocation = "file-"+encountersDir.getAbsolutePath()+"/" + Encounter.subdir(number) + "/thumb.jpg";
 
-            
+						//first try the new (optional) background method
+						SinglePhotoVideo spv = null;
+						if ((imageNum > 0) && (enc.getImages() != null)) spv = enc.getImages().get(imageNum - 1);
+						if ((spv != null) && spv.scaleTo(context, thumbnailWidth, thumbnailHeight, thumbLocation)) {
+							System.out.println("attempting to create " + thumbLocation + " in background.");
 
+
+						///// if that fails (not configured, etc) then use existing method:
 
               //ImageInfo iInfo=new ImageInfo();
-              if ((file2process.exists()) && (file2process.length() > 0)) {
+             } else if ((file2process.exists()) && (file2process.length() > 0)) {
                 //iInfo.setInput(new FileInputStream(file2process));
                 String height = "";
                 String width = "";
@@ -142,8 +149,6 @@ context=ServletUtilities.getContext(request);
               }
             
 
-
-            String thumbLocation = "file-"+encountersDir.getAbsolutePath()+"/" + Encounter.subdir(number) + "/thumb.jpg";
 
             //generate the thumbnail image
           %>
