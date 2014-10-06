@@ -275,11 +275,7 @@ int imageCount = 0;
         String thumbPath = thisEncounterDir.getAbsolutePath() + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg";
         String thumbLocation = "file-" + thumbPath;
         String srcurl = images.get(myImage).getFullFileSystemPath();
-        //String thumbLocation = "file-" + images.get(myImage).getFullFileSystemPath();// + File.separator + images.get(myImage).getFilename();
-//System.out.println(">>>>>>>>>>>>>>>>>>>>>> thumbLocation = " + thumbLocation);
-        //File processedImage = new File(thisEncounterDir.getAbsolutePath() + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg");
         File processedImage = new File(thumbPath);
-//System.out.println(">>>>>>>>____________>> processedImage = " + processedImage.getAbsolutePath());
 
 
         int intWidth = 250;
@@ -324,7 +320,14 @@ int imageCount = 0;
 
 
       } else if ((!processedImage.exists()) && (!haveRendered)) {
-        haveRendered = true;
+
+				if (images.get(myImage).scaleTo(context, thumbnailWidth, thumbnailHeight, thumbPath)) {
+					//work forks off in background, so we use this placeholder for now:
+System.out.println("trying to fork/create " + thumbPath);
+      %> <img width="250" height="200" alt="in progress" src="../images/processed.gif" align="left" /> <%
+
+				} else {  //fallback to old dynamic ways:
+        	haveRendered = true;
         //System.out.println("Using DynamicImage to render thumbnail: "+imageEncNum);
         //System.gc();
 //System.out.println("srcurl="+srcurl + " --> thumbLocation=" + thumbLocation);
@@ -345,6 +348,8 @@ int imageCount = 0;
       </di:img>
       <img width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
            src="<%=encUrlDir%>/<%=(images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
+				}
+
       if (request.getParameter("isOwner").equals("true")) {
     %>
     </a>
@@ -362,9 +367,13 @@ int imageCount = 0;
       }
     %> <%
   } else {
-  %> <img id="img<%=images.get(myImage).getDataCollectionEventID()%> " width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
+			String wmDiv = "";
+			String wmText = encprops.getProperty("imgWatermark");
+			if ((wmText != null) && !wmText.equals("")) wmDiv = "<div class=\"img-watermark\">" + wmText + "</div>";
+  %> <div style="position: relative"><img id="img<%=images.get(myImage).getDataCollectionEventID()%> " width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
           src="<%=encUrlDir%>/<%=(images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
-          valign="left"> <%
+          valign="left"><%=wmDiv%> <%
+
 	if (session.getAttribute("logged")!=null) {
 				%></a>
                 <div 

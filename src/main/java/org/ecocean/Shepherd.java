@@ -2564,7 +2564,7 @@ public class Shepherd {
     return count;
   }
 
-  public boolean isAcceptableImageFile(String fileName) {
+  static public boolean isAcceptableImageFile(String fileName) {
     if ((fileName.toLowerCase().indexOf(".jpg") != -1) || (fileName.toLowerCase().indexOf(".gif") != -1) || (fileName.toLowerCase().indexOf(".jpeg") != -1) || (fileName.toLowerCase().indexOf(".jpe") != -1) || (fileName.toLowerCase().indexOf(".bmp") != -1) || (fileName.toLowerCase().indexOf(".png") != -1)) {
       return true;
     }
