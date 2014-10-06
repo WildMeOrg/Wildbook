@@ -113,7 +113,7 @@ public final class BatchUpload extends DispatchServlet {
   /** Path for referencing JSP page for batch task progress. */
   public static final String JSP_PROGRESS = "/appadmin/batchUploadProgress.jsp";
   /** Path for referencing JSP page for error display. */
-  public static final String JSP_ERROR = "/appadmin/batchErrorDisplay.jsp";
+  public static final String JSP_ERROR = "/error_generic.jsp";
   /** Name of batch template files. */
   private static final String[] BTF = {
     "batchIndividuals.csv",
@@ -199,7 +199,7 @@ public final class BatchUpload extends DispatchServlet {
 
   private void handleException(HttpServletRequest req, HttpServletResponse res, Throwable t) throws ServletException, IOException {
     log.warn(t.getMessage(), t);
-    req.setAttribute("thrown", t);
+    req.setAttribute("javax.servlet.jsp.jspException", t);
     getServletContext().getRequestDispatcher(JSP_ERROR).forward(req, res);
   }
 
