@@ -321,7 +321,9 @@ int imageCount = 0;
 
       } else if ((!processedImage.exists()) && (!haveRendered)) {
 
-				if (images.get(myImage).scaleTo(context, thumbnailWidth, thumbnailHeight, thumbPath)) {
+				//thanks to magic of short-circuiting boolean, this will try watermark first then regular if not available
+				if (images.get(myImage).scaleToWatermark(context, thumbnailWidth, thumbnailHeight, thumbPath, "") ||
+						images.get(myImage).scaleTo(context, thumbnailWidth, thumbnailHeight, thumbPath)) {
 					//work forks off in background, so we use this placeholder for now:
 System.out.println("trying to fork/create " + thumbPath);
       %> <img width="250" height="200" alt="in progress" src="../images/processed.gif" align="left" /> <%
