@@ -757,6 +757,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
 			String newnum = "";
 			if (!spamBot) {
 				newnum = myShepherd.storeNewEncounter(enc, encID);
+				enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
 
 				Logger log = LoggerFactory.getLogger(SubmitAction.class);
 				log.info("New encounter submission: <a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");

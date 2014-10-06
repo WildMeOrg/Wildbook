@@ -1439,6 +1439,77 @@ table.tissueSample td {
 	font-size: 0.8em;
 }
 
+
+
+
+div.row-lock {
+	position: absolute;
+	left: -30px;
+	top: 10px;
+	width: 30px;
+	height: 27px;
+}
+
+td.lock-td {
+	position: relative;
+}
+
+div.lock-right {
+	float: right;
+	position: relative;
+}
+
+
+td.lock-td div.row-lock {
+	left: auto !important;
+	right: 4px;
+}
+
+div.row-lock.new {
+	background: url(../images/lock-icon.png) no-repeat;
+	cursor: pointer;
+}
+div.row-lock.pending {
+	background: url(../images/lock-icon-pending.png) no-repeat;
+}
+div.row-lock.blocked {
+	background: url(../images/lock-icon-no.png) no-repeat;
+}
+
+.blockUI.blockOverlay {
+	opacity: 0.65 !important;
+}
+
+table.no-access,
+tr.no-access td {
+	opacity: 0.5;
+}
+
+table.no-access:hover,
+tr.no-access:hover td {
+	opacity: 1.0;
+}
+
+/*
+.no-access img {
+	opacity: 0.5;
+}
+*/
+
+
+.popup {
+	background-color: #FFF;
+	position: fixed;
+	padding: 10px;
+	left: 5%;
+	top: 2%;
+	width: 90%;
+	min-height: 200px;
+	border: solid 2px #888;
+	z-index: 300;
+}
+
+>>>>>>> 20eac93... ImageMajick support 3
 /* generic "notice me!" error text? */
 .error {
 	color: #820;
@@ -1446,6 +1517,30 @@ table.tissueSample td {
 
 
 
+.user-bio-button {
+	border: solid 1px #DDD;
+	border-radius: 3px;
+	background-color: #EEE;
+	padding: 1px 4px 1px 4px;
+	margin: 0 3px 0 3px;
+	cursor: pointer;
+}
+
+.user-bio-button:hover {
+	background-color: #FFE;
+
+.img-watermark {
+	background-color: rgba(255,255,255,0.3);
+	position: absolute;
+	top: 75px;
+	left: -25px;
+	font-size: 0.85em;
+	width: 110%;
+	text-align: center;
+	padding: 13px;
+	transform: rotate(-21deg);
+	color: rgba(0,0,0,0.9);
+}
 
 
 

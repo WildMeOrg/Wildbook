@@ -29,11 +29,16 @@ import java.util.TreeMap;
 import java.util.Vector;
 import java.util.GregorianCalendar;
 import java.io.*;
+
 import org.ecocean.genetics.*;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
+
+import org.ecocean.security.Collaboration;
+import org.ecocean.servlet.ServletUtilities;
+import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -1871,7 +1876,74 @@ public class Encounter implements java.io.Serializable {
         }
         return false;
     }
-    
-    
+
+
+
+	//convenience function to Collaboration permissions
+	public boolean canUserAccess(HttpServletRequest request) {
+		return Collaboration.canUserAccessEncounter(this, request);
+	}
+
+
+	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
+	public String collaborationLockHtml(ArrayList<Collaboration> collabs) {
+		Collaboration c = Collaboration.findCollaborationWithUser(this.getAssignedUsername(), collabs);
+		String collabClass = "pending";
+		if ((c == null) || (c.getState() == null)) {
+			collabClass = "new";
+		} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
+			collabClass = "blocked";
+		}
+		return "<div class=\"row-lock " + collabClass + " collaboration-button\" data-collabowner=\"" + this.getAssignedUsername() + "\" data-collabownername=\"" + this.getSubmitterName() + "\">&nbsp;</div>";
+	}
+
+
+	//pass in a Vector of Encounters, get out a list that the user can NOT see
+	public static Vector blocked(Vector encs, HttpServletRequest request) {
+		Vector blk = new Vector();
+		for (int i = 0; i < encs.size() ; i++) {
+			Encounter e = (Encounter) encs.get(i);
+			if (!e.canUserAccess(request)) blk.add(e);
+		}
+		return blk;
+	}
+
+
+/*
+in short, this rebuilds (or builds for the first time) ALL *derived* images (etc?) for this encounter.
+it is a baby step into the future of MediaAssets that hopefully will provide a smooth(er) transition to that.
+right now its primary purpose is to create derived formats upon encounter creation; but that is obviously subject to change.
+it should be considered an asyncronous action that happens in the background magickally
+*/
+/////other possiblity: only pass basedir??? do we need context if we do that?
+
+/*
+NOTE on "thumb.jpg" ... we only get one of these per encounter; and we do not have stored (i dont think?) which SPV it came from!
+this is a problem, as we cant make a thumb in refreshAssetFormats(req, spv) since we dont know if that is the "right" spv.
+thus, we have to treat it as a special case.
+*/
+		public boolean refreshAssetFormats(String context, String baseDir) {
+			boolean ok = true;
+			//List<SinglePhotoVideo> allSPV = this.getImages();
+			boolean thumb = true;
+			for (SinglePhotoVideo spv : this.getImages()) {
+				ok &= this.refreshAssetFormats(context, baseDir, spv, thumb);
+				thumb = false;
+			}
+			return ok;
+		}
+
+		//as above, but for specific SinglePhotoVideo
+		public boolean refreshAssetFormats(String context, String baseDir, SinglePhotoVideo spv, boolean doThumb) {
+			if (spv == null) return false;
+			String encDir = this.dir(baseDir);
+
+			boolean ok = true;
+			if (doThumb) ok &= spv.scaleTo(context, 100, 75, encDir + File.separator + "thumb.jpg");
+			//TODO some day this will be a structure/definition that lives in a config file or on MediaAsset, etc.  for now, ya get hard-coded
+			ok &= spv.scaleTo(context, 250, 200, encDir + File.separator + spv.getDataCollectionEventID() + ".jpg");  //to-be-watermarked size
+			ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataCollectionEventID() + "-mid.jpg");  //for use in VM tool etc. (bandwidth friendly?)
+			return ok;
+		}
 }
 

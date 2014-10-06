@@ -48,51 +48,40 @@ public final class ImageProcessor implements Runnable {
   private Throwable thrown;
   
   private String context = "context0";
-	private String imageResizeCommand = null;
+	private String command = null;
 	private String imageSourcePath = null;
 	private String imageTargetPath = null;
+	private String action = null;
+	private String arg = null;
 	private int width = 0;
 	private int height = 0;
 
 
-  public ImageProcessor(String context, int width, int height, String imageSourcePath, String imageTargetPath) {
+  public ImageProcessor(String context, String action, int width, int height, String imageSourcePath, String imageTargetPath, String arg) {
 		this.context = context;
+		this.action = action;
 		this.width = width;
 		this.height = height;
 		this.imageSourcePath = imageSourcePath;
 		this.imageTargetPath = imageTargetPath;
-		this.imageResizeCommand = CommonConfiguration.getProperty("imageResizeCommand", this.context);
-System.out.println("in ImageProcessor(), cmd =" + this.imageResizeCommand);
-
-	}
-
-
-	public String ximThumb() {
-		String error = null;
-		try {
-			ProcessBuilder pb = new ProcessBuilder("/usr/bin/convert", "-scale", "200x200", "/tmp/test-in.jpg", "/tmp/test-out.jpg");
-			pb.redirectErrorStream();
-
-			Process process = pb.start();
-			int returnCode = process.waitFor();
-		} catch (IOException lEx) {
-			lEx.printStackTrace();
-			error = "Unable to process image";
-		} catch (InterruptedException ex) {
-			ex.printStackTrace();
-			error = "Image processing interrupted";
+		this.arg = arg;
+		if ((action != null) && action.equals("watermark")) {
+			this.command = CommonConfiguration.getProperty("imageWatermarkCommand", this.context);
+		} else {
+			this.command = CommonConfiguration.getProperty("imageResizeCommand", this.context);
 		}
-		return error;
+System.out.println("in ImageProcessor(), cmd =" + this.command);
+
 	}
+
 
 	public void run() {
     status = Status.INIT;
 
-		if (isBlank(this.imageResizeCommand) || isBlank(this.imageSourcePath) || isBlank(this.imageTargetPath)) return;
+		if (isBlank(this.command) || isBlank(this.imageSourcePath) || isBlank(this.imageTargetPath)) return;
 
-		String fullCommand = this.imageResizeCommand.replaceFirst("%width", Integer.toString(this.width)).replaceFirst("%height", Integer.toString(this.height)).replaceFirst("%imagesource", this.imageSourcePath).replaceFirst("%imagetarget", this.imageTargetPath);
+		String fullCommand = this.command.replaceAll("%width", Integer.toString(this.width)).replaceAll("%height", Integer.toString(this.height)).replaceAll("%imagesource", this.imageSourcePath).replaceAll("%imagetarget", this.imageTargetPath).replaceAll("%arg", this.arg);
 System.out.println("start run(): " + fullCommand);
-//~jon/npm_process -contr_thr 0.02 -sigma 1.2 /opt/tomcat7/webapps/cascadia_data_dir/encounterxs 0 0 4 1 2
 		String[] command = fullCommand.split("\\s+");
 
 System.out.println("done run()");
@@ -123,6 +112,7 @@ System.out.println("DONE?????");
 
 System.out.println("RETURN");
 	}
+
 
 	private boolean isBlank(String s) {
 		return ((s == null) || s.equals(""));
