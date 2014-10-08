@@ -192,12 +192,16 @@ public final class MediaUtilities {
    */
   public static List<File> listWebImageFiles(File dir, String baseName) {
     RegexFilenameFilter ff = WebImageFilenameFilter.instance();
-    List<File> list = new LinkedList<>(Arrays.asList(dir.listFiles(ff)));
-    for (ListIterator<File> it = list.listIterator(); it.hasNext();) {
-      File f = it.next();
-      String s = f.getName();
-      if (!s.substring(0, s.lastIndexOf(".")).equals(baseName))
-        it.remove();
+    List<File> list = new LinkedList<>();
+    File[] fileList = dir.listFiles(ff);
+    if (fileList != null) {
+      list.addAll(Arrays.asList(fileList));
+      for (ListIterator<File> it = list.listIterator(); it.hasNext();) {
+        File f = it.next();
+        String s = f.getName();
+        if (!s.substring(0, s.lastIndexOf(".")).equals(baseName))
+          it.remove();
+      }
     }
     return list;
   }
