@@ -27,9 +27,9 @@ import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -254,8 +254,8 @@ public final class MantaMatcher extends DispatchServlet {
     // Format string for encounter page URL (with placeholder).
     String pageUrlFormatEnc = "//" + CommonConfiguration.getURLLocation(req) + "/encounters/encounter.jsp?number=%s";
 
-    Map<File, String> files = new HashMap<>();
-    Map<File, String> failed = new HashMap<>();
+    Map<File, String> files = new TreeMap<>();
+    Map<File, String> failed = new TreeMap<>();
 
     try {
       // Perform MMA-compatible flag updates.
@@ -263,17 +263,28 @@ public final class MantaMatcher extends DispatchServlet {
       for (Iterator iter = shepherd.getAllEncounters(); iter.hasNext();) {
         Encounter enc = (Encounter)iter.next();
         File dir = new File(enc.dir(dataDir.getAbsolutePath()));
+        if (dir == null || !dir.exists())
+          continue;
 
         // Collate files to be checked.
         RegexFilenameFilter ff1 = new RegexFilenameFilter("^.+_(CR|EH|FT)\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES);
         RegexFilenameFilter ff2 = new RegexFilenameFilter("^.+\\.FEAT$");
         RegexFilenameFilter ff3 = new RegexFilenameFilter("^.+_mma(In|Out)put(Regional)?\\.(txt|csv)$");
-        for (File f : Arrays.asList(dir.listFiles(ff1)))
-          files.put(f, enc.getCatalogNumber());
-        for (File f : Arrays.asList(dir.listFiles(ff2)))
-          files.put(f, enc.getCatalogNumber());
-        for (File f : Arrays.asList(dir.listFiles(ff3)))
-          files.put(f, enc.getCatalogNumber());
+        File[] fileList = dir.listFiles(ff1);
+        if (fileList != null) {
+          for (File f : Arrays.asList(fileList))
+            files.put(f, enc.getCatalogNumber());
+        }
+        fileList = dir.listFiles(ff2);
+        if (fileList != null) {
+          for (File f : Arrays.asList(fileList))
+            files.put(f, enc.getCatalogNumber());
+        }
+        fileList = dir.listFiles(ff3);
+        if (fileList != null) {
+          for (File f : Arrays.asList(fileList))
+            files.put(f, enc.getCatalogNumber());
+        }
 
         // Remove matcher files relating to existing SPVs.
         for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
