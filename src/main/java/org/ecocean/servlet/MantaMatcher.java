@@ -196,7 +196,7 @@ public final class MantaMatcher extends DispatchServlet {
       shepherd.beginDBTransaction();
       for (Iterator iter = shepherd.getAllEncounters(); iter.hasNext();) {
         Encounter enc = (Encounter)iter.next();
-        boolean hasCR = hasCR(enc, dataDir);
+        boolean hasCR = MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, dataDir);
         boolean encCR = enc.getMmaCompatible();
         if ((hasCR && encCR) || (!hasCR && !encCR)) {
           ok++;
@@ -238,29 +238,5 @@ public final class MantaMatcher extends DispatchServlet {
       shepherd.closeDBTransaction();
       handleException(req, res, ex);
     }
-  }
-
-  /**
-   * Returns whether an encounter has any MMA-compatible &quot;candidate region&quot;
-   * images (which may be used to determine MMA-compatibility status).
-   * @param enc encounter to test
-   * @param dataDir data folder
-   * @return true if any CR images are found, false otherwise
-   */
-  private boolean hasCR(Encounter enc, File dataDir) {
-    // This implementation checks all SPVs for a file with the same filename
-    // but with "_CR" suffix, implying the CR file must have the same extension.
-    for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
-      String s = spv.getFile().getName();
-      int pos = s.lastIndexOf(".");
-
-      File encDir = new File(enc.dir(dataDir.getAbsolutePath()));
-      String crName = s.substring(0, pos) + "_CR" + s.substring(pos);
-      File crFile = new File(encDir, crName);
-      if (crFile.exists()) {
-        return true;
-      }
-    }
-    return false;
   }
 }
