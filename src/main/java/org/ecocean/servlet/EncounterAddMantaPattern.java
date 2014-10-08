@@ -111,31 +111,10 @@ public class EncounterAddMantaPattern extends HttpServlet {
         try {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
           spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
-          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
-          File mmCR = mmFiles.get("CR");
-          if (mmCR.exists()) {
-            if (mmCR.exists() && !mmCR.getName().equals(spv.getFilename()))
-              mmCR.delete();
-            mmFiles.get("EH").delete();
-            mmFiles.get("FT").delete();
-            mmFiles.get("FEAT").delete();
-            mmFiles.get("TXT").delete();
-            mmFiles.get("CSV").delete();
-            mmFiles.get("TXT-REGIONAL").delete();
-            mmFiles.get("CSV-REGIONAL").delete();
-          }
-          mmFiles = null;
+          MantaMatcherUtilities.removeMatcherFiles(spv);
 
-          // Check for any remaining CR images, and if none, clear MMA-compatible flag.
-          boolean hasCR = false;
-          for (SinglePhotoVideo mySPV : enc.getSinglePhotoVideo()) {
-            if (MediaUtilities.isAcceptableImageFile(mySPV.getFile())) {
-              Map<String, File> mmaFiles = MantaMatcherUtilities.getMatcherFilesMap(mySPV);
-              hasCR = hasCR & mmaFiles.get("CR").exists();
-              if (hasCR)
-                break;
-            }
-          }
+          // Clear MMA-compatible flag if appropriate for encounter.
+          boolean hasCR = MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir);
           if (!hasCR) {
             enc.setMmaCompatible(false);
             myShepherd.commitDBTransaction();
@@ -329,14 +308,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             try {
               // Attempt to delete existing MM algorithm files.
               // (Shouldn't exist, but just a precaution.)
-              mmFiles.get("CR").delete();
-              mmFiles.get("EH").delete();
-              mmFiles.get("FT").delete();
-              mmFiles.get("FEAT").delete();
-              mmFiles.get("TXT").delete();
-              mmFiles.get("CSV").delete();
-              mmFiles.get("TXT-REGIONAL").delete();
-              mmFiles.get("CSV-REGIONAL").delete();
+              MantaMatcherUtilities.removeMatcherFiles(spv);
             }
             catch (SecurityException sx) {
               sx.printStackTrace();
@@ -378,6 +350,17 @@ public class EncounterAddMantaPattern extends HttpServlet {
               resultComment.append(iox.getStackTrace().toString());
             } 
             process.waitFor();
+
+            
+            // Set MMA-compatible flag if appropriate.
+            String encID = request.getParameter("encounterID");
+            Encounter enc = null;
+            if (encID != null)
+              enc = myShepherd.getEncounter(encID);
+            if (enc != null && MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir)) {
+              enc.setMmaCompatible(true);
+              myShepherd.commitDBTransaction();
+            }
           }
         }
       }
@@ -418,14 +401,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             try {
               // Attempt to delete existing MM algorithm files.
               // (Shouldn't exist, but just a precaution.)
-              mmFiles.get("CR").delete();
-              mmFiles.get("EH").delete();
-              mmFiles.get("FT").delete();
-              mmFiles.get("FEAT").delete();
-              mmFiles.get("TXT").delete();
-              mmFiles.get("CSV").delete();
-              mmFiles.get("TXT-REGIONAL").delete();
-              mmFiles.get("CSV-REGIONAL").delete();
+              MantaMatcherUtilities.removeMatcherFiles(spv);
             }
             catch (SecurityException sx) {
               sx.printStackTrace();
@@ -486,8 +462,6 @@ public class EncounterAddMantaPattern extends HttpServlet {
                 //newImage.createGraphics().drawImage( pngImage, 0, 0, Color.BLACK, null);
                 
                 //System.out.println(crFile.toString() + " written");
-                enc.setMmaCompatible(true);
-                myShepherd.commitDBTransaction();
             
             
                 resultComment.append("Successfully saved the new feature image: "+write2me.getAbsolutePath()+"<br />");
@@ -520,6 +494,13 @@ public class EncounterAddMantaPattern extends HttpServlet {
                     resultComment.append(iox.getStackTrace().toString());
                 } 
                 process.waitFor();
+
+                // Set MMA-compatible flag if appropriate.
+                if (enc != null && MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir)) {
+                  enc.setMmaCompatible(true);
+                  myShepherd.commitDBTransaction();
+                }
+
          // }
         // }
       //}
