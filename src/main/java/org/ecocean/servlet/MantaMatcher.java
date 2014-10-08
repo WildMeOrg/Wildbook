@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -35,6 +37,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.*;
 import org.ecocean.mmutil.MantaMatcherUtilities;
+import org.ecocean.mmutil.MediaUtilities;
+import org.ecocean.mmutil.RegexFilenameFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +61,7 @@ public final class MantaMatcher extends DispatchServlet {
     super.init();
     try {
       registerMethodGET("displayResults", "displayResultsRegional");
-      registerMethodPOST("resetMmaCompatible");
+      registerMethodPOST("resetMmaCompatible", "deleteAllOrphanMatcherFiles");
     }
     catch (DelegateNotFoundException ex) {
       throw new ServletException(ex);
@@ -232,6 +236,94 @@ public final class MantaMatcher extends DispatchServlet {
 
       out.flush();
       out.close();
+
+    } catch (Exception ex) {
+      shepherd.rollbackDBTransaction();
+      shepherd.closeDBTransaction();
+      handleException(req, res, ex);
+    }
+  }
+
+  // Admin utility method to scan encounters & their data folders for
+  // orphaned files relating to the MantaMatcher algorithm, and delete them.
+  public void deleteAllOrphanMatcherFiles(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    String context="context0";
+    context = ServletUtilities.getContext(req);
+    Shepherd shepherd = new Shepherd(context);
+    File dataDir = new File(ServletUtilities.dataDir(context, getServletContext().getRealPath("/")));
+    // Format string for encounter page URL (with placeholder).
+    String pageUrlFormatEnc = "//" + CommonConfiguration.getURLLocation(req) + "/encounters/encounter.jsp?number=%s";
+
+    Map<File, String> files = new HashMap<>();
+    Map<File, String> failed = new HashMap<>();
+
+    try {
+      // Perform MMA-compatible flag updates.
+      shepherd.beginDBTransaction();
+      for (Iterator iter = shepherd.getAllEncounters(); iter.hasNext();) {
+        Encounter enc = (Encounter)iter.next();
+        File dir = new File(enc.dir(dataDir.getAbsolutePath()));
+
+        // Collate files to be checked.
+        RegexFilenameFilter ff1 = new RegexFilenameFilter("^.+_(CR|EH|FT)\\." + MediaUtilities.REGEX_SUFFIX_FOR_WEB_IMAGES);
+        RegexFilenameFilter ff2 = new RegexFilenameFilter("^.+\\.FEAT$");
+        RegexFilenameFilter ff3 = new RegexFilenameFilter("^.+_mma(In|Out)put(Regional)?\\.(txt|csv)$");
+        for (File f : Arrays.asList(dir.listFiles(ff1)))
+          files.put(f, enc.getCatalogNumber());
+        for (File f : Arrays.asList(dir.listFiles(ff2)))
+          files.put(f, enc.getCatalogNumber());
+        for (File f : Arrays.asList(dir.listFiles(ff3)))
+          files.put(f, enc.getCatalogNumber());
+
+        // Remove matcher files relating to existing SPVs.
+        for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
+          if (!MediaUtilities.isAcceptableImageFile(spv.getFile())) {
+            continue;
+          }
+          Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+          File cr = mmFiles.get("CR");
+          if (cr.exists()) {
+            for (File f : mmFiles.values())
+              files.remove(f);
+          }
+        }
+
+        // Delete orphan files.
+        for (Map.Entry<File, String> me : files.entrySet()) {
+          if (me.getKey().exists() && !me.getKey().delete()) {
+            failed.put(me.getKey(), me.getValue());
+          }
+        }
+      }
+
+      // Write output to response.
+      res.setCharacterEncoding("UTF-8");
+      res.setContentType("text/html; charset=UTF-8");
+      try (PrintWriter out = res.getWriter()) {
+        out.println(ServletUtilities.getHeader(req));
+
+        if (!failed.isEmpty()) {
+          out.println(String.format("<strong>Failure!</strong> I failed to delete all orphan MantaMatcher algorithm files (%2$d of %1$d couldn't be deleted).", files.size(), failed.size()));
+        } else {
+          out.println(String.format("<strong>Success!</strong> I have successfully deleted all orphan MantaMatcher algorithm files (%d were found).", files.size()));
+        }
+
+        out.println("<ul class=\"adminToolDetailList\">");
+        for (Map.Entry<File, String> me : files.entrySet()) {
+          File f = me.getKey();
+          String encNum = me.getValue();
+          String url = String.format(pageUrlFormatEnc, encNum);
+          if (failed.containsKey(me.getKey())) {
+            out.println(String.format("<li>Failed to delete file: %s (<a href=\"%s\">%s</a>)</li>", f.getName(), url, encNum));
+          } else {
+            out.println(String.format("<li>Successfully deleted file: %s (<a href=\"%s\">%s</a>)</li>", f.getName(), url, encNum));
+          }
+        }
+        out.println("</ul>");
+
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(req) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+      }
 
     } catch (Exception ex) {
       shepherd.rollbackDBTransaction();

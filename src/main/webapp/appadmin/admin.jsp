@@ -215,6 +215,24 @@ context=ServletUtilities.getContext(request);
           </td>
         </tr>
       </table>
+      <p>&nbsp;</p>
+      <table width="600" border="1">
+        <tr>
+          <td>
+            <p><font size="+1">Scan &amp; delete orphan MMA files for all encounters</font></p>
+
+            <p>This scans all encounters for any MantaMatcher algorithm related
+            files which are no longer in use, and deletes them from the
+            encounter data folder.
+            It is a housekeeping tool to help prevent the algorithm matching
+            against old and unused image files.</p>
+
+            <form name="deleteAllOrphanMatcherFiles" method="post" action="../MantaMatcher/deleteAllOrphanMatcherFiles">
+                <input name="Update" type="submit" id="Update" value="Update">
+            </form>
+          </td>
+        </tr>
+      </table>
 
       <p>&nbsp;</p>
       <table width="600" border="1">
