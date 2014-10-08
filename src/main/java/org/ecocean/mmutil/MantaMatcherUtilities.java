@@ -173,6 +173,25 @@ public final class MantaMatcherUtilities {
     return false;
   }
 
+  /**
+   * Removes all MantaMatcher algorithm files relating to the specified
+   * base image file.
+   * @param spv {@code SinglePhotoVideo} instance denoting base reference image
+   */
+  public static void removeMatcherFiles(SinglePhotoVideo spv) {
+    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+    mmFiles.get("CR").delete();
+    mmFiles.get("EH").delete();
+    mmFiles.get("FT").delete();
+    mmFiles.get("FEAT").delete();
+    mmFiles.get("TXT").delete();
+    mmFiles.get("CSV").delete();
+    mmFiles.get("TXT-REGIONAL").delete();
+    mmFiles.get("CSV-REGIONAL").delete();
+    mmFiles.get("MMA-INPUT").delete();
+    mmFiles.get("MMA-INPUT-REGIONAL").delete();
+  }
+
 	/**
    * Creates a FreeMarker template configuration instance.
    * @param dir folder in which templates are located

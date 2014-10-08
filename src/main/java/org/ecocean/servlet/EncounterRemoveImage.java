@@ -30,8 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.Vector;
+import org.ecocean.mmutil.MantaMatcherUtilities;
 
 //import com.poet.jdo.*;
 
@@ -115,6 +114,7 @@ public class EncounterRemoveImage extends HttpServlet {
           }
           */
 
+          MantaMatcherUtilities.removeMatcherFiles(sid);
           //enc.removeAdditionalImageName(fileName);
           enc.removeSinglePhotoVideo(sid);
           enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter image graphic: " + fileName + ".</p>");
@@ -164,6 +164,7 @@ public class EncounterRemoveImage extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to remove your image file. For data protection, you must first remove the encounter from the marked individual it is assigned to.");
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
     } else {
