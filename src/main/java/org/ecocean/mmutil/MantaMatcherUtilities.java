@@ -142,8 +142,9 @@ public final class MantaMatcherUtilities {
   }
 
   /**
-   * Checks whether the MantaMatcher algorithm files exist for the specified
-   * base file (only checks the files required for running {@code mmatch}).
+   * Checks whether the pre-processed MantaMatcher algorithm files exist for
+   * the specified base image file (only checks the files required for running
+   * {@code mmatch}).
    * @param f base image file from which to reference other algorithm files
    * @return true if all MantaMatcher files exist (O/CR/EH/FT/FEAT), false otherwise
    */
@@ -154,6 +155,22 @@ public final class MantaMatcherUtilities {
             mmFiles.get("EH").exists() &&
             mmFiles.get("FT").exists() &&
             mmFiles.get("FEAT").exists();
+  }
+
+  /**
+   * Checks whether the pre-processed MantaMatcher algorithm files exist for
+   * an encounter (which may be used to determine MMA-compatibility status).
+   * @param enc encounter to test
+   * @param dataDir data folder
+   * @return true if any CR images are found, false otherwise
+   */
+  public static boolean checkEncounterHasMatcherFiles(Encounter enc, File dataDir) {
+    for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
+      if (checkMatcherFilesExist(spv.getFile())) {
+        return true;
+      }
+    }
+    return false;
   }
 
 	/**
