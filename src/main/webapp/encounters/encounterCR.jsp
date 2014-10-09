@@ -369,8 +369,8 @@ margin-bottom: 8px !important;
 						if (match == null) match = spvs.get(0);
 
 						if (enc.getMmaCompatible()) {
-							File tryCR = new File(match.getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.jpg"));
-							if (tryCR.exists()) crExistsUrl = match.getFilename().replaceFirst(".([^.]+)$", "_CR.jpg");
+							File tryCR = new File(match.getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.$1"));
+							if (tryCR.exists()) crExistsUrl = match.getFilename().replaceFirst(".([^.]+)$", "_CR.$1");
 						}
 
 						String imgUrl = "";

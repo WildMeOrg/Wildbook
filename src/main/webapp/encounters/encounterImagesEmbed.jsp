@@ -530,10 +530,9 @@ System.out.println("trying to fork/create " + thumbPath);
 
 <%
 	if (request.getParameter("isOwner").equals("true") && CommonConfiguration.isCatalogEditable(context)) {
-		File tryCR = new File(images.get(myImage).getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.jpg"));
-///System.out.println(tryCR.toString());
+		File tryCR = new File(images.get(myImage).getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.$1"));
 		if (tryCR.exists()) {
-			String crimg = addTextFile.replaceFirst(".([^.]+)$", "_CR.jpg");
+			String crimg = addTextFile.replaceFirst(".([^.]+)$", "_CR.$1");
 %><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>"><img src="<%=encUrlDir%>/<%=crimg%>" /></a><div class="note">Candidate Region</div></div><%
 		} else {
 %><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>" class="cr-button">[<%=encprops.getProperty("crButton")%>]</a></div><%
