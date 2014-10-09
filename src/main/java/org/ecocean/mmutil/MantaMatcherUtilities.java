@@ -142,8 +142,9 @@ public final class MantaMatcherUtilities {
   }
 
   /**
-   * Checks whether the MantaMatcher algorithm files exist for the specified
-   * base file (only checks the files required for running {@code mmatch}).
+   * Checks whether the pre-processed MantaMatcher algorithm files exist for
+   * the specified base image file (only checks the files required for running
+   * {@code mmatch}).
    * @param f base image file from which to reference other algorithm files
    * @return true if all MantaMatcher files exist (O/CR/EH/FT/FEAT), false otherwise
    */
@@ -154,6 +155,41 @@ public final class MantaMatcherUtilities {
             mmFiles.get("EH").exists() &&
             mmFiles.get("FT").exists() &&
             mmFiles.get("FEAT").exists();
+  }
+
+  /**
+   * Checks whether the pre-processed MantaMatcher algorithm files exist for
+   * an encounter (which may be used to determine MMA-compatibility status).
+   * @param enc encounter to test
+   * @param dataDir data folder
+   * @return true if any CR images are found, false otherwise
+   */
+  public static boolean checkEncounterHasMatcherFiles(Encounter enc, File dataDir) {
+    for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
+      if (checkMatcherFilesExist(spv.getFile())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Removes all MantaMatcher algorithm files relating to the specified
+   * base image file.
+   * @param spv {@code SinglePhotoVideo} instance denoting base reference image
+   */
+  public static void removeMatcherFiles(SinglePhotoVideo spv) {
+    Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+    mmFiles.get("CR").delete();
+    mmFiles.get("EH").delete();
+    mmFiles.get("FT").delete();
+    mmFiles.get("FEAT").delete();
+    mmFiles.get("TXT").delete();
+    mmFiles.get("CSV").delete();
+    mmFiles.get("TXT-REGIONAL").delete();
+    mmFiles.get("CSV-REGIONAL").delete();
+    mmFiles.get("MMA-INPUT").delete();
+    mmFiles.get("MMA-INPUT-REGIONAL").delete();
   }
 
 	/**
