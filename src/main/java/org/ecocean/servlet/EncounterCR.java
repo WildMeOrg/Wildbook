@@ -38,6 +38,15 @@ import java.nio.file.Paths;
 
 import javax.xml.bind.DatatypeConverter;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+//import javax.imageio.spi.ImageReaderWriterSpi;
+
 import com.google.gson.Gson;
 
 
@@ -104,17 +113,45 @@ public class EncounterCR extends HttpServlet {
 					errorMessage = "source image does not exist";
 
 				} else {
+					/* we must (with current version of matching algorithm) have _CR file same image type as original. */
 					int dot = matchFilename.lastIndexOf('.');
-					String crFilename = matchFilename.substring(0, dot) + "_CR.png";
+					String extension = matchFilename.substring(dot+1, matchFilename.length());  //TODO get actual format from file magic instead?
+					String crFilename = matchFilename.substring(0, dot) + "_CR." + extension;
 					File crFile = new File(encounterDir, crFilename);
-//System.out.println(sourceImg.toString() + " --> " + crFilename);
-					Files.write(crFile.toPath(), rawPng);
-//System.out.println(crFile.toString() + " written");
-					enc.setMmaCompatible(true);
-					myShepherd.storeNewEncounter(enc, encID);
-					String procError = mmprocess(enc, crFile);
+
+System.out.println(sourceImg.toString() + " --> " + crFilename);
+					if (extension.equalsIgnoreCase("png")) {  //easypeasy
+						Files.write(crFile.toPath(), rawPng);
+
+					} else {  //must convert rawPng to desired format
+System.out.println("ext = " + extension);
+						try {
+System.out.println("starting?");
+							ByteArrayInputStream bis = new ByteArrayInputStream(rawPng);
+							Iterator<?> readers = ImageIO.getImageReadersByFormatName("png");
+							ImageReader reader = (ImageReader) readers.next();
+							Object source = bis; 
+							ImageInputStream iis = ImageIO.createImageInputStream(source); 
+							reader.setInput(iis, true);
+							ImageReadParam param = reader.getDefaultReadParam();
+							Image image = reader.read(0, param);
+							BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
+							ImageIO.write(bufferedImage, extension, crFile);
+System.out.println("done?");
+						} catch (Exception e) {
+							errorMessage = "unable to convert to image format " + extension + ": " + e.toString();
+						}
+					}
+
+					if (errorMessage == null) {
+System.out.println(crFile.toString() + " written");
+						enc.setMmaCompatible(true);
+						myShepherd.storeNewEncounter(enc, encID);
+						String procError = mmprocess(enc, crFile);
 //System.out.println("procError = " + procError);
-					if (procError != null) errorMessage = procError;
+						if (procError != null) errorMessage = procError;
+					}
+
 				}
 			}
 		}
