@@ -22,7 +22,6 @@ import com.drew.metadata.Tag;
 import java.util.Iterator;
 import org.apache.commons.io.IOUtils;
 
-
 //import javax.jdo.JDOException;
 //import javax.jdo.JDOHelper;
 import javax.jdo.Query;

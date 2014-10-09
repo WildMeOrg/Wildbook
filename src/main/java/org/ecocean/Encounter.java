@@ -1878,7 +1878,6 @@ public class Encounter implements java.io.Serializable {
     }
 
 
-
 	//convenience function to Collaboration permissions
 	public boolean canUserAccess(HttpServletRequest request) {
 		return Collaboration.canUserAccessEncounter(this, request);
