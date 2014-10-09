@@ -869,11 +869,6 @@
   </servlet>
 
   <servlet>
-    <servlet-name>EncounterCR</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterCR</servlet-class>
-  </servlet>
-
-  <servlet>
     <servlet-name>SinglePhotoVideoAddKeyword</servlet-name>
     <servlet-class>org.ecocean.servlet.SinglePhotoVideoAddKeyword</servlet-class>
   </servlet>
@@ -1460,12 +1455,6 @@
     <servlet-name>EncounterVMData</servlet-name>
     <url-pattern>/EncounterVMData</url-pattern>
   </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>EncounterCR</servlet-name>
-    <url-pattern>/EncounterCR</url-pattern>
-  </servlet-mapping>
-
 
   <servlet-mapping>
     <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
