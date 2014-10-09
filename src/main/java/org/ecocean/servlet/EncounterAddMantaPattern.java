@@ -447,20 +447,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
 							useReader = (ImageReader) readers.next();
     					crImageFormat = useReader.getFormatName();  // JPEG, PNG(?)
 						}
-/*
-							ImageReader reader = (ImageReader) readers.next();
-							reader.setInput(iis, true);
-							ImageReadParam param = reader.getDefaultReadParam();
-							Image image = reader.read(0, param);
-							BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
-							ImageIO.write(bufferedImage, extension, crFile);
-*/
-              //String rootWebappPath = getServletContext().getRealPath("/");
-              //String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
-              //File webappsDir = new File(rootWebappPath).getParentFile();
-              //File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
-             
-              
+
 						String encID = request.getParameter("encounterID");
 						myShepherd.beginDBTransaction();
 
@@ -503,15 +490,6 @@ System.out.println("looks like cr format and target format are the same! -> " + 
                 Files.write(write2me.toPath(), rawPng);
 							}
                 
-                //now write out the JPEG
-                //SeekableStream s = new FileSeekableStream(crFile);
-                //PNGDecodeParam pngParams = new PNGDecodeParam();
-                //ImageDecoder dec = ImageCodec.createImageDecoder("png", s, pngParams);
-                //RenderedImage pngImage = dec.decodeAsRenderedImage();
-                //BufferedImage newImage = new BufferedImage( pngImage.getWidth(), pngImage.getHeight(), BufferedImage.TYPE_INT_RGB);
-                //newImage.createGraphics().drawImage( pngImage, 0, 0, Color.BLACK, null);
-                
-                //System.out.println(crFile.toString() + " written");
 						}
 
 						}
