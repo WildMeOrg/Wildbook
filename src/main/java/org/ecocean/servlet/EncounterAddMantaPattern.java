@@ -38,6 +38,15 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+//import javax.imageio.spi.ImageReaderWriterSpi;
+
 import org.ecocean.servlet.*;
 
 
@@ -388,94 +397,111 @@ public class EncounterAddMantaPattern extends HttpServlet {
       
       else if (action.equals("imageadd2")) {
         
-        //MultipartParser mp = new MultipartParser(request, CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576);
-        //Part part = null;
-        //while ((part = mp.readNextPart()) != null) {
-         // String name = part.getName();
-         // if (part.isParam()) {
-            //ParamPart paramPart = (ParamPart)part;
-            //String value = paramPart.getStringValue();
+				encounterNumber = request.getParameter("encounterID");
+				spv = myShepherd.getSinglePhotoVideo(request.getParameter("photoNumber"));
+				mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+				String matchFilename = request.getParameter("matchFilename");
+				String errorMessage = null;
 
-            // Determine encounter to which to assign new CR image.
-            //if (request.getParameter("encounterID")!=null) {
-              encounterNumber = request.getParameter("encounterID");
-            //} 
-            // Determine existing image to which to assign new CR image.
-            //if (request.getParameter("photoNumber")!=null){
-              spv = myShepherd.getSinglePhotoVideo(request.getParameter("photoNumber"));
-              mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
-            //}
-            
-            String matchFilename = request.getParameter("matchFilename");
-          // }
+				assert mmFiles != null;
+          try {
+            // Attempt to delete existing MM algorithm files.
+            // (Shouldn't exist, but just a precaution.)
+            mmFiles.get("CR").delete();
+            mmFiles.get("EH").delete();
+            mmFiles.get("FT").delete();
+            mmFiles.get("FEAT").delete();
+            mmFiles.get("TXT").delete();
+            mmFiles.get("CSV").delete();
+            mmFiles.get("TXT-REGIONAL").delete();
+            mmFiles.get("CSV-REGIONAL").delete();
+          }
+          catch (SecurityException sx) {
+            sx.printStackTrace();
+            System.out.println("Error attempting to delete the old version of a submitted manta data image!!!!");
+            resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
+            locked=true;
+           }
 
-          // Check for FilePart is done after other Part types.
-          // NOTE: "number" and "photoNumber" must come first in JSP form
-          // to ensure correct association with encounter/photo.
-          //if (part.isFile()) {
-            //FilePart filePart = (FilePart)part;
-            assert mmFiles != null;
-            try {
-              // Attempt to delete existing MM algorithm files.
-              // (Shouldn't exist, but just a precaution.)
-              mmFiles.get("CR").delete();
-              mmFiles.get("EH").delete();
-              mmFiles.get("FT").delete();
-              mmFiles.get("FEAT").delete();
-              mmFiles.get("TXT").delete();
-              mmFiles.get("CSV").delete();
-              mmFiles.get("TXT-REGIONAL").delete();
-              mmFiles.get("CSV-REGIONAL").delete();
-            }
-            catch (SecurityException sx) {
-              sx.printStackTrace();
-              System.out.println("Error attempting to delete the old version of a submitted manta data image!!!!");
-              resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
-              locked=true;
-            }
+					String pngData = request.getParameter("pngData");
 
-            String pngData = request.getParameter("pngData");
-            
-            // Save new image to file ready for processing.
-            //File write2me = mmFiles.get("CR");
-            //filePart.writeTo(write2me);
-            
-            byte[] rawPng = null;
-            try {
-              rawPng = DatatypeConverter.parseBase64Binary(pngData);
-            } catch (IllegalArgumentException ex) {
-              //errorMessage = "could not parse image data";
-            }
+					byte[] rawPng = null;
+					try {
+						rawPng = DatatypeConverter.parseBase64Binary(pngData);
+					} catch (IllegalArgumentException ex) {
+						errorMessage = "could not parse image data";
+					}
 
-            if (rawPng != null) {
-              String rootWebappPath = getServletContext().getRealPath("/");
-              String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
+					Encounter enc = null;
+					File write2me = null;
+
+					if (rawPng != null) {
+						// rawPng may be jpeg or png; so lets find out
+						String crImageFormat = null;
+						ByteArrayInputStream bis = new ByteArrayInputStream(rawPng);
+						Object source = bis; 
+						ImageInputStream iis = ImageIO.createImageInputStream(source); 
+						Iterator<?> readers = ImageIO.getImageReaders(iis);
+						ImageReader useReader = null;
+						while (readers.hasNext()) {
+							useReader = (ImageReader) readers.next();
+    					crImageFormat = useReader.getFormatName();  // JPEG, PNG(?)
+						}
+/*
+							ImageReader reader = (ImageReader) readers.next();
+							reader.setInput(iis, true);
+							ImageReadParam param = reader.getDefaultReadParam();
+							Image image = reader.read(0, param);
+							BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
+							ImageIO.write(bufferedImage, extension, crFile);
+*/
+              //String rootWebappPath = getServletContext().getRealPath("/");
+              //String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
               //File webappsDir = new File(rootWebappPath).getParentFile();
               //File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
              
               
-              String encID = request.getParameter("encounterID");
-              Encounter enc = null;
+						String encID = request.getParameter("encounterID");
+						myShepherd.beginDBTransaction();
 
-              myShepherd.beginDBTransaction();
+						if (encID != null) enc = myShepherd.getEncounter(encID);
+						if (enc == null) {
+							errorMessage = "invalid encounter " + encID;
+						} else {
+							//note: matchFilename (and extension) should be the same as mmFiles, i think -jon
+							int dot = matchFilename.lastIndexOf('.');
+							String extension = matchFilename.substring(dot+1, matchFilename.length());  //TODO get actual format from file magic instead?
+							String targetFormat = null;
+							if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("jpeg")) {
+								targetFormat = "JPEG";
+							} else if (extension.equalsIgnoreCase("png")) {
+								targetFormat = "PNG";
+							} else {
+								targetFormat = extension;  //hope for the best?
+							}
+							write2me = mmFiles.get("CR");
+System.out.println("write2me -> " + write2me.toString());
 
-              if (encID != null) enc = myShepherd.getEncounter(encID);
-              
-              //File encounterDir = new File(enc.dir(baseDir));
-              //File sourceImg = new File(encounterDir, matchFilename);
-              
-              File write2me = mmFiles.get("CR");
-             //System.out.println(sourceImg.toString());
-              //if (!sourceImg.exists()) {
-                //errorMessage = "source image does not exist";
+							if (!crImageFormat.equalsIgnoreCase(targetFormat)) {
+System.out.println("cr format (" + crImageFormat + ") differs from target format (" + targetFormat + "), attempting conversion");
+								if ((useReader != null) && (iis != null)) {
+									try {
+										useReader.setInput(iis, true);
+										ImageReadParam param = useReader.getDefaultReadParam();
+										Image image = useReader.read(0, param);
+										BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
+										ImageIO.write(bufferedImage, extension, write2me);
+									} catch (Exception e) {
+										errorMessage = "problem converting/saving image: " + e.toString();
+									}
+								} else {
+									errorMessage = "did not have a valid image reader or image stream";
+								}
 
-              //} 
-              //else {
-                int dot = matchFilename.lastIndexOf('.');
-                //String crFilename = matchFilename.substring(0, dot) + "_CR.png";
-                //File crFile = new File(encounterDir, crFilename);
-                //System.out.println(sourceImg.toString() + " --> " + crFilename);
+							} else {  //formats the same, easy
+System.out.println("looks like cr format and target format are the same! -> " + targetFormat);
                 Files.write(write2me.toPath(), rawPng);
+							}
                 
                 //now write out the JPEG
                 //SeekableStream s = new FileSeekableStream(crFile);
@@ -486,7 +512,16 @@ public class EncounterAddMantaPattern extends HttpServlet {
                 //newImage.createGraphics().drawImage( pngImage, 0, 0, Color.BLACK, null);
                 
                 //System.out.println(crFile.toString() + " written");
-                enc.setMmaCompatible(true);
+						}
+
+						}
+
+						if (errorMessage != null) {  //had a problem
+							resultComment.append("error: " + errorMessage);
+
+						} else {
+							enc.setMmaCompatible(true);
+
                 myShepherd.commitDBTransaction();
             
             
@@ -520,10 +555,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
                     resultComment.append(iox.getStackTrace().toString());
                 } 
                 process.waitFor();
-         // }
-        // }
-      //}
-            }
+						}
+
       }
       // ====================================================================
 
