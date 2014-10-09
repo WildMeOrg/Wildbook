@@ -38,6 +38,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
 
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -120,31 +121,10 @@ public class EncounterAddMantaPattern extends HttpServlet {
         try {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
           spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
-          mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
-          File mmCR = mmFiles.get("CR");
-          if (mmCR.exists()) {
-            if (mmCR.exists() && !mmCR.getName().equals(spv.getFilename()))
-              mmCR.delete();
-            mmFiles.get("EH").delete();
-            mmFiles.get("FT").delete();
-            mmFiles.get("FEAT").delete();
-            mmFiles.get("TXT").delete();
-            mmFiles.get("CSV").delete();
-            mmFiles.get("TXT-REGIONAL").delete();
-            mmFiles.get("CSV-REGIONAL").delete();
-          }
-          mmFiles = null;
+          MantaMatcherUtilities.removeMatcherFiles(spv);
 
-          // Check for any remaining CR images, and if none, clear MMA-compatible flag.
-          boolean hasCR = false;
-          for (SinglePhotoVideo mySPV : enc.getSinglePhotoVideo()) {
-            if (MediaUtilities.isAcceptableImageFile(mySPV.getFile())) {
-              Map<String, File> mmaFiles = MantaMatcherUtilities.getMatcherFilesMap(mySPV);
-              hasCR = hasCR & mmaFiles.get("CR").exists();
-              if (hasCR)
-                break;
-            }
-          }
+          // Clear MMA-compatible flag if appropriate for encounter.
+          boolean hasCR = MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir);
           if (!hasCR) {
             enc.setMmaCompatible(false);
             myShepherd.commitDBTransaction();
@@ -338,14 +318,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             try {
               // Attempt to delete existing MM algorithm files.
               // (Shouldn't exist, but just a precaution.)
-              mmFiles.get("CR").delete();
-              mmFiles.get("EH").delete();
-              mmFiles.get("FT").delete();
-              mmFiles.get("FEAT").delete();
-              mmFiles.get("TXT").delete();
-              mmFiles.get("CSV").delete();
-              mmFiles.get("TXT-REGIONAL").delete();
-              mmFiles.get("CSV-REGIONAL").delete();
+              MantaMatcherUtilities.removeMatcherFiles(spv);
             }
             catch (SecurityException sx) {
               sx.printStackTrace();
@@ -387,6 +360,17 @@ public class EncounterAddMantaPattern extends HttpServlet {
               resultComment.append(iox.getStackTrace().toString());
             } 
             process.waitFor();
+
+            
+            // Set MMA-compatible flag if appropriate.
+            String encID = request.getParameter("encounterID");
+            Encounter enc = null;
+            if (encID != null)
+              enc = myShepherd.getEncounter(encID);
+            if (enc != null && MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir)) {
+              enc.setMmaCompatible(true);
+              myShepherd.commitDBTransaction();
+            }
           }
         }
       }
@@ -403,25 +387,18 @@ public class EncounterAddMantaPattern extends HttpServlet {
 				String matchFilename = request.getParameter("matchFilename");
 				String errorMessage = null;
 
-				assert mmFiles != null;
-          try {
-            // Attempt to delete existing MM algorithm files.
-            // (Shouldn't exist, but just a precaution.)
-            mmFiles.get("CR").delete();
-            mmFiles.get("EH").delete();
-            mmFiles.get("FT").delete();
-            mmFiles.get("FEAT").delete();
-            mmFiles.get("TXT").delete();
-            mmFiles.get("CSV").delete();
-            mmFiles.get("TXT-REGIONAL").delete();
-            mmFiles.get("CSV-REGIONAL").delete();
-          }
-          catch (SecurityException sx) {
-            sx.printStackTrace();
-            System.out.println("Error attempting to delete the old version of a submitted manta data image!!!!");
-            resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
-            locked=true;
-           }
+        assert mmFiles != null;
+        try {
+          // Attempt to delete existing MM algorithm files.
+          // (Shouldn't exist, but just a precaution.)
+          MantaMatcherUtilities.removeMatcherFiles(spv);
+        }
+        catch (SecurityException sx) {
+          sx.printStackTrace();
+          System.out.println("Error attempting to delete the old version of a submitted manta data image!!!!");
+          resultComment.append("I hit a security error trying to delete the old feature image. Please check your file system permissions.");
+          locked=true;
+        }
 
 					String pngData = request.getParameter("pngData");
 
@@ -445,7 +422,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
 						ImageReader useReader = null;
 						while (readers.hasNext()) {
 							useReader = (ImageReader) readers.next();
-    					crImageFormat = useReader.getFormatName();  // JPEG, PNG(?)
+    					crImageFormat = useReader.getFormatName();  // JPEG, png
 						}
 
 						String encID = request.getParameter("encounterID");
@@ -464,7 +441,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
 							} else if (extension.equalsIgnoreCase("png")) {
 								targetFormat = "PNG";
 							} else {
-								targetFormat = extension;  //hope for the best?
+								targetFormat = extension.toUpperCase();  //hope for the best?
 							}
 							write2me = mmFiles.get("CR");
 System.out.println("write2me -> " + write2me.toString());
@@ -477,7 +454,9 @@ System.out.println("cr format (" + crImageFormat + ") differs from target format
 										ImageReadParam param = useReader.getDefaultReadParam();
 										Image image = useReader.read(0, param);
 										BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
-										ImageIO.write(bufferedImage, extension, write2me);
+										Graphics2D g2 = bufferedImage.createGraphics();
+										g2.drawImage(image, null, null);  //might need bgcolor if ever transparency a problem?   http://stackoverflow.com/a/1545417
+										ImageIO.write(bufferedImage, targetFormat, write2me);
 									} catch (Exception e) {
 										errorMessage = "problem converting/saving image: " + e.toString();
 									}
@@ -498,10 +477,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
 							resultComment.append("error: " + errorMessage);
 
 						} else {
-							enc.setMmaCompatible(true);
-
-                myShepherd.commitDBTransaction();
-            
+                //myShepherd.commitDBTransaction();
             
                 resultComment.append("Successfully saved the new feature image: "+write2me.getAbsolutePath()+"<br />");
 
@@ -533,8 +509,14 @@ System.out.println("looks like cr format and target format are the same! -> " + 
                     resultComment.append(iox.getStackTrace().toString());
                 } 
                 process.waitFor();
-						}
 
+                // Set MMA-compatible flag if appropriate.
+                if (enc != null && MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir)) {
+                  enc.setMmaCompatible(true);
+                  myShepherd.commitDBTransaction();
+                }
+
+							}
       }
       // ====================================================================
 
