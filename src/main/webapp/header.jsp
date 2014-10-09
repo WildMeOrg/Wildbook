@@ -1,26 +1,25 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.Calendar,java.util.ArrayList,org.ecocean.servlet.ServletUtilities,org.apache.commons.lang.WordUtils,org.ecocean.*, java.util.Properties" %>
+         import="java.util.ArrayList,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, org.apache.commons.lang.WordUtils,org.ecocean.*, java.util.Properties" %>
 
-<%
-
-Calendar cal=Calendar.getInstance();
-String dato=(new Integer(cal.get(Calendar.MONTH)+1)).toString()+"/1/"+(new Integer(cal.get(Calendar.YEAR))).toString();
-
-//handle some cache-related security
-response.setHeader("Cache-Control","no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-response.setHeader("Cache-Control","no-store"); //Directs caches not to store the page under any circumstance
-response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
-response.setHeader("Pragma","no-cache"); //HTTP 1.0 backward compatibility 
-
-//setup our Properties object to hold all properties
-	//Properties props=new Properties();
-	//String langCode="en";
-	
-	
-
-%>	
-
-<!--cssplay.co.uk menus-->
+<%--
+  ~ Wildbook - A Mark-Recapture Framework
+  ~ Copyright (C) 2011-2014 Jason Holmberg
+  ~
+  ~ This program is free software; you can redistribute it and/or
+  ~ modify it under the terms of the GNU General Public License
+  ~ as published by the Free Software Foundation; either version 2
+  ~ of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  --%>
+  
 <style type="text/css">
 /* ================================================================ 
 This copyright notice must be untouched at all times.
@@ -412,11 +411,19 @@ if(request.getUserPrincipal()!=null){
 
 <!-- define our JavaScript -->
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.blockUI.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
-	
-
-	
-<div id="header_menu" style="background-color: #D7E0ED;clear: left">
+	<script type="text/javascript">
+  $(function() {
+    var toTip = $( "[id^=flag_]" );
+		if (typeof toTip.tooltip != 'undefined') toTip.tooltip();
+    //$( "[id^=flag_]" ).tooltip();
+  });
+</script>
+<script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/JavascriptGlobals.js"></script>
+<script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/collaboration.js"></script>
+<div id="header_menu" style="background-color: #D7E0ED;clear: left; position: relative;">
+	<div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
 <table width="810px">
 	<tr>
 		<td width="100%" colspan="4" class="caption" style="font-size: 0.7em;" align="right">

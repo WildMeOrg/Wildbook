@@ -115,8 +115,8 @@ context=ServletUtilities.getContext(request);
 						SinglePhotoVideo spv = null;
 						if ((imageNum > 0) && (enc.getImages() != null)) spv = enc.getImages().get(imageNum - 1);
 						if ((spv != null) && spv.scaleTo(context, thumbnailWidth, thumbnailHeight, thumbPath)) {
-							System.out.println("attempting to create " + thumbPath + " in background.");
 
+						///// if that fails (not configured, etc) then use existing method:
 
 						///// if that fails (not configured, etc) then use existing method:
 

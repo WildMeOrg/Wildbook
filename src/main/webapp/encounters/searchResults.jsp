@@ -19,12 +19,11 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.Collaboration, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*" %>
 
 
 <html>
 <head>
-
 
 <%
 
@@ -39,6 +38,9 @@ context=ServletUtilities.getContext(request);
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
   encprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
+
+  Properties collabProps = new Properties();
+  collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
   
 
   Shepherd myShepherd = new Shepherd(context);
@@ -111,6 +113,7 @@ context=ServletUtilities.getContext(request);
       rel="stylesheet" type="text/css"/>
 <link rel="shortcut icon"
       href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
+
 </head>
 
 <style type="text/css">
@@ -168,8 +171,13 @@ context=ServletUtilities.getContext(request);
 <div id="page">
 <jsp:include page="../header.jsp" flush="true">
 
+
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
+
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+
 <div id="main">
 
 <ul id="tabmenu">
@@ -211,7 +219,7 @@ context=ServletUtilities.getContext(request);
 
 
 
-<table width="810px">
+<table class="collab-table">
 <tr>
   <td class="lineitem" bgcolor="#99CCFF"></td>
   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
@@ -254,9 +262,11 @@ context=ServletUtilities.getContext(request);
   //Vector haveGPSData = new Vector();
   int count = 0;
 
-  for (int f = 0; f < rEncounters.size(); f++) {
+	ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
 
+  for (int f = 0; f < rEncounters.size(); f++) {
     Encounter enc = (Encounter) rEncounters.get(f);
+		boolean visible = enc.canUserAccess(request);
 		String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
     count++;
@@ -268,8 +278,13 @@ context=ServletUtilities.getContext(request);
 
     if ((numResults >= startNum) && (numResults <= endNum)) {
 %>
-<tr class="lineitem">
+<tr class="lineitem<%= (visible ? "" : " no-access") %>">
   <td width="100" class="lineitem">
+
+<%
+	if (!visible) out.println(enc.collaborationLockHtml(collabs));
+%>
+
   <%
    if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
    %>
