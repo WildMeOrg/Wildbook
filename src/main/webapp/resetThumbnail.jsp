@@ -59,10 +59,13 @@ context=ServletUtilities.getContext(request);
         <div id="maintext">
           <%
           Shepherd myShepherd = new Shepherd(context);
-					Encounter enc = myShepherd.getEncounter(number);
+					
           try {
         	  
         	  String number = request.getParameter("number").trim();
+			  
+			  Encounter enc = myShepherd.getEncounter(number);
+			  
         	  int imageNum = 1;
         	  try {
         	    imageNum = (new Integer(request.getParameter("imageNum"))).intValue();
