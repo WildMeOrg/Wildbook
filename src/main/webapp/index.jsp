@@ -20,9 +20,9 @@ context=ServletUtilities.getContext(request);
   
   	//check usernames and passwords
 	myShepherd.beginDBTransaction();
-  	//ArrayList<User> users=myShepherd.getAllUsers();
+  	ArrayList<User> users=myShepherd.getAllUsers();
   	
-  	/*
+  	
   	if(users.size()==0){
   		String salt=ServletUtilities.getSalt().toHex();
         String hashedPassword=ServletUtilities.hashAndSaltPassword("tomcat123", salt);
@@ -45,7 +45,7 @@ context=ServletUtilities.getContext(request);
 	  		System.out.println("Creating tomcat user account...");
   	  	}
   	}
-  	*/
+  	
 
 
   	myShepherd.commitDBTransaction();
