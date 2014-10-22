@@ -38,9 +38,33 @@ context=ServletUtilities.getContext(request);
   	  	System.out.println("Creating tomcat roles...");
   	  		
   	  		Role newRole1=new Role("tomcat","admin");
+  	  		newRole1.setContext(context);
+  	  		
   	  		myShepherd.getPM().makePersistent(newRole1);
 	  		Role newRole4=new Role("tomcat","destroyer");
 	  		myShepherd.getPM().makePersistent(newRole4);
+	  		newRole4.setContext(context);
+	  		
+	  		Role newRole5=new Role("tomcat","researcher");
+	  		myShepherd.getPM().makePersistent(newRole5);
+	  		newRole5.setContext(context);
+	  		
+	  		Role newRole6=new Role("tomcat","approve");
+	  		myShepherd.getPM().makePersistent(newRole6);
+	  		newRole6.setContext(context);
+	  		
+	  		Role newRole7=new Role("tomcat","imageProcessor");
+	  		myShepherd.getPM().makePersistent(newRole7);
+	  		newRole7.setContext(context);
+	  		
+	  		Role newRole8=new Role("tomcat","adoption");
+	  		myShepherd.getPM().makePersistent(newRole8);
+	  		newRole8.setContext(context);
+	  		
+	  		
+	  		Role newRole9=new Role("tomcat","identifier");
+	  		myShepherd.getPM().makePersistent(newRole9);
+	  		newRole9.setContext(context);
 	  		
 	  		System.out.println("Creating tomcat user account...");
   	  	}
