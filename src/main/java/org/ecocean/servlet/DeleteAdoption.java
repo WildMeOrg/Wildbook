@@ -70,9 +70,11 @@ public class DeleteAdoption extends HttpServlet {
 
         String savedFilename = request.getParameter("number") + ".dat";
         //File thisEncounterDir=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getAdoptionDirectory()+File.separator+request.getParameter("number"));
-        File thisEncounterDir = new File(adoptionsDir.getAbsolutePath()+"/" + request.getParameter("number"));
-
-        File serializedBackup = new File(thisEncounterDir, savedFilename);
+        File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath()+"/" + request.getParameter("number"));
+        if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
+        
+        
+        File serializedBackup = new File(thisAdoptionDir, savedFilename);
         FileOutputStream fout = new FileOutputStream(serializedBackup);
         ObjectOutputStream oos = new ObjectOutputStream(fout);
         oos.writeObject(ad);
