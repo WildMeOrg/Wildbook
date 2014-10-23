@@ -26,6 +26,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.Adoption;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
+import org.ecocean.SinglePhotoVideo;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -148,6 +149,13 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       
       //set form value hashmap
       HashMap fv = new HashMap();
+      
+
+      
+       //else {
+        id = "adpt" + (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
+      //}
+      
 
 
 
@@ -270,13 +278,72 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             text = fv.get("text").toString().trim();
           }
           
-          //now let's add/update our adoption
-          
           if (isEdit) {
             id = number;
-          } else {
-            id = "adpt" + (new Integer(date.get(Calendar.DAY_OF_MONTH))).toString() + (new Integer(date.get(Calendar.MONTH) + 1)).toString() + (new Integer(date.get(Calendar.YEAR))).toString() + (new Integer(date.get(Calendar.HOUR_OF_DAY))).toString() + (new Integer(date.get(Calendar.MINUTE))).toString() + (new Integer(date.get(Calendar.SECOND))).toString();
           }
+          
+          File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath() + "/" + id);
+          if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
+          
+          
+          String baseDir = ServletUtilities.dataDir(context, rootDir);
+          ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
+          for (FileItem item : formFiles) {
+            /* this will actually write file to filesystem (or [FUTURE] wherever)
+               TODO: either (a) undo this if any failure of writing encounter; or (b) dont write til success of enc. */
+            //try {
+              //SinglePhotoVideo spv = new SinglePhotoVideo(encID, item, context, encDataDir);
+              //SinglePhotoVideo spv = new SinglePhotoVideo(enc, item, context, baseDir);
+              
+            try {
+
+              //retrieve the file data
+              ByteArrayOutputStream baos = new ByteArrayOutputStream();
+              InputStream stream = item.getInputStream();
+              //System.out.println(writeFile);
+              //if ((!(file[iter].getFileName().equals(""))) && (file[iter].getFileSize() > 0)) {
+                //write the file to the file specified
+                //String writeName=file[iter].getFileName().replace('#', '_').replace('-', '_').replace('+', '_').replaceAll(" ", "_");
+                //String writeName=forHTMLTag(file[iter].getFileName());
+                String writeName = "adopter.jpg";
+
+                //String writeName=URLEncoder.encode(file[iter].getFileName(), "UTF-8");
+                //while (writeName.indexOf(".") != writeName.lastIndexOf(".")) {
+                //  writeName = writeName.replaceFirst("\\.", "_");
+               // }
+                //System.out.println(writeName);
+                
+                
+                OutputStream bos = new FileOutputStream(new File(thisAdoptionDir, writeName));
+                int bytesRead = 0;
+                byte[] buffer = new byte[8192];
+                while ((bytesRead = stream.read(buffer, 0, 8192)) != -1) {
+                  bos.write(buffer, 0, bytesRead);
+                }
+                bos.close();
+                //data = "The file has been written to \"" + id + "\\" + writeName + "\"";
+                adopterImage = writeName;
+             // }
+              //close the stream
+              stream.close();
+              baos.close();
+            } 
+            catch (FileNotFoundException fnfe) {
+              System.out.println("File not found exception.\n");
+              fnfe.printStackTrace();
+              //return null;
+            } catch (IOException ioe) {
+              System.out.println("IO Exception.\n");
+              ioe.printStackTrace();
+              //return null;
+            }
+            
+            
+          }
+          
+
+        
+          
           
           
           Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
