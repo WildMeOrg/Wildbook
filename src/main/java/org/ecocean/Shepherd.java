@@ -24,6 +24,7 @@ import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.genetics.*;
 import org.ecocean.social .*;
+import org.ecocean.security.Collaboration;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -185,6 +186,22 @@ public class Shepherd {
       return false;
     }
 
+  }
+
+
+  public boolean storeNewCollaboration(Collaboration collab) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(collab);
+      commitDBTransaction();
+			return true;
+
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new collaboration in shepherd.storeNewCollaboration().");
+      e.printStackTrace();
+      return false;
+    }
   }
 
 
@@ -2081,6 +2098,7 @@ public class Shepherd {
   /**
    * Commits (makes permanent) any changes made to an open database
    */
+//////////// TODO it seems like this should either (a) throw an exception itself; or (b) return boolean of success.  obviously the latter was disabled(?).  whassup?  -jon 20140619
   public void commitDBTransaction() {
     try {
       //System.out.println("     shepherd:"+identifyMe+" is trying to commit a transaction");
@@ -2109,7 +2127,7 @@ public class Shepherd {
       System.out.println("A null pointer exception was thrown while trying to commit a transaction!");
       npe.printStackTrace();
       //return false;
-    }
+		}
   }
 
   /**
@@ -2564,7 +2582,7 @@ public class Shepherd {
     return count;
   }
 
-  public boolean isAcceptableImageFile(String fileName) {
+  static public boolean isAcceptableImageFile(String fileName) {
     if ((fileName.toLowerCase().indexOf(".jpg") != -1) || (fileName.toLowerCase().indexOf(".gif") != -1) || (fileName.toLowerCase().indexOf(".jpeg") != -1) || (fileName.toLowerCase().indexOf(".jpe") != -1) || (fileName.toLowerCase().indexOf(".bmp") != -1) || (fileName.toLowerCase().indexOf(".png") != -1)) {
       return true;
     }

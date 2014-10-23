@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.ArrayList,org.ecocean.servlet.ServletUtilities,org.apache.commons.lang.WordUtils,org.ecocean.*, java.util.Properties" %>
+         import="java.util.ArrayList,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, org.apache.commons.lang.WordUtils,org.ecocean.*, java.util.Properties" %>
 
 <%--
   ~ Wildbook - A Mark-Recapture Framework
@@ -390,13 +390,19 @@ if(CommonConfiguration.isCatalogEditable(context)){
 
 <!-- define our JavaScript -->
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.blockUI.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
 	<script type="text/javascript">
   $(function() {
-    $( "[id^=flag_]" ).tooltip();
+    var toTip = $( "[id^=flag_]" );
+		if (typeof toTip.tooltip != 'undefined') toTip.tooltip();
+    //$( "[id^=flag_]" ).tooltip();
   });
 </script>
-<div id="header_menu" style="background-color: #D7E0ED;clear: left">
+<script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/JavascriptGlobals.js"></script>
+<script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/collaboration.js"></script>
+<div id="header_menu" style="background-color: #D7E0ED;clear: left; position: relative;">
+	<div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
 <table width="810px">
 	<tr>
 		<td width="100%" colspan="4" class="caption" style="font-size: 0.7em;" align="right">

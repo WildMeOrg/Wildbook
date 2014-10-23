@@ -220,11 +220,14 @@ System.out.println("rootDir=" + rootDir);
 		boolean fileSuccess = false;  //kinda pointless now as we just build sentFiles list now at this point (do file work at end)
 		String doneMessage = "";
 		List<String> filesOK = new ArrayList<String>();
-		List<String> filesBad = new ArrayList<String>();
+		HashMap<String, String> filesBad = new HashMap<String, String>();
 
 		List<FileItem> formFiles = new ArrayList<FileItem>();
 
   	Calendar date = Calendar.getInstance();
+
+		long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
+		long maxSizeBytes = maxSizeMB * 1048576;
 
 		if (ServletFileUpload.isMultipartContent(request)) {
 			try {
@@ -240,11 +243,13 @@ System.out.println("rootDir=" + rootDir);
 
 					} else {  //file
 //System.out.println("content type???? " + item.getContentType());   TODO note, the helpers only check extension
-						if (myShepherd.isAcceptableImageFile(item.getName()) || myShepherd.isAcceptableVideoFile(item.getName()) ) {
+						if (item.getSize() > maxSizeBytes) {
+							filesBad.put(item.getName(), "file is larger than " + maxSizeMB + "MB");
+						} else if (myShepherd.isAcceptableImageFile(item.getName()) || myShepherd.isAcceptableVideoFile(item.getName()) ) {
 							formFiles.add(item);
 							filesOK.add(item.getName());
 						} else {
-							filesBad.add(item.getName());
+							filesBad.put(item.getName(), "invalid type of file");
 						}
 					}
 				}
@@ -261,7 +266,12 @@ System.out.println("rootDir=" + rootDir);
 		}
 
 		session.setAttribute("filesOKMessage", (filesOK.isEmpty() ? "none" : Arrays.toString(filesOK.toArray())));
-		session.setAttribute("filesBadMessage", (filesBad.isEmpty() ? "none" : Arrays.toString(filesBad.toArray())));
+		String badmsg = "";
+		for (String key : filesBad.keySet()) {
+			badmsg += key + " (" + getVal(filesBad, key) + ") ";
+		}
+		if (badmsg.equals("")) { badmsg = "none"; }
+		session.setAttribute("filesBadMessage", badmsg);
 
 		if (fileSuccess) {
 
@@ -747,8 +757,9 @@ System.out.println("depth --> " + fv.get("depth").toString());
 			String newnum = "";
 			if (!spamBot) {
 				newnum = myShepherd.storeNewEncounter(enc, encID);
+				enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
 
-				Logger log = LoggerFactory.getLogger(SubmitAction.class);
+				Logger log = LoggerFactory.getLogger(EncounterForm.class);
 				log.info("New encounter submission: <a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 			}

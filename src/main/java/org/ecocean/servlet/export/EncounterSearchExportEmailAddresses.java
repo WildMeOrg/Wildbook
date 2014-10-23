@@ -59,12 +59,23 @@ public class EncounterSearchExportEmailAddresses extends HttpServlet{
     
     
     try {
+      EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+      rEncounters = queryResult.getResult();
+      
+			Vector blocked = Encounter.blocked(rEncounters, request);
+			if (blocked.size() > 0) {
+				response.setContentType("text/html");
+				PrintWriter out = response.getWriter();
+				out.println(ServletUtilities.getHeader(request));  
+				out.println("<html><body><p><strong>Access denied.</strong></p>");
+				out.println(ServletUtilities.getFooter(context));
+				out.close();
+				return;
+			}
       
       //set up the output stream
       FileOutputStream fos = new FileOutputStream(emailFile);
       OutputStreamWriter outp = new OutputStreamWriter(fos);
-      EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
-      rEncounters = queryResult.getResult();
       
       //int numMatchingEncounters=rEncounters.size();
 

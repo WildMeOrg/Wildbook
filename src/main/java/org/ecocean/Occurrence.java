@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
+import org.ecocean.security.Collaboration;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Whereas an Encounter is meant to represent one MarkedIndividual at one point in time and space, an Occurrence
@@ -287,4 +289,8 @@ public class Occurrence implements java.io.Serializable{
      return allIDs;
    }
   
+	//convenience function to Collaboration permissions
+	public boolean canUserAccess(HttpServletRequest request) {
+		return Collaboration.canUserAccessOccurrence(this, request);
+	}
 }

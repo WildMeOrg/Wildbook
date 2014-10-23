@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>5.0.5-RELEASE</version>
+  <version>5.1.0-EXPERIMENTAL</version>
   <packaging>war</packaging>
 
   <properties>
@@ -96,16 +96,22 @@
       <artifactId>commons-logging</artifactId>
       <version>1.0.4</version>
     </dependency>
+	
+	<dependency>
+	<groupId>commons-lang</groupId>
+	<artifactId>commons-lang</artifactId>
+	<version>2.6</version>
+</dependency>
+
+	
+	
     <dependency>
       <groupId>javax.mail</groupId>
       <artifactId>mail</artifactId>
       <version>1.4.1</version>
     </dependency>
-    <dependency>
-      <groupId>struts</groupId>
-      <artifactId>struts</artifactId>
-      <version>1.1</version>
-    </dependency>
+
+
     <dependency>
       <groupId>javax.jdo</groupId>
       <artifactId>jdo-api</artifactId>
@@ -175,6 +181,12 @@
 	<version>3.1.1.RELEASE</version>
 </dependency>
 
+
+<dependency>
+	<groupId>com.google.code.gson</groupId>
+	<artifactId>gson</artifactId>
+	<version>2.2.4</version>
+</dependency>
 
 <dependency>
 	<groupId>org.json</groupId>
