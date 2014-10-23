@@ -96,16 +96,22 @@
       <artifactId>commons-logging</artifactId>
       <version>1.0.4</version>
     </dependency>
+	
+	<dependency>
+	<groupId>commons-lang</groupId>
+	<artifactId>commons-lang</artifactId>
+	<version>2.6</version>
+</dependency>
+
+	
+	
     <dependency>
       <groupId>javax.mail</groupId>
       <artifactId>mail</artifactId>
       <version>1.4.1</version>
     </dependency>
-    <dependency>
-      <groupId>struts</groupId>
-      <artifactId>struts</artifactId>
-      <version>1.1</version>
-    </dependency>
+
+
     <dependency>
       <groupId>javax.jdo</groupId>
       <artifactId>jdo-api</artifactId>
