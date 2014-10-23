@@ -20,9 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties" %>
-<%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %>
-<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
-<%@ taglib uri="/WEB-INF/struts-logic.tld" prefix="logic" %>
+
 
 <%
 
@@ -43,7 +41,7 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-<html:html locale="true">
+<html locale="true">
 
   <!-- Make sure window is not in a frame -->
 
@@ -175,4 +173,4 @@ context=ServletUtilities.getContext(request);
   </body>
 
 
-</html:html>
+</html>
