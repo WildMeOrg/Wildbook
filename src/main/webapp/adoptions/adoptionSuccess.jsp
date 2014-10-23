@@ -62,10 +62,6 @@ context=ServletUtilities.getContext(request);
 
 </head>
 
-<script type="text/javascript">
-      		alert("Loading!");
-      		</script>
-
 <body>
 <div id="wrapper">
   <div id="page">
@@ -108,19 +104,11 @@ context=ServletUtilities.getContext(request);
 
 	if(!addText.equals("")){
 		
-		%>
-    	
-    	
-		<p>
-  		thumbLocation is: <%=thumbLocation%> and addText is: <%=addText %>
-  		</p>
-<%
+
             	File file2process = new File(addText);
             	if(file2process.exists()){
             		
-            		%>
-            		<p>add text exists!</p>
-            		<%
+
 
             	int intWidth = 190;
             	int intHeight = 190;
