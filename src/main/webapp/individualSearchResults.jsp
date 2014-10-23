@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Vector,java.util.ArrayList" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Vector,java.util.ArrayList, org.ecocean.security.Collaboration" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -259,6 +259,8 @@
       if ((count >= startNum) && (count <= endNum)) {
         
         MarkedIndividual indie = (MarkedIndividual) rIndividuals.get(f);
+				boolean visible = indie.canUserAccess(request);
+
         //check if this individual was newly marked in this period
         Encounter[] dateSortedEncs = indie.getDateSortedEncounters();
         int sortedLength = dateSortedEncs.length - 1;
@@ -266,8 +268,9 @@
         ArrayList<SinglePhotoVideo> photos=indie.getAllSinglePhotoVideo();
         
   %>
-  <tr class="lineitem">
+  <tr class="lineitem<%=(visible ? "" : " no-access")%>">
     <td class="lineitem" width="102" bgcolor="#FFFFFF" >
+<% if (!visible) out.println(indie.collaborationLockHtml(request)); %>
     
        							<%
    								if(photos.size()>0){ 

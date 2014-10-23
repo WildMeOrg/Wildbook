@@ -985,6 +985,7 @@ tr.paging {
 }
 
 .lineitem {
+	position: relative;
   font-size: 10px;
   border-bottom: #999;
   border-width: 0 0 1px 0;
@@ -1003,6 +1004,7 @@ tr.paging {
 
 #encounter_report, #encounter_contact {
   font-size: 13px;
+	padding-left: 20px;
   width: 100%;
 }
 
@@ -1413,9 +1415,264 @@ table.tissueSample td {
 
 
 
+div.row-lock {
+	position: absolute;
+	left: -30px;
+	top: 10px;
+	width: 30px;
+	height: 27px;
+}
+
+td.lock-td {
+	position: relative;
+}
+
+div.lock-right {
+	float: right;
+	position: relative;
+}
+
+
+td.lock-td div.row-lock {
+	left: auto !important;
+	right: 4px;
+}
+
+div.row-lock.new {
+	background: url(../images/lock-icon.png) no-repeat;
+	cursor: pointer;
+}
+div.row-lock.pending {
+	background: url(../images/lock-icon-pending.png) no-repeat;
+}
+div.row-lock.blocked {
+	background: url(../images/lock-icon-no.png) no-repeat;
+}
+
+.blockUI.blockOverlay {
+	opacity: 0.65 !important;
+}
+
+table.no-access,
+tr.no-access td {
+	opacity: 0.5;
+}
+
+table.no-access:hover,
+tr.no-access:hover td {
+	opacity: 1.0;
+}
+
+/*
+.no-access img {
+	opacity: 0.5;
+}
+*/
+
+
+.popup {
+	background-color: #FFF;
+	position: fixed;
+	padding: 10px;
+	left: 5%;
+	top: 2%;
+	width: 90%;
+	min-height: 200px;
+	border: solid 2px #888;
+	z-index: 300;
+}
+
+/* generic "notice me!" error text? */
+.error {
+	color: #820;
+}
+
+.scroll {
+	overflow-y: auto;
+}
+
+.popup .scroll {
+	max-height: 300px;
+}
+
+.throbbing {
+	background: url(../images/throbber.gif) no-repeat left top;
+	padding-left: 25px;
+	min-height: 25px;
+}
+
+
+.collaboration-failure {
+	color: #A21;
+}
+.collaboration-success {
+	color: #2A4;
+}
+
+#notifications {
+	font-size: 0.9em;
+	position: absolute;
+	top: -70px;
+	right: 8px;
+}
+
+#notifications div {
+	padding: 4px;
+	color: rgba(0,0,0,0);
+	cursor: pointer;
+	border: 1px solid rgba(0,0,0,0);
+	border-radius: 3px;
+}
+
+#notifications div:hover {
+	background-color: #DDD;
+	border-color: #888;
+	color: rgba(0,0,0,0.5);
+}
+
+.notification-pill {
+	color: #FFF;
+	background-color: #F12;
+	border-radius: 7px;
+	font-weight: bold;
+	padding: 1px 5px 1px 5px;
+	margin: 1px 3px 1px 3px;
+	opacity: 0.6;
+}
+
+#notifications div:hover .notification-pill {
+	opacity: 1.0;
+}
 
 
 
+.collaboration-invite-notification {
+	margin: 3px;
+	padding: 1px 3px 1px 3px;
+	background-color: #DDD;
+	clear: both;
+	height: 1.8em;
+}
+.collaboration-invite-notification:hover {
+	background-color: #DDE;
+}
+.collaboration-invite-notification input {
+	float: right;
+}
+
+
+/*
+				//h += "<div class=\"mine " + cls + "\"><span class=\"who\">to <b>" + c.getUsername2() + "</b></span><span class=\"state\">" + c.getState() + "</span></div>";
+*/
+
+div.collab-list div {
+	padding: 6px;
+	width: 100%;
+	background-color: rgba(100,100,100,0.2);
+	margin: 5px;
+}
+
+div.collab-list span.who {
+	font-size: 0.8em;
+	width: 30%;
+	display: inline-block;
+	color: #555;
+}
+
+div.collab-list span.who b {
+	font-size: 1.2em;
+}
+
+div.collab-list span.who b {
+	color: #444;
+}
+
+div.collab-list div.mine span.who b {
+	color: #338;
+}
+
+
+div.collab-list span.state {
+	color: #DDD;
+	font-size: 0.8em;
+	padding: 2px 5px 2px 5px;
+	border-radius: 3px;
+}
+
+
+div.collab-log {
+	margin-top: 18px;
+}
+
+div.collab-log a {
+	font-weight: normal;
+}
+
+div.collab-log span.details {
+	font-size: 0.9em;
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	margin-left: 20px;
+}
+
+div.collab-log div.scrollbox {
+	max-height: 275px;
+	overflow-y: auto;
+}
+
+div.collab-log div.logrow {
+	font-size: 0.9em;
+	background-color: rgba(0,0,0,0.2);
+	margin: 2px;
+	padding: 2px;
+}
+
+div.collab-log span {
+	margin: 0 6px 0 6px;
+	padding: 2px;
+}
+
+.collab-table {  /*leave room for lock icon*/
+	width: 785px;
+	margin-left: 25px;
+}
+
+div.state-initialized span.state {
+	background-color: #AA1;
+}
+div.state-rejected span.state {
+	background-color: #821;
+}
+div.state-approved span.state {
+	background-color: #281;
+}
+
+
+.user-bio-button {
+	border: solid 1px #DDD;
+	border-radius: 3px;
+	background-color: #EEE;
+	padding: 1px 4px 1px 4px;
+	margin: 0 3px 0 3px;
+	cursor: pointer;
+}
+
+.user-bio-button:hover {
+	background-color: #FFE;
+
+.img-watermark {
+	background-color: rgba(255,255,255,0.3);
+	position: absolute;
+	top: 75px;
+	left: -25px;
+	font-size: 0.85em;
+	width: 110%;
+	text-align: center;
+	padding: 13px;
+	transform: rotate(-21deg);
+	color: rgba(0,0,0,0.9);
+}
 
 
 
