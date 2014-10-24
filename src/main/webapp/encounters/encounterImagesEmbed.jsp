@@ -256,7 +256,7 @@ int imageCount = 0;
       if (request.getParameter("isOwner").equals("true") && (!isBMP) && (!isVideo)) {
     %>
     <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" class="highslide" onclick="return hs.expand(this)"
-       title="Click to enlarge">
+       title="<%=encprops.getProperty("clickEnlarge")%>">
       <%
       } else if (request.getParameter("isOwner").equals("true")||(request.getParameter("loggedIn").equals("true"))) {
       %>
@@ -269,7 +269,7 @@ int imageCount = 0;
             }
 		%>
           
-         title="Click to enlarge">
+         title="<%=encprops.getProperty("clickEnlarge")%>">
          
          
          <%
@@ -466,16 +466,22 @@ System.out.println("trying to fork/create " + thumbPath);
 
             <%
               if (CommonConfiguration.showEXIFData(context)&&!isVideo) {
+            	  
+            	  //File exifImage = new File(Encounter.dir(shepherdDataDir, imageEnc.getCatalogNumber()) + "/" + addTextFile);
+              	
             %>
 
 
-            <p><strong>EXIF Data</strong></p>
-					<span class="caption">
-					<div class="scroll"><span class="caption">	
+            <p><strong>EXIF</strong></p>
+            <span class="caption">
+					<div class="scroll">
+						<span class="caption">	
 					<%
             if ((addTextFile.toLowerCase().endsWith("jpg")) || (addTextFile.toLowerCase().endsWith("jpeg"))) {
               try{
-              	File exifImage = new File(thisEncounterDir.getAbsolutePath() + "/"+addTextFile);
+              	//File exifImage = new File(thisEncounterDir.getAbsolutePath() + "/"+addTextFile);
+              	File exifImage = new File(Encounter.dir(shepherdDataDir, imageEnc.getCatalogNumber()) + "/" + addTextFile);
+              	
               	if(exifImage.exists()){              
                   	
               		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);

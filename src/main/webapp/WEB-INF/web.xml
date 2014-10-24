@@ -276,59 +276,6 @@
   </servlet>
 
 
-  <!-- Action Servlet Configuration -->
-
-  <servlet>
-    <servlet-name>uploadAction</servlet-name>
-    <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
-    <init-param>
-      <param-name>config</param-name>
-      <param-value>/WEB-INF/struts-config.xml</param-value>
-    </init-param>
-    <init-param>
-      <param-name>debug</param-name>
-      <param-value>2</param-value>
-    </init-param>
-    <init-param>
-      <param-name>detail</param-name>
-      <param-value>2</param-value>
-    </init-param>
-    <init-param>
-      <param-name>application</param-name>
-      <param-value>org.apache.struts.webapp.upload.UploadResources</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-
-  <servlet>
-    <servlet-name>action</servlet-name>
-    <servlet-class> org.apache.struts.action.ActionServlet </servlet-class>
-    <init-param>
-      <param-name>config</param-name>
-      <param-value>/WEB-INF/struts-config.xml</param-value>
-    </init-param>
-    <init-param>
-      <param-name>debug</param-name>
-      <param-value>0</param-value>
-    </init-param>
-    <init-param>
-      <param-name>detail</param-name>
-      <param-value>0</param-value>
-    </init-param>
-    <init-param>
-      <param-name>locale</param-name>
-      <param-value>true</param-value>
-    </init-param>
-    <init-param>
-      <param-name>nocache</param-name>
-      <param-value>true</param-value>
-    </init-param>
-    <init-param>
-      <param-name>validate</param-name>
-      <param-value>true</param-value>
-    </init-param>
-    <load-on-startup>2</load-on-startup>
-  </servlet>
 
 
   <servlet>
@@ -474,6 +421,11 @@
     <servlet-class>org.ecocean.servlet.EncounterAddSpotFile</servlet-class>
   </servlet>
   
+    <servlet>
+    <servlet-name>AdoptionAction</servlet-name>
+    <servlet-class>org.ecocean.servlet.AdoptionAction</servlet-class>
+  </servlet>
+  
   
     <servlet>
       <servlet-name>UserCreate</servlet-name>
@@ -488,6 +440,11 @@
       <servlet>
         <servlet-name>UserDelete</servlet-name>
         <servlet-class>org.ecocean.servlet.UserDelete</servlet-class>
+  </servlet>
+
+      <servlet>
+        <servlet-name>UserInfo</servlet-name>
+        <servlet-class>org.ecocean.servlet.UserInfo</servlet-class>
   </servlet>
 
   <servlet>
@@ -661,6 +618,11 @@
     <servlet-class>org.ecocean.servlet.EncounterForm</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>Collaborate</servlet-name>
+    <servlet-class>org.ecocean.servlet.Collaborate</servlet-class>
+  </servlet>
+  
   <servlet>
     <servlet-name>JavascriptGlobals</servlet-name>
     <servlet-class>org.ecocean.servlet.JavascriptGlobals</servlet-class>
@@ -1059,6 +1021,11 @@
             <servlet-name>UserDelete</servlet-name>
             <url-pattern>/UserDelete</url-pattern>
   </servlet-mapping>
+
+     <servlet-mapping>
+            <servlet-name>UserInfo</servlet-name>
+            <url-pattern>/UserInfo</url-pattern>
+  </servlet-mapping>
   
         <servlet-mapping>
           <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
@@ -1110,11 +1077,17 @@
     <servlet-name>EncounterForm</servlet-name>
     <url-pattern>/EncounterForm</url-pattern>
   </servlet-mapping>
-  
+
+  <servlet-mapping>
+    <servlet-name>Collaborate</servlet-name>
+    <url-pattern>/Collaborate</url-pattern>
+  </servlet-mapping>
+
   <servlet-mapping>
     <servlet-name>JavascriptGlobals</servlet-name>
     <url-pattern>/JavascriptGlobals.js</url-pattern>
   </servlet-mapping>
+
   
   
     <servlet-mapping>
@@ -1510,6 +1483,11 @@
     <servlet-name>DeleteAdoption</servlet-name>
     <url-pattern>/DeleteAdoption</url-pattern>
   </servlet-mapping>
+  
+   <servlet-mapping>
+    <servlet-name>AdoptionAction</servlet-name>
+    <url-pattern>/AdoptionAction</url-pattern>
+  </servlet-mapping>
 
 
   <servlet-mapping>
@@ -1641,7 +1619,7 @@
   </servlet-mapping>
   
 
-  <!-- Action Servlet Mapping -->
+  <!-- Struts 1 Action Servlet Mapping 
   <servlet-mapping>
     <servlet-name>action</servlet-name>
     <url-pattern>*.do</url-pattern>
@@ -1651,6 +1629,6 @@
     <servlet-name>uploadAction</servlet-name>
     <url-pattern>*.jh</url-pattern>
   </servlet-mapping>
-
+-->
 
 </web-app>

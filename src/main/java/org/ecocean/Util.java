@@ -11,6 +11,16 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
 
+//EXIF-related imports
+import java.io.File;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import com.drew.imaging.jpeg.JpegMetadataReader;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.Tag;
+import java.util.Iterator;
+import org.apache.commons.io.IOUtils;
 
 //import javax.jdo.JDOException;
 //import javax.jdo.JDOHelper;
@@ -19,6 +29,7 @@ import javax.jdo.Query;
 
 
 import org.ecocean.tag.MetalTag;
+import org.ecocean.*;
 
 
 //use Point2D to represent cached GPS coordinates
@@ -282,6 +293,42 @@ public class Util {
       System.out.println("I hit an error trying to populate the cached GPS coordinates in Util.java.");
       return new ArrayList<Point2D>();
     }
+  }
+  
+  public static String getEXIFDataFromJPEGAsHTML(File exifImage){
+    StringBuffer results=new StringBuffer("<p>File not found on file system. No EXIF data available.</p><p>Looking in: "+exifImage.getAbsolutePath()+"</p>");
+    if(exifImage.exists()){
+      results=new StringBuffer();
+      InputStream inp=null;
+    
+      try{
+          inp = new FileInputStream(exifImage);
+          Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+          // iterate through metadata directories
+          Iterator directories = metadata.getDirectories().iterator();
+          while (directories.hasNext()) {
+              Directory directory = (Directory) directories.next();
+              // iterate through tags and print to System.out
+              Iterator tags = directory.getTags().iterator();
+              while (tags.hasNext()) {
+                Tag tag = (Tag) tags.next();
+                results.append(tag.toString()+"<br/>");
+              }
+          }
+          inp.close();
+        } //end try
+        catch(Exception e){
+          results=null;
+          results=new StringBuffer("<p>Cannot read metadata for this file.</p>");
+        }
+      finally {
+        IOUtils.closeQuietly(inp);
+      }
+
+        
+    } //end if
+    return results.toString();
+    
   }
 
 }

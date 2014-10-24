@@ -41,6 +41,8 @@
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/exportSearchResults.properties"));
     map_props=ShepherdProperties.getProperties("exportSearchResults.properties", langCode, context);
 
+		Properties collabProps = new Properties();
+ 		collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
@@ -53,12 +55,11 @@
 
     //start the query and get the results
     String order = "";
-    request.setAttribute("gpsOnly", "yes");
+    //request.setAttribute("gpsOnly", "yes");
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
     
-
-    		
+		Vector blocked = Encounter.blocked(rEncounters, request);
     		
   %>
 
@@ -175,6 +176,7 @@
  
  </ul>
  
+<% if (blocked.size() < 1) { %>
  
  <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 <p><%=map_props.getProperty("exportedOBIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a><br />
@@ -201,6 +203,13 @@
 <p><%=map_props.getProperty("exportedShapefile")%>: <a
   href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportShapefile?<%=request.getQueryString() %>"><%=map_props.getProperty("clickHere")%></a>
 </p>
+
+<% } else { // dont have access to ALL records, so:  %>
+
+<p><%=collabProps.getProperty("functionalityBlockedMessage")%></p>
+
+<% } %>
+
  <table>
   <tr>
     <td align="left">
