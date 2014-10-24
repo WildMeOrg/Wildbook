@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*" %>
+         import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration" %>
 
 <html>
 <head>
@@ -93,6 +93,9 @@
     if (keywords == null) {
       keywords = new String[0];
     }
+
+		ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+
 
     if (request.getParameter("noQuery") == null) {
 	  queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
@@ -347,6 +350,7 @@
 							for(int columns=0;columns<3;columns++){
 								if(countMe<thumbLocs.size()) {
 									Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
+									boolean visible = thisEnc.canUserAccess(request);
 									//String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + "/" + enc.dir("encounters");
 									String encSubdir = thisEnc.subdir();
 
@@ -365,9 +369,10 @@
 							%>
 
     <td>
-      <table>
+      <table class="<%= (visible ? "" : " no-access") %>">
         <tr>
           <td valign="top">
+<% if (visible) { %>
             <a href="<%=link%>" 
             
             <%
@@ -379,7 +384,8 @@
             %>
             
             >
-            <img src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge"/></a>
+<% } else { %><a><% } %>
+            <img src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
 
             <div 
             <%
@@ -637,7 +643,7 @@
                       if (CommonConfiguration.showEXIFData(context)&&!thumbLink.endsWith("video.jpg")) {
                     %>
                     
-                    <p><strong>EXIF Data</strong></p>
+                    <p><strong>EXIF</strong></p>
 												
 				   <span class="caption">
 						<div class="scroll">
@@ -645,7 +651,9 @@
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
-              	File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
+              	//File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
+              	File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
+              
               	if(exifImage.exists()){
               		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               		// iterate through metadata directories
@@ -658,6 +666,7 @@
               	else{
             	 %>
 		            <p>File not found on file system. No EXIF data available.</p>
+		            <p>I looked for the file at: <%=exifImage.getAbsolutePath()%></p>
           		<%  
               	}
               } //end try
@@ -689,6 +698,9 @@
 <tr>
   <td>
   		<span class="caption">
+<%
+	if (!visible) out.println("<div class=\"lock-right\">" + thisEnc.collaborationLockHtml(collabs) + "</div>");
+%>
   			<%=encprops.getProperty("location") %>: 
   			<%
   			try{

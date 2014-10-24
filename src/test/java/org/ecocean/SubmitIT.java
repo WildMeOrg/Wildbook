@@ -52,7 +52,7 @@ public class SubmitIT {
     //selectOption("year", "2011");
     //selectOption("hour", "12 am");
     //selectOption("minutes", ":00");
-	setTextField("datepicker", "2014-10-23 12:34");
+	setTextField("datepicker", "2014-10-10 12:34");
     setTextField("location", "the world");
     setTextField("submitterName", "mark");
     setTextField("submitterEmail", "no-reply@noreply.com");
