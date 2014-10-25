@@ -1105,11 +1105,20 @@ $("a#occurrence").click(function() {
 
 <p><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("date") %>
 </strong><br/><br/>
+<%if(enc.getDateInMilliseconds()>0){ %>
   <a
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
     <%=enc.getDate()%>
   </a>
     <%
+}
+else{
+%>	
+<%=encprops.getProperty("unknown") %>
+<%
+}
+    
+    
 				if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
  					%><font size="-1"><a id="date" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
         		}
