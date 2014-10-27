@@ -389,7 +389,8 @@ context=ServletUtilities.getContext(request);
     } //end if to control number displayed
 
   
-  } //end for loop
+  } 
+  }//end for loop
 
 %>
 </table>
@@ -448,6 +449,7 @@ context=ServletUtilities.getContext(request);
     </td>
     <%
       }
+    
     %>
   </tr>
 </table>
@@ -511,7 +513,7 @@ context=ServletUtilities.getContext(request);
 <br>
 
 <%
-  }
+  
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
   rEncounters = null;
