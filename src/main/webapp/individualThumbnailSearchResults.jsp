@@ -496,7 +496,7 @@
                       </tr>
                       <%
                         }
-                        }
+                        } //end if !video
                       %>
 
                     </table>
@@ -544,7 +544,9 @@
    									</span>
             </div>
    								</span>
-
+<%
+                      }
+%>
 
                   </td>
                  
@@ -628,9 +630,9 @@
 %>
 </tr>
 <%
-  } //endFor
+  } //endFor rows
 
-}
+
 			}catch (Exception e) {
   e.printStackTrace();
 %>
