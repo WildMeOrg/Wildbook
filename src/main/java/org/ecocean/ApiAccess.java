@@ -22,22 +22,18 @@ package org.ecocean;
 /*
 import org.apache.commons.codec.digest.DigestUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.GregorianCalendar;
 import java.io.*;
-
-import org.ecocean.genetics.*;
-import org.ecocean.tag.AcousticTag;
-import org.ecocean.tag.MetalTag;
-import org.ecocean.tag.SatelliteTag;
-import org.ecocean.Util;
-
 */
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -62,26 +58,86 @@ public class ApiAccess {
 
 
 	public Document initConfig(HttpServletRequest request) {
-		if (configDoc != null) return configDoc;
+		if (this.configDoc != null) return this.configDoc;
 		HttpSession session = request.getSession(true);
     String context = "context0";
     context = ServletUtilities.getContext(request);
     //Shepherd myShepherd = new Shepherd(context);
 		ServletContext sc = session.getServletContext();
-System.out.println("reading file???");
 		File afile = new File(sc.getRealPath("/") + "WEB-INF/classes/apiaccess.xml");
+System.out.println("reading file??? " + afile.toString());
 
 		// h/t http://www.mkyong.com/java/how-to-read-xml-file-in-java-dom-parser/
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document configDoc = dBuilder.parse(afile);
-			configDoc.getDocumentElement().normalize();
+			this.configDoc = dBuilder.parse(afile);
+			this.configDoc.getDocumentElement().normalize();
 		} catch (Exception ex) {
 			System.out.println("could not read " + afile.toString() + ": " + ex.toString());
-			configDoc = null;
+			this.configDoc = null;
 		}
-		return configDoc;
+		return this.configDoc;
+	}
+
+
+	//returns map of (negative) permissions for this user (based on role) for this object class
+	// note: no hash key for a property means all access, therefore a null value means user CANNOT write
+	// TODO this structure is subject to change for sure!
+	public HashMap<String, String> permissions(Object o, HttpServletRequest request) {
+		HashMap<String, String> perm = new HashMap<String, String>();
+		this.initConfig(request);
+		String cname = o.getClass().getName();
+System.out.println(cname);
+
+		String context = "context0";
+		context = ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
+		String username = request.getUserPrincipal().getName();
+		List<Role> roleObjs = myShepherd.getAllRolesForUserInContext(username, context);
+System.out.println(roleObjs);
+		List<String> roles = new ArrayList<String>();
+		for (Role r : roleObjs) {
+			roles.add(r.getRolename());
+		}
+System.out.println(roles);
+
+		NodeList nlist = this.configDoc.getDocumentElement().getElementsByTagName("class");
+		if (nlist.getLength() < 1) return perm;
+
+		for (int i = 0 ; i < nlist.getLength() ; i++) {
+			Node n = nlist.item(i);
+			if (n.getNodeType() == Node.ELEMENT_NODE) {
+				Element el = (Element) n;
+System.out.println(el.getAttribute("name"));
+				if (el.getAttribute("name").equals(cname)) {
+					Node p = el.getElementsByTagName("properties").item(0);
+					if (p == null) return perm;
+					Element propsEl = (Element) p;
+					NodeList props = propsEl.getElementsByTagName("property");
+					for (int j = 0 ; j < props.getLength() ; j++) {
+						if (props.item(j).getNodeType() == Node.ELEMENT_NODE) {
+							Element pel = (Element) props.item(j);
+							String propName = pel.getAttribute("name");
+							if (propName != null) {
+///////////// TODO for now we assume we ONLY have a sub element for <write> perm here so we skip a step
+								NodeList proles = pel.getElementsByTagName("role");
+								boolean allowed = false;
+								for (int k = 0 ; k < proles.getLength() ; k++) {
+									if (roles.contains(proles.item(k).getTextContent())) {
+										allowed = true;
+										k = proles.getLength() + 1;
+									}
+								}
+								if (!allowed) perm.put(propName, null);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return perm;
 	}
 
 }
