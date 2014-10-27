@@ -27,8 +27,11 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.HashMap;
 import java.util.GregorianCalendar;
 import java.io.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
 import org.ecocean.tag.AcousticTag;
@@ -1925,6 +1928,19 @@ thus, we have to treat it as a special case.
 			ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataCollectionEventID() + "-mid.jpg");  //for use in VM tool etc. (bandwidth friendly?)
 			return ok;
 		}
+
+
+	public boolean restAccess(HttpServletRequest request) throws Exception {
+		ApiAccess access = new ApiAccess();
+		HashMap<String, String> perm = access.permissions(this, request);
+System.out.println(perm);
+/*
+System.out.println("!!!----------------------------------------");
+System.out.println(request.getMethod());
+throw new Exception();
+*/
+		return true;
+	}
 
 }
 

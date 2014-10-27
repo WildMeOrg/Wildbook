@@ -991,7 +991,7 @@
 
   <servlet>
     <servlet-name>WildbookApi</servlet-name>
-    <servlet-class>org.ecocean.servlet.Api</servlet-class>
+    <servlet-class>org.ecocean.servlet.RestServlet</servlet-class>
     <init-param>
       <param-name>persistence-context</param-name>
       <param-value>ShepherdPMF</param-value>
