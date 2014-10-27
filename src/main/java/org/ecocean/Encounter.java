@@ -1932,8 +1932,12 @@ thus, we have to treat it as a special case.
 
 	public boolean restAccess(HttpServletRequest request) throws Exception {
 		ApiAccess access = new ApiAccess();
+System.out.println("hello i am in restAccess() on Encounter");
+
+
 		HashMap<String, String> perm = access.permissions(this, request);
 System.out.println(perm);
+
 /*
 System.out.println("!!!----------------------------------------");
 System.out.println(request.getMethod());
