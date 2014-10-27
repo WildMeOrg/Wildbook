@@ -88,19 +88,17 @@ System.out.println("reading file??? " + afile.toString());
 		HashMap<String, String> perm = new HashMap<String, String>();
 		this.initConfig(request);
 		String cname = o.getClass().getName();
-System.out.println(cname);
-
 		String context = "context0";
 		context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
-		String username = request.getUserPrincipal().getName();
+		String username = "";
+		if (request.getUserPrincipal() != null) username = request.getUserPrincipal().getName();
 		List<Role> roleObjs = myShepherd.getAllRolesForUserInContext(username, context);
-System.out.println(roleObjs);
 		List<String> roles = new ArrayList<String>();
 		for (Role r : roleObjs) {
 			roles.add(r.getRolename());
 		}
-System.out.println(roles);
+System.out.println("[class " + cname + "] roles for user '" + username + "': " + roles);
 
 		NodeList nlist = this.configDoc.getDocumentElement().getElementsByTagName("class");
 		if (nlist.getLength() < 1) return perm;
@@ -109,7 +107,7 @@ System.out.println(roles);
 			Node n = nlist.item(i);
 			if (n.getNodeType() == Node.ELEMENT_NODE) {
 				Element el = (Element) n;
-System.out.println(el.getAttribute("name"));
+//System.out.println(el.getAttribute("name"));
 				if (el.getAttribute("name").equals(cname)) {
 					Node p = el.getElementsByTagName("properties").item(0);
 					if (p == null) return perm;
