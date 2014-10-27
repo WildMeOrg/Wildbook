@@ -98,6 +98,8 @@
 				/appadmin/** = authc, roles[admin]
 				 /logs/** = authc, roles[admin]
              
+				/rest/** = authcBasicWildbook, roles[rest]
+			 
 			    /RelationshipCreate  = authc, roles[admin]
 		   /RelationshipDelete  = authc, roles[admin]
 			 
