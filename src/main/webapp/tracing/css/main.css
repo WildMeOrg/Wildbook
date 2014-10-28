@@ -1,0 +1,234 @@
+<!--
+  Copyright (C): 2008-2014
+  Author: Ecological Software Solutions LLC
+  License: Artistic License 2.0 
+-->
+
+@charset "utf-8";
+
+@MEDIA print {
+	#table div.td {
+		font-weight: bold;
+		background-color: #ccc;
+		overflow: auto;
+	}
+	table {
+		display: table;
+	}
+	thead {
+		display: table-header-group;
+	}
+	.hide {
+		visibility: hidden;
+		display: none;
+	}
+}
+
+@media all {
+	thead {
+		display: table-header-group;
+	}
+	th {
+		font-family: tahoma, Arial, Helvetica, sans-serif;
+		font-size: 10pt;
+		font-style: normal;
+		text-decoration: none;
+		padding-left: 0.5em;
+		padding-right: 0.5em;
+	}
+	tbody {
+		display: table-row-group;
+		page-break-after: always;
+	}
+	table {
+		display: table;
+	}
+	body, pagebody {
+		font-family: tahoma, Arial, Helvetica, sans-serif;
+		font-size: 10pt;
+		font-style: normal;
+		text-decoration: none;
+	}
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.infoWin {
+	background-color: #D2E0EE;
+}
+
+.infoDiv{
+	background-image: url("../img/messagebox_info.png");
+	background-color: #D2E0EE;	
+}
+
+.warnWin {
+	background-color: #FFFFCC;
+}
+
+.warnDiv {
+	background-image: url("../img/messagebox_warning.png");
+	background-color: #FFFFCC;
+}
+
+.errorWin {
+	background-color: #FFCCCC;
+}
+
+.errorDiv {
+	background-image: url("../img/messagebox_critical.png");
+	background-color: #FFCCCC;
+}
+
+.successDiv {
+	background-image: url("../img/agt_action_success.png");
+	background-color: #CCFFCC;
+	color: #555;
+}
+
+.infoDiv, .warnDiv, .errorDiv, .successDiv  {
+	background-repeat: no-repeat;
+	background-position: 1em 0.75em;
+	margin-top: 1.0em;
+	text-indent: 30px;
+	margin-left: 2.0em;
+	margin-right: 2.0em;
+	margin-bottom: 1.0em;
+	padding: 1.0em;
+}
+
+.infoWin, .infoDiv, .warnWin, .warnDiv, .errorDiv, .errorWin, .successDiv  {
+	color: #555;
+	border: 1px solid #333333;
+}
+
+.window {
+	font-size: 10pt;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	color: #444;
+	text-decoration: none;
+	border: 1px solid #aaa;
+	background-color: #FFFFFF;
+	margin-bottom: 2em;
+	padding-bottom: 0.75em;
+}
+
+.window, .infoDiv, .warnWin, .warnDiv, .errorDiv, .errorWin, .successDiv  {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	text-decoration: none;
+	border-radius: 3px;
+	box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.3);	
+}
+
+.linkclick {
+	border-width: 0px;
+	text-decoration: underline;
+	color: blue;
+	cursor: pointer;
+}
+
+.linkclick:hover {
+	color: red;
+}
+
+.numeric_input {
+	text-align: right;
+	padding-right: 0.25em;
+	padding-left: 0.25em;
+}
+
+.paneled {
+	border: 1px solid #444;
+}
+
+.panel, .paneled {
+	padding: 1em;	
+}
+
+.innerWindow {
+	border: 1px solid #aaa;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	padding: 0.75em;
+}
+
+select, input, textarea, .input {
+	font-size: 9pt;
+	border: 1px solid #ccc;
+	background-color: #FFFFFF;
+}
+
+.panel, .innerWindow, select, input, textarea, .input {
+	font-family: Arial, Helvetica, sans-serif;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	color: #444;
+	text-decoration: none;
+	background-color: #FFFFFF;
+}
+
+.wait {
+	border: 1px solid #333;
+	background-color: #FFFFFF;
+}
+
+.textPanel {
+	color: #000;
+	border-style: 1px solid #999;
+	background-color: #fff;
+	padding: 5px;
+	margin-left: auto;
+	margin-right: auto;
+	width: 95%;
+	z-index: 1;
+}
+
+#panel {
+	overflow: auto;
+	position: relative;
+}
+
+.floatleft,#floatleft {
+	margin-left: 1em;
+	margin-right: 1em;
+	float: left;
+}
+
+.floatright,#floatright {
+	display: inline;
+	margin-left: 1em;
+	margin-right: 1em;
+	float: right;
+}
+
+
+.hidden {
+	visibility: hidden;
+	display: none;
+}
+
+.visible {
+	visibility: visible;
+}
+
+.success {
+	background-image: url("../img/okay16.png");
+	background-repeat: no-repeat;
+	text-indent: 20px;
+}
+
+.failure {
+	background-image: url("../img/cancel16.png");
+	background-repeat: no-repeat;
+	text-indent: 20px;
+}
+
+.required {
+	background-color: #FFFFCC;
+}
