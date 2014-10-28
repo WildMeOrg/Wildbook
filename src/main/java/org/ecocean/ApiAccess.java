@@ -30,6 +30,7 @@ import java.io.*;
 */
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -50,6 +51,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import org.json.JSONObject;
 
 public class ApiAccess {
   private int day = 0;
@@ -78,6 +81,26 @@ System.out.println("reading file??? " + afile.toString());
 			this.configDoc = null;
 		}
 		return this.configDoc;
+	}
+
+
+	//this does the real work.  returns null if ok, or string with error message if request is disallowed on object
+	public String checkRequest(Object obj, HttpServletRequest request, JSONObject jsonobj) {
+		String err = null;
+		if (!request.getMethod().equals("POST") && !request.getMethod().equals("PUT")) return null;  //we only care about PUT/POST for now
+		HashMap<String, String> perm = permissions(obj, request);
+
+		Iterator<?> keys = jsonobj.keys();
+		while (keys.hasNext()) {
+			String key = (String) keys.next();
+System.out.println(key);
+			//we dont care what the value is, just if it is being set at all and shouldnt be
+			if (perm.containsKey(key) && (perm.get(key) == null)) {
+				err = "altering value for " + key + " disallowed by permissions: " + perm.toString();
+				break;
+			}
+		}
+		return err;
 	}
 
 
