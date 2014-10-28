@@ -495,7 +495,7 @@ public class RestServlet extends HttpServlet
             }
 
             Object pc = RESTUtils.getObjectFromJSONObject(jsonobj, className, ec);
-						boolean restAccessOk = restAccessCheck(pc, req);
+						boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
 /*
 System.out.println(jsonobj);
 System.out.println("+++++");
@@ -806,13 +806,14 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
         }
     }
 
-		boolean restAccessCheck(Object obj, HttpServletRequest req) {
+		boolean restAccessCheck(Object obj, HttpServletRequest req, JSONObject jsonobj) {
+System.out.println(jsonobj.toString());
 System.out.println(obj);
 System.out.println(obj.getClass());
 			boolean ok = true;
 			Method restAccess = null;
 			try {
-				restAccess = obj.getClass().getMethod("restAccess", new Class[] { HttpServletRequest.class });
+				restAccess = obj.getClass().getMethod("restAccess", new Class[] { HttpServletRequest.class, JSONObject.class });
 			} catch (NoSuchMethodException nsm) {
 System.out.println("no such method??????????");
 				//nothing to do
@@ -822,7 +823,7 @@ System.out.println("no such method??????????");
 System.out.println("<<<<<<<<<< we have restAccess() on our object.... invoking!\n");
 			//when .restAccess() is called, it should throw an exception to signal not allowed
 			try {
-				restAccess.invoke(obj, req);
+				restAccess.invoke(obj, req, jsonobj);
 			} catch (Exception ex) {
 				ok = false;
 System.out.println("got Exception trying to invoke restAccess: " + ex.toString());

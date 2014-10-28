@@ -42,6 +42,7 @@ import org.ecocean.servlet.ServletUtilities;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.json.JSONObject;
 
 /**
  * An <code>encounter</code> object stores the complete data for a single sighting/capture report.
@@ -1930,13 +1931,16 @@ thus, we have to treat it as a special case.
 		}
 
 
-	public boolean restAccess(HttpServletRequest request) throws Exception {
+	public boolean restAccess(HttpServletRequest request, JSONObject jsonobj) throws Exception {
 		ApiAccess access = new ApiAccess();
 System.out.println("hello i am in restAccess() on Encounter");
 
+		String fail = access.checkRequest(this, request, jsonobj);
+System.out.println("fail -----> " + fail);
+		if (fail != null) throw new Exception(fail);
 
-		HashMap<String, String> perm = access.permissions(this, request);
-System.out.println(perm);
+		//HashMap<String, String> perm = access.permissions(this, request);
+//System.out.println(perm);
 
 /*
 System.out.println("!!!----------------------------------------");
