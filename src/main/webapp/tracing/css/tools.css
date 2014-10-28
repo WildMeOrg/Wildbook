@@ -1,0 +1,203 @@
+<!--
+  Copyright (C): 2008-2014
+  Author: Ecological Software Solutions LLC
+  License: Artistic License 2.0 
+-->
+
+@charset "utf-8";
+
+@MEDIA print {
+	@page { size : landscape; margin: 1cm }	
+}	
+
+.innerWin{
+	padding: 1.5em;
+	display: block;
+}
+
+.error_message {
+	color: red;
+	margin-bottom: 1em;
+	padding: 0.5em;
+	background-color: #ffD;
+	border: 1px solid gray;	
+}
+
+.disabled {
+	background-color: #ddd;
+}
+
+img.thumbnail {
+	opacity:0.8;
+	background-color: #fff;
+	border: 1px solid #fff;
+	margin: 1em;
+}
+
+img.thumbnail:hover{
+	opacity:1.0;
+	background-color: #fff;
+	border: 1px solid gray;
+	margin: 1em;
+}
+
+.winButton {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #333;
+	background-repeat: no-repeat;
+	background-position: 3px center;
+	padding-top: 0px;
+	padding-right: 4px;
+	padding-bottom: 2px;
+	padding-left: 20px;
+	border: 1px solid silver;
+	cursor: pointer;
+	vertical-align: middle;
+	top: 1px;
+	background-color: #ddd;
+	text-decoration: none;
+	height: 1.5em;
+	margin-right: 2px;
+	margin-left: 4px;
+	margin-top: -2px;
+	border-radius: 3px;
+}
+
+.winButton:hover {
+	color: #000;
+	border: 1px #777 solid;
+	background-color: #ccc;
+}
+
+table,div.table,#table {
+	display: table;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	color: #444;
+	border-collapse: collapse;
+}
+
+table.noborders {
+	border: hidden;
+}
+
+table input {
+	text-decoration: none;
+	border: 1px #ccc solid;
+	background-color: #FFFFFF;
+}
+
+table input.text {
+	text-align: left;
+	border: 0px;
+}
+
+table input.number {
+	text-align: right;
+	border: 0px;
+}
+
+td.invisible {
+	visibility: hidden;
+	display: none;
+}
+
+tdr {
+	text-align: right;
+}
+
+div.th,div.td,th,td,#th,#td {
+	display: table-cell;
+	margin: 3px;
+	padding: 3px;
+	border-left: 1px solid #eee;
+	border-top: 1px solid #eee;
+	border-right: 1px solid #aaa;
+	border-bottom: 1px solid #aaa;
+}
+
+th,div.th,#th {
+	display:table-cell;
+	border-collapse: collapse;
+	font-weight: normal;
+	text-align: center;
+	background-color: #ccc;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+}
+
+td,div.td,div.tdr {
+	display: table-cell;
+	border-collapse: collapse;
+	font-weight: normal;
+	background-color: #fff;
+	overflow: auto;
+}
+
+td {
+	text-align: left;
+}
+
+tr,div.tr,#tr {
+	display: table-row;
+	border-collapse: collapse;
+	font-weight: normal;
+	margin: 3px;
+}
+
+#title {
+	font: 26px Verdana, Arial, Helvetica, sans-serif;
+	color: #986377;
+	position: relative;
+	width: 1000px;
+	height: 65px;
+	z-index: 0;
+}
+
+.cancel {
+	background-image:url("../img/cancel16.png");
+}
+
+.draw {
+	background-image:url("../img/color_line.png");
+}
+
+.photo {
+	background-image:url("../img/image.png");
+}
+
+.view {
+	background-image:url("../img/view.png");
+}
+
+.hidden {
+	background-image:url("../img/hidden.png");
+}
+
+.eraser {
+	background-image:url("../img/eraser.png");
+}
+
+.calculate {
+	background-image:url("../img/calc.png");
+}
+
+.save {
+	background-image:url("../img/okay16.png");
+}
+
+.redo {
+	background-image:url("../img/redo.png");
+}
+
+.zoomin {
+	background-image:url("../img/viewmag+.png");
+}
+
+.zoomout {
+	background-image:url("../img/viewmag-.png");
+}
