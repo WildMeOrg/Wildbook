@@ -278,6 +278,9 @@ context=ServletUtilities.getContext(request);
 		boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
 
     if ((numResults >= startNum) && (numResults <= endNum)) {
+    	
+    	
+    	
 %>
 <tr class="lineitem<%= (visible ? "" : " no-access") %>">
   <td width="100" class="lineitem">
@@ -289,10 +292,11 @@ context=ServletUtilities.getContext(request);
   <%
    if((enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()>0)){ 
    %>
-  	<img src="<%= encUrlDir %>/thumb.jpg" />
+  	<img src="<%= encUrlDir %>/thumb.jpg" /> 
   </td>
 
   <%
+   }
     if (enc.isAssignedToMarkedIndividual().trim().toLowerCase().equals("unassigned")) {
   %>
   <td class="lineitem"><%=encprops.getProperty("unassigned")%>
@@ -389,7 +393,7 @@ context=ServletUtilities.getContext(request);
     } //end if to control number displayed
 
   
-  } 
+  //} 
   }//end for loop
 
 %>
