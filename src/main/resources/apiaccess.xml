@@ -10,7 +10,7 @@ NOTE: "admin" role always can do anything
 			<properties>
 				<property name="location">
 					<write>
-						<role>foobar</role>
+						<role>admin</role>
 						<role>test</role>
 					</write>
 				</property>

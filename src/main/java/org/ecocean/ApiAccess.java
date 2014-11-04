@@ -108,9 +108,13 @@ System.out.println(key);
 	// note: no hash key for a property means all access, therefore a null value means user CANNOT write
 	// TODO this structure is subject to change for sure!
 	public HashMap<String, String> permissions(Object o, HttpServletRequest request) {
+		return permissions(o.getClass().getName(), request);
+	}
+
+	//does the real work (pass class name string)
+	public HashMap<String, String> permissions(String cname, HttpServletRequest request) {
 		HashMap<String, String> perm = new HashMap<String, String>();
 		this.initConfig(request);
-		String cname = o.getClass().getName();
 		String context = "context0";
 		context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
@@ -130,10 +134,10 @@ System.out.println("[class " + cname + "] roles for user '" + username + "': " +
 			Node n = nlist.item(i);
 			if (n.getNodeType() == Node.ELEMENT_NODE) {
 				Element el = (Element) n;
-//System.out.println(el.getAttribute("name"));
 				if (el.getAttribute("name").equals(cname)) {
 					Node p = el.getElementsByTagName("properties").item(0);
 					if (p == null) return perm;
+//System.out.println("ok in " + cname);
 					Element propsEl = (Element) p;
 					NodeList props = propsEl.getElementsByTagName("property");
 					for (int j = 0 ; j < props.getLength() ; j++) {
@@ -150,7 +154,7 @@ System.out.println("[class " + cname + "] roles for user '" + username + "': " +
 										k = proles.getLength() + 1;
 									}
 								}
-								if (!allowed) perm.put(propName, null);
+								if (!allowed) perm.put(propName, "deny");
 							}
 						}
 					}
@@ -158,6 +162,7 @@ System.out.println("[class " + cname + "] roles for user '" + username + "': " +
 			}
 		}
 
+System.out.println(perm);
 		return perm;
 	}
 
