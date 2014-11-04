@@ -28,9 +28,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.lang.reflect.Field;
+
 import java.io.*;
 import java.util.*;
 
+import org.w3c.dom.Document;
 import com.google.gson.Gson;
 
 public class JavascriptGlobals extends HttpServlet {
@@ -65,11 +68,34 @@ public class JavascriptGlobals extends HttpServlet {
 		HashMap props = new HashMap();
 		HashMap lang = new HashMap();
 
+
 		//lang.put("collaboration", ShepherdProperties.getProperties("collaboration.properties", langCode, context));
 		lang.put("visualMatcher", ShepherdProperties.getProperties("visualMatcher.properties", langCode, context));
 
 		props.put("lang", lang);
 		rtn.put("properties", props);
+
+		HashMap classDefn = new HashMap();
+		Class[] classes = new Class[2];
+		classes[0] = org.ecocean.Encounter.class;
+		classes[1] = org.ecocean.MarkedIndividual.class;
+
+		ApiAccess access = new ApiAccess();
+
+		for (Class cls : classes) {
+			HashMap defn = new HashMap();
+			Field[] fields = cls.getDeclaredFields();
+			HashMap fhm = new HashMap();
+			for (Field f : fields) {
+				fhm.put(f.getName(), f.getType().getName());
+			}
+			defn.put("fields", fhm);
+			//HashMap ap = access.permissions(cls.getName(), request);
+			//defn.put("permissions", ap);
+			defn.put("permissions", access.permissions(cls.getName(), request));
+			classDefn.put(cls.getName(), defn);
+		}
+		rtn.put("classDefinitions", classDefn);
 
     response.setContentType("text/javascript");
     response.setCharacterEncoding("UTF-8");
