@@ -1,32 +1,47 @@
 
-wildbook.class.BaseClass = augment.defclass({
+//wildbook.class.BaseClass = augment.defclass({
+wildbook.class.BaseClass = Backbone.Model.extend({
 
-	//gets passed in the obj (hash) from api rest call
-//TODO make this populate more wisely! likely based upon class property defn or some such...
-	constructor: function(obj) {
-		for (var p in obj) {
-			this[p] = obj[p];
+
+	defaults: function() {
+		var f = this.fields();
+		var def = {};
+		for (var fn in f) {
+			var val = f[fn].defaultValue || this._defaultValueFor(f[fn].javaType);
+			def[fn] = val;
 		}
+		return def;
 	},
 
-	apiUrl: function() {
-//TODO baseurl!!
-		return '/mm/api/org.ecocean.' + this.meta().className;
+
+	url: function() {
+		if (!this.id) return false;  //how are you really supposed to handle this??? TODO
+		return wildbookGlobals.baseUrl + '/api/org.ecocean.' + this.meta().className + '/' + this.id;
+	},
+
+	classNameShort: function() {
+		return this.meta().className;
+	},
+	className: function() {
+		return 'org.ecocean.' + this.classNameShort();
 	},
 
 	fields: function() {
-		if (!wildbookGlobals.classDefinitions[this.class]) return;
+		if (!wildbookGlobals.classDefinitions[this.className()]) return;
 		var rtn = {};
-		for (var fn in wildbookGlobals.classDefinitions[this.class].fields) {
+		for (var fn in wildbookGlobals.classDefinitions[this.className()].fields) {
 			if (fn.indexOf('jdo') == 0) continue;
-			var fh = { javaType: wildbookGlobals.classDefinitions[this.class].fields[fn] };
+			var fh = { javaType: wildbookGlobals.classDefinitions[this.className()].fields[fn] };
 			fh.value = this[fn];
-			fh.settable = !(wildbookGlobals.classDefinitions[this.class].permissions && (wildbookGlobals.classDefinitions[this.class].permissions[fn] == 'deny'));
+			fh.settable = !(wildbookGlobals.classDefinitions[this.className()].permissions && (wildbookGlobals.classDefinitions[this.className()].permissions[fn] == 'deny'));
 			rtn[fn] = fh;
 		}
 		return rtn;
 	},
 
 //Encounter/f62e6794-ef5c-4508-a5fb-592f069876d9
-	foo: function() { console.log('foo on %o', this); }
+
+
+	_defaultValueFor: function() { return '' },
+
 });

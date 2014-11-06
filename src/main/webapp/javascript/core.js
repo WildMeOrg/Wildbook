@@ -25,7 +25,7 @@ console.log('huh??? %o', me._loadAllClassesCount);
 			console.error('invalid class %o', cls);
 			return;
 		}
-		var url = cls.prototype.apiUrl();
+		var url = cls.prototype.url();
 		if (arg) url += '/' + arg;
 console.log('fetch() url = ' + url);
 
