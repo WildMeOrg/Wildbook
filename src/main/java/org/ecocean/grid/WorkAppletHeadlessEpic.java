@@ -116,7 +116,7 @@ public class WorkAppletHeadlessEpic {
     //set up the random identifier for this "node"
     Random ran = new Random();
     int nodeIdentifier = ran.nextInt();
-    String nodeID = "Epic_" + (new Integer(nodeIdentifier)).toString();
+    String nodeID = "Amazon_" + (new Integer(nodeIdentifier)).toString();
 
 
     //if targeted on a specific task, show a percentage bar for progress
