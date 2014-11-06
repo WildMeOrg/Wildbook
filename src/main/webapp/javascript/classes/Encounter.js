@@ -1,17 +1,43 @@
 
-wildbook.class.Encounter = augment(wildbook.class.BaseClass, function(uber) {
-	this.constructor = function(o) {
-		uber.constructor.call(this, o);
-	};
+wildbook.class.Encounter = wildbook.class.BaseClass.extend({
 
-	this.getIndividual = function(callback) {
-		if (this.individual || !this.individualID || (this.individualID == '') || (this.individualID == 'Unassigned')) callback(false);
+	idAttribute: 'catalogNumber',   //TODO put this in classDefinitions from java (somehow)
+
+/*
+	defaults: _.extend({}, wildbook.class.BaseClass.prototype.defaults, {
+		someOther: 'default',
+	}),
+*/
+
+/*
+	url: function() {
+	},
+*/
+
+///TODO use collection, duh
+	getIndividual: function(callback) {
+		var iid = this.get('individualID');
+		if (this.individual || !iid || (iid == '') || (iid == 'Unassigned')) {
+			callback(false);
+			return;
+		}
+
+console.log(iid);
+		var ind = new wildbook.class.MarkedIndividual({individualID: iid});
+console.log(ind);
 		var me = this;
-		wildbook.fetch(wildbook.class.MarkedIndividual, this.individualID, function(d) {
-			if (d[0]) me.individual = d[0];
-			callback(true);
+		ind.fetch({
+			success: function(mod, res, opt) {
+				me.individual = mod;
+				callback(true);
+			},
+			error: function(mod, res, opt) {
+				console.error('%o %o %o', m, res, opt);
+				callback(false);
+			},
 		});
-	};
+	}
+
 
 });
 
