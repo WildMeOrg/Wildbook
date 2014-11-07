@@ -1,5 +1,5 @@
 
-wildbook.class.MarkedIndividual = wildbook.class.BaseClass.extend({
+wildbook.Model.MarkedIndividual = wildbook.Model.BaseClass.extend({
 
 	idAttribute: 'individualID',
 

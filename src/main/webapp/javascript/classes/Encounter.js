@@ -1,10 +1,10 @@
 
-wildbook.class.Encounter = wildbook.class.BaseClass.extend({
+wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 
 	idAttribute: 'catalogNumber',   //TODO put this in classDefinitions from java (somehow)
 
 /*
-	defaults: _.extend({}, wildbook.class.BaseClass.prototype.defaults, {
+	defaults: _.extend({}, wildbook.Model.BaseClass.prototype.defaults, {
 		someOther: 'default',
 	}),
 */
@@ -13,6 +13,9 @@ wildbook.class.Encounter = wildbook.class.BaseClass.extend({
 	url: function() {
 	},
 */
+
+	getImages: function() {
+	},
 
 ///TODO use collection, duh
 	getIndividual: function(callback) {
@@ -23,7 +26,7 @@ wildbook.class.Encounter = wildbook.class.BaseClass.extend({
 		}
 
 console.log(iid);
-		var ind = new wildbook.class.MarkedIndividual({individualID: iid});
+		var ind = new wildbook.Model.MarkedIndividual({individualID: iid});
 console.log(ind);
 		var me = this;
 		ind.fetch({
@@ -38,6 +41,12 @@ console.log(ind);
 		});
 	}
 
+
+});
+
+
+wildbook.Collection.Encounters = wildbook.Collection.BaseClass.extend({
+	model: wildbook.Model.Encounter,
 
 });
 

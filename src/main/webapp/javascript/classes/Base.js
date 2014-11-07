@@ -1,6 +1,5 @@
 
-//wildbook.class.BaseClass = augment.defclass({
-wildbook.class.BaseClass = Backbone.Model.extend({
+wildbook.Model.BaseClass = Backbone.Model.extend({
 
 
 	defaults: function() {
@@ -16,7 +15,7 @@ wildbook.class.BaseClass = Backbone.Model.extend({
 
 	url: function() {
 		if (!this.id) return false;  //how are you really supposed to handle this??? TODO
-		return wildbookGlobals.baseUrl + '/api/org.ecocean.' + this.meta().className + '/' + this.id;
+		return wildbookGlobals.baseUrl + '/api/' + this.className() + '/' + this.id;
 	},
 
 	classNameShort: function() {
@@ -45,3 +44,12 @@ wildbook.class.BaseClass = Backbone.Model.extend({
 	_defaultValueFor: function() { return '' },
 
 });
+
+
+wildbook.Collection.BaseClass = Backbone.Collection.extend({
+	url: function() {
+		return wildbookGlobals.baseUrl + '/api/' + this.model.prototype.className();
+	},
+
+});
+
