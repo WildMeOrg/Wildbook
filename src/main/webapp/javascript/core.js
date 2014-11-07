@@ -5,7 +5,8 @@ var wildbook = {
 		'MarkedIndividual',
 	],
 
-	class: {},
+	Model: {},
+	Collection: {},
 
 	loadAllClasses: function(callback) {
 		this._loadAllClassesCount = this.classNames.length;
@@ -13,13 +14,14 @@ var wildbook = {
 		for (var i = 0 ; i < this.classNames.length ; i++) {
 		classInit(this.classNames[i], function() {
 			me._loadAllClassesCount--;
-console.log('huh??? %o', me._loadAllClassesCount);
+//console.log('huh??? %o', me._loadAllClassesCount);
 			if (me._loadAllClassesCount <= 0) console.log('DONE!');
 		});
 		}
 	},
 
 
+/*
 	fetch: function(cls, arg, callback) {
 		if (!cls || !cls.prototype || !cls.prototype.meta) {
 			console.error('invalid class %o', cls);
@@ -47,19 +49,15 @@ console.log('fetch() url = ' + url);
 console.log('is %o', ajax);
 		$.ajax(ajax);
 	},
+*/
+
 
 
 	init: function() {
-		console.log('GOT IT!');
-		defineBaseClass();
+		classInit('Base', function() { wildbook.loadAllClasses(); });  //define base class first - rest can happen any order
 	}
 
 };
-
-
-function defineBaseClass() {
-	classInit('Base', function() { wildbook.loadAllClasses(); });
-}
 
 
 
@@ -69,9 +67,9 @@ function classInit(cname, callback) {
 	$.getScript('/mm/javascript/classes/' + cname + '.js', function() {
 		console.info('successfully loaded class %s', cname);
 
-		//this is lame cuz augment doesnt allow class methods to inherit, so superhacky. :(
-		if (wildbook.class[cname] && wildbook.class[cname].prototype) {
-			wildbook.class[cname].prototype.meta = function() {
+		//just a way to get actual name... hacky, but cant figure out the elegant way??
+		if (wildbook.Model[cname] && wildbook.Model[cname].prototype) {
+			wildbook.Model[cname].prototype.meta = function() {
 				return {
 					className: cname
 				};
