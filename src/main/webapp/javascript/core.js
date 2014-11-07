@@ -3,6 +3,7 @@ var wildbook = {
 	classNames: [
 		'Encounter',
 		'MarkedIndividual',
+		'SinglePhotoVideo',
 	],
 
 	Model: {},

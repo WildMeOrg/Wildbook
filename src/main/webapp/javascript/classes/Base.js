@@ -47,7 +47,8 @@ wildbook.Model.BaseClass = Backbone.Model.extend({
 
 
 wildbook.Collection.BaseClass = Backbone.Collection.extend({
-	url: function() {
+	url: function(foo) {
+console.log('foo %o', foo);
 		return wildbookGlobals.baseUrl + '/api/' + this.model.prototype.className();
 	},
 
