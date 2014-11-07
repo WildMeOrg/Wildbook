@@ -65,72 +65,9 @@ while(allEncs.hasNext()){
 	
 	Encounter sharky=(Encounter)allEncs.next();
 	
-	
-	/*if(sharky.getApproved()){sharky.setState("approved");}
-	else if(sharky.getUnidentifiable()){sharky.setState("unidentifiable");}
-	else{sharky.setState("unapproved");}
-	*/
-	
-	
-	//more comments here
-	
-	//and then some more
-	
-	//change to SinglePhotoVideo
-	int numPhotos=sharky.getOldAdditionalImageNames().size();
-	%>
-	<%=numPhotos %>
-	<% 
-	//List<SinglePhotoVideo> images=sharky.getImages();
-	for(int i=0;i<numPhotos;i++){
-		SinglePhotoVideo single=new SinglePhotoVideo(sharky.getCatalogNumber(), ((String)sharky.additionalImageNames.get(i)), ("/opt/tomcat7/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+((String)sharky.additionalImageNames.get(i))));
-
-		
-		//SinglePhotoVideo single=images.get(i);
-		//single.
-		//set keywords
-		String checkString=sharky.getEncounterNumber() + "/" + (String)sharky.additionalImageNames.get(i);
-		
-		/*
-		Iterator keywords=myShepherd.getAllKeywords();
-		while(keywords.hasNext()){
-			Keyword word=(Keyword)keywords.next();
-			if(word.isMemberOf(checkString)){single.addKeyword(word);}
-		}
-		sharky.addSinglePhotoVideo(single);
-		*/
-		
-		//another important comment
-		
-		try{
-			File file=new File("/opt/tomcat6/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+"/"+sharky.getImages().get(i).getDataCollectionEventID()+".jpg");
-			if(!file.exists()){
-				URL url = new URL("http://www.whaleshark.org/encounters/encounter.jsp?number="+sharky.getCatalogNumber());
-				BufferedReader in=new BufferedReader(new InputStreamReader(url.openStream()));
-				in.close();
-				in=null;
-				url=null;
-			}
-		}
-		catch(Exception e){}
-	    
-		
-
-	
-	}
+	sharky.resetDateInMilliseconds();
 	
 
-	
-	/*
-	
-	if(sharky.getSizeAsDouble()!=null){
-		Measurement measurement = new Measurement(sharky.getEncounterNumber(), "disc width", sharky.getSizeAsDouble(), "meters", sharky.getSizeGuess());
-        sharky.addMeasurement(measurement);
-	}
-	
-	*/
-
-	
 
 
 }
