@@ -64,6 +64,8 @@ public class JavascriptGlobals extends HttpServlet {
 		rtn.put("username", username);
 		rtn.put("langCode", langCode);
 		rtn.put("baseUrl", request.getContextPath());
+		rtn.put("rootDir", (new File(getServletContext().getRealPath("/")).getParentFile()).toString());
+		rtn.put("dataUrl", "/" + CommonConfiguration.getDataDirectoryName(context));
 
 		HashMap props = new HashMap();
 		HashMap lang = new HashMap();
@@ -76,9 +78,12 @@ public class JavascriptGlobals extends HttpServlet {
 		rtn.put("properties", props);
 
 		HashMap classDefn = new HashMap();
-		Class[] classes = new Class[2];
+
+		// add all classes we want to access info about in the javascript world
+		Class[] classes = new Class[3];
 		classes[0] = org.ecocean.Encounter.class;
 		classes[1] = org.ecocean.MarkedIndividual.class;
+		classes[2] = org.ecocean.SinglePhotoVideo.class;
 
 		ApiAccess access = new ApiAccess();
 
