@@ -13,6 +13,8 @@ wildbook.Model.BaseClass = Backbone.Model.extend({
 	},
 
 
+/* note: some combinations may return more than one encounter, which should be a collection (e.g /individualID==something)
+   however, we still should allow that type of arbitrary field matching to get ONE encounter... maybe return only first?   */
 	url: function() {
 		if (!this.id) return false;  //how are you really supposed to handle this??? TODO
 		return wildbookGlobals.baseUrl + '/api/' + this.className() + '/' + this.id;
@@ -38,7 +40,6 @@ wildbook.Model.BaseClass = Backbone.Model.extend({
 		return rtn;
 	},
 
-//Encounter/f62e6794-ef5c-4508-a5fb-592f069876d9
 
 
 	_defaultValueFor: function() { return '' },
@@ -47,9 +48,35 @@ wildbook.Model.BaseClass = Backbone.Model.extend({
 
 
 wildbook.Collection.BaseClass = Backbone.Collection.extend({
-	url: function(foo) {
-console.log('foo %o', foo);
-		return wildbookGlobals.baseUrl + '/api/' + this.model.prototype.className();
+
+	//we override to allow passing jdo and fields in addition to standard Backbone options
+	fetch: function(options) {
+		delete(this._altUrl);
+		if (options && options.jdoql) {
+			//this allows us to be "lazy" and not have to put "SELECT FROM [classname] WHERE..." but just "WHERE..."
+			if (options.jdoql.toLowerCase().indexOf('where') == 0) options.jdoql = 'SELECT FROM ' + this.model.prototype.className() + ' ' + options.jdoql;
+			this._altUrl = 'jdoql?' + options.jdoql;  //note this does not need the classname like /api/org.ecocean.Foo
+		} else if (options && options.fields) {
+			this._altUrl = this.model.prototype.className();
+			var arg = [];
+			for (var f in options.fields) {
+				arg.push(f + '=="' + options.fields[f] + '"');  //TODO probably need some kind of encoding here? or does .ajax take care of it?
+			}
+			this._altUrl += '?' + arg.join('&&');
+		}
+    Backbone.Collection.prototype.fetch.apply(this, arguments);
+	},
+
+	url: function() {
+//console.log('_altUrl => %o', this._altUrl);
+		var u = wildbookGlobals.baseUrl + '/api/';
+		if (this._altUrl) { 
+			u += this._altUrl;
+		} else {
+			u += this.model.prototype.className();
+		}
+console.log('url() -> %s', u);
+		return u;
 	},
 
 });
