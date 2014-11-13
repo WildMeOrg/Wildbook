@@ -9,10 +9,6 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 	}),
 */
 
-/*
-	url: function() {
-	},
-*/
 
 	thumbUrl: function() {
 		return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/thumb.jpg';
