@@ -195,43 +195,31 @@ context=ServletUtilities.getContext(request);
         <div id="maintext">
           <h1 class="intro">Overview</h1>
 
-          <p class="caption">Manta Matcher represents the first global manta ray database. This site was
-specifically designed to manage manta ray sightings and identifications across their
-distribution. After the success of the <a href="http://www.whaleshark.org">Wildbook for Whale Sharks</a> database, Manta Matcher
-was a logical follow-up. Manta rays are widely distributed, migratory, and have
-unique spot patterning on their ventral surface that can be used to permanently
-identify individuals. At the present time, this database will enable researchers to
-upload and organize individually identified manta rays in their populations. This
-system is also intended to promote collaborations by way of cross-referencing
-databases to check for both regional and long distance movement.</p>
+          <p class="caption">
+Manta Matcher represents the first global online database for manta rays. This innovative site was specifically designed to manage manta ray sightings and identifications across their distribution. 
+</p><p class="caption">
+After the success of the <a href="http://www.whaleshark.org/">Wildbook for Whale Sharks</a> database, Manta Matcher was a logical follow-up for <a href="http://www.wildme.org/">WildMe</a> and partner organization <a href="http://www.marinemegafauna.org/">Marine Megafauna Foundation</a>. 
 
-<p class="caption">An automated component to this site is currently in development. This component
-will greatly enhance the functionality of the site by allowing faster and more
-accurate cross- referencing.</p>
+</p><p class="caption">
+Manta rays are threatened species, vulnerable to extinction. Researchers across the globe are studying these animals in a bid to protect remaining populations. Monitoring wild populations can be difficult since manta rays are elusive, widely distributed and highly migratory. However, all manta rays have unique spot patterning on their undersides that can be used to permanently identify individuals. This ‘bellyprint’ allows researchers to track individuals over space and time and better monitor wild populations. 
 
-<p class="caption">It is our expectation that researchers will ultimately be able use sightings data to
-determine the abundance, trends, movements, and population structure of manta
-ray populations at individual aggregation sites across the globe. Using encounter
-photos and encounter information with mantas, you too can help update and
-maintain this global database.</p>
-        
+</p><p class="caption">
+Currently the Manta Matcher database enables researchers to upload, organize, and individually identify the manta rays in their populations. Manta Matcher was also intended to promote scientific collaboration by way of cross-referencing regional databases of manta rays to check for exchanges, learn more about their migratory patterns and life history traits and track long distance movements.
+
+</p><p class="caption">
+An automated algorithm, which matches the unique spot patterning of new entries to the existing global database is one of the novel features of this site. This component greatly enhances the functionality of the site by allowing faster and more accurate cross-referencing within and between manta ray databases.
+
+</p><p class="caption">
+It is our expectation that researchers will ultimately be able use sightings data to determine the abundance, trends, movements, and population structure of manta ray populations at individual aggregation sites across the globe. This information will help to assess their conservation status and manage wild populations more effectively.
+
+</p><p class="caption">
+Manta Matcher, like all of the Wildbooks, encourages public contributions. If you have previously encountered a manta ray and you have images of the underside of the individual, please consider uploading it to the Manta Matcher database. Now that you know about Manta Matcher, we also hope that you choose to share images from your future encounters with manta rays with us! Your contributions can provide valuable information to our participating researchers. Remember, every image is important! 
+
+</p><p class="caption">
+Join us in supporting this important global project. By building a network of researchers and citizen scientists around the globe we really can start solving some of the mysteries of the manta rays!
+</p>
+
         </div>
-
-        <div>
-          <h1 class="intro">Data Contributors</h1>
-
-          <p class="caption">This project was the brainchild of Dr. Andrea Marshall and her team at the Marine
-Megafauna Association in Mozambique who have been collecting manta ray
-identification images across the world for the last decade. Her team's contributions
-are joined by multiple manta ray research programs from across the world
-including, Laje Viva Institute in Brazil, the Pacific Elasmobranch Foundation in
-Ecuador, Project Manta in eastern Australia, HAMER in Hawaii, and the Maldivian
-Manta Ray Project. Manta Matcher is supported by a number of agencies and
-organizations with additional support from a number of governments for effort in
-specific regions.</p>
-        </div>
-
-
 
 
       </div>
