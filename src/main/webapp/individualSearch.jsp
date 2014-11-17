@@ -510,7 +510,7 @@ function FSControl(controlDiv, map) {
         <%
           for (int n = 0; n < totalLocIDs; n++) {
             String word = locIDs.get(n);
-            if (!word.equals("")) {
+            if ((word != null) && !word.equals("")) {
         %>
         <option value="<%=word%>"><%=word%>
         </option>
