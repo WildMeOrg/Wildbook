@@ -1,0 +1,175 @@
+<html><head><title>test</title>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="../../JavascriptGlobals.js"></script>
+
+<script src="../tablesorter/jquery.tablesorter.js"></script>
+
+<script src="../underscore-min.js"></script>
+<script src="../backbone-min.js"></script>
+<script src="../core.js"></script>
+<script src="Base.js"></script>
+
+<link rel="stylesheet" href="../tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+
+<style>
+#table-body tr {
+	display: none;
+}
+#table-body tr.visible {
+	display: table-row;
+}
+
+.col-individualID {
+	width: 200px;
+}
+.col-sex {
+	width: 100px;
+}
+.col-num {
+	width: 70px;
+}
+.col-numberEncounters {
+	width: 100px;
+}
+
+</style>
+
+<script>
+$(document).ready(function() { wildbook.init(function() { fetchData(); }); });
+
+var columns = {
+	catalogNumber: { label: 'Number' },
+	verbatimLocality: { label: 'Location' },
+	dataTypes: { label: 'Data types', val: dataTypes },
+	sex: { label: 'Sex', val: cleanValue },
+};
+
+var encs = false;
+
+var pstart = 0;
+var perPage = 20;
+
+function fetchData() {
+	encs = new wildbook.Collection.Encounters();
+	encs.fetch({
+		fields: { individualID: 'newMatch' },
+		success: function() { fetchSubData(); }
+	});
+
+/*
+	$.ajax({
+		url: 'all_mantas.json',
+		success: function(d) {
+			inds = d;//.splice(0,50);
+			buildTable();
+			$('#test-table').tablesorter();
+			$('#test-table').bind('sortEnd', function() {
+				pstart = 0;
+				pageTable(0, perPage);
+			});
+			pageTable(0, perPage);
+		},
+		dataType: 'json'
+	});
+*/
+}
+
+
+var subPending = 0;
+function fetchSubData() {
+	subPending = encs.models.length * 2;
+	_.each(encs.models, function(enc, i) {
+		enc.fetchSub('measurements', { success: function(){checkSubData();} });
+		enc.fetchSub('images', { success: function(){checkSubData();} });
+	});
+}
+
+function checkSubData() {
+	subPending--;
+console.log('subPending: %d', subPending);
+	if (subPending < 1) showTable();
+}
+
+
+function showTable() {
+	buildTable();
+	$('#test-table').tablesorter();
+	$('#test-table').bind('sortEnd', function() {
+		pstart = 0;
+		pageTable(0, perPage);
+	});
+	pageTable(0, perPage);
+}
+
+function buildTable() {
+	var hd = '<thead><tr><th class="col-num">#</th>';
+	_.each(columns, function(cstruct, c) { hd += '<th class="col-' + c + '">' + cstruct.label + '</th>'; });
+	$('#test-table').append(hd + '</tr></thead>');
+
+	var tbody = '<tbody id="table-body">';
+	_.each(encs.models, function(enc, i) {
+	//_.each(encs, function(enc, i) {
+		tbody += '<tr id="n' + i + '"><td>' + i + '</td>';
+		_.each(columns, function(cstruct, c) {
+			tbody += '<td>' + (cstruct.val ? cstruct.val(enc, c) : enc.get(c)) + '</td>';
+			//tbody += '<td>' + enc[c] + '</td>';
+		});
+		tbody += '</tr>';
+	});
+	$('#test-table').append(tbody);
+}
+
+//http://dev.wildme.org/mm/api/jdoql?select%20m%20from%20org.ecocean.Encounter%20where%20catalogNumber==%27073b9487-67ec-4705-a0fe-3fabc6525659%27%20&&%20measurements.contains(m)
+
+
+function pageTable(start, howMany) {
+	$('.visible').removeClass('visible');
+	for (var i = start ; i < (start + howMany) ; i++) {
+		$('#table-body').children()[i].className = 'visible';
+	}
+}
+
+function pageUp() {
+	pstart += 1;
+	pageTable(pstart, perPage);
+}
+
+function pageDown() {
+	pstart -= 1;
+	if (pstart < 0) pstart = 0;
+	pageTable(pstart, perPage);
+}
+
+
+function cleanValue(obj, fieldName) {
+	var v = obj.get(fieldName);
+	var empty = /^(null|unknown|none)$/i;
+	if (empty.test(v)) v = '';
+console.log('%o[%s] -> %s', obj, fieldName, v);
+	return v;
+}
+
+
+function dataTypes(obj, fieldName) {
+	var dt = [];
+	_.each(['measurements', 'images'], function(w) {
+		if (obj[w] && obj[w].models && (obj[w].models.length > 0)) dt.push(w.substring(0,1));
+	});
+	return dt.join(', ');
+}
+
+</script>
+
+</head>
+<body>
+
+<table id="test-table" class="tablesorter">
+</table>
+
+<div>
+<input type="button" value="^^^" onClick="pageDown();" style="float:left;" />
+<input type="button" value="vvv" onClick="pageUp();" style="float:right;" />
+
+
+</body>
+</html>
