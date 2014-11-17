@@ -41,6 +41,13 @@ wildbook.Model.BaseClass = Backbone.Model.extend({
 	},
 
 
+	//pass name (of field) and Collection class
+	fetchSub: function(name, cls, opts) {
+		this[name] = new cls();
+		if (!opts) opts = {};
+		opts.jdoql = 'SELECT x FROM ' + this.className() + ' WHERE ' + this.idAttribute + '=="' + this.id + '" && ' + name + '.contains(x)';
+		this[name].fetch(opts);
+	},
 
 	_defaultValueFor: function() { return '' },
 
