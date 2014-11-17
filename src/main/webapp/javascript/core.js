@@ -4,6 +4,7 @@ var wildbook = {
 		'Encounter',
 		'MarkedIndividual',
 		'SinglePhotoVideo',
+		'Measurement',
 	],
 
 	Model: {},
@@ -16,7 +17,10 @@ var wildbook = {
 		classInit(this.classNames[i], function() {
 			me._loadAllClassesCount--;
 //console.log('huh??? %o', me._loadAllClassesCount);
-			if (me._loadAllClassesCount <= 0) console.log('DONE!');
+			if (me._loadAllClassesCount <= 0) {
+				console.info('wildbook.loadAllClasses(): DONE loading all classes');
+				if (callback) callback();
+			}
 		});
 		}
 	},
@@ -54,8 +58,8 @@ console.log('is %o', ajax);
 
 
 
-	init: function() {
-		classInit('Base', function() { wildbook.loadAllClasses(); });  //define base class first - rest can happen any order
+	init: function(callback) {
+		classInit('Base', function() { wildbook.loadAllClasses(callback); });  //define base class first - rest can happen any order
 	}
 
 };
@@ -85,5 +89,5 @@ function classInit(cname, callback) {
 
 //$.getScript('/mm/javascript/prototype.js', function() { wildbook.init(); });
 
-$(document).ready(function() { wildbook.init(); });
+//$(document).ready(function() { wildbook.init(); });
 
