@@ -1,7 +1,7 @@
 
 wildbook.Model.SinglePhotoVideo = wildbook.Model.BaseClass.extend({
 
-	idAttribute: 'individualID',
+	idAttribute: 'dataCollectionEventID',
 
 	//note: these assume .encounter is set -- which is only sure if we were loaded via .getImages() on parent encounter  TODO
 
