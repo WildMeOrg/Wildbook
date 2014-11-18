@@ -218,20 +218,7 @@ context=ServletUtilities.getContext(request);
         </tr>
       </table>
       
-        <p>&nbsp;</p>
-      <table width="600" border="1">
-        <tr>
-          <td>
-            <p><font size="+1">Reset Common Configuration Properties</font></p>
-            <p></p>Reset the values in the commonConfiguration.properties file.</p>
 
-            <form name="ResetCommonConfigurationForm" method="post" action="../ResetCommonConfiguration">
-
-              <input name="ResetCommonConfiguration" type="submit" id="ResetCommonConfiguration" value="Reset">
-              </p></form>
-          </td>
-        </tr>
-      </table>
 
       <jsp:include page="../footer.jsp" flush="true"/>
     </div>

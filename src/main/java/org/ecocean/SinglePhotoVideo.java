@@ -179,5 +179,30 @@ System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
   public void setCorrespondingStoryID(String userID){this.correspondingStoryID=userID;}
 
   
+	//background scaling of the image to some target path
+	// true = doing it (background); false = cannot do it (no external command support; not image)
+	public boolean scaleTo(String context, int width, int height, String targetPath) {
+		String cmd = CommonConfiguration.getProperty("imageResizeCommand", context);
+		if ((cmd == null) || cmd.equals("")) return false;
+System.out.println("(( starting image proc");
+		String sourcePath = this.getFullFileSystemPath();
+		if (!Shepherd.isAcceptableImageFile(sourcePath)) return false;
+		ImageProcessor iproc = new ImageProcessor(context, "resize", width, height, sourcePath, targetPath, null);
+		Thread t = new Thread(iproc);
+		t.start();
+System.out.println("yes. out. ))");
+		return true;
+	}
   
+	public boolean scaleToWatermark(String context, int width, int height, String targetPath, String watermark) {
+		String cmd = CommonConfiguration.getProperty("imageWatermarkCommand", context);
+		if ((cmd == null) || cmd.equals("")) return false;
+		String sourcePath = this.getFullFileSystemPath();
+		if (!Shepherd.isAcceptableImageFile(sourcePath)) return false;
+		ImageProcessor iproc = new ImageProcessor(context, "watermark", width, height, sourcePath, targetPath, watermark);
+		Thread t = new Thread(iproc);
+		t.start();
+		return true;
+	}
+
 }
