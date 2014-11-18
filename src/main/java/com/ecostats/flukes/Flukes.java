@@ -23,7 +23,8 @@ import java.util.ArrayList;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
-import org.datanucleus.store.types.backed.Collection;
+//import org.datanucleus.store.types.backed.Collection;
+import org.datanucleus.store.types.wrappers.backed.Collection;
 
 /**
  * Flukes

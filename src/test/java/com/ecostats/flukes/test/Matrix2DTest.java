@@ -171,10 +171,12 @@ public class Matrix2DTest {
 	  assertTrue("Matrix Multiply not correct.", Arrays.deepEquals(m3.getData(),dt));
 	}
 
+	/*
 	@Test
 	public void testDivideMatrix2D() {
 		fail("Not yet implemented");
 	}
+	*/
 
 	@Test
 	public void testTranspose() {

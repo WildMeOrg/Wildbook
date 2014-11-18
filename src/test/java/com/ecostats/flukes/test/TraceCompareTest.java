@@ -183,6 +183,7 @@ public class TraceCompareTest {
     assertEquals(d, 0.0, 0.001);
   }
   
+  /*
   @Test
   public void testProcessCatalog() {
     double[][] qpt = {{0,1,0,0},{1,0,0,0}}; // arrays of notch open, notch closed, left curled right curled for two flukes
@@ -207,5 +208,6 @@ public class TraceCompareTest {
     TreeSet<Fluke> ts = t.processCatalog(this.flukes, test_fluke);
     assertEquals(0.0962,ts.first().getMatchValue(),0.0001);
   }
+  */
   
 }
