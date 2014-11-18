@@ -37,6 +37,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import javax.jdo.Query;
 //import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.ServletContext;
 //import javax.servlet.http.HttpSession;
 
 import java.io.*;
@@ -427,7 +428,12 @@ public class ServletUtilities {
 
   }
 
-  public static String cleanFileName(String aTagFragment) {
+  
+  public static String cleanFileName(String myString){
+    return myString.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+  }
+  
+  /*public static String cleanFileName(String aTagFragment) {
     final StringBuffer result = new StringBuffer();
 
     final StringCharacterIterator iterator = new StringCharacterIterator(aTagFragment);
@@ -458,6 +464,7 @@ public class ServletUtilities {
     }
     return result.toString();
   }
+  */
 
   public static String preventCrossSiteScriptingAttacks(String description) {
     description = description.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -596,5 +603,17 @@ public static String getLanguageCode(HttpServletRequest request){
 		return dataDir(context, rootWebappPath) + File.separator + subdir;
 	}
 
+/*
+	//like above, but only need request passed
+	public static String dataDir(HttpServletRequest request) {
+		String context = "context0";
+		context = ServletUtilities.getContext(request);
+		//String rootWebappPath = request.getServletContext().getRealPath("/");  // only in 3.0??
+		//String rootWebappPath = request.getSession(true).getServlet().getServletContext().getRealPath("/");
+		ServletContext s = request.getServletContext();
+String rootWebappPath = "xxxxxx";
+		return dataDir(context, rootWebappPath);
+	}
+*/
 
 }

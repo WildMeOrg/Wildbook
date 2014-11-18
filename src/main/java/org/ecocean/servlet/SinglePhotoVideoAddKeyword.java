@@ -109,7 +109,7 @@ public class SinglePhotoVideoAddKeyword extends HttpServlet {
               out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
             }
           }
-          out.println("<p><a href=\"individualSearchResults.jsp\">View all sharks</a></font></p>");
+          out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
 
           out.println(ServletUtilities.getFooter(context));
         }
@@ -128,7 +128,7 @@ public class SinglePhotoVideoAddKeyword extends HttpServlet {
               out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
             }
           }
-          out.println("<p><a href=\"individualSearchResults.jsp\">View all sharks</a></font></p>");
+          out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
           out.println(ServletUtilities.getFooter(context));
       }
 
