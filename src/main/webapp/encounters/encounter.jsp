@@ -700,7 +700,11 @@ $(function() {
   <p><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("identity") %></strong></p>
       
       
-								
+     							<p class="para">
+     								<p>
+      									<a href="../tracing/fluketracing.jsp?langCode=<%=langCode%>&number=<%=num%>"><img align="absmiddle" width="24px" height="24px" style="border-style: none;" hspace="10px" src="../images/highlight.png" />Trace Fluke</a>
+      								</p>
+    							</p>								
     							<%
     							if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
   								%>
