@@ -495,7 +495,8 @@ public class RestServlet extends HttpServlet
             }
 
             Object pc = RESTUtils.getObjectFromJSONObject(jsonobj, className, ec);
-						boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
+						///////boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
+						boolean restAccessOk = false;  //TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
 /*
 System.out.println(jsonobj);
 System.out.println("+++++");
@@ -648,11 +649,15 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
             }
             else
             {
+								//we disable any delete for now, until permission testing complete   TODO
+        				throw new NucleusUserException("DELETE access denied");
+/*
                 // Delete the object with the supplied id
                 pm.currentTransaction().begin();
                 Object obj = pm.getObjectById(id);
                 pm.deletePersistent(obj);
                 pm.currentTransaction().commit();
+*/
             }
         }
         catch (NucleusObjectNotFoundException ex)
