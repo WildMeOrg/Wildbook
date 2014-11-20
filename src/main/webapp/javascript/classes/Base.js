@@ -42,11 +42,15 @@ wildbook.Model.BaseClass = Backbone.Model.extend({
 
 
 	//pass name (of field) and Collection class
-	fetchSub: function(name, cls, opts) {
+	fetchSub: function(name, opts) {
+		//a little hacky but refClass.fieldName is only the final string from classname, rather than real reference to class
+		if (!this.refClass[name]) return false;
+		var cls = wildbook.Collection[this.refClass[name]];
 		this[name] = new cls();
 		if (!opts) opts = {};
 		opts.jdoql = 'SELECT x FROM ' + this.className() + ' WHERE ' + this.idAttribute + '=="' + this.id + '" && ' + name + '.contains(x)';
 		this[name].fetch(opts);
+		return true;
 	},
 
 	_defaultValueFor: function() { return '' },
