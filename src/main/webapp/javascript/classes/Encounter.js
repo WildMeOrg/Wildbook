@@ -3,6 +3,11 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 
 	idAttribute: 'catalogNumber',   //TODO put this in classDefinitions from java (somehow)
 
+	refClass: {
+		measurements: 'Measurements',
+		images: 'SinglePhotoVideos',
+	},
+
 /*
 	defaults: _.extend({}, wildbook.Model.BaseClass.prototype.defaults, {
 		someOther: 'default',
@@ -14,27 +19,6 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 		return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/thumb.jpg';
 	},
 
-	getImages: function(callback) {
-		if (this.images) {
-			callback(false);
-			return;
-		}
-		var me = this;
-		var images = new wildbook.Collection.SinglePhotoVideos();
-		images.fetch({
-			data: "correspondingEncounterNumber=='" + this.id + "'",
-			success: function(col, res, opt) {
-				col.each(function(mod) { mod.encounter = me; });
-				me.images = col;
-				console.info('successfully fetched images for Encounter %s', me.id);
-				callback(true);
-			},
-			error: function(col, res, opt) {
-				console.error('error fetching images for Encounter [id %s]: %o %o %o', me.id, m, res, opt);
-				callback(false);
-			},
-		});
-	},
 
 	getIndividual: function(callback) {
 		var iid = this.get('individualID');
