@@ -29,6 +29,14 @@
 	display: table-row;
 }
 
+.pageableTable tbody tr.clickable:hover {
+	cursor:pointer;
+	outline: 2px solid rgba(200,255,85,0.8);
+}
+.pageableTable tbody tr.clickable:hover td {
+	background-color: #EFA;
+}
+
 .pageableTable-slider {
 	position: absolute;
 	top: 15px;
