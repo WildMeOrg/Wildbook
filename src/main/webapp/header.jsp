@@ -101,11 +101,22 @@ context=ServletUtilities.getContext(request);
           style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;"><%=props.getProperty("report")%>
         </a></li>
         
-                <li><a
+         <li><a
 	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptamanta.jsp"
 	          class="enclose"
 	          style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px; z-index: 100;">Adopt a Manta
         </a></li>
+                <li>
+                	<a 	href="<%=CommonConfiguration.getWikiLocation(context) %>mantamatcher_library_access_policy"
+			target="_blank" class="enclose"
+          style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px;"><%=props.getProperty("accessPolicy")%>
+        </a></li>
+        
+                <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/userAgreement.jsp" class="enclose"
+          style="margin: 0px 0 0px 0px; position: relative; width: 160px; height: 25px;"><%=props.getProperty("userAgreement")%>
+        </a></li>
+        
+               
 
       </ul>
       <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
@@ -244,14 +255,7 @@ context=ServletUtilities.getContext(request);
         <%
           if (CommonConfiguration.getWikiLocation(context)!=null) {
         %>
-        <li><a
 
-          href="<%=CommonConfiguration.getWikiLocation(context) %>mantamatcher_library_access_policy"
-
-         
-          target="_blank" class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("accessPolicy")%>
-        </a></li>
         <li><a
           href="<%=CommonConfiguration.getWikiLocation(context) %>"
           target="_blank" class="enclose"
