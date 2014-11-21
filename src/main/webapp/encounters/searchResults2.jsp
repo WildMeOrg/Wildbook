@@ -260,13 +260,59 @@ context=ServletUtilities.getContext(request);
 
 var searchResults = <%=encsJson%>;
 
+var testColumns = {
+	catalogNumber: { label: 'Number' },
+	//verbatimLocality: { label: 'Location' },
+	//dataTypes: { label: 'Data types', val: dataTypes },
+	individualID: { label: 'Individual', val: indLink },
+	sex: { label: 'Sex', val: cleanValue },
+};
+
+var encs;
+var resultsTable;
+
 $(document).ready( function() {
-	start();
+	wildbook.init(function() { doTable(); });
 });
+
+
+
+function doTable() {
+	resultsTable = new pageableTable({
+		columns: testColumns,
+		tableElement: $('#results-table'),
+		sliderElement: $('#results-slider'),
+	});
+
+	resultsTable.tableInit();
+
+	encs = new wildbook.Collection.Encounters();
+	encs.on('add', function(o) {
+		var row = resultsTable.tableAddRow(o);
+		row.click(function() { console.log(this); });
+		row.addClass('clickable');
+resultsTable.tableAddRow(o); resultsTable.tableAddRow(o); resultsTable.tableAddRow(o); resultsTable.tableAddRow(o);
+//tableAddRow(o); tableAddRow(o);tableAddRow(o); tableAddRow(o);
+	});
+	encs.fetch({
+		//fields: { individualID: 'newMatch' },
+		success: function() {
+			$('#table-status').remove();
+			resultsTable.tableShow();
+		}
+	});
+
+}
+
+
+function indLink(o) {
+	return '['+o.get('individualID')+']';
+}
 
 </script>
 
 <div class="pageableTable-wrapper">
+	<div style="padding: 30px; background-color: #CCC; text-align: center;" id="table-status">loading...</div>
 	<table id="results-table"></table>
 	<div id="results-slider"></div>
 </div>
