@@ -43,6 +43,22 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 	},
 
 
+	//this is built off encounter sub-date parts (year, month etc)
+	date: function() {
+		var y = this.get('year');
+		if (y < 1) return false;
+		var m = this.get('month');
+		var d = this.get('day');
+		var H = this.get('hour');
+		var M = this.get('minutes');
+		if (H < 0) H = 0;
+		if (M < 0) M = 0;
+//console.log('%o %o %o %o %o', y, m, d, H, M);
+		var d = new Date(y, m, d, H, M, 0);
+		if (!wildbook.isValidDate(d)) return false;
+		return d;
+	},
+
 	subdir: function(d) {
 		if (!d) d = this.id;
 		var r = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
