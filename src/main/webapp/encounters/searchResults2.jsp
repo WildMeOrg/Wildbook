@@ -261,11 +261,19 @@ context=ServletUtilities.getContext(request);
 var searchResults = <%=encsJson%>;
 
 var testColumns = {
-	catalogNumber: { label: 'Number' },
-	//verbatimLocality: { label: 'Location' },
+	rowNum: { label: '#', val: _colRowNum },
+	thumb: { label: 'Thumb', val: _colThumb },
+	//catalogNumber: { label: 'Number' },
 	//dataTypes: { label: 'Data types', val: dataTypes },
-	individualID: { label: 'Individual', val: indLink },
-	sex: { label: 'Sex', val: cleanValue },
+	individualID: { label: 'ID', val: _colIndLink },
+	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
+	submitterID: { label: 'Submitter' },
+	//sex: { label: 'Sex', val: cleanValue },
+	date: { label: 'Date', val: _colEncDate },
+	modified: { label: 'Edit Date', val: _colModified },
+	verbatimLocality: { label: 'Location' },
+	locationID: { label: 'Location ID' },
+	//occurrenceID: { label: 'Occurrence ID' },
 };
 
 var encs;
@@ -282,6 +290,10 @@ function doTable() {
 		columns: testColumns,
 		tableElement: $('#results-table'),
 		sliderElement: $('#results-slider'),
+		tablesorterOpts: {
+			headers: { 1: {sorter: false} },
+			textExtraction: _textExtraction,
+		},
 	});
 
 	resultsTable.tableInit();
@@ -289,11 +301,24 @@ function doTable() {
 	encs = new wildbook.Collection.Encounters();
 	encs.on('add', function(o) {
 		var row = resultsTable.tableAddRow(o);
-		row.click(function() { console.log(this); });
+		row.click(function() { window.location.href = 'encounter.jsp?number=' + row.data('id'); });
 		row.addClass('clickable');
-resultsTable.tableAddRow(o); resultsTable.tableAddRow(o); resultsTable.tableAddRow(o); resultsTable.tableAddRow(o);
-//tableAddRow(o); tableAddRow(o);tableAddRow(o); tableAddRow(o);
+for (var i = 0 ; i < 5 ; i++) {
+		row = resultsTable.tableAddRow(o);
+		row.click(function() { window.location.href = 'encounter.jsp?number=' + row.data('id'); });
+		row.addClass('clickable');
+}
+
 	});
+
+	_.each(searchResults, function(o) {
+console.log(o);
+		encs.add(new wildbook.Model.Encounter(o));
+	});
+	$('#table-status').remove();
+	resultsTable.tableShow();
+
+/*
 	encs.fetch({
 		//fields: { individualID: 'newMatch' },
 		success: function() {
@@ -301,12 +326,59 @@ resultsTable.tableAddRow(o); resultsTable.tableAddRow(o); resultsTable.tableAddR
 			resultsTable.tableShow();
 		}
 	});
+*/
 
 }
 
 
-function indLink(o) {
-	return '['+o.get('individualID')+']';
+function _colIndLink(o) {
+	var iid = o.get('individualID');
+	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
+
+	return '<a title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
+}
+
+
+function _colEncDate(o) {
+	var d = o.date();
+	if (!d) return '';
+	return d.toLocaleDateString();
+}
+
+function _colTaxonomy(o) {
+	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
+	return o.get('genus') + ' ' + o.get('specificEpithet');
+}
+
+
+function _colRowNum(o) {
+	return o._rowNum;
+}
+
+
+function _colThumb(o) {
+	var url = o.thumbUrl();
+	if (!url) return '';
+	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
+	return '<div style="background-image: url(' + url + ');"></div>';
+	return '<img src="' + url + '" />';
+}
+
+
+function _colModified(o) {
+	var m = o.get('modified');
+	if (!m) return '';
+	var d = new Date(m);
+	if (!wildbook.isValidDate(d)) return '';
+	return d.toLocaleDateString();
+}
+
+
+function _textExtraction(n) {
+	var s = $(n).text();
+	var skip = new RegExp('^(none|unassigned|)$', 'i');
+	if (skip.test(s)) return 'zzzzz';
+	return s;
 }
 
 </script>

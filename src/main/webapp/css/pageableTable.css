@@ -1,17 +1,57 @@
 .ptcol-individualID {
-	width: 200px;
+	width: 110px;
 }
 .ptcol-sex {
-	width: 100px;
+	width: 30px;
 }
 .ptcol-num {
 	width: 70px;
 }
+.ptcol-date {
+	width: 60px;
+}
 .ptcol-numberEncounters {
+	width: 80px;
+}
+.ptcol-verbatimLocality {
 	width: 100px;
 }
 
 
+.ptcol-thumb {
+	width: 50px;
+	xposition: relative;
+}
+
+.ptcol-thumb div {
+	width: 30px;
+	height: 18px;
+	background-size: auto 20px;
+	background-repeat: no-repeat;
+}
+
+.ptcol-thumb img {
+	position: absolute;
+	top: 25px;
+	left: -120px;
+	display: none;
+	border: solid 5px #000;
+	border-radius: 7px;
+}
+
+/* tr:hover .ptcol-thumb img { */
+.ptcol-thumb:hover img {
+	display: block;
+}
+
+
+
+/*
+td.ptcol-individualID:hover {
+	cursor: pointer;
+	background-color: #AAA !important;
+}
+*/
 
 .pageableTable-wrapper {
 	position: relative;
@@ -36,6 +76,12 @@
 .pageableTable tbody tr.clickable:hover td {
 	background-color: #EFA;
 }
+
+/*
+.pageableTable tbody td {
+	vertical-align: center !important;
+}
+*/
 
 .pageableTable-slider {
 	position: absolute;

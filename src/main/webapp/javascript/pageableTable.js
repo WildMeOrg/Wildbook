@@ -15,7 +15,7 @@ function pageableTable(opts) {
 	this.tableInit = function() {
 		if (!this.opts.columns) return;
 		this.tableBody = $('<tbody id="table-body"></tbody>');
-		var hd = '<thead><tr><th class="ptcol-num">#</th>';
+		var hd = '<thead><tr>';
 		_.each(this.opts.columns, function(cstruct, c) { hd += '<th class="ptcol-' + c + '">' + cstruct.label + '</th>'; });
 		opts.tableElement.append(hd + '</tr></thead>').append(this.tableBody);
 		opts.tableElement.on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
@@ -52,18 +52,19 @@ console.log(delta);
 		var td = '';
 		var search = '';
 		_.each(this.opts.columns, function(cstruct, c) {
+			obj._rowNum = i;
 			var val = (cstruct.val ? cstruct.val(obj, c) : obj.get(c));
 			search += ' ' + val;
-			td += '<td>' + val + '</td>';
+			td += '<td class="ptcol-' + c + '">' + val + '</td>';
 		});
-		var tr = $('<tr data-search="' + search + '" id="n' + i + '"><td>' + i + '</td>' + td + '</tr>');
+		var tr = $('<tr title="' + obj.classNameShort() + ' ID: ' + obj.id + '" data-id="' + obj.id + '" data-search="' + search + '" id="n' + i + '">' + td + '</tr>');
 		this.tableBody.append(tr);
 		return tr;
 	};
 
 
 	this.tableShow = function() {
-		this.opts.tableElement.tablesorter().show();
+		this.opts.tableElement.tablesorter(this.opts.tablesorterOpts).show();
 		this.sliderInit();
 		this.opts.tableElement.bind('sortEnd', function() {
 			me.pstart = 0;
@@ -194,3 +195,4 @@ function dataTypes(obj, fieldName) {
 	});
 	return dt.join(', ');
 }
+
