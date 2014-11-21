@@ -57,6 +57,12 @@ console.log('is %o', ajax);
 */
 
 
+	// h/t http://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
+	isValidDate: function(d) {
+		if (Object.prototype.toString.call(d) !== "[object Date]") return false;
+		return !isNaN(d.getTime());
+	},
+
 
 	init: function(callback) {
 		classInit('Base', function() { wildbook.loadAllClasses(callback); });  //define base class first - rest can happen any order
