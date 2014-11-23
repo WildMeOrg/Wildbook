@@ -266,14 +266,15 @@ var testColumns = {
 	//catalogNumber: { label: 'Number' },
 	//dataTypes: { label: 'Data types', val: dataTypes },
 	individualID: { label: 'ID', val: _colIndLink },
-	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
-	submitterID: { label: 'Submitter' },
 	//sex: { label: 'Sex', val: cleanValue },
 	date: { label: 'Date', val: _colEncDate },
-	modified: { label: 'Edit Date', val: _colModified },
 	verbatimLocality: { label: 'Location' },
 	locationID: { label: 'Location ID' },
 	//occurrenceID: { label: 'Occurrence ID' },
+	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
+	submitterID: { label: 'Submitter' },
+	creationDate: { label: 'Creation Date', val: _colCreationDate },
+	modified: { label: 'Edit Date', val: _colModified },
 };
 
 var encs;
@@ -372,6 +373,15 @@ function _colModified(o) {
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
 }
+
+function _colCreationDate(o) {
+	var m = o.get('dwcDateAdded');
+	if (!m) return '';
+	var d = new Date(m);
+	if (!wildbook.isValidDate(d)) return '';
+	return d.toLocaleDateString();
+}
+
 
 
 function _textExtraction(n) {
