@@ -256,7 +256,7 @@ context=ServletUtilities.getContext(request);
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
+            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>">Link
           </a></td>
           <%
             }
