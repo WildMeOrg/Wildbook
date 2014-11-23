@@ -24,6 +24,9 @@ import java.util.*;
 
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
+import org.ecocean.security.Collaboration;
+import org.ecocean.servlet.ServletUtilities;
+import javax.servlet.http.HttpServletRequest;
 
 import java.text.DecimalFormat;
 
@@ -1637,5 +1640,40 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   if(minDistance>999999)minDistance=new Float(-1);
   return minDistance;
 }
+
+
+	//convenience function to Collaboration permissions
+	public boolean canUserAccess(HttpServletRequest request) {
+		return Collaboration.canUserAccessMarkedIndividual(this, request);
+	}
+
+
+	public String collaborationLockHtml(HttpServletRequest request) {
+		String context = "context0";
+		context = ServletUtilities.getContext(request);
+		Shepherd myShepherd = new Shepherd(context);
+
+		ArrayList<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+  	ArrayList<String> uids = this.getAllAssignedUsers();
+  	ArrayList<String> open = new ArrayList<String>();
+		String collabClass = "pending";
+		String data = "";
+
+		for (String u : uids) {
+			Collaboration c = Collaboration.findCollaborationWithUser(u, collabs);
+			if ((c == null) || (c.getState() == null)) {
+				User user = myShepherd.getUser(u);
+				String fullName = u;
+				if (user.getFullName()!=null) fullName = user.getFullName();
+				open.add(u);
+				data += "," + u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " ");
+			}
+		}
+		if (open.size() > 0) {
+			collabClass = "new";
+			data = data.substring(1);
+		}
+		return "<div class=\"row-lock " + collabClass + " collaboration-button\" data-multiuser=\"" + data + "\">&nbsp;</div>";
+	}
 
 }

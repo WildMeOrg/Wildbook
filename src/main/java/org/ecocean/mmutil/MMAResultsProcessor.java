@@ -36,7 +36,7 @@ public final class MMAResultsProcessor {
   /** SLF4J logger instance for writing log entries. */
   private static final Logger log = LoggerFactory.getLogger(MMAResultsProcessor.class);
   /** Version of MMA for which this code works. */
-  public static final String MMA_VER = "1.25a";
+  public static final String MMA_VER = "1.26a";
 
   /**
    * Parses the MantaMatcher results text file for the specified SPV,
@@ -155,6 +155,7 @@ public final class MMAResultsProcessor {
       String linkFT = linkCR.replace("_CR", "_FT");
       String encUrl = String.format(pageUrlFormatEnc, encId);
       modelResult.put("link", encUrl);
+      modelResult.put("encounter", matchResult.testEncounterNumber);
       modelResult.put("name", nameCR.substring(0, nameCR.indexOf("_CR")));
       modelResult.put("nameCR", nameCR);
       modelResult.put("linkCR", linkCR);
@@ -186,6 +187,7 @@ public final class MMAResultsProcessor {
 
         // Fill details from match.
         Encounter enc = shepherd.getEncounter(matchEncId);
+        modelMatch.put("encounter", match.matchEncounterNumber);
         modelMatch.put("individualId", enc.getIndividualID());
         if (enc.getIndividualID() != null && !"".equals(enc.getIndividualID()) && !"Unassigned".equals(enc.getIndividualID())) {
           String indUrl = String.format(pageUrlFormatInd, enc.getIndividualID());
@@ -261,6 +263,7 @@ public final class MMAResultsProcessor {
 
     MMAResult result = new MMAResult();
     result.dirTest = spv.getFile().getParentFile();
+    result.testEncounterNumber = spv.getCorrespondingEncounterNumber();
     for (int i = 0; i < sections.length; i++) {
       if (i == 0)
         parseMatchResultsHeader(result, sections[i].trim());
@@ -283,9 +286,7 @@ public final class MMAResultsProcessor {
    * @throws IOException if there is a problem locating {@code dirTest}
    */
   private static void parseMatchResultsCore(MMAResult result, String text, File dataDir, File dirTest) throws ParseException, IOException {
-    Scanner sc = null;
-    try {
-      sc = new Scanner(text).useDelimiter("[\\r\\n]+");
+    try (Scanner sc = new Scanner(text).useDelimiter("[\\r\\n]+")) {
       // Parse header info.
       String s = sc.findInLine("Processing : (.+) \\(original image: (.+)\\)");
       MatchResult mr = sc.match();
@@ -318,7 +319,7 @@ public final class MMAResultsProcessor {
         sc.nextLine();
 
         Pattern p = Pattern.compile("^(\\d+)\\) \\{([^{}]+)\\} \\[([\\d.]+)\\]\\s*(?:\\(best match: '([^']+)', path='([^']+)'\\))?$", Pattern.MULTILINE);
-        List<MMAMatch> matches = new ArrayList<MMAMatch>();
+        List<MMAMatch> matches = new ArrayList<>();
         while ((s = sc.findInLine(p)) != null) {
           mr = sc.match();
           MMAMatch res = new MMAMatch();
@@ -327,8 +328,10 @@ public final class MMAResultsProcessor {
           if (mr.group(4) != null && mr.group(5) != null) {
             res.bestMatch = mr.group(4);
             res.bestMatchPath = mr.group(5);
+            // Parse/assign encounter number.
+            res.matchEncounterNumber = mr.group(2);
             // Obtain encounter dir for matched image.
-            File dir = new File(Encounter.dir(dataDir, mr.group(2)));
+            File dir = new File(Encounter.dir(dataDir, res.matchEncounterNumber));
             // Find matched image file (base image, not CR).
             res.fileRef = findReferenceFile(dir, res.bestMatch, res.bestMatchPath);
             // Only add items with a non-zero score (only lines with 'best match' anyway).
@@ -346,10 +349,6 @@ public final class MMAResultsProcessor {
         result.mapTests.put(pathCR, matches);
       }
     }
-    finally {
-      if (sc != null)
-        sc.close();
-    }
   }
 
   /**
@@ -358,9 +357,7 @@ public final class MMAResultsProcessor {
    * @param text text of header section of the results file
    */
   private static void parseMatchResultsHeader(MMAResult result, String text) throws ParseException {
-    Scanner sc = null;
-    try {
-      sc = new Scanner(text).useDelimiter("[\\r\\n]+");
+    try (Scanner sc = new Scanner(text).useDelimiter("[\\r\\n]+")) {
       // Parse header info.
       String s = sc.findInLine("(Manta Matcher version [^,]+),\\s+(.+)");
       MatchResult mr = sc.match();
@@ -371,44 +368,30 @@ public final class MMAResultsProcessor {
       sc.nextLine();
 
       // Create holders for reference/test sets.
-      List<String> refs = new ArrayList<String>();
-      List<Integer> refCounts = new ArrayList<Integer>();
-      List<String> tests = new ArrayList<String>();
+      List<String> refs = new ArrayList<>();
+      List<String> tests = new ArrayList<>();
 
       // Parse reference set.
       Pattern p = Pattern.compile("^(?:Reference Set: )?(.+)(?<!SIFT files found)$", Pattern.MULTILINE);
       while ((s = sc.findInLine(p)) != null) {
         refs.add(sc.match().group(1));
+//        log.trace(String.format("Found reference item: %s", refs.get(refs.size() - 1)));
         sc.nextLine();
       }
-      p = Pattern.compile("([\\d]+)\\s+SIFT files found", Pattern.MULTILINE);
-      int sum = 0;
-      while ((s = sc.findInLine(p)) != null) {
-        int n = Integer.parseInt(sc.match().group(1));
-        // SIFT count in text file is cumulative, so calculate difference.
-        int dif = n - sum;
-        refCounts.add(dif);
-        sc.nextLine();
-        sum += dif;
-      }
+      s = sc.findInLine("([\\d]+)\\s+SIFT files found");
+      mr = sc.match();
+      result.siftCountRef = Integer.parseInt(mr.group(1));
+      sc.nextLine();
       sc.nextLine();
 
       // Parse test set.
       p = Pattern.compile("^(?:Test Image: )?(.+)(?<!SIFT files found)$", Pattern.MULTILINE);
       while ((s = sc.findInLine(p)) != null) {
         tests.add(sc.match().group(1));
-//        log.trace("Test: {}", tests.get(tests.size() - 1));
+//        log.trace("Found test item: {}", tests.get(tests.size() - 1));
         sc.nextLine();
       }
       sc.nextLine();
-      Map<String, Integer> mapRefCounts = new LinkedHashMap<String, Integer>();
-      Map<String, Integer> mapTestCounts = new LinkedHashMap<String, Integer>();
-      for (int i = 0; i < refs.size(); i++)
-        mapRefCounts.put(refs.get(i), refCounts.get(i));
-      for (int i = 0; i < tests.size(); i++)
-        mapTestCounts.put(tests.get(i), 1);
-      result.mapRefCounts = mapRefCounts;
-      result.mapTestCounts = mapTestCounts;
 
       // Parse match/score choices.
       s = sc.findInLine("Matching method: (.+)");
@@ -422,10 +405,6 @@ public final class MMAResultsProcessor {
       s = sc.findInLine("Score combination: (.+)");
       result.scoreCombination = sc.match().group(1);
 //      log.trace("Score combination: {}", result.scoreCombination);
-    }
-    finally {
-      if (sc != null)
-        sc.close();
     }
   }
 
@@ -473,10 +452,10 @@ public final class MMAResultsProcessor {
     private String version;
     /** Date/time parsed from version string. */
     private Date date;
-    /** Map of reference-folder to SIFT files found. */
-    private Map<String, Integer> mapRefCounts;
-    /** Map of test-folder to SIFT files found. */
-    private Map<String, Integer> mapTestCounts;
+    /** Count of reference SIFT files found. */
+    private Integer siftCountRef;
+    /** Encounter number of item being tested for matches. */
+    private String testEncounterNumber;
     /** Matching method used by algorithm. */
     private String matchingMethod;
     /** Matching direction used by algorithm. */
@@ -490,7 +469,7 @@ public final class MMAResultsProcessor {
     /** Score confidence. */
     private float confidence;
     /** Map of test-image-path to match-results. */
-    private Map<String, List<MMAMatch>> mapTests = new LinkedHashMap<String, List<MMAMatch>>();
+    private Map<String, List<MMAMatch>> mapTests = new LinkedHashMap<>();
     /** Test folder in which source comparison image files are found. */
     private File dirTest;
 
@@ -500,8 +479,8 @@ public final class MMAResultsProcessor {
       sb.append("MMAMatchResult{");
       sb.append("version=").append(version);
       sb.append(", date=").append(date);
-      sb.append(", refs=").append(mapRefCounts == null ? "null" : Integer.toString(mapRefCounts.size()));
-      sb.append(", tests=").append(mapTestCounts == null ? "null" : Integer.toString(mapTestCounts.size()));
+      sb.append(", siftCountRef=").append(siftCountRef == null ? "null" : siftCountRef);
+      sb.append(", testEncounterNumber=").append(testEncounterNumber);
       sb.append(", featureCount=").append(featureCount);
       sb.append(", timeTaken=").append(timeTaken);
       sb.append(", confidence=").append(confidence);
@@ -518,6 +497,8 @@ public final class MMAResultsProcessor {
     private int rank;
     /** Score, as assigned by MantaMatcher algorithm. */
     private float score;
+    /** Encounter number of reference item for this match. */
+    private String matchEncounterNumber;
     /** Filename root of match. */
     private String bestMatch;
     /** Filename path of match. */
@@ -531,6 +512,7 @@ public final class MMAResultsProcessor {
       sb.append("MMAResult{");
       sb.append("rank=").append(rank);
       sb.append(", score=").append(score);
+      sb.append(", matchEncounterNumber=").append(matchEncounterNumber);
       sb.append(", bestMatch=").append(bestMatch);
       sb.append(", bestMatchPath=").append(bestMatchPath);
       sb.append(", fileRef=").append(fileRef == null ? "" : fileRef.getAbsolutePath());

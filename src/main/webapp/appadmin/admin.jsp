@@ -123,10 +123,10 @@ context=ServletUtilities.getContext(request);
 
             <form name="massSwapLocCode" method="post" action="../MassSwapLocationCode">
               <p>Old location code: <input name="oldLocCode" type="text"
-                                           id="oldLocCode" size="20" maxlength="30">
+                                           id="oldLocCode" size="10" maxlength="10">
 
               <p>New location code: <input name="newLocCode" type="text"
-                                           id="newLocCode" size="20" maxlength="30"> <br/>
+                                           id="newLocCode" size="10" maxlength="10"> <br/>
                 <br> <input name="Update" type="submit" id="Update"
                             value="Update"></p>
             </form>
@@ -200,22 +200,8 @@ context=ServletUtilities.getContext(request);
           </td>
         </tr>
       </table>
-      <p>&nbsp;</p>
-      <table width="600" border="1">
-        <tr>
-          <td>
-            <p><font size="+1">Reset MMA-compatibility flag for all encounters</font></p>
-
-            <p>This resets the <em>mmaCompatible</em> flag for all encounters
-              based on the presence/absence of &quot;candidate region&quot; image files.</p>
-
-            <form name="resetMmaCompatibilityFlags" method="post" action="../MantaMatcher/resetMmaCompatible">
-                <input name="Update" type="submit" id="Update" value="Update">
-            </form>
-          </td>
-        </tr>
-      </table>
-      <p>&nbsp;</p>
+	  
+	        <p>&nbsp;</p>
       <table width="600" border="1">
         <tr>
           <td>
@@ -228,6 +214,22 @@ context=ServletUtilities.getContext(request);
             against old and unused image files.</p>
 
             <form name="deleteAllOrphanMatcherFiles" method="post" action="../MantaMatcher/deleteAllOrphanMatcherFiles">
+                <input name="Update" type="submit" id="Update" value="Update">
+            </form>
+          </td>
+        </tr>
+      </table>
+	  
+	        <p>&nbsp;</p>
+      <table width="600" border="1">
+        <tr>
+          <td>
+            <p><font size="+1">Reset MMA-compatibility flag for all encounters</font></p>
+
+            <p>This resets the <em>mmaCompatible</em> flag for all encounters
+              based on the presence/absence of &quot;candidate region&quot; image files.</p>
+
+            <form name="resetMmaCompatibilityFlags" method="post" action="../MantaMatcher/resetMmaCompatible">
                 <input name="Update" type="submit" id="Update" value="Update">
             </form>
           </td>
