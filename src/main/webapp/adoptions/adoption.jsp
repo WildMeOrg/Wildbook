@@ -54,7 +54,7 @@ context=ServletUtilities.getContext(request);
   String notes = "";
   String adoptionType = "";
 
-  String servletURL = "../adoptionForm.jh";
+  String servletURL = "../AdoptionAction";
 
   if (request.getParameter("individual") != null) {
     sharkForm = request.getParameter("individual");

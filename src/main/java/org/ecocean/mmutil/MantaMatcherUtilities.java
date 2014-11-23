@@ -166,7 +166,7 @@ public final class MantaMatcherUtilities {
    */
   public static boolean checkEncounterHasMatcherFiles(Encounter enc, File dataDir) {
     for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
-      if (checkMatcherFilesExist(spv.getFile())) {
+      if (MediaUtilities.isAcceptableImageFile(spv.getFile()) && checkMatcherFilesExist(spv.getFile())) {
         return true;
       }
     }

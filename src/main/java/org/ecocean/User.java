@@ -229,7 +229,13 @@ public class User implements java.io.Serializable {
     
     public void setAcceptedUserAgreement(boolean accept){this.acceptedUserAgreement=accept;}
 
+
+		//TODO this needs to be dealt with better.  see: rant about saving usernames from forms
+		public static boolean isUsernameAnonymous(String uname) {
+			return ((uname == null) || uname.equals("") || uname.equals("N/A"));
+		}
+
     //public String getCurrentContext(){return currentContext;}
     //public void setCurrentContext(String newContext){currentContext=newContext;}
-    
+
 }

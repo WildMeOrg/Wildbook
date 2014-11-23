@@ -20,7 +20,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.DateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -38,7 +38,6 @@
         //set up the file input stream
         //props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
         props=ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
-
 
         //let's see if the property is defined
         if (props.getProperty(lcode) != null) {
@@ -123,6 +122,10 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 
+	Properties collabProps = new Properties();
+ 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+
+
 
   pageContext.setAttribute("num", num);
 
@@ -130,6 +133,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
+System.out.println("???? query=" + kwQuery);
   boolean proceed = true;
   boolean haveRendered = false;
 
@@ -497,6 +501,38 @@ margin-bottom: 8px !important;
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
+						boolean visible = enc.canUserAccess(request);
+
+						if (!visible) {
+							String blocker = "";
+							ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
+							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+							String uid = null;
+							String name = null;
+							if (request.getUserPrincipal() == null) {
+								cmsg = "<p>Your submission is saved.</p>";
+							} if ((c == null) || (c.getState() == null)) {
+								uid = enc.getAssignedUsername();
+								name = enc.getSubmitterName();
+								if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
+							} else if (c.getState().equals(Collaboration.STATE_INITIALIZED)) {
+								cmsg += "<p>" + collabProps.getProperty("deniedMessagePending") + "</p>";
+							} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
+								cmsg += "<p>" + collabProps.getProperty("deniedMessageRejected") + "</p>";
+							}
+
+							cmsg = cmsg.replace("'", "\\'");
+							if (!User.isUsernameAnonymous(uid)) {
+								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
+							} else {
+								cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
+							}
+							out.println(blocker);
+						}
+
+
       			pageContext.setAttribute("enc", enc);
       			String livingStatus = "";
       			if ((enc.getLivingStatus()!=null)&&(enc.getLivingStatus().equals("dead"))) {
@@ -538,11 +574,14 @@ $(function() {
       //set a default date if we cann
       if(enc.getDateInMilliseconds()>0){
     	  
-    	  DateTime jodaTime = new DateTime(enc.getDateInMilliseconds());
-          DateTimeFormatter parser1 = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
-          
+    	  //LocalDateTime jodaTime = new LocalDateTime(enc.getDateInMilliseconds());
+    	  
+    	    
+          //DateTimeFormatter parser1 = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+          LocalDateTime jodaTime=new LocalDateTime(enc.getDateInMilliseconds());
+			
       %>
-      defaultDate: '<%=parser1.print(jodaTime) %>',
+      defaultDate: '<%=jodaTime.toString("yyyy-MM-dd HH:mm") %>',
       hour: <%=jodaTime.getHourOfDay() %>,
       minute: <%=jodaTime.getMinuteOfHour() %>,
       <%
@@ -576,7 +615,7 @@ $(function() {
       //set a default date if we cann
       if((enc.getReleaseDateLong()!=null)&&(enc.getReleaseDateLong()>0)){
     	  
-    	  DateTime jodaTime = new DateTime(enc.getReleaseDateLong().longValue());
+    	  LocalDateTime jodaTime = new LocalDateTime(enc.getReleaseDateLong().longValue());
           DateTimeFormatter parser1 = DateTimeFormat.forPattern("yyyy-MM-dd");
           
       %>
@@ -1073,11 +1112,20 @@ $("a#occurrence").click(function() {
 
 <p><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("date") %>
 </strong><br/><br/>
+<%if(enc.getDateInMilliseconds()>0){ %>
   <a
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
     <%=enc.getDate()%>
   </a>
     <%
+}
+else{
+%>	
+<%=encprops.getProperty("unknown") %>
+<%
+}
+    
+    
 				if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
  					%><font size="-1"><a id="date" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
         		}

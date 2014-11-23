@@ -42,7 +42,14 @@ import org.ecocean.servlet.ServletUtilities;
 
 import javax.servlet.http.HttpServletRequest;
 
+
 import org.json.JSONObject;
+
+import org.ecocean.security.Collaboration;
+import org.ecocean.servlet.ServletUtilities;
+import javax.servlet.http.HttpServletRequest;
+
+
 
 /**
  * An <code>encounter</code> object stores the complete data for a single sighting/capture report.
@@ -1540,9 +1547,11 @@ public class Encounter implements java.io.Serializable {
       if(month>0){localMonth=month-1;}
       int localDay=1;
       if(day>0){localDay=day;}
+      int localHour=0;
+      if(hour>-1){localHour=hour;}
       int myMinutes=0;
       try{myMinutes = Integer.parseInt(minutes);}catch(Exception e){}
-      GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay,hour,myMinutes);
+      GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay,localHour,myMinutes);
 
       dateInMilliseconds = gc.getTimeInMillis();
     }
@@ -1890,6 +1899,36 @@ public class Encounter implements java.io.Serializable {
     }
 
 
+	//convenience function to Collaboration permissions
+	public boolean canUserAccess(HttpServletRequest request) {
+		return Collaboration.canUserAccessEncounter(this, request);
+	}
+
+
+	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
+	public String collaborationLockHtml(ArrayList<Collaboration> collabs) {
+		Collaboration c = Collaboration.findCollaborationWithUser(this.getAssignedUsername(), collabs);
+		String collabClass = "pending";
+		if ((c == null) || (c.getState() == null)) {
+			collabClass = "new";
+		} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
+			collabClass = "blocked";
+		}
+		return "<div class=\"row-lock " + collabClass + " collaboration-button\" data-collabowner=\"" + this.getAssignedUsername() + "\" data-collabownername=\"" + this.getSubmitterName() + "\">&nbsp;</div>";
+	}
+
+
+	//pass in a Vector of Encounters, get out a list that the user can NOT see
+	public static Vector blocked(Vector encs, HttpServletRequest request) {
+		Vector blk = new Vector();
+		for (int i = 0; i < encs.size() ; i++) {
+			Encounter e = (Encounter) encs.get(i);
+			if (!e.canUserAccess(request)) blk.add(e);
+		}
+		return blk;
+	}
+
+
 /*
 in short, this rebuilds (or builds for the first time) ALL *derived* images (etc?) for this encounter.
 it is a baby step into the future of MediaAssets that hopefully will provide a smooth(er) transition to that.
@@ -1949,6 +1988,8 @@ throw new Exception();
 */
 		return true;
 	}
+
+
 
 }
 

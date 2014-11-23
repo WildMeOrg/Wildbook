@@ -74,6 +74,9 @@ public class JavascriptGlobals extends HttpServlet {
 		//lang.put("collaboration", ShepherdProperties.getProperties("collaboration.properties", langCode, context));
 		lang.put("visualMatcher", ShepherdProperties.getProperties("visualMatcher.properties", langCode, context));
 
+		lang.put("collaboration", ShepherdProperties.getProperties("collaboration.properties", langCode, context));
+
+
 		props.put("lang", lang);
 		rtn.put("properties", props);
 
