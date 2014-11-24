@@ -7,6 +7,9 @@ NOTE: "admin" role always can do anything
 <access>
 	<classes>
 		<class name="org.ecocean.Encounter">
+			<object>
+				<create>*</create>
+			</object>
 			<properties>
 				<property name="location">
 					<write>
@@ -20,6 +23,14 @@ NOTE: "admin" role always can do anything
 					</write>
 				</property>
 			</properties>
+		</class>
+		<class name="org.ecocean.User">
+			<object>
+				<read>admin</read>
+				<write>admin</write>
+				<create>admin</create>
+				<delete>admin</delete>
+			</object>
 		</class>
 	</classes>
 </access>
