@@ -198,7 +198,7 @@ margin-bottom: 8px !important;
     <script type="text/javascript">
       function initialize() {
         var center = new google.maps.LatLng(0,0);
-        var mapZoom = 1;
+        var mapZoom = 3;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
     	var bounds = new google.maps.LatLngBounds();
 
@@ -263,8 +263,22 @@ if(rEncounters.size()>0){
         	   });
 
            google.maps.event.addListener(marker<%=y%>,'click', function() {
-           	(new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=encSubdir%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
-           });
+           	
+          
+          
+         
+      	<%
+    	String individualLinkString="";
+    	//if this is a MarkedIndividual, provide a link to it
+    	if((thisEnc.isAssignedToMarkedIndividual()!=null)&&(!thisEnc.isAssignedToMarkedIndividual().toLowerCase().equals("unassigned"))){
+    		individualLinkString="<strong><a target=\"_blank\" href=\"http://"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.isAssignedToMarkedIndividual()+"\">"+thisEnc.isAssignedToMarkedIndividual()+"</a></strong><br />";
+    	}
+    	%>
+    	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=encSubdir%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+ 
+          
+           
+           });
  
 	
           markers.push(marker<%=y%>);
