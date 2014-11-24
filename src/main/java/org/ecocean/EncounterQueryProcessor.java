@@ -898,8 +898,8 @@ public class EncounterQueryProcessor {
     //filter gpsOnly - return only Encounters with a defined location. This is mostly used for mapping JSP pages
     if(request.getAttribute("gpsOnly")!=null){
 
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="decimalLatitude != null && decimalLongitude != null";}
-      else{filter+=" && decimalLatitude != null && decimalLongitude != null ";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="decimalLatitude >= -90 && decimalLatitude <= 90 && decimalLongitude <= 180 && decimalLongitude >= -180";}
+      else{filter+=" && decimalLatitude >= -90 && decimalLatitude <= 90 && decimalLongitude <= 180 && decimalLongitude >= -180";}
       prettyPrint.append("Has GPS coordinates.<br />");
 
     }
