@@ -19,9 +19,9 @@ function pageableTable(opts) {
 		_.each(this.opts.columns, function(cstruct, c) { hd += '<th class="ptcol-' + c + '">' + cstruct.label + '</th>'; });
 		opts.tableElement.append(hd + '</tr></thead>').append(this.tableBody);
 		opts.tableElement.on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
+			if (!me.opts.sliderElement) return;
 			ev.preventDefault();
 			var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
-console.log(delta);
 			if (delta != 0) me.pageNudge(-delta);
 		});
 	};
@@ -47,17 +47,25 @@ console.log(delta);
 
 
 	this.rowCount = 0;
-	this.tableAddRow = function(obj) {
+
+	this.tableCreateRow = function(obj) {
 		var i = this.rowCount++;
 		var td = '';
 		var search = '';
 		_.each(this.opts.columns, function(cstruct, c) {
 			obj._rowNum = i;
 			var val = (cstruct.val ? cstruct.val(obj, c) : obj.get(c));
-			search += ' ' + val;
+			var sval = val;
+			if (sval && sval.indexOf && sval.indexOf('<') > -1) sval = $(sval).text();
+			search += ' ' + sval;
 			td += '<td class="ptcol-' + c + '">' + val + '</td>';
 		});
 		var tr = $('<tr title="' + obj.classNameShort() + ' ID: ' + obj.id + '" data-id="' + obj.id + '" data-search="' + search + '" id="n' + i + '">' + td + '</tr>');
+		return tr;
+	};
+
+	this.tableAddRow = function(obj) {
+		var tr = this.tableCreateRow(obj);
 		this.tableBody.append(tr);
 		return tr;
 	};
@@ -181,9 +189,8 @@ console.log('subPending: %d (%s %%)', subPending, percent);
 
 function cleanValue(obj, fieldName) {
 	var v = obj.get(fieldName);
-	var empty = /^(null|unknown|none)$/i;
+	var empty = /^(null|unknown|none|undefined)$/i;
 	if (empty.test(v)) v = '';
-//console.log('%o[%s] -> %s', obj, fieldName, v);
 	return v;
 }
 

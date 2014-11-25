@@ -166,6 +166,23 @@
 
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
+
+<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+
+<script src="../javascript/tablesorter/jquery.tablesorter.js"></script>
+
+<script src="../javascript/underscore-min.js"></script>
+<script src="../javascript/backbone-min.js"></script>
+<script src="../javascript/core.js"></script>
+<script src="../javascript/classes/Base.js"></script>
+
+<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+
+<link rel="stylesheet" href="../css/pageableTable.css" />
+<script src="../javascript/pageableTable.js"></script>
+
+
 <div id="main">
 <ul id="tabmenu">
 
@@ -203,26 +220,6 @@
 </table>
 
 
-<table width="810" id="results">
-  <tr class="lineitem">
-    <td class="lineitem" bgcolor="#99CCFF"></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-      <strong><%=props.getProperty("markedIndividual")%>
-      </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-      <strong><%=props.getProperty("numEncounters")%>
-      </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-      <strong><%=props.getProperty("maxYearsBetweenResights")%>
-      </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-      <strong><%=props.getProperty("sex")%>
-      </strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
-      <strong><%=props.getProperty("numLocationsSighted")%>
-      </strong></td>
-
-  </tr>
 
   <%
 
@@ -234,6 +231,7 @@
     
     int count = 0;
     int numNewlyMarked = 0;
+	String extra = "var extra = {";
 
     for (int f = 0; f < rIndividualsSize; f++) {
      
@@ -256,30 +254,28 @@
       */
 
 
-      if ((count >= startNum) && (count <= endNum)) {
+
+      if (true) {
         
         MarkedIndividual indie = (MarkedIndividual) rIndividuals.get(f);
         //check if this individual was newly marked in this period
-        Encounter[] dateSortedEncs = indie.getDateSortedEncounters();
-        int sortedLength = dateSortedEncs.length - 1;
-        Encounter temp = dateSortedEncs[sortedLength];
-        ArrayList<SinglePhotoVideo> photos=indie.getAllSinglePhotoVideo();
-        
+	String thumbUrl = "";
+	Encounter[] dateSortedEncs = indie.getDateSortedEncounters();
+	int sortedLength = dateSortedEncs.length - 1;
+	Encounter temp = dateSortedEncs[sortedLength];
+	ArrayList<SinglePhotoVideo> photos=indie.getAllSinglePhotoVideo();
+	if (photos.size() > 0) {
+		SinglePhotoVideo t = photos.get(0);
+		thumbUrl = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + temp.subdir() + "/thumb.jpg";
+	}
 
+	String firstIdent = "";
+	if (temp.getYear() > 0) firstIdent = temp.getMonth() + "/" + temp.getYear();
 
-/*
-    </td>
-      	<br /><em><font size="-1"><=indie.getGenusSpecies()></font></em>
-    <td class="lineitem">%=indie.totalEncounters()>
-    <td class="lineitem"><=indie.getMaxNumYearsBetweenSightings()>
-    <td class="lineitem"><=indie.participatesInTheseLocationIDs().size()>
-    </td>
-    <td class="lineitem"><=indie.participatesInTheseLocationIDs().size()>
-    </td>
-  </tr>
-*/
+	extra += "'" + indie.getIndividualID() + "': { locations: " + indie.participatesInTheseLocationIDs().size() + ", genusSpecies: '" + indie.getGenusSpecies() + "', thumbUrl: '" + thumbUrl + "', numberEncounters: " + indie.totalEncounters() + ", firstIdent: '" + firstIdent + "' },\n";
 
       } //end if to control number displayed
+
 
 
     } //end for
@@ -292,36 +288,42 @@
 	JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
 	String indsJson = jsonobj.toString();
 
+	extra += "};";
 %>
 
+<style>
+.ptcol-maxYearsBetweenResightings {
+	width: 100px;
+}
+.ptcol-numberLocations {
+	width: 100px;
+}
+
+</style>
 <script type="text/javascript">
 
 var searchResults = <%=indsJson%>;
+<%=extra%>
 
 var testColumns = {
-	rowNum: { label: '#', val: _colRowNum },
+	//rowNum: { label: '#', val: _colRowNum },
 	thumb: { label: 'Thumb', val: _colThumb },
-	//catalogNumber: { label: 'Number' },
-	//dataTypes: { label: 'Data types', val: dataTypes },
-	individualID: { label: 'ID', val: _colIndLink },
-	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
-	submitterID: { label: 'Submitter' },
-	//sex: { label: 'Sex', val: cleanValue },
-	date: { label: 'Date', val: _colEncDate },
-	modified: { label: 'Edit Date', val: _colModified },
-	verbatimLocality: { label: 'Location' },
-	locationID: { label: 'Location ID' },
-	//occurrenceID: { label: 'Occurrence ID' },
+	individual: { label: 'Individual', val: _colIndividual },
+	numberEncounters: { label: 'Encounters', val: _colNumberEncounters },
+	maxYearsBetweenResightings: { label: 'Max yrs between resights' },
+	sex: { label: 'Sex' },
+	numberLocations: { label: 'No. Locations sighted', val: _colNumberLocations },
 };
 
-var encs;
+var inds;
 var resultsTable;
 
 $(document).ready( function() {
-	//wildbook.init(function() { doTable(); });
+	wildbook.init(function() { doTable(); });
 });
 
 
+var tableContents = document.createDocumentFragment();
 
 function doTable() {
 	resultsTable = new pageableTable({
@@ -329,59 +331,68 @@ function doTable() {
 		tableElement: $('#results-table'),
 		sliderElement: $('#results-slider'),
 		tablesorterOpts: {
-			headers: { 1: {sorter: false} },
+			headers: { 0: {sorter: false} },
 			textExtraction: _textExtraction,
 		},
 	});
 
 	resultsTable.tableInit();
 
-	encs = new wildbook.Collection.Encounters();
-	encs.on('add', function(o) {
-		var row = resultsTable.tableAddRow(o);
-		row.click(function() { window.location.href = 'encounter.jsp?number=' + row.data('id'); });
+	inds = new wildbook.Collection.MarkedIndividuals();
+	var addedCount = 0;
+	inds.on('add', function(o) {
+		var row = resultsTable.tableCreateRow(o);
+		row.click(function() { var w = window.open('individuals.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
 		row.addClass('clickable');
-for (var i = 0 ; i < 5 ; i++) {
-		row = resultsTable.tableAddRow(o);
-		row.click(function() { window.location.href = 'encounter.jsp?number=' + row.data('id'); });
-		row.addClass('clickable');
-}
-
+		row.appendTo(tableContents);
+		addedCount++;
+var percentage = Math.floor(addedCount / searchResults.length * 100);
+if (percentage % 3 == 0) console.log(percentage);
+		if (addedCount >= searchResults.length) {
+			$('#results-table').append(tableContents);
+		}
 	});
 
 	_.each(searchResults, function(o) {
-console.log(o);
-		encs.add(new wildbook.Model.Encounter(o));
+		inds.add(new wildbook.Model.MarkedIndividual(o));
 	});
-	$('#table-status').remove();
+	$('#progress').remove();
 	resultsTable.tableShow();
 
+
+}
+
+
+function _colIndividual(o) {
+	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.id + '">' + o.id + '</a></b> ';
+	var i = '<b>' + o.id + '</b> ';
+	if (!extra[o.id]) return i;
+	i += (extra[o.id].firstIdent || '') + ' <i>';
+	i += (extra[o.id].genusSpecies || '') + '</i>';
+	return i;
+}
+
+
+function _colNumberEncounters(o) {
+	if (!extra[o.id]) return '';
+	var n = extra[o.id].numberEncounters;
+	if (n == undefined) return '';
+	return n;
+}
+
 /*
-	encs.fetch({
-		//fields: { individualID: 'newMatch' },
-		success: function() {
-			$('#table-status').remove();
-			resultsTable.tableShow();
-		}
-	});
+function _colYearsBetween(o) {
+	return o.maxYearsBetweenResightings;
+}
 */
 
+function _colNumberLocations(o) {
+	if (!extra[o.id]) return '';
+	var n = extra[o.id].locations;
+	if (n == undefined) return '';
+	return n;
 }
 
-
-function _colIndLink(o) {
-	var iid = o.get('individualID');
-	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
-
-	return '<a title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
-}
-
-
-function _colEncDate(o) {
-	var d = o.date();
-	if (!d) return '';
-	return d.toLocaleDateString();
-}
 
 function _colTaxonomy(o) {
 	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
@@ -395,11 +406,10 @@ function _colRowNum(o) {
 
 
 function _colThumb(o) {
-	var url = o.thumbUrl();
+	if (!extra[o.id]) return '';
+	var url = extra[o.id].thumbUrl;
 	if (!url) return '';
 	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
-	return '<div style="background-image: url(' + url + ');"></div>';
-	return '<img src="' + url + '" />';
 }
 
 
@@ -422,12 +432,13 @@ function _textExtraction(n) {
 </script>
 
 <div class="pageableTable-wrapper">
-	<div style="padding: 30px; background-color: #CCC; text-align: center;" id="table-status">loading...</div>
+	<div id="progress">loading...</div>
 	<table id="results-table"></table>
 	<div id="results-slider"></div>
 </div>
 
 
+<%
     boolean includeZeroYears = true;
 
     boolean subsampleMonths = false;
@@ -449,42 +460,6 @@ function _textExtraction(n) {
 
 
 %>
-<table width="810px">
-  <tr>
-    <%
-      if ((startNum - 10) > 1) {%>
-    <td align="left">
-      <p>
-        <a
-          href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>"><img
-          src="images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
-          title="<%=props.getProperty("seePreviousResults")%>"/></a> <a
-        href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>"><%=(startNum - 20)%>
-        - <%=(startNum - 11)%>
-      </a>
-      </p>
-    </td>
-    <%
-      }
-
-      if (startNum < numResults) {
-    %>
-    <td align="right">
-      <p>
-        <a
-          href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=startNum%>
-          - <%=endNum%>
-        </a> <a
-        href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img
-        src="images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle"
-        title="<%=props.getProperty("seeNextResults")%>"/></a>
-      </p>
-    </td>
-    <%
-      }
-    %>
-  </tr>
-</table>
 
 <p>
 <table width="810" border="0" cellspacing="0" cellpadding="0">
