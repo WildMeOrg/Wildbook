@@ -1,11 +1,12 @@
 .ptcol-individualID {
-	width: 110px;
+	width: 90px;
 }
 .ptcol-sex {
 	width: 30px;
 }
-.ptcol-num {
-	width: 70px;
+.ptcol-rowNum {
+	width: 18px;
+	overflow: hidden;
 }
 .ptcol-date {
 	width: 60px;
@@ -13,8 +14,13 @@
 .ptcol-numberEncounters {
 	width: 80px;
 }
-.ptcol-verbatimLocality {
-	width: 100px;
+
+.ptcol-dataTypes img {
+	height: 18px;
+}
+
+.ptcol-verbatimLocality, .ptcol-locationID {
+	width: 95px;
 }
 
 
@@ -65,6 +71,14 @@ td.ptcol-individualID:hover {
 .pageableTable tbody tr {
 	display: none;
 }
+
+/*  turns out tables do NOT respect width/height -- would need to nest a div inside each td to control
+.pageableTable tbody td {
+	max-height: 23px;
+	overflow-y: hidden;
+}
+*/
+
 .pageableTable tbody tr.pageableTable-visible {
 	display: table-row;
 }
@@ -91,7 +105,6 @@ td.ptcol-individualID:hover {
 }
 
 
-/*
 #progress {
 	position: relative;
 	padding: 3px;
@@ -100,13 +113,14 @@ td.ptcol-individualID:hover {
 	font-weight: bold;
 
 	margin: 20px;
-	color: #DD7;
+	color: #888;
 	border: solid 1px black;
 
 	border-radius: 3px;
-	width: 20%;
-	margin-left: 40%;
-	background: #DDD url(../../images/throbber.gif) no-repeat 90% 50%;
+	width: 80%;
+	margin-left: 10%;
+	/* background: #DDD url(../../images/throbber.gif) no-repeat 90% 50%; */
+	background-color: #DDD;
 }
 
 #progress-bar {
@@ -117,4 +131,5 @@ td.ptcol-individualID:hover {
 	height: 100%;
 	background-color: #555;
 }
-*/
+
+

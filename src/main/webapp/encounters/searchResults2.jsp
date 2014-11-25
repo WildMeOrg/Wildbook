@@ -114,6 +114,39 @@ context=ServletUtilities.getContext(request);
 </head>
 
 <style type="text/css">
+
+.ptcol-individualID {
+	position: relative;
+}
+.ptcol-individualID a.pt-vm-button {
+	position: absolute;
+	display: none;
+	left: 5px;
+	top: 5px;
+	border: solid 1px black;
+	border-radius: 3px;
+	background-color: #DDD;
+	padding: 0 3px;
+	color: black;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+tr:hover .ptcol-individualID span.unassigned {
+	display:hidden;
+}
+
+tr:hover .ptcol-individualID a.pt-vm-button {
+	display: inline-block;
+}
+a.pt-vm-button:hover {
+	background-color: #FF5;
+}
+
+.ptcol-thumb {
+	width: 75px !important;
+}
+
   #tabmenu {
     color: #000;
     border-bottom: 2px solid black;
@@ -261,7 +294,7 @@ context=ServletUtilities.getContext(request);
 var searchResults = <%=encsJson%>;
 
 var testColumns = {
-	rowNum: { label: '#', val: _colRowNum },
+	//rowNum: { label: '#', val: _colRowNum },
 	thumb: { label: 'Thumb', val: _colThumb },
 	//catalogNumber: { label: 'Number' },
 	//dataTypes: { label: 'Data types', val: dataTypes },
@@ -273,7 +306,7 @@ var testColumns = {
 	//occurrenceID: { label: 'Occurrence ID' },
 	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
 	submitterID: { label: 'Submitter' },
-	creationDate: { label: 'Creation Date', val: _colCreationDate },
+	creationDate: { label: 'Created', val: _colCreationDate },
 	modified: { label: 'Edit Date', val: _colModified },
 };
 
@@ -286,13 +319,15 @@ $(document).ready( function() {
 
 
 
+var tableContents = document.createDocumentFragment();
+
 function doTable() {
 	resultsTable = new pageableTable({
 		columns: testColumns,
 		tableElement: $('#results-table'),
 		sliderElement: $('#results-slider'),
 		tablesorterOpts: {
-			headers: { 1: {sorter: false} },
+			headers: { 0: {sorter: false} },
 			textExtraction: _textExtraction,
 		},
 	});
@@ -300,30 +335,35 @@ function doTable() {
 	resultsTable.tableInit();
 
 	encs = new wildbook.Collection.Encounters();
+	var addedCount = 0;
 	encs.on('add', function(o) {
-		var row = resultsTable.tableAddRow(o);
-		row.click(function() { window.location.href = 'encounter.jsp?number=' + row.data('id'); });
+		var row = resultsTable.tableCreateRow(o);
+		row.click(function() { var w = window.open('encounter.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
 		row.addClass('clickable');
-for (var i = 0 ; i < 5 ; i++) {
-		row = resultsTable.tableAddRow(o);
-		row.click(function() { window.location.href = 'encounter.jsp?number=' + row.data('id'); });
-		row.addClass('clickable');
-}
-
+		row.appendTo(tableContents);
+		addedCount++;
+/*
+		var percentage = Math.floor(addedCount / searchResults.length * 100);
+console.log(percentage);
+$('#progress').html(percentage);
+*/
+		if (addedCount >= searchResults.length) {
+			$('#results-table').append(tableContents);
+		}
 	});
 
 	_.each(searchResults, function(o) {
-console.log(o);
+//console.log(o);
 		encs.add(new wildbook.Model.Encounter(o));
 	});
-	$('#table-status').remove();
+	$('#progress').remove();
 	resultsTable.tableShow();
 
 /*
 	encs.fetch({
 		//fields: { individualID: 'newMatch' },
 		success: function() {
-			$('#table-status').remove();
+			$('#progress').remove();
 			resultsTable.tableShow();
 		}
 	});
@@ -334,11 +374,18 @@ console.log(o);
 
 function _colIndLink(o) {
 	var iid = o.get('individualID');
-	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
+	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
+	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
 
-	return '<a title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
+	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
 }
 
+
+//stops propagation of click to enclosing <TR> which wants click too
+function justA(ev) {
+	ev.stopPropagation();
+	return true;
+}
 
 function _colEncDate(o) {
 	var d = o.date();
@@ -361,7 +408,6 @@ function _colThumb(o) {
 	var url = o.thumbUrl();
 	if (!url) return '';
 	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
-	return '<div style="background-image: url(' + url + ');"></div>';
 	return '<img src="' + url + '" />';
 }
 
@@ -394,7 +440,7 @@ function _textExtraction(n) {
 </script>
 
 <div class="pageableTable-wrapper">
-	<div style="padding: 30px; background-color: #CCC; text-align: center;" id="table-status">loading...</div>
+	<div id="progress">Loading results table...</div>
 	<table id="results-table"></table>
 	<div id="results-slider"></div>
 </div>

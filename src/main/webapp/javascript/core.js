@@ -75,7 +75,7 @@ console.log('is %o', ajax);
 
 function classInit(cname, callback) {
 	console.info('attempting to load class %s', cname);
-	$.getScript('/mm/javascript/classes/' + cname + '.js', function() {
+	$.getScript(wildbookGlobals.baseUrl + '/javascript/classes/' + cname + '.js', function() {
 		console.info('successfully loaded class %s', cname);
 
 		//just a way to get actual name... hacky, but cant figure out the elegant way??
