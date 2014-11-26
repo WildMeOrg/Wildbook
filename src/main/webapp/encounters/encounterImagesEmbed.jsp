@@ -107,7 +107,7 @@ int imageCount = 0;
     	<%=encprops.getProperty("image_commands") %>
     </em>:<br/> <font size="-1">
       [<a
-      href="encounterSearch.jsp?referenceImageName=<%=(imageEncNum+"/"+(addTextFile.replaceAll(" ","%20")))%>"><%=encprops.getProperty("look4photos") %>
+      href="encounterSearch.jsp?referenceImageName=<%=images.get(myImage).getDataCollectionEventID() %>"><%=encprops.getProperty("look4photos") %>
     </a>] </font></td>
 </tr>
 
