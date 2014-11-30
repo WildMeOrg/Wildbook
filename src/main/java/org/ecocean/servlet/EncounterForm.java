@@ -185,6 +185,10 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 		request.setCharacterEncoding("UTF-8");
 
 		HashMap fv = new HashMap();
+		
+		//IMPORTANT - processingNotes can be used to add notes on data handling (e.g., poorly formatted dates) that can be reconciled later by the reviewer
+		//Example usage: processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(fv, "datepicker")+"</p>");
+		StringBuffer processingNotes=new StringBuffer();
 
 		HttpSession session = request.getSession(true);
     String context="context0";
@@ -346,7 +350,7 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 		}
 
 
-System.out.println("about to do int stuff");
+//System.out.println("about to do int stuff");
 
 			//need some ints for day/month/year/hour (other stuff seems to be strings)
 			int day = 0, month = 0, year = 0, hour = 0;
@@ -356,34 +360,46 @@ System.out.println("about to do int stuff");
 			//try { year = Integer.parseInt(getVal(fv, "year")); } catch (NumberFormatException e) { year = 0; }
 			
 			//switch to datepicker
+			
 			if((getVal(fv, "datepicker")!=null)&&(!getVal(fv, "datepicker").trim().equals(""))){
 			  //System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
         
-			  DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
-			  LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(getVal(fv, "datepicker").replaceAll(" ", "T")));
-			  //System.out.println("Day of month is: "+reportedDateTime.getDayOfMonth()); 
-			  try { month = new Integer(reportedDateTime.getMonthOfYear()); } catch (Exception e) { month = 0; }
+			  try{
+			    DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+	        
+			    LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(getVal(fv, "datepicker").replaceAll(" ", "T")));
+			  
+			  
+			  
+			    //System.out.println("Day of month is: "+reportedDateTime.getDayOfMonth()); 
+			    try { month = new Integer(reportedDateTime.getMonthOfYear()); } catch (Exception e) { month = 0; }
 		      
-			  //see if we can get a day, because we do want to support only yyy-MM too
-			  StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker"),"-");			  
-			  if(str.countTokens()>2){
-			    try { day = new Integer(reportedDateTime.getDayOfMonth()); } catch (Exception e) { day = 0; }
-			  }  
-		    try { year = new Integer(reportedDateTime.getYear()); } catch (Exception e) { e.printStackTrace();year = 0; }
-		    if(year>(Calendar.getInstance().get(Calendar.YEAR)+1)){System.out.println("Year "+year+" was in the future and > "+Calendar.getInstance().get(Calendar.YEAR)+1+"! Setting to 0.");year=0;}
+			    //see if we can get a day, because we do want to support only yyy-MM too
+			    StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker"),"-");			  
+			    if(str.countTokens()>2){
+			      try { day = new Integer(reportedDateTime.getDayOfMonth()); } catch (Exception e) { day = 0; }
+			    }  
+			    try { year = new Integer(reportedDateTime.getYear()); } catch (Exception e) { e.printStackTrace();year = 0; }
+			    if(year>(Calendar.getInstance().get(Calendar.YEAR)+1)){System.out.println("Year "+year+" was in the future and > "+Calendar.getInstance().get(Calendar.YEAR)+1+"! Setting to 0.");year=0;}
 		      
-        //see if we can get a time and hour, because we do want to support only yyy-MM too
-        StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");        
-        if(strTime.countTokens()>1){
-          try { hour = new Integer(reportedDateTime.getHourOfDay()); } catch (Exception e) { hour =-1; }
-          try {minutes=(new Integer(reportedDateTime.getMinuteOfHour())).toString(); } catch (Exception e) {}
-        } 
-        else{hour=-1;}
+			      //see if we can get a time and hour, because we do want to support only yyy-MM too
+			      StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");        
+			      if(strTime.countTokens()>1){
+			          try { hour = new Integer(reportedDateTime.getHourOfDay()); } catch (Exception e) { hour =-1; }
+			          try {minutes=(new Integer(reportedDateTime.getMinuteOfHour())).toString(); } catch (Exception e) {}
+			      } 
+			      else{hour=-1;}
         
         
-        //System.out.println("At the end of time processing I see: "+year+"-"+month+"-"+day+" "+hour+":"+minutes);
+			      //System.out.println("At the end of time processing I see: "+year+"-"+month+"-"+day+" "+hour+":"+minutes);
         
-        
+			  }
+			  catch(Exception e){
+			    System.out.println("    An unknown exception occurred during date processing in EncounterForm. The user may have inout an improper format.");
+			    e.printStackTrace();
+			    processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(fv, "datepicker")+"</p>");
+		      
+			  }
 		 }
 			
 			
@@ -723,6 +739,10 @@ System.out.println("depth --> " + fv.get("depth").toString());
       enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
       enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + request.getRemoteHost() + "</p>");
       //enc.approved = false;
+      
+      enc.addComments(processingNotes.toString());
+      
+      
       if(CommonConfiguration.getProperty("encounterState0",context)!=null){
         enc.setState(CommonConfiguration.getProperty("encounterState0",context));
       }
