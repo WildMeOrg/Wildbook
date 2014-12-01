@@ -1,0 +1,818 @@
+<%--
+  ~ The Shepherd Project - A Mark-Recapture Framework
+  ~ Copyright (C) 2011 Jason Holmberg
+  ~
+  ~ This program is free software; you can redistribute it and/or
+  ~ modify it under the terms of the GNU General Public License
+  ~ as published by the Free Software Foundation; either version 2
+  ~ of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  --%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*, org.json.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager " %>
+
+
+<html>
+<head>
+
+
+<%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
+  //let's load encounterSearch.properties
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
+  
+
+  Properties encprops = new Properties();
+  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
+  encprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
+  
+
+  Shepherd myShepherd = new Shepherd(context);
+
+
+
+  int startNum = 1;
+  int endNum = 10;
+
+
+  try {
+
+    if (request.getParameter("startNum") != null) {
+      startNum = (new Integer(request.getParameter("startNum"))).intValue();
+    }
+    if (request.getParameter("endNum") != null) {
+      endNum = (new Integer(request.getParameter("endNum"))).intValue();
+    }
+
+  } catch (NumberFormatException nfe) {
+    startNum = 1;
+    endNum = 10;
+  }
+
+  int numResults = 0;
+
+
+  Vector rEncounters = new Vector();
+
+  myShepherd.beginDBTransaction();
+
+  EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+  rEncounters = queryResult.getResult();
+
+
+//--let's estimate the number of results that might be unique
+
+  int numUniqueEncounters = 0;
+  int numUnidentifiedEncounters = 0;
+  int numDuplicateEncounters = 0;
+  ArrayList uniqueEncounters = new ArrayList();
+  for (int q = 0; q < rEncounters.size(); q++) {
+    Encounter rEnc = (Encounter) rEncounters.get(q);
+    if ((rEnc.getIndividualID()!=null)&&(!rEnc.getIndividualID().equals("Unassigned"))) {
+      String assemblage = rEnc.getIndividualID() + ":" + rEnc.getYear() + ":" + rEnc.getMonth() + ":" + rEnc.getDay();
+      if (!uniqueEncounters.contains(assemblage)) {
+        numUniqueEncounters++;
+        uniqueEncounters.add(assemblage);
+      } else {
+        numDuplicateEncounters++;
+      }
+    } else {
+      numUnidentifiedEncounters++;
+    }
+
+  }
+
+//--end unique counting------------------------------------------
+
+%>
+<title><%=CommonConfiguration.getHTMLTitle(context)%>
+</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="Description"
+      content="<%=CommonConfiguration.getHTMLDescription(context)%>"/>
+<meta name="Keywords"
+      content="<%=CommonConfiguration.getHTMLKeywords(context)%>"/>
+<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context)%>"/>
+<link href="<%=CommonConfiguration.getCSSURLLocation(request,context)%>"
+      rel="stylesheet" type="text/css"/>
+<link rel="shortcut icon"
+      href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
+</head>
+
+<style type="text/css">
+
+.ptcol-individualID {
+	position: relative;
+}
+.ptcol-individualID a.pt-vm-button {
+	position: absolute;
+	display: none;
+	left: 5px;
+	top: 5px;
+	border: solid 1px black;
+	border-radius: 3px;
+	background-color: #DDD;
+	padding: 0 3px;
+	color: black;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+tr:hover .ptcol-individualID span.unassigned {
+	display:hidden;
+}
+
+tr:hover .ptcol-individualID a.pt-vm-button {
+	display: inline-block;
+}
+a.pt-vm-button:hover {
+	background-color: #FF5;
+}
+
+.ptcol-thumb {
+	width: 75px !important;
+}
+
+  #tabmenu {
+    color: #000;
+    border-bottom: 2px solid black;
+    margin: 12px 0px 0px 0px;
+    padding: 0px;
+    z-index: 1;
+    padding-left: 10px
+  }
+
+  #tabmenu li {
+    display: inline;
+    overflow: hidden;
+    list-style-type: none;
+  }
+
+  #tabmenu a, a.active {
+    color: #DEDECF;
+    background: #000;
+    font: bold 1em "Trebuchet MS", Arial, sans-serif;
+    border: 2px solid black;
+    padding: 2px 5px 0px 5px;
+    margin: 0;
+    text-decoration: none;
+    border-bottom: 0px solid #FFFFFF;
+  }
+
+  #tabmenu a.active {
+    background: #FFFFFF;
+    color: #000000;
+    border-bottom: 2px solid #FFFFFF;
+  }
+
+  #tabmenu a:hover {
+    color: #ffffff;
+    background: #7484ad;
+  }
+
+  #tabmenu a:visited {
+    color: #E8E9BE;
+  }
+
+  #tabmenu a.active:hover {
+    background: #7484ad;
+    color: #DEDECF;
+    border-bottom: 2px solid #000000;
+  }
+</style>
+
+
+<body onload="initialize()" onunload="GUnload()">
+<div id="wrapper">
+<div id="page">
+<jsp:include page="../header.jsp" flush="true">
+  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+</jsp:include>
+
+
+<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+
+<script src="../javascript/tablesorter/jquery.tablesorter.js"></script>
+
+<script src="../javascript/underscore-min.js"></script>
+<script src="../javascript/backbone-min.js"></script>
+<script src="../javascript/core.js"></script>
+<script src="../javascript/classes/Base.js"></script>
+
+<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+
+<link rel="stylesheet" href="../css/pageableTable.css" />
+<script src="../javascript/tsrt.js"></script>
+
+
+
+<div id="main">
+
+<ul id="tabmenu">
+
+  <li><a class="active"><%=encprops.getProperty("table")%>
+  </a></li>
+  <li><a
+    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+  </a></li>
+  <li><a
+    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+  </a></li>
+  <li><a
+    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+  </a></li>
+        <li><a
+     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+   </a></li>
+      <li><a
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+   </a></li>
+
+</ul>
+
+
+<table width="810px" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>
+      <p>
+
+      <h1 class="intro"><%=encprops.getProperty("title")%>
+      </h1>
+      </p>    <p><%=encprops.getProperty("belowMatches")%>
+    </p>
+    </td>
+  </tr>
+</table>
+
+<style>
+.ptcol-maxYearsBetweenResightings {
+	width: 100px;
+}
+.ptcol-numberLocations {
+	width: 100px;
+}
+
+</style>
+
+<script type="text/javascript">
+
+/*
+
+
+
+    <strong><%=encprops.getProperty("markedIndividual")%>
+    <strong><%=encprops.getProperty("number")%>
+  if (CommonConfiguration.showProperty("showTaxonomy",context)) {
+    <strong><%=encprops.getProperty("taxonomy")%>
+    <strong><%=encprops.getProperty("submitterName")%>
+    <strong><%=encprops.getProperty("date")%>
+    <strong><%=encprops.getProperty("location")%>
+    <strong><%=encprops.getProperty("locationID")%>
+    <strong><%=encprops.getProperty("occurrenceID")%>
+*/
+
+<%
+	JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
+	String encsJson = "";
+	if (rEncounters instanceof Collection) {
+		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, jdopm.getExecutionContext());
+		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, ((JDOPersistenceManager)pm).getExecutionContext());
+		encsJson = jsonobj.toString();
+	} else {
+		JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(rEncounters, jdopm.getExecutionContext());
+		encsJson = jsonobj.toString();
+	}
+
+%>
+
+var searchResults = <%=encsJson%>;
+
+var testColumns = {
+	thumb: { label: 'Thumb', val: _colThumb },
+	individualID: { label: 'ID', val: _colIndLink },
+	date: { label: 'Date', val: _colEncDate },
+	verbatimLocality: { label: 'Location' },
+	locationID: { label: 'Location ID' },
+	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
+	submitterID: { label: 'Submitter' },
+	creationDate: { label: 'Created', val: _colCreationDate },
+	modified: { label: 'Edit Date', val: _colModified },
+};
+
+var encs;
+var resultsTable;
+
+
+
+
+
+/*
+$(document).keydown(function(k) {
+	if ((k.which == 38) || (k.which == 40)) k.preventDefault();
+	if (k.which == 38) return tableDn();
+	if (k.which == 40) return tableUp();
+});
+*/
+
+var colDefn = [
+	{
+		key: 'thumb',
+		label: 'Thumb',
+		value: _colThumb,
+		nosort: true,
+	},
+	{
+		key: 'individualID',
+		label: 'ID',
+		value: _colIndLink,
+		//sortValue: function(o) { return o.individualID.toLowerCase(); },
+		//sortFunction: function(a,b) {},
+	},
+	{
+		key: 'date',
+		label: 'Date',
+		value: _colEncDate,
+		//sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+	},
+	{
+		key: 'verbatimLocality',
+		label: 'Location',
+	},
+	{
+		key: 'locationID',
+		label: 'Location ID',
+	},
+	{
+		key: 'taxonomy',
+		label: 'Taxonomy',
+		value: _colTaxonomy,
+	},
+	{
+		key: 'submitterID',
+		label: 'Submitter',
+	},
+	{
+		key: 'creationDate',
+		label: 'Created',
+		value: _colCreationDate,
+		sortValue: _colCreationDateSort,
+	},
+	{
+		key: 'modified',
+		label: 'Edit Date',
+		value: _colModified,
+		sortValue: _colModifiedSort,
+	}
+	
+];
+
+
+var howMany = 10;
+var start = 0;
+var results = [];
+
+var sortCol = -1;
+var sortReverse = false;
+
+
+var sTable = false;
+
+function doTable() {
+	for (var i = 0 ; i < searchResults.length ; i++) {
+		searchResults[i] = new wildbook.Model.Encounter(searchResults[i]);
+	}
+
+	sTable = new SortTable({
+		data: searchResults,
+		perPage: howMany,
+		sliderElement: $('#results-slider'),
+		columns: colDefn,
+	});
+
+	$('#results-table').addClass('tablesorter').addClass('pageableTable');
+	var th = '<thead><tr>';
+		for (var c = 0 ; c < colDefn.length ; c++) {
+			var cls = 'ptcol-' + colDefn[c].key;
+			if (!colDefn[c].nosort) {
+				if (sortCol < 0) { //init
+					sortCol = c;
+					cls += ' headerSortUp';
+				}
+				cls += ' header" onClick="return headerClick(event, ' + c + ');';
+			}
+			th += '<th class="' + cls + '">' + colDefn[c].label + '</th>';
+		}
+	$('#results-table').append(th + '</tr></thead>');
+	for (var i = 0 ; i < howMany ; i++) {
+		var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
+		for (var c = 0 ; c < colDefn.length ; c++) {
+			r += '<td class="ptcol-' + colDefn[c].key + '"></td>';
+		}
+		r += '</tr>';
+		$('#results-table').append(r);
+	}
+
+	sTable.initSort();
+	sTable.initValues();
+
+
+	newSlice(0);
+
+	$('#progress').hide();
+	sTable.sliderInit();
+	show();
+
+	$('#results-table').on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
+		if (!sTable.opts.sliderElement) return;
+		ev.preventDefault();
+		var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
+		if (delta != 0) nudge(-delta);
+	});
+
+}
+
+function rowClick(el) {
+	console.log(el);
+	var w = window.open('encounter.jsp?number=' + el.getAttribute('data-id'), '_blank');
+	w.focus();
+	return false;
+}
+
+function headerClick(ev, c) {
+	start = 0;
+	ev.preventDefault();
+	console.log(c);
+	if (sortCol == c) {
+		sortReverse = !sortReverse;
+	} else {
+		sortReverse = false;
+	}
+	sortCol = c;
+
+	$('#results-table th.headerSortDown').removeClass('headerSortDown');
+	$('#results-table th.headerSortUp').removeClass('headerSortUp');
+	if (sortReverse) {
+		$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortUp');
+	} else {
+		$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortDown');
+	}
+console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
+	newSlice(sortCol, sortReverse);
+	show();
+}
+
+
+function show() {
+	$('#results-table td').html('');
+	for (var i = 0 ; i < results.length ; i++) {
+		$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
+		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
+		for (var c = 0 ; c < colDefn.length ; c++) {
+			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
+			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
+		}
+	}
+
+	if (sTable.opts.sliderElement) sTable.opts.sliderElement.slider('option', 'value', 100 - (start / (searchResults.length - howMany)) * 100);
+}
+
+function newSlice(col, reverse) {
+	results = sTable.slice(col, start, start + howMany, reverse);
+}
+
+
+function nudge(n) {
+	start += n;
+	if (start < 0) start = 0;
+	if (start > searchResults.length - 1) start = searchResults.length - 1;
+	newSlice(sortCol, sortReverse);
+	show();
+}
+
+function tableDn() {
+	return nudge(-1);
+	start--;
+	if (start < 0) start = 0;
+	newSlice(sortCol, sortReverse);
+	show();
+}
+
+function tableUp() {
+	return nudge(1);
+	start++;
+	if (start > searchResults.length - 1) start = searchResults.length - 1;
+	newSlice(sortCol, sortReverse);
+	show();
+}
+
+
+
+////////
+$(document).ready( function() {
+	wildbook.init(function() { doTable(); });
+});
+
+
+
+function _colIndividual(o) {
+	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.individualID + '">' + o.individualID + '</a></b> ';
+	var i = '<b>' + o.individualID + '</b> ';
+	if (!extra[o.individualID]) return i;
+	i += (extra[o.individualID].firstIdent || '') + ' <i>';
+	i += (extra[o.individualID].genusSpecies || '') + '</i>';
+	return i;
+}
+
+
+function _colNumberEncounters(o) {
+	if (!extra[o.individualID]) return '';
+	var n = extra[o.individualID].numberEncounters;
+	if (n == undefined) return '';
+	return n;
+}
+
+/*
+function _colYearsBetween(o) {
+	return o.get('maxYearsBetweenResightings');
+}
+*/
+
+function _colNumberLocations(o) {
+	if (!extra[o.individualID]) return '';
+	var n = extra[o.individualID].locations;
+	if (n == undefined) return '';
+	return n;
+}
+
+
+function _colTaxonomy(o) {
+	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
+	return o.get('genus') + ' ' + o.get('specificEpithet');
+}
+
+
+function _colRowNum(o) {
+	return o._rowNum;
+}
+
+
+function _colThumb(o) {
+	if (!extra[o.individualID]) return '';
+	var url = extra[o.individualID].thumbUrl;
+	if (!url) return '';
+	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
+}
+
+
+function _colModified(o) {
+	var m = o.get('modified');
+	if (!m) return '';
+	var d = new Date(m);
+	if (!wildbook.isValidDate(d)) return '';
+	return d.toLocaleDateString();
+}
+
+
+function _textExtraction(n) {
+	var s = $(n).text();
+	var skip = new RegExp('^(none|unassigned|)$', 'i');
+	if (skip.test(s)) return 'zzzzz';
+	return s;
+}
+
+
+
+
+
+
+var tableContents = document.createDocumentFragment();
+
+function xdoTable() {
+	resultsTable = new pageableTable({
+		columns: testColumns,
+		tableElement: $('#results-table'),
+		sliderElement: $('#results-slider'),
+		tablesorterOpts: {
+			headers: { 0: {sorter: false} },
+			textExtraction: _textExtraction,
+		},
+	});
+
+	resultsTable.tableInit();
+
+	encs = new wildbook.Collection.Encounters();
+	var addedCount = 0;
+	encs.on('add', function(o) {
+		var row = resultsTable.tableCreateRow(o);
+		row.click(function() { var w = window.open('encounter.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
+		row.addClass('clickable');
+		row.appendTo(tableContents);
+		addedCount++;
+/*
+		var percentage = Math.floor(addedCount / searchResults.length * 100);
+console.log(percentage);
+$('#progress').html(percentage);
+*/
+		if (addedCount >= searchResults.length) {
+			$('#results-table').append(tableContents);
+		}
+	});
+
+	_.each(searchResults, function(o) {
+//console.log(o);
+		encs.add(new wildbook.Model.Encounter(o));
+	});
+	$('#progress').remove();
+	resultsTable.tableShow();
+
+/*
+	encs.fetch({
+		//fields: { individualID: 'newMatch' },
+		success: function() {
+			$('#progress').remove();
+			resultsTable.tableShow();
+		}
+	});
+*/
+
+}
+
+
+function _colIndLink(o) {
+	var iid = o.get('individualID');
+	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
+	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
+
+	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
+}
+
+
+//stops propagation of click to enclosing <TR> which wants click too
+function justA(ev) {
+	ev.stopPropagation();
+	return true;
+}
+
+function _colEncDate(o) {
+	var d = o.date();
+	if (!d) return '';
+	return d.toLocaleDateString();
+}
+
+function _colTaxonomy(o) {
+	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
+	return o.get('genus') + ' ' + o.get('specificEpithet');
+}
+
+
+function _colRowNum(o) {
+	return o._rowNum;
+}
+
+
+function _colThumb(o) {
+	var url = o.thumbUrl();
+	if (!url) return '';
+	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
+	return '<img src="' + url + '" />';
+}
+
+
+function _colModified(o) {
+	var m = o.get('modified');
+	if (!m) return '';
+	var d = new Date(m);
+	if (!wildbook.isValidDate(d)) return '';
+	return d.toLocaleDateString();
+}
+
+function _colModifiedSort(o) {
+	var m = o.get('modified');
+	if (!m) return '';
+	var d = new Date(m);
+	if (!wildbook.isValidDate(d)) return '';
+	return d.getTime();
+}
+
+function _colCreationDate(o) {
+	var m = o.get('dwcDateAdded');
+	if (!m) return '';
+	var d = new Date(m);
+	if (!wildbook.isValidDate(d)) return '';
+	return d.toLocaleDateString();
+}
+
+function _colCreationDateSort(o) {
+	var m = o.get('dwcDateAdded');
+	if (!m) return '';
+	var d = new Date(m);
+	if (!wildbook.isValidDate(d)) return 0;
+	return d.getTime();
+}
+
+
+
+function _textExtraction(n) {
+	var s = $(n).text();
+	var skip = new RegExp('^(none|unassigned|)$', 'i');
+	if (skip.test(s)) return 'zzzzz';
+	return s;
+}
+
+</script>
+
+<div class="pageableTable-wrapper">
+	<div id="progress">Loading results table...</div>
+	<table id="results-table"></table>
+	<div id="results-slider"></div>
+</div>
+
+
+<p>
+<table width="810" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td align="left">
+      <p><strong><%=encprops.getProperty("matchingEncounters")%>
+      </strong>: <%=numResults%>
+        <%
+          if (request.getUserPrincipal()!=null) {
+        %>
+        <br/>
+        <%=numUniqueEncounters%> <%=encprops.getProperty("identifiedUnique")%><br/>
+        <%=numUnidentifiedEncounters%> <%=encprops.getProperty("unidentified")%><br/>
+        <%=(numDuplicateEncounters)%> <%=encprops.getProperty("dailyDuplicates")%>
+        <%
+          }
+        %>
+      </p>
+      <%
+        myShepherd.beginDBTransaction();
+      %>
+      <p><strong><%=encprops.getProperty("totalEncounters")%>
+      </strong>: <%=(myShepherd.getNumEncounters() + (myShepherd.getNumUnidentifiableEncounters()))%>
+      </p>
+    </td>
+    <%
+      myShepherd.rollbackDBTransaction();
+    %>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="left">
+
+      <p><strong><%=encprops.getProperty("queryDetails")%>
+      </strong></p>
+
+      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
+      </strong><br/>
+        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
+      </p>
+
+      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
+      </strong><br/>
+        <%=queryResult.getJDOQLRepresentation()%>
+      </p>
+
+    </td>
+  </tr>
+</table>
+
+
+</p>
+<br>
+
+<%
+  myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
+  rEncounters = null;
+
+%>
+<jsp:include page="../footer.jsp" flush="true"/>
+</div>
+</div>
+<!-- end page --></div>
+<!--end wrapper -->
+
+</body>
+</html>
+
+
+
+
