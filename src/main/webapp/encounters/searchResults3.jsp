@@ -325,13 +325,15 @@ var testColumns = {
 
 
 
-/*
+
 $(document).keydown(function(k) {
-	if ((k.which == 38) || (k.which == 40)) k.preventDefault();
+	if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
 	if (k.which == 38) return tableDn();
 	if (k.which == 40) return tableUp();
+	if (k.which == 33) return nudge(-howMany);
+	if (k.which == 34) return nudge(howMany);
 });
-*/
+
 
 var colDefn = [
 	{
@@ -559,7 +561,7 @@ function displayPagePosition() {
 
 	var max = start + howMany;
 	if (sTable.matchesFilter.length < max) max = sTable.matchesFilter.length;
-	$('#table-info').html(start + ' - ' + max + ' of ' + sTable.matchesFilter.length);
+	$('#table-info').html((start+1) + ' - ' + max + ' of ' + sTable.matchesFilter.length);
 }
 
 
