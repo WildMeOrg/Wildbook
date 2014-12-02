@@ -79,6 +79,7 @@ context=ServletUtilities.getContext(request);
   int numUniqueEncounters = 0;
   int numUnidentifiedEncounters = 0;
   int numDuplicateEncounters = 0;
+/*
   ArrayList uniqueEncounters = new ArrayList();
   for (int q = 0; q < rEncounters.size(); q++) {
     Encounter rEnc = (Encounter) rEncounters.get(q);
@@ -95,6 +96,7 @@ context=ServletUtilities.getContext(request);
     }
 
   }
+*/
 
 //--end unique counting------------------------------------------
 
@@ -287,8 +289,9 @@ a.pt-vm-button:hover {
 */
 
 <%
+	String encsJson = "false";
+/*
 	JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-	String encsJson = "";
 	if (rEncounters instanceof Collection) {
 		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, jdopm.getExecutionContext());
 		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, ((JDOPersistenceManager)pm).getExecutionContext());
@@ -297,10 +300,13 @@ a.pt-vm-button:hover {
 		JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(rEncounters, jdopm.getExecutionContext());
 		encsJson = jsonobj.toString();
 	}
+*/
 
 %>
 
 var searchResults = <%=encsJson%>;
+
+var jdoql = '<%= queryResult.getJDOQLRepresentation() %>';
 
 var testColumns = {
 	thumb: { label: 'Thumb', val: _colThumb },
@@ -314,8 +320,6 @@ var testColumns = {
 	modified: { label: 'Edit Date', val: _colModified },
 };
 
-var encs;
-var resultsTable;
 
 
 
@@ -347,7 +351,7 @@ var colDefn = [
 		key: 'date',
 		label: 'Date',
 		value: _colEncDate,
-		//sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+		sortValue: _colEncDateSort,
 	},
 	{
 		key: 'verbatimLocality',
@@ -389,13 +393,21 @@ var results = [];
 var sortCol = -1;
 var sortReverse = false;
 
+var counts = {
+	total: 0,
+	ided: 0,
+	unid: 0,
+	dailydup: 0,
+};
 
 var sTable = false;
 
 function doTable() {
+/*
 	for (var i = 0 ; i < searchResults.length ; i++) {
 		searchResults[i] = new wildbook.Model.Encounter(searchResults[i]);
 	}
+*/
 
 	sTable = new SortTable({
 		data: searchResults,
@@ -436,6 +448,8 @@ function doTable() {
 	$('#progress').hide();
 	sTable.sliderInit();
 	show();
+	computeCounts();
+	displayCounts();
 
 	$('#results-table').on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
 		if (!sTable.opts.sliderElement) return;
@@ -479,6 +493,7 @@ console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
 
 function show() {
 	$('#results-table td').html('');
+	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
 		$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
@@ -487,9 +502,66 @@ function show() {
 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
 		}
 	}
+	if (results.length < howMany) {
+		$('#results-slider').hide();
+		for (var i = 0 ; i < (howMany - results.length) ; i++) {
+			$('#results-table tbody tr')[i + results.length].style.display = 'none';
+		}
+	} else {
+		$('#results-slider').show();
+	}
 
-	if (sTable.opts.sliderElement) sTable.opts.sliderElement.slider('option', 'value', 100 - (start / (searchResults.length - howMany)) * 100);
+	//if (sTable.opts.sliderElement) sTable.opts.sliderElement.slider('option', 'value', 100 - (start / (searchResults.length - howMany)) * 100);
+	sTable.sliderSet(100 - (start / (sTable.matchesFilter.length - howMany)) * 100);
+	displayPagePosition();
 }
+
+function computeCounts() {
+	counts.total = sTable.matchesFilter.length;
+	counts.unid = 0;
+	counts.ided = 0;
+	counts.dailydup = 0;
+	var uniq = {};
+
+	for (var i = 0 ; i < counts.total ; i++) {
+		var iid = searchResults[sTable.matchesFilter[i]].get('individualID');
+		if (iid == 'Unassigned') {
+			counts.unid++;
+		} else {
+			var k = iid + ':' + searchResults[sTable.matchesFilter[i]].get('year') + ':' + searchResults[sTable.matchesFilter[i]].get('month') + ':' + searchResults[sTable.matchesFilter[i]].get('day');
+			if (!uniq[k]) {
+				uniq[k] = true;
+				counts.ided++;
+			} else {
+				counts.dailydup++;
+			}
+		}
+	}
+/*
+	var k = Object.keys(uniq);
+	counts.ided = k.length;
+*/
+}
+
+
+function displayCounts() {
+	for (var w in counts) {
+		$('#count-' + w).html(counts[w]);
+	}
+}
+
+
+function displayPagePosition() {
+	if (sTable.matchesFilter.length < 1) {
+		$('#table-info').html('<b>no matches found</b>');
+		return;
+	}
+
+	var max = start + howMany;
+	if (sTable.matchesFilter.length < max) max = sTable.matchesFilter.length;
+	$('#table-info').html(start + ' - ' + max + ' of ' + sTable.matchesFilter.length);
+}
+
 
 function newSlice(col, reverse) {
 	results = sTable.slice(col, start, start + howMany, reverse);
@@ -498,8 +570,9 @@ function newSlice(col, reverse) {
 
 function nudge(n) {
 	start += n;
+	if ((start + howMany) > sTable.matchesFilter.length) start = sTable.matchesFilter.length - howMany;
 	if (start < 0) start = 0;
-	if (start > searchResults.length - 1) start = searchResults.length - 1;
+console.log('start -> %d', start);
 	newSlice(sortCol, sortReverse);
 	show();
 }
@@ -515,7 +588,7 @@ function tableDn() {
 function tableUp() {
 	return nudge(1);
 	start++;
-	if (start > searchResults.length - 1) start = searchResults.length - 1;
+	if (start > sTable.matchesFilter.length - 1) start = sTable.matchesFilter.length - 1;
 	newSlice(sortCol, sortReverse);
 	show();
 }
@@ -523,8 +596,15 @@ function tableUp() {
 
 
 ////////
+var encs;
 $(document).ready( function() {
-	wildbook.init(function() { doTable(); });
+	wildbook.init(function() {
+		encs = new wildbook.Collection.Encounters();
+		encs.fetch({
+			jdoql: jdoql,
+			success: function() { searchResults = encs.models; doTable(); },
+		});
+	});
 });
 
 
@@ -674,6 +754,12 @@ function _colEncDate(o) {
 	return d.toLocaleDateString();
 }
 
+function _colEncDateSort(o) {
+	var d = o.date();
+	if (!d) return '';
+	return d.getTime();
+}
+
 function _colTaxonomy(o) {
 	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
 	return o.get('genus') + ' ' + o.get('specificEpithet');
@@ -734,8 +820,26 @@ function _textExtraction(n) {
 	return s;
 }
 
+
+function applyFilter() {
+	var t = $('#filter-text').val();
+console.log(t);
+	sTable.filter(t);
+	start = 0;
+	newSlice(0);
+	show();
+	computeCounts();
+	displayCounts();
+}
+
 </script>
 
+<p>
+<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="filter" />
+<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
+</p>
 <div class="pageableTable-wrapper">
 	<div id="progress">Loading results table...</div>
 	<table id="results-table"></table>
@@ -748,14 +852,14 @@ function _textExtraction(n) {
   <tr>
     <td align="left">
       <p><strong><%=encprops.getProperty("matchingEncounters")%>
-      </strong>: <%=numResults%>
+      </strong>: <span id="count-total"></span>
         <%
           if (request.getUserPrincipal()!=null) {
         %>
         <br/>
-        <%=numUniqueEncounters%> <%=encprops.getProperty("identifiedUnique")%><br/>
-        <%=numUnidentifiedEncounters%> <%=encprops.getProperty("unidentified")%><br/>
-        <%=(numDuplicateEncounters)%> <%=encprops.getProperty("dailyDuplicates")%>
+        <span id="count-ided"><%=numUniqueEncounters%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
+        <span id="count-unid"><%=numUnidentifiedEncounters%></span> <%=encprops.getProperty("unidentified")%><br/>
+        <span id="count-dailydup"><%=(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
         <%
           }
         %>
