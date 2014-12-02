@@ -52,6 +52,7 @@ function SortTable(opts) {
 	this.slice = function(col, start, end, reverse) {
 		if ((end == undefined) || (end > this.matchesFilter.length)) end = this.matchesFilter.length;
 		if ((start == undefined) || (start > this.matchesFilter.length)) start = 0;
+console.log('start %o end %o', start, end);
 		var at = -1;
 		var s = [];
 /*
@@ -113,7 +114,8 @@ console.log(this._sortCache[col]);
 			value: 100,
 //TODO generalize this function!
 			slide: function(a, b) {
-				var s = Math.floor((100 - b.value) / 100 * (me.opts.data.length - me.opts.perPage) + 0.5);
+				//var s = Math.floor((100 - b.value) / 100 * (me.opts.data.length - me.opts.perPage) + 0.5);
+				var s = Math.floor((100 - b.value) / 100 * (me.matchesFilter.length - me.opts.perPage) + 0.5);
 				if (s == me.lastSliderStart) return;
 				me.lastSliderStart = s;
 				console.log(s);
@@ -142,7 +144,7 @@ console.log(this._sortCache[col]);
 
 	this.sliderSet = function(percent) {
 		if (!this.opts.sliderElement) return;
-		if (this.opts.data.length - this.opts.perPage < 1) return;
+		if (this.matchesFilter.length - this.opts.perPage < 1) return;
 		this.opts.sliderElement.slider('option', 'value', percent);
 	};
 
