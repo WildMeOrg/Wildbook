@@ -1084,7 +1084,6 @@ $("a#deathdate").click(function() {
 
                       <tr>
                         <td>
-xxxxxx
 	<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
                         	<span class="caption"><%=props.getProperty("location") %>: 
                         		<%
