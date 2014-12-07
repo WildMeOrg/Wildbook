@@ -969,6 +969,20 @@
     <servlet-name>DataNucleus</servlet-name>
     <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
+  
+    <servlet>
+    <servlet-name>WildbookApi</servlet-name>
+    <servlet-class>org.ecocean.servlet.RestServlet</servlet-class>
+    <init-param>
+      <param-name>persistence-context</param-name>
+      <param-value>ShepherdPMF</param-value>
+    </init-param>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>WildbookApi</servlet-name>
+    <url-pattern>/api/*</url-pattern>
+  </servlet-mapping>
 
 
   <servlet-mapping>
