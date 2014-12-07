@@ -27,18 +27,28 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.HashMap;
 import java.util.GregorianCalendar;
 import java.io.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
+import org.ecocean.servlet.ServletUtilities;
+
+import javax.servlet.http.HttpServletRequest;
+
+
+import org.json.JSONObject;
 
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
+
 
 
 /**
@@ -204,6 +214,8 @@ public class Encounter implements java.io.Serializable {
   private List<MetalTag> metalTags;
   private AcousticTag acousticTag;
   private SatelliteTag satelliteTag;
+
+  private boolean mmaCompatible = false;
   
   //start constructors
 
@@ -384,6 +396,13 @@ public class Encounter implements java.io.Serializable {
    *
    * @return any comments regarding observed scarring on the shark's body
    */
+
+	public boolean getMmaCompatible() {
+		return mmaCompatible;
+	}
+	public void setMmaCompatible(boolean b) {
+		mmaCompatible = b;
+	}
 
   public String getComments() {
     return occurrenceRemarks;
@@ -1949,5 +1968,28 @@ thus, we have to treat it as a special case.
 			ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataCollectionEventID() + "-mid.jpg");  //for use in VM tool etc. (bandwidth friendly?)
 			return ok;
 		}
+
+
+	public boolean restAccess(HttpServletRequest request, JSONObject jsonobj) throws Exception {
+		ApiAccess access = new ApiAccess();
+System.out.println("hello i am in restAccess() on Encounter");
+
+		String fail = access.checkRequest(this, request, jsonobj);
+System.out.println("fail -----> " + fail);
+		if (fail != null) throw new Exception(fail);
+
+		//HashMap<String, String> perm = access.permissions(this, request);
+//System.out.println(perm);
+
+/*
+System.out.println("!!!----------------------------------------");
+System.out.println(request.getMethod());
+throw new Exception();
+*/
+		return true;
+	}
+
+
+
 }
 

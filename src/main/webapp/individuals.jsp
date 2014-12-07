@@ -19,7 +19,8 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, com.google.gson.Gson" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
+		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson" %>
 
 <%
 String blocker = "";
@@ -1101,7 +1102,6 @@ $("a#deathdate").click(function() {
 
                       <tr>
                         <td>
-xxxxxx
 	<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
                         	<span class="caption"><%=props.getProperty("location") %>: 
                         		<%
@@ -1205,13 +1205,30 @@ xxxxxx
 						<span class="caption">
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-              
-            	  //File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
-              File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
-              %>
-          	<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
-          	<%
-             
+              try{
+              File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
+              if(exifImage.exists()){              
+              	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+              	// iterate through metadata directories
+                for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
+          				%>
+  								<%=tag.toString() %><br/>
+  								<%
+                }
+              } //end if
+              else{
+            	  %>
+		            <p>File not found on file system. No EXIF data available.</p>
+          		<%  
+              }
+            } //end try
+            catch(Exception e){
+            	 %>
+		            <p>Cannot read metadata for this file.</p>
+            	<%
+            	System.out.println("Cannout read metadata for: "+thumbLocs.get(countMe).getFilename());
+            	e.printStackTrace();
+            }
 
                   }
                 %>
@@ -2233,6 +2250,19 @@ if(isOwner){
     } //if isEditable
 
 }
+%>
+
+</td>
+</tr>
+</table>
+</div><!-- end maintext -->
+</div><!-- end main-wide -->
+
+
+  <%
+   
+
+
 
 } 
 
