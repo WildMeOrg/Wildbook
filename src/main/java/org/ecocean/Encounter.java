@@ -1528,9 +1528,11 @@ public class Encounter implements java.io.Serializable {
       if(month>0){localMonth=month-1;}
       int localDay=1;
       if(day>0){localDay=day;}
+      int localHour=0;
+      if(hour>-1){localHour=hour;}
       int myMinutes=0;
       try{myMinutes = Integer.parseInt(minutes);}catch(Exception e){}
-      GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay,hour,myMinutes);
+      GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay,localHour,myMinutes);
 
       dateInMilliseconds = gc.getTimeInMillis();
     }
