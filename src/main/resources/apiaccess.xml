@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+"properties" really refers to getter/setter availability, e.g. standard getFooBar and setFooBar  (which would be property "fooBar", note lowercase)
+"read" is always on for a property unless defined here.  "write" is always off unless explicitely set on.
+NOTE: "admin" role always can do anything
+-->
+<access>
+	<classes>
+		<class name="org.ecocean.Encounter">
+			<object>
+				<create>*</create>
+			</object>
+			<properties>
+				<property name="location">
+					<write>
+						<role>admin</role>
+						<role>test</role>
+					</write>
+				</property>
+				<property name="sex">
+					<write>
+						<role>test</role>
+					</write>
+				</property>
+			</properties>
+		</class>
+		<class name="org.ecocean.User">
+			<object>
+				<read>admin</read>
+				<write>admin</write>
+				<create>admin</create>
+				<delete>admin</delete>
+			</object>
+		</class>
+	</classes>
+</access>

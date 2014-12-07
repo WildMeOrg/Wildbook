@@ -1,0 +1,334 @@
+<html><head><title>test</title>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+
+<script src="../../JavascriptGlobals.js"></script>
+
+<script src="../tablesorter/jquery.tablesorter.js"></script>
+
+<script src="../underscore-min.js"></script>
+<script src="../backbone-min.js"></script>
+<script src="../core.js"></script>
+<script src="Base.js"></script>
+
+<link rel="stylesheet" href="../tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+
+<style>
+body {
+	font-family: sans, arial;
+}
+
+#table-body tr {
+	display: none;
+}
+#table-body tr.visible {
+	display: table-row;
+}
+
+.col-individualID {
+	width: 200px;
+}
+.col-sex {
+	width: 100px;
+}
+.col-num {
+	width: 70px;
+}
+.col-numberEncounters {
+	width: 100px;
+}
+
+#slider {
+	position: absolute;
+	top: 15px;
+	right: 10px;
+	height: 85%;
+}
+
+#test-table {
+	top: 0;
+	left: 0;
+	width: 95%;
+	margin: 0;
+	display: none;
+}
+
+#progress {
+	position: relative;
+	padding: 3px;
+	text-align: center;
+	font-size: 1.2em;
+	font-weight: bold;
+/*
+	margin: 20px;
+	color: #DD7;
+	border: solid 1px black;
+*/
+	border-radius: 3px;
+	width: 20%;
+	margin-left: 40%;
+	background: #DDD url(../../images/throbber.gif) no-repeat 90% 50%;
+}
+
+#progress-bar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 100%;
+	background-color: #555;
+}
+
+</style>
+
+<script>
+$(document).ready(function() {
+	wildbook.init(function() {
+		tableInit();
+		fetchData();
+	});
+});
+
+var xcolumns = {
+	catalogNumber: { label: 'Number' },
+	verbatimLocality: { label: 'Location' },
+	dataTypes: { label: 'Data types', val: dataTypes },
+	sex: { label: 'Sex', val: cleanValue },
+};
+
+var columns = {
+	catalogNumber: { label: 'Number' },
+	//verbatimLocality: { label: 'Location' },
+	//dataTypes: { label: 'Data types', val: dataTypes },
+	individualID: { label: 'Individual' },
+	sex: { label: 'Sex', val: cleanValue },
+};
+
+var encs = false;
+
+var pstart = 0;
+var perPage = 20;
+
+
+var countTotal = -1;
+var countProgress = -1;
+
+function fetchData() {
+	encs = new wildbook.Collection.Encounters();
+	encs.on('add', function(o) {
+		if (countTotal < 0) {
+			countTotal = this.models.length * 9;
+			countProgress = countTotal;
+			initSlider();
+		}
+		countProgress--;
+		//updateProgress();
+		tableAddRow(o);
+tableAddRow(o); tableAddRow(o);tableAddRow(o); tableAddRow(o);tableAddRow(o); tableAddRow(o);tableAddRow(o); tableAddRow(o);
+	});
+	encs.fetch({
+		//fields: { individualID: 'newMatch' },
+		success: function() { tableShow(); }
+	});
+
+}
+
+
+var lastSliderStart = -1;
+var hasSlider = false;
+function initSlider() {
+	if (countTotal - perPage < 1) return;
+	hasSlider = true;
+	$('#slider').slider({
+		orientation: 'vertical',
+		value: 100,
+		slide: function(a, b) {
+			var start = Math.floor((100 - b.value) / 100 * (countTotal - perPage) + 0.5);
+			if (start == lastSliderStart) return;
+			lastSliderStart = start;
+			console.log(start);
+			pageTable(start, perPage);
+		}
+	});
+}
+
+/*
+var subPending = 0;
+var totalLoad = 0;
+function fetchSubData() {
+	subPending = encs.models.length * 2;
+	totalLoad = subPending;
+	_.each(encs.models, function(enc, i) {
+		enc.fetchSub('measurements', { success: function(){checkSubData();} });
+		enc.fetchSub('images', { success: function(){checkSubData();} });
+	});
+}
+
+*/
+
+var lastPercent = -1;
+function updateProgress() {
+	var percent = 100 - Math.floor(countProgress / countTotal * 100);
+	if (lastPercent == percent) return;
+	lastPercent = percent;
+console.log('pending: %s %%', percent);
+	$('#progress').html(percent + '%');
+	$('#progress-bar').css('width', percent + '%');
+}
+
+/*
+function checkSubData() {
+	subPending--;
+	var percent = 100 - Math.floor(subPending / totalLoad * 100);
+console.log('subPending: %d (%s %%)', subPending, percent);
+	$('#progress').html(percent + '%').css('background-size', percent + '%');
+
+	if (subPending < 1) {
+		$('#progress').hide();
+		showTable();
+	}
+}
+*/
+
+
+var tableBody = false;
+function tableInit() {
+	tableBody = $('<tbody id="table-body"></tbody>');
+	var hd = '<thead><tr><th class="col-num">#</th>';
+	_.each(columns, function(cstruct, c) { hd += '<th class="col-' + c + '">' + cstruct.label + '</th>'; });
+	$('#test-table').append(hd + '</tr></thead>').append(tableBody);
+	$('#test-table').on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
+		ev.preventDefault();
+		var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
+console.log(delta);
+		if (delta != 0) pageNudge(-delta);
+	});
+}
+
+
+var lastSearch = false;
+function tableShow() {
+	$('#progress').hide();
+	$('#test-table').tablesorter().show();
+	$('#test-table').bind('sortEnd', function() {
+		pstart = 0;
+		if (hasSlider) $('#slider').slider('option', 'value', 100);
+		pageTable(0, perPage);
+	});
+	pageTable(0, perPage);
+	$(document).on('keydown', function(ev) {
+		var m = { 38: -1, 40: 1 };
+		if (!m[ev.which]) return;
+		pageNudge(m[ev.which]);
+		ev.preventDefault();
+	});
+
+	$('#search').on('keyup', function() {
+		var val = this.value;
+		if (val == lastSearch) return;
+		lastSearch = val;
+		if (val == '') {
+			$('#table-body tr.nof').removeClass('nof');
+			pageTable(0, perPage);
+			return;
+		}
+		tableSearch(val);
+	});
+}
+
+
+var rowCount = 0;
+function tableAddRow(obj) {
+	var i = rowCount++;
+	var td = '';
+	var search = '';
+	_.each(columns, function(cstruct, c) {
+		var val = (cstruct.val ? cstruct.val(obj, c) : obj.get(c));
+		search += ' ' + val;
+		td += '<td>' + val + '</td>';
+	});
+	tableBody.append('<tr data-search="' + search + '" id="n' + i + '"><td>' + i + '</td>' + td + '</tr>');
+}
+
+//http://dev.wildme.org/mm/api/jdoql?select%20m%20from%20org.ecocean.Encounter%20where%20catalogNumber==%27073b9487-67ec-4705-a0fe-3fabc6525659%27%20&&%20measurements.contains(m)
+
+
+function pageTable(start, howMany) {
+	pstart = start;
+	$('.visible').removeClass('visible');
+	var ends = start + howMany;
+	for (var i = start ; i < ends ; i++) {
+		if (!$('#table-body').children()[i]) continue;
+		if ($($('#table-body').children()[i]).hasClass('nof')) {
+			ends++;
+			continue;
+		}
+		$('#table-body').children()[i].className = 'visible';
+	}
+}
+
+
+function pageNudge(n) {
+	pstart += n;
+	if (pstart < 0) pstart = 0;
+	if (pstart > (countTotal - perPage)) pstart = countTotal - perPage;
+	pageTable(pstart, perPage);
+
+	if (hasSlider) $('#slider').slider('option', 'value', 100 - (pstart / (countTotal - perPage)) * 100);
+}
+
+
+function tableSearch(s) {
+	var regex = new RegExp(s, 'i');
+	$('#table-body tr').removeClass('nof').each(function(i, el) {
+		if (!regex.test(el.getAttribute('data-search'))) el.className = 'nof';
+	});
+	pageTable(0, perPage);
+}
+
+
+function cleanValue(obj, fieldName) {
+	var v = obj.get(fieldName);
+	var empty = /^(null|unknown|none)$/i;
+	if (empty.test(v)) v = '';
+//console.log('%o[%s] -> %s', obj, fieldName, v);
+	return v;
+}
+
+
+function dataTypes(obj, fieldName) {
+	var dt = [];
+	_.each(['measurements', 'images'], function(w) {
+		if (obj[w] && obj[w].models && (obj[w].models.length > 0)) dt.push(w.substring(0,1));
+	});
+	return dt.join(', ');
+}
+
+</script>
+
+</head>
+<body>
+
+<div id="progress">loading<div id="#progress-bar"></div></div>
+
+<div style="position: relative;">
+<table id="test-table" class="tablesorter">
+</table>
+<div id="slider"></div>
+</div>
+
+
+<input id="search" placeholder="filter / search" />
+
+
+
+<!--
+<input type="button" value="^^^" onClick="pageDown();" style="float:left;" />
+<input type="button" value="vvv" onClick="pageUp();" style="float:right;" />
+-->
+
+
+</body>
+</html>
