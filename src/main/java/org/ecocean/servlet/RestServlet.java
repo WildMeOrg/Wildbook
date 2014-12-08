@@ -39,21 +39,21 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.datanucleus.ClassLoaderResolver;
 import org.datanucleus.ExecutionContext;
-import org.datanucleus.NucleusContext;
+import org.datanucleus.PersistenceNucleusContext;
 import org.datanucleus.api.jdo.JDOPersistenceManager;
 import org.datanucleus.api.jdo.JDOPersistenceManagerFactory;
+import org.datanucleus.api.rest.orgjson.JSONArray;
+import org.datanucleus.api.rest.orgjson.JSONException;
+import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.exceptions.ClassNotResolvedException;
 import org.datanucleus.exceptions.NucleusException;
 import org.datanucleus.exceptions.NucleusObjectNotFoundException;
 import org.datanucleus.exceptions.NucleusUserException;
-import org.datanucleus.identity.OID;
+import org.datanucleus.identity.IdentityUtils;
 import org.datanucleus.metadata.AbstractClassMetaData;
 import org.datanucleus.metadata.IdentityType;
 import org.datanucleus.util.NucleusLogger;
 import org.datanucleus.api.rest.RESTUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * This servlet exposes persistent class via RESTful HTTP requests.
@@ -68,10 +68,12 @@ import org.json.JSONObject;
  */
 public class RestServlet extends HttpServlet
 {
+    private static final long serialVersionUID = -4445182084242929362L;
+
     public static final NucleusLogger LOGGER_REST = NucleusLogger.getLoggerInstance("DataNucleus.REST");
 
     PersistenceManagerFactory pmf;
-    NucleusContext nucCtx;
+    PersistenceNucleusContext nucCtx;
 
     /* (non-Javadoc)
      * @see javax.servlet.GenericServlet#destroy()
@@ -363,7 +365,6 @@ public class RestServlet extends HttpServlet
                     }
                     catch (RuntimeException ex)
                     {
-                        ex.printStackTrace();
                         // errors from the google appengine may be raised when running queries
                         JSONObject error = new JSONObject();
                         error.put("exception", ex.getMessage());
@@ -373,48 +374,46 @@ public class RestServlet extends HttpServlet
                         return;
                     }
                 }
-                else
+
+                // GET "/{candidateclass}/id" - Find object by id
+                PersistenceManager pm = pmf.getPersistenceManager();
+                if (fetchParam != null)
                 {
-                    // GET "/{candidateclass}/id" - Find object by id
-                    PersistenceManager pm = pmf.getPersistenceManager();
-                    if (fetchParam != null)
+                    pm.getFetchPlan().addGroup(fetchParam);
+                }
+                try
+                {
+                    pm.currentTransaction().begin();
+                    Object result = pm.getObjectById(id);
+                    JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
+                        ((JDOPersistenceManager)pm).getExecutionContext());
+                    resp.getWriter().write(jsonobj.toString());
+                    resp.setHeader("Content-Type","application/json");
+                    pm.currentTransaction().commit();
+                    return;
+                }
+                catch (NucleusObjectNotFoundException ex)
+                {
+                    resp.setContentLength(0);
+                    resp.setStatus(404);
+                    return;
+                }
+                catch (NucleusException ex)
+                {
+                    JSONObject error = new JSONObject();
+                    error.put("exception", ex.getMessage());
+                    resp.getWriter().write(error.toString());
+                    resp.setStatus(404);
+                    resp.setHeader("Content-Type", "application/json");
+                    return;
+                }
+                finally
+                {
+                    if (pm.currentTransaction().isActive())
                     {
-                        pm.getFetchPlan().addGroup(fetchParam);
+                        pm.currentTransaction().rollback();
                     }
-                    try
-                    {
-                        pm.currentTransaction().begin();
-                        Object result = pm.getObjectById(id);
-                        JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
-                            ((JDOPersistenceManager)pm).getExecutionContext());
-                        resp.getWriter().write(jsonobj.toString());
-                        resp.setHeader("Content-Type","application/json");
-                        pm.currentTransaction().commit();
-                        return;
-                    }
-                    catch (NucleusObjectNotFoundException ex)
-                    {
-                        resp.setContentLength(0);
-                        resp.setStatus(404);
-                        return;
-                    }
-                    catch (NucleusException ex)
-                    {
-                        JSONObject error = new JSONObject();
-                        error.put("exception", ex.getMessage());
-                        resp.getWriter().write(error.toString());
-                        resp.setStatus(404);
-                        resp.setHeader("Content-Type", "application/json");
-                        return;
-                    }
-                    finally
-                    {
-                        if (pm.currentTransaction().isActive())
-                        {
-                            pm.currentTransaction().rollback();
-                        }
-                        pm.close();
-                    }
+                    pm.close();
                 }
             }
         }
@@ -484,12 +483,12 @@ public class RestServlet extends HttpServlet
                     {
                         if (cmd.usesSingleFieldIdentityClass())
                         {
-                            jsonobj.put(cmd.getPrimaryKeyMemberNames()[0], ec.getApiAdapter().getTargetKeyForSingleFieldIdentity(id));
+                            jsonobj.put(cmd.getPrimaryKeyMemberNames()[0], IdentityUtils.getTargetKeyForSingleFieldIdentity(id));
                         }
                     }
                     else if (cmd.getIdentityType() == IdentityType.DATASTORE)
                     {
-                        jsonobj.put("_id", ((OID)id).getKeyValue());
+                        jsonobj.put("_id", IdentityUtils.getTargetKeyForDatastoreIdentity(id));
                     }
                 }
             }
@@ -835,4 +834,5 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
 			}
 			return ok;
 		}
+
 }
