@@ -482,6 +482,15 @@ function show() {
 		}
 	}
 
+	if (results.length < howMany) {
+		$('#results-slider').hide();
+		for (var i = 0 ; i < (howMany - results.length) ; i++) {
+			$('#results-table tbody tr')[i + results.length].style.display = 'none';
+		}
+	} else {
+		$('#results-slider').show();
+	}
+
 	sTable.sliderSet(100 - (start / (searchResults.length - howMany)) * 100);
 }
 
