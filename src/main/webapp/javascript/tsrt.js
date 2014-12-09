@@ -173,6 +173,7 @@ console.log(this._sortCache[col]);
 
 	this.sortValueAt = function(obj, colnum) {
 		if (this.opts.columns[colnum].sortValue) return this.opts.columns[colnum].sortValue(obj, colnum);
+		if (this.opts.columns[colnum].value) return this.opts.columns[colnum].value(obj, colnum);
 		return keyValue(obj, this.opts.columns[colnum].key);
 	};
 
