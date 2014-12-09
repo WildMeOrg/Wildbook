@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.json.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -480,6 +480,15 @@ function show() {
 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
 		}
+	}
+
+	if (results.length < howMany) {
+		$('#results-slider').hide();
+		for (var i = 0 ; i < (howMany - results.length) ; i++) {
+			$('#results-table tbody tr')[i + results.length].style.display = 'none';
+		}
+	} else {
+		$('#results-slider').show();
 	}
 
 	sTable.sliderSet(100 - (start / (searchResults.length - howMany)) * 100);
