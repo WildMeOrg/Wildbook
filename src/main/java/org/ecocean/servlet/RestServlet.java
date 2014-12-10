@@ -55,6 +55,9 @@ import org.datanucleus.metadata.IdentityType;
 import org.datanucleus.util.NucleusLogger;
 import org.datanucleus.api.rest.RESTUtils;
 
+import java.util.zip.*;
+import java.io.OutputStream;
+
 /**
  * This servlet exposes persistent class via RESTful HTTP requests.
  * Supports the following
@@ -198,6 +201,13 @@ public class RestServlet extends HttpServlet
         // Retrieve any fetch group that needs applying to the fetch
         String fetchParam = req.getParameter("fetch");
 
+				boolean useCompression = false;
+				String encodings = req.getHeader("Accept-Encoding");
+				if ((encodings != null) && (encodings.indexOf("gzip") > -1)) {
+					resp.setHeader("Content-Encoding", "gzip");
+					useCompression = true;
+				}
+
         try
         {
             String token = getNextTokenAfterSlash(req);
@@ -220,13 +230,13 @@ public class RestServlet extends HttpServlet
                     {
                         JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
                             ((JDOPersistenceManager)pm).getExecutionContext());
-                        resp.getWriter().write(jsonobj.toString());
+                        tryCompress(resp, jsonobj.toString(), useCompression);
                     }
                     else
                     {
                         JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
                             ((JDOPersistenceManager)pm).getExecutionContext());
-                        resp.getWriter().write(jsonobj.toString());
+                        tryCompress(resp, jsonobj.toString(), useCompression);
                     }
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
@@ -260,13 +270,13 @@ public class RestServlet extends HttpServlet
                     {
                         JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
                             ((JDOPersistenceManager)pm).getExecutionContext());
-                        resp.getWriter().write(jsonobj.toString());
+                        tryCompress(resp, jsonobj.toString(), useCompression);
                     }
                     else
                     {
                         JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
                             ((JDOPersistenceManager)pm).getExecutionContext());
-                        resp.getWriter().write(jsonobj.toString());
+                        tryCompress(resp, jsonobj.toString(), useCompression);
                     }
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
@@ -330,7 +340,7 @@ public class RestServlet extends HttpServlet
                             List result = (List)query.execute();
                             JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection(result, 
                                 ((JDOPersistenceManager)pm).getExecutionContext());
-                            resp.getWriter().write(jsonobj.toString());
+                            tryCompress(resp, jsonobj.toString(), useCompression);
                             resp.setHeader("Content-Type", "application/json");
                             resp.setStatus(200);
                             pm.currentTransaction().commit();
@@ -834,5 +844,20 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
 			}
 			return ok;
 		}
+
+
+		void tryCompress(HttpServletResponse resp, String s, boolean useComp) throws IOException {
+			if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
+				resp.getWriter().write(s);
+			} else {
+    		OutputStream o = resp.getOutputStream();
+    		GZIPOutputStream gz = new GZIPOutputStream(o);
+				gz.write(s.getBytes());
+				gz.flush();
+				gz.close();
+				o.close();
+			}
+		}
+
 
 }
