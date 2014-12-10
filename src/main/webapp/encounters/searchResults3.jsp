@@ -19,7 +19,8 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*, org.json.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager " %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager " %>
+
 
 
 <html>
@@ -147,6 +148,26 @@ a.pt-vm-button:hover {
 
 .ptcol-thumb {
 	width: 75px !important;
+}
+
+tr.pageableTable-visible td {
+	position: relative;
+}
+
+div.tdw {
+	height: 16px;
+	overflow-y: hidden;
+}
+
+
+div.tdw:hover {
+	position: absolute;
+	z-index: 20;
+	background-color: #EFA;
+	outline: 3px solid #EFA;
+	min-height: 16px;
+	height: auto;
+	overflow-y: auto;
 }
 
   #tabmenu {
@@ -435,7 +456,7 @@ function doTable() {
 	for (var i = 0 ; i < howMany ; i++) {
 		var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
 		for (var c = 0 ; c < colDefn.length ; c++) {
-			r += '<td class="ptcol-' + colDefn[c].key + '"></td>';
+			r += '<td class="ptcol-' + colDefn[c].key + '"><div class="tdw"></div></td>';
 		}
 		r += '</tr>';
 		$('#results-table').append(r);
@@ -500,8 +521,7 @@ function show() {
 		$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
 		for (var c = 0 ; c < colDefn.length ; c++) {
-			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
-			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
+			$('#results-table tbody tr')[i].children[c].innerHTML = '<div class="tdw">' + sTable.values[results[i]][c] + '</div>';
 		}
 	}
 	if (results.length < howMany) {
