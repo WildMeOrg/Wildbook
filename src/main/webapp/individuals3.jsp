@@ -644,7 +644,7 @@ function _colThumb(o) {
 function _colModified(o) {
 	var m = o.get('modified');
 	if (!m) return '';
-	var d = new Date(m);
+	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
 }
@@ -736,7 +736,7 @@ function _colDataTypesSort(o) {
 
 
 function _colEncDate(o) {
-	var d = new Date(o.get('date'));
+	var d = wildbook.parseDate(o.get('date'));
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
 }
@@ -766,7 +766,7 @@ function _colThumb(o) {
 function _colModified(o) {
 	var m = o.get('modified');
 	if (!m) return '';
-	var d = new Date(m);
+	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
 }
@@ -774,7 +774,7 @@ function _colModified(o) {
 function _colCreationDate(o) {
 	var m = o.get('dwcDateAdded');
 	if (!m) return '';
-	var d = new Date(m);
+	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
 }
