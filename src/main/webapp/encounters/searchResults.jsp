@@ -150,17 +150,17 @@ a.pt-vm-button:hover {
 	width: 75px !important;
 }
 
-tr.pageableTable-visible td {
+td.tdw {
 	position: relative;
 }
 
-div.tdw {
+td.tdw div {
 	height: 16px;
 	overflow-y: hidden;
 }
 
 
-div.tdw:hover {
+td.tdw:hover div {
 	position: absolute;
 	z-index: 20;
 	background-color: #EFA;
@@ -172,7 +172,7 @@ div.tdw:hover {
 
   #tabmenu {
     color: #000;
-    border-bottom: 1px solid #CDCDCD;
+    border-bottom: 2px solid black;
     margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
@@ -186,10 +186,10 @@ div.tdw:hover {
   }
 
   #tabmenu a, a.active {
-    color: #000;
-    background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
-    border: 1px solid #CDCDCD;
+    color: #DEDECF;
+    background: #000;
+    font: bold 1em "Trebuchet MS", Arial, sans-serif;
+    border: 2px solid black;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
@@ -197,23 +197,24 @@ div.tdw:hover {
   }
 
   #tabmenu a.active {
-    background: #8DBDD8;
+    background: #FFFFFF;
     color: #000000;
-    border-bottom: 1px solid #8DBDD8;
+    border-bottom: 2px solid #FFFFFF;
   }
 
   #tabmenu a:hover {
-    color: #000;
-    background: #8DBDD8;
+    color: #ffffff;
+    background: #7484ad;
   }
 
   #tabmenu a:visited {
-    
+    color: #E8E9BE;
   }
 
   #tabmenu a.active:hover {
-    color: #000;
-    border-bottom: 1px solid #8DBDD8;
+    background: #7484ad;
+    color: #DEDECF;
+    border-bottom: 2px solid #000000;
   }
 </style>
 
@@ -245,19 +246,6 @@ div.tdw:hover {
 
 <div id="main">
 
-<table width="810px" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td>
-      <p>
-
-      <h1 class="intro"><%=encprops.getProperty("title")%>
-      </h1>
-      </p>    <p><%=encprops.getProperty("belowMatches")%>
-    </p>
-    </td>
-  </tr>
-</table>
-
 <ul id="tabmenu">
 
   <li><a class="active"><%=encprops.getProperty("table")%>
@@ -281,7 +269,18 @@ div.tdw:hover {
 </ul>
 
 
+<table width="810px" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>
+      <p>
 
+      <h1 class="intro"><%=encprops.getProperty("title")%>
+      </h1>
+      </p>    <p><%=encprops.getProperty("belowMatches")%>
+    </p>
+    </td>
+  </tr>
+</table>
 
 <style>
 .ptcol-maxYearsBetweenResightings {
@@ -457,11 +456,13 @@ function doTable() {
 	for (var i = 0 ; i < howMany ; i++) {
 		var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
 		for (var c = 0 ; c < colDefn.length ; c++) {
-			r += '<td class="ptcol-' + colDefn[c].key + '"><div class="tdw"></div></td>';
+			r += '<td class="ptcol-' + colDefn[c].key + ' tdw"><div></div></td>';
 		}
 		r += '</tr>';
 		$('#results-table').append(r);
 	}
+
+	$('.ptcol-thumb.tdw').removeClass('tdw');
 
 	sTable.initSort();
 	sTable.initValues();
@@ -522,7 +523,7 @@ function show() {
 		$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
 		for (var c = 0 ; c < colDefn.length ; c++) {
-			$('#results-table tbody tr')[i].children[c].innerHTML = '<div class="tdw">' + sTable.values[results[i]][c] + '</div>';
+			$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
 		}
 	}
 	if (results.length < howMany) {
@@ -758,8 +759,8 @@ $('#progress').html(percentage);
 
 function _colIndLink(o) {
 	var iid = o.get('individualID');
-	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
-	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
+	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
+	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
 
 	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
 }
