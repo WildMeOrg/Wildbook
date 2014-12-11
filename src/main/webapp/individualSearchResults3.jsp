@@ -626,7 +626,7 @@ function _colThumb(o) {
 function _colModified(o) {
 	var m = o.get('modified');
 	if (!m) return '';
-	var d = new Date(m);
+	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
 }

@@ -63,6 +63,17 @@ console.log('is %o', ajax);
 		return !isNaN(d.getTime());
 	},
 
+	//oh the joys of human representation of time (and the inconsistency of browsers implementation of new Date() )
+	parseDate: function(s) {
+		s = s.trim();  //some stuff had trailing spaces, ff fails.
+		//we make assumptions that wildbook is at least returning to us with YYYY-MM-DD ... hope this is always true.  :(
+		if (s.length == 10) s += 'T00:00:00';
+		//hope we have the right string now -- but wildbook does not put "T" between date/time, which chokes ff and ie(?).
+		s = s.substr(0,10) + 'T' + s.substr(11);
+		var d = new Date(s);
+		if (!this.isValidDate(d)) return false;
+		return d;
+	},
 
 	init: function(callback) {
 		classInit('Base', function() { wildbook.loadAllClasses(callback); });  //define base class first - rest can happen any order
