@@ -150,17 +150,17 @@ a.pt-vm-button:hover {
 	width: 75px !important;
 }
 
-tr.pageableTable-visible td {
+td.tdw {
 	position: relative;
 }
 
-div.tdw {
+td.tdw div {
 	height: 16px;
 	overflow-y: hidden;
 }
 
 
-div.tdw:hover {
+td.tdw:hover div {
 	position: absolute;
 	z-index: 20;
 	background-color: #EFA;
@@ -456,11 +456,13 @@ function doTable() {
 	for (var i = 0 ; i < howMany ; i++) {
 		var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
 		for (var c = 0 ; c < colDefn.length ; c++) {
-			r += '<td class="ptcol-' + colDefn[c].key + '"><div class="tdw"></div></td>';
+			r += '<td class="ptcol-' + colDefn[c].key + ' tdw"><div></div></td>';
 		}
 		r += '</tr>';
 		$('#results-table').append(r);
 	}
+
+	$('.ptcol-thumb.tdw').removeClass('tdw');
 
 	sTable.initSort();
 	sTable.initValues();
@@ -521,7 +523,7 @@ function show() {
 		$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
 		for (var c = 0 ; c < colDefn.length ; c++) {
-			$('#results-table tbody tr')[i].children[c].innerHTML = '<div class="tdw">' + sTable.values[results[i]][c] + '</div>';
+			$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
 		}
 	}
 	if (results.length < howMany) {
