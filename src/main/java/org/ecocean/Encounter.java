@@ -215,7 +215,7 @@ public class Encounter implements java.io.Serializable {
   private AcousticTag acousticTag;
   private SatelliteTag satelliteTag;
 
-  private boolean mmaCompatible = false;
+  private Boolean mmaCompatible = false;
   
   //start constructors
 
