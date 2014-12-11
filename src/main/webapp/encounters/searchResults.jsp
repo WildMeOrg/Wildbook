@@ -22,6 +22,7 @@
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager " %>
 
 
+
 <html>
 <head>
 
@@ -149,9 +150,29 @@ a.pt-vm-button:hover {
 	width: 75px !important;
 }
 
+tr.pageableTable-visible td {
+	position: relative;
+}
+
+div.tdw {
+	height: 16px;
+	overflow-y: hidden;
+}
+
+
+div.tdw:hover {
+	position: absolute;
+	z-index: 20;
+	background-color: #EFA;
+	outline: 3px solid #EFA;
+	min-height: 16px;
+	height: auto;
+	overflow-y: auto;
+}
+
   #tabmenu {
     color: #000;
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid #CDCDCD;
     margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
@@ -165,10 +186,10 @@ a.pt-vm-button:hover {
   }
 
   #tabmenu a, a.active {
-    color: #DEDECF;
-    background: #000;
-    font: bold 1em "Trebuchet MS", Arial, sans-serif;
-    border: 2px solid black;
+    color: #000;
+    background: #E6EEEE;
+    font: 0.5em "Arial, sans-serif;
+    border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
@@ -176,24 +197,23 @@ a.pt-vm-button:hover {
   }
 
   #tabmenu a.active {
-    background: #FFFFFF;
+    background: #8DBDD8;
     color: #000000;
-    border-bottom: 2px solid #FFFFFF;
+    border-bottom: 1px solid #8DBDD8;
   }
 
   #tabmenu a:hover {
-    color: #ffffff;
-    background: #7484ad;
+    color: #000;
+    background: #8DBDD8;
   }
 
   #tabmenu a:visited {
-    color: #E8E9BE;
+    
   }
 
   #tabmenu a.active:hover {
-    background: #7484ad;
-    color: #DEDECF;
-    border-bottom: 2px solid #000000;
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
   }
 </style>
 
@@ -225,6 +245,19 @@ a.pt-vm-button:hover {
 
 <div id="main">
 
+<table width="810px" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>
+      <p>
+
+      <h1 class="intro"><%=encprops.getProperty("title")%>
+      </h1>
+      </p>    <p><%=encprops.getProperty("belowMatches")%>
+    </p>
+    </td>
+  </tr>
+</table>
+
 <ul id="tabmenu">
 
   <li><a class="active"><%=encprops.getProperty("table")%>
@@ -248,18 +281,7 @@ a.pt-vm-button:hover {
 </ul>
 
 
-<table width="810px" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td>
-      <p>
 
-      <h1 class="intro"><%=encprops.getProperty("title")%>
-      </h1>
-      </p>    <p><%=encprops.getProperty("belowMatches")%>
-    </p>
-    </td>
-  </tr>
-</table>
 
 <style>
 .ptcol-maxYearsBetweenResightings {
@@ -435,7 +457,7 @@ function doTable() {
 	for (var i = 0 ; i < howMany ; i++) {
 		var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
 		for (var c = 0 ; c < colDefn.length ; c++) {
-			r += '<td class="ptcol-' + colDefn[c].key + '"></td>';
+			r += '<td class="ptcol-' + colDefn[c].key + '"><div class="tdw"></div></td>';
 		}
 		r += '</tr>';
 		$('#results-table').append(r);
@@ -500,8 +522,7 @@ function show() {
 		$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
 		for (var c = 0 ; c < colDefn.length ; c++) {
-			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
-			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
+			$('#results-table tbody tr')[i].children[c].innerHTML = '<div class="tdw">' + sTable.values[results[i]][c] + '</div>';
 		}
 	}
 	if (results.length < howMany) {
@@ -737,8 +758,8 @@ $('#progress').html(percentage);
 
 function _colIndLink(o) {
 	var iid = o.get('individualID');
-	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
-	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
+	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
+	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
 
 	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
 }
