@@ -406,6 +406,8 @@ var colDefn = [
 		key: 'date',
 		label: 'Date',
 		value: _colEncDate,
+		sortValue: _colEncDateSort,
+		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'location',
@@ -439,12 +441,12 @@ var colDefn = [
 ];
 
 
-var howMany = 20;
+var howMany = 10;
 var start = 0;
 var results = [];
 
 var sortCol = -1;
-var sortReverse = false;
+var sortReverse = true;
 
 
 var sTable = false;
@@ -493,7 +495,7 @@ function doTable() {
 	sTable.initValues();
 
 
-	newSlice(sortCol);
+	newSlice(sortCol, sortReverse);
 
 	$('#progress').hide();
 	sTable.sliderInit();
@@ -739,6 +741,13 @@ function _colEncDate(o) {
 	var d = wildbook.parseDate(o.get('date'));
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
+}
+
+
+function _colEncDateSort(o) {
+	var d = wildbook.parseDate(o.get('date'));
+	if (!d) return 0;
+	return d.getTime();
 }
 
 
@@ -1305,7 +1314,7 @@ System.out.println(henc);
 
 
 <script>
-var searchResults = <%=encsJson%>;
+	var searchResults = <%=encsJson%>;
 </script>
 
 
