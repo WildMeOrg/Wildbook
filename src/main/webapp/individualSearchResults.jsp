@@ -425,7 +425,7 @@ function doTable() {
 	sTable.initValues();
 
 
-	newSlice(0);
+	newSlice(sortCol);
 
 	$('#progress').hide();
 	sTable.sliderInit();
