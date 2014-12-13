@@ -686,7 +686,7 @@ function _colThumb(o) {
 function _colModified(o) {
 	var m = o.get('modified');
 	if (!m) return '';
-	var d = new Date(m);
+	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
 }
@@ -806,7 +806,7 @@ function _colThumb(o) {
 function _colModified(o) {
 	var m = o.get('modified');
 	if (!m) return '';
-	var d = new Date(m);
+	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
 }
@@ -814,7 +814,7 @@ function _colModified(o) {
 function _colModifiedSort(o) {
 	var m = o.get('modified');
 	if (!m) return '';
-	var d = new Date(m);
+	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
 	return d.getTime();
 }
@@ -822,7 +822,7 @@ function _colModifiedSort(o) {
 function _colCreationDate(o) {
 	var m = o.get('dwcDateAdded');
 	if (!m) return '';
-	var d = new Date(m);
+	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
 	return d.toLocaleDateString();
 }
@@ -830,7 +830,7 @@ function _colCreationDate(o) {
 function _colCreationDateSort(o) {
 	var m = o.get('dwcDateAdded');
 	if (!m) return '';
-	var d = new Date(m);
+	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return 0;
 	return d.getTime();
 }
