@@ -260,10 +260,8 @@
 
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
-      </p>    <p><%=encprops.getProperty("belowMatches")%> <%=startNum%>
-        - <%=endNum%> <%=encprops.getProperty("thatMatched")%>
-      </p>
-    </p>
+      </p>    
+    
     </td>
   </tr>
 </table>
@@ -292,7 +290,9 @@
   }
 %>
 
-
+<p><%=encprops.getProperty("belowMatches")%> <%=startNum%>
+        - <%=endNum%> <%=encprops.getProperty("thatMatched")%>
+      </p>
 
 <%
   String qString = rq;
