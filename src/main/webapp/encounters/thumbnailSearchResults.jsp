@@ -405,7 +405,13 @@
             %>
               <%
                 if ((request.getParameter("referenceImageName") != null)&&(!thumbLink.endsWith("video.jpg"))) {
-              %>
+                	if(myShepherd.isSinglePhotoVideo(request.getParameter("referenceImageName"))){
+        				
+                	SinglePhotoVideo mySPV=myShepherd.getSinglePhotoVideo(request.getParameter("referenceImageName"));
+    				//int slashPosition=request.getParameter("referenceImageName").indexOf("/");
+    				String encNum=mySPV.getCorrespondingEncounterNumber();
+    				Encounter refImageEnc = myShepherd.getEncounter(encNum);
+               %>
               <h4>Reference Image</h4>
               <table id="table<%=(countMe+startNum) %>">
                 <tr>
@@ -422,12 +428,13 @@
                     %>
                     
                     id="refImage<%=(countMe+startNum) %>"
-                         src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=request.getParameter("referenceImageName") %>"/>
+                         src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=refImageEnc.subdir(refImageEnc.getCatalogNumber()) %>/<%=mySPV.getFilename() %>"/>
 
                   </td>
                 </tr>
               </table>
               <%
+                }
                 }
               %>
               
