@@ -375,7 +375,7 @@ myShepherd.rollbackDBTransaction();
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
       </p>  
-    </p>
+  
     </td>
   </tr>
 </table>
