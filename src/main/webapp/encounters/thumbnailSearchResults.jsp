@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.io.InputStream,java.io.FileInputStream,org.ecocean.servlet.ServletUtilities,javax.jdo.Query,org.ecocean.*,java.io.File, java.util.*, org.ecocean.security.Collaboration " %>
+         import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration" %>
 
 <html>
 <head>
@@ -260,10 +260,8 @@
 
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
-      </p>    <p><%=encprops.getProperty("belowMatches")%> <%=startNum%>
-        - <%=endNum%> <%=encprops.getProperty("thatMatched")%>
-      </p>
-    </p>
+      </p>    
+    
     </td>
   </tr>
 </table>
@@ -292,7 +290,9 @@
   }
 %>
 
-
+<p><%=encprops.getProperty("belowMatches")%> <%=startNum%>
+        - <%=endNum%> <%=encprops.getProperty("thatMatched")%>
+      </p>
 
 <%
   String qString = rq;
@@ -657,10 +657,32 @@
 						<span class="caption">
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-            	File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
-            	%>
-            	<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
-            	<%
+              try{
+              	//File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
+              	File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
+              
+              	if(exifImage.exists()){
+              		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+              		// iterate through metadata directories
+                  for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
+                    %>
+                    <%=tag.toString() %><br/>
+                    <%
+                  }
+              	} //end if
+              	else{
+            	 %>
+		            <p>File not found on file system. No EXIF data available.</p>
+		            <p>I looked for the file at: <%=exifImage.getAbsolutePath()%></p>
+          		<%  
+              	}
+              } //end try
+              catch(Exception e){
+              %>
+              <p>Cannot read metadata for this file.</p>
+              <%
+              	e.printStackTrace();
+              }
              }
                 %>
    									</span>
