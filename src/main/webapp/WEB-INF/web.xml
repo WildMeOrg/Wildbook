@@ -902,16 +902,16 @@
   <!-- Start REST servlet mapping-->
   
     <servlet-mapping>
-    <servlet-name>REST0</servlet-name>
-    <url-pattern>/rest/context0/*</url-pattern>
+    <servlet-name>REST</servlet-name>
+    <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
   
     <servlet>
-    <servlet-name>REST0</servlet-name>
+    <servlet-name>REST</servlet-name>
     <servlet-class>org.datanucleus.api.rest.RestServlet</servlet-class>
     <init-param>
       <param-name>persistence-context</param-name>
-      <param-value>PatternRecognitionPMF0</param-value>
+      <param-value>ShepherdPMF</param-value>
     </init-param>
   </servlet>
   
