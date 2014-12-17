@@ -330,7 +330,7 @@ td.tdw:hover div {
 
 var searchResults = <%=encsJson%>;
 
-var jdoql = '<%= queryResult.getJDOQLRepresentation() %>';
+var jdoql = '<%= queryResult.getJDOQLRepresentation().replaceAll("'", "\\\\'") %>';
 
 var testColumns = {
 	thumb: { label: 'Thumb', val: _colThumb },
