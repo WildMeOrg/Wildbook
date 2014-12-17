@@ -165,6 +165,14 @@ margin-bottom: 8px !important;
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
+			
+			if(myShepherd.isSinglePhotoVideo(request.getParameter("referenceImageName"))){
+				SinglePhotoVideo mySPV=myShepherd.getSinglePhotoVideo(request.getParameter("referenceImageName"));
+				//int slashPosition=request.getParameter("referenceImageName").indexOf("/");
+				String encNum=mySPV.getCorrespondingEncounterNumber();
+				Encounter thisEnc = myShepherd.getEncounter(encNum);
+				
+				
 		%>
 <p><strong><%=encprops.getProperty("referenceImage") %></strong></p>
 
@@ -172,20 +180,26 @@ margin-bottom: 8px !important;
 <input name="referenceImageName" type="hidden"
        value="<%=request.getParameter("referenceImageName") %>"/>
 
-<p><img width="810px" src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=request.getParameter("referenceImageName") %>"/></p>
+<p><img width="810px" src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=thisEnc.subdir(thisEnc.getCatalogNumber()) %>/<%=mySPV.getFilename() %>"/></p>
 <table>
 											<tr>
 												<td align="left" valign="top">
 										
 												<table>
 										<%
-										int slashPosition=request.getParameter("referenceImageName").indexOf("/");
-										String encNum=request.getParameter("referenceImageName").substring(0,slashPosition);
-										Encounter thisEnc = myShepherd.getEncounter(encNum);
+										
+										//prep the params
+										if(thisEnc.getLocation()!=null){
 										%>
-								
 										<tr><td><span class="caption"><%=encprops.getProperty("location") %> <%=thisEnc.getLocation() %></span></td></tr>
+										<%
+										}
+										if(thisEnc.getLocationID()!=null){
+										%>
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %> <%=thisEnc.getLocationID() %></span></td></tr>
+										<%
+										}
+										%>
 										<tr><td><span class="caption"><%=encprops.getProperty("date") %> <%=thisEnc.getDate() %></span></td></tr>
 										<%
 										if(thisEnc.getIndividualID()!=null){
@@ -229,6 +243,7 @@ margin-bottom: 8px !important;
 										</table>
   <%
 		}
+}
 		%>
 
 <table>

@@ -1752,6 +1752,50 @@ div.state-approved span.state {
 	color: rgba(0,0,0,0.9);
 }
 
+  #tabmenu {
+    color: #000;
+    border-bottom: 1px solid #CDCDCD;
+    margin: 12px 0px 0px 0px;
+    padding: 0px;
+    z-index: 1;
+    padding-left: 10px
+  }
 
+  #tabmenu li {
+    display: inline;
+    overflow: hidden;
+    list-style-type: none;
+  }
+
+  #tabmenu a, a.active {
+    color: #000;
+    background: #E6EEEE;
+    font: 0.5em "Arial, sans-serif;
+    border: 1px solid #CDCDCD;
+    padding: 2px 5px 0px 5px;
+    margin: 0;
+    text-decoration: none;
+    border-bottom: 0px solid #FFFFFF;
+  }
+
+  #tabmenu a.active {
+    background: #8DBDD8;
+    color: #000000;
+    border-bottom: 1px solid #FFFFFF;
+  }
+
+  #tabmenu a:hover {
+    color: #000;
+    background: #8DBDD8;
+  }
+
+  #tabmenu a:visited {
+    
+  }
+
+  #tabmenu a.active:hover {
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
+  }
 
 
