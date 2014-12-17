@@ -628,12 +628,26 @@ $(document).ready( function() {
 	wildbook.init(function() {
 		encs = new wildbook.Collection.Encounters();
 		encs.fetch({
+/*
+			// h/t http://stackoverflow.com/questions/9797970/backbone-js-progress-bar-while-fetching-collection
+			xhr: function() {
+				var xhr = $.ajaxSettings.xhr();
+				xhr.onprogress = fetchProgress;
+				return xhr;
+			},
+*/
 			jdoql: jdoql,
 			success: function() { searchResults = encs.models; doTable(); },
 		});
 	});
 });
 
+
+function fetchProgress(ev) {
+	if (!ev.lengthComputable) return;
+	var percent = ev.loaded / ev.total;
+console.info(percent);
+}
 
 
 function _colIndividual(o) {
