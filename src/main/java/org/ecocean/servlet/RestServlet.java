@@ -201,12 +201,8 @@ public class RestServlet extends HttpServlet
         // Retrieve any fetch group that needs applying to the fetch
         String fetchParam = req.getParameter("fetch");
 
-				boolean useCompression = false;
 				String encodings = req.getHeader("Accept-Encoding");
-				if ((encodings != null) && (encodings.indexOf("gzip") > -1)) {
-					resp.setHeader("Content-Encoding", "gzip");
-					useCompression = true;
-				}
+				boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
 
         try
         {
@@ -850,6 +846,7 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
 			if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
 				resp.getWriter().write(s);
 			} else {
+				resp.setHeader("Content-Encoding", "gzip");
     		OutputStream o = resp.getOutputStream();
     		GZIPOutputStream gz = new GZIPOutputStream(o);
 				gz.write(s.getBytes());
