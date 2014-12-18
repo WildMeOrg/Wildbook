@@ -170,10 +170,9 @@ td.tdw:hover div {
 	overflow-y: auto;
 }
 
-
   #tabmenu {
     color: #000;
-    border-bottom: 1px solid #CDCDCD;
+    border-bottom: 2px solid black;
     margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
@@ -187,10 +186,10 @@ td.tdw:hover div {
   }
 
   #tabmenu a, a.active {
-    color: #000;
-    background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
-    border: 1px solid #CDCDCD;
+    color: #DEDECF;
+    background: #000;
+    font: bold 1em "Trebuchet MS", Arial, sans-serif;
+    border: 2px solid black;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
@@ -198,26 +197,25 @@ td.tdw:hover div {
   }
 
   #tabmenu a.active {
-    background: #8DBDD8;
+    background: #FFFFFF;
     color: #000000;
-    border-bottom: 1px solid #8DBDD8;
+    border-bottom: 2px solid #FFFFFF;
   }
 
   #tabmenu a:hover {
-    color: #000;
-    background: #8DBDD8;
+    color: #ffffff;
+    background: #7484ad;
   }
 
   #tabmenu a:visited {
-    
+    color: #E8E9BE;
   }
 
   #tabmenu a.active:hover {
-    color: #000;
-    border-bottom: 1px solid #8DBDD8;
+    background: #7484ad;
+    color: #DEDECF;
+    border-bottom: 2px solid #000000;
   }
-  
-  
 </style>
 
 
@@ -248,18 +246,6 @@ td.tdw:hover div {
 
 <div id="main">
 
-<table width="810px" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td>
-      <p>
-
-      <h1 class="intro"><%=encprops.getProperty("title")%>
-      </h1>
-      </p>    
-    </td>
-  </tr>
-</table>
-
 <ul id="tabmenu">
 
   <li><a class="active"><%=encprops.getProperty("table")%>
@@ -283,7 +269,18 @@ td.tdw:hover div {
 </ul>
 
 
-<p><%=encprops.getProperty("belowMatches")%></p>
+<table width="810px" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>
+      <p>
+
+      <h1 class="intro"><%=encprops.getProperty("title")%>
+      </h1>
+      </p>    <p><%=encprops.getProperty("belowMatches")%>
+    </p>
+    </td>
+  </tr>
+</table>
 
 <style>
 .ptcol-maxYearsBetweenResightings {
@@ -628,12 +625,26 @@ $(document).ready( function() {
 	wildbook.init(function() {
 		encs = new wildbook.Collection.Encounters();
 		encs.fetch({
+/*
+			// h/t http://stackoverflow.com/questions/9797970/backbone-js-progress-bar-while-fetching-collection
+			xhr: function() {
+				var xhr = $.ajaxSettings.xhr();
+				xhr.onprogress = fetchProgress;
+				return xhr;
+			},
+*/
 			jdoql: jdoql,
 			success: function() { searchResults = encs.models; doTable(); },
 		});
 	});
 });
 
+
+function fetchProgress(ev) {
+	if (!ev.lengthComputable) return;
+	var percent = ev.loaded / ev.total;
+console.info(percent);
+}
 
 
 function _colIndividual(o) {
@@ -762,8 +773,8 @@ $('#progress').html(percentage);
 
 function _colIndLink(o) {
 	var iid = o.get('individualID');
-	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
-	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
+	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
+	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
 
 	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
 }
