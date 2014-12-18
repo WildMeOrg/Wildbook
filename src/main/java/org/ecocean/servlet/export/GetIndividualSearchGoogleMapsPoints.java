@@ -17,6 +17,9 @@ import org.json.*;
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
 
+import java.util.zip.*;
+import java.io.OutputStream;
+
 public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
 
   
@@ -32,6 +35,14 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+    
+    //check for compression
+    boolean useCompression = false;
+    String encodings = request.getHeader("Accept-Encoding");
+    if ((encodings != null) && (encodings.indexOf("gzip") > -1)) {
+      response.setHeader("Content-Encoding", "gzip");
+      useCompression = true;
+    }
     
     //set the response
     response.setContentType("text/html");
@@ -250,9 +261,14 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
       myShepherd.commitDBTransaction();
       myShepherd.closeDBTransaction();
 
-      
+      //new compressed way
       response.setContentType("application/json");
-      response.getWriter().write(indieMappedPoints.toString());
+      tryCompress(response, indieMappedPoints.toString(), useCompression);
+      response.setHeader("Content-Type", "application/json");
+      response.setStatus(200);
+      
+      //old way
+      //response.getWriter().write(indieMappedPoints.toString());
       
 
     }
@@ -265,6 +281,19 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     }
     
     
+  }
+  
+  void tryCompress(HttpServletResponse resp, String s, boolean useComp) throws IOException {
+    if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
+      resp.getWriter().write(s);
+    } else {
+      OutputStream o = resp.getOutputStream();
+      GZIPOutputStream gz = new GZIPOutputStream(o);
+      gz.write(s.getBytes());
+      gz.flush();
+      gz.close();
+      o.close();
+    }
   }
 
   
