@@ -47,12 +47,13 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 	date: function() {
 		var y = this.get('year');
 		if (y < 1) return false;
-		var m = this.get('month');
+		var m = this.get('month') - 1;
 		var d = this.get('day');
 		var H = this.get('hour');
 		var M = this.get('minutes');
 		if (H < 0) H = 0;
 		if (M < 0) M = 0;
+//TODO wonder if we should instead trust .dateInMilliseconds ???
 //console.log('%o %o %o %o %o', y, m, d, H, M);
 		var d = new Date(y, m, d, H, M, 0);
 		if (!wildbook.isValidDate(d)) return false;
