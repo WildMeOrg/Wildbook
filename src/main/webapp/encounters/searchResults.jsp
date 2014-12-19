@@ -371,13 +371,13 @@ var colDefn = [
 		label: 'ID',
 		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
-		//sortFunction: function(a,b) {},
 	},
 	{
 		key: 'date',
 		label: 'Date',
 		value: _colEncDate,
 		sortValue: _colEncDateSort,
+		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'verbatimLocality',
@@ -790,14 +790,12 @@ function justA(ev) {
 }
 
 function _colEncDate(o) {
-	var d = o.date();
-	if (!d) return '';
-	return d.toLocaleDateString();
+	return o.dateAsString();
 }
 
 function _colEncDateSort(o) {
 	var d = o.date();
-	if (!d) return '';
+	if (!d) return 0;
 	return d.getTime();
 }
 
