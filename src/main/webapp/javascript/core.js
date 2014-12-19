@@ -67,7 +67,9 @@ console.log('is %o', ajax);
 	//note, this returns an actual js Date object.  see below for one which handles a string input and output a little better (e.g. "2001-01" will work)
 	parseDate: function(s) {
 		s = s.trim();  //some stuff had trailing spaces, ff fails.
-		//we make assumptions that wildbook is at least returning to us with YYYY-MM-DD ... hope this is always true.  :(
+		//we need to allow things like just a year (!) or just year-month(!?) ... for sorting purposes.  so:
+		if (s.length == 4) s += '-01';  //YYYY -> YYYY-01
+		if (s.length == 7) s += '-01';  //YYYY-MM -> YYYY-MM-01
 		if (s.length == 10) s += 'T00:00:00';
 		//hope we have the right string now -- but wildbook does not put "T" between date/time, which chokes ff and ie(?).
 		s = s.substr(0,10) + 'T' + s.substr(11);
@@ -80,7 +82,7 @@ console.log('is %o', ajax);
 	flexibleDate: function(s) {
 		s = s.trim();
 		if (s.length == 4) return s;  //year only
-		if (s.length == 7) return s.substr(5) + '/' + s.substr(0,4);  //there is no toLocaleFoo for just year-month.  :(  sorry.
+		if (s.length == 7) return (s.substr(5) - 0) + '/' + s.substr(0,4);  //there is no toLocaleFoo for just year-month.  :(  sorry.
 		//now we (should?) have at least y-m-d, with possible time
 		var d = this.parseDate(s);
 		if (!d) return '';
