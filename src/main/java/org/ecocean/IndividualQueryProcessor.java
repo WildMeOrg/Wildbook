@@ -1069,13 +1069,23 @@ public class IndividualQueryProcessor {
       }
     }
 
-    GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
-    GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
-
+    //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
+    //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
+    
+    //let's do some month and day checking to avoid exceptions
+    org.joda.time.DateTime testMonth1=new org.joda.time.DateTime(minYear,minMonth,1,0,0);
+    if(testMonth1.dayOfMonth().getMaximumValue()<minDay) minDay=testMonth1.dayOfMonth().getMaximumValue();    
+    org.joda.time.DateTime testMonth2=new org.joda.time.DateTime(maxYear,maxMonth,1,0,0);
+    if(testMonth2.dayOfMonth().getMaximumValue()<maxDay) maxDay=testMonth2.dayOfMonth().getMaximumValue();
+    
+    org.joda.time.DateTime gcMin =new org.joda.time.DateTime(minYear, (minMonth), minDay, 0, 0);
+    org.joda.time.DateTime gcMax =new org.joda.time.DateTime(maxYear, (maxMonth), maxDay, 23, 59);
+    
+    
     if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){
-      filter+="((enc.dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (enc.dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
+      filter+="((enc.dateInMilliseconds >= "+gcMin.getMillis()+") && (enc.dateInMilliseconds <= "+gcMax.getMillis()+"))";
     }
-    else{filter+=" && ((enc.dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (enc.dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
+    else{filter+=" && ((enc.dateInMilliseconds >= "+gcMin.getMillis()+") && (enc.dateInMilliseconds <= "+gcMax.getMillis()+"))";
     }
 
 
