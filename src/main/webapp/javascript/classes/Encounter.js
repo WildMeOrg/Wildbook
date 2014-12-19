@@ -43,7 +43,7 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 	},
 
 
-	//this is built off encounter sub-date parts (year, month etc)
+	//this is built off encounter sub-date parts (year, month etc) returns true js Date object (see also dateAsString() below)
 	date: function() {
 		var y = this.get('year');
 		if (y < 1) return false;
@@ -59,6 +59,21 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 		if (!wildbook.isValidDate(d)) return false;
 		return d;
 	},
+
+
+	//this returns the date (as a string) in a way that allows only year-month or year values.
+	dateAsString: function() {
+		var dt = this.get('year');
+		if (dt < 1) return '';
+		var m = this.get('month');
+		if (m > 0) {
+			dt += '-' + ((m < 10) ? '0' : '') + m;
+			var d = this.get('day');
+			if (d > 0) dt += '-' + ((d < 10) ? '0' : '') + d;
+		}
+		return wildbook.flexibleDate(dt);
+	},
+
 
 	subdir: function(d) {
 		if (!d) d = this.id;
