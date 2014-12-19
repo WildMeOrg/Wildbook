@@ -738,9 +738,7 @@ function _colDataTypesSort(o) {
 
 
 function _colEncDate(o) {
-	var d = wildbook.parseDate(o.get('date'));
-	if (!wildbook.isValidDate(d)) return '';
-	return d.toLocaleDateString();
+	return wildbook.flexibleDate(o.get('date'));
 }
 
 
