@@ -586,7 +586,7 @@ if (percentage % 3 == 0) console.log(percentage);
 
 function _colIndividual(o) {
 	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.individualID + '">' + o.individualID + '</a></b> ';
-	var i = '<b>' + o.individualID + '</b><br />First identified: ';
+	var i = '<b>' + o.individualID + '</b><br /><%=props.getProperty("firstIdentified") %> ';
 	if (!extra[o.individualID]) return i;
 	i += (extra[o.individualID].firstIdent || '');
 	//i += (extra[o.individualID].genusSpecies || '') + '</i>';
