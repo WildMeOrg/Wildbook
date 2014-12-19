@@ -64,6 +64,7 @@ console.log('is %o', ajax);
 	},
 
 	//oh the joys of human representation of time (and the inconsistency of browsers implementation of new Date() )
+	//note, this returns an actual js Date object.  see below for one which handles a string input and output a little better (e.g. "2001-01" will work)
 	parseDate: function(s) {
 		s = s.trim();  //some stuff had trailing spaces, ff fails.
 		//we make assumptions that wildbook is at least returning to us with YYYY-MM-DD ... hope this is always true.  :(
@@ -74,6 +75,18 @@ console.log('is %o', ajax);
 		if (!this.isValidDate(d)) return false;
 		return d;
 	},
+
+	//can handle case where is only year or year-month
+	flexibleDate: function(s) {
+		s = s.trim();
+		if (s.length == 4) return s;  //year only
+		if (s.length == 7) return s.substr(5) + '/' + s.substr(0,4);  //there is no toLocaleFoo for just year-month.  :(  sorry.
+		//now we (should?) have at least y-m-d, with possible time
+		var d = this.parseDate(s);
+		if (!d) return '';
+		return d.toLocaleDateString(undefined, {timeZone: 'UTC'});  //use UTC timezone, but force to look like user's locale expects
+	},
+
 
 	init: function(callback) {
 		classInit('Base', function() { wildbook.loadAllClasses(callback); });  //define base class first - rest can happen any order
