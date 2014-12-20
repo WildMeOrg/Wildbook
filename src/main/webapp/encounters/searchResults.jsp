@@ -789,15 +789,31 @@ function justA(ev) {
 	return true;
 }
 
-function _colEncDate(o) {
-	return o.dateAsString();
-}
+
+//new way
+
+//function _colEncDate(o) {
+//	return o.dateAsString();
+//}
 
 function _colEncDateSort(o) {
 	var d = o.date();
 	if (!d) return 0;
 	return d.getTime();
 }
+
+//old way
+function _colEncDate(o) {
+	var d = o.date();
+	if (!d) return '';
+	return d.toLocaleDateString();
+}
+
+//function _colEncDateSort(o) {
+//	var d = o.date();
+//	if (!d) return '';
+//	return d.getTime();
+//}
 
 function _colTaxonomy(o) {
 	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
