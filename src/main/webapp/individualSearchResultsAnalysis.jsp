@@ -310,7 +310,7 @@
 		 resightingYearsArray[thisEnc.getMaxNumYearsBetweenSightings()]++;
 		 
 		 //firstSightings distribution
-		 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,month1,day1)).getTimeInMillis()){
+		 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,(month1-1),day1)).getTimeInMillis()){
 	 		   Integer thisInt = firstSightingsHashtable.get("Previously sighted")+1;
 	  		   firstSightingsHashtable.put("Previously sighted", thisInt);
 	 		   
