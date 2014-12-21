@@ -878,7 +878,7 @@
 
   <servlet>
     <servlet-name>ScanTaskHandler</servlet-name>
-    <servlet-class>org.ecocean.servlet.ScanTaskHandlerIVEC</servlet-class>
+    <servlet-class>org.ecocean.servlet.ScanTaskHandlerAWS</servlet-class>
   </servlet>
 
   <servlet>
