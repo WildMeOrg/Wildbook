@@ -2599,8 +2599,7 @@ if(isOwner){
 </td>
 </tr>
 </table>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
+
 
 
   <%
@@ -2702,8 +2701,7 @@ else {
       </td>
 </tr>
 </table>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
+
       
       <%
     }
@@ -2719,6 +2717,9 @@ else {
 
 %>
 <jsp:include page="footer.jsp" flush="true"/>
+</div><!-- end maintext -->
+</div><!-- end main-wide -->
+
 </div>
 
 
