@@ -281,10 +281,14 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 						//kick off the building thread
 						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
+						
+						//launch EC2 instances
+            es.execute(new EC2RequestThread());
+						
+            //now build our jobs for the task
 						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context));
 
-						//check if we can get some EC2 help
-						es.execute(new EC2RequestThread());
+						
 
 
 					}
