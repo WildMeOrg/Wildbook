@@ -48,7 +48,9 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 		var y = this.get('year');
 		if (y < 1) return false;
 		var m = this.get('month') - 1;
+		if (m < 0) return false;
 		var d = this.get('day');
+		if (d < 1) return false;
 		var H = this.get('hour');
 		var M = this.get('minutes');
 		if (H < 0) H = 0;
