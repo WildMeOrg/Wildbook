@@ -65,6 +65,7 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 	dateAsString: function() {
 		var dt = this.get('year');
 		if (dt < 1) return '';
+		dt = new String(dt);
 		var m = this.get('month');
 		if (m > 0) {
 			dt += '-' + ((m < 10) ? '0' : '') + m;
