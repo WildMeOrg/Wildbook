@@ -62,6 +62,23 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 		return d;
 	},
 
+	//a bit like above, but returns numeric value for sake of sorting (and can handle YYYY and YYYY-MM
+	dateSortable: function() {
+		var y = this.get('year');
+		if (y < 1) return 0;
+		var m = this.get('month') - 1;
+		if ((m < 0) || (m > 11)) m = 0;
+		var d = this.get('day');
+		if (d < 1) d = 1;  //TODO max day varies per month, grr
+		var H = this.get('hour');
+		var M = this.get('minutes');
+		if (H < 0) H = 0;
+		if (M < 0) M = 0;
+		var d = new Date(y, m, d, H, M, 0);
+		if (!wildbook.isValidDate(d)) return 0;
+		return d.getTime();
+	},
+
 
 	//this returns the date (as a string) in a way that allows only year-month or year values.
 	dateAsString: function() {
