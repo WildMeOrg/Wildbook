@@ -394,7 +394,7 @@ var colDefn = [
 	},
 	{
 		key: 'submitterID',
-		label: 'Submitter',
+		label: 'User',
 	},
 	{
 		key: 'creationDate',
