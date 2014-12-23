@@ -180,7 +180,7 @@ context=ServletUtilities.getContext(request);
 
 <ul id="pmenu">
 <li style="background:#909090;"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>" style="margin:0px 0 0px 0px; position:relative; width:50px; height:25px; z-index:100;"><strong><%=props.getProperty("home") %></strong></a></li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp" style="margin:0px 0 0px 0px; position:relative; width:70px; height:25px;z-index:100;"><strong><%=props.getProperty("learn") %></strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/index.jsp" style="margin:0px 0 0px 0px; position:relative; width:65px; height:25px;z-index:100;"><strong><%=props.getProperty("learn") %></strong><!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/photographing.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:200px; height:25px;z-index:100;"><%=props.getProperty("howToPhotograph") %></a></li>
