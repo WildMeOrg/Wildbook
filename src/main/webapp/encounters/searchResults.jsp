@@ -793,9 +793,9 @@ function justA(ev) {
 
 //new way
 
-//function _colEncDate(o) {
-//	return o.dateAsString();
-//}
+function _colEncDate(o) {
+	return o.dateAsString();
+}
 
 function _colEncDateSort(o) {
 	var d = o.date();
@@ -804,11 +804,11 @@ function _colEncDateSort(o) {
 }
 
 //old way
-function _colEncDate(o) {
-	var d = o.date();
-	if (!d) return '';
-	return d.toLocaleDateString();
-}
+//function _colEncDate(o) {
+//	var d = o.date();
+//	if (!d) return '';
+//	return d.toLocaleDateString();
+//}
 
 //function _colEncDateSort(o) {
 //	var d = o.date();
