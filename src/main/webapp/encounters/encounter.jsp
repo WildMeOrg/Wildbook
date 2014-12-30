@@ -702,11 +702,7 @@ $(function() {
       
      							<p class="para">
      								<p>
-<<<<<<< HEAD
-      									<a href="../tracing/fluketracing.jsp?langCode=<%=langCode%>&number=<%=num%>"><img align="absmiddle" width="24px" height="24px" style="border-style: none;" hspace="10px" src="../images/highlight.png" />Trace Fluke</a>
-=======
       									<a href="../tracing/fluketracing.jsp?langCode=<%=langCode%>&number=<%=num%>"><img align="absmiddle" width="24px" height="24px" style="border-style: none;" hspace="10px" src="../images/Crystal_Project_highlight.png" />Trace Fluke</a>
->>>>>>> upstream/caribwhale
       								</p>
     							</p>								
     							<%
