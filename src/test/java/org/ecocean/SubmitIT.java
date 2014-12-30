@@ -47,11 +47,12 @@ public class SubmitIT {
     // submitterName
     // submitterEmail
     // theFile1 - theFile4 (at least 1)
-    selectOption("day", "1");
-    selectOption("month", "1");
-    selectOption("year", "2011");
-    selectOption("hour", "12 am");
-    selectOption("minutes", ":00");
+    //selectOption("day", "1");
+    //selectOption("month", "1");
+    //selectOption("year", "2011");
+    //selectOption("hour", "12 am");
+    //selectOption("minutes", ":00");
+	setTextField("datepicker", "2014-10-10 12:34");
     setTextField("location", "the world");
     setTextField("submitterName", "mark");
     setTextField("submitterEmail", "mark.mcbride@gmail.com");

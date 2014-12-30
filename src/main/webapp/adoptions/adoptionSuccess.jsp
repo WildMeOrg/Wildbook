@@ -33,14 +33,16 @@ context=ServletUtilities.getContext(request);
   
 
   //setup data dir
-  String rootWebappPath = getServletContext().getRealPath("/");
-  File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-  //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
-  File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
-  //if(!encountersDir.exists()){encountersDir.mkdirs();}
-  //File thisEncounterDir = new File(encountersDir, number);
-
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+     File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
+  if(!adoptionsDir.exists()){adoptionsDir.mkdirs();}
+  
+  
+  File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath()+"/" + request.getParameter("number"));
+  if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
+  
 %>
 
 <html>
@@ -74,22 +76,26 @@ context=ServletUtilities.getContext(request);
           <%
 
             //get all needed DB reads out of the way in case Dynamic Image fails
-            String addText = "";
+            String addText = "adopter.jpg";
             boolean hasImages = true;
             String shark = "";
+            
+            String thumbLocation = "file-" +adoptionsDir.getAbsolutePath()+"/"+ number + "/thumb.jpg";
+        	addText =  adoptionsDir.getAbsolutePath()+"/" + number + "/" + addText;
 
-
+        
             myShepherd.beginDBTransaction();
             try {
               Adoption ad = myShepherd.getAdoption(number);
               shark = ad.getMarkedIndividual();
               if (ad.getAdopterImage() != null) {
-                addText = ad.getAdopterImage();
+                //addText = ad.getAdopterImage();
               } else {
                 hasImages = false;
               }
 
-            } catch (Exception e) {
+            } 
+            catch (Exception e) {
               System.out.println("Error encountered in adoptionSuccess.jsp!");
               e.printStackTrace();
             }
@@ -97,8 +103,12 @@ context=ServletUtilities.getContext(request);
             myShepherd.closeDBTransaction();
 
 	if(!addText.equals("")){
-            	File file2process = new File(adoptionsDir.getAbsolutePath()+"/" + number + "/" + addText);
+		
+
+            	File file2process = new File(addText);
             	if(file2process.exists()){
+            		
+
 
             	int intWidth = 190;
             	int intHeight = 190;
@@ -128,10 +138,11 @@ context=ServletUtilities.getContext(request);
            		 }
 
 
-            	String thumbLocation = "file-" +adoptionsDir.getAbsolutePath()+"/"+ number + "/thumb.jpg";
-            	addText =  adoptionsDir.getAbsolutePath()+"/" + number + "/" + addText;
-
+            	
           		%>
+          		
+      
+          		
           <di:img width="<%=thumbnailWidth %>" height="<%=thumbnailHeight %>" border="0"
                   fillPaint="#D7E0ED" output="<%=thumbLocation%>" expAfter="0" threading="limited"
                   align="left" valign="left">
