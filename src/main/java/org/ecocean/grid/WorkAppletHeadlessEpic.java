@@ -24,6 +24,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.GregorianCalendar;
 import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -38,7 +39,7 @@ public class WorkAppletHeadlessEpic {
 
   //number of potential matches made by this node
   private int numMatches = 0;
-  private static String version = "1.2";
+  private static String version = "1.3";
 
   //thread pool handling comparison threads
   ThreadPoolExecutor threadHandler;
@@ -106,6 +107,8 @@ public class WorkAppletHeadlessEpic {
     String targeted = "";
 
 
+    long startTime=(new GregorianCalendar()).getTimeInMillis();
+    
     //server connection
     URLConnection con;
 
@@ -160,7 +163,16 @@ public class WorkAppletHeadlessEpic {
 
         try {
 
-
+          long currentTime=(new GregorianCalendar()).getTimeInMillis();
+          long timeDiff=currentTime-startTime;
+          long sleepTime=60000;
+          
+          //allow 55 minutes
+          long allowedDiff=55*60*1000;
+          
+         
+          
+          
           //set up our thread processor for each comparison thread
           ArrayBlockingQueue abq = new ArrayBlockingQueue(500);
           threadHandler = new ThreadPoolExecutor(numProcessors, numProcessors, 0, TimeUnit.SECONDS, abq);
@@ -172,19 +184,52 @@ public class WorkAppletHeadlessEpic {
           Vector workItemResults = new Vector();
           try {
             //let's get some work from the server
-            System.out.println("\n\nLooking for some work to do...");
+            System.out.println("\n\nLooking for some work to do...running time: "+(currentTime-startTime)/60000+" minutes");
             con = getConnection("getWorkItemGroup", holdEncNumber, groupSize, nodeID, numProcessors);
             ObjectInputStream inputFromServlet = new ObjectInputStream(con.getInputStream());
             workItems = (Vector) inputFromServlet.readObject();
-            swi = (ScanWorkItem) workItems.get(0);
-            successfulConnect = true;
+            
+            if(workItems.size()>0){
+              swi = (ScanWorkItem) workItems.get(0);
+              successfulConnect = true;
+            }
+            else{
+              System.out.println("...No work to do...sleeping...");
+              
+              successfulConnect=false;
+              if (timeDiff<allowedDiff) {
+
+                Thread.sleep(sleepTime);
+                //System.exit(0);
+                
+              }
+              else {
+                System.out.println("\n\nI hit the timeout and am shutting down after "+(timeDiff/1000/60)+" minutes.");
+                System.exit(0);
+                
+              }
+              
+            }
             inputFromServlet.close();
             inputFromServlet = null;
-          } catch (Exception ioe) {
+          } 
+          catch (Exception ioe) {
             ioe.printStackTrace();
             successfulConnect = false;
-            //Thread.sleep(90000);
-            System.exit(0);
+            //Thread.sleep(60000);
+            //System.exit(0);
+            //long currentTime=(new GregorianCalendar()).getTimeInMillis();
+            //long timeDiff=currentTime-startTime;
+            if (timeDiff<allowedDiff) {
+
+              Thread.sleep(sleepTime);
+              //System.exit(0);
+              
+            }
+            else {
+              System.exit(0);
+            }
+            
           }
 
 
@@ -197,20 +242,21 @@ public class WorkAppletHeadlessEpic {
 
 
                 //waiting for last workItem to finish elsewhere, wait quietly and check later
-                if (swi.getTotalWorkItemsInTask() == -1) {
+                //long currentTime=(new GregorianCalendar()).getTimeInMillis();
+                //long timeDiff=currentTime-startTime;
+                if ((swi.getTotalWorkItemsInTask() == -1)&&(timeDiff<allowedDiff)) {
 
-                  //Thread.sleep(15000);
+                  Thread.sleep(sleepTime);
+                  //System.exit(0);
+                  
+                }
+                else {
                   System.exit(0);
 
                 }
 
-                //no work to do, sleepy time
-                else {
-
-
-                }
-
-              } catch (NullPointerException npe) {
+              } 
+              catch (NullPointerException npe) {
                 //generic, non-specific applet operation
                 //just sleep because there are no other tasks to do
                 //if(!getParameter("encounter").equals("null")) status.setValue(0);
@@ -226,7 +272,7 @@ public class WorkAppletHeadlessEpic {
             //kick it like Poison!
             else {
 
-
+              //lastWorkItemsTime=(new GregorianCalendar()).getTimeInMillis();
               int vectorSize = workItems.size();
               System.out.println("...received " + vectorSize + " comparisons to make...");
 
