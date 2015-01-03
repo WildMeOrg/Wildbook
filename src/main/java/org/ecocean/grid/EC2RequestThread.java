@@ -14,6 +14,8 @@ import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
 import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
+import com.amazonaws.services.ec2.model.Filter;
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 
 
 /**
@@ -25,7 +27,9 @@ public class EC2RequestThread implements Runnable, ISharkGridThread {
 
 	public Thread threadObject;
 	public boolean finished=false;
+	String context="context0";
 	
+	//Properties props=ShepherdProperties.getProperties("ec2.properties");
 
 	/**Constructor to create a new thread object*/
 	public EC2RequestThread() {
@@ -61,41 +65,58 @@ public class EC2RequestThread implements Runnable, ISharkGridThread {
 		  createKeyPairRequest.withKeyName(keyName);
 		  */
 			
+
+		  
 			System.out.println("Connected to AWS.");
 			
-			RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
+			ArrayList<String> allowedInstanceValues=new ArrayList<String>();
+			allowedInstanceValues.add("0");
+			allowedInstanceValues.add("16");
+			
+			com.amazonaws.services.ec2.model.Filter runningInstancesFilter = new com.amazonaws.services.ec2.model.Filter("instance-state-code",allowedInstanceValues);
+			
+			int maxInstances=4;
+			
+	     List reservList = amazonEC2Client.describeInstances((new DescribeInstancesRequest()).withFilters(runningInstancesFilter)).getReservations();
+	     int numInstancesToLaunch=maxInstances-reservList.size();
+	     System.out.println(".....There are already "+reservList.size()+" instances in the pending or running states. So I will launch: "+numInstancesToLaunch);
+	     if(numInstancesToLaunch>0){
+			
+	       RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
 			          
-			  runInstancesRequest.withImageId("ami-a7672f97")
+	       runInstancesRequest.withImageId("ami-35124f05")
 			                     .withInstanceType("c3.2xlarge")
-			                     .withMinCount(1)
-			                     .withMaxCount(4)
+			                     .withMinCount(numInstancesToLaunch)
+			                     .withMaxCount(numInstancesToLaunch)
 			                     .setInstanceInitiatedShutdownBehavior("terminate");
 			
 			
-			//Connection conn = new Connection(hostname);
+	       //Connection conn = new Connection(hostname);
 
-			/* Now connect */
-			//AdvancedVerifier adv=new AdvancedVerifier();
+	       /* Now connect */
+	       //AdvancedVerifier adv=new AdvancedVerifier();
 			
-			/* Authenticate.
-			 * If you get an IOException saying something like
-			 * "Authentication method password not supported by the server at this stage."
-			 * then please check the FAQ.
-			 */
+	       /* Authenticate.
+	        * If you get an IOException saying something like
+	        * "Authentication method password not supported by the server at this stage."
+	        * then please check the FAQ.
+	        */
 
-			//boolean isAuthenticated = conn.authenticateWithPassword(username, password);
+	       //boolean isAuthenticated = conn.authenticateWithPassword(username, password);
 
 		
-			/* Create a session */
+	       /* Create a session */
 
 		
 
-			System.out.println("Executed my command...");
+	       System.out.println("Executed my command...");
 			
-			RunInstancesResult runInstancesResult = amazonEC2Client.runInstances(runInstancesRequest);
+	       RunInstancesResult runInstancesResult = amazonEC2Client.runInstances(runInstancesRequest);
 			
 			
-			System.out.println(runInstancesResult.toString());
+			  System.out.println(runInstancesResult.toString());
+			
+	    }
 			
 			/*
 			 * This basic example does not handle stderr, which is sometimes dangerous
