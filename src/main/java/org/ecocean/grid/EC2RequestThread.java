@@ -68,7 +68,7 @@ public class EC2RequestThread implements Runnable, ISharkGridThread {
 			  runInstancesRequest.withImageId("ami-a7672f97")
 			                     .withInstanceType("c3.2xlarge")
 			                     .withMinCount(1)
-			                     .withMaxCount(10)
+			                     .withMaxCount(4)
 			                     .setInstanceInitiatedShutdownBehavior("terminate");
 			
 			
