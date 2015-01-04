@@ -16,6 +16,7 @@ import com.amazonaws.services.ec2.model.CreateSecurityGroupResult;
 import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.Reservation;
 
 
 /**
@@ -29,7 +30,7 @@ public class EC2RequestThread implements Runnable, ISharkGridThread {
 	public boolean finished=false;
 	String context="context0";
 	
-	//Properties props=ShepherdProperties.getProperties("ec2.properties");
+	Properties props=ShepherdProperties.getProperties("ec2.properties","");
 
 	/**Constructor to create a new thread object*/
 	public EC2RequestThread() {
@@ -51,9 +52,9 @@ public class EC2RequestThread implements Runnable, ISharkGridThread {
 			/* Create a connection instance */
 		  
 		  //Step 1. create an EC2 client instance
-		  AWSCredentials credentials = new PropertiesCredentials(new File("/opt/tomcat6/webapps/shepherd_data_dir/WEB-INF/classes/bundles/awsec2.properties"));
+		  AWSCredentials credentials = new PropertiesCredentials(new File(props.getProperty("credentialsFileFullPath")));
 		  AmazonEC2Client amazonEC2Client = new AmazonEC2Client(credentials);
-		  amazonEC2Client.setEndpoint("ec2.us-west-2.amazonaws.com");
+		  amazonEC2Client.setEndpoint(props.getProperty("endpoint"));
 		  /*
 		  //Step 2: create a security group
 		  CreateSecurityGroupRequest csgr = new CreateSecurityGroupRequest();
@@ -70,22 +71,28 @@ public class EC2RequestThread implements Runnable, ISharkGridThread {
 			System.out.println("Connected to AWS.");
 			
 			ArrayList<String> allowedInstanceValues=new ArrayList<String>();
-			allowedInstanceValues.add("0");
-			allowedInstanceValues.add("16");
+			allowedInstanceValues.add("pending");
+			allowedInstanceValues.add("running");
 			
-			com.amazonaws.services.ec2.model.Filter runningInstancesFilter = new com.amazonaws.services.ec2.model.Filter("instance-state-code",allowedInstanceValues);
+			com.amazonaws.services.ec2.model.Filter runningInstancesFilter = new com.amazonaws.services.ec2.model.Filter("instance-state-name",allowedInstanceValues);
 			
-			int maxInstances=4;
+			int maxInstances=(new Integer(props.getProperty("maxInstances"))).intValue();
 			
-	     List reservList = amazonEC2Client.describeInstances((new DescribeInstancesRequest()).withFilters(runningInstancesFilter)).getReservations();
-	     int numInstancesToLaunch=maxInstances-reservList.size();
+	     List<Reservation> reservList = amazonEC2Client.describeInstances((new DescribeInstancesRequest()).withFilters(runningInstancesFilter)).getReservations();
+	     int numReservations=reservList.size();
+	     int numInstances=0;
+	     for(int i=0;i<numReservations;i++){
+	       if(reservList.get(i).getInstances().size()>0)numInstances+=reservList.get(i).getInstances().size();
+	     }
+	     
+	     int numInstancesToLaunch=maxInstances-numInstances;
 	     System.out.println(".....There are already "+reservList.size()+" instances in the pending or running states. So I will launch: "+numInstancesToLaunch);
 	     if(numInstancesToLaunch>0){
 			
 	       RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
 			          
-	       runInstancesRequest.withImageId("ami-35124f05")
-			                     .withInstanceType("c3.2xlarge")
+	       runInstancesRequest.withImageId(props.getProperty("amiID"))
+			                     .withInstanceType(props.getProperty("instanceType"))
 			                     .withMinCount(numInstancesToLaunch)
 			                     .withMaxCount(numInstancesToLaunch)
 			                     .setInstanceInitiatedShutdownBehavior("terminate");
