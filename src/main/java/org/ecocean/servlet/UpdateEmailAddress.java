@@ -37,8 +37,7 @@ import java.util.Iterator;
 //adds spots to a new encounter
 public class UpdateEmailAddress extends HttpServlet {
 
-  //open a shepherd
-  Shepherd myShepherd;
+
 
 
   public void init(ServletConfig config) throws ServletException {
@@ -57,11 +56,17 @@ public class UpdateEmailAddress extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    
+   
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     
     String context="context0";
     context=ServletUtilities.getContext(request);
+    
+    //open a shepherd
+    Shepherd myShepherd=new Shepherd(context);
+    
 
     boolean madeChanges = false;
     boolean ok2proceed = true;
