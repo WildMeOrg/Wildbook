@@ -528,21 +528,32 @@ function setOverlays() {
     	if(!geoJSONResults){
 			//read in the GeoJSON 
 			//alert("Reading GeoJSON...");
-			var xhr = new XMLHttpRequest();
-			//alert("Filename is: "+filename);
-			xhr.open('GET', filename, true);
-			//alert("xhr is open...");
-			xhr.onload = function() {
-				//alert(this.responseText);
-				iw.close();
-				geoJSONResults=this.responseText;
-				loadIndividualMapData(geoJSONResults,aspect);
-				
-				
-				
-  				
-			};
-			xhr.send();
+			
+			//old way
+			//var xhr = new XMLHttpRequest();
+			//xhr.open('GET', filename, true);
+			//alert("Accessing: "+filename);
+			$.ajax({
+				dataType: "text",
+				url:filename,
+				success:function(result){
+					iw.close();
+					geoJSONResults=result;
+					//alert(geoJSONResults);
+					loadIndividualMapData(geoJSONResults,aspect);
+				}
+			}
+			);
+			
+			//OLD way
+			//xhr.onload = function() {
+			//	iw.close();
+			//	geoJSONResults=this.responseText;
+			//	loadIndividualMapData(geoJSONResults,aspect);
+			//};
+			//xhr.send();
+			
+			
 	  	}
     	else{
     		loadIndividualMapData(geoJSONResults,aspect);
