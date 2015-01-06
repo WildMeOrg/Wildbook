@@ -37,16 +37,12 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
     
     //check for compression
-    boolean useCompression = false;
     String encodings = request.getHeader("Accept-Encoding");
-    if ((encodings != null) && (encodings.indexOf("gzip") > -1)) {
-      response.setHeader("Content-Encoding", "gzip");
-      useCompression = true;
-    }
+    boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
     
     //set the response
-    response.setContentType("text/html");
-    PrintWriter out = response.getWriter();
+    //response.setContentType("text/html");
+    //PrintWriter out = response.getWriter();
     String langCode=ServletUtilities.getLanguageCode(request);
     
     String context="context0";
@@ -273,8 +269,8 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
 
     }
     catch(Exception e) {
-      out.println("<p><strong>Error encountered</strong></p>");
-      out.println("<p>Please let the webmaster know you encountered an error at: IndividualSearchExportCapture servlet</p>");
+      //out.println("<p><strong>Error encountered</strong></p>");
+      //out.println("<p>Please let the webmaster know you encountered an error at: IndividualSearchExportCapture servlet</p>");
       e.printStackTrace();
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
@@ -285,8 +281,11 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
   
   void tryCompress(HttpServletResponse resp, String s, boolean useComp) throws IOException {
     if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
+    
       resp.getWriter().write(s);
+    
     } else {
+      resp.setHeader("Content-Encoding", "gzip");
       OutputStream o = resp.getOutputStream();
       GZIPOutputStream gz = new GZIPOutputStream(o);
       gz.write(s.getBytes());
@@ -294,6 +293,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
       gz.close();
       o.close();
     }
+    
   }
 
   
