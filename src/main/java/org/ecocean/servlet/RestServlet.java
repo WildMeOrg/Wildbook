@@ -222,6 +222,7 @@ public class RestServlet extends HttpServlet
                         query.getFetchPlan().addGroup(fetchParam);
                     }
                     Object result = query.execute();
+										filterResult(result);
                     if (result instanceof Collection)
                     {
                         JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
@@ -262,6 +263,7 @@ public class RestServlet extends HttpServlet
                         query.getFetchPlan().addGroup(fetchParam);
                     }
                     Object result = query.execute();
+										filterResult(result);
                     if (result instanceof Collection)
                     {
                         JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
@@ -334,6 +336,7 @@ public class RestServlet extends HttpServlet
                             pm.currentTransaction().begin();
                             Query query = pm.newQuery("JDOQL", queryString);
                             List result = (List)query.execute();
+														filterResult(result);
                             JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection(result, 
                                 ((JDOPersistenceManager)pm).getExecutionContext());
                             tryCompress(resp, jsonobj.toString(), useCompression);
@@ -391,6 +394,7 @@ public class RestServlet extends HttpServlet
                 {
                     pm.currentTransaction().begin();
                     Object result = pm.getObjectById(id);
+										filterResult(result);
                     JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
                         ((JDOPersistenceManager)pm).getExecutionContext());
                     resp.getWriter().write(jsonobj.toString());
@@ -839,6 +843,20 @@ System.out.println("<<<<<<<<<< we have restAccess() on our object.... invoking!\
 System.out.println("got Exception trying to invoke restAccess: " + ex.toString());
 			}
 			return ok;
+		}
+
+
+		void filterResult(Object result) throws NucleusUserException {
+			Class cls = null;
+			if (result instanceof Collection) {
+				for (Object obj : (Collection)result) {
+					cls = obj.getClass();
+					if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
+				}
+			} else {
+				cls = result.getClass();
+				if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
+			}
 		}
 
 
