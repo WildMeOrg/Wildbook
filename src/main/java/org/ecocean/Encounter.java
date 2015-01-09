@@ -112,6 +112,7 @@ public class Encounter implements java.io.Serializable {
 
   //Date the encounter was added to the library.
   private String dwcDateAdded;
+  private Long dwcDateAddedLong;
   
   // If Encounter spanned more than one day, date of release
   private Date releaseDate;
@@ -1201,11 +1202,19 @@ public class Encounter implements java.io.Serializable {
   public String getDWCDateAdded() {
     return dwcDateAdded;
   }
+  
+  public Long getDWCDateAddedLong(){
+    return dwcDateAddedLong;
+  }
 
   public void setDWCDateAdded(String m_dateAdded) {
     dwcDateAdded = m_dateAdded;
   }
   
+  
+ public void setDWCDateAdded(Long m_dateAdded) {
+    dwcDateAddedLong = m_dateAdded;
+  }
   //public void setDateAdded(long date){dateAdded=date;}
   //public long getDateAdded(){return dateAdded;}
 

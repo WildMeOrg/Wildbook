@@ -771,6 +771,8 @@ System.out.println("depth --> " + fv.get("depth").toString());
       DateTimeFormatter fmt = ISODateTimeFormat.date();
       String strOutputDateTime = fmt.print(dt);
       enc.setDWCDateAdded(strOutputDateTime);
+      enc.setDWCDateAdded(new Long(dt.toDateTime().getMillis()));
+      System.out.println("I set the date as a LONG to: "+enc.getDWCDateAddedLong());
       enc.setDWCDateLastModified(strOutputDateTime);
 
 
