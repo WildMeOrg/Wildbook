@@ -180,7 +180,9 @@
  			Hashtable<Integer,Integer> encountersPerYear= new Hashtable<Integer,Integer>();
  					
  		
- 					
+ 	int numPhotos=0;
+ 	int numContributors=0;
+ 	StringBuffer contributors=new StringBuffer();
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
  	int numUniqueEncounters=0;
@@ -188,8 +190,61 @@
  		 
  		 
  		 Encounter thisEnc=(Encounter)rEncounters.get(y);
- 		numUniqueEncounters++;
- 		 //markedIndividual tabulation
+ 		 
+ 		 //iterate up unique encounters number
+ 		 numUniqueEncounters++;
+
+ 		 //calculate number photos collected
+ 		 if(thisEnc.getAdditionalImageNames()!=null){
+ 		 	numPhotos=numPhotos+thisEnc.getAdditionalImageNames().size();
+ 		 }
+ 			
+ 		//calculate the number of submitter contributors
+ 		if((thisEnc.getSubmitterEmail()!=null)&&(!thisEnc.getSubmitterEmail().equals(""))) {
+ 				//check for comma separated list
+ 				if(thisEnc.getSubmitterEmail().indexOf(",")!=-1) {
+ 					//break up the string
+ 					StringTokenizer stzr=new StringTokenizer(thisEnc.getSubmitterEmail(),",");
+ 					while(stzr.hasMoreTokens()) {
+ 						String token=stzr.nextToken();
+ 						if (contributors.indexOf(token)==-1) {
+ 							contributors.append(token);
+ 							numContributors++;
+ 						}
+ 					}
+ 				}
+ 				else if (contributors.indexOf(thisEnc.getSubmitterEmail())==-1) {
+ 					contributors.append(thisEnc.getSubmitterEmail());
+ 					numContributors++;
+ 				}
+ 			}
+ 			
+
+ 			
+ 			
+ 			//calculate the number of photographer contributors
+ 			if((thisEnc.getPhotographerEmail()!=null)&&(!thisEnc.getPhotographerEmail().equals(""))) {
+ 				//check for comma separated list
+ 				if(thisEnc.getPhotographerEmail().indexOf(",")!=-1) {
+ 					//break up the string
+ 					StringTokenizer stzr=new StringTokenizer(thisEnc.getPhotographerEmail(),",");
+ 					while(stzr.hasMoreTokens()) {
+ 						String token=stzr.nextToken();
+ 						if (contributors.indexOf(token)==-1) {
+ 							contributors.append(token);
+ 							numContributors++;
+ 						}
+ 					}
+ 				}
+ 				else if (contributors.indexOf(thisEnc.getPhotographerEmail())==-1) {
+ 					contributors.append(thisEnc.getPhotographerEmail());
+ 					numContributors++;
+ 				}
+ 			}
+ 		 
+ 		 
+ 		 
+ 		//calculate marked individuals	 
  		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){
  			 
  			 //add this individual to the list
@@ -805,7 +860,11 @@
 <% if (accessible) { %>
 
  <p>Number matching encounters: <%=resultSize %></p>
- <p>Number Marked Individuals represented by these encounters: <%=markedIndividuals.size() %></p>
+ <ul>
+ 	<li>Number Marked Individuals represented by these encounters: <%=markedIndividuals.size() %></li>
+ 	<li>Number photos collected: <%=numPhotos %></li>
+ 	<li>Number data contributors (by unique email address): <%=numContributors %></li>
+ </ul>
 
 <p><strong>Measurements</strong></p>
 <%
