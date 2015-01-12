@@ -175,7 +175,11 @@
  			for(int p=1;p<=53;p++){
  				frequencyWeeks.put(p, 0);
  			}	
+ 			
+ 			//let's prep the bar charts for encounters per year
+ 			Hashtable<Integer,Integer> encountersPerYear= new Hashtable<Integer,Integer>();
  					
+ 		
  					
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
@@ -186,7 +190,7 @@
  		 Encounter thisEnc=(Encounter)rEncounters.get(y);
  		numUniqueEncounters++;
  		 //markedIndividual tabulation
- 		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){
+ 		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){
  			 
  			 //add this individual to the list
  			 markedIndividuals.add(thisEnc.getIndividualID().trim());
@@ -208,6 +212,23 @@
  			 int weekOfYear=cal.get(Calendar.WEEK_OF_YEAR);
  			 Integer valueForWeek=frequencyWeeks.get(weekOfYear)+1;
  			 frequencyWeeks.put(weekOfYear, valueForWeek);
+ 		 }
+ 		 
+ 		 //year submitted tabulation
+ 		 if(thisEnc.getDWCDateAddedLong()!=null){
+ 			
+ 			 org.joda.time.DateTime myDateAdded =new org.joda.time.DateTime(thisEnc.getDWCDateAddedLong());
+ 			 Integer year=new Integer(myDateAdded.getYear());
+ 			 
+ 			 if(!encountersPerYear.containsKey(year)){
+ 				 encountersPerYear.put(year, new Integer(0));
+ 				
+ 			 }
+ 			 
+ 			Integer valueForYear=encountersPerYear.get(year)+1;
+ 			encountersPerYear.put(year, valueForYear);
+ 			//System.out.println("    I just put: "+year+":"+valueForYear);	 
+ 	        
  		 }
  		 	
  		 
@@ -679,8 +700,66 @@
       };
     var frequencyChart = new google.visualization.ColumnChart(document.getElementById('frequency_div'));
     frequencyChart.draw(frequencyData, frequencyChartOptions);
-    }
+    
+    
+   }
+   
+    
+    //date added chart
+    google.setOnLoadCallback(drawYearAddedChart);
+   function drawYearAddedChart() {
+     var yearAddedData = new google.visualization.DataTable();
+     yearAddedData.addColumn('string', 'Year');
+     yearAddedData.addColumn('number', 'No. Encounters');
+     yearAddedData.addRows([
+       <%
+       
+       
+       
+       //let's do some quality control
+       int numYears=encountersPerYear.size();
+       
+       
+       //first determine list range
+       int minYearAddedValue=999999;
+       int maxYearAddedValue=-1;
+       Enumeration<Integer> years=encountersPerYear.keys();
+       //System.out.println("numYears is:"+numYears);
       
+       while(years.hasMoreElements()){
+    	   Integer thisYear=years.nextElement();
+    	   if(thisYear<minYearAddedValue)minYearAddedValue=thisYear;
+    	   if(thisYear>maxYearAddedValue)maxYearAddedValue=thisYear;
+
+       }
+       
+
+       
+       for(int q=minYearAddedValue;q<=maxYearAddedValue;q++){
+     	  if(!encountersPerYear.containsKey(new Integer(q))){encountersPerYear.put(new Integer(q), new Integer(0));}
+       		%>
+       		['<%=q%>',<%=encountersPerYear.get(new Integer(q)).toString() %>]
+		  	<%
+		  	if(q<maxYearAddedValue){
+		  	%>
+		  	,
+		  	<%
+		  	}
+      	}
+		 %>
+       
+     ]);
+
+    var yearAddedChartOptions = {
+       width: 450, height: 300,
+       title: 'Encounters by Year Submitted (not year of sighting)',
+       hAxis: {title: 'Year'},
+       vAxis: {title: 'No. Encounters'},
+     };
+   var yearAddedChart = new google.visualization.ColumnChart(document.getElementById('yearadded_div'));
+   yearAddedChart.draw(yearAddedData, yearAddedChartOptions);
+    
+   }
       
 </script>
 
@@ -729,9 +808,8 @@
  
 <% if (accessible) { %>
 
- <p>
- Number matching encounters: <%=resultSize %>
- </p>
+ <p>Number matching encounters: <%=resultSize %></p>
+ <p>Number Marked Individuals represented by these encounters: <%=markedIndividuals.size() %></p>
 
 <p><strong>Measurements</strong></p>
 <%
@@ -833,6 +911,7 @@
  	<div id="discoveryCurve_div"></div>
  	<div id="frequency_div"></div>
  	<div id="userschart_div"></div>
+ 	<div id="yearadded_div"></div>
  <%
  
      } 
