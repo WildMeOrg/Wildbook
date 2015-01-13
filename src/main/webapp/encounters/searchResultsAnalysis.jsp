@@ -815,6 +815,52 @@
    yearAddedChart.draw(yearAddedData, yearAddedChartOptions);
     
    }
+   
+   
+   //total encounters by year chart
+   google.setOnLoadCallback(drawYearTotalsChart);
+  function drawYearTotalsChart() {
+    var yearTotalsData = new google.visualization.DataTable();
+    yearTotalsData.addColumn('string', 'Year');
+    yearTotalsData.addColumn('number', 'No. Encounters Total');
+    yearTotalsData.addRows([
+      <%
+      
+     
+
+
+      
+
+      int additionTotal=0;
+      for(int q=minYearAddedValue;q<=maxYearAddedValue;q++){
+    	  if(!encountersPerYear.containsKey(new Integer(q))){encountersPerYear.put(new Integer(q), new Integer(0));}
+      		
+      		
+      		
+      		%>
+      		['<%=q%>',<%=(encountersPerYear.get(new Integer(q))+additionTotal) %>]
+		  	<%
+		  	if(q<maxYearAddedValue){
+		  	%>
+		  	,
+		  	<%
+		  	}
+      		additionTotal+=encountersPerYear.get(new Integer(q));
+     	}
+		 %>
+      
+    ]);
+
+   var yearTotalsChartOptions = {
+      width: 450, height: 300,
+      title: 'Encounter Overall Totals by Year',
+      hAxis: {title: 'Year'},
+      vAxis: {title: 'No. Total Encounters'},
+    };
+  var yearTotalsChart = new google.visualization.ColumnChart(document.getElementById('yeartotals_div'));
+  yearTotalsChart.draw(yearTotalsData, yearTotalsChartOptions);
+   
+  }
       
 </script>
 
@@ -971,6 +1017,7 @@
  	<div id="frequency_div"></div>
  	<div id="userschart_div"></div>
  	<div id="yearadded_div"></div>
+ 	<div id="yeartotals_div"></div>
  <%
  
      } 
