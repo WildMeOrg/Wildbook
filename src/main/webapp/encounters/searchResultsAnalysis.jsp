@@ -151,6 +151,18 @@
  				
  			}
  			
+ 	 		//let's prep the HashTable for the state pie chart
+ 	 		  ArrayList<String> states=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+ 	 		  int numStates= states.size();
+ 	 		  Hashtable<String,Integer> statesHashtable = new Hashtable<String,Integer>();
+ 	 			for(int gg=0;gg<numStates;gg++){
+ 	 				String thisState=states.get(gg);
+ 	 				if(thisState!=null){
+ 	 					statesHashtable.put(thisState, new Integer(0));
+ 	 				}
+ 	 				
+ 	 			}
+ 			
  			
  	 		//let's prep the HashTable for the assigned users pie chart
  	 		  ArrayList<User> allUsers=myShepherd.getAllUsers(); 
@@ -182,6 +194,7 @@
  		
  	int numPhotos=0;
  	int numContributors=0;
+ 	int numIdentified=0;
  	StringBuffer contributors=new StringBuffer();
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
@@ -242,10 +255,12 @@
  				}
  			}
  		 
- 		 
+ 			if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))){numIdentified++;}
  		 
  		//calculate marked individuals	 
  		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){
+ 			 
+ 			
  			 
  			 //add this individual to the list
  			 markedIndividuals.add(thisEnc.getIndividualID().trim());
@@ -292,6 +307,14 @@
       	   		if(pieHashtable.containsKey(thisEnc.getHaplotype().trim())){
       		   		Integer thisInt = pieHashtable.get(thisEnc.getHaplotype().trim())+1;
       		   		pieHashtable.put(thisEnc.getHaplotype().trim(), thisInt);
+      	   		}
+ 	 		}
+ 		 
+ 	 		 //state ie chart prep
+ 		 	if(thisEnc.getState()!=null){
+      	   		if(statesHashtable.containsKey(thisEnc.getState().trim())){
+      		   		Integer thisInt = statesHashtable.get(thisEnc.getState().trim())+1;
+      		   		statesHashtable.put(thisEnc.getState().trim(), thisInt);
       	   		}
  	 		}
  		 
@@ -487,6 +510,7 @@
 
 <script type="text/javascript">
       google.load("visualization", "1", {packages:["corechart"]});
+      
       google.setOnLoadCallback(drawHaploChart);
       function drawHaploChart() {
         var data = new google.visualization.DataTable();
@@ -542,6 +566,42 @@
         var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
         chart.draw(data, options);
       }
+      
+      
+      google.setOnLoadCallback(drawStateChart);
+      function drawStateChart() {
+        var statesdata = new google.visualization.DataTable();
+        statesdata.addColumn('string', 'State');
+        statesdata.addColumn('number', 'Number');
+        statesdata.addRows([
+          <%
+         
+          
+          for(int hh=0;hh<numStates;hh++){
+          %>
+          ['<%=states.get(hh)%>',    <%=statesHashtable.get(states.get(hh))%>]
+		  <%
+		  if(hh<(numStates-1)){
+		  %>
+		  ,
+		  <%
+		  }
+          }
+		  %>
+          
+        ]);
+
+        var stateoptions = {
+          width: 450, height: 300,
+          title: 'Encounters by State',
+
+        };
+
+        var stateschart = new google.visualization.PieChart(document.getElementById('states_div'));
+        stateschart.draw(statesdata, stateoptions);
+      }
+      
+      
       
       google.setOnLoadCallback(drawSexChart);
       function drawSexChart() {
@@ -818,18 +878,11 @@
     yearTotalsData.addColumn('number', 'No. Encounters Total');
     yearTotalsData.addRows([
       <%
-      
-     
-
-
-      
 
       int additionTotal=0;
       for(int q=minYearAddedValue;q<=maxYearAddedValue;q++){
     	  if(!encountersPerYear.containsKey(new Integer(q))){encountersPerYear.put(new Integer(q), new Integer(0));}
-      		
-      		
-      		
+	
       		%>
       		['<%=q%>',<%=(encountersPerYear.get(new Integer(q))+additionTotal) %>]
 		  	<%
@@ -907,6 +960,7 @@
 
  <p>Number matching encounters: <%=resultSize %></p>
  <ul>
+ 	<li>Number identified: <%=numIdentified %></li>
  	<li>Number Marked Individuals represented by these encounters: <%=markedIndividuals.size() %></li>
  	<li>Number photos collected: <%=numPhotos %></li>
  	<li>Number data contributors (by unique email address): <%=numContributors %></li>
@@ -1012,6 +1066,7 @@
  	<div id="discoveryCurve_div"></div>
  	<div id="frequency_div"></div>
  	<div id="userschart_div"></div>
+ 	<div id="states_div"></div>
  	<div id="yearadded_div"></div>
  	<div id="yeartotals_div"></div>
  <%
