@@ -26,7 +26,7 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
 
   //load our variables for the submit page
@@ -49,8 +49,8 @@ context=ServletUtilities.getContext(request);
 
 %>
 
- 
-  
+
+
   <style type="text/css">
     <!--
     .style1 {
@@ -71,8 +71,8 @@ context=ServletUtilities.getContext(request);
 
     -->
   </style>
-  
-  
+
+
   <jsp:include page="header.jsp" flush="true"/>
 
 
@@ -91,7 +91,7 @@ context=ServletUtilities.getContext(request);
 
   <script type="text/javascript">
     hs.graphicsDir = 'highslide/highslide/graphics/';
-    
+
     hs.transitions = ['expand', 'crossfade'];
     hs.outlineType = 'rounded-white';
     hs.fadeInOut = true;
@@ -198,7 +198,7 @@ context=ServletUtilities.getContext(request);
 <td valign="middle">
  <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
- <table><tr valign="middle">  
+ <table><tr valign="middle">
   <td>
     <!-- Google PLUS-ONE button -->
 <g:plusone size="small" annotation="none"></g:plusone>
@@ -214,7 +214,7 @@ context=ServletUtilities.getContext(request);
 </td>
 </tr></table> </td></tr></table>
 
-<p><%=props.getProperty("groupBehavior") %>: 
+<p><%=props.getProperty("groupBehavior") %>:
 <%
 if(sharky.getGroupBehavior()!=null){
 %>
@@ -227,27 +227,27 @@ if(sharky.getGroupBehavior()!=null){
 
 
 <div id="dialogGroupB" title="<%=props.getProperty("setGroupBehavior") %>" style="display:none">
-                         			
+
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
   <tr>
     <td align="left" valign="top">
       <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
-            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
+            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" />
             <%=props.getProperty("groupBehavior") %>:
-        
+
         <%
         if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){
         %>
-        <textarea name="behaviorComment" type="text" id="behaviorComment" maxlength="500"></textarea> 
+        <textarea name="behaviorComment" type="text" id="behaviorComment" maxlength="500"></textarea>
         <%
         }
-        else{   
+        else{
         %>
-        	
+
         	<select name="behaviorComment" id="behaviorComment">
         		<option value=""></option>
-   
+
    				<%
    				boolean hasMoreStages=true;
    				int taxNum=0;
@@ -255,7 +255,7 @@ if(sharky.getGroupBehavior()!=null){
    	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
    	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
    	  				%>
-   	  	 
+
    	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
    	  				<%
    					taxNum++;
@@ -263,12 +263,12 @@ if(sharky.getGroupBehavior()!=null){
       				else{
          				hasMoreStages=false;
       				}
-      
+
    				}
    			%>
   			</select>
-        
-        
+
+
         <%
         }
         %>
@@ -296,7 +296,7 @@ $("a#groupB").click(function() {
 
 <p><%=props.getProperty("numMarkedIndividuals") %>: <%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 
-<p><%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
+<p><%=props.getProperty("estimatedNumMarkedIndividuals") %>:
 <%
 if(sharky.getIndividualCount()!=null){
 %>
@@ -308,19 +308,79 @@ if(sharky.getIndividualCount()!=null){
 </p>
 
 
+<form method="post" action="occurrence.jsp" id="occform">
+<input name="number" type="hidden" value="<%=sharky.getOccurrenceID()%>" />
+
+
+
+<p>
+<strong>Habitat</strong>
+<input name="occ:habitat" value="<%=sharky.getHabitat()%>" />
+</p>
+
+<p>
+<strong>Group Size</strong>
+<input name="occ:groupSize" value="<%=sharky.getGroupSize()%>" />
+</p>
+
+<p>
+<strong>Number Territorial Males</strong>
+<input name="occ:numTerMales" value="<%=sharky.getNumTerMales()%>" />
+</p>
+
+<p>
+<strong>Number Bachelor Males</strong>
+<input name="occ:numBachMales" value="<%=sharky.getNumBachMales()%>" />
+</p>
+
+<p>
+<strong>Number Lactating Females</strong>
+<input name="occ:numLactFemales" value="<%=sharky.getNumLactFemales()%>" />
+</p>
+
+<p>
+<strong>Number Non-lactating Females</strong>
+<input name="occ:numNonLactFemales" value="<%=sharky.getNumNonLactFemales()%>" />
+</p>
+
+
+<div style="position: relative; height: 40px;">
+
+<div style="position: absolute; top: 0; left: 0;">
+<strong>Decimal Latitude</strong>
+<input name="occ:decimalLatitude" value="<%=sharky.getDecimalLatitude()%>" />
+</div>
+
+<div style="position: absolute; top: 0; right: 0;">
+<strong>Decimal Longitude</strong>
+<input name="occ:decimalLongitude" value="<%=sharky.getDecimalLongitude()%>" />
+</div>
+
+</div>
+
+<p>
+<strong>Distance (meters)</strong>
+<input name="occ:distance" value="<%=sharky.getDistance()%>" />
+</p>
+
+<p>
+<strong>Bearing (degrees from north)</strong>
+<input name="occ:bearing" value="<%=sharky.getBearing()%>" />
+</p>
+
 
 
 <div id="dialogIndies" title="<%=props.getProperty("setIndividualCount") %>" style="display:none">
-            
+
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
 
   <tr>
     <td align="left" valign="top">
       <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
-            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
+            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" />
             <%=props.getProperty("newIndividualCount") %>:
 
-        <input name="count" type="text" id="count" size="5" maxlength="7"></input> 
+        <input name="count" type="text" id="count" size="5" maxlength="7"></input>
         <input name="individualCountButton" type="submit" id="individualCountName" value="<%=props.getProperty("set") %>">
         </form>
     </td>
@@ -345,7 +405,7 @@ $("a#indies").click(function() {
 
 
 
-<p><%=props.getProperty("locationID") %>: 
+<p><%=props.getProperty("locationID") %>:
 <%
 if(sharky.getLocationID()!=null){
 %>
@@ -362,13 +422,13 @@ if(sharky.getLocationID()!=null){
 <p><strong><%=sharky.getNumberEncounters()%>
 </strong>
   <%=props.getProperty("numencounters") %>
-</p> 
+</p>
 
 <table id="results" width="100%">
   <tr class="lineitem">
       <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("individualID") %></strong></td>
-    
+
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("location") %></strong></td>
     <td class="lineitem" bgcolor="#99CCFF"><strong><%=props.getProperty("dataTypes") %></strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("encnum") %></strong></td>
@@ -387,7 +447,7 @@ if(sharky.getLocationID()!=null){
     %>
    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
  <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></td>
- 
+
   </tr>
   <%
     Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(false);
@@ -395,13 +455,13 @@ if(sharky.getLocationID()!=null){
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
       Encounter enc = dateSortedEncs[i];
-      
+
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
 				String encSubdir = enc.subdir();
-        
+
           imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + encSubdir + "/thumb.jpg";
-        
+
   %>
   <tr>
       <td class="lineitem"><%=enc.getDate()%>
@@ -430,7 +490,7 @@ if(sharky.getLocationID()!=null){
     </td>
     <td width="100" height="32px" class="lineitem">
     	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
-    		
+
     		<%
     		//if the encounter has photos, show photo folder icon
     		if((enc.getImages()!=null) && (enc.getImages().size()>0)){
@@ -438,7 +498,7 @@ if(sharky.getLocationID()!=null){
     			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="*" />
     		<%
     		}
-    		
+
     		//if the encounter has a tissue sample, show an icon
     		if((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)){
     		%>
@@ -447,12 +507,12 @@ if(sharky.getLocationID()!=null){
     		}
     		//if the encounter has a measurement, show the measurement icon
     		if(enc.hasMeasurements()){
-    		%>	
+    		%>
     			<img src="images/ruler.png" height="32px" width="*" />
-        	<%	
+        	<%
     		}
     		%>
-    		
+
     	</a>
     </td>
     <td class="lineitem"><a
@@ -495,40 +555,40 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
         }
       }
     %>
-    
-  
+
+
     <td class="lineitem">
     <%
     if(enc.getBehavior()!=null){
     %>
     <%=enc.getBehavior() %>
-    <%	
+    <%
     }
     else{
     %>
     &nbsp;
-    <%	
+    <%
     }
     %>
     </td>
-    
+
   <td class="lineitem">
     <%
     if(enc.getHaplotype()!=null){
     %>
     <%=enc.getHaplotype() %>
-    <%	
+    <%
     }
     else{
     %>
     &nbsp;
-    <%	
+    <%
     }
     %>
     </td>
   </tr>
   <%
-      
+
     } //end for
 
   %>
@@ -547,17 +607,17 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
     <%
     String[] keywords=keywords=new String[0];
 		int numThumbnails = myShepherd.getNumThumbnails(sharky.getEncounters().iterator(), keywords);
-		if(numThumbnails>0){	
+		if(numThumbnails>0){
 		%>
 
 <table id="results" border="0" width="100%">
     <%
 
-			
+
 			int countMe=0;
 			//Vector thumbLocs=new Vector();
 			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
-			
+
 			int  numColumns=3;
 			int numThumbs=0;
 			  if (CommonConfiguration.allowAdoptions(context)) {
@@ -569,15 +629,15 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 			  }
 
 			try {
-				
-				
+
+
 			    Query query = myShepherd.getPM().newQuery("SELECT from org.ecocean.Encounter WHERE occurrenceID == \""+sharky.getOccurrenceID()+"\"");
 		        //query.setFilter("SELECT "+jdoqlQueryString);
 		        query.setResult("catalogNumber");
 		        Collection c = (Collection) (query.execute());
 		        ArrayList<String> enclist = new ArrayList<String>(c);
 		        query.closeAll();
-				
+
 			    thumbLocs=myShepherd.getThumbnails(myShepherd,request, enclist, 1, 99999, keywords);
 				numThumbs=thumbLocs.size();
 			%>
@@ -597,7 +657,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 									//}
 									//else{
 									//	combined= thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "/" + thumbLocs.get(countMe).getDataCollectionEventID() + ".jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
-							              
+
 									//}
 
 									//StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
@@ -613,22 +673,22 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 									}
 									else{
 										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
-										
+
 									}
 									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+Encounter.subdir(thumbLocs.get(countMe).getCorrespondingEncounterNumber())+"/"+thumbLocs.get(countMe).getFilename();
-						
+
 							%>
 
-   
-    
+
+
       <table align="left" width="<%=100/numColumns %>%">
         <tr>
           <td valign="top">
-			
+
               <%
 			if(isOwner){
 												%>
-            <a href="<%=link%>" 
+            <a href="<%=link%>"
             <%
             if(thumbLink.indexOf("video.jpg")==-1){
             %>
@@ -647,10 +707,10 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
             </a>
               <%
 			}
-            
+
 			%>
 
-            <div 
+            <div
             <%
             if(!thumbLink.endsWith("video.jpg")){
             %>
@@ -670,8 +730,8 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
                         int kwLength = keywords.length;
                         Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
                       %>
-                      
-                      
+
+
 
                       <tr>
                         <td><span
@@ -694,8 +754,8 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
                         </a></span></td>
                       </tr>
                         <tr>
-                        <td><span class="caption"><%=props.getProperty("individualID") %>: 
-                        
+                        <td><span class="caption"><%=props.getProperty("individualID") %>:
+
                         <%
                         		if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))){
                         		%>
@@ -703,7 +763,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
                         		<%
                         		}
                         		%>
-                        
+
                         </span></td>
                       </tr>
                       <%
@@ -724,11 +784,11 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 											<%
 											 //while (allKeywords2.hasNext()) {
 					                          //Keyword word = (Keyword) allKeywords2.next();
-					                          
-					                          
+
+
 					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
 											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-					                        	  
+
 					                            //String renderMe = word.getReadableName();
 												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
 												int myWordsSize=myWords.size();
@@ -746,7 +806,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 
 					                          //    }
-					                       // } 
+					                       // }
 
                           %>
 										</span></td>
@@ -756,11 +816,11 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
                     <%
                       if (CommonConfiguration.showEXIFData(context)) {
-                   
+
             	if(!thumbLink.endsWith("video.jpg")){
-           		 %>							
+           		 %>
 					<span class="caption">
-						<div class="scroll">	
+						<div class="scroll">
 						<span class="caption">
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
@@ -770,8 +830,8 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
             	<%
                }
                 %>
-   									
-   								
+
+
    								</span>
             </div>
    								</span>
@@ -787,7 +847,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
                 </tr>
               </table>
             </div>
-            
+
 
 </td>
 </tr>
@@ -813,7 +873,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 </tr>
                         <tr>
                         	<td>
-                        		<span class="caption"><%=props.getProperty("individualID") %>: 
+                        		<span class="caption"><%=props.getProperty("individualID") %>:
                         		<%
                         		if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))){
                         		%>
@@ -831,11 +891,11 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
                         //int numKeywords=myShepherd.getNumKeywords();
 											 //while (allKeywords2.hasNext()) {
 					                          //Keyword word = (Keyword) allKeywords2.next();
-					                          
-					                          
+
+
 					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
 											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-					                        	  
+
 					                            //String renderMe = word.getReadableName();
 												//List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
 												//int myWordsSize=myWords.size();
@@ -853,7 +913,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 
 					                          //    }
-					                       // } 
+					                       // }
 
                           %>
 										</span></td>
@@ -979,7 +1039,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 </table>
 <%
 
-} 
+}
 
 //could not find the specified individual!
 else {
@@ -1005,9 +1065,9 @@ else {
 
 
 
-      
+
       <%
-    
+
   } catch (Exception eSharks_jsp) {
     System.out.println("Caught and handled an exception in occurrence.jsp!");
     eSharks_jsp.printStackTrace();
@@ -1021,6 +1081,3 @@ else {
 %>
 </div>
 <jsp:include page="footer.jsp" flush="true"/>
-
-
-
