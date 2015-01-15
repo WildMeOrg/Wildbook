@@ -20,7 +20,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.DateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.security.Collaboration" %>
+         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -574,11 +574,14 @@ $(function() {
       //set a default date if we cann
       if(enc.getDateInMilliseconds()>0){
     	  
-    	  DateTime jodaTime = new DateTime(enc.getDateInMilliseconds());
-          DateTimeFormatter parser1 = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
-          
+    	  //LocalDateTime jodaTime = new LocalDateTime(enc.getDateInMilliseconds());
+    	  
+    	    
+          //DateTimeFormatter parser1 = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+          LocalDateTime jodaTime=new LocalDateTime(enc.getDateInMilliseconds());
+			
       %>
-      defaultDate: '<%=parser1.print(jodaTime) %>',
+      defaultDate: '<%=jodaTime.toString("yyyy-MM-dd HH:mm") %>',
       hour: <%=jodaTime.getHourOfDay() %>,
       minute: <%=jodaTime.getMinuteOfHour() %>,
       <%
@@ -612,7 +615,7 @@ $(function() {
       //set a default date if we cann
       if((enc.getReleaseDateLong()!=null)&&(enc.getReleaseDateLong()>0)){
     	  
-    	  DateTime jodaTime = new DateTime(enc.getReleaseDateLong().longValue());
+    	  LocalDateTime jodaTime = new LocalDateTime(enc.getReleaseDateLong().longValue());
           DateTimeFormatter parser1 = DateTimeFormat.forPattern("yyyy-MM-dd");
           
       %>
@@ -1592,7 +1595,7 @@ $("a#elev").click(function() {
     </script>
     
  	<%
- 	if((request.getUserPrincipal()!=null) || ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
+ 	if((request.getUserPrincipal()!=null) && ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
  	%>
  		<p><%=encprops.getProperty("map_note") %></p>
  		<div id="map_canvas" style="width: 510px; height: 350px; "></div>

@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.io.InputStream,java.io.FileInputStream,org.ecocean.servlet.ServletUtilities,javax.jdo.Query,org.ecocean.*,java.io.File, java.util.*, org.ecocean.security.Collaboration " %>
+         import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration" %>
 
 <html>
 <head>
@@ -182,9 +182,10 @@
   </script>
 </head>
 <style type="text/css">
+
   #tabmenu {
     color: #000;
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid #CDCDCD;
     margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
@@ -198,10 +199,10 @@
   }
 
   #tabmenu a, a.active {
-    color: #DEDECF;
-    background: #000;
-    font: bold 1em "Trebuchet MS", Arial, sans-serif;
-    border: 2px solid black;
+    color: #000;
+    background: #E6EEEE;
+    font: 0.5em "Arial, sans-serif;
+    border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
@@ -209,24 +210,23 @@
   }
 
   #tabmenu a.active {
-    background: #FFFFFF;
+    background: #8DBDD8;
     color: #000000;
-    border-bottom: 2px solid #FFFFFF;
+    border-bottom: 1px solid #8DBDD8;
   }
 
   #tabmenu a:hover {
-    color: #ffffff;
-    background: #7484ad;
+    color: #000;
+    background: #8DBDD8;
   }
 
   #tabmenu a:visited {
-    color: #E8E9BE;
+    
   }
 
   #tabmenu a.active:hover {
-    background: #7484ad;
-    color: #DEDECF;
-    border-bottom: 2px solid #000000;
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
   }
 
   div.scroll {
@@ -253,6 +253,19 @@
   if (request.getParameter("noQuery") == null) {
 %>
 
+<table width="810px" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>
+      <p>
+
+      <h1 class="intro"><%=encprops.getProperty("title")%>
+      </h1>
+      </p>    
+    
+    </td>
+  </tr>
+</table>
+
 <ul id="tabmenu">
 
   <li><a
@@ -277,22 +290,9 @@
   }
 %>
 
-<table width="810" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td>
-      <p>
-
-      <h1 class="intro"><%=encprops.getProperty("title")%>
-      </h1>
-      </p>
-
-
-      <p><%=encprops.getProperty("belowMatches")%> <%=startNum%>
+<p><%=encprops.getProperty("belowMatches")%> <%=startNum%>
         - <%=endNum%> <%=encprops.getProperty("thatMatched")%>
       </p>
-    </td>
-  </tr>
-</table>
 
 <%
   String qString = rq;
@@ -657,10 +657,32 @@
 						<span class="caption">
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-            	File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
-            	%>
-            	<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
-            	<%
+              try{
+              	//File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
+              	File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
+              
+              	if(exifImage.exists()){
+              		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+              		// iterate through metadata directories
+                  for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
+                    %>
+                    <%=tag.toString() %><br/>
+                    <%
+                  }
+              	} //end if
+              	else{
+            	 %>
+		            <p>File not found on file system. No EXIF data available.</p>
+		            <p>I looked for the file at: <%=exifImage.getAbsolutePath()%></p>
+          		<%  
+              	}
+              } //end try
+              catch(Exception e){
+              %>
+              <p>Cannot read metadata for this file.</p>
+              <%
+              	e.printStackTrace();
+              }
              }
                 %>
    									</span>

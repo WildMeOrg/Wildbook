@@ -20,7 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
-import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
@@ -102,7 +102,9 @@ public class EncounterResetDate extends HttpServlet {
           //System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
           
           DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
-          DateTime reportedDateTime=parser1.parseDateTime(request.getParameter("datepicker").replaceAll(" ", "T"));
+          //LocalDateTime reportedDateTime=parser1.parseLocalDateTime(request.getParameter("datepicker").replaceAll(" ", "T"));
+          LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(request.getParameter("datepicker").replaceAll(" ", "T")));
+          
           //System.out.println("Day of month is: "+reportedDateTime.getDayOfMonth()); 
           StringTokenizer str=new StringTokenizer(request.getParameter("datepicker").replaceAll(" ", "T"),"-");        
           

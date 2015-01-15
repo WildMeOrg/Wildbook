@@ -54,9 +54,9 @@ public class SubmitIT {
     //selectOption("minutes", ":00");
 	setTextField("datepicker", "2014-10-10 12:34");
     setTextField("location", "the world");
-    setTextField("submitterName", "mark");
-    setTextField("submitterEmail", "mark.mcbride@gmail.com");
-    setTextField("theFiles", "src/main/webapp/images/logbook.gif");
+    setTextField("submitterName", "john");
+    setTextField("submitterEmail", "john.doe@johnnydoe.com");
+    //setTextField("theFiles", "src/main/webapp/images/logbook.gif");
     submit("Submit");
     assertResponseCode(200);
   }

@@ -378,10 +378,20 @@ function FSControl(controlDiv, map) {
 <tr class="form_row">
   <td class="form_label"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%></font></strong>
   </td>
-  <td colspan="2">
+  <td>
   
-     <input type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" /> yyyy-MM-dd HH:mm
+     <input type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
 
+    </td>
+    <td>
+    <%=props.getProperty("examples") %>
+    <ul>
+    <li>2014-01-05 12:30</li>
+    <li>2014-03-23</li>
+    <li>2013-12</li>
+    <li>2010</li>
+    </ul>
+    
     </td>
 </tr>
 
