@@ -143,6 +143,10 @@
             <field name="dateInMilliseconds" persistence-modifier="persistent">
                 <column jdbc-type="BIGINT" allows-null="true" />
             </field>
+			
+			<field name="dwcDateAddedLong" persistence-modifier="persistent">
+                <column jdbc-type="BIGINT" allows-null="true" />
+            </field>
 
             <field name="releaseDateLong" persistence-modifier="persistent">
                 <column jdbc-type="BIGINT" allows-null="true"/>
