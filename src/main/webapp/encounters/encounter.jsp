@@ -572,7 +572,7 @@ $(function() {
       
       <%
       //set a default date if we cann
-      if(enc.getDateInMilliseconds()>0){
+      if(enc.getDateInMilliseconds()!=null){
     	  
     	  //LocalDateTime jodaTime = new LocalDateTime(enc.getDateInMilliseconds());
     	  
@@ -1108,7 +1108,7 @@ $("a#occurrence").click(function() {
 
 <p><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("date") %>
 </strong><br/><br/>
-<%if(enc.getDateInMilliseconds()>0){ %>
+<%if(enc.getDateInMilliseconds()!=null){ %>
   <a
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
     <%=enc.getDate()%>
