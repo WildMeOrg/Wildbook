@@ -1218,10 +1218,10 @@ public class Encounter implements java.io.Serializable {
   
  public void setDWCDateAdded(Long m_dateAdded) {
     dwcDateAddedLong = m_dateAdded;
-    org.joda.time.DateTime dt=new org.joda.time.DateTime(dwcDateAddedLong.longValue());
-    DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
-    setDWCDateAdded(dt.toString(parser1));
-    System.out.println("     Encounter.detDWCDateAded(Long): "+dt.toString(parser1)+" which is also "+m_dateAdded.longValue());
+    //org.joda.time.DateTime dt=new org.joda.time.DateTime(dwcDateAddedLong.longValue());
+    //DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+    //setDWCDateAdded(dt.toString(parser1));
+    //System.out.println("     Encounter.detDWCDateAded(Long): "+dt.toString(parser1)+" which is also "+m_dateAdded.longValue());
   }
   //public void setDateAdded(long date){dateAdded=date;}
   //public long getDateAdded(){return dateAdded;}
