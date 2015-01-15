@@ -43,10 +43,14 @@ import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
 
 
-import org.json.JSONObject;
 
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONObject;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
+
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -150,7 +154,7 @@ public class Encounter implements java.io.Serializable {
   //the globally unique identifier (GUID) for this Encounter
   private String guid;
 
-  private long dateInMilliseconds=0;
+  private Long dateInMilliseconds;
   //describes how the shark was measured
   private String size_guess = "none provided";
   //String reported GPS values for lat and long of the encounter
@@ -1214,6 +1218,10 @@ public class Encounter implements java.io.Serializable {
   
  public void setDWCDateAdded(Long m_dateAdded) {
     dwcDateAddedLong = m_dateAdded;
+    org.joda.time.DateTime dt=new org.joda.time.DateTime(dwcDateAddedLong.longValue());
+    DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+    setDWCDateAdded(dt.toString(parser1));
+    System.out.println("     Encounter.detDWCDateAded(Long): "+dt.toString(parser1)+" which is also "+m_dateAdded.longValue());
   }
   //public void setDateAdded(long date){dateAdded=date;}
   //public long getDateAdded(){return dateAdded;}
@@ -1562,12 +1570,13 @@ public class Encounter implements java.io.Serializable {
       try{myMinutes = Integer.parseInt(minutes);}catch(Exception e){}
       GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay,localHour,myMinutes);
 
-      dateInMilliseconds = gc.getTimeInMillis();
+      dateInMilliseconds = new Long(gc.getTimeInMillis());
     }
-    else{dateInMilliseconds=0;}
+    else{dateInMilliseconds=null;}
   }
 
-  public long getDateInMilliseconds(){return dateInMilliseconds;}
+  public java.lang.Long getDateInMilliseconds(){return dateInMilliseconds;}
+  
 
   public String getDecimalLatitude(){
     if(decimalLatitude!=null){return Double.toString(decimalLatitude);}

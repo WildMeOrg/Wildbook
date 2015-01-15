@@ -122,7 +122,9 @@ public class EncounterSearchExportShapefile extends HttpServlet{
             Point point = geometryFactory.createPoint(new Coordinate(enc.getDecimalLongitudeAsDouble(), enc.getDecimalLatitudeAsDouble()));
             SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(createFeatureType(context));
             featureBuilder.add(point);
-            featureBuilder.add((new java.sql.Date(enc.getDateInMilliseconds())));
+            if(enc.getDateInMilliseconds()!=null){
+              featureBuilder.add((new java.sql.Date(enc.getDateInMilliseconds())));
+            }
             featureBuilder.add(enc.getCatalogNumber());
             featureBuilder.add(enc.isAssignedToMarkedIndividual());
             if(enc.getSex()!=null){
