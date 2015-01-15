@@ -117,7 +117,12 @@ String langCode=ServletUtilities.getLanguageCode(request);
 <div id="wrapper">
 <div id="page">
 <jsp:include page="../header.jsp" flush="true">
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+  
+	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
+	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
+	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
+	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
+
 </jsp:include>
 <div id="main">
 
@@ -213,7 +218,28 @@ String langCode=ServletUtilities.getLanguageCode(request);
                                                                                      value="<%=st.getUniqueNumber()%>"><input
         name="delete" type="submit" id="delete" value="Delete"></form>
         <br />
-
+        <%
+        if(request.isUserInRole("admin")){
+        %>
+              <form name="scanNum<%=scanNum%>" method="post" action="../ScanTaskHandler">
+              	<input name="action" type="hidden" id="action" value="addTask" />
+              	<input name="restart" type="hidden" id="restart" value="true" />
+              	<input name="encounterNumber" type="hidden" id="encounterNumber" value="<%=st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", "") %>" />
+              	<input name="taskID" type="hidden" id="taskID" value="<%=st.getUniqueNumber()%>" />
+              	
+              	<%
+              	if(st.getUniqueNumber().startsWith("scanR")){
+              	%>
+              		<input name="rightSide" type="hidden" id="restart" value="true" />
+              	<%
+              	}
+              	%>
+              	
+              		<input name="restart" type="submit" id="restart" value="Restart" />
+              </form>
+        <%
+        }
+        %>
         
       <%
         }

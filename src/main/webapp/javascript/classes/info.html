@@ -1,0 +1,124 @@
+<html><head><title>Wildbook Javascript Overview</title>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="../../JavascriptGlobals.js"></script>
+<script src="https://rawgithub.com/javascript/augment/master/augment.js"></script>
+<script src="../underscore-min.js"></script>
+<script src="../backbone-min.js"></script>
+<script src="../core.js"></script>
+<script src="Base.js"></script>
+
+<style>
+.exec {
+	font-family: fixed, courier;
+	padding: 3px;
+	margin-left: 20px;
+	cursor: pointer;
+	font-size: 0.8em;
+	white-space: pre;
+}
+
+.exec:hover {
+	background-color: #AF3;
+}
+
+.example {
+	margin: 10px;
+	border: 1px solid #888;
+	padding: 7px;
+}
+
+</style>
+
+</head>
+<body>
+<p>
+<b>javascript classes</b> are built upon <a href="http://backbonejs.org/">backbone.js</a> and are meant to mimic the java classes.
+currently implemented:
+<a href="Encounter.js">Encounter.js</a>,
+<a href="MarkedIndividual.js">MarkedIndividual.js</a>,
+<a href="SinglePhotoVideo.js">SinglePhotoVideo.js</a>.
+These are all based upon a common <a href="Base.js">Base.js</a> class.
+</p>
+
+<h2>Examples</h2>
+(<b>Click CODE snippet to execute.</b> More detailed output in <b>javascript console</b> of browser too.)<br />
+
+<div style="background-color: #DDD; padding: 10px;" id="output">
+[some output will go here]
+</div>
+
+
+<div class="example">
+creates and then fetches (using rest api) a single encounter (based on Backbone Model).
+<div class="exec">
+enc = new wildbook.Model.Encounter({catalogNumber: '4f085ee0-e16e-4a4a-ad5b-6f9e2d0ae289'});
+enc.fetch({success: function() { output( enc.get('guid') ); }});
+</div>
+</div>
+
+
+<div class="example">
+<b>gets the images associated with the encounter</b> (assuming <b>enc</b> is fetched above). sets <b>enc.images</b> to a Collection of SinglePhotoVideos.
+<div class="exec">
+enc.getImages( function() { output( enc.images.models[0].url() ); } );
+</div>
+</div>
+
+
+<div class="example">
+<b>get the MarkedIndividual in the Encounter</b> (assuming <b>enc</b> is fetched above). sets <b>enc.individual</b>.
+<div class="exec">
+enc.getIndividual( function() { output( enc.individual.id ); } );
+</div>
+</div>
+
+
+<div class="example">
+<b>get the Encounters for a MarkedIndividual</b>. sets <b>.encounters</b> to a Collection of Encounters.
+<div class="exec">
+enc.individual.getEncounters( function() { output( "found " + enc.individual.encounters.models.length + " encounters"); } );
+</div>
+</div>
+
+<div class="example">
+standard Backbone Collection.fetch() has been overridden to extend to allow the <b><a href="http://www.datanucleus.org/products/datanucleus/rest/api.html">jdoql support</a> used by our rest api</b>. (i.e. <b>/jdoql?QUERY</b>)
+<div class="exec">
+inds = new wildbook.Collection.MarkedIndividuals();
+inds.fetch({
+	jdoql: 'WHERE individualID.startsWith("n")',
+	success: function(mods) { output("found " + mods.length + " individual"); }
+});
+</div>
+</div>
+
+<div class="example">
+Collection.fetch() also supports an alternate <b>field/value based query</b>.
+<div class="exec">
+inds = new wildbook.Collection.MarkedIndividuals();
+inds.fetch({
+	fields: { sex: "female", seriesCode: "None" },
+	success: function(mods) { output("found " + mods.length + " individuals"); }
+});
+</div>
+</div>
+
+
+<script>
+
+$(document).ready(function() { wildbook.init(); });
+
+	$('.exec').click(function() {
+		$('#output').html('');
+		var js = this.innerHTML;
+		console.info("eval'ing: %s", js);
+		eval(js);
+	});
+
+	function output(s) {
+		$('#output').html(s);
+		console.log('output: %o', s);
+	}
+</script>
+
+</body>
+</html>
