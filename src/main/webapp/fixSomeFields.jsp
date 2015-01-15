@@ -64,6 +64,8 @@ while(allEncs.hasNext()){
 	
 
 	Encounter sharky=(Encounter)allEncs.next();
+
+
 	
 	if((sharky.getDWCDateAdded()!=null)&&(sharky.getDWCDateAddedLong()==null)){
 		String isoTime=sharky.getDWCDateAdded();

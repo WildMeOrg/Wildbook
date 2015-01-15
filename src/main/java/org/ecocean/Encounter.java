@@ -27,18 +27,32 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.HashMap;
 import java.util.GregorianCalendar;
 import java.io.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
+import org.ecocean.servlet.ServletUtilities;
 
+import javax.servlet.http.HttpServletRequest;
+
+
+
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONObject;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
+
 import javax.servlet.http.HttpServletRequest;
+
 
 
 /**
@@ -140,7 +154,7 @@ public class Encounter implements java.io.Serializable {
   //the globally unique identifier (GUID) for this Encounter
   private String guid;
 
-  private long dateInMilliseconds=0;
+  private Long dateInMilliseconds;
   //describes how the shark was measured
   private String size_guess = "none provided";
   //String reported GPS values for lat and long of the encounter
@@ -205,6 +219,8 @@ public class Encounter implements java.io.Serializable {
   private List<MetalTag> metalTags;
   private AcousticTag acousticTag;
   private SatelliteTag satelliteTag;
+
+  private Boolean mmaCompatible = false;
   
   //start constructors
 
@@ -385,6 +401,13 @@ public class Encounter implements java.io.Serializable {
    *
    * @return any comments regarding observed scarring on the shark's body
    */
+
+	public boolean getMmaCompatible() {
+		return mmaCompatible;
+	}
+	public void setMmaCompatible(boolean b) {
+		mmaCompatible = b;
+	}
 
   public String getComments() {
     return occurrenceRemarks;
@@ -1195,6 +1218,10 @@ public class Encounter implements java.io.Serializable {
   
  public void setDWCDateAdded(Long m_dateAdded) {
     dwcDateAddedLong = m_dateAdded;
+    org.joda.time.DateTime dt=new org.joda.time.DateTime(dwcDateAddedLong.longValue());
+    DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+    setDWCDateAdded(dt.toString(parser1));
+    System.out.println("     Encounter.detDWCDateAded(Long): "+dt.toString(parser1)+" which is also "+m_dateAdded.longValue());
   }
   //public void setDateAdded(long date){dateAdded=date;}
   //public long getDateAdded(){return dateAdded;}
@@ -1537,16 +1564,19 @@ public class Encounter implements java.io.Serializable {
       if(month>0){localMonth=month-1;}
       int localDay=1;
       if(day>0){localDay=day;}
+      int localHour=0;
+      if(hour>-1){localHour=hour;}
       int myMinutes=0;
       try{myMinutes = Integer.parseInt(minutes);}catch(Exception e){}
-      GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay,hour,myMinutes);
+      GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay,localHour,myMinutes);
 
-      dateInMilliseconds = gc.getTimeInMillis();
+      dateInMilliseconds = new Long(gc.getTimeInMillis());
     }
-    else{dateInMilliseconds=0;}
+    else{dateInMilliseconds=null;}
   }
 
-  public long getDateInMilliseconds(){return dateInMilliseconds;}
+  public java.lang.Long getDateInMilliseconds(){return dateInMilliseconds;}
+  
 
   public String getDecimalLatitude(){
     if(decimalLatitude!=null){return Double.toString(decimalLatitude);}
@@ -1956,5 +1986,28 @@ thus, we have to treat it as a special case.
 			ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataCollectionEventID() + "-mid.jpg");  //for use in VM tool etc. (bandwidth friendly?)
 			return ok;
 		}
+
+
+	public boolean restAccess(HttpServletRequest request, JSONObject jsonobj) throws Exception {
+		ApiAccess access = new ApiAccess();
+System.out.println("hello i am in restAccess() on Encounter");
+
+		String fail = access.checkRequest(this, request, jsonobj);
+System.out.println("fail -----> " + fail);
+		if (fail != null) throw new Exception(fail);
+
+		//HashMap<String, String> perm = access.permissions(this, request);
+//System.out.println(perm);
+
+/*
+System.out.println("!!!----------------------------------------");
+System.out.println(request.getMethod());
+throw new Exception();
+*/
+		return true;
+	}
+
+
+
 }
 
