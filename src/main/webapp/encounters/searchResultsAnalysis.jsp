@@ -183,7 +183,7 @@
  					
  			//let's prep the data structures for weekly frequency
  			Hashtable<Integer,Integer> frequencyWeeks = new Hashtable<Integer,Integer>();
- 			ArrayList<String> dailyDuplicates2=new ArrayList<String>();
+ 			//ArrayList<String> dailyDuplicates2=new ArrayList<String>();
  			for(int p=1;p<=53;p++){
  				frequencyWeeks.put(p, 0);
  			}	
@@ -266,13 +266,13 @@
  			 markedIndividuals.add(thisEnc.getIndividualID().trim());
  			
  			 //check for a daily duplicate
- 			 String dailyDuplicateUniqueID=thisEnc.getIndividualID()+":"+thisEnc.getYear()+":"+thisEnc.getMonth()+":"+thisEnc.getDay();
- 			 if(!dailyDuplicates.contains(dailyDuplicateUniqueID)){
- 				dailyDuplicates.add(dailyDuplicateUniqueID);
+ 			// String dailyDuplicateUniqueID=thisEnc.getIndividualID()+":"+thisEnc.getYear()+":"+thisEnc.getMonth()+":"+thisEnc.getDay();
+ 			// if(!dailyDuplicates.contains(dailyDuplicateUniqueID)){
+ 			//	dailyDuplicates.add(dailyDuplicateUniqueID);
  				 //set a discovery curve inflection point
  				discoveryCurveInflectionPoints.put(numUniqueEncounters, markedIndividuals.size());
- 			 }
- 			 else{numUniqueEncounters--;}
+ 			 //}
+ 			 //else{numUniqueEncounters--;}
 
  		 }
  		 
@@ -743,7 +743,7 @@
       google.setOnLoadCallback(drawDiscoveryCurve);
      function drawDiscoveryCurve() {
        var discoveryCurveData = new google.visualization.DataTable();
-       discoveryCurveData.addColumn('number', 'No. Encounters');
+       discoveryCurveData.addColumn('number', 'No. encounters at new individual discoveries');
        discoveryCurveData.addColumn('number', 'No. Marked Individuals');
        discoveryCurveData.addRows([
          <%
@@ -767,7 +767,7 @@
     var discoveryCurveOptions = {
          width: 450, height: 300,
          title: 'Discovery Curve of Marked Individuals (n=<%=markedIndividuals.size()%>)',
-         hAxis: {title: 'No. Encounters (daily duplicates removed)'},
+         hAxis: {title: 'No. encounters at new individual discoveries'},
          vAxis: {title: 'No. Marked Individuals'},
          pointSize: 3,
        };
