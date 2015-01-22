@@ -449,7 +449,6 @@ function xxxshow() {
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].individualID);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
-			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
 		}
 	}
 
@@ -471,8 +470,8 @@ function show() {
 	$('#results-table td').html('');
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
-		$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
-		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
+		//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
+		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].individualID);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
 		}
