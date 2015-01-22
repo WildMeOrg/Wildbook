@@ -240,64 +240,14 @@
     
     int count = 0;
     int numNewlyMarked = 0;
-	String extra = "var extra = {";
-
-    for (int f = 0; f < rIndividualsSize; f++) {
-     
-      count++;
-
-      /*
-      //check if this individual was newly marked in this period
-      Encounter[] dateSortedEncs = indie.getDateSortedEncounters();
-      int sortedLength = dateSortedEncs.length - 1;
-      Encounter temp = dateSortedEncs[sortedLength];
 
 
-      if ((temp.getYear() == year1) && (temp.getYear() < year2) && (temp.getMonth() >= month1)) {
-        numNewlyMarked++;
-      } else if ((temp.getYear() > year1) && (temp.getYear() == year2) && (temp.getMonth() <= month2)) {
-        numNewlyMarked++;
-      } else if ((temp.getYear() >= year1) && (temp.getYear() <= year2) && (temp.getMonth() >= month1) && (temp.getMonth() <= month2)) {
-        numNewlyMarked++;
-      }
-      */
-
-
-
-      if (true) {
-        
-        MarkedIndividual indie = (MarkedIndividual) rIndividuals.get(f);
-        //check if this individual was newly marked in this period
-	String thumbUrl = "";
-	Encounter[] dateSortedEncs = indie.getDateSortedEncounters();
-	int sortedLength = dateSortedEncs.length - 1;
-	Encounter temp = dateSortedEncs[sortedLength];
-	ArrayList<SinglePhotoVideo> photos=indie.getAllSinglePhotoVideo();
-	if (photos.size() > 0) {
-		SinglePhotoVideo t = photos.get(0);
-		thumbUrl = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + temp.subdir() + "/thumb.jpg";
-	}
-
-	String firstIdent = "";
-	if (temp.getYear() > 0) firstIdent = temp.getMonth() + "/" + temp.getYear();
-
-	extra += "'" + indie.getIndividualID() + "': { locations: " + indie.participatesInTheseLocationIDs().size() + ", genusSpecies: '" + indie.getGenusSpecies() + "', thumbUrl: '" + thumbUrl + "', numberEncounters: " + indie.totalEncounters() + ", firstIdent: '" + firstIdent + "' },\n";
-
-      } //end if to control number displayed
-
-
-
-    } //end for
-
-
-/////START
 
 
 	JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
 	JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
 	String indsJson = jsonobj.toString();
 
-	extra += "};";
 %>
 
 <style>
@@ -312,7 +262,6 @@
 <script type="text/javascript">
 
 var searchResults = <%=indsJson%>;
-<%=extra%>
 
 /*
 var testColumns = {
@@ -585,20 +534,16 @@ if (percentage % 3 == 0) console.log(percentage);
 
 
 function _colIndividual(o) {
-	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.individualID + '">' + o.individualID + '</a></b> ';
-	var i = '<b>' + o.individualID + '</b><br /><%=props.getProperty("firstIdentified") %> ';
-	if (!extra[o.individualID]) return i;
-	i += (extra[o.individualID].firstIdent || '');
-	//i += (extra[o.individualID].genusSpecies || '') + '</i>';
+	var i = '<b>' + o.individualID + '</b>';
+	var fi = o.dateFirstIdentified;
+	if (fi) i += '<br /><%=props.getProperty("firstIdentified") %> ' + fi;
 	return i;
 }
 
 
 function _colNumberEncounters(o) {
-	if (!extra[o.individualID]) return '';
-	var n = extra[o.individualID].numberEncounters;
-	if (n == undefined) return '';
-	return n;
+	if (o.numberEncounters == undefined) return '';
+	return o.numberEncounters;
 }
 
 /*
@@ -608,10 +553,8 @@ function _colYearsBetween(o) {
 */
 
 function _colNumberLocations(o) {
-	if (!extra[o.individualID]) return '';
-	var n = extra[o.individualID].locations;
-	if (n == undefined) return '';
-	return n;
+	if (o.numberLocations == undefined) return '';
+	return o.numberLocations;
 }
 
 
@@ -627,8 +570,7 @@ function _colRowNum(o) {
 
 
 function _colThumb(o) {
-	if (!extra[o.individualID]) return '';
-	var url = extra[o.individualID].thumbUrl;
+	var url = o.thumbnailUrl;
 	if (!url) return '';
 	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
 }
