@@ -60,6 +60,7 @@ DateTimeFormatter fmt = ISODateTimeFormat.date();
 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 
 
+/*
 while(allEncs.hasNext()){
 	
 
@@ -130,14 +131,15 @@ while(allEncs.hasNext()){
 	
 
 }
+*/
 
 
+while(allSharks.hasNext()){
 
-
-//while(allSharks.hasNext()){
-
-//	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	sharky.refreshDependentProperties(context);
 	
+/*
 	//populate max years between resightings
 	/*
 	if(sharky.totalLogEncounters()>0){
@@ -151,12 +153,10 @@ while(allEncs.hasNext()){
 			numLogEncounters++;
 			
 		}
-	}*/
-	//sharky.resetMaxNumYearsBetweenSightings();
+	}
+*/
 	
-	//if(sharky.getSex().equals("unsure")){sharky.setSex("unknown");}
-	
-//}
+}
 
 
 myShepherd.commitDBTransaction();
