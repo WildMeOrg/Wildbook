@@ -88,6 +88,13 @@
               		<field name="timeOfBirth" persistence-modifier="persistent">
 	                    <column jdbc-type="BIGINT" allows-null="true" />
             		</field>
+
+					<field name="numberLocations" persistence-modifier="persistent">
+						<column jdbc-type="INTEGER" allows-null="true" />
+					</field>
+					<field name="thumbnailUrl" persistence-modifier="persistent">
+						<column allows-null="true" />
+					</field>
 		            	
 		            	        		<fetch-group name="allSharks_min">
 				            		<field name="encounters"/>
