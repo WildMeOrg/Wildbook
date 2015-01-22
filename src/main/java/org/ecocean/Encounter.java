@@ -1988,6 +1988,13 @@ thus, we have to treat it as a special case.
 		}
 
 
+	//see also: future, MediaAssets
+	public String getThumbnailUrl(String context) {
+		List<SinglePhotoVideo> spvs = this.images;
+		if (spvs.size() < 1) return null;
+		return "/" + CommonConfiguration.getDataDirectoryName(context) + "/encounters/" + this.subdir() + "/thumb.jpg";
+	}
+
 	public boolean restAccess(HttpServletRequest request, JSONObject jsonobj) throws Exception {
 		ApiAccess access = new ApiAccess();
 System.out.println("hello i am in restAccess() on Encounter");
@@ -2006,6 +2013,16 @@ throw new Exception();
 */
 		return true;
 	}
+
+
+/*  not really sure we need this now/yet
+
+	public void refreshDependentProperties() {
+		this.resetDateInMilliseconds();
+//TODO could possibly do integrity check, re: individuals/occurrences linking?
+	}
+
+*/
 
 
 
