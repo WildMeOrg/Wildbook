@@ -84,9 +84,12 @@ console.log('is %o', ajax);
 		if (s.length == 4) return s;  //year only
 		if (s.length == 7) return (s.substr(5) - 0) + '/' + s.substr(0,4);  //there is no toLocaleFoo for just year-month.  :(  sorry.
 		//now we (should?) have at least y-m-d, with possible time
+
 		var d = this.parseDate(s);
 		if (!d) return '';
-		return d.toLocaleDateString(undefined, {timeZone: 'UTC'});  //use UTC timezone, but force to look like user's locale expects
+		return s;
+		//i dont think we need to do this, if we "trust" we are y-m-d already!
+		return d.toISOString().substring(0,10);
 	},
 
 
