@@ -265,7 +265,7 @@ context=ServletUtilities.getContext(request);
         
           } 
 
-	if(request.isUserInRole("admin")){
+
 
 		
 		
@@ -279,6 +279,9 @@ context=ServletUtilities.getContext(request);
 	     <%
 	     
 	     }
+	      
+	  	if(request.isUserInRole("admin")){
+	      
 	     %>
      
      
