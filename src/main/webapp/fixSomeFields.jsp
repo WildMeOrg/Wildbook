@@ -40,9 +40,9 @@ Iterator allEncs;
 
 
 
-//Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
-//Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
-//Iterator allSharks;
+Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
+Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
+Iterator allSharks;
 
 
 
@@ -52,7 +52,7 @@ try{
 
 	
 allEncs=myShepherd.getAllEncounters(encQuery);
-//allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
+allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
 
 int numIssues=0;
 
@@ -60,7 +60,7 @@ DateTimeFormatter fmt = ISODateTimeFormat.date();
 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 
 
-/*
+
 while(allEncs.hasNext()){
 	
 
@@ -131,13 +131,15 @@ while(allEncs.hasNext()){
 	
 
 }
-*/
+
 
 
 while(allSharks.hasNext()){
 
 	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
 	sharky.refreshDependentProperties(context);
+	myShepherd.commitDBTransaction();
+	myShepherd.beginDBTransaction();
 	
 /*
 	//populate max years between resightings
