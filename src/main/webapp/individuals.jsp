@@ -20,6 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
+javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson, org.json.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 <%
@@ -132,6 +133,20 @@ if (request.getParameter("number")!=null) {
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
 
+			if (request.getParameter("refreshDependentProperties") != null) {
+				indie.refreshDependentProperties(context);
+				myShepherd.getPM().makePersistent(indie);
+				myShepherd.commitDBTransaction();
+/*  i cannot get this to effect the results of the rest api.  :(  TODO
+				DataStoreCache cache = myShepherd.getPM().getPersistenceManagerFactory().getDataStoreCache();
+				if (cache != null) {
+					System.out.println("cache evict!!!");
+					//cache.evictAll();
+					cache.evict(indie);
+				}
+*/
+				System.out.println("refreshDependentProperties() forced via individuals.jsp");
+			}
 
 			boolean visible = indie.canUserAccess(request);
 
@@ -643,14 +658,6 @@ function _colThumb(o) {
 }
 
 
-function _colModified(o) {
-	var m = o.get('modified');
-	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) return '';
-	return d.toLocaleDateString();
-}
-
 
 function _textExtraction(n) {
 	var s = $(n).text();
@@ -775,7 +782,7 @@ function _colModified(o) {
 	if (!m) return '';
 	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
-	return d.toLocaleDateString();
+	return d.toISOString().substring(0,10);
 }
 
 function _colCreationDate(o) {
@@ -783,7 +790,7 @@ function _colCreationDate(o) {
 	if (!m) return '';
 	var d = wildbook.parseDate(m);
 	if (!wildbook.isValidDate(d)) return '';
-	return d.toLocaleDateString();
+	return d.toISOString().substring(0,10);
 }
 
 
