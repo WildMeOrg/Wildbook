@@ -59,6 +59,7 @@ allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
 
 int numLogEncounters=0;
 
+/*
 while(allEncs.hasNext()){
 	
 	//change state
@@ -71,12 +72,15 @@ while(allEncs.hasNext()){
 
 
 }
+*/
 
-/*
+
 while(allSharks.hasNext()){
 
 	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	sharky.refreshDependentProperties(context);
 	
+/*
 	//populate max years between resightings
 	if(sharky.totalLogEncounters()>0){
 		//int numLogEncounters=);
@@ -90,9 +94,10 @@ while(allSharks.hasNext()){
 			
 		}
 	}
+*/
 	
 }
-*/
+
 
 myShepherd.commitDBTransaction();
 	myShepherd.closeDBTransaction();
