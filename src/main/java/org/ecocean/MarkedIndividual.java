@@ -76,6 +76,15 @@ public class MarkedIndividual implements java.io.Serializable {
   //number of unapproved encounters (log) of this MarkedIndividual
   private int numUnidentifiableEncounters;
 
+  //number of locations for this MarkedIndividual
+  private int numberLocations;
+
+	//first sighting
+	private String dateFirstIdentified;
+
+	//points to thumbnail (usually of most recent encounter) - TODO someday will be superceded by MediaAsset magic[tm]
+	private String thumbnailUrl;
+
   //a Vector of Strings of email addresses to notify when this MarkedIndividual is modified
   private Vector interestedResearchers = new Vector();
 
@@ -181,6 +190,37 @@ public class MarkedIndividual implements java.io.Serializable {
   public int totalEncounters() {
     return encounters.size();
   }
+
+
+	public int refreshNumberEncounters() {
+		this.numberEncounters = encounters.size();
+		return this.numberEncounters;
+	}
+
+
+	public String getDateFirstIdentified() {
+		return this.dateFirstIdentified;
+	}
+
+	public String refreshDateFirstIdentified() {
+		Encounter[] sorted = this.getDateSortedEncounters();
+		if (sorted.length < 1) return null;
+		Encounter first = sorted[sorted.length - 1];
+		if (first.getYear() < 1) return null;
+		String d = new Integer(first.getYear()).toString();
+		if (first.getMonth() > 0) d = new Integer(first.getMonth()).toString() + "/" + d;
+		this.dateFirstIdentified = d;
+		return d;
+	}
+
+  
+	public String refreshThumbnailUrl(String context) {
+		Encounter[] sorted = this.getDateSortedEncounters();
+		if (sorted.length < 1) return null;
+		this.thumbnailUrl = sorted[0].getThumbnailUrl(context);
+		return this.thumbnailUrl;
+	}
+
 
   public int totalLogEncounters() {
     if (unidentifiableEncounters == null) {
@@ -658,6 +698,16 @@ public class MarkedIndividual implements java.io.Serializable {
       }
       return vbed;
   }
+
+
+	public int getNumberLocations() {
+		return this.numberLocations;
+	}
+
+	public int refreshNumberLocations() {
+		this.numberLocations = this.participatesInTheseLocationIDs().size();
+		return this.numberLocations;
+	}
 
   public boolean wasSightedInVerbatimEventDate(String ved) {
     for (int c = 0; c < encounters.size(); c++) {
@@ -1675,5 +1725,16 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		}
 		return "<div class=\"row-lock " + collabClass + " collaboration-button\" data-multiuser=\"" + data + "\">&nbsp;</div>";
 	}
+
+
+
+	public void refreshDependentProperties(String context) {
+		this.refreshNumberEncounters();
+		this.refreshNumberLocations();
+		this.resetMaxNumYearsBetweenSightings();
+		this.refreshDateFirstIdentified();
+		this.refreshThumbnailUrl(context);
+	}
+
 
 }
