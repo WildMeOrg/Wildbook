@@ -98,10 +98,10 @@ public class IndividualRemoveEncounter extends HttpServlet {
           MarkedIndividual removeFromMe = myShepherd.getMarkedIndividual(old_name);
           name_s = removeFromMe.getName();
           while (removeFromMe.getEncounters().contains(enc2remove)) {
-            removeFromMe.removeEncounter(enc2remove);
+            removeFromMe.removeEncounter(enc2remove, context);
           }
           while (myShepherd.getUnidentifiableEncountersForMarkedIndividual(old_name).contains(enc2remove)) {
-            removeFromMe.removeEncounter(enc2remove);
+            removeFromMe.removeEncounter(enc2remove, context);
           }
           enc2remove.assignToMarkedIndividual("Unassigned");
           enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from " + old_name + ".</p>");
