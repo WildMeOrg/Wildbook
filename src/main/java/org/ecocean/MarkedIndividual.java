@@ -129,7 +129,7 @@ public class MarkedIndividual implements java.io.Serializable {
    *@see  Shepherd#commitDBTransaction()
    */
 
-  public boolean addEncounter(Encounter newEncounter) {
+  public boolean addEncounter(Encounter newEncounter, String context) {
 
       newEncounter.assignToMarkedIndividual(individualID);
    
@@ -148,7 +148,7 @@ public class MarkedIndividual implements java.io.Serializable {
       if(isNew){
         encounters.add(newEncounter);
         numberEncounters++;
-        resetMaxNumYearsBetweenSightings();
+        refreshDependentProperties(context);
       }
       return isNew; 
      
@@ -159,7 +159,7 @@ public class MarkedIndividual implements java.io.Serializable {
    *@return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
    *@see  Shepherd#commitDBTransaction()
    */
-  public boolean removeEncounter(Encounter getRidOfMe){
+  public boolean removeEncounter(Encounter getRidOfMe, String context){
 
       numberEncounters--;
 
@@ -172,7 +172,7 @@ public class MarkedIndividual implements java.io.Serializable {
           changed=true;
           }
       }
-      resetMaxNumYearsBetweenSightings();
+      refreshDependentProperties(context);
       
       //reset haplotype
       localHaplotypeReflection=null;
