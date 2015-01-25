@@ -80,7 +80,7 @@ public class Encounter implements java.io.Serializable {
   private String catalogNumber = "";
   private String individualID;
   private int day = 0;
-  private int month = 0;
+  private int month = -1;
   private int year = 0;
   private Double decimalLatitude;
   private Double decimalLongitude;
@@ -731,8 +731,12 @@ public class Encounter implements java.io.Serializable {
 
     if (day > 0) {
       date = String.format("%04d-%02d-%02d %s", year, month, day, time);
-    } else {
+    } 
+    else if(month>-1) {
       date = String.format("%04d-%02d %s", year, month, time);
+    }
+    else {
+      date = String.format("%04d %s", year, month, time);
     }
 
     return date;
