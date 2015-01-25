@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jdoconfig xmlns="http://java.sun.com/xml/ns/jdo/jdoconfig"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="http://java.sun.com/xml/ns/jdo/jdoconfig">
-
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://java.sun.com/xml/ns/jdo/jdoconfig
+        http://java.sun.com/xml/ns/jdo/jdoconfig_3_0.xsd">
+        
     <!-- Shepherd Project PMF -->
     <persistence-manager-factory name="ShepherdPMF">
     
         <property name="javax.jdo.PersistenceManagerFactoryClass" value="org.datanucleus.api.jdo.JDOPersistenceManagerFactory"/>
        
-       	<property name="datanucleus.ConnectionDriverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+  <property name="datanucleus.ConnectionDriverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
        
         <property name="datanucleus.ConnectionURL" value="jdbc:derby:shepherd_derby_database;create=true"/>
-              
+
+        
         <property name="datanucleus.ConnectionUserName" value="shepherd"/>       
            
         <property name="datanucleus.ConnectionPassword" value="shepherd"/>
@@ -26,7 +28,11 @@
         
 	<property name="datanucleus.storeManagerType" value="rdbms"/>
 
-            
+    <property name="datanucleus.maxFetchDepth" value="-1"/>
+	
+	<property name="datanucleus.cache.collections.lazy" value="false"/>
+			
+			
     </persistence-manager-factory>
 
 

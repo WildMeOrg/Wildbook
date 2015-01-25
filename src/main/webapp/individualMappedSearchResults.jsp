@@ -102,8 +102,7 @@
       body {
         margin: 0;
         padding: 10px 20px 20px;
-        font-family: Arial;
-        font-size: 16px;
+     
       }
 
 
@@ -122,7 +121,7 @@ margin-bottom: 8px !important;
 <style type="text/css">
   #tabmenu {
     color: #000;
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid #CDCDCD;
     margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
@@ -136,10 +135,10 @@ margin-bottom: 8px !important;
   }
 
   #tabmenu a, a.active {
-    color: #DEDECF;
-    background: #000;
-    font: bold 1em "Trebuchet MS", Arial, sans-serif;
-    border: 2px solid black;
+    color: #000;
+    background: #E6EEEE;
+    font: 0.5em "Arial, sans-serif;
+    border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
@@ -147,25 +146,25 @@ margin-bottom: 8px !important;
   }
 
   #tabmenu a.active {
-    background: #FFFFFF;
+    background: #8DBDD8;
     color: #000000;
-    border-bottom: 2px solid #FFFFFF;
+    border-bottom: 1px solid #8DBDD8;
   }
 
   #tabmenu a:hover {
-    color: #ffffff;
-    background: #7484ad;
+    color: #000;
+    background: #8DBDD8;
   }
 
   #tabmenu a:visited {
-    color: #E8E9BE;
+    
   }
 
   #tabmenu a.active:hover {
-    background: #7484ad;
-    color: #DEDECF;
-    border-bottom: 2px solid #000000;
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
   }
+  
   
   
 </style>
@@ -587,6 +586,19 @@ function setOverlays() {
 
  <div id="main">
  
+  <table width="810px" border="0" cellspacing="0" cellpadding="0">
+   <tr>
+     <td>
+       <br/>
+ 
+       <h1 class="intro"><%=map_props.getProperty("title")%>
+       </h1>
+     </td>
+   </tr>
+</table>
+
+
+ 
 <ul id="tabmenu">
 <%
 String queryString = "";
@@ -607,18 +619,7 @@ if (request.getQueryString() != null) {
     <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("export")%>
   </a></li>
 </ul>
- <table width="810px" border="0" cellspacing="0" cellpadding="0">
-   <tr>
-     <td>
-       <br/>
- 
-       <h1 class="intro"><%=map_props.getProperty("title")%>
-       </h1>
-     </td>
-   </tr>
-</table>
 
- <br />
 
 
 
