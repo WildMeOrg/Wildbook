@@ -282,26 +282,26 @@
             </field>
 
 
-            <field name="tissueSamples" persistence-modifier="persistent">
+            <field name="tissueSamples" persistence-modifier="persistent" default-fetch-group="true">
                 <collection element-type="org.ecocean.genetics.TissueSample"
                     dependent-element="true" />
                 <join />
             </field>
 
-            <field name="images" persistence-modifier="persistent">
+            <field name="images" persistence-modifier="persistent" default-fetch-group="true">
                 <collection element-type="org.ecocean.SinglePhotoVideo"
                     dependent-element="true" />
                 <join />
             </field>
 
 
-            <field name="measurements" persistence-modifier="persistent">
+            <field name="measurements" persistence-modifier="persistent" default-fetch-group="true">
                 <collection element-type="org.ecocean.Measurement"
                     dependent-element="true" />
                 <join />
             </field>
             
-            <field name="metalTags" persistence-modifier="persistent">
+            <field name="metalTags" persistence-modifier="persistent" default-fetch-group="true">
                 <collection element-type="org.ecocean.tag.MetalTag" dependent-element="true"/>
                 <join/>
             </field>
@@ -412,7 +412,7 @@
                 <column name="COPYRIGHTSTATEMENT" />
             </field>
 
-            <field name="keywords" persistence-modifier="persistent">
+            <field name="keywords" persistence-modifier="persistent" default-fetch-group="true">
                 <collection element-type="org.ecocean.Keyword" />
                 <join />
             </field>
