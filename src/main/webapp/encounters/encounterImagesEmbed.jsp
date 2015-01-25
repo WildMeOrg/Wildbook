@@ -1,8 +1,5 @@
-
-<%@ page contentType="text/html; charset=utf-8" language="java" import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Measurement, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
-
-<%@ page import="org.ecocean.Util, org.ecocean.Util.*, org.ecocean.mmutil.*" %>
-
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -381,7 +378,6 @@ System.out.println("trying to fork/create " + thumbPath);
 
 	if (session.getAttribute("logged")!=null) {
 				%></a>
-
                 <div 
             <%
             if(!isVideo){
@@ -467,7 +463,7 @@ System.out.println("trying to fork/create " + thumbPath);
             <%
               if (CommonConfiguration.showEXIFData(context)&&!isVideo) {
             	  
-            	  //File exifImage = new File(Encounter.dir(shepherdDataDir, imageEnc.getCatalogNumber()) + "/" + addTextFile);
+            	  File exifImage = new File(Encounter.dir(shepherdDataDir, imageEnc.getCatalogNumber()) + "/" + addTextFile);
               	
             %>
 
@@ -478,34 +474,12 @@ System.out.println("trying to fork/create " + thumbPath);
 						<span class="caption">	
 					<%
             if ((addTextFile.toLowerCase().endsWith("jpg")) || (addTextFile.toLowerCase().endsWith("jpeg"))) {
-              try{
-              	//File exifImage = new File(thisEncounterDir.getAbsolutePath() + "/"+addTextFile);
-              	File exifImage = new File(Encounter.dir(shepherdDataDir, imageEnc.getCatalogNumber()) + "/" + addTextFile);
-              	
-              	if(exifImage.exists()){              
-                  	
-              		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              		// iterate through metadata directories
-                  for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
-                    %>
-                    <%=tag.toString() %><br/>
-                    <%
-                  }
-                } //end if
-                else{
-            	  %>
-		            <p>File not found on file system. No EXIF data available.</p>
-            		<%
-                }
-             } //end try
-              catch(Exception e){
-                %>
-                <p>Cannot read metadata for this file.</p>
-                <%
-                System.out.println("Cannot read metadata for: "+addTextFile);
-                e.printStackTrace();
-              }
-            } //end if
+            	//File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
+            	%>
+            	<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
+            	<%
+            	
+              } //end if
  
                 %>
    									</span>
@@ -520,7 +494,6 @@ System.out.println("trying to fork/create " + thumbPath);
 
         </tr>
       </table>
-&nbsp;
 
     </div>
 
@@ -533,19 +506,6 @@ System.out.println("trying to fork/create " + thumbPath);
 </tr>
 
 </table>
-
-<%
-	if (request.getParameter("isOwner").equals("true") && CommonConfiguration.isCatalogEditable(context)) {
-		File tryCR = new File(images.get(myImage).getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.$1"));
-		if (tryCR.exists()) {
-			String crimg = addTextFile.replaceFirst(".([^.]+)$", "_CR.$1");
-%><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>"><img src="<%=encUrlDir%>/<%=crimg%>" /></a><div class="note">Candidate Region</div></div><%
-		} else {
-%><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>" class="cr-button">[<%=encprops.getProperty("crButton")%>]</a></div><%
-		}
-	}
-%>
-
 
   <%
 						}

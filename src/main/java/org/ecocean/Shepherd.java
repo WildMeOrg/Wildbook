@@ -28,8 +28,13 @@ import org.ecocean.security.Collaboration;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.*;
 import java.io.File;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
@@ -2676,6 +2681,21 @@ public class Shepherd {
       return value;
     }
     catch(Exception e){return -1;}
+  }
+  
+  public int getFirstSubmissionYear() {
+    //System.out.println("Starting getFirstSubmissionYear");
+    try{
+      Query q = pm.newQuery("SELECT min(dwcDateAddedLong) FROM org.ecocean.Encounter");
+      //System.out.println("     I have a query");
+      long value=((Long) q.execute()).longValue();
+      //System.out.println("     I have a value of: "+value);
+      q.closeAll();
+      org.joda.time.DateTime lcd = new org.joda.time.DateTime(value);
+      return lcd.getYear();
+      //return value;
+    }
+    catch(Exception e){e.printStackTrace();System.out.println("Why can't I find a min dwcDateAddedLong?");return -1;}
   }
 
   public int getLastSightingYear() {

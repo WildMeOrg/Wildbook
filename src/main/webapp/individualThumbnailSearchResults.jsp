@@ -20,8 +20,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration" %>
-		
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.io.File, java.util.*, org.ecocean.security.Collaboration" %>
+
 <html>
 <head>
 
@@ -50,8 +50,7 @@
         endNum = (new Integer(request.getParameter("endNum"))).intValue();
       }
 
-    } 
-    catch (NumberFormatException nfe) {
+    } catch (NumberFormatException nfe) {
       startNum = 1;
       endNum = 45;
     }
@@ -512,7 +511,7 @@
                       </tr>
                       <%
                         }
-                        } //end if !video
+                        }
                       %>
 
                     </table>
@@ -532,40 +531,30 @@
 												<span class="caption">
 						<div class="scroll">	
 						<span class="caption">
-			<%
+					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-              try{
-              	//File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
-              	File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
               
-              	if(exifImage.exists()){
-              		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              		// iterate through metadata directories
-                	for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
-          				%>
-  								<%=tag.toString() %><br/>
-  								<%
-                	} //end for
-              	} //end if
-              	else{
-            	  %>
-              		<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
-              		<%
+              
+            	  
+            	  //File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
+            	  File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
 
-              	} //end else
-              } //end try
-              catch(Exception e){e.printStackTrace();}
-            }
+            	  %>
+              	<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
+              	<%
+
+                  }
                 %>
    									</span>
             </div>
    								</span>
-<%
-                      }
-%>
+
 
                   </td>
-                 
+                  <%
+                    }
+                  %>
+                </tr>
               </table>
               <%
               
@@ -646,10 +635,9 @@
 %>
 </tr>
 <%
-  } //endFor rows
+  } //endFor
 
-
-			}catch (Exception e) {
+} catch (Exception e) {
   e.printStackTrace();
 %>
 <tr>

@@ -67,7 +67,7 @@ public class ApiAccess {
     context = ServletUtilities.getContext(request);
     //Shepherd myShepherd = new Shepherd(context);
 		ServletContext sc = session.getServletContext();
-		File afile = new File(sc.getRealPath("/") + "WEB-INF/classes/apiaccess.xml");
+		File afile = new File(sc.getRealPath("/") + "/WEB-INF/classes/apiaccess.xml");
 System.out.println("reading file??? " + afile.toString());
 
 		// h/t http://www.mkyong.com/java/how-to-read-xml-file-in-java-dom-parser/
