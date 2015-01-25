@@ -3975,8 +3975,11 @@ dlgSample.dialog("open");
 List<TissueSample> tissueSamples=enc.getTissueSamples();
 //List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
 
-int numTissueSamples=tissueSamples.size();
-if(numTissueSamples>0){
+
+if((tissueSamples!=null)&&(tissueSamples.size()>0)){
+	
+	int numTissueSamples=tissueSamples.size();
+
 %>
 <table width="100%" class="tissueSample">
 <tr><th><strong><%=encprops.getProperty("sampleID") %></strong></th><th><strong><%=encprops.getProperty("values") %></strong></th><th><strong><%=encprops.getProperty("analyses") %></strong></th><th><strong><%=encprops.getProperty("editTissueSample") %></strong></th><th><strong><%=encprops.getProperty("removeTissueSample") %></strong></th></tr>
