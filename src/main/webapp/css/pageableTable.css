@@ -1,0 +1,135 @@
+.ptcol-individualID {
+	width: 90px;
+}
+.ptcol-sex {
+	width: 30px;
+}
+.ptcol-rowNum {
+	width: 18px;
+	overflow: hidden;
+}
+.ptcol-date {
+	width: 60px;
+}
+.ptcol-numberEncounters {
+	width: 80px;
+}
+
+.ptcol-dataTypes img {
+	height: 18px;
+}
+
+.ptcol-verbatimLocality, .ptcol-locationID {
+	width: 95px;
+}
+
+
+.ptcol-thumb {
+	width: 50px;
+	xposition: relative;
+}
+
+.ptcol-thumb div {
+	width: 30px;
+	height: 18px;
+	background-size: auto 20px;
+	background-repeat: no-repeat;
+}
+
+.ptcol-thumb img {
+	position: absolute;
+	top: 25px;
+	left: -120px;
+	display: none;
+	border: solid 5px #000;
+	border-radius: 7px;
+}
+
+/* tr:hover .ptcol-thumb img { */
+.ptcol-thumb:hover img {
+	display: block;
+}
+
+
+
+/*
+td.ptcol-individualID:hover {
+	cursor: pointer;
+	background-color: #AAA !important;
+}
+*/
+
+.pageableTable-wrapper {
+	position: relative;
+}
+
+
+.pageableTable {
+	width: 95% !important;
+}
+
+.pageableTable tbody tr {
+	display: none;
+}
+
+/*  turns out tables do NOT respect width/height -- would need to nest a div inside each td to control
+.pageableTable tbody td {
+	max-height: 23px;
+	overflow-y: hidden;
+}
+*/
+
+.pageableTable tbody tr.pageableTable-visible {
+	display: table-row;
+}
+
+.pageableTable tbody tr.clickable:hover {
+	cursor:pointer;
+	outline: 2px solid rgba(200,255,85,0.8);
+}
+.pageableTable tbody tr.clickable:hover td {
+	background-color: #EFA;
+}
+
+/*
+.pageableTable tbody td {
+	vertical-align: center !important;
+}
+*/
+
+.pageableTable-slider {
+	position: absolute;
+	top: 15px;
+	right: 10px;
+	height: 95%;
+}
+
+
+#progress {
+	position: relative;
+	padding: 3px;
+	text-align: center;
+	font-size: 1.2em;
+	font-weight: bold;
+
+	margin: 20px;
+	color: #888;
+	border: solid 1px black;
+
+	border-radius: 3px;
+	width: 80%;
+	margin-left: 10%;
+	/* background: #DDD url(../../images/throbber.gif) no-repeat 90% 50%; */
+	background-color: #DDD;
+}
+
+#progress-bar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 100%;
+	background-color: #555;
+}
+
+

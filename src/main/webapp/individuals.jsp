@@ -19,7 +19,9 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, com.google.gson.Gson" %>
+         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
+javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,
+		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson, org.json.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 <%
 String blocker = "";
@@ -131,6 +133,20 @@ if (request.getParameter("number")!=null) {
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
 
+			if (request.getParameter("refreshDependentProperties") != null) {
+				indie.refreshDependentProperties(context);
+				myShepherd.getPM().makePersistent(indie);
+				myShepherd.commitDBTransaction();
+/*  i cannot get this to effect the results of the rest api.  :(  TODO
+				DataStoreCache cache = myShepherd.getPM().getPersistenceManagerFactory().getDataStoreCache();
+				if (cache != null) {
+					System.out.println("cache evict!!!");
+					//cache.evictAll();
+					cache.evict(indie);
+				}
+*/
+				System.out.println("refreshDependentProperties() forced via individuals.jsp");
+			}
 
 			boolean visible = indie.canUserAccess(request);
 
@@ -347,6 +363,463 @@ onunload="GUnload()" <%}%>>
 	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
   <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+
+<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+
+
+<script src="javascript/underscore-min.js"></script>
+<script src="javascript/backbone-min.js"></script>
+<script src="javascript/core.js"></script>
+<script src="javascript/classes/Base.js"></script>
+
+<link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+
+<link rel="stylesheet" href="css/pageableTable.css" />
+<script src="javascript/tsrt.js"></script>
+
+
+
+
+<style>
+.ptcol-maxYearsBetweenResightings {
+	width: 100px;
+}
+.ptcol-numberLocations {
+	width: 100px;
+}
+
+</style>
+
+<script type="text/javascript">
+
+
+var testColumns = {
+	//rowNum: { label: '#', val: _colRowNum },
+	date: { label: 'Date', val: _colEncDate },
+	location: { label: 'Location' },
+	dataTypes: { label: 'Data types', val: _colDataTypes },
+	alternateID: { label: 'Alt ID', val: cleanValue },
+	sex: { label: 'Sex' },
+	occ: { label: 'Occurring with', val: _colOcc },
+	behavior: { label: 'Behavior' },
+};
+
+
+
+
+/*
+$(document).keydown(function(k) {
+	if ((k.which == 38) || (k.which == 40)) k.preventDefault();
+	if (k.which == 38) return tableDn();
+	if (k.which == 40) return tableUp();
+});
+
+*/
+var colDefn = [
+	{
+		key: 'date',
+		label: 'Date',
+		value: _colEncDate,
+		sortValue: _colEncDateSort,
+		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+	},
+	{
+		key: 'location',
+		label: 'Location',
+	},
+	{
+		key: 'dataTypes',
+		label: 'Data types',
+		value: _colDataTypes,
+		sortValue: _colDataTypesSort,
+	},
+	{
+		key: 'alternateID',
+		label: 'Alt ID',
+		value: cleanValue,
+	},
+	{
+		key: 'sex',
+		label: 'Sex',
+	},
+	{
+		key: 'occ',
+		label: 'Occurring with',
+		value: _colOcc,
+	},
+	{
+		key: 'behavior',
+		label: 'Behavior',
+	}
+	
+];
+
+
+var howMany = 10;
+var start = 0;
+var results = [];
+
+var sortCol = -1;
+var sortReverse = true;
+
+
+var sTable = false;
+
+function doTable() {
+	for (var i = 0 ; i < searchResults.length ; i++) {
+		searchResults[i] = new wildbook.Model.Encounter(searchResults[i]);
+		//searchResultsObjects[i] = new wildbook.Model.MarkedIndividual(searchResults[i]);
+	}
+
+	sTable = new SortTable({
+		data: searchResults,
+		perPage: howMany,
+		sliderElement: $('#results-slider'),
+		columns: colDefn,
+	});
+
+	$('#results-table').addClass('tablesorter').addClass('pageableTable');
+	var th = '<thead><tr>';
+		for (var c = 0 ; c < colDefn.length ; c++) {
+			var cls = 'ptcol-' + colDefn[c].key;
+			if (!colDefn[c].nosort) {
+				if (sortCol < 0) { //init
+					sortCol = c;
+					cls += ' headerSortUp';
+				}
+				cls += ' header" onClick="return headerClick(event, ' + c + ');';
+			}
+			th += '<th class="' + cls + '">' + colDefn[c].label + '</th>';
+		}
+	$('#results-table').append(th + '</tr></thead>');
+
+
+	if (howMany > searchResults.length) howMany = searchResults.length;
+
+	for (var i = 0 ; i < howMany ; i++) {
+		var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
+		for (var c = 0 ; c < colDefn.length ; c++) {
+			r += '<td class="ptcol-' + colDefn[c].key + '"></td>';
+		}
+		r += '</tr>';
+		$('#results-table').append(r);
+	}
+
+	sTable.initSort();
+	sTable.initValues();
+
+
+	newSlice(sortCol, sortReverse);
+
+	$('#progress').hide();
+	sTable.sliderInit();
+	show();
+
+	$('#results-table').on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
+		if (!sTable.opts.sliderElement) return;
+		ev.preventDefault();
+		var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
+		if (delta != 0) nudge(-delta);
+	});
+
+}
+
+function rowClick(el) {
+	console.log(el);
+	var w = window.open('encounters/encounter.jsp?number=' + el.getAttribute('data-id'), '_blank');
+	w.focus();
+	return false;
+}
+
+function headerClick(ev, c) {
+	start = 0;
+	ev.preventDefault();
+	console.log(c);
+	if (sortCol == c) {
+		sortReverse = !sortReverse;
+	} else {
+		sortReverse = false;
+	}
+	sortCol = c;
+
+	$('#results-table th.headerSortDown').removeClass('headerSortDown');
+	$('#results-table th.headerSortUp').removeClass('headerSortUp');
+	if (sortReverse) {
+		$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortUp');
+	} else {
+		$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortDown');
+	}
+console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
+	newSlice(sortCol, sortReverse);
+	show();
+}
+
+
+function show() {
+	$('#results-table td').html('');
+	for (var i = 0 ; i < results.length ; i++) {
+		//$('#results-table tbody tr')[i].title = searchResults[results[i]].individualID;
+		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].get('catalogNumber'));
+		for (var c = 0 ; c < colDefn.length ; c++) {
+			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
+			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
+		}
+	}
+
+	sTable.sliderSet(100 - (start / (searchResults.length - howMany)) * 100);
+}
+
+function newSlice(col, reverse) {
+	results = sTable.slice(col, start, start + howMany, reverse);
+}
+
+
+function nudge(n) {
+	start += n;
+	if (start < 0) start = 0;
+	if (start > searchResults.length - 1) start = searchResults.length - 1;
+	newSlice(sortCol, sortReverse);
+	show();
+}
+
+function tableDn() {
+	return nudge(-1);
+	start--;
+	if (start < 0) start = 0;
+	newSlice(sortCol, sortReverse);
+	show();
+}
+
+function tableUp() {
+	return nudge(1);
+	start++;
+	if (start > searchResults.length - 1) start = searchResults.length - 1;
+	newSlice(sortCol, sortReverse);
+	show();
+}
+
+
+
+////////
+$(document).ready( function() {
+	wildbook.init(function() { doTable(); });
+});
+
+
+
+function _colIndividual(o) {
+	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.individualID + '">' + o.individualID + '</a></b> ';
+	var i = '<b>' + o.individualID + '</b> ';
+	if (!extra[o.individualID]) return i;
+	i += (extra[o.individualID].firstIdent || '') + ' <i>';
+	i += (extra[o.individualID].genusSpecies || '') + '</i>';
+	return i;
+}
+
+
+function _colNumberEncounters(o) {
+	if (!extra[o.individualID]) return '';
+	var n = extra[o.individualID].numberEncounters;
+	if (n == undefined) return '';
+	return n;
+}
+
+/*
+function _colYearsBetween(o) {
+	return o.get('maxYearsBetweenResightings');
+}
+*/
+
+function _colNumberLocations(o) {
+	if (!extra[o.individualID]) return '';
+	var n = extra[o.individualID].locations;
+	if (n == undefined) return '';
+	return n;
+}
+
+
+function _colTaxonomy(o) {
+	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
+	return o.get('genus') + ' ' + o.get('specificEpithet');
+}
+
+
+function _colRowNum(o) {
+	return o._rowNum;
+}
+
+
+function _colThumb(o) {
+	if (!extra[o.individualID]) return '';
+	var url = extra[o.individualID].thumbUrl;
+	if (!url) return '';
+	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
+}
+
+
+
+function _textExtraction(n) {
+	var s = $(n).text();
+	var skip = new RegExp('^(none|unassigned|)$', 'i');
+	if (skip.test(s)) return 'zzzzz';
+	return s;
+}
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+var encs;
+var resultsTable;
+
+
+var tableContents = document.createDocumentFragment();
+
+function xdoTable() {
+	resultsTable = new pageableTable({
+		columns: testColumns,
+		tableElement: $('#results-table'),
+		sliderElement: $('#results-slider'),
+		tablesorterOpts: {
+			//headers: { 1: {sorter: false} },
+			textExtraction: _textExtraction,
+		},
+	});
+
+	resultsTable.tableInit();
+
+	encs = new wildbook.Collection.Encounters();
+	var addedCount = 0;
+	encs.on('add', function(o) {
+		var row = resultsTable.tableCreateRow(o);
+		row.click(function() { var w = window.open('encounters/encounter.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
+		row.addClass('clickable');
+		row.appendTo(tableContents);
+		addedCount++;
+/*
+		var percentage = Math.floor(addedCount / searchResults.length * 100);
+console.log(percentage);
+$('#progress').html(percentage);
+*/
+		if (addedCount >= searchResults.length) {
+			$('#results-table').append(tableContents);
+		}
+	});
+
+	_.each(searchResults, function(o) {
+//console.log(o);
+		encs.add(new wildbook.Model.Encounter(o));
+	});
+	$('#progress').remove();
+	resultsTable.tableShow();
+
+/*
+	encs.fetch({
+		//fields: { individualID: 'newMatch' },
+		success: function() {
+			$('#progress').remove();
+			resultsTable.tableShow();
+		}
+	});
+*/
+
+}
+
+
+function _colDataTypes(o) {
+	var dt = '';
+	if (o.get('hasImages')) dt += '<img title="images" src="images/Crystal_Clear_filesystem_folder_image.png" />';
+	if (o.get('hasTissueSamples')) dt += '<img title="tissue samples" src="images/microscope.gif" />';
+	if (o.get('hasMeasurements')) dt += '<img title="measurements" src="images/ruler.png" />';
+	return dt;
+}
+
+function _colDataTypesSort(o) {
+	var dt = '';
+	if (o.get('hasImages')) dt += ' images';
+	if (o.get('hasTissueSamples')) dt += ' tissues';
+	if (o.get('hasMeasurements')) dt += ' measurements';
+	return dt;
+}
+
+
+function _colEncDate(o) {
+	return wildbook.flexibleDate(o.get('date'));
+}
+
+
+function _colEncDateSort(o) {
+	var d = wildbook.parseDate(o.get('date'));
+	if (!d) return 0;
+	return d.getTime();
+}
+
+
+function _colOcc(o) {
+	var occ = o.get('occurrences');
+	if (!occ || (occ.length < 1)) return '';
+	return occ.join(', ');
+}
+
+
+function _colRowNum(o) {
+	return o._rowNum;
+}
+
+
+function _colThumb(o) {
+	var url = o.thumbUrl();
+	if (!url) return '';
+	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
+	return '<div style="background-image: url(' + url + ');"></div>';
+	return '<img src="' + url + '" />';
+}
+
+
+function _colModified(o) {
+	var m = o.get('modified');
+	if (!m) return '';
+	var d = wildbook.parseDate(m);
+	if (!wildbook.isValidDate(d)) return '';
+	return d.toISOString().substring(0,10);
+}
+
+function _colCreationDate(o) {
+	var m = o.get('dwcDateAdded');
+	if (!m) return '';
+	var d = wildbook.parseDate(m);
+	if (!wildbook.isValidDate(d)) return '';
+	return d.toISOString().substring(0,10);
+}
+
+
+
+function _textExtraction(n) {
+	var s = $(n).text();
+	var skip = new RegExp('^(none|unassigned|)$', 'i');
+	if (skip.test(s)) return 'zzzzz';
+	return s;
+}
+
+
+function cleanValue(obj, fieldName) {
+	var v = obj.get(fieldName);
+	var empty = /^(null|unknown|none|undefined)$/i;
+	if (empty.test(v)) v = '';
+	return v;
+}
+
+
+function dataTypes(obj, fieldName) {
+	var dt = [];
+	_.each(['measurements', 'images'], function(w) {
+		if (obj[w] && obj[w].models && (obj[w].models.length > 0)) dt.push(w.substring(0,1));
+	});
+	return dt.join(', ');
+}
+
+</script>
 
 
 
@@ -753,37 +1226,15 @@ $("a#deathdate").click(function() {
   <%=numencounters %>
 </p>
 
-<table id="results" width="100%">
-  <tr class="lineitem">
-      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=date %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=location %></strong></td>
-    <td class="lineitem" bgcolor="#99CCFF"><strong><%=dataTypes %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=encnumber %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=alternateID %></strong></td>
 
-
-
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=sex %></strong></td>
-    <%
-      if (isOwner && CommonConfiguration.useSpotPatternRecognition(context)) {
-    %>
-
-    	<td align="left" valign="top" bgcolor="#99CCFF">
-    		<strong><%=spots %></strong>
-    	</td>
-    <%
-    }
-    %>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sightedWith") %></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
- 
-  </tr>
   <%
     Encounter[] dateSortedEncs = sharky.getDateSortedEncounters();
 
+			ArrayList<HashMap> myEncs = new ArrayList<HashMap>();
 
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
+	HashMap henc = new HashMap();
       Encounter enc = dateSortedEncs[i];
       
 				boolean visible = true; //enc.canUserAccess(request);  ///TODO technically we dont need this encounter-level locking!!!
@@ -792,80 +1243,19 @@ $("a#deathdate").click(function() {
         
 							//String encSubdir = thisEnc.subdir();
           imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.subdir() + "/thumb.jpg";
-        
-  %>
-	<tr class="lineitem<%= (visible ? "" : " no-access") %>">
-      <td class="lineitem">
-<%
-	if (!visible) out.println(enc.collaborationLockHtml(collabs));
-%>
-<%=enc.getDate()%>
-    </td>
-    <td class="lineitem">
-    <% 
-    if(enc.getLocation()!=null){
-    %>
-    <%=enc.getLocation()%>
-    <%
-    }
-    else{
-    %>
-    &nbsp;
-    <%
-    }
-    %>
-    </td>
-    <td width="100" height="32px" class="lineitem">
-    	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
-    		
-    		<%
-    		//if the encounter has photos, show photo folder icon
-    		if((enc.getImages()!=null) && (enc.getImages().size()>0)){
-    		%>
-    			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="32px" />
-    		<%
-    		}
-    		
-    		//if the encounter has a tissue sample, show an icon
-    		if((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)){
-    		%>
-    			<img src="images/microscope.gif" height="32px" width="32px" />
-    		<%
-    		}
-    		//if the encounter has a measurement, show the measurement icon
-    		if(enc.hasMeasurements()){
-    		%>	
-    			<img src="images/ruler.png" height="32px" width="32px" />
-        	<%	
-    		}
-    		%>
-    		
-    	</a>
-    </td>
-    <td class="lineitem"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%>
-    </a></td>
 
-    <%
-      if (enc.getAlternateID() != null) {
-    %>
-    <td class="lineitem"><%=enc.getAlternateID()%>
-    </td>
-    <%
-    } else {
-    %>
-    <td class="lineitem">
-    </td>
-    <%
-      }
-    String encSexValue="";
-    if(enc.getSex()!=null){encSexValue=enc.getSex();}
-    %>
+	henc.put("visible", visible);
+        henc.put("thumbUrl", imgName);
+	henc.put("date", enc.getDate());
+    	henc.put("location", enc.getLocation());
+	if ((enc.getImages()!=null) && (enc.getImages().size()>0)) henc.put("hasImages", true);
+   	if ((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)) henc.put("hasTissueSamples", true);
+   	if (enc.hasMeasurements()) henc.put("hasMeasurements", true);
+	henc.put("catalogNumber", enc.getEncounterNumber());
+ 	henc.put("alternateID", enc.getAlternateID());
+	henc.put("sex", enc.getSex());
 
-    <td class="lineitem"><%=encSexValue %>
-    </td>
-
-    <%
+/*
       if (CommonConfiguration.useSpotPatternRecognition(context)) {
     %>
     <%if (((enc.getSpots().size() == 0) && (enc.getRightSpots().size() == 0)) && (isOwner)) {%>
@@ -879,10 +1269,10 @@ $("a#deathdate").click(function() {
     <%
         }
       }
-    %>
-    
-    <td class="lineitem">
-    <%
+
+*/
+
+	ArrayList<String> occ = new ArrayList<String>();
     if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
     	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
     	ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
@@ -890,44 +1280,15 @@ $("a#deathdate").click(function() {
     		int numOtherOccurs=otherOccurs.size();
     		for(int j=0;j<numOtherOccurs;j++){
     			String thisName=otherOccurs.get(j);
-    			if(!thisName.equals(sharky.getIndividualID())){
-    				if(j<20){
-    			
-    				%>
-    					<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=thisName%>"><%=thisName %></a>&nbsp;
-    				<%	
-    				}
-
-    			}
-    		}
-    		if(numOtherOccurs>=20){
-			%>
-			    &nbsp;<em><%=props.getProperty("andMore") %></em>
-			<%
-    		}
-    		if(numOtherOccurs>1){
-    		%>
-    		<br /><br /><em><a href="occurrence.jsp?number=<%=thisOccur.getOccurrenceID()%>"><%=props.getProperty("moreOccurrences") %></a></em>
-    		<%
+    			if(!thisName.equals(sharky.getIndividualID())) occ.add(thisName);
     		}
     	}
     }
-    //new comment
-    else{
-    %>	
-    	&nbsp;
-    <%
-    }
-    %>
-    
-    </td>
-    <td class="lineitem">
-    <%
-    if(enc.getBehavior()!=null){
-    %>
-    <%=enc.getBehavior() %>
-    <%	
-    }
+
+	henc.put("occurrences", occ);
+
+	henc.put("behavior", enc.getBehavior());
+/*
     if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
     	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
     	if((thisOccur!=null)&&(thisOccur.getGroupBehavior()!=null)){
@@ -936,17 +1297,30 @@ $("a#deathdate").click(function() {
     	<%	
     	}
     }
-    %>
-    </td>
-  </tr>
-  <%
-      
+*/
+
+System.out.println(henc);
+	myEncs.add(henc);
+
     } //end for
+
+    	String encsJson = new Gson().toJson(myEncs);
 
   %>
 
 
-</table>
+
+
+<div class="pageableTable-wrapper">
+	<div id="progress">Generating encounters table</div>
+	<table id="results-table"></table>
+	<div id="results-slider"></div>
+</div>
+
+
+<script>
+	var searchResults = <%=encsJson%>;
+</script>
 
 
 <!-- Start thumbnail gallery -->
@@ -1187,13 +1561,30 @@ xxxxxx
 						<span class="caption">
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-              
-            	  //File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
-              File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
-              %>
-          	<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
-          	<%
-             
+              try{
+              File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
+              if(exifImage.exists()){              
+              	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
+              	// iterate through metadata directories
+                for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
+          				%>
+  								<%=tag.toString() %><br/>
+  								<%
+                }
+              } //end if
+              else{
+            	  %>
+		            <p>File not found on file system. No EXIF data available.</p>
+          		<%  
+              }
+            } //end try
+            catch(Exception e){
+            	 %>
+		            <p>Cannot read metadata for this file.</p>
+            	<%
+            	System.out.println("Cannout read metadata for: "+thumbLocs.get(countMe).getFilename());
+            	e.printStackTrace();
+            }
 
                   }
                 %>
@@ -2210,6 +2601,18 @@ if(isOwner){
     } //if isEditable
 
 }
+%>
+
+</td>
+</tr>
+</table>
+
+
+
+  <%
+   
+
+
 
 } 
 
@@ -2305,8 +2708,7 @@ else {
       </td>
 </tr>
 </table>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
+
       
       <%
     }
@@ -2322,6 +2724,9 @@ else {
 
 %>
 <jsp:include page="footer.jsp" flush="true"/>
+</div><!-- end maintext -->
+</div><!-- end main-wide -->
+
 </div>
 
 

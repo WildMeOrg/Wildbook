@@ -141,7 +141,7 @@ public class EncounterResetDate extends HttpServlet {
           String indieName=fixMe.getIndividualID();
           if(myShepherd.isMarkedIndividual(indieName)){
             MarkedIndividual indie=myShepherd.getMarkedIndividual(indieName);
-            indie.resetMaxNumYearsBetweenSightings();
+            indie.refreshDependentProperties(context);
           }
         }
         

@@ -74,9 +74,9 @@ context=ServletUtilities.getContext(request);
 
 </head>
 <style type="text/css">
-  #tabmenu {
+   #tabmenu {
     color: #000;
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid #CDCDCD;
     margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
@@ -90,10 +90,10 @@ context=ServletUtilities.getContext(request);
   }
 
   #tabmenu a, a.active {
-    color: #DEDECF;
-    background: #000;
-    font: bold 1em "Trebuchet MS", Arial, sans-serif;
-    border: 2px solid black;
+    color: #000;
+    background: #E6EEEE;
+    font: 0.5em "Arial, sans-serif;
+    border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
@@ -101,24 +101,23 @@ context=ServletUtilities.getContext(request);
   }
 
   #tabmenu a.active {
-    background: #FFFFFF;
+    background: #8DBDD8;
     color: #000000;
-    border-bottom: 2px solid #FFFFFF;
+    border-bottom: 1px solid #8DBDD8;
   }
 
   #tabmenu a:hover {
-    color: #ffffff;
-    background: #7484ad;
+    color: #000;
+    background: #8DBDD8;
   }
 
   #tabmenu a:visited {
-    color: #E8E9BE;
+    
   }
 
   #tabmenu a.active:hover {
-    background: #7484ad;
-    color: #DEDECF;
-    border-bottom: 2px solid #000000;
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
   }
 </style>
 
@@ -202,6 +201,20 @@ context=ServletUtilities.getContext(request);
     </jsp:include>
 
     <div id="main" style='overflow: auto;'>
+    
+      
+    
+  <table width="810px" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>
+      <p>
+
+      <h1><%=calprops.getProperty("titleSearch") %></h1>
+      </h1>
+    </p>
+    </td>
+  </tr>
+</table>
 
       <ul id="tabmenu">
 
@@ -224,12 +237,12 @@ context=ServletUtilities.getContext(request);
    </a></li>
 
       </ul>
+      <p></p>
 
       <div id="maincol-calendar" style='overflow: auto; z-index: 0;'>
         <div id="maintext" style='overflow: auto; z-index: 0;'>
 
-          <h1><img src="../images/calendar.png" width="75px" height="75px" align="absmiddle"/> <%=calprops.getProperty("title") %></h1>
-
+        
           <div align="center" id="scheduler_here" class="dhx_cal_container"
                style='width: 810px; height: 800px; overflow: auto; margin-left: auto; margin-right: auto; position: relative; z-index: 0;'>
             <div align="center" class="dhx_cal_navline" style='z-index: 0;'>
