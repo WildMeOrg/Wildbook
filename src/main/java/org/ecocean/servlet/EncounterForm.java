@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 //////
 //import java.io.*;
 import java.util.*;
+
 //import java.lang.*;
 //import java.util.List;
 import org.apache.commons.fileupload.FileItem;
@@ -29,8 +30,6 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.output.*;
-/////
-
 /*
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
@@ -42,7 +41,6 @@ import org.ecocean.*;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
-
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -57,8 +55,8 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-
 import java.text.SimpleDateFormat;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -353,7 +351,7 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 //System.out.println("about to do int stuff");
 
 			//need some ints for day/month/year/hour (other stuff seems to be strings)
-			int day = 0, month = 0, year = 0, hour = 0;
+			int day = 0, month = -1, year = 0, hour = 0;
 			String minutes="";
 			//try { day = Integer.parseInt(getVal(fv, "day")); } catch (NumberFormatException e) { day = 0; }
 			//try { month = Integer.parseInt(getVal(fv, "month")); } catch (NumberFormatException e) { month = 0; }
@@ -368,27 +366,31 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 			    DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 	        
 			    LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(getVal(fv, "datepicker").replaceAll(" ", "T")));
-			  
-			  
-			  
-			    //System.out.println("Day of month is: "+reportedDateTime.getDayOfMonth()); 
-			    try { month = new Integer(reportedDateTime.getMonthOfYear()); } catch (Exception e) { month = 0; }
-		      
-			    //see if we can get a day, because we do want to support only yyy-MM too
-			    StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker"),"-");			  
-			    if(str.countTokens()>2){
-			      try { day = new Integer(reportedDateTime.getDayOfMonth()); } catch (Exception e) { day = 0; }
-			    }  
-			    try { year = new Integer(reportedDateTime.getYear()); } catch (Exception e) { e.printStackTrace();year = 0; }
-			    if(year>(Calendar.getInstance().get(Calendar.YEAR)+1)){System.out.println("Year "+year+" was in the future and > "+Calendar.getInstance().get(Calendar.YEAR)+1+"! Setting to 0.");year=0;}
-		      
-			      //see if we can get a time and hour, because we do want to support only yyy-MM too
-			      StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");        
-			      if(strTime.countTokens()>1){
-			          try { hour = new Integer(reportedDateTime.getHourOfDay()); } catch (Exception e) { hour =-1; }
-			          try {minutes=(new Integer(reportedDateTime.getMinuteOfHour())).toString(); } catch (Exception e) {}
-			      } 
-			      else{hour=-1;}
+			    StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"-");        
+          
+          int numTokens=str.countTokens();
+          if(numTokens>=1){
+            try { year=reportedDateTime.getYear(); } catch (Exception e) { year=-1;}
+          }
+          if(numTokens>=2){
+            try { month=reportedDateTime.getMonthOfYear(); } catch (Exception e) { month=-1;}
+          }
+          else{month=-1;}
+          //see if we can get a day, because we do want to support only yyy-MM too
+          if(str.countTokens()>=3){
+            try { day=reportedDateTime.getDayOfMonth(); } catch (Exception e) { day=0; }
+          }
+          else{day=0;}
+          
+          
+          
+          //see if we can get a time and hour, because we do want to support only yyy-MM too
+          StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");        
+          if(strTime.countTokens()>1){
+            try { hour=reportedDateTime.getHourOfDay(); } catch (Exception e) { hour=-1; }
+            try {minutes=(new Integer(reportedDateTime.getMinuteOfHour()).toString()); } catch (Exception e) {}
+          } 
+          else{hour=-1;}
         
         
 			      //System.out.println("At the end of time processing I see: "+year+"-"+month+"-"+day+" "+hour+":"+minutes);
