@@ -9,15 +9,12 @@
     
         <property name="javax.jdo.PersistenceManagerFactoryClass" value="org.datanucleus.api.jdo.JDOPersistenceManagerFactory"/>
        
-<!--    <property name="datanucleus.ConnectionDriverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+  <property name="datanucleus.ConnectionDriverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
        
         <property name="datanucleus.ConnectionURL" value="jdbc:derby:shepherd_derby_database;create=true"/>
- -->
-     	<property name="datanucleus.ConnectionDriverName" value="org.postgresql.Driver"/>
-       
-        <property name="datanucleus.ConnectionURL" value="jdbc:postgresql://localhost:5432/wildbook"/>
+
         
-        <property name="datanucleus.ConnectionUserName" value="ken"/>       
+        <property name="datanucleus.ConnectionUserName" value="shepherd"/>       
            
         <property name="datanucleus.ConnectionPassword" value="shepherd"/>
 
@@ -31,7 +28,11 @@
         
 	<property name="datanucleus.storeManagerType" value="rdbms"/>
 
-            
+    <property name="datanucleus.maxFetchDepth" value="-1"/>
+	
+	<property name="datanucleus.cache.collections.lazy" value="false"/>
+			
+			
     </persistence-manager-factory>
 
 
