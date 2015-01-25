@@ -572,7 +572,7 @@ $(function() {
       
       <%
       //set a default date if we cann
-      if(enc.getDateInMilliseconds()>0){
+      if(enc.getDateInMilliseconds()!=null){
     	  
     	  //LocalDateTime jodaTime = new LocalDateTime(enc.getDateInMilliseconds());
     	  
@@ -699,11 +699,6 @@ $(function() {
 
   <p><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("identity") %></strong></p>
       
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-<div class="encounter-vm-button">
-	<a href="encounterVM.jsp?number=<%=num%>">[Visual Matcher]</a>
-</div>
-<% } %>
       
 								
     							<%
@@ -780,6 +775,7 @@ $(function() {
       							%>
      							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" style="display:none">  
   									<p><em><%=encprops.getProperty("identityMessage") %></em></p>	
+  		
   									<%
   									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
   									%>		
@@ -1112,7 +1108,7 @@ $("a#occurrence").click(function() {
 
 <p><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("date") %>
 </strong><br/><br/>
-<%if(enc.getDateInMilliseconds()>0){ %>
+<%if(enc.getDateInMilliseconds()!=null){ %>
   <a
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
     <%=enc.getDate()%>
@@ -1599,7 +1595,7 @@ $("a#elev").click(function() {
     </script>
     
  	<%
- 	if((request.getUserPrincipal()!=null) || ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
+ 	if((request.getUserPrincipal()!=null) && ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
  	%>
  		<p><%=encprops.getProperty("map_note") %></p>
  		<div id="map_canvas" style="width: 510px; height: 350px; "></div>
@@ -3979,8 +3975,11 @@ dlgSample.dialog("open");
 List<TissueSample> tissueSamples=enc.getTissueSamples();
 //List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
 
-int numTissueSamples=tissueSamples.size();
-if(numTissueSamples>0){
+
+if((tissueSamples!=null)&&(tissueSamples.size()>0)){
+	
+	int numTissueSamples=tissueSamples.size();
+
 %>
 <table width="100%" class="tissueSample">
 <tr><th><strong><%=encprops.getProperty("sampleID") %></strong></th><th><strong><%=encprops.getProperty("values") %></strong></th><th><strong><%=encprops.getProperty("analyses") %></strong></th><th><strong><%=encprops.getProperty("editTissueSample") %></strong></th><th><strong><%=encprops.getProperty("removeTissueSample") %></strong></th></tr>

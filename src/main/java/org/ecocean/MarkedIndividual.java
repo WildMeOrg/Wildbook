@@ -129,7 +129,7 @@ public class MarkedIndividual implements java.io.Serializable {
    *@see  Shepherd#commitDBTransaction()
    */
 
-  public boolean addEncounter(Encounter newEncounter) {
+  public boolean addEncounter(Encounter newEncounter, String context) {
 
       newEncounter.assignToMarkedIndividual(individualID);
    
@@ -148,7 +148,7 @@ public class MarkedIndividual implements java.io.Serializable {
       if(isNew){
         encounters.add(newEncounter);
         numberEncounters++;
-        resetMaxNumYearsBetweenSightings();
+        refreshDependentProperties(context);
       }
       return isNew; 
      
@@ -159,7 +159,7 @@ public class MarkedIndividual implements java.io.Serializable {
    *@return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
    *@see  Shepherd#commitDBTransaction()
    */
-  public boolean removeEncounter(Encounter getRidOfMe){
+  public boolean removeEncounter(Encounter getRidOfMe, String context){
 
       numberEncounters--;
 
@@ -172,7 +172,7 @@ public class MarkedIndividual implements java.io.Serializable {
           changed=true;
           }
       }
-      resetMaxNumYearsBetweenSightings();
+      refreshDependentProperties(context);
       
       //reset haplotype
       localHaplotypeReflection=null;
@@ -409,7 +409,7 @@ public class MarkedIndividual implements java.io.Serializable {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
 
-        if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
+        if((temp.getDateInMilliseconds()!=null)&&(temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
           return true;
         }
     }
@@ -434,7 +434,7 @@ public class MarkedIndividual implements java.io.Serializable {
 
       if ((temp.getLocationID()!=null)&&(!temp.getLocationID().trim().equals(""))&&(temp.getLocationID().trim().equals(locCode))) {
 
-        if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
+        if((temp.getDateInMilliseconds()!=null)&&(temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
           return true;
         }
       }
@@ -453,7 +453,7 @@ public class MarkedIndividual implements java.io.Serializable {
     GregorianCalendar gcMax=new GregorianCalendar(endYear, endMonth, endDay);
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
+      if((temp.getDateInMilliseconds()!=null)&&(temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
           return true;
       }
     }
@@ -475,7 +475,7 @@ public class MarkedIndividual implements java.io.Serializable {
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
 
-        if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())&&(temp.getNumSpots()>0)){
+        if((temp.getDateInMilliseconds()!=null)&&(temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())&&(temp.getNumSpots()>0)){
           return true;
         }
     }
@@ -748,7 +748,7 @@ public class MarkedIndividual implements java.io.Serializable {
     long lowestTime = GregorianCalendar.getInstance().getTimeInMillis();
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if ((temp.getDateInMilliseconds() < lowestTime)&&(temp.getYear()>0)) lowestTime = temp.getDateInMilliseconds();
+      if ((temp.getDateInMilliseconds()!=null)&&(temp.getDateInMilliseconds() < lowestTime)&&(temp.getYear()>0)) lowestTime = temp.getDateInMilliseconds();
     }
     return lowestTime;
   }
@@ -1298,7 +1298,7 @@ public class MarkedIndividual implements java.io.Serializable {
 
       if (temp.getLocationCode().startsWith(locCode)) {
 
-        if((temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
+        if((temp.getDateInMilliseconds()!=null)&&(temp.getDateInMilliseconds()>=gcMin.getTimeInMillis())&&(temp.getDateInMilliseconds()<=gcMax.getTimeInMillis())){
           if(temp.getNumRightSpots()>0){right=true;}
           if(temp.getNumSpots()>0){left=true;}
           if((temp.getNumRightSpots()>0)&&(temp.getNumSpots()>0)){leftRightTogether=true;}
@@ -1605,8 +1605,8 @@ public long getMaxTimeBetweenTwoSightings(){
     Encounter thisEnc=(Encounter)encounters.get(y);
     for(int z=(y+1);z<numEncs;z++){
       Encounter nextEnc=(Encounter)encounters.get(z);
-      if(thisEnc.getDateInMilliseconds()>0){
-        long tempMaxTime=Math.abs(thisEnc.getDateInMilliseconds()-nextEnc.getDateInMilliseconds());
+      if((thisEnc.getDateInMilliseconds()!=null)&&(nextEnc.getDateInMilliseconds()!=null)){
+        long tempMaxTime=Math.abs(thisEnc.getDateInMilliseconds().longValue()-nextEnc.getDateInMilliseconds().longValue());
         if(tempMaxTime>maxTime){maxTime=tempMaxTime;}
       }
     }

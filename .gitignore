@@ -18,3 +18,5 @@ src/main/webapp/encounters/*20*
 /shepherd_sqllite_database
 /buildOut.txt
 /src/main/shepherd_data_dir
+/webapps
+

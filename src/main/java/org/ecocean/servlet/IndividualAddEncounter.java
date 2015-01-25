@@ -89,7 +89,7 @@ public class IndividualAddEncounter extends HttpServlet {
           }
           try {
             if (!addToMe.getEncounters().contains(enc2add)) {
-              addToMe.addEncounter(enc2add);
+              addToMe.addEncounter(enc2add, context);
             }
             enc2add.setMatchedBy(request.getParameter("matchType"));
             enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + request.getParameter("individual") + ".</p>");

@@ -5,7 +5,6 @@ import javax.servlet.http.*;
 import java.io.*;
 
 import org.ecocean.*;
-import org.ecocean.mmutil.MantaMatcherUtilities;
 
 
 public class EncounterSetPatterningCode extends HttpServlet {
@@ -44,12 +43,12 @@ public class EncounterSetPatterningCode extends HttpServlet {
         if(colorCode.equals("None")){enc.setPatterningCode(null);}
         else{
         	enc.setPatterningCode(colorCode);
-        MantaMatcherUtilities.removeAlgorithmMatchResults(enc);
 		}
 
 
       }
       catch(Exception le){
+        le.printStackTrace();
         locked=true;
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
@@ -68,7 +67,7 @@ public class EncounterSetPatterningCode extends HttpServlet {
       else{
 
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.");
+        out.println("<strong>Failure!</strong> An exception occurred during processing. Please ask the webmaster to check the log for more information.");
 
         out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
         out.println(ServletUtilities.getFooter(context));

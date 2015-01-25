@@ -482,7 +482,7 @@ public class ImportSRGD extends HttpServlet {
                   }
                   
                   //OK to generically add it as the addEncounter() method will ignore it if already added to marked individual
-                  indie.addEncounter(enc2);
+                  indie.addEncounter(enc2, context);
 
                   if((indie.getSex()==null)||((enc2.getSex()!=null)&&(indie.getSex()!=enc2.getSex()))){
                     indie.setSex(enc2.getSex());
@@ -494,7 +494,7 @@ public class ImportSRGD extends HttpServlet {
                     indie.doNotSetLocalHaplotypeReflection(enc2.getHaplotype());
                   }
                   
-                  indie.resetMaxNumYearsBetweenSightings();
+                  indie.refreshDependentProperties(context);
                   indie.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process added encounter " + enc2.getCatalogNumber() + ".</p>");
                   
                   myShepherd.commitDBTransaction();
