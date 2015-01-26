@@ -193,6 +193,10 @@
 					
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
+					
+					/BatchUpload/** = authc, roles[admin]
+				/appadmin/batch* = authc, roles[admin]
+				/MantaMatcher = authc, roles[admin]
 
             </param-value>
         </init-param>
@@ -407,6 +411,25 @@
     <servlet-class>org.ecocean.servlet.AdoptionAction</servlet-class>
   </servlet>
   
+    <servlet>
+    <servlet-name>MantaMatcher</servlet-name>
+    <servlet-class>org.ecocean.servlet.MantaMatcher</servlet-class>
+  </servlet>
+  
+    <servlet-mapping>
+    <servlet-name>MantaMatcher</servlet-name>
+    <url-pattern>/MantaMatcher/*</url-pattern>
+  </servlet-mapping>
+  
+    <servlet>
+    <servlet-name>BatchUpload</servlet-name>
+    <servlet-class>org.ecocean.servlet.BatchUpload</servlet-class>
+  </servlet>
+  
+   <servlet-mapping>
+    <servlet-name>BatchUpload</servlet-name>
+    <url-pattern>/BatchUpload/*</url-pattern>
+  </servlet-mapping>
   
     <servlet>
       <servlet-name>UserCreate</servlet-name>
