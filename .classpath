@@ -51,6 +51,7 @@
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-rest/4.0.3/datanucleus-api-rest-4.0.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-geospatial/4.0.3/datanucleus-geospatial-4.0.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/datanucleus/datanucleus-api-jpa/4.0.3/datanucleus-api-jpa-4.0.3.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/freemarker/freemarker/2.3.20/freemarker-2.3.20.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/derby/derby/10.11.1.1/derby-10.11.1.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/xerial/sqlite-jdbc/3.7.2/sqlite-jdbc-3.7.2.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/sanselan/sanselan/0.97-incubator/sanselan-0.97-incubator.jar"/>
