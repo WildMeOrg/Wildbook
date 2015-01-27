@@ -187,7 +187,7 @@ String context="context0";
 	if(request.getParameter("isEdit")!=null){isEditAddition="&isEdit=true";}
 	%>
     	
-    		    <table width="100%" class="tissueSample">
+    		    <table class="tissueSample">
     		    
 
     		    
@@ -235,10 +235,10 @@ String context="context0";
     		    %>
     		    
     		        		    <tr>
-		        		    	<td>
-		        		    		<table border="0">
+		        		    	<td style="width: 200px;">
+		        		    		<table style="border: solid 0;">
 		        		    			<tr>
-		        		    				<td style="border: solid 0">
+		        		    				<td style="border: solid 0;border-spacing: 0;width: 200px;">
 		        		    					<img src="<%=profilePhotoURL%>" width="200px" height="*" />
 		        		    				</td>
 		        		    			</tr>
@@ -246,10 +246,11 @@ String context="context0";
 		        		    			if(request.getParameter("isEdit")!=null){
 		        		    			%>
 		        		    			<tr>
-		        		    					<td style="border: solid 0"><form action="../UserAddProfileImage?context=context0" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
+		        		    					<td style="border: solid 0">
+		        		    						<form action="../UserAddProfileImage?context=context0" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
         												<img src="../images/upload_small.gif" align="absmiddle" />&nbsp;Upload photo:<br /> 
 		        		    						 <input name="username" type="hidden" value="<%=localUsername%>" id="profileUploadUsernameField" />
-        												<input name="file2add" type="file" size="20" />
+        												<input name="file2add" type="file" style="width: 200px"/>
         												<input name="addtlFile" type="submit" id="addtlFile" value="Upload" />
         											</form>
 		        		    					</td>
