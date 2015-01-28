@@ -82,7 +82,7 @@ console.log('is %o', ajax);
 	flexibleDate: function(s) {
 		s = s.trim();
 		if (s.length == 4) return s;  //year only
-		if (s.length == 7) return (s.substr(5) - 0) + '/' + s.substr(0,4);  //there is no toLocaleFoo for just year-month.  :(  sorry.
+		if (s.length == 7) return s.substr(0,4) + '-' + s.substr(5);  //there is no toLocaleFoo for just year-month.  :(  sorry.
 		//now we (should?) have at least y-m-d, with possible time
 
 		var d = this.parseDate(s);
