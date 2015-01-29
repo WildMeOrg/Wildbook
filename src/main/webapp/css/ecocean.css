@@ -1360,6 +1360,70 @@ table.tissueSample td {
     -moz-border-radius: ;
 }
 
+
+.vm-button, .vm-button:hover {
+	/*
+	background: url(../images/compare-images-icon.png) no-repeat;
+	width: 69px;
+	height: 60px;
+*/
+	color: #000;
+	text-decoration: none;
+	border: solid 1px black;
+	border-radius: 2px;
+	padding: 1px 3px 1px 3px;
+	position: absolute;
+	margin: 30px 0 0 0;
+	display: inline-block;
+}
+
+.vm-button:hover {
+	background-color: #DD0;
+}
+
+.vm-img-wrapper {
+	position: relative;
+}
+.vm-img-wrapper .vm-button {
+	bottom: -4px;
+	right: -4px;
+}
+
+
+.encounter-vm-button {
+	float: right;
+	margin-right: 13px;
+	font-size: 0.9em;
+}
+
+.enc-cr-wrapper {
+	padding: 5px;
+	position: relative;
+	text-align: right;
+}
+
+.enc-cr-wrapper img {
+	max-height: 80px;
+	margin-top: 12px;
+	max-width: 100px;
+}
+
+.enc-cr-wrapper .note {
+	font-size: 0.8em;
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	background-color: rgba(200,200,200, 0.75);
+	padding: 2px;
+}
+
+
+.enc-cr-wrapper .cr-button {
+	font-size: 0.8em;
+	margin-top: 10px;
+}
+
+
 #dropzone-previews {
 	border-radius: 8px;
 	background-color: rgba(50,50,50, 0.2);
@@ -1413,6 +1477,20 @@ table.tissueSample td {
 	font-size: 0.8em;
 }
 
+
+
+.img-watermark {
+	background-color: rgba(255,255,255,0.3);
+	position: absolute;
+	top: 75px;
+	left: -25px;
+	font-size: 0.85em;
+	width: 110%;
+	text-align: center;
+	padding: 13px;
+	transform: rotate(-21deg);
+	color: rgba(0,0,0,0.9);
+}
 
 
 div.row-lock {
@@ -1661,18 +1739,6 @@ div.state-approved span.state {
 .user-bio-button:hover {
 	background-color: #FFE;
 
-.img-watermark {
-	background-color: rgba(255,255,255,0.3);
-	position: absolute;
-	top: 75px;
-	left: -25px;
-	font-size: 0.85em;
-	width: 110%;
-	text-align: center;
-	padding: 13px;
-	transform: rotate(-21deg);
-	color: rgba(0,0,0,0.9);
-}
 
 
 
