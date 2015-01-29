@@ -699,6 +699,11 @@ $(function() {
 
   <p><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("identity") %></strong></p>
       
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<div class="encounter-vm-button">
+	<a href="encounterVM.jsp?number=<%=num%>">[Visual Matcher]</a>
+</div>
+<% } %>
       
 								
     							<%
