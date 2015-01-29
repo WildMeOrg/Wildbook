@@ -1995,7 +1995,7 @@ thus, we have to treat it as a special case.
 	//see also: future, MediaAssets
 	public String getThumbnailUrl(String context) {
 		List<SinglePhotoVideo> spvs = this.images;
-		if (spvs.size() < 1) return null;
+		if (spvs == null || spvs.size() < 1) return null;
 		return "/" + CommonConfiguration.getDataDirectoryName(context) + "/encounters/" + this.subdir() + "/thumb.jpg";
 	}
 

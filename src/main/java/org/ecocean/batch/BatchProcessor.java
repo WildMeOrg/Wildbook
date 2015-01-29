@@ -547,6 +547,7 @@ public final class BatchProcessor implements Runnable {
         // Persist all new individuals to the database.
         for (MarkedIndividual ind : listInd) {
           try {
+            ind.refreshThumbnailUrl(context);
             pm.makePersistent(ind);
           } catch (Exception ex) {
             // Add error message for this individual.
@@ -564,6 +565,7 @@ public final class BatchProcessor implements Runnable {
           try {
             MarkedIndividual ind = shepherd.getMarkedIndividual(me.getValue());
             ind.addEncounter(me.getKey(), context);
+            ind.refreshThumbnailUrl(context);
             pm.makePersistent(ind);
           } catch (Exception ex) {
             String msg = bundle.getString("batchUpload.processError.assignEncounter");
