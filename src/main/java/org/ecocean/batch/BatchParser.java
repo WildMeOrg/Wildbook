@@ -123,7 +123,7 @@ public class BatchParser {
     this.csvInd = csvInd;
     this.csvEnc = csvEnc;
     this.locale = (locale == null) ? Locale.getDefault() : locale;
-    String pfx = getClass().getPackage().getName() + ".i18n.";
+    String pfx = getClass().getPackage().getName() + ".";
     this.res = ResourceBundle.getBundle(pfx + RESOURCES, this.locale);
     // Setup DateFormat instances for parsing dates.
     dateFormat.add(new SimpleDateFormat("yyyy-MM-dd"));
@@ -233,7 +233,7 @@ public class BatchParser {
    * this file has to be read again to determine field order.
    */
   private void readFieldOrder() throws IOException {
-    String pfx = "/" + getClass().getPackage().getName().replace(".", "/") + "/i18n/";
+    String pfx = "/" + getClass().getPackage().getName().replace(".", "/") + "/";
     InputStream is = getClass().getResourceAsStream(pfx + RESOURCES + ".properties");
     if (is == null)
       throw new IOException("Unable to find resource for field order");
@@ -349,7 +349,7 @@ public class BatchParser {
         sb.append(list.get(i));
       }
       sb.append(")");
-      String pfx = getClass().getPackage().getName() + ".i18n.";
+      String pfx = getClass().getPackage().getName() + ".";
       throw new IOException("Error in resource integrity; check contents of ResourceBundle: " + pfx + RESOURCES + sb.toString());
     }
   }
