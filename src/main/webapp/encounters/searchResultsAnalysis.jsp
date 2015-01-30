@@ -151,6 +151,18 @@
  				
  			}
  			
+ 	 		//let's prep the HashTable for the state pie chart
+ 	 		  ArrayList<String> states=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+ 	 		  int numStates= states.size();
+ 	 		  Hashtable<String,Integer> statesHashtable = new Hashtable<String,Integer>();
+ 	 			for(int gg=0;gg<numStates;gg++){
+ 	 				String thisState=states.get(gg);
+ 	 				if(thisState!=null){
+ 	 					statesHashtable.put(thisState, new Integer(0));
+ 	 				}
+ 	 				
+ 	 			}
+ 			
  			
  	 		//let's prep the HashTable for the assigned users pie chart
  	 		  ArrayList<User> allUsers=myShepherd.getAllUsers(); 
@@ -171,12 +183,19 @@
  					
  			//let's prep the data structures for weekly frequency
  			Hashtable<Integer,Integer> frequencyWeeks = new Hashtable<Integer,Integer>();
- 			ArrayList<String> dailyDuplicates2=new ArrayList<String>();
+ 			//ArrayList<String> dailyDuplicates2=new ArrayList<String>();
  			for(int p=1;p<=53;p++){
  				frequencyWeeks.put(p, 0);
  			}	
+ 			
+ 			//let's prep the bar charts for encounters per year
+ 			Hashtable<Integer,Integer> encountersPerYear= new Hashtable<Integer,Integer>();
  					
- 					
+ 		
+ 	int numPhotos=0;
+ 	int numContributors=0;
+ 	int numIdentified=0;
+ 	StringBuffer contributors=new StringBuffer();
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
  	int numUniqueEncounters=0;
@@ -184,21 +203,76 @@
  		 
  		 
  		 Encounter thisEnc=(Encounter)rEncounters.get(y);
- 		numUniqueEncounters++;
- 		 //markedIndividual tabulation
- 		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){
+ 		 
+ 		 //iterate up unique encounters number
+ 		 numUniqueEncounters++;
+
+ 		 //calculate number photos collected
+ 		 if(thisEnc.getAdditionalImageNames()!=null){
+ 		 	numPhotos=numPhotos+thisEnc.getAdditionalImageNames().size();
+ 		 }
+ 			
+ 		//calculate the number of submitter contributors
+ 		if((thisEnc.getSubmitterEmail()!=null)&&(!thisEnc.getSubmitterEmail().equals(""))) {
+ 				//check for comma separated list
+ 				if(thisEnc.getSubmitterEmail().indexOf(",")!=-1) {
+ 					//break up the string
+ 					StringTokenizer stzr=new StringTokenizer(thisEnc.getSubmitterEmail(),",");
+ 					while(stzr.hasMoreTokens()) {
+ 						String token=stzr.nextToken();
+ 						if (contributors.indexOf(token)==-1) {
+ 							contributors.append(token);
+ 							numContributors++;
+ 						}
+ 					}
+ 				}
+ 				else if (contributors.indexOf(thisEnc.getSubmitterEmail())==-1) {
+ 					contributors.append(thisEnc.getSubmitterEmail());
+ 					numContributors++;
+ 				}
+ 			}
+ 			
+
+ 			
+ 			
+ 			//calculate the number of photographer contributors
+ 			if((thisEnc.getPhotographerEmail()!=null)&&(!thisEnc.getPhotographerEmail().equals(""))) {
+ 				//check for comma separated list
+ 				if(thisEnc.getPhotographerEmail().indexOf(",")!=-1) {
+ 					//break up the string
+ 					StringTokenizer stzr=new StringTokenizer(thisEnc.getPhotographerEmail(),",");
+ 					while(stzr.hasMoreTokens()) {
+ 						String token=stzr.nextToken();
+ 						if (contributors.indexOf(token)==-1) {
+ 							contributors.append(token);
+ 							numContributors++;
+ 						}
+ 					}
+ 				}
+ 				else if (contributors.indexOf(thisEnc.getPhotographerEmail())==-1) {
+ 					contributors.append(thisEnc.getPhotographerEmail());
+ 					numContributors++;
+ 				}
+ 			}
+ 		 
+ 			if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))){numIdentified++;}
+ 		 
+ 		//calculate marked individuals	 
+ 		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){
+ 			 
+ 			
  			 
  			 //add this individual to the list
  			 markedIndividuals.add(thisEnc.getIndividualID().trim());
  			
  			 //check for a daily duplicate
- 			 String dailyDuplicateUniqueID=thisEnc.getIndividualID()+":"+thisEnc.getYear()+":"+thisEnc.getMonth()+":"+thisEnc.getDay();
- 			 if(!dailyDuplicates.contains(dailyDuplicateUniqueID)){
- 				dailyDuplicates.add(dailyDuplicateUniqueID);
+ 			// String dailyDuplicateUniqueID=thisEnc.getIndividualID()+":"+thisEnc.getYear()+":"+thisEnc.getMonth()+":"+thisEnc.getDay();
+ 			// if(!dailyDuplicates.contains(dailyDuplicateUniqueID)){
+ 			//	dailyDuplicates.add(dailyDuplicateUniqueID);
  				 //set a discovery curve inflection point
  				discoveryCurveInflectionPoints.put(numUniqueEncounters, markedIndividuals.size());
- 			 }
- 			 else{numUniqueEncounters--;}
+ 			 //}
+ 			 //else{numUniqueEncounters--;}
 
  		 }
  		 
@@ -209,6 +283,23 @@
  			 Integer valueForWeek=frequencyWeeks.get(weekOfYear)+1;
  			 frequencyWeeks.put(weekOfYear, valueForWeek);
  		 }
+ 		 
+ 		 //year submitted tabulation
+ 		 if(thisEnc.getDWCDateAddedLong()!=null){
+ 			
+ 			 org.joda.time.DateTime myDateAdded =new org.joda.time.DateTime(thisEnc.getDWCDateAddedLong());
+ 			 Integer year=new Integer(myDateAdded.getYear());
+ 			 
+ 			 if(!encountersPerYear.containsKey(year)){
+ 				 encountersPerYear.put(year, new Integer(0));
+ 				
+ 			 }
+ 			 
+ 			Integer valueForYear=encountersPerYear.get(year)+1;
+ 			encountersPerYear.put(year, valueForYear);
+ 			//System.out.println("    I just put: "+year+":"+valueForYear);	 
+ 	        
+ 		 }
  		 	
  		 
  		 //haplotype ie chart prep
@@ -216,6 +307,14 @@
       	   		if(pieHashtable.containsKey(thisEnc.getHaplotype().trim())){
       		   		Integer thisInt = pieHashtable.get(thisEnc.getHaplotype().trim())+1;
       		   		pieHashtable.put(thisEnc.getHaplotype().trim(), thisInt);
+      	   		}
+ 	 		}
+ 		 
+ 	 		 //state ie chart prep
+ 		 	if(thisEnc.getState()!=null){
+      	   		if(statesHashtable.containsKey(thisEnc.getState().trim())){
+      		   		Integer thisInt = statesHashtable.get(thisEnc.getState().trim())+1;
+      		   		statesHashtable.put(thisEnc.getState().trim(), thisInt);
       	   		}
  	 		}
  		 
@@ -328,12 +427,6 @@
 
 
     <style type="text/css">
-      body {
-        margin: 0;
-        padding: 10px 20px 20px;
-        font-family: Arial;
-        font-size: 16px;
-      }
 
 
 
@@ -348,7 +441,7 @@
 <style type="text/css">
   #tabmenu {
     color: #000;
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid #CDCDCD;
     margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
@@ -362,10 +455,10 @@
   }
 
   #tabmenu a, a.active {
-    color: #DEDECF;
-    background: #000;
-    font: bold 1em "Trebuchet MS", Arial, sans-serif;
-    border: 2px solid black;
+    color: #000;
+    background: #E6EEEE;
+    font: 0.5em "Arial, sans-serif;
+    border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
@@ -373,24 +466,23 @@
   }
 
   #tabmenu a.active {
-    background: #FFFFFF;
+    background: #8DBDD8;
     color: #000000;
-    border-bottom: 2px solid #FFFFFF;
+    border-bottom: 1px solid #8DBDD8;
   }
 
   #tabmenu a:hover {
-    color: #ffffff;
-    background: #7484ad;
+    color: #000;
+    background: #8DBDD8;
   }
 
   #tabmenu a:visited {
-    color: #E8E9BE;
+    
   }
 
   #tabmenu a.active:hover {
-    background: #7484ad;
-    color: #DEDECF;
-    border-bottom: 2px solid #000000;
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
   }
   
   
@@ -418,6 +510,7 @@
 
 <script type="text/javascript">
       google.load("visualization", "1", {packages:["corechart"]});
+      
       google.setOnLoadCallback(drawHaploChart);
       function drawHaploChart() {
         var data = new google.visualization.DataTable();
@@ -473,6 +566,42 @@
         var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
         chart.draw(data, options);
       }
+      
+      
+      google.setOnLoadCallback(drawStateChart);
+      function drawStateChart() {
+        var statesdata = new google.visualization.DataTable();
+        statesdata.addColumn('string', 'State');
+        statesdata.addColumn('number', 'Number');
+        statesdata.addRows([
+          <%
+         
+          
+          for(int hh=0;hh<numStates;hh++){
+          %>
+          ['<%=states.get(hh)%>',    <%=statesHashtable.get(states.get(hh))%>]
+		  <%
+		  if(hh<(numStates-1)){
+		  %>
+		  ,
+		  <%
+		  }
+          }
+		  %>
+          
+        ]);
+
+        var stateoptions = {
+          width: 450, height: 300,
+          title: 'Encounters by State',
+
+        };
+
+        var stateschart = new google.visualization.PieChart(document.getElementById('states_div'));
+        stateschart.draw(statesdata, stateoptions);
+      }
+      
+      
       
       google.setOnLoadCallback(drawSexChart);
       function drawSexChart() {
@@ -614,7 +743,7 @@
       google.setOnLoadCallback(drawDiscoveryCurve);
      function drawDiscoveryCurve() {
        var discoveryCurveData = new google.visualization.DataTable();
-       discoveryCurveData.addColumn('number', 'No. Encounters');
+       discoveryCurveData.addColumn('number', 'No. encounters at new individual discoveries');
        discoveryCurveData.addColumn('number', 'No. Marked Individuals');
        discoveryCurveData.addRows([
          <%
@@ -638,7 +767,7 @@
     var discoveryCurveOptions = {
          width: 450, height: 300,
          title: 'Discovery Curve of Marked Individuals (n=<%=markedIndividuals.size()%>)',
-         hAxis: {title: 'No. Encounters (daily duplicates removed)'},
+         hAxis: {title: 'No. encounters at new individual discoveries'},
          vAxis: {title: 'No. Marked Individuals'},
          pointSize: 3,
        };
@@ -679,8 +808,105 @@
       };
     var frequencyChart = new google.visualization.ColumnChart(document.getElementById('frequency_div'));
     frequencyChart.draw(frequencyData, frequencyChartOptions);
-    }
+    
+    
+   }
+   
+    
+    //date added chart
+    google.setOnLoadCallback(drawYearAddedChart);
+   function drawYearAddedChart() {
+     var yearAddedData = new google.visualization.DataTable();
+     yearAddedData.addColumn('string', 'Year');
+     yearAddedData.addColumn('number', 'No. Encounters');
+     yearAddedData.addRows([
+       <%
+       
+       
+       
+       //let's do some quality control
+       int numYears=encountersPerYear.size();
+       
+       
+       //first determine list range
+       int minYearAddedValue=999999;
+       int maxYearAddedValue=-1;
+       Enumeration<Integer> years=encountersPerYear.keys();
+       //System.out.println("numYears is:"+numYears);
       
+       while(years.hasMoreElements()){
+    	   Integer thisYear=years.nextElement();
+    	   if(thisYear<minYearAddedValue)minYearAddedValue=thisYear;
+    	   if(thisYear>maxYearAddedValue)maxYearAddedValue=thisYear;
+
+       }
+       
+
+       
+       for(int q=minYearAddedValue;q<=maxYearAddedValue;q++){
+     	  if(!encountersPerYear.containsKey(new Integer(q))){encountersPerYear.put(new Integer(q), new Integer(0));}
+       		%>
+       		['<%=q%>',<%=encountersPerYear.get(new Integer(q)).toString() %>]
+		  	<%
+		  	if(q<maxYearAddedValue){
+		  	%>
+		  	,
+		  	<%
+		  	}
+      	}
+		 %>
+       
+     ]);
+
+    var yearAddedChartOptions = {
+       width: 450, height: 300,
+       title: 'Encounters by Year Submitted (not year of sighting)',
+       hAxis: {title: 'Year'},
+       vAxis: {title: 'No. Encounters'},
+     };
+   var yearAddedChart = new google.visualization.ColumnChart(document.getElementById('yearadded_div'));
+   yearAddedChart.draw(yearAddedData, yearAddedChartOptions);
+    
+   }
+   
+   
+   //total encounters by year chart
+   google.setOnLoadCallback(drawYearTotalsChart);
+  function drawYearTotalsChart() {
+    var yearTotalsData = new google.visualization.DataTable();
+    yearTotalsData.addColumn('string', 'Year');
+    yearTotalsData.addColumn('number', 'No. Encounters Total');
+    yearTotalsData.addRows([
+      <%
+
+      int additionTotal=0;
+      for(int q=minYearAddedValue;q<=maxYearAddedValue;q++){
+    	  if(!encountersPerYear.containsKey(new Integer(q))){encountersPerYear.put(new Integer(q), new Integer(0));}
+	
+      		%>
+      		['<%=q%>',<%=(encountersPerYear.get(new Integer(q))+additionTotal) %>]
+		  	<%
+		  	if(q<maxYearAddedValue){
+		  	%>
+		  	,
+		  	<%
+		  	}
+      		additionTotal+=encountersPerYear.get(new Integer(q));
+     	}
+		 %>
+      
+    ]);
+
+   var yearTotalsChartOptions = {
+      width: 450, height: 300,
+      title: 'Encounter Overall Totals by Year',
+      hAxis: {title: 'Year'},
+      vAxis: {title: 'No. Total Encounters'},
+    };
+  var yearTotalsChart = new google.visualization.ColumnChart(document.getElementById('yeartotals_div'));
+  yearTotalsChart.draw(yearTotalsData, yearTotalsChartOptions);
+   
+  }
       
 </script>
 
@@ -695,6 +921,18 @@
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
  <div id="main">
+ 
+ <table width="810px" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>
+      <p>
+
+      <h1 class="intro"><%=encprops.getProperty("title")%>
+      </h1>
+    </p>
+    </td>
+  </tr>
+</table>
  
  <ul id="tabmenu">
  
@@ -716,22 +954,17 @@
    </a></li>
  
  </ul>
- <table width="810px" border="0" cellspacing="0" cellpadding="0">
-   <tr>
-     <td>
-       <br/>
- 
-       <h1 class="intro"><%=encprops.getProperty("title")%>
-       </h1>
-     </td>
-   </tr>
-</table>
+
  
 <% if (accessible) { %>
 
- <p>
- Number matching encounters: <%=resultSize %>
- </p>
+ <p>Number matching encounters: <%=resultSize %></p>
+ <ul>
+ 	<li>Number identified: <%=numIdentified %></li>
+ 	<li>Number Marked Individuals represented by these encounters: <%=markedIndividuals.size() %></li>
+ 	<li>Number photos collected: <%=numPhotos %></li>
+ 	<li>Number data contributors (by unique email address): <%=numContributors %></li>
+ </ul>
 
 <p><strong>Measurements</strong></p>
 <%
@@ -833,6 +1066,9 @@
  	<div id="discoveryCurve_div"></div>
  	<div id="frequency_div"></div>
  	<div id="userschart_div"></div>
+ 	<div id="states_div"></div>
+ 	<div id="yearadded_div"></div>
+ 	<div id="yeartotals_div"></div>
  <%
  
      } 

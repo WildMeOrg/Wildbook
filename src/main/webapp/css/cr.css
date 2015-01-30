@@ -1,0 +1,48 @@
+body {
+	font-family: arial, sans;
+}
+
+#cr-work-img, #cr-overlay-canvas {
+	position: absolute;
+	left: 5px;
+	top: 5px;
+}
+#cr-work-img {
+	max-height: 300px;
+	max-width: 400px;
+}
+
+
+#cr-overlay-canvas {
+	xoutline: solid 2px green;
+}
+
+#cr-work-img, #cr-work-canvas {
+	outline: 2px solid #444;
+}
+
+#cr-work-canvas {
+	position: absolute;
+	top: 5px;
+	left: 410px;
+	xborder: solid 1px blue;
+	max-width: 300px;
+	max-height: 400px;
+}
+
+
+#cr-info {
+	position: absolute;
+	bottom: 2px;
+	right: 5px;
+	height: 20px;
+	font-size: 0.8em;
+	color: #444;
+}
+
+#cr-controls {
+	position: absolute;
+	right: 5px;
+	bottom: 5px;
+}
+

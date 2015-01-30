@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>5.2.0-EXPERIMENTAL</version>
+  <version>5.2.0-RELEASE</version>
   <packaging>war</packaging>
 
   <properties>
@@ -183,6 +183,11 @@
       <artifactId>jdbc-stdext</artifactId>
       <version>2.0</version>
     </dependency>
+	        <dependency>
+        	<groupId>ch.ethz.ganymed</groupId>
+        	<artifactId>ganymed-ssh2</artifactId>
+        	<version>build210</version>
+    </dependency>
 <dependency>
 	<groupId>org.springframework</groupId>
 	<artifactId>spring-test</artifactId>
@@ -255,13 +260,19 @@
 	<version>${datanucleus.version}</version>
 </dependency>
 
+<dependency>
+	<groupId>org.apache.commons</groupId>
+	<artifactId>commons-math</artifactId>
+	<version>2.2</version>
+</dependency>
+
 	<!--End JDO and DataNucleus dependencies -->
 
 	
     <dependency>
       <groupId>org.apache.derby</groupId>
       <artifactId>derby</artifactId>
-      <version>10.8.2.2</version>
+      <version>10.11.1.1</version>
     </dependency>
 <dependency>
 	<groupId>org.xerial</groupId>
@@ -279,6 +290,16 @@
       <artifactId>metadata-extractor</artifactId>
       <version>2.6.2</version>
     </dependency>
+	
+	
+	<!-- starting Amazon support for sharkGrid -->
+<dependency>
+	<groupId>com.amazonaws</groupId>
+	<artifactId>aws-java-sdk-ec2</artifactId>
+	<version>1.9.13</version>
+</dependency>
+	
+	
 <!--
     <dependency>
       <groupId>junit</groupId>

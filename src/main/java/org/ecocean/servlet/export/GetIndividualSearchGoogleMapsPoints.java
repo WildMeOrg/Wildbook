@@ -17,6 +17,9 @@ import org.json.*;
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
 
+import java.util.zip.*;
+import java.io.OutputStream;
+
 public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
 
   
@@ -33,9 +36,13 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
     
+    //check for compression
+    String encodings = request.getHeader("Accept-Encoding");
+    boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
+    
     //set the response
-    response.setContentType("text/html");
-    PrintWriter out = response.getWriter();
+    //response.setContentType("text/html");
+    //PrintWriter out = response.getWriter();
     String langCode=ServletUtilities.getLanguageCode(request);
     
     String context="context0";
@@ -250,20 +257,42 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
       myShepherd.commitDBTransaction();
       myShepherd.closeDBTransaction();
 
-      
+      //new compressed way
       response.setContentType("application/json");
-      response.getWriter().write(indieMappedPoints.toString());
+      tryCompress(response, indieMappedPoints.toString(), useCompression);
+      response.setHeader("Content-Type", "application/json");
+      response.setStatus(200);
+      
+      //old way
+      //response.getWriter().write(indieMappedPoints.toString());
       
 
     }
     catch(Exception e) {
-      out.println("<p><strong>Error encountered</strong></p>");
-      out.println("<p>Please let the webmaster know you encountered an error at: IndividualSearchExportCapture servlet</p>");
+      //out.println("<p><strong>Error encountered</strong></p>");
+      //out.println("<p>Please let the webmaster know you encountered an error at: IndividualSearchExportCapture servlet</p>");
       e.printStackTrace();
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }
     
+    
+  }
+  
+  void tryCompress(HttpServletResponse resp, String s, boolean useComp) throws IOException {
+    if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
+    
+      resp.getWriter().write(s);
+    
+    } else {
+      resp.setHeader("Content-Encoding", "gzip");
+      OutputStream o = resp.getOutputStream();
+      GZIPOutputStream gz = new GZIPOutputStream(o);
+      gz.write(s.getBytes());
+      gz.flush();
+      gz.close();
+      o.close();
+    }
     
   }
 

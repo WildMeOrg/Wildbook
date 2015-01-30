@@ -572,7 +572,7 @@ $(function() {
       
       <%
       //set a default date if we cann
-      if(enc.getDateInMilliseconds()>0){
+      if(enc.getDateInMilliseconds()!=null){
     	  
     	  //LocalDateTime jodaTime = new LocalDateTime(enc.getDateInMilliseconds());
     	  
@@ -701,9 +701,11 @@ $(function() {
       
       
      							<p class="para">
+     							<!--  
      								<p>
       									<a href="../tracing/fluketracing.jsp?langCode=<%=langCode%>&number=<%=num%>"><img align="absmiddle" width="24px" height="24px" style="border-style: none;" hspace="10px" src="../images/Crystal_Project_highlight.png" />Trace Fluke</a>
       								</p>
+      								-->
     							</p>								
     							<%
     							if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
@@ -1112,7 +1114,7 @@ $("a#occurrence").click(function() {
 
 <p><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /> <strong><%=encprops.getProperty("date") %>
 </strong><br/><br/>
-<%if(enc.getDateInMilliseconds()>0){ %>
+<%if(enc.getDateInMilliseconds()!=null){ %>
   <a
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
     <%=enc.getDate()%>
@@ -1599,7 +1601,7 @@ $("a#elev").click(function() {
     </script>
     
  	<%
- 	if((request.getUserPrincipal()!=null) || ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
+ 	if((request.getUserPrincipal()!=null) && ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
  	%>
  		<p><%=encprops.getProperty("map_note") %></p>
  		<div id="map_canvas" style="width: 510px; height: 350px; "></div>
@@ -3979,8 +3981,11 @@ dlgSample.dialog("open");
 List<TissueSample> tissueSamples=enc.getTissueSamples();
 //List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
 
-int numTissueSamples=tissueSamples.size();
-if(numTissueSamples>0){
+
+if((tissueSamples!=null)&&(tissueSamples.size()>0)){
+	
+	int numTissueSamples=tissueSamples.size();
+
 %>
 <table width="100%" class="tissueSample">
 <tr><th><strong><%=encprops.getProperty("sampleID") %></strong></th><th><strong><%=encprops.getProperty("values") %></strong></th><th><strong><%=encprops.getProperty("analyses") %></strong></th><th><strong><%=encprops.getProperty("editTissueSample") %></strong></th><th><strong><%=encprops.getProperty("removeTissueSample") %></strong></th></tr>

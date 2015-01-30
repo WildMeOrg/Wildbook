@@ -192,7 +192,7 @@ public class CaribwhaleMigratorApp {
 		          placeholder.setCatalogNumber(pCatNumber);
 		          placeholder.setDWCDateAdded(ServletUtilities.getDate());
 		          myShepherd.getPM().makePersistent(placeholder);
-		          indie.addEncounter(placeholder);
+		          indie.addEncounter(placeholder, context);
 		        }
 		        
 		        
@@ -242,7 +242,7 @@ public class CaribwhaleMigratorApp {
 		                enc.setCatalogNumber(catNumber);
 		                enc.setDWCDateAdded(ServletUtilities.getDate());
 		                myShepherd.getPM().makePersistent(enc);
-		                indie.addEncounter(enc);
+		                indie.addEncounter(enc, context);
 		              }
 		              enc.setDWCDateLastModified(ServletUtilities.getDate());
 		              
@@ -937,7 +937,7 @@ public class CaribwhaleMigratorApp {
                     else{
                       flukesEnc.setCatalogNumber(localCatNumber);
                       flukesEnc.setDWCDateAdded(ServletUtilities.getDate());
-                      indie.addEncounter(flukesEnc);
+                      indie.addEncounter(flukesEnc, context);
                     }
                     
                     flukesEnc.setDWCDateLastModified(ServletUtilities.getDate());
