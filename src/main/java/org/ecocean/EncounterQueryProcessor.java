@@ -27,6 +27,8 @@ import org.ecocean.Util.MeasurementDesc;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.Collaboration;
 
+import org.joda.time.DateTime;
+
 public class EncounterQueryProcessor {
 
   private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE ";
@@ -898,8 +900,8 @@ public class EncounterQueryProcessor {
     //filter gpsOnly - return only Encounters with a defined location. This is mostly used for mapping JSP pages
     if(request.getAttribute("gpsOnly")!=null){
 
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="decimalLatitude != null && decimalLongitude != null";}
-      else{filter+=" && decimalLatitude != null && decimalLongitude != null ";}
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="decimalLatitude >= -90 && decimalLatitude <= 90 && decimalLongitude <= 180 && decimalLongitude >= -180";}
+      else{filter+=" && decimalLatitude >= -90 && decimalLatitude <= 90 && decimalLongitude <= 180 && decimalLongitude >= -180";}
       prettyPrint.append("Has GPS coordinates.<br />");
 
     }
@@ -940,6 +942,17 @@ public class EncounterQueryProcessor {
       prettyPrint.append("nameField contains: \""+nameString+"\"<br />");
     }
     //end name and email filter--------------------------------------------------------------------------------------
+
+    
+    //additional comments filter------------------------------------------
+    if((request.getParameter("additionalCommentsField")!=null)&&(!request.getParameter("additionalCommentsField").equals(""))) {
+      String nameString=request.getParameter("additionalCommentsField").replaceAll("%20"," ").toLowerCase().trim();
+      String filterString="(occurrenceRemarks.toLowerCase().indexOf('"+nameString+"') != -1)";
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
+      else{filter+=(" && "+filterString);}
+      prettyPrint.append("Remarks contains: \""+nameString+"\"<br />");
+    }
+    //end additional comments filter--------------------------------------------------------------------------------------
 
 
 
@@ -1024,14 +1037,110 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       }
     }
 
-    GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
-    GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
+    //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
+    //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
 
+    //let's do some month and day checking to avoid exceptions
+    org.joda.time.DateTime testMonth1=new org.joda.time.DateTime(minYear,minMonth,1,0,0);
+    if(testMonth1.dayOfMonth().getMaximumValue()<minDay) minDay=testMonth1.dayOfMonth().getMaximumValue();    
+    org.joda.time.DateTime testMonth2=new org.joda.time.DateTime(maxYear,maxMonth,1,0,0);
+    if(testMonth2.dayOfMonth().getMaximumValue()<maxDay) maxDay=testMonth2.dayOfMonth().getMaximumValue();
+    
+    
+    org.joda.time.DateTime gcMin =new org.joda.time.DateTime(minYear, (minMonth), minDay, 0, 0);
+    org.joda.time.DateTime gcMax =new org.joda.time.DateTime(maxYear, (maxMonth), maxDay, 23, 59);
+    
+    
     if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-      filter+="((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
+      filter+="((dateInMilliseconds >= "+gcMin.getMillis()+") && (dateInMilliseconds <= "+gcMax.getMillis()+"))";
     }
-    else{filter+=" && ((dateInMilliseconds >= "+gcMin.getTimeInMillis()+") && (dateInMilliseconds <= "+gcMax.getTimeInMillis()+"))";
+    else{filter+=" && ((dateInMilliseconds >= "+gcMin.getMillis()+") && (dateInMilliseconds <= "+gcMax.getMillis()+"))";
     }
+      
+    //end date filter------------------------------------------
+    
+    
+    //start date added filter----------------------------
+    if((request.getParameter("addedday1")!=null)&&(request.getParameter("addedmonth1")!=null)&&(request.getParameter("addedyear1")!=null)&&(request.getParameter("addedday2")!=null)&&(request.getParameter("addedmonth2")!=null)&&(request.getParameter("addedyear2")!=null)) {
+      try{
+
+        //get our date values
+        int addedday1=(new Integer(request.getParameter("addedday1"))).intValue();
+        int addedday2=(new Integer(request.getParameter("addedday2"))).intValue();
+        int addedmonth1=(new Integer(request.getParameter("addedmonth1"))).intValue();
+        int addedmonth2=(new Integer(request.getParameter("addedmonth2"))).intValue();
+        int addedyear1=(new Integer(request.getParameter("addedyear1"))).intValue();
+        int addedyear2=(new Integer(request.getParameter("addedyear2"))).intValue();
+
+        prettyPrint.append("Encounter creation dates between: "+addedyear1+"-"+addedmonth1+"-"+addedday1+" and "+addedyear2+"-"+addedmonth2+"-"+addedday2+"<br />");
+
+        //order our values
+        int addedminYear=addedyear1;
+        int addedminMonth=addedmonth1;
+        int addedminDay=addedday1;
+        int addedmaxYear=addedyear2;
+        int addedmaxMonth=addedmonth2;
+        int addedmaxDay=addedday2;
+        if(addedyear1>addedyear2) {
+          addedminDay=addedday2;
+          addedminMonth=addedmonth2;
+          addedminYear=addedyear2;
+          addedmaxDay=addedday1;
+          addedmaxMonth=addedmonth1;
+          addedmaxYear=addedyear1;
+        }
+        else if(addedyear1==addedyear2) {
+          if(addedmonth1>addedmonth2) {
+              addedminDay=addedday2;
+              addedminMonth=addedmonth2;
+              addedminYear=addedyear2;
+              addedmaxDay=addedday1;
+              addedmaxMonth=addedmonth1;
+              addedmaxYear=addedyear1;
+          }
+          else if(addedmonth1==addedmonth2) {
+            if(addedday1>addedday2) {
+              addedminDay=addedday2;
+              addedminMonth=addedmonth2;
+              addedminYear=addedyear2;
+              addedmaxDay=addedday1;
+              addedmaxMonth=addedmonth1;
+              addedmaxYear=addedyear1;
+            }
+          }
+        }
+
+        //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
+        //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
+
+        //let's do some month and day checking to avoid exceptions
+        org.joda.time.DateTime addedtestMonth1=new org.joda.time.DateTime(addedminYear,addedminMonth,1,0,0);
+        if(addedtestMonth1.dayOfMonth().getMaximumValue()<addedminDay) addedminDay=addedtestMonth1.dayOfMonth().getMaximumValue();    
+        org.joda.time.DateTime addedtestMonth2=new org.joda.time.DateTime(addedmaxYear,addedmaxMonth,1,0,0);
+        if(addedtestMonth2.dayOfMonth().getMaximumValue()<addedmaxDay) addedmaxDay=addedtestMonth2.dayOfMonth().getMaximumValue();
+    
+    
+        org.joda.time.DateTime addedgcMin =new org.joda.time.DateTime(addedminYear, (addedminMonth), addedminDay, 0, 0);
+        org.joda.time.DateTime addedgcMax =new org.joda.time.DateTime(addedmaxYear, (addedmaxMonth), addedmaxDay, 23, 59);
+    
+    
+        
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+          filter+="((dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
+        }
+        else{
+          filter+=" && ((dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
+    
+        }
+        
+    //end date added filter------------------------------------------
+      } catch(NumberFormatException nfe) {
+        //do nothing, just skip on
+        nfe.printStackTrace();
+          }
+        }
+    
+    
 
     //filter for sex------------------------------------------
 
@@ -1050,12 +1159,12 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     //filter by sex--------------------------------------------------------------------------------------
 
-
       } catch(NumberFormatException nfe) {
-    //do nothing, just skip on
-    nfe.printStackTrace();
-      }
-    }
+        //do nothing, just skip on
+        nfe.printStackTrace();
+          }
+        }
+ 
 
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
     String releaseDateToStr = request.getParameter("releaseDateTo");

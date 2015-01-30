@@ -93,12 +93,7 @@
 
 
     <style type="text/css">
-      body {
-        margin: 0;
-        padding: 10px 20px 20px;
-        font-family: Arial;
-        font-size: 16px;
-      }
+
       
       .full_screen_map {
 position: absolute !important;
@@ -118,7 +113,7 @@ margin-bottom: 8px !important;
 <style type="text/css">
   #tabmenu {
     color: #000;
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid #CDCDCD;
     margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
@@ -129,13 +124,14 @@ margin-bottom: 8px !important;
     display: inline;
     overflow: hidden;
     list-style-type: none;
+    
   }
 
   #tabmenu a, a.active {
-    color: #DEDECF;
-    background: #000;
-    font: bold 1em "Trebuchet MS", Arial, sans-serif;
-    border: 2px solid black;
+    color: #000;
+    background: #E6EEEE;
+    font: 0.5em "Arial, sans-serif;
+    border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
@@ -143,26 +139,24 @@ margin-bottom: 8px !important;
   }
 
   #tabmenu a.active {
-    background: #FFFFFF;
+    background: #8DBDD8;
     color: #000000;
-    border-bottom: 2px solid #FFFFFF;
+    border-bottom: 1px solid #8DBDD8;
   }
 
   #tabmenu a:hover {
-    color: #ffffff;
-    background: #7484ad;
+    color: #000;
+    background: #8DBDD8;
   }
 
   #tabmenu a:visited {
-    color: #E8E9BE;
+    
   }
 
   #tabmenu a.active:hover {
-    background: #7484ad;
-    color: #DEDECF;
-    border-bottom: 2px solid #000000;
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
   }
-  
   
 </style>
   
@@ -187,7 +181,7 @@ margin-bottom: 8px !important;
     <script type="text/javascript">
       function initialize() {
         var center = new google.maps.LatLng(0,0);
-        var mapZoom = 1;
+        var mapZoom = 3;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
     	var bounds = new google.maps.LatLngBounds();
         
@@ -253,8 +247,18 @@ if(rEncounters.size()>0){
         	   });
 	    
 			google.maps.event.addListener(marker,'click', function() {
-            	(new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.isAssignedToMarkedIndividual()%>\"><%=thisEnc.isAssignedToMarkedIndividual()%></a></strong><br /><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=encSubdir%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
-            });
+            
+      	<%
+    	String individualLinkString="";
+    	//if this is a MarkedIndividual, provide a link to it
+    	if((thisEnc.isAssignedToMarkedIndividual()!=null)&&(!thisEnc.isAssignedToMarkedIndividual().toLowerCase().equals("unassigned"))){
+    		individualLinkString="<strong><a target=\"_blank\" href=\"http://"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.isAssignedToMarkedIndividual()+"\">"+thisEnc.isAssignedToMarkedIndividual()+"</a></strong><br />";
+    	}
+    	%>
+    	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=encSubdir%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+
+          
+			});
  
 	
           markers.push(marker);
@@ -363,6 +367,19 @@ myShepherd.rollbackDBTransaction();
 </jsp:include>
  <div id="main">
  
+ <table width="810px" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>
+      <p>
+
+      <h1 class="intro"><%=encprops.getProperty("title")%>
+      </h1>
+      </p>  
+  
+    </td>
+  </tr>
+</table>
+ 
  <ul id="tabmenu">
  
    <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
@@ -380,16 +397,7 @@ myShepherd.rollbackDBTransaction();
    </a></li>
  
  </ul>
- <table width="810px" border="0" cellspacing="0" cellpadding="0">
-   <tr>
-     <td>
-       <br/>
- 
-       <h1 class="intro"><%=encprops.getProperty("title")%>
-       </h1>
-     </td>
-   </tr>
-</table>
+
  
  
  
@@ -398,17 +406,14 @@ myShepherd.rollbackDBTransaction();
  
  
  
- 
- <p><strong>
- 	<img src="../images/2globe_128.gif" width="64" height="64" align="absmiddle"/> <%=encprops.getProperty("mappedResults")%>
- </strong>
+
  <%
  
  //read from the encprops property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
  int numberResultsToMap = -1;
 
  %>
- </p>
+
  <p><%=encprops.getProperty("aspects") %>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <%
   boolean hasMoreProps=true;

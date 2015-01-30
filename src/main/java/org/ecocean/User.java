@@ -11,7 +11,7 @@ import org.joda.time.DateTime;
  * Examples: photographer, submitter
  * @author Ed Stastny
  */
-public class User implements java.io.Serializable {
+public class User implements Serializable {
   
   
   private static final long serialVersionUID = -1261710718629763048L;

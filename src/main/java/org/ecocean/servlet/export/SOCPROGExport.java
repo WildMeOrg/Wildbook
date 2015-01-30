@@ -196,7 +196,7 @@ public class SOCPROGExport extends HttpServlet{
                   Encounter enc=(Encounter)encs.get(j);
                   if((enc.getLocationID()!=null)||((enc.getLongitudeAsDouble()!=null)&&(enc.getLatitudeAsDouble()!=null))){
                     
-                    if(enc.getDateInMilliseconds()>0){
+                    if((enc.getDateInMilliseconds()!=null)&&(enc.getDateInMilliseconds()>0)){
                       
                     count++;
                     

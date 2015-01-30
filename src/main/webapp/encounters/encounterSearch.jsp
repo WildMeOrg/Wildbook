@@ -118,6 +118,7 @@ margin-bottom: 8px !important;
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
   int firstYear = 1980;
+  int firstSubmissionYear=1980;
 
   Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
@@ -126,6 +127,7 @@ margin-bottom: 8px !important;
   try {
     firstYear = myShepherd.getEarliestSightingYear();
     nowYear = myShepherd.getLastSightingYear();
+    firstSubmissionYear=myShepherd.getFirstSubmissionYear();
   } catch (Exception e) {
     e.printStackTrace();
   }
@@ -139,6 +141,7 @@ margin-bottom: 8px !important;
 
   
 %>
+
 
 
 <div id="wrapper">
@@ -165,6 +168,14 @@ margin-bottom: 8px !important;
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
+			
+			if(myShepherd.isSinglePhotoVideo(request.getParameter("referenceImageName"))){
+				SinglePhotoVideo mySPV=myShepherd.getSinglePhotoVideo(request.getParameter("referenceImageName"));
+				//int slashPosition=request.getParameter("referenceImageName").indexOf("/");
+				String encNum=mySPV.getCorrespondingEncounterNumber();
+				Encounter thisEnc = myShepherd.getEncounter(encNum);
+				
+				
 		%>
 <p><strong><%=encprops.getProperty("referenceImage") %></strong></p>
 
@@ -172,20 +183,26 @@ margin-bottom: 8px !important;
 <input name="referenceImageName" type="hidden"
        value="<%=request.getParameter("referenceImageName") %>"/>
 
-<p><img width="810px" src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=request.getParameter("referenceImageName") %>"/></p>
+<p><img width="810px" src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=thisEnc.subdir(thisEnc.getCatalogNumber()) %>/<%=mySPV.getFilename() %>"/></p>
 <table>
 											<tr>
 												<td align="left" valign="top">
 										
 												<table>
 										<%
-										int slashPosition=request.getParameter("referenceImageName").indexOf("/");
-										String encNum=request.getParameter("referenceImageName").substring(0,slashPosition);
-										Encounter thisEnc = myShepherd.getEncounter(encNum);
+										
+										//prep the params
+										if(thisEnc.getLocation()!=null){
 										%>
-								
 										<tr><td><span class="caption"><%=encprops.getProperty("location") %> <%=thisEnc.getLocation() %></span></td></tr>
+										<%
+										}
+										if(thisEnc.getLocationID()!=null){
+										%>
 										<tr><td><span class="caption"><%=encprops.getProperty("locationID") %> <%=thisEnc.getLocationID() %></span></td></tr>
+										<%
+										}
+										%>
 										<tr><td><span class="caption"><%=encprops.getProperty("date") %> <%=thisEnc.getDate() %></span></td></tr>
 										<%
 										if(thisEnc.getIndividualID()!=null){
@@ -229,6 +246,7 @@ margin-bottom: 8px !important;
 										</table>
   <%
 		}
+}
 		%>
 
 <table>
@@ -573,6 +591,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <div id="date" style="display:none;">
       <p><%=encprops.getProperty("dateInstructions") %></p>
       <strong><%=encprops.getProperty("sightingDates")%></strong><br/>
+      
+
+      
       <table width="720">
         <tr>
           <td width="670"><label><em>
@@ -709,7 +730,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         </tr>
       </table>
 
-      <p><strong><%=encprops.getProperty("verbatimEventDate")%>:</strong> <span class="para"><a
+      <p><strong><%=encprops.getProperty("verbatimEventDate")%></strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>verbatimEventDate"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
@@ -755,9 +776,155 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         <p><strong><%= encprops.getProperty("releaseDate") %></strong></p>
         <p>From: <input name="releaseDateFrom"/> to <input name="releaseDateTo"/> <%=encprops.getProperty("releaseDateFormat") %></p>
       </c:if>
-    </div>
-  </td>
+   
+     
+      <p><strong><%=encprops.getProperty("addedsightingDates")%></strong></p>
+
+      <table width="720">
+        <tr>
+          <td width="670"><label><em>
+          
+          
+          
+            &nbsp;<%=encprops.getProperty("day")%>
+          </em> <em> <select name="addedday1" id="addedday1">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+            <option value="21">21</option>
+            <option value="22">22</option>
+            <option value="23">23</option>
+            <option value="24">24</option>
+            <option value="25">25</option>
+            <option value="26">26</option>
+            <option value="27">27</option>
+            <option value="28">28</option>
+            <option value="29">29</option>
+            <option value="30">30</option>
+            <option value="31">31</option>
+          </select> <%=encprops.getProperty("month")%>
+          </em> <em> <select name="addedmonth1" id="addedmonth1">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+          </select> <%=encprops.getProperty("year")%>
+          </em> <select name="addedyear1" id="addedyear1">
+            <% 
+            
+            int currentYear=cal.get(1);
+            for (int q = firstSubmissionYear; q <= currentYear; q++) { %>
+            <option value="<%=q%>"
+
+              <%
+                if (q == firstSubmissionYear) {
+              %>
+                    selected
+              <%
+                }
+              %>
+              ><%=q%>
+            </option>
+
+            <% } %>
+          </select> &nbsp;to <em>&nbsp;<%=encprops.getProperty("day")%>
+          </em> <em> <select name="addedday2"
+                             id="addedday2">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+            <option value="21">21</option>
+            <option value="22">22</option>
+            <option value="23">23</option>
+            <option value="24">24</option>
+            <option value="25">25</option>
+            <option value="26">26</option>
+            <option value="27">27</option>
+            <option value="28">28</option>
+            <option value="29">29</option>
+            <option value="30">30</option>
+            <option value="31" selected>31</option>
+          </select> <%=encprops.getProperty("month")%>
+          </em> <em> <select name="addedmonth2" id="addedmonth2">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12" selected>12</option>
+          </select> <%=encprops.getProperty("year")%>
+          </em>
+            <select name="addedyear2" id="addedyear2">
+              <% for (int q = currentYear; q >= firstSubmissionYear; q--) { %>
+              <option value="<%=q%>"
+
+                <%
+                  if (q == nowYear) {
+                %>
+                      selected
+                <%
+                  }
+                %>
+                ><%=q%>
+              </option>
+
+              <% } %>
+            </select>
+          </label></td>
+        </tr>
+		</table>
+		</div>
+		</td>
 </tr>
+
 
 <tr>
   <td>
@@ -1400,15 +1567,22 @@ else {
         </tr>
 		
 		<tr>
-  <td><br /><strong><%=encprops.getProperty("submitterName")%>:</strong>
+  <td><br /><strong><%=encprops.getProperty("submitterName")%></strong>
     <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
     </em>
   </td>
 </tr>
 
 <tr>
-  <td><br /><strong><%=encprops.getProperty("filenameField")%>:</strong>
+  <td><br /><strong><%=encprops.getProperty("filenameField")%></strong>
     <input name="filenameField" type="text" size="60"> <br /> <em><%=encprops.getProperty("filenamesBlank")%>
+    </em>
+  </td>
+</tr>
+
+		<tr>
+  <td><br /><strong><%=encprops.getProperty("additionalComments")%></strong>
+    <input name="additionalCommentsField" type="text" size="60"> <br> <em><%=encprops.getProperty("commentsBlank")%>
     </em>
   </td>
 </tr>
@@ -1468,7 +1642,7 @@ else {
 </td>
 </tr>
 </table>
-<br>
+<br />
 <jsp:include page="../footer.jsp" flush="true"/>
 </div>
 </div>
