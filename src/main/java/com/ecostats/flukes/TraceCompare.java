@@ -529,7 +529,7 @@ public class TraceCompare {
     // processing
     for (int c=0;c<flukes.size();c++){
       Fluke fluke = flukes.get(c);      
-      RealVector distance_known = fluke.getVectorPositions(Fluke.ALL); // distance_known is the distance index vector from a known fluke to compare with the test fluke
+      RealVector distance_known = this.tracingDistanceIndex(fluke); //.getVectorPositions(Fluke.ALL); // distance_known is the distance index vector from a known fluke to compare with the test fluke
       marktypes_known = this.markTypesNoNotchTip(fluke); // mark_types is an list of vectors with values of mark type (so mark_types is a vector of mark types for the current catalog record)    
       int length_mark_types = marktypes_known.getDimension(); // lengths of the array of mark type values (i.e. mark_types is an array of numbers)
       int length_mark_types_test_fluke = distance_test.getDimension();

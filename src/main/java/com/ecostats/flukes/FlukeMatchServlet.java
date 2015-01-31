@@ -113,9 +113,9 @@ public class FlukeMatchServlet extends HttpServlet {
 				encounter = myShepherd.getEncounter(matched_fluke.getEncounter());
 				individual_id = encounter.isAssignedToMarkedIndividual();
 				if (individual_id.equals("Unassigned")){
-					encounters.put(matched_fluke.getEncounter());
+					encounters.put("ID: "+matched_fluke.getEncounter()+",  Rank: "+matched_fluke.getMatchValue());
 				}else{
-					individuals.put(individual_id);
+					individuals.put("ID: "+individual_id+",  Rank: "+matched_fluke.getMatchValue());
 				}
 			}
 			result.put("individuals", individuals);
