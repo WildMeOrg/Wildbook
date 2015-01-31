@@ -21,6 +21,7 @@ package com.ecostats.flukes;
 
 import java.lang.reflect.Array;
 
+
 /**
  * FinTrace
  * <p/>
@@ -60,12 +61,18 @@ public class FinTrace implements java.io.Serializable {
   public final static int HOLE = 11;          // hole in fin
   public final static int INVISIBLE = 12;     // invisible parts, start=12 end=13  
   public final static int INVISIBLE_END = 13; // invisible parts, start=12 end=13
+  /* Trace Type */
+  public final static int FEATURE_POINTS = 1;   // only points are recorded at features of interest, no actual tracing
+  public final static int COUNTOUR_TRACING = 2; // the fin countour is fully traced
+  /* Private Variables */
   private double[] x;
   private double[] y;
   private double[] mark_types;
   private double[] mark_positions;
   private boolean notch_open;
   private boolean curled;
+  private int trace_type;  // of type FEATURE_POINTS (default) or COUNTOUR_TRACING
+  private String transform; // affine transform maxtrix done on image as space and semicolon separated values. 
 
   /**
    * FinTrace Constructor
@@ -75,6 +82,8 @@ public class FinTrace implements java.io.Serializable {
   public FinTrace() {
     this.notch_open=false;
     this.curled=false;
+    this.trace_type=this.FEATURE_POINTS;
+    this.transform=new String("0 0 0;0 0 0;0 0 0");
   }
 
   /**
@@ -90,6 +99,8 @@ public class FinTrace implements java.io.Serializable {
     this.y = new double[size];
     this.mark_types = new double[size];
     this.mark_positions = new double[size];
+    this.trace_type=this.FEATURE_POINTS;
+    this.transform=new String("0 0 0;0 0 0;0 0 0");
   }
   
   /**
@@ -107,6 +118,8 @@ public class FinTrace implements java.io.Serializable {
     this.y = this.copyarray(y,null);
     this.mark_types = this.copyarray(mark_types,null);
     this.mark_positions = new double[x.length];
+    this.trace_type=this.FEATURE_POINTS;
+    this.transform=new String("0 0 0;0 0 0;0 0 0");
   }
   
   /**
@@ -119,6 +132,8 @@ public class FinTrace implements java.io.Serializable {
   public FinTrace(FinTrace orig) {
     this.notch_open = orig.notch_open;
     this.curled = orig.getCurled();
+    this.trace_type = orig.getTraceType();
+    this.transform = orig.getTransform();
     this.x = this.copyarray(orig.getX());
     this.y = this.copyarray(orig.getY());
     this.mark_types = this.copyarray(orig.getTypes());
@@ -478,6 +493,42 @@ public class FinTrace implements java.io.Serializable {
   public void setCurled(boolean curled){
     this.curled = curled;
   }  
+  
+  /**
+   * Gets the type of "tracing" type being entered for this dataset
+   * @return int value of either COUNTOUR_TRACING or FEATURE_POINTS
+   */
+  public int getTraceType(){
+    return this.trace_type;
+  }
+  
+  /**
+   * Sets the type of "tracing" type being entered for this dataset
+   * @param ttype int: either COUNTOUR_TRACING or .FEATURE_POINTS
+   */
+  public void setTraceType(int ttype){
+    if (ttype==this.COUNTOUR_TRACING || ttype==this.FEATURE_POINTS){
+      this.trace_type=ttype;
+    }
+  }
+  
+  /**
+   * Gets the transform string used to rotate, scale, translate and sheer an image relative to the tracing points
+   * @return String of space and semicolon delinated numbers representing a 3x3 translation matrix. 
+   */
+  public String getTransform(){
+    return this.transform;
+  }
+  
+  /**
+   * Sets the transform string used to rotate, scale, translate and sheer an image relative to the tracing points
+   * @param stransform String: space and semicolon delinated numbers representing a 3x3 translation matrix. 
+   */
+  public void setTransform(String stransform){
+    // This assumes the string is correctly formated. 
+    // Should add checks to prove this is so, and return errors if not.
+    this.transform = new String(stransform);
+  }
   
 } 
 

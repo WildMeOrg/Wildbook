@@ -9,6 +9,7 @@
     <mapping-file>org/ecocean/package.jdo</mapping-file>
     <mapping-file>org/ecocean/genetics/package.jdo</mapping-file>
     <mapping-file>org/ecocean/tag/package.jdo</mapping-file>
+    <mapping-file>org/ecocean/tag/package.jdo</mapping-file>
         <properties>
             <property name="datanucleus.ConnectionDriverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
             <property name="datanucleus.ConnectionURL" value="jdbc:derby:shepherd_derby_database;create=true"/>

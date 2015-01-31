@@ -1,0 +1,48 @@
+@CHARSET "UTF-8";
+
+#pmenu_container {
+  width: 100%;
+  background: #7484ad;
+  background-color: #7484ad;
+  height: 26px;
+}
+
+/* For Non-IE and IE7 make the sublevels visible on list hover. This is all it needs */
+#pmenu li:hover > div > ul {
+  display: block;
+  position: absolute;
+  top: -11px;
+  left: 80px;
+  padding: 10px 30px 30px 30px; /**background:transparent url(transparent.gif);*/
+  width: 120px;
+  z-index: 99;
+}
+
+/* Position the first sub level beneath the top level liinks */
+#pmenu > li:hover > div > ul {
+  left: -30px;
+  top: 16px;
+  z-index: 99;
+}
+
+.mainmenu, .menuitem {
+	display: inline-block; 
+	margin: 0px 0 0px 0px; 
+	position: relative; 
+	padding-left: 0.2em;
+	padding-right: 1.5em; 
+	font-size: 12pt;
+	font-weight: bold;
+	height: 14pt; 
+	z-index: 100;
+	cursor: pointer;
+	border-bottom: 
+}
+
+.menuitem, .menuitem{
+	min-width: 190px;
+}
+
+.canvas{
+	cursor:crosshair;
+}
