@@ -23,6 +23,7 @@ package com.ecostats.flukes;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.TreeSet;
 
 import org.apache.commons.math3.linear.RealMatrix;
@@ -418,7 +419,11 @@ public class TraceCompare {
    */
   private double pt(Fluke fluke, double[] notch_curl){
     RealVector v = this.markTypesNoNotchTip(fluke); // note, mark types will be a vector of values, not a single number
-    return this.sumVector(this.subsetVector(this.vv,(v.mapSubtract(1)).mapMultiply(13).add(v)))+sumVector(notch_curl)*HALF_VALUE;
+    try{
+    	return this.sumVector(this.subsetVector(this.vv,(v.mapSubtract(1)).mapMultiply(13).add(v)))+sumVector(notch_curl)*HALF_VALUE;
+    }catch (Exception e){
+    	return 0.0;
+    }
   }
   
   /**
@@ -507,7 +512,7 @@ public class TraceCompare {
    * @param test_fluke Fluke : the Fluke to test
    * @return TreeSet : a sorted set of possible matching Flukes
    */
-  public TreeSet<Fluke> processCatalog(Flukes flukes, Fluke test_fluke){
+  public TreeSet<Fluke> processCatalog(List<Fluke> flukes, Fluke test_fluke){
     /*
      * Note: This method should be refactored more; into more sub-methods that encapsulate logic better by variable
      */

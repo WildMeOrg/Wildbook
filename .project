@@ -26,6 +26,11 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
+			<name>org.datanucleus.ide.eclipse.enhancerbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
 			<name>org.eclipse.m2e.core.maven2Builder</name>
 			<arguments>
 			</arguments>
@@ -39,5 +44,6 @@
 		<nature>org.jpox.ide.eclipse.developers.projectnature</nature>
 		<nature>org.eclipse.wst.common.project.facet.core.nature</nature>
 		<nature>org.eclipse.wst.jsdt.core.jsNature</nature>
+		<nature>org.datanucleus.ide.eclipse.projectnature</nature>
 	</natures>
 </projectDescription>

@@ -623,6 +623,19 @@ catch (Exception e) {
   </tr>
 </table>
 
+<!-- ***** START EDITS ***** 
+
+     Ecological Software Solutions LLC Fluke Tracer.-->
+<!-- Requires jQuery. Also get the lastest version of jQuery if needed.  -->
+<!-- <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.3.js"></script> -->
+<script type="text/javascript" src="../tracing/js/paper.js"></script>
+<script type="text/javascript" src="../tracing/js/tracing.js"></script>
+<script type="text/javascript">
+  comEcostatsTracing.addFlukeTrace('.highslide','<%=imageEncNum%>');
+</script>
+
+<!-- ***** END EDITS *****  -->
+
 <%
   }
 
