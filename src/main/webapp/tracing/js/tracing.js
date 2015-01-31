@@ -462,12 +462,60 @@ var comEcostatsTracing = (function(){
 			alert('Before you can run a matching, you have to first save all current changes.');
 			return;
 		}		
-		$.post( "../FlukeMatchServlet", {encounter_id:encounter_id, photo_id:photo_id}, aftersave); //, "json");
+		$.post( "../FlukeMatchServlet", {encounter_id:encounter_id, photo_id:photo_id}, aftermatched); //, "json");
 	};	
+
+	function aftermatched(data){
+		var encounters=JSON.parse(JSON.parse(data).encounters);
+		var individuals=JSON.parse(JSON.parse(data).individuals);
+		var dialog = document.getElementById('ecostatscom_match_dialog');
+		if (dialog==null){
+			dialog = document.createElement('div');
+			dialog.setAttribute('style','z-index:9999;')
+			dialog.setAttribute('id','ecostatscom_match_dialog');
+			dialog.setAttribute('title','Matching Results');
+			document.body.appendChild(dialog);
+			$("#ecostatscom_match_dialog").dialog({
+				 modal: false,
+				 buttons: {
+					 Ok: function() {
+						 $( this ).dialog( "close" );
+					 }
+				 }
+			});
+		}
+		dialog.innerHTML=''
+		if (individuals.length>0){
+			var p = document.createElement('p');
+			var t = document.createTextNode('Matched Individuals:');
+			p.appendChild(t);
+			dialog.appendChild(p);
+			for (var i=0;i<individuals.length;i++){
+				var p = document.createElement('p');
+				var t = document.createTextNode(individuals[i]);
+				p.appendChild(t);
+				dialog.appendChild(p);
+			}
+		}
+		if (encounters.length>0){
+			var p = document.createElement('p');
+			var t = document.createTextNode('Matched Encounters:');
+			p.appendChild(t);
+			dialog.appendChild(p);
+			for (var i=0;i<encounters.length;i++){
+				var p = document.createElement('p');
+				var t = document.createTextNode(encounters[i]);
+				p.appendChild(t);
+				dialog.appendChild(p);
+			}
+		}
+		var win=$("#ecostatscom_match_dialog");
+		win.dialog("open");
+	};
 	
 	function loadtracing(data){
 		alert(data);
-	}
+	};
 
 	// uses jQuery to close the div with the traced image
 	function close_tracer(){
