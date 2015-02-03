@@ -21,6 +21,10 @@ package com.ecostats.flukes;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
 
 /**
  * Fluke
@@ -28,6 +32,7 @@ import org.apache.commons.math3.linear.RealVector;
  * Fluke class for points along a fluke tracing, left and right side. 
  */
 
+@Entity("flukes")
 public class Fluke implements java.io.Serializable {
   
   private static final long serialVersionUID = -1317654319011769206L;
@@ -42,12 +47,17 @@ public class Fluke implements java.io.Serializable {
   public final static int LEFT = 0;  // Left fluke constant ID
   public final static int RIGHT = 1; // Right fluke constant ID
   public final static int ALL = 2; // Both left and right fluke constant ID
-  private double id = 0;
-  private double matchvalue = 0;
-  private String photo;
-  private double[] mark_types; // a reduced mark type array combining both the left and right flukes 
+  @Id
+  protected ObjectId id;
+  protected String encounter;
+  protected String individual;
+  protected String photo;
+  protected double[] mark_types; // a reduced mark type array combining both the left and right flukes 
+  @Embedded("left_fluke")
   private FinTrace left_fluke;
+  @Embedded("right_fluke")
   private FinTrace right_fluke;
+  private double matchvalue = 0;
 
   /**
    * Fluke Constructor
@@ -55,7 +65,7 @@ public class Fluke implements java.io.Serializable {
    * Comments: Basic constructor method.
    */
   public Fluke() {
-
+	  this.id= new ObjectId();
   }
 
   /**
@@ -65,7 +75,8 @@ public class Fluke implements java.io.Serializable {
    * @param right FlukeTrace : the right fluke trace
    */
   public Fluke(FinTrace left, FinTrace right) {
-    this.left_fluke = left;
+	this.id=new ObjectId();
+	this.left_fluke = left;
     this.right_fluke = right;
   }
 
@@ -76,6 +87,7 @@ public class Fluke implements java.io.Serializable {
    * @param right FlukeTrace : the right fluke trace
    */
   public Fluke(FinTrace left, FinTrace right, double[] mark_types) {
+	this.id=new ObjectId();
     this.left_fluke = left;
     this.right_fluke = right;
     this.setMarkTypes(mark_types);
@@ -416,6 +428,22 @@ public class Fluke implements java.io.Serializable {
     return new ArrayRealVector(this.notchCurl());
   }
 
+  public String getEncounter() {
+    return this.encounter;
+  }
+
+  public void setEncounter(String sencounter) {
+    this.encounter = new String(sencounter);
+  }
+
+  public String getIndividual() {
+    return this.individual;
+  }
+
+  public void setIndividual(String sencounter) {
+    this.individual = new String(sencounter);
+  }
+  
   public String getPhoto() {
     return this.photo;
   }
@@ -442,18 +470,18 @@ public class Fluke implements java.io.Serializable {
 
   /**
    * Gets the fluke ID value
-   * @return double ID value
+   * @return String ID value
    */
-  public double getId() {
+  public ObjectId getId() {
     return id;
   }
 
   /**
    * Sets the fluke ID value
-   * @param id double : ID value to set
+   * @param id String : ID value to set
    */
-  public void setId(double id) {
-    this.id = id;
+  public void setId(String id) {
+    this.id = new ObjectId(id) ;
   }
 
 } 

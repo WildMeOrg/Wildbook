@@ -23,6 +23,7 @@ package com.ecostats.flukes;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.TreeSet;
 
 import org.apache.commons.math3.linear.RealMatrix;
@@ -418,7 +419,11 @@ public class TraceCompare {
    */
   private double pt(Fluke fluke, double[] notch_curl){
     RealVector v = this.markTypesNoNotchTip(fluke); // note, mark types will be a vector of values, not a single number
-    return this.sumVector(this.subsetVector(this.vv,(v.mapSubtract(1)).mapMultiply(13).add(v)))+sumVector(notch_curl)*HALF_VALUE;
+    try{
+    	return this.sumVector(this.subsetVector(this.vv,(v.mapSubtract(1)).mapMultiply(13).add(v)))+sumVector(notch_curl)*HALF_VALUE;
+    }catch (Exception e){
+    	return 0.0;
+    }
   }
   
   /**
@@ -507,7 +512,7 @@ public class TraceCompare {
    * @param test_fluke Fluke : the Fluke to test
    * @return TreeSet : a sorted set of possible matching Flukes
    */
-  public TreeSet<Fluke> processCatalog(Flukes flukes, Fluke test_fluke){
+  public TreeSet<Fluke> processCatalog(List<Fluke> flukes, Fluke test_fluke){
     /*
      * Note: This method should be refactored more; into more sub-methods that encapsulate logic better by variable
      */
@@ -524,7 +529,7 @@ public class TraceCompare {
     // processing
     for (int c=0;c<flukes.size();c++){
       Fluke fluke = flukes.get(c);      
-      RealVector distance_known = fluke.getVectorPositions(Fluke.ALL); // distance_known is the distance index vector from a known fluke to compare with the test fluke
+      RealVector distance_known = this.tracingDistanceIndex(fluke); //.getVectorPositions(Fluke.ALL); // distance_known is the distance index vector from a known fluke to compare with the test fluke
       marktypes_known = this.markTypesNoNotchTip(fluke); // mark_types is an list of vectors with values of mark type (so mark_types is a vector of mark types for the current catalog record)    
       int length_mark_types = marktypes_known.getDimension(); // lengths of the array of mark type values (i.e. mark_types is an array of numbers)
       int length_mark_types_test_fluke = distance_test.getDimension();
