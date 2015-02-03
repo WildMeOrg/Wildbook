@@ -26,6 +26,8 @@ import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 
+import com.ecostats.flukes.Fluke;
+
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
 
@@ -95,8 +97,7 @@ public class Shepherd {
   //public PersistenceManagerFactory getPMF() {
   //  return pmf;
   //}
-
-
+ 
   /**
    * Stores a new, unassigned encounter in the database for later retrieval and analysis.
    * Each new encounter is assigned a unique number which is also its unique retrievable ID in the database.
@@ -308,8 +309,7 @@ public class Shepherd {
       return null;
     }
     return tempEnc;
-  }
-  
+  } 
   
   
   public Relationship getRelationship(String type, String indie1,String indie2) {
