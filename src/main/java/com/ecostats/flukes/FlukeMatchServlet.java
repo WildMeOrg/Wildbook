@@ -63,13 +63,13 @@ public class FlukeMatchServlet extends HttpServlet {
 		    		// set the current fluke trace
 		    		Fluke fluke = flukequery.get(0);
 		    		// build a query of fluke traces to compare to the current fluke
-			    	Query<Fluke> query_flukes = datasource.datastore().createQuery(Fluke.class).filter("encounter !=",encounter_id);
+			    	Query<Fluke> query_flukes = datasource.datastore().createQuery(Fluke.class);
 			    	// remove the current fluke trace from the query result (i.e. do not compare itself)		
 			    	query_flukes.field("encounter").notEqual(encounter_id); 
 			    	// VERY RAM using and inefficient! Update to a cursor method at some point
 			    	List<Fluke> flukes = query_flukes.asList();
 			    	if (flukes.size()==0){
-			    		out.println("No fluke traces found to compare.");
+			    		out.println("No fluke traces found to compare");
 			    	}else{
 			    		// do the trace comparison
 			    		TraceCompare tc = new TraceCompare();
@@ -132,8 +132,7 @@ public class FlukeMatchServlet extends HttpServlet {
 	 * @param photo_id
 	 * @return MongoDB Morphia Query
 	 */
-	public Query<Fluke> getFlukeTracing(FlukeMongodb datasource,
-			String encounter_id, String photo_id) {
+	public Query<Fluke> getFlukeTracing(FlukeMongodb datasource, String encounter_id, String photo_id) {
 		Query<Fluke> query = datasource.datastore().createQuery(Fluke.class);           
 		query.and(
 			query.criteria("photo").contains(photo_id),

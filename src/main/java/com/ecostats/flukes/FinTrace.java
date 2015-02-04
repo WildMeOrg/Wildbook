@@ -249,7 +249,7 @@ public class FinTrace implements java.io.Serializable {
   private FinTrace removeTypes(int size, int[] m){
     FinTrace t = new FinTrace(size);
     int s = 0;
-    for (int i=0;i<size;i++){
+    for (int i=0;i<m.length;i++){
       if (m[i]==1){
         t.x[s] = this.x[i];
         t.y[s] = this.y[i];

@@ -214,7 +214,7 @@ public class Fluke implements java.io.Serializable {
    * @return double[] of X point values
    */
   public double[] getX(int whatpart) {
-    return this.getVectorY(whatpart).toArray();
+    return this.getVectorX(whatpart).toArray();
   }
   
   /**
