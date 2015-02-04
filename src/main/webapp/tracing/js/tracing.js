@@ -43,7 +43,6 @@ var comEcostatsTracing = (function(){
 	var encounter_id=null;
 	var photo_id=null;
 	var curled=false;
-	var notch_open=false;
 	var curled_left=false;
 	var curled_right=false;
 	var node_edit_types={0:'none',1:'addnode',2:'removenode',3:'insertnode',4:'typenode'};
@@ -467,6 +466,8 @@ var comEcostatsTracing = (function(){
 		var left_node_types=get_node_types(1);
 		var right_path=get_trace_path(2);
 		var right_node_types=get_node_types(2);
+		var notch_cb = document.getElementById('notch_cb');
+		var notch_open = notch_cb.checked;
 		$.post( "../FinTraceServlet", {path_left:left_path, nodes_left:left_node_types, path_right:right_path, nodes_right:right_node_types, encounter_id:encounter_id, photo_id:photo_id, curled_left:curled_left, curled_right:curled_right, notch_open:notch_open}, aftersave); //, "json");
 		// send here to server by AJAX
 		modified=false;
@@ -569,24 +570,20 @@ var comEcostatsTracing = (function(){
 					var jparsed = JSON.parse(data);
 				}
 				// draw the left path if any
-				if (jparsed.path_left.x.length>0){
-					var path = jparsed.path_left;
-					var nodes = jparsed.nodes_left.nodes;
-					draw_loaded_tracing(path,nodes,1);
+				if (jparsed.left_fluke.x.length>0){
+					draw_loaded_tracing(jparsed.left_fluke,1);
 				}
 				// draw the right path if any
-				if (jparsed.path_right.x.length>0){
-					var path = jparsed.path_right;
-					var nodes = jparsed.nodes_right.nodes;
-					draw_loaded_tracing(path,nodes,2);
+				if (jparsed.right_fluke.x.length>0){
+					draw_loaded_tracing(jparsed.right_fluke,2);
 				}
 				// update fluke notch open and curled values
-				curled_left=jparsed.curled_left;
-				curled_right=jparsed.curled_right;
+				curled_left=jparsed.left_fluke.curled;
+				curled_right=jparsed.right_fluke.curled;
 				var cb = document.getElementById('curled_cb');
 				cb.checked=curled_left;
 				cb = document.getElementById('notch_cb');
-				cb.checked=jparsed.notch_open;
+				cb.checked=jparsed.left_fluke.notchOpen;
 			}catch(err){ // just show the data, probably an error message.
 				alert(data);
 				return;
@@ -597,14 +594,14 @@ var comEcostatsTracing = (function(){
 	};
 	
 	// draws any previously created fin tracing loaded from the server
-	function draw_loaded_tracing(path,nodes,layer){
-		if (path.x.length==nodes.length){	
+	function draw_loaded_tracing(fluke,layer){
+		if (fluke.x.length==fluke.types.length){	
 			var tracing_group = paper.project.activeLayer.children[layer];
 			var tracing_path = tracing_group.children[0];
 			var tracing_points = tracing_group.children[1];
 			var tracing_nodes = tracing_group.children[2];
-			for (var i=0;i<path.x.length;i++){
-				var point = new paper.Point(path.x[i], path.y[i]);
+			for (var i=0;i<fluke.x.length;i++){
+				var point = new paper.Point(fluke.x[i], fluke.y[i]);
 				// add the point to the path
 				tracing_path.add(point);
 				// add the point to the visible point circles
@@ -612,7 +609,7 @@ var comEcostatsTracing = (function(){
 				// add a node type text element and set its node type
 				var node_type = add_point_type(tracing_nodes,point);
 				// adjust for local node array range: server value of "Point" starts at -2, local value for "Point" starts at 0.
-				var node_id = nodes[i]+2;
+				var node_id = fluke.types[i]+2;
 				node_type.content = node_types[node_id][0].toUpperCase();
 				node_type.data.id = node_id;
 			}

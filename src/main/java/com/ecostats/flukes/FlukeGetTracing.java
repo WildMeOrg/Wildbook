@@ -75,27 +75,12 @@ public class FlukeGetTracing extends HttpServlet {
 	 * @return JSONObject
 	 */
 	public JSONObject getFlukeJsonObject(Fluke fluke) {
-		// get the trace path for each fluke side and store them in a JSONObject
-		JSONObject path_left = new JSONObject();
-		path_left.put("x", this.createJsonArray(fluke.getXLeft()));
-		path_left.put("y", this.createJsonArray(fluke.getYLeft()));
-		JSONObject path_right = new JSONObject();
-		path_right.put("x", this.createJsonArray(fluke.getXRight()));
-		path_right.put("y", this.createJsonArray(fluke.getYRight()));
-		// get the node values for each fluke side 
-		JSONObject nodes_left = new JSONObject();
-		nodes_left.put("nodes", this.createJsonArray(fluke.getMarkTypesLeft()));
-		JSONObject nodes_right = new JSONObject();
-		nodes_right.put("nodes", this.createJsonArray(fluke.getMarkTypesRight()));		    		
-		// add the path and node types into a JSONObject which will be used to return the results to the client
-		JSONObject result = new JSONObject();
-		result.put("path_left", path_left);
-		result.put("path_right", path_right);
-		result.put("nodes_left", nodes_left);
-		result.put("nodes_right", nodes_right);
-		result.put("notch_open", fluke.getLeftFluke().getNotchOpen());
-		result.put("curled_left", fluke.getLeftFluke().getCurled());
-		result.put("curled_right", fluke.getRightFluke().getCurled());
+		// get the trace path for each fluke side and store them in a JSONObject	
+    	JSONObject leftfluke = new JSONObject(fluke.getLeftFluke());
+    	JSONObject rightfluke = new JSONObject(fluke.getRightFluke());
+    	JSONObject result = new JSONObject();
+    	result.put("left_fluke", leftfluke);
+    	result.put("right_fluke", rightfluke);
 		return result;
 	}
 
