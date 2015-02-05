@@ -66,7 +66,7 @@ public class FinTraceServlet extends HttpServlet {
 	    //set up for response
 	    response.setContentType("text/html;charset=utf-8"); //("application/json;charset=utf-8");
 	    PrintWriter out = response.getWriter();
-    	FlukeMongodb datasource = new FlukeMongodb("localhost",27020);
+    	FlukeMongodb datasource = new FlukeMongodb("localhost",0);
 	    try{
 		    if (request.getParameter("path_left") != null) {
 		    	// get the passed parameter values
