@@ -66,16 +66,19 @@ public class FinTraceServlet extends HttpServlet {
 	    //set up for response
 	    response.setContentType("text/html;charset=utf-8"); //("application/json;charset=utf-8");
 	    PrintWriter out = response.getWriter();
-    	FlukeMongodb datasource = new FlukeMongodb("localhost",27020);
+    	FlukeMongodb datasource = new FlukeMongodb("localhost",0);
 	    try{
 		    if (request.getParameter("path_left") != null) {
 		    	// get the passed parameter values
 		    	String encounter_id = request.getParameter("encounter_id");
 		    	String photo_id = datasource.sha1(encounter_id + request.getParameter("photo_id"));
+		    	boolean notch_open = request.getParameter("notch_open").equals("true");
+		    	boolean curled_left = request.getParameter("curled_left").equals("true");
+		    	boolean curled_right = request.getParameter("curled_right").equals("true");
 		    	// get the left path and node information
-		    	FinTrace finTraceLeft = getFinTrace(request, out, "left");
+		    	FinTrace finTraceLeft = getFinTrace(request, out, "left", notch_open, curled_left);
 		    	// get the right path and node information
-		    	FinTrace finTraceRight = getFinTrace(request, out, "right");
+		    	FinTrace finTraceRight = getFinTrace(request, out, "right", notch_open, curled_right);
 		    	// get a query object to locate the current fluke tracing if any
 		    	Query<Fluke> query = getFlukeTracing(datasource, encounter_id, photo_id);
 		    	List<Fluke> flukequery = query.asList();
@@ -108,7 +111,7 @@ public class FinTraceServlet extends HttpServlet {
 	 * @param side
 	 * @return FinTrace
 	 */
-	public FinTrace getFinTrace(HttpServletRequest request, PrintWriter out, String side) {
+	public FinTrace getFinTrace(HttpServletRequest request, PrintWriter out, String side, boolean notch_open, boolean curled) {
     	// path and nodes are nested arrays which have to be parsed out into Java arrays
 		JSONObject path = new JSONObject(request.getParameter("path_"+side)); 
 		JSONObject nodes = new JSONObject(request.getParameter("nodes_"+side)); 
@@ -127,6 +130,8 @@ public class FinTraceServlet extends HttpServlet {
 		}
 		// create new fin tracings from the passed tracing node X,Y locations and node Types 
 		FinTrace finTrace = new FinTrace(x,y,n);
+		finTrace.setCurled(curled);
+		finTrace.setNotchOpen(notch_open);
 		return finTrace;
 	}
 

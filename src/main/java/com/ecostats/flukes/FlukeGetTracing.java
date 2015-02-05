@@ -43,9 +43,10 @@ public class FlukeGetTracing extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// Can return as json text or a json object.
 	    response.setContentType("text/html;charset=utf-8"); //("application/json;charset=utf-8");
 	    PrintWriter out = response.getWriter();
-    	FlukeMongodb datasource = new FlukeMongodb("localhost",27020);
+    	FlukeMongodb datasource = new FlukeMongodb("localhost",0);
 	    try{
 		    if (request.getParameter("encounter_id") != null) {
 		    	// get a query object to locate the current fluke tracing if any
@@ -74,22 +75,12 @@ public class FlukeGetTracing extends HttpServlet {
 	 * @return JSONObject
 	 */
 	public JSONObject getFlukeJsonObject(Fluke fluke) {
-		// get the trace path for each fluke side and store them in a JSONObject
-		JSONObject path_left = new JSONObject();
-		path_left.put("x_left", this.createJsonArray(fluke.getXLeft()));
-		path_left.put("y_left", this.createJsonArray(fluke.getYLeft()));
-		JSONObject path_right = new JSONObject();
-		path_right.put("x_right", this.createJsonArray(fluke.getXLeft()));
-		path_right.put("y_right", this.createJsonArray(fluke.getYLeft()));
-		// get the node values for each fluke side 
-		JSONObject nodes = new JSONObject();
-		nodes.put("nodes_left", this.createJsonArray(fluke.getMarkTypesLeft()));
-		nodes.put("nodes_right", this.createJsonArray(fluke.getMarkTypesRight()));		    		
-		// add the path and node types into a JSONObject which will be used to return the results to the client
-		JSONObject result = new JSONObject();
-		result.put("path_left", path_left);
-		result.put("path_right", path_right);
-		result.put("nodes", nodes);
+		// get the trace path for each fluke side and store them in a JSONObject	
+    	JSONObject leftfluke = new JSONObject(fluke.getLeftFluke());
+    	JSONObject rightfluke = new JSONObject(fluke.getRightFluke());
+    	JSONObject result = new JSONObject();
+    	result.put("left_fluke", leftfluke);
+    	result.put("right_fluke", rightfluke);
 		return result;
 	}
 

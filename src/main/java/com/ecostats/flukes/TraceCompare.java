@@ -32,6 +32,7 @@ import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.MatrixUtils;
 
 import com.ecostats.flukes.Matrix2D;
+import com.reijns.I3S.Affine;
 
 /**
  * TraceCompare
@@ -505,6 +506,60 @@ public class TraceCompare {
     return v;       
   }
   
+  private RealVector getTransformedDistances(Fluke known, Fluke test){
+	  FinTrace fin_left;
+	  FinTrace fin_right;
+	  RealVector result;
+	  // To re-scale one Fluke on the other, we need three control points to create the transform matrix.
+	  // The most likely to be comparable are the fluke tips and notch. So use the built in methods
+	  // of the FinTrace class to return just the tip and notch of the left fluke and the tip of the right fluke.
+	  int[] l = {FinTrace.TIP,FinTrace.NOTCH};
+	  fin_left = known.getLeftFluke().returnMarkType(l);
+	  fin_right = known.getLeftFluke().returnMarkType(FinTrace.TIP);
+	  if (fin_left.getX().length<2){ return null;}
+	  double from1x = fin_left.getX()[0];
+	  double from1y = fin_left.getY()[0];
+	  double from2x = fin_left.getX()[1];
+	  double from2y = fin_left.getY()[1];
+	  if (fin_right.getX().length==0){ return null;}
+	  double from3x = fin_right.getX()[0]; 
+	  double from3y = fin_right.getY()[0];
+	  fin_left = test.getLeftFluke().returnMarkType(l);
+	  fin_right = test.getLeftFluke().returnMarkType(FinTrace.TIP);
+	  if (fin_left.getX().length<2){ return null;}
+	  double to1x = fin_left.getX()[0];
+	  double to1y = fin_left.getY()[0];
+	  double to2x = fin_left.getX()[1];
+	  double to2y = fin_left.getY()[1];
+	  if (fin_right.getX().length==0){ return null;}
+	  double to3x = fin_right.getX()[0]; 
+	  double to3y = fin_right.getY()[0];
+	  // use the com.reijns.I3S.Affine method to get the transformation matrix
+	  double[] ident_matrix = {0,0,0,0,0,0}; 
+	  Affine.calcAffine(from1x, from1y, from2x, from2y, from3x, from3y, to1x, to1y, to2x, to2y, to3x, to3y, ident_matrix);
+	  // compute the transformation of each point in the known Fluke (save to change this class values, as changes will not be saved to the database).
+	  this.doAffine(fin_left,ident_matrix);
+	  this.doAffine(fin_right,ident_matrix);
+	  // for comparisons, get the relative calculated distances between nodes base on this transformed node locations.
+	  result = this.tracingDistanceIndex(known);
+	  return result;
+  }
+
+  /**
+   * @param matrix
+   */
+  private void doAffine(FinTrace fin, double[] matrix) {
+	  double x,y;
+	  for (int i = 0; i < fin.size(); i++) {
+		  x = fin.getX(i);
+		  y = fin.getY(i);		
+		  x = matrix[0] * x + matrix[1] * y + matrix[2];
+		  y = matrix[3] * x + matrix[4] * y + matrix[5];
+		  fin.setX(i, x);
+		  fin.setY(i, y);
+	  }
+  }
+
   /**
    * The Fluke comparison method. Given an input parameter test_fluke, check all input parameter flukes
    * to see if test_fluke matches any of them.
@@ -529,7 +584,10 @@ public class TraceCompare {
     // processing
     for (int c=0;c<flukes.size();c++){
       Fluke fluke = flukes.get(c);      
-      RealVector distance_known = this.tracingDistanceIndex(fluke); //.getVectorPositions(Fluke.ALL); // distance_known is the distance index vector from a known fluke to compare with the test fluke
+      RealVector distance_known = this.getTransformedDistances(fluke, test_fluke); //this.tracingDistanceIndex(fluke); //.getVectorPositions(Fluke.ALL); // distance_known is the distance index vector from a known fluke to compare with the test fluke
+      if (distance_known == null){
+    	  continue;
+      }
       marktypes_known = this.markTypesNoNotchTip(fluke); // mark_types is an list of vectors with values of mark type (so mark_types is a vector of mark types for the current catalog record)    
       int length_mark_types = marktypes_known.getDimension(); // lengths of the array of mark type values (i.e. mark_types is an array of numbers)
       int length_mark_types_test_fluke = distance_test.getDimension();
