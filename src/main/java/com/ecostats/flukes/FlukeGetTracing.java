@@ -46,7 +46,7 @@ public class FlukeGetTracing extends HttpServlet {
 		// Can return as json text or a json object.
 	    response.setContentType("text/html;charset=utf-8"); //("application/json;charset=utf-8");
 	    PrintWriter out = response.getWriter();
-    	FlukeMongodb datasource = new FlukeMongodb("localhost",27020);
+    	FlukeMongodb datasource = new FlukeMongodb("localhost",0);
 	    try{
 		    if (request.getParameter("encounter_id") != null) {
 		    	// get a query object to locate the current fluke tracing if any

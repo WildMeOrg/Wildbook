@@ -65,7 +65,6 @@ public class Fluke implements java.io.Serializable {
    * Comments: Basic constructor method.
    */
   public Fluke() {
-	  this.id= new ObjectId();
   }
 
   /**
@@ -75,7 +74,6 @@ public class Fluke implements java.io.Serializable {
    * @param right FlukeTrace : the right fluke trace
    */
   public Fluke(FinTrace left, FinTrace right) {
-	this.id=new ObjectId();
 	this.left_fluke = left;
     this.right_fluke = right;
   }
@@ -87,7 +85,6 @@ public class Fluke implements java.io.Serializable {
    * @param right FlukeTrace : the right fluke trace
    */
   public Fluke(FinTrace left, FinTrace right, double[] mark_types) {
-	this.id=new ObjectId();
     this.left_fluke = left;
     this.right_fluke = right;
     this.setMarkTypes(mark_types);
