@@ -29,6 +29,7 @@ var comEcostatsTracing = (function(){
 			fill: true,
 			tolerance: 5
 		};
+	var first_load=true;
 	var node_types={0:'point',1:'tip',2:'notch',3:'nick',4:'gouge_start',5:'gouge_end',6:'scallop_start',7:'scallop_end',8:'wave_start',9:'wave_end',10:'missing_start',11:'missing_end',12:'scar',13:'hole',14:'invisible_start',15:'invisible_end'};
 	var segment, path, current_point;
 	var movePath=false;
@@ -42,9 +43,19 @@ var comEcostatsTracing = (function(){
 	var encounter_id=null;
 	var photo_id=null;
 	var curled=false;
-	var notch_open=false;
+	var curled_left=false;
+	var curled_right=false;
 	var node_edit_types={0:'none',1:'addnode',2:'removenode',3:'insertnode',4:'typenode'};
 	
+	function event_target(evt){
+	    var evt = evt || window.event;
+	    var target = evt.target || evt.srcElement;
+	    if (target.nodeType == 3) { // Safari bug
+	        target = target.parentNode;
+	    }
+	    return target;
+	};
+
 	// Adds a div and select list to let the user define the type of structure at each node of the tracing. 
 	function show_node_type_select(point){
 		var selectdiv=document.getElementById('comEcostatsTracingNodeDiv')
@@ -201,18 +212,38 @@ var comEcostatsTracing = (function(){
 	function add_info_bar(pdiv){
 		var info_bar=document.createElement('div');
 		info_bar.setAttribute('style','height:2.4em;width:100%;border-bottom:1px solid silver;position:relative;top:0.7em;float:left;');
-		var active_fluke_caption=document.createTextNode('Active Fluke: ');
+		// add a check box if the fluke notch is open or not
+		var notch_cb = document.createElement('input');
+		notch_cb.setAttribute('id','notch_cb');
+		notch_cb.setAttribute('type','checkbox');
+		var notch_cb_caption=document.createTextNode('Fluke Notch Open');
+		info_bar.appendChild(notch_cb);
+		info_bar.appendChild(notch_cb_caption);		
+		// add a caption showing which side of the fluke is "activeated" for tracing.
+		var active_fluke_caption=document.createTextNode('Active Fluke Side: ');
 		var active_fluke=document.createElement('span');
 		active_fluke.setAttribute('id','active_fluke');
-		info_bar.appendChild(active_fluke_caption);
-		info_bar.appendChild(active_fluke);
+		var current_fluke=document.createElement('span');
+		current_fluke.setAttribute('style','margin-left: 2em;');
+		current_fluke.appendChild(active_fluke_caption);
+		current_fluke.appendChild(active_fluke);
+		info_bar.appendChild(current_fluke);
+		// add a check box to select if the active fluke is curled or not
+		var curled_cb = document.createElement('input');
+		curled_cb.setAttribute('id','curled_cb');
+		curled_cb.setAttribute('type','checkbox');
+		curled_cb.onchange=comEcostatsTracing.onCurlChange; 
+		var curled_cb_caption=document.createTextNode('Is Curled');
+		info_bar.appendChild(curled_cb);
+		info_bar.appendChild(curled_cb_caption);		
+		// add the info bar to the image div
 		pdiv.appendChild(info_bar);
 	};
 	
 	// CSS menus do not open/close in respond to clicks, so these two methods show/hide the DIV elements that
 	// surround sub menus so the sub menus can be hidden when they are clicked -- useful for AJAX calls.
-	function show_child_div(evt){
-		var test_element=evt.target;
+	function show_child_div(event){
+		var test_element=event_target(event);
 		while (test_element!=null){
 			if (test_element.nextSibling.nodeName.toUpperCase()=='DIV' || test_element.nextSibling.localName.toUpperCase()=='DIV'){
 				var showdiv=test_element.nextSibling
@@ -224,8 +255,8 @@ var comEcostatsTracing = (function(){
 		}
 	};
 	
-	function hide_child_div(evt){
-		var test_element=evt.target;
+	function hide_child_div(event){
+		var test_element=event_target(event);
 		while (test_element!=null){
 			if (test_element.parentElement.nodeName.toUpperCase()=='DIV' || test_element.parentElement.localName.toUpperCase()=='DIV'){
 				var hidediv=test_element.parentElement
@@ -283,7 +314,7 @@ var comEcostatsTracing = (function(){
 		// create a new empty path
 		var a_path = new paper.Path();
 		a_path.strokeColor = 'red';
-		a_path.strokeWidth = 2;	   
+		a_path.strokeWidth = 1;	   
 		// create a group for each node point to show to the user
 		var node_points=new paper.Group();
 		// create a group for each node type list to show to the user
@@ -308,9 +339,9 @@ var comEcostatsTracing = (function(){
 			var right_path = new paper.Path();
 			// set some standard colors
 			left_path.strokeColor = 'red';
-			left_path.strokeWidth = 2;
+			left_path.strokeWidth = 1;
 			right_path.strokeColor = 'red';
-			right_path.strokeWidth = 2;
+			right_path.strokeWidth = 1;
 			var left_points = new paper.Group();
 			var right_points = new paper.Group();
 			// create a group for each node type list to show to the user
@@ -360,6 +391,7 @@ var comEcostatsTracing = (function(){
 		}else{
 			tracing_types_group.addChild(text);
 		}
+		return text;
 	};
 	
 	/**
@@ -374,6 +406,12 @@ var comEcostatsTracing = (function(){
 		// show the selected fluke to the user in the info-bar
 		var active_fluke=document.getElementById('active_fluke');
 		active_fluke.textContent=menu_option.textContent;
+		var cb = document.getElementById('curled_cb');
+		if (fluke_side==0){
+			cb.checked=curled_left;
+		}else{
+			cb.checked=curled_right;
+		}
 	};
 
 	// clears the selected fluke drawing
@@ -428,7 +466,9 @@ var comEcostatsTracing = (function(){
 		var left_node_types=get_node_types(1);
 		var right_path=get_trace_path(2);
 		var right_node_types=get_node_types(2);
-		$.post( "../FinTraceServlet", {path_left:left_path, nodes_left:left_node_types, path_right:right_path, nodes_right:right_node_types, encounter_id:encounter_id, photo_id:photo_id, curled:curled, notch_open:notch_open}, aftersave); //, "json");
+		var notch_cb = document.getElementById('notch_cb');
+		var notch_open = notch_cb.checked;
+		$.post( "../FinTraceServlet", {path_left:left_path, nodes_left:left_node_types, path_right:right_path, nodes_right:right_node_types, encounter_id:encounter_id, photo_id:photo_id, curled_left:curled_left, curled_right:curled_right, notch_open:notch_open}, aftersave); //, "json");
 		// send here to server by AJAX
 		modified=false;
 	};
@@ -447,7 +487,8 @@ var comEcostatsTracing = (function(){
 		var json_node_types=paper.project.activeLayer.children[flukeside].children[2].exportJSON({asString: false,precision:0})[1].children;
 		var array_node_types=[];
 		for (var i=0;i<json_node_types.length;i++){
-			array_node_types[array_node_types.length]=json_node_types[i][1].data.id;
+			// return the node type and adjust the index by -2 as the server index range starts at "Point" = -2
+			array_node_types[array_node_types.length]=json_node_types[i][1].data.id-2;
 		}			
 		// Server side JSONObject requires JSON strings to be encased in braces, so add them before sending
 		return '{node_types:'+JSON.stringify(array_node_types)+'}';
@@ -466,12 +507,18 @@ var comEcostatsTracing = (function(){
 	};	
 
 	function aftermatched(data){
-		var encounters=JSON.parse(JSON.parse(data).encounters);
-		var individuals=JSON.parse(JSON.parse(data).individuals);
+		try{
+			var jparsed=JSON.parse(data);
+		}catch(err){ // just show the data, probably an error message.
+			alert(data);
+			return;
+		}		
+		var encounters=JSON.parse(jparsed.encounters);
+		var individuals=JSON.parse(jparsed.individuals);
 		var dialog = document.getElementById('ecostatscom_match_dialog');
 		if (dialog==null){
 			dialog = document.createElement('div');
-			dialog.setAttribute('style','z-index:9999;')
+			dialog.setAttribute('style','z-index:9999;');
 			dialog.setAttribute('id','ecostatscom_match_dialog');
 			dialog.setAttribute('title','Matching Results');
 			document.body.appendChild(dialog);
@@ -513,18 +560,70 @@ var comEcostatsTracing = (function(){
 		win.dialog("open");
 	};
 	
+	// AJAX return method that provides any prior fin tracings for the curren fluke image
 	function loadtracing(data){
-		alert(data);
+		if (data !== null){
+			try{
+				if (typeof data === 'object'){
+					var jparsed = data;
+				}else{
+					var jparsed = JSON.parse(data);
+				}
+				// draw the left path if any
+				if (jparsed.left_fluke.x.length>0){
+					draw_loaded_tracing(jparsed.left_fluke,1);
+				}
+				// draw the right path if any
+				if (jparsed.right_fluke.x.length>0){
+					draw_loaded_tracing(jparsed.right_fluke,2);
+				}
+				// update fluke notch open and curled values
+				curled_left=jparsed.left_fluke.curled;
+				curled_right=jparsed.right_fluke.curled;
+				var cb = document.getElementById('curled_cb');
+				cb.checked=curled_left;
+				cb = document.getElementById('notch_cb');
+				cb.checked=jparsed.left_fluke.notchOpen;
+			}catch(err){ // just show the data, probably an error message.
+				alert(data);
+				return;
+			}finally{
+				paper.view.update();
+			}
+		}
+	};
+	
+	// draws any previously created fin tracing loaded from the server
+	function draw_loaded_tracing(fluke,layer){
+		if (fluke.x.length==fluke.types.length){	
+			var tracing_group = paper.project.activeLayer.children[layer];
+			var tracing_path = tracing_group.children[0];
+			var tracing_points = tracing_group.children[1];
+			var tracing_nodes = tracing_group.children[2];
+			for (var i=0;i<fluke.x.length;i++){
+				var point = new paper.Point(fluke.x[i], fluke.y[i]);
+				// add the point to the path
+				tracing_path.add(point);
+				// add the point to the visible point circles
+				add_point_path(tracing_points,point);
+				// add a node type text element and set its node type
+				var node_type = add_point_type(tracing_nodes,point);
+				// adjust for local node array range: server value of "Point" starts at -2, local value for "Point" starts at 0.
+				var node_id = fluke.types[i]+2;
+				node_type.content = node_types[node_id][0].toUpperCase();
+				node_type.data.id = node_id;
+			}
+		}		
 	};
 
 	// uses jQuery to close the div with the traced image
 	function close_tracer(){
-		if (modified==true){
+		if (modified == true){
 			if (confirm('You have unsaved changes. Closing now will delete your changes. Continue closing?')==false){
 				return;
 			}
 		}
-		modified=false;
+		modified = false;
 		var fluke_tracer = $("#fluke_tracer");
 		fluke_tracer.hide('fast');
 	};
@@ -550,7 +649,7 @@ var comEcostatsTracing = (function(){
 				// set an ID value for each image, so the same image does not get more than one button
 				var id = imgs[i].getAttribute("href").replace(/[://\\.]/g, "");
 				var button = document.getElementById(id);
-				if (button==null || button==undefined){
+				if (button == null || button == undefined){
 					// create a button element above each image that will be used to open the tracing window
 					var button=document.createElement('input');
 					button.setAttribute("id",id);
@@ -570,10 +669,11 @@ var comEcostatsTracing = (function(){
 		},
 		
 		// method to call when a user clicks on the option (i.e. button element) to trace a fluke image
-		onFlukeTraceClick : function (evt) {
-			imgurl = evt.target.getAttribute('imgurl');
-			encounter_id = evt.target.getAttribute('encounter_id');
-			photo_id = evt.target.getAttribute('id'); // uninque path and name for an encounter's photo
+		onFlukeTraceClick : function (event) {
+			var target = event_target(event);
+			imgurl = target.getAttribute('imgurl');
+			encounter_id = target.getAttribute('encounter_id');
+			photo_id = target.getAttribute('id'); // uninque path and name for an encounter's photo
 			var fluke_tracer = $("#fluke_tracer");
 			if (fluke_tracer.length==0){
 				// if the fluke_tracer div (pseudo-window) does not yet exist, create it
@@ -585,9 +685,10 @@ var comEcostatsTracing = (function(){
 			}
 		},
 
-		onMenuSelect : function(evt){
+		// direct events from a user's menu selections
+		onMenuSelect : function(event){
 			hide_node_types_select();
-			var event_id=evt.target.id;
+			var event_id=event_target(event).id;
 			switch (event_id){
 				case 'fluke_trace_close': close_tracer(); break;
 				case 'fluke_trace_left':
@@ -602,12 +703,12 @@ var comEcostatsTracing = (function(){
 				case 'fluke_trace_insert_nodes': node_edit_type=3; edit_node_change(node_edit_type); break;
 				case 'fluke_trace_edit_nodes_type': node_edit_type=4; edit_node_change(node_edit_type); break;
 			} 
-			hide_child_div(evt); // hides the sub-menu
+			hide_child_div(event); // hides the sub-menu
 		},
 		
 		// public method for mouse over events to show sub menu DIV elements
-		onMenuShow : function(evt){
-			show_child_div(evt);
+		onMenuShow : function(event){
+			show_child_div(event);
 		},
 		
 		// public method to call when the fluke_tracer divide is shown -- use to initialize the div element, image and paperscript
@@ -631,12 +732,18 @@ var comEcostatsTracing = (function(){
 			// get the current image to show from the url
 			//imgurl='http://localhost:8080/caribwhale_data_dir/encounters/1/b/1b4dec1b-f100-4bf7-af55-655987b3ad91/gray.png';
 			add_image(imgurl);
+			if (first_load==true){
+				// try to deal with paperscript and jQuery combined problem that otherwise results in not the full image appearing on first load
+				paper.setup(canvas);
+				add_image(imgurl);
+				first_load=false;
+			}
 			set_fluke_side('fluke_trace_left');
 			// load and existing path tracing for this encounter image
-			// $.post('../FlukeGetTracing', {encounter_id:encounter_id, photo_id:photo_id}, loadtracing, "json");
+			$.post('../FlukeGetTracing', {encounter_id:encounter_id, photo_id:photo_id}, loadtracing);//, "json");
 		},
 		
-		onDraw : function(evt){
+		onDraw : function(event){
 			var div=document.getElementById('removediv');
 			div.style.visibility='hidden';
 			div.style.display='none';
@@ -649,7 +756,7 @@ var comEcostatsTracing = (function(){
 		},
 				
 		// Shows the tools tab panel
-		onImageTools : function(evt){
+		onImageTools : function(event){
 			var div=document.getElementById('drawdiv');
 			div.style.visibility='hidden';
 			div.style.display='none';
@@ -661,7 +768,7 @@ var comEcostatsTracing = (function(){
 		},
 		
 		// Flip the image horizontally
-		onFlip : function(evt){
+		onFlip : function(event){
 			// flip matrix: -1,0,0,1,0,0
 			paper.project.activeLayer.children[0].matrix['a']=-1*paper.project.activeLayer.children[0].matrix['a'];
 			paper.project.activeLayer.children[0].applyMatrix=true;
@@ -669,7 +776,7 @@ var comEcostatsTracing = (function(){
 			paper.view.update();
 		},	
 		
-		rangechange : function(evt){
+		rangechange : function(event){
 			var range=document.getElementById('myRange');
 			var items=paper.project.activeLayer.children;
 			items[0].scale(1.0);
@@ -678,7 +785,7 @@ var comEcostatsTracing = (function(){
 		},
 		
 		// rotate the image
-		rotatechange : function(evt){
+		rotatechange : function(event){
 			var rotate=document.getElementById('myRotate');
 			var items=paper.project.activeLayer.children;
 			items[0].rotate(-items[0].matrix.rotation);
@@ -698,6 +805,15 @@ var comEcostatsTracing = (function(){
 				hit_result.item.data.id = selectnode.selectedIndex;
 				paper.view.update();
 			};
+		},
+		
+		onCurlChange : function(event){
+			var cb = document.getElementById(event_target(event).id);
+			if (fluke_side==0){
+				curled_left=cb.checked;
+			}else{
+				curled_right=cb.checked;
+			}
 		},
 		
 		// closes the select list of marked fluke node types using the escape key
