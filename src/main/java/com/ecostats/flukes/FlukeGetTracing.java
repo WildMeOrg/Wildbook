@@ -84,14 +84,6 @@ public class FlukeGetTracing extends HttpServlet {
 		return result;
 	}
 
-	private JSONArray createJsonArray(double[] array){
-		JSONArray jArray = new JSONArray();
-		for (int i = 0;i<array.length;i++){
-			jArray.put(array[i]);
-		}
-		return jArray;
-	}
-
 	/**
 	 * @param request
 	 * @param datasource
