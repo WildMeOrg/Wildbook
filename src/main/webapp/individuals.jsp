@@ -879,7 +879,7 @@ function dataTypes(obj, fieldName) {
 if(CommonConfiguration.isIntegratedWithWildMe(context)){
 %>
 <td>
-<a href="http://fb.wildme.org/wildme/public/profile/<%=sharky.getIndividualID()%>" target="_blank"><img src="images/wild-me-link.png" /></a>
+<a href="http://fb.wildme.org/wildme/public/profile/<%=CommonConfiguration.getProperty("wildMeDataSourcePrefix", context) %><%=sharky.getIndividualID()%>" target="_blank"><img src="images/wild-me-link.png" /></a>
 </td>
 <%
 }
