@@ -1547,6 +1547,25 @@ public class Shepherd {
     Collection c = (Collection) (samples.execute());
     return (new ArrayList<TissueSample>(c));
   }
+  
+  public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
+    ArrayList<TissueSample> al = new ArrayList<TissueSample>();
+    if(indy.getEncounters()!=null){
+      int numEncounters = indy.getEncounters().size();
+      for (int i = 0; i < numEncounters; i++) {
+        Encounter enc = (Encounter) indy.getEncounters().get(i);
+        if(getAllTissueSamplesForEncounter(enc.getCatalogNumber())!=null){
+          List<TissueSample> list = getAllTissueSamplesForEncounter(enc.getCatalogNumber());
+          if(list.size()>0){
+            al.addAll(list);
+          }
+        }
+      }
+    return al;
+    }
+    return null;
+  }
+  
 
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
