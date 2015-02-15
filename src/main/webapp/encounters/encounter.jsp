@@ -3972,9 +3972,8 @@ dlgSample.dialog("open");
 
 <p>
 <%
-List<TissueSample> tissueSamples=enc.getTissueSamples();
-//List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
-
+//List<TissueSample> tissueSamples=enc.getTissueSamples();
+List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
 
 if((tissueSamples!=null)&&(tissueSamples.size()>0)){
 	
