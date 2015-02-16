@@ -39,17 +39,17 @@ var comEcostatsTracing = (function(){
 	var remove_node=false;
 	var node_edit_type=1;
 	var fluke_side=0; // 0=left, 1=right
+	var trace_type=1; // 1=Feature point nodes defined and mapped, 2=Contour point tracing only
 	var imgurl=null;
 	var encounter_id=null;
 	var photo_id=null;
-	var curled=false;
 	var curled_left=false;
 	var curled_right=false;
 	var node_edit_types={0:'none',1:'addnode',2:'removenode',3:'insertnode',4:'typenode'};
 	
 	function event_target(evt){
-	    var evt = evt || window.event;
-	    var target = evt.target || evt.srcElement;
+	    var evnt = evt || window.event;
+	    var target = evnt.target || evnt.srcElement;
 	    if (target.nodeType == 3) { // Safari bug
 	        target = target.parentNode;
 	    }
@@ -58,15 +58,16 @@ var comEcostatsTracing = (function(){
 
 	// Adds a div and select list to let the user define the type of structure at each node of the tracing. 
 	function show_node_type_select(point){
-		var selectdiv=document.getElementById('comEcostatsTracingNodeDiv')
+		var selectnode;
+		var selectdiv=document.getElementById('comEcostatsTracingNodeDiv');
 		// create the div and select list if it does not exist
 		if (selectdiv==undefined || selectdiv==null){
 			selectdiv = document.createElement('div');
 			selectdiv.setAttribute('id','comEcostatsTracingNodeDiv');
 			//selectdiv.setAttribute('width','200px');
-			selectdiv.style.position='relative'
+			selectdiv.style.position='relative';
 			selectdiv.style.visibility='hidden'; 
-			var selectnode = document.createElement('select');
+			selectnode = document.createElement('select');
 			selectnode.setAttribute("name", "comEcostatsTracingNodeSelect");
 			selectnode.setAttribute("id", "comEcostatsTracingNodeSelect");
 			/* setting an onchange event */
@@ -82,7 +83,7 @@ var comEcostatsTracing = (function(){
 			selectnode.onchange=comEcostatsTracing.onChange; 
 			selectnode.onkeydown=comEcostatsTracing.onKeyDown;
 		}else{
-			var selectnode = document.getElementById('comEcostatsTracingNodeSelect');
+			selectnode = document.getElementById('comEcostatsTracingNodeSelect');
 		}
 		// bring to front of all other elements
 		selectdiv.style['z-index']='9999';
@@ -96,7 +97,7 @@ var comEcostatsTracing = (function(){
 		var hit_result = node_types_group.hitTest(point);
 		if (hit_result){
 			// get the select list
-			var selectnode=document.getElementById('comEcostatsTracingNodeSelect');
+			selectnode=document.getElementById('comEcostatsTracingNodeSelect');
 			// set the select list selected item to the node type at the node where the user clicked with the mouse 
 			selectnode.selectedIndex=hit_result.item.data.id;
 		}
@@ -116,7 +117,7 @@ var comEcostatsTracing = (function(){
 	function make_tracer_div(){
 		var div_fluke_tracer=document.createElement('div');
 		div_fluke_tracer.setAttribute('id','fluke_tracer');
-		div_fluke_tracer.style.position='relative'
+		div_fluke_tracer.style.position='relative';
 		div_fluke_tracer.setAttribute('style','display:none;background-color:#fff;border:1px solid gray;padding:1em;border-radius:7px;position:absolute;z-index:9999;');
 		// create a set of menu items to work with the image
 		var menus=get_menus();
@@ -174,7 +175,7 @@ var comEcostatsTracing = (function(){
 			var menu_div=document.createElement('div');
 			menu_div.style.visibility='hidden';
 			menu_div.style.display='none';
-			menu_div.appendChild(dul)
+			menu_div.appendChild(dul);
 			parent_menu.appendChild(menu_div);
 		}else{
 			dul.setAttribute('id','pmenu');
@@ -246,7 +247,7 @@ var comEcostatsTracing = (function(){
 		var test_element=event_target(event);
 		while (test_element!=null){
 			if (test_element.nextSibling.nodeName.toUpperCase()=='DIV' || test_element.nextSibling.localName.toUpperCase()=='DIV'){
-				var showdiv=test_element.nextSibling
+				var showdiv=test_element.nextSibling;
 				showdiv.style.visibility='visible';
 				showdiv.style.display='';
 				break;
@@ -259,7 +260,7 @@ var comEcostatsTracing = (function(){
 		var test_element=event_target(event);
 		while (test_element!=null){
 			if (test_element.parentElement.nodeName.toUpperCase()=='DIV' || test_element.parentElement.localName.toUpperCase()=='DIV'){
-				var hidediv=test_element.parentElement
+				var hidediv=test_element.parentElement;
 				if (!hidediv.hasAttribute('class')){ // do not hide the main menu band
 					hidediv.style.visibility='hidden';
 					hidediv.style.display='none';
@@ -282,7 +283,7 @@ var comEcostatsTracing = (function(){
 	
 	// hides the div element with the select node type select list
 	function hide_node_types_select(){
-		var selectdiv=document.getElementById('comEcostatsTracingNodeDiv')
+		var selectdiv=document.getElementById('comEcostatsTracingNodeDiv');
 		if (selectdiv!=undefined){
 			selectdiv.style.visibility='hidden';
 		}
@@ -303,7 +304,7 @@ var comEcostatsTracing = (function(){
 			dscroll.appendChild(canvas);
 			fluke_tracer.context.appendChild(dscroll);
 		}
-		return canvas
+		return canvas;
 	};
 
 	// clear a tracing 
@@ -453,11 +454,13 @@ var comEcostatsTracing = (function(){
 	
 	// sends the tracing node data to the server to save.
 	function save_tracings(){
-		if (paper.project.activeLayer.children[1].children[0].length==0){
+		var left_fluke_path = paper.project.activeLayer.children[1].children[0];
+		if (left_fluke_path.length==0){
 			alert('You must create a left fluke tracing before saving.');
 			return;
 		}
-		if (paper.project.activeLayer.children[2].children[0].length==0){
+		right_fluke_path = paper.project.activeLayer.children[2].children[0];
+		if (right_fluke_path.length==0){
 			alert('You must create a right fluke tracing before saving.');
 			return;
 		}		
@@ -468,7 +471,7 @@ var comEcostatsTracing = (function(){
 		var right_node_types=get_node_types(2);
 		var notch_cb = document.getElementById('notch_cb');
 		var notch_open = notch_cb.checked;
-		$.post( "../FinTraceServlet", {path_left:left_path, nodes_left:left_node_types, path_right:right_path, nodes_right:right_node_types, encounter_id:encounter_id, photo_id:photo_id, curled_left:curled_left, curled_right:curled_right, notch_open:notch_open}, aftersave); //, "json");
+		$.post( "../FinTraceServlet", {path_left:left_path, nodes_left:left_node_types, path_right:right_path, nodes_right:right_node_types, encounter_id:encounter_id, photo_id:photo_id, trace_type:trace_type, curled_left:curled_left, curled_right:curled_right, notch_open:notch_open}, aftersave); //, "json");
 		// send here to server by AJAX
 		modified=false;
 	};
@@ -531,7 +534,7 @@ var comEcostatsTracing = (function(){
 				 }
 			});
 		}
-		dialog.innerHTML=''
+		dialog.innerHTML='';
 		if (individuals.length>0){
 			var p = document.createElement('p');
 			var t = document.createTextNode('Matched Individuals:');
@@ -564,10 +567,20 @@ var comEcostatsTracing = (function(){
 	function loadtracing(data){
 		if (data !== null){
 			try{
+				var jparsed;
+				var cbc = document.getElementById('curled_cb');
+				var cbn = document.getElementById('notch_cb');
 				if (typeof data === 'object'){
-					var jparsed = data;
+					jparsed = data;
 				}else{
-					var jparsed = JSON.parse(data);
+					jparsed = JSON.parse(data);
+				}
+				if (jparsed.left_fluke==null || jparsed.left_fluke==undefined){
+					curled_left=false;
+					curled_right=false;
+					cbc.checked=false;
+					cbn.checked=false;
+					return;
 				}
 				// draw the left path if any
 				if (jparsed.left_fluke.x.length>0){
@@ -578,12 +591,11 @@ var comEcostatsTracing = (function(){
 					draw_loaded_tracing(jparsed.right_fluke,2);
 				}
 				// update fluke notch open and curled values
+				trace_type=jparsed.left_fluke.traceType;
 				curled_left=jparsed.left_fluke.curled;
 				curled_right=jparsed.right_fluke.curled;
-				var cb = document.getElementById('curled_cb');
-				cb.checked=curled_left;
-				cb = document.getElementById('notch_cb');
-				cb.checked=jparsed.left_fluke.notchOpen;
+				cbc.checked=curled_left;
+				cbn.checked=jparsed.left_fluke.notchOpen;
 			}catch(err){ // just show the data, probably an error message.
 				alert(data);
 				return;
@@ -630,7 +642,7 @@ var comEcostatsTracing = (function(){
 
 	// dynamically add needed CSS for the menus
 	function addCss(){
-		var sheet = document.createElement('style')
+		var sheet = document.createElement('style');
 		sheet.innerHTML = '#pmenu_container {  width: 100%;  background: #7484ad;  background-color: #7484ad;  height: 26px;} #pmenu li:hover > div > ul {  display: block;  position: absolute;  top: -11px;  left: 80px;  padding: 10px 30px 30px 30px;  width: 120px;  z-index: 99;} #pmenu > li:hover > div > ul {  left: -30px;  top: 16px;  z-index: 99;} .mainmenu, .menuitem {	display: inline-block; 	margin: 0px 0 0px 0px; 	position: relative; 	padding-left: 0.2em;	padding-right: 1.5em; 	font-size: 12pt;	font-weight: bold;	height: 14pt; 	z-index: 100;	cursor: pointer;	border-bottom: } .menuitem, .menuitem{min-width: 190px;} .canvas{cursor:crosshair;}';
 		document.body.appendChild(sheet);
 	};
@@ -678,7 +690,7 @@ var comEcostatsTracing = (function(){
 			if (fluke_tracer.length==0){
 				// if the fluke_tracer div (pseudo-window) does not yet exist, create it
 				make_tracer_div();
-				var fluke_tracer = $("#fluke_tracer");
+				fluke_tracer = $("#fluke_tracer");
 			}
 			if (fluke_tracer!=null){
 				fluke_tracer.show('fast', comEcostatsTracing.onShowTracer);
@@ -725,7 +737,7 @@ var comEcostatsTracing = (function(){
 			// assign the canvas to the paperscript paper object
 			paper.setup(canvas);
 			// create a new tool to process mouse and keyboard events
-			paper.tool = new paper.Tool()
+			paper.tool = new paper.Tool();
 			paper.tool.attach('mousedown',comEcostatsTracing.onImageMouseDown);		
 			// center the div element in the current visible window space
 			jqCenter(fluke_tracer);
@@ -843,7 +855,7 @@ var comEcostatsTracing = (function(){
 				var tracing_group = paper.project.activeLayer.children[fluke_side+1];
 				var tracing_path = tracing_group.children[0];
 				var np = tracing_path.getNearestPoint(event.point);
-				var segment = tracing_path.getLocationOf(np)
+				var segment = tracing_path.getLocationOf(np);
 				var index = segment._segment2.index;
 				tracing_path.insert(index,event.point);
 				add_point_path(tracing_group.children[1],event.point,index);
@@ -886,7 +898,7 @@ var comEcostatsTracing = (function(){
 			}
 		}
 		
-	}
+	};
 })();
 
 

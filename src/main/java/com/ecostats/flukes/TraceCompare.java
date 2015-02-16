@@ -487,6 +487,9 @@ public class TraceCompare {
   private RealVector flukeSideDistanceIndex(RealVector x, RealVector y, double adjust){
     RealVector v = new ArrayRealVector();
     int notch = x.getDimension(); // fluke notch should be the last value of the tracing vector
+    if (notch<=2){
+    	return v;
+    }
     // get sub-vectors between fluke tip index and notch index, non-inclusive
     RealVector xn=x.getSubVector(1,notch-2);
     RealVector yn=y.getSubVector(1,notch-2);
@@ -579,6 +582,10 @@ public class TraceCompare {
     double[] mv = {0, 0};
     RealVector marktypes_known; // distance vector of known flukes from database
     RealVector distance_test = this.tracingDistanceIndex(test_fluke);
+    if (distance_test.getDimension()==0){
+    	// either the fluke to test has no data, or there are no node tags identifying the fluke structures
+    	return null;
+    }
     RealVector marktypes_test = this.markTypesNoNotchTip(test_fluke);
     double ptx = this.getPtx(test_fluke);
     // processing
