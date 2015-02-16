@@ -63,7 +63,7 @@ public class FlukeGetTracing extends HttpServlet {
 		    	}
 		    }
 	    }catch (Exception e) {
-	    	out.println("{}");
+	    	out.println("{'error': 'An internal error occurred.'}");
 	    }finally{
 	    	datasource.close();
 	    	out.close();
