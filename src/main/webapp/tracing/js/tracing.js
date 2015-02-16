@@ -568,10 +568,19 @@ var comEcostatsTracing = (function(){
 		if (data !== null){
 			try{
 				var jparsed;
+				var cbc = document.getElementById('curled_cb');
+				var cbn = document.getElementById('notch_cb');
 				if (typeof data === 'object'){
 					jparsed = data;
 				}else{
 					jparsed = JSON.parse(data);
+				}
+				if (jparsed.left_fluke==null || jparsed.left_fluke==undefined){
+					curled_left=false;
+					curled_right=false;
+					cbc.checked=false;
+					cbn.checked=false;
+					return;
 				}
 				// draw the left path if any
 				if (jparsed.left_fluke.x.length>0){
@@ -585,10 +594,8 @@ var comEcostatsTracing = (function(){
 				trace_type=jparsed.left_fluke.traceType;
 				curled_left=jparsed.left_fluke.curled;
 				curled_right=jparsed.right_fluke.curled;
-				var cb = document.getElementById('curled_cb');
-				cb.checked=curled_left;
-				cb = document.getElementById('notch_cb');
-				cb.checked=jparsed.left_fluke.notchOpen;
+				cbc.checked=curled_left;
+				cbn.checked=jparsed.left_fluke.notchOpen;
 			}catch(err){ // just show the data, probably an error message.
 				alert(data);
 				return;
