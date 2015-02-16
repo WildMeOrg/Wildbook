@@ -63,7 +63,7 @@ public class FlukeGetTracing extends HttpServlet {
 		    	}
 		    }
 	    }catch (Exception e) {
-	    	out.println("{}");
+	    	out.println("{'error': 'An internal error occurred.'}");
 	    }finally{
 	    	datasource.close();
 	    	out.close();
@@ -82,14 +82,6 @@ public class FlukeGetTracing extends HttpServlet {
     	result.put("left_fluke", leftfluke);
     	result.put("right_fluke", rightfluke);
 		return result;
-	}
-
-	private JSONArray createJsonArray(double[] array){
-		JSONArray jArray = new JSONArray();
-		for (int i = 0;i<array.length;i++){
-			jArray.put(array[i]);
-		}
-		return jArray;
 	}
 
 	/**

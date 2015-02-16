@@ -74,7 +74,9 @@ public class FlukeMatchServlet extends HttpServlet {
 			    		// do the trace comparison
 			    		TraceCompare tc = new TraceCompare();
 			    		TreeSet<Fluke> matches = tc.processCatalog(flukes,fluke);
-			    		if (matches.size()>0){
+			    		if (matches == null){ 
+			    			out.println("The fluke to test has no assigned node features types. Please assign features types to one or more nodes on the fluke other than tip and notch.");
+			    		}else if (matches.size()>0){
 			    			String result = identifyMatches(matches);
 			    			out.println(result);
 			    		}else{
