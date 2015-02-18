@@ -81,7 +81,12 @@ public class GADolphinImporter {
 				    		
 				    		String occurID = stringDate.trim()+"."+cell2SightingNumber.toString().trim();
 				    		String team=row.getCell(0).toString();
-				    		String timeString=row.getCell(3).toString().replaceAll(":", "");
+				    		String timeString=row.getCell(3).toString().replaceAll(":", "").replaceAll("AM", "").replaceAll("PM", "").replaceAll(":00 ","").trim();
+				    		if(timeString.indexOf(".")!=-1){
+				    			int marker=timeString.indexOf(".");
+				    			timeString=timeString.substring(0,marker);
+				    		}
+				    		
 				    		
 				    		//dates are in M.D.Y format
 				    		StringTokenizer str=new StringTokenizer(stringDate,".");
@@ -91,14 +96,18 @@ public class GADolphinImporter {
 				    		int hour=-1;
 				    		String minutes="00";
 				    		
+				    		
+				    		System.out.println("     @@@@@: I see time string as "+timeString);
 				    		//time
 				    		if(timeString.length()==3){
 				    			hour=(new Integer(timeString.substring(0,1))).intValue();
 				    			minutes=timeString.substring(1,3);
+				    			System.out.println("     @@@@@: Setting time as: "+hour+":"+minutes);
 				    		}
 				    		else if(timeString.length()==4){
-				    			hour=(new Integer(timeString.substring(0,1))).intValue();
-				    			minutes=timeString.substring(2,3);
+				    			hour=(new Integer(timeString.substring(0,2))).intValue();
+				    			minutes=timeString.substring(2,4);
+				    			System.out.println("     @@@@@: Setting time as: "+hour+":"+minutes);
 				    		}
 				    		
 				    		
