@@ -1,0 +1,3 @@
+#!/bin/sh 
+
+java -cp ".;C:/github-shepherd/target/wildbook-5.2.0-RELEASE/WEB-INF/lib/*;C:/github-shepherd/target/wildbook-5.2.0-RELEASE/WEB-INF/classes;C:/github-shepherd/target/wildbook-5.2.0-RELEASE/WEB-INF/classes/bundles" com.jholmberg.GADolphinImporter "C:/GADolphin/GA CFS PID Data/GACFS.PID.Data.Sheet2014.12.16MD.xlsx" "C:/GADolphin/GA CFS Catalog 2014.10.14" "C:/apache-tomcat-8.0.5/webapps/shepherd_data_dir"
