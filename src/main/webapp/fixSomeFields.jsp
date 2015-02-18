@@ -59,80 +59,38 @@ int numIssues=0;
 DateTimeFormatter fmt = ISODateTimeFormat.date();
 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 
+String urlToThumbnailJSPPage="http://localhost:8080/wildbook-5.2.0-RELEASE/";
 
-
+/*
 while(allEncs.hasNext()){
 	
 
 	Encounter sharky=(Encounter)allEncs.next();
-
-
-	
-	if((sharky.getDWCDateAdded()!=null)&&(sharky.getDWCDateAddedLong()==null)){
-		String isoTime=sharky.getDWCDateAdded();
-		
-		if(isoTime.indexOf("T")!=-1){isoTime=isoTime.substring(0,isoTime.indexOf("T"));}
-		
-	
-		
-		try{
-			org.joda.time.DateTime dt=fmt.parseDateTime(isoTime);
-			sharky.setDWCDateAdded(new Long(dt.getMillis()));
-			
-			if(sharky.getDWCDateAdded().indexOf("T")!=-1){sharky.setDWCDateAdded(isoTime);}
-			
-		    myShepherd.commitDBTransaction();
-		    myShepherd.beginDBTransaction();
-		}
-		catch(Exception e){
-			numIssues++;
-			%>
-			<%=sharky.getCatalogNumber() %> was an issue with isoDateTime: <%=sharky.getDWCDateAdded() %> <br />
-			<%
-		}
-		
-			
+	if((sharky.getSinglePhotoVideo()!=null)&&(sharky.getSinglePhotoVideo().size()>0)){
+	try{
+    //System.out.println("Trying to render a thumbnail for: "+IDKey+ "as "+thumbnailTheseImages.get(q));
+    String urlString=urlToThumbnailJSPPage+"resetThumbnail.jsp?number="+sharky.getCatalogNumber()+"&imageNum=1";
+    String urlString2=urlToThumbnailJSPPage+"encounters/encounter.jsp?number="+sharky.getCatalogNumber()+"&imageNum=1";
+    URL url = new URL(urlString);
+    URL url2 = new URL(urlString2);
+      BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+      in.close();
+      Thread.sleep(500);
+      BufferedReader in2 = new BufferedReader(new InputStreamReader(url2.openStream()));
+      in2.close();
+      Thread.sleep(500);
+  } 
+  catch (Exception e) {
+    
+    //System.out.println("Error trying to render the thumbnail for "+IDKey+".");
+    e.printStackTrace();
+    
+  }
 	}
-	else if((sharky.getDWCDateAdded()==null)&&(sharky.getDWCDateAddedLong()!=null)){
-		org.joda.time.DateTime dt=new org.joda.time.DateTime(sharky.getDWCDateAddedLong());
-		sharky.setDWCDateAdded(dt.toString(fmt));
-		myShepherd.commitDBTransaction();
-	    myShepherd.beginDBTransaction();
-	}
-
-	
-	//check for old, incorrect dates
-	/*
-	org.joda.time.DateTime dt=new org.joda.time.DateTime(sharky.getDWCDateAddedLong());
-	
-	String encYear=Integer.toString(sharky.getYear());
-	String encSubmissionYear=Integer.toString(dt.getYear());		
-	if((sharky.getYear()>0)&&(!Util.isUUID(sharky.getCatalogNumber()))&&(sharky.getCatalogNumber().indexOf(encSubmissionYear)==-1)){
-		numIssues++;
-		int my200Index=sharky.getCatalogNumber().indexOf("200");
-		String probableYear=sharky.getCatalogNumber().substring(my200Index,(my200Index+4));
-		
-		%>
-		<p><%=sharky.getCatalogNumber() %> has a submission year of <%=encSubmissionYear %>, which I want to set to <%=probableYear %>.</p>
-		<%
-		
-		sharky.setDWCDateAdded(probableYear);
-		
-		sharky.setDWCDateAdded(parser1.parseDateTime(probableYear).getMillis());
-		myShepherd.commitDBTransaction();
-	    myShepherd.beginDBTransaction();
-	}
-	*/
-	
-	//fix for lack of assignment of Occurrence IDs to Encounter
-	
-
-
-	
+  
 
 }
-
-
+*/
 
 while(allSharks.hasNext()){
 
@@ -159,6 +117,7 @@ while(allSharks.hasNext()){
 */
 	
 }
+
 
 
 myShepherd.commitDBTransaction();
