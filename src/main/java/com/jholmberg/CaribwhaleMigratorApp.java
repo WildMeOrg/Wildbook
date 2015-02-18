@@ -1254,7 +1254,7 @@ public class CaribwhaleMigratorApp {
 
 
 
-private static void copyFile(File thisFile, File outputFile){
+public static void copyFile(File thisFile, File outputFile){
   String indiesFilename=thisFile.getName();
   try{
 
