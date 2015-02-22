@@ -63,7 +63,7 @@ public class ScanAppletSupport extends HttpServlet {
     GridManager gm = GridManagerFactory.getGridManager();
     String supportedAppletVersion = gm.getSupportedAppletVersion();
 
-    if ((request.getParameter("version") != null) && (request.getParameter("version").equals(supportedAppletVersion)) && (request.getParameter("nodeIdentifier") != null)) {
+    //if ((request.getParameter("version") != null) && (request.getParameter("version").equals(supportedAppletVersion)) && (request.getParameter("nodeIdentifier") != null)) {
       //System.out.println("scanAppletSupport: Cleared the first hurdle in scanAppletSupport");
 
       boolean targeted = false;
@@ -93,7 +93,7 @@ public class ScanAppletSupport extends HttpServlet {
           getEncounter(myShepherd, request, response);
         }
       }
-    }
+    //}
   } //end doPost method
 
 
