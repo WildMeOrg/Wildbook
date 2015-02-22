@@ -56,14 +56,14 @@ public class WorkAppletHeadlessEpic {
 
   /*
   *Obtain a connection to the server to send/receive serialized content
-  */
+
   private URLConnection getConnection(String action, String newEncounterNumber, int groupSize, String nodeID, int numProcessors) throws IOException {
     String encNumParam = "";
     if (!newEncounterNumber.equals("")) {
       encNumParam = "&newEncounterNumber=" + newEncounterNumber;
     }
     URL u = new URL("http://" + thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + action + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
-    System.out.println("...Using nodeIdentifier: " + nodeID + "...");
+    System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
     URLConnection con = u.openConnection();
     con.setDoInput(true);
     con.setDoOutput(true);
@@ -73,6 +73,7 @@ public class WorkAppletHeadlessEpic {
     con.setAllowUserInteraction(false);
     return con;
   }
+    */
 
   /*
   *Send serialized content to the server.
@@ -80,12 +81,20 @@ public class WorkAppletHeadlessEpic {
   private void sendObject(ObjectOutputStream con, Object obj) throws IOException {
     System.out.println("     : Sending returned results...");
     //new modification
-    ObjectOutputStream out = con;
-    out.reset();
-    if (obj != null) {
-      out.writeObject(obj);
+    ObjectOutputStream out=null;
+    try{
+      out = con;
+      out.reset();
+      if (obj != null) {
+        out.writeObject(obj);
+      }
+      out.close();
+     }
+    catch(Exception e){
+      if(out!=null)out.close();
+      System.out.println("     : Transmission exception in sendObject.");
+      e.printStackTrace();
     }
-    out.close();
     System.out.println("     : Transmission complete. Waiting for response...");
   }
 
@@ -110,7 +119,7 @@ public class WorkAppletHeadlessEpic {
     long startTime=(new GregorianCalendar()).getTimeInMillis();
     
     //server connection
-    URLConnection con;
+    URLConnection con=null;
 
 
     //whether this is a right-side pattern scan or a left-side
@@ -131,7 +140,7 @@ public class WorkAppletHeadlessEpic {
     try {
 
       //let's allocate an object to handle an OutOfMemoryError
-      URL recoverURL = new URL("http://" + thisURLRoot + "/encounters/sharkGrid.jsp?groupSize=1&autorestart=true" + targeted + "&numComparisons=" + numComparisons);
+      //URL recoverURL = new URL("http://" + thisURLRoot + "/encounters/sharkGrid.jsp?groupSize=1&autorestart=true" + targeted + "&numComparisons=" + numComparisons);
 
       //check the number of processors
       Runtime rt = Runtime.getRuntime();
@@ -158,7 +167,7 @@ public class WorkAppletHeadlessEpic {
       while (repeat) {
 
         //cleanup anything previously in scope
-        System.gc();
+        //System.gc();
 
 
         try {
@@ -182,11 +191,30 @@ public class WorkAppletHeadlessEpic {
           ScanWorkItem swi = new ScanWorkItem();
           Vector workItems = new Vector();
           Vector workItemResults = new Vector();
+          ObjectInputStream inputFromServlet=null;
           try {
             //let's get some work from the server
             System.out.println("\n\nLooking for some work to do...running time: "+(currentTime-startTime)/60000+" minutes");
-            con = getConnection("getWorkItemGroup", holdEncNumber, groupSize, nodeID, numProcessors);
-            ObjectInputStream inputFromServlet = new ObjectInputStream(con.getInputStream());
+            
+            
+            //con = getConnection("getWorkItemGroup", holdEncNumber, groupSize, nodeID, numProcessors);
+            String encNumParam = "&newEncounterNumber=" + holdEncNumber;
+           
+            URL u = new URL("http://" + thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
+            System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
+           
+            con = u.openConnection();
+            
+            con.setDoInput(true);
+            con.setDoOutput(true);
+            con.setUseCaches(false);
+            con.setDefaultUseCaches(false);
+            con.setRequestProperty("Content-type", "application/octet-stream");
+            con.setAllowUserInteraction(false);
+            
+            System.out.println("     Opened a URL connection to: "+con.getURL().toString());
+            
+            inputFromServlet = new ObjectInputStream(con.getInputStream());
             workItems = (Vector) inputFromServlet.readObject();
             
             if(workItems.size()>0){
@@ -205,6 +233,7 @@ public class WorkAppletHeadlessEpic {
               }
               else {
                 System.out.println("\n\nI hit the timeout and am shutting down after "+(timeDiff/1000/60)+" minutes.");
+                inputFromServlet.close();
                 System.exit(0);
                 
               }
@@ -214,7 +243,8 @@ public class WorkAppletHeadlessEpic {
             inputFromServlet = null;
           } 
           catch (Exception ioe) {
-            ioe.printStackTrace();
+            if(inputFromServlet!=null)inputFromServlet.close();
+            //ioe.printStackTrace();
             successfulConnect = false;
             //Thread.sleep(60000);
             //System.exit(0);
@@ -324,22 +354,34 @@ public class WorkAppletHeadlessEpic {
                 // Specify the content type that we will send binary data
                 finishConnection.setRequestProperty("Content-Type", "application/octet-stream");
 
-                // send the results Vector to the servlet using serialization
-                ObjectOutputStream outputToFinalServlet = new ObjectOutputStream(finishConnection.getOutputStream());
+                ObjectOutputStream outputToFinalServlet=null;
+                InputStream inputStreamFromServlet=null;
+                String line="";
+                
+                try{
+                  // send the results Vector to the servlet using serialization
+                  outputToFinalServlet = new ObjectOutputStream(finishConnection.getOutputStream());
 
-                sendObject(outputToFinalServlet, workItemResults);
+                  sendObject(outputToFinalServlet, workItemResults);
 
-                outputToFinalServlet.close();
-                outputToFinalServlet = null;
+                  outputToFinalServlet.close();
+                  outputToFinalServlet = null;
 
-                InputStream inputStreamFromServlet = finishConnection.getInputStream();
-                BufferedReader in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));
-                String line = in.readLine();
-                in.close();
-                System.out.println("     : Checkin response received...");
-                inputStreamFromServlet.close();
-                in = null;
-                inputStreamFromServlet = null;
+                  inputStreamFromServlet = finishConnection.getInputStream();
+                  BufferedReader in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));
+                  line = in.readLine();
+                  in.close();
+                  System.out.println("     : Checkin response received...");
+                  inputStreamFromServlet.close();
+                  in = null;
+                  inputStreamFromServlet = null;
+                
+                }
+                catch(Exception except){
+                  if(outputToFinalServlet!=null){outputToFinalServlet.close();}
+                  if(inputStreamFromServlet!=null){inputStreamFromServlet.close();}
+                }
+                
                 if (line.equals("success")) {
                   System.out.println("Successful transmit to and return code from the servlet.");
 
@@ -363,9 +405,10 @@ public class WorkAppletHeadlessEpic {
           workItemResults = null;
           swi = null;
 
-        } catch (OutOfMemoryError oome) {
-          oome.printStackTrace();
-          hb.setFinished(true);
+        } 
+        catch (OutOfMemoryError oome) {
+          //oome.printStackTrace();
+          //hb.setFinished(true);
           System.exit(0);
 
         } catch (Exception e) {
@@ -376,9 +419,10 @@ public class WorkAppletHeadlessEpic {
 
       } //end while
 
-    } catch (MalformedURLException mue) {
-      System.out.println("I hit a MalformedURLException while trying to create the recoverURL for OutOfMemoryErrors");
-      mue.printStackTrace();
+    } 
+    catch (Exception mue) {
+      System.out.println("I hit an Exception while trying to create the recoverURL for OutOfMemoryErrors");
+      //mue.printStackTrace();
       System.exit(0);
 
     }
