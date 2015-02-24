@@ -10,8 +10,8 @@
 <body>
 
 <div id="mma-queryImage">
-  <a href="${results[0].link!"#"}" target="_blank"><img src="${results[0].linkEH}" class="mma-queryImg"/></a>
-  <p>${results[0].name!"Unknown"?html}</p>
+  <a href="${(results[0].link)!"#"}" target="_blank"><img src="${(results[0].linkEH)!"#"}" class="mma-queryImg"/></a>
+  <p>${(results[0].name)!"Unknown"?html}</p>
 </div>
 
 <div id="mma-desc">
@@ -26,11 +26,11 @@
     </tr>
     <tr>
       <th>Match count:</th>
-      <td class="mma-count">${results[0].matches?size}</td>
+      <td class="mma-count">${(results[0].matches?size)!"0"}</td>
     </tr>
     <tr>
       <th>Confidence:<br/><span class="mma-small">(0:worst, 1:best)</span></th>
-      <td class="mma-confidence">${results[0].confidence?string("0.######")}</td>
+      <td class="mma-confidence">${(results[0].confidence?string("0.######"))!"N/A"}</td>
     </tr>
   </table>
 </div>
@@ -44,7 +44,7 @@
       <th>Matched image<br/><span class="mma-small">(opens in a new window)</span></td>
       <th>Query image</td>
     </tr>
-<#if results[0].matches?has_content>
+<#if (results[0].matches)??>
   <#list results[0].matches as item>
     <tr>
       <td class="rank">${item.rank}</td>
@@ -62,7 +62,7 @@
   </#list>
 <#else>
     <tr>
-      <td class="noMatches" colspan="3">No matches were found by the MantaMatcher algorithm</td>
+      <td class="noMatches" colspan="5">No matches were found by the MantaMatcher algorithm</td>
     </tr>
 </#if>
   </table>
