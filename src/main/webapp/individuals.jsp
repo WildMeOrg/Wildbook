@@ -1250,8 +1250,11 @@ $("a#deathdate").click(function() {
     	henc.put("location", enc.getLocation());
 	if ((enc.getImages()!=null) && (enc.getImages().size()>0)) henc.put("hasImages", true);
    	if ((myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasTissueSamples", true);
-   	if (enc.hasMeasurements()) henc.put("hasMeasurements", true);
-	henc.put("catalogNumber", enc.getEncounterNumber());
+   	
+   	//if (enc.hasMeasurements()) henc.put("hasMeasurements", true);
+   	if ((myShepherd.getMeasurementsForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasMeasurements", true);
+	
+   	henc.put("catalogNumber", enc.getEncounterNumber());
  	henc.put("alternateID", enc.getAlternateID());
 	henc.put("sex", enc.getSex());
 
