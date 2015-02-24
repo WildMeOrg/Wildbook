@@ -3047,6 +3047,25 @@ public class Shepherd {
   
 
   
+  public Measurement getMeasurementOfTypeForEncounter(String type, String encNum) {
+    String filter = "type == \""+type+"\" && correspondingEncounterNumber == \""+encNum+"\"";
+    Extent encClass = pm.getExtent(Measurement.class, true);
+    Query samples = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (samples.execute());
+    if((c!=null)&&(c.size()>0)){return (new ArrayList<Measurement>(c)).get(0);}
+    else{return null;}
+  }
+  
+  public ArrayList<Measurement> getMeasurementsForEncounter(String encNum) {
+    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
+    Extent encClass = pm.getExtent(Measurement.class, true);
+    Query samples = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (samples.execute());
+    if((c!=null)&&(c.size()>0)){return (new ArrayList<Measurement>(c));}
+    else{return null;}
+  }
+
+  
 
 } //end Shepherd class
 
