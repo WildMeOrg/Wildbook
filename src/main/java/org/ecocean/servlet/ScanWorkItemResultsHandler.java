@@ -242,7 +242,7 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
       
       
       
-      System.out.println("...writing out scanTask: "+scanTaskID+" to URL: "+u.toString());
+      System.out.println("...writing out scanTask result: "+scanTaskID+" to URL: "+u.toString());
       
       
       finishConnection = (HttpURLConnection)u.openConnection();
@@ -263,7 +263,7 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
    
       int responseCode = finishConnection.getResponseCode();
 
-      System.out.println("     Post parameters : " + urlParameters);
+      //System.out.println("     Post parameters : " + urlParameters);
       System.out.println("     Response Code : " + responseCode);
    
       BufferedReader in = new BufferedReader(
@@ -277,7 +277,7 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
       in.close();
    
       //print result
-      //System.out.println("     "+response.toString());
+      System.out.println("     "+response.toString());
       
 
       //process the returned line however needed

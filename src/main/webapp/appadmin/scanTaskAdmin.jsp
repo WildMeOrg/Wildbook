@@ -209,15 +209,7 @@ else{
     <td><%=numComplete%>/<%=numTaskTot%>
     </td>
     <td>
-      <%if ((numComplete > 0) && (numComplete >= numTaskTot)) {%>
-      <form name="scanNum<%=scanNum%>_writeOut" method="post"
-            action="../WriteOutScanTask"><input name="number" type="hidden"
-                                                id="number" value="<%=st.getUniqueNumber()%>"> <%
-
-        %> <input name="scanNum<%=scanNum%>_WriteResult" type="submit"
-                  id="scanNum<%=scanNum%>_WriteResult" value="Write Result"></form>
-      <br> <%
-      }
+      <%
       boolean hasPermissionForThisEncounter=false;
       if ((request.isUserInRole("admin")) || (request.getRemoteUser().equals(st.getSubmitter()))) {hasPermissionForThisEncounter=true;}
       else if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){

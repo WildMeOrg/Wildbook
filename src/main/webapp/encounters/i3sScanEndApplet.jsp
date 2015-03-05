@@ -61,12 +61,16 @@ context=ServletUtilities.getContext(request);
   <link
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/css/ecocean.css"
     rel="stylesheet" type="text/css"/>
+      <link href="../css/pageableTable.css" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+      
 </head>
 
 <style type="text/css">
+  
   #tabmenu {
     color: #000;
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid #CDCDCD;
     margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
@@ -80,10 +84,10 @@ context=ServletUtilities.getContext(request);
   }
 
   #tabmenu a, a.active {
-    color: #DEDECF;
-    background: #000;
-    font: bold 1em "Trebuchet MS", Arial, sans-serif;
-    border: 2px solid black;
+    color: #000;
+    background: #E6EEEE;
+    font: 0.5em "Arial, sans-serif;
+    border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
@@ -91,25 +95,25 @@ context=ServletUtilities.getContext(request);
   }
 
   #tabmenu a.active {
-    background: #FFFFFF;
+    background: #8DBDD8;
     color: #000000;
-    border-bottom: 2px solid #FFFFFF;
+    border-bottom: 1px solid #8DBDD8;
   }
 
   #tabmenu a:hover {
-    color: #ffffff;
-    background: #7484ad;
+    color: #000;
+    background: #8DBDD8;
   }
 
   #tabmenu a:visited {
-    color: #E8E9BE;
+    
   }
 
   #tabmenu a.active:hover {
-    background: #7484ad;
-    color: #DEDECF;
-    border-bottom: 2px solid #000000;
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
   }
+  
 </style>
 
 <body>
@@ -220,19 +224,59 @@ context=ServletUtilities.getContext(request);
 
 <p><em>Date of scan: <%=scanDate%>
 </em></p>
+
 <%}%>
-<table width="524" border="1" cellspacing="0" cellpadding="5">
-  <tr>
 
-    <td width="355" align="left" valign="top">
-      <table width="100%" border="1" align="left" cellpadding="3">
+
+<p><font size="+1">Visualizations for Potential Matches (as
+		  scored above)</font></p>
+		  <%
+		  
+
+		    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
+		    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
+		    System.out.println("Base URL is: " + baseURL);
+		    if (xmlOK) {
+		      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+		        feedURL = baseURL + encSubdir + "/lastFullRightI3SScan.xml?";
+		      } else {
+		        feedURL = baseURL + encSubdir + "/lastFullI3SScan.xml?";
+		      }
+		    }
+		    String rightSA = "";
+		    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+		      rightSA = "&filePrefix=extractRight";
+		    }
+		    System.out.println("I made it to the Flash without exception.");
+		  %>
+		  <OBJECT id="sharkflash"
+		          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
+		          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
+		    <PARAM NAME="movie"
+		           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
+		    <PARAM NAME="quality" VALUE="high">
+		    <PARAM NAME="scale" VALUE="exactfit">
+		    <PARAM NAME="bgcolor" VALUE="#ddddff">
+		    <EMBED
+		      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
+		      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
+		      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
+		      TYPE="application/x-shockwave-flash"
+		      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
+		  </OBJECT>
+		</p>
+<table class="tablesorter">
+  <thead>
+  
         <tr align="left" valign="top">
-          <td><strong>Shark</strong></td>
-          <td><strong> Encounter</strong></td>
-          <td><strong>Match Score </strong></td>
+          <th><strong>Shark</strong></th>
+          <th><strong> Encounter</strong></th>
+          <th><strong>Match Score </strong></th>
 
 
-        </tr>
+    </tr>
+        </thead>
+        <tbody>
         <%
           if (!xmlOK) {
 
@@ -242,16 +286,11 @@ context=ServletUtilities.getContext(request);
             for (int p = 0; p < results.length; p++) {
               if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
         <tr align="left" valign="top">
-          <td>
-            <table width="62">
-
-              <tr>
+         
                 <td width="60" align="left"><a
                   href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
                 </a></td>
-              </tr>
-            </table>
-          </td>
+             
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
@@ -292,15 +331,10 @@ context=ServletUtilities.getContext(request);
             Element enc2 = (Element) encounters.get(1);
         %>
         <tr align="left" valign="top">
-          <td>
-            <table width="62">
-
-              <tr>
+          
                 <td width="60" align="left"><a
                   href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
-                </a></td>
-              </tr>
-            </table>
+                </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
           <td>N/A</td>
@@ -350,22 +384,15 @@ context=ServletUtilities.getContext(request);
 
         %>
 
-      </table>
-    </td>
-  </tr>
-</table>
-</tr>
+      
+</tbody>
 </table>
 
-<p><font size="+1">Visualizations for Potential Matches (as
-  scored above)</font></p>
 
 <p>
 
 <p>
   <%
-    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
-    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
 
 //myShepherd.rollbackDBTransaction();
@@ -375,37 +402,10 @@ context=ServletUtilities.getContext(request);
     initresults = null;
     file = null;
     xmlReader = null;
+    
 
-    System.out.println("Base URL is: " + baseURL);
-    if (xmlOK) {
-      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        feedURL = baseURL + encSubdir + "/lastFullRightI3SScan.xml?";
-      } else {
-        feedURL = baseURL + encSubdir + "/lastFullI3SScan.xml?";
-      }
-    }
-    String rightSA = "";
-    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      rightSA = "&filePrefix=extractRight";
-    }
-    System.out.println("I made it to the Flash without exception.");
-  %>
-  <OBJECT id="sharkflash"
-          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
-          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
-    <PARAM NAME="movie"
-           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
-    <PARAM NAME="quality" VALUE="high">
-    <PARAM NAME="scale" VALUE="exactfit">
-    <PARAM NAME="bgcolor" VALUE="#ddddff">
-    <EMBED
-      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
-      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
-      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
-      TYPE="application/x-shockwave-flash"
-      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
-  </OBJECT>
-</p>
+
+%>
 <jsp:include page="../footer.jsp" flush="true"/>
 </div>
 </div>
