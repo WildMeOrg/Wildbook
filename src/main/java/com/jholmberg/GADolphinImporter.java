@@ -145,8 +145,43 @@ public class GADolphinImporter {
 						    			}
 						    			
 						    			
+						    			
+					    	    		//determine prelim fin code
+					    	    		String prelimFinCode="";
+						    			if((idrow.getCell(3)!=null)&&(!idrow.getCell(3).toString().trim().equals(""))){
+						    				prelimFinCode=idrow.getCell(3).toString();
+						    				//enc.setDynamicProperty("Prelim fin code", prelimFinCode);
+						    			}
+						    			
 						    		
 						    			Encounter enc=new Encounter();
+						    			
+						    			
+						    			
+					    	    		//catalog number
+					    	    		String proposedCatalogNumber=thisSightingID+encounterIDExtra+prelimFinCode.replaceAll(" " , "");
+					    	    		if(myShepherd.isEncounter(proposedCatalogNumber)){
+					    	    			int iter=0;
+					    	    			while(myShepherd.isEncounter((proposedCatalogNumber+"_"+iter))){
+					    	    				iter++;
+					    	    			}
+					    	    			proposedCatalogNumber+=("_"+iter);
+					    	    		}
+					    	    		
+					    	    		System.out.println("     Defining encounter number: "+enc.getCatalogNumber());
+					    	    		boolean isNewEncounter=false;
+					    	    		
+					    	    		if(myShepherd.isEncounter(proposedCatalogNumber)){
+					    	    			enc=myShepherd.getEncounter(proposedCatalogNumber);
+					    	    		}
+					    	    		else{enc.setCatalogNumber(proposedCatalogNumber);isNewEncounter=true;}
+					    	    		
+					    	    		
+					    	    		//set prelim fin code
+					    	    		if((idrow.getCell(3)!=null)&&(!idrow.getCell(3).toString().trim().equals(""))){
+						    				enc.setDynamicProperty("Prelim fin code", prelimFinCode);
+						    			}
+					    	    		
 						    			
 						    			enc.setState("approved");
 						    			enc.setIndividualID("Unassigned");
@@ -170,6 +205,147 @@ public class GADolphinImporter {
 					    					enc.setDWCDecimalLatitude(gpsLat);
 					    					enc.setDWCDecimalLongitude(gpsLong*-1);
 					    				}
+					    				
+					    				//rows M through AM in sightingLog
+					    				
+					    				
+					    				
+					    				if((row.getCell(12)!=null)&&(!row.getCell(12).toString().equals(""))){
+					    					String heading=row.getCell(12).toString();
+					    					enc.setDynamicProperty("Initial Heading", heading);
+					    					
+					    				}
+					    				if((row.getCell(13)!=null)&&(!row.getCell(13).toString().equals(""))){
+					    					String mill=row.getCell(13).toString();
+					    					enc.setDynamicProperty("Mill", mill);
+					    					
+					    				}
+					    				if((row.getCell(14)!=null)&&(!row.getCell(14).toString().equals(""))){
+					    					String value=row.getCell(14).toString();
+					    					enc.setDynamicProperty("Feed", value);
+					    					
+					    				}
+					    				if((row.getCell(15)!=null)&&(!row.getCell(15).toString().equals(""))){
+					    					String value=row.getCell(15).toString();
+					    					enc.setDynamicProperty("Prob Feed", value);
+					    					
+					    				}
+					    				if((row.getCell(16)!=null)&&(!row.getCell(16).toString().equals(""))){
+					    					String value=row.getCell(16).toString();
+					    					enc.setDynamicProperty("Travel", value);
+					    					
+					    				}
+					    				if((row.getCell(17)!=null)&&(!row.getCell(17).toString().equals(""))){
+					    					String value=row.getCell(17).toString();
+					    					enc.setDynamicProperty("Play", value);
+					    					
+					    				}
+					    				if((row.getCell(18)!=null)&&(!row.getCell(18).toString().equals(""))){
+					    					String value=row.getCell(18).toString();
+					    					enc.setDynamicProperty("Rest", value);
+					    					
+					    				}
+					    				if((row.getCell(19)!=null)&&(!row.getCell(19).toString().equals(""))){
+					    					String value=row.getCell(19).toString();
+					    					enc.setDynamicProperty("Social", value);
+					    					
+					    				}
+					    				if((row.getCell(20)!=null)&&(!row.getCell(20).toString().equals(""))){
+					    					String value=row.getCell(20).toString();
+					    					enc.setDynamicProperty("Other", value);
+					    					
+					    				}
+					    				if((row.getCell(21)!=null)&&(!row.getCell(21).toString().equals(""))){
+					    					String value=row.getCell(21).toString();
+					    					enc.setDynamicProperty("Field Estimate Total Min", value);
+					    					
+					    				}
+					    				if((row.getCell(22)!=null)&&(!row.getCell(22).toString().equals(""))){
+					    					String value=row.getCell(22).toString();
+					    					enc.setDynamicProperty("Field Estimate Total Max", value);
+					    					
+					    				}
+					    				if((row.getCell(23)!=null)&&(!row.getCell(23).toString().equals(""))){
+					    					String value=row.getCell(23).toString();
+					    					enc.setDynamicProperty("Field Estimate Total Best", value);
+					    					
+					    				}
+					    				if((row.getCell(24)!=null)&&(!row.getCell(24).toString().equals(""))){
+					    					String value=row.getCell(24).toString();
+					    					enc.setDynamicProperty("FE Calves Min", value);
+					    					
+					    				}
+					    				if((row.getCell(25)!=null)&&(!row.getCell(25).toString().equals(""))){
+					    					String value=row.getCell(25).toString();
+					    					enc.setDynamicProperty("FE Calves Max", value);
+					    					
+					    				}
+					    				if((row.getCell(26)!=null)&&(!row.getCell(26).toString().equals(""))){
+					    					String value=row.getCell(26).toString();
+					    					enc.setDynamicProperty("FE Calves Best", value);
+					    					
+					    				}
+					    				if((row.getCell(27)!=null)&&(!row.getCell(27).toString().equals(""))){
+					    					String value=row.getCell(27).toString();
+					    					enc.setDynamicProperty("FE YOY Min", value);
+					    					
+					    				}
+					    				if((row.getCell(28)!=null)&&(!row.getCell(28).toString().equals(""))){
+					    					String value=row.getCell(28).toString();
+					    					enc.setDynamicProperty("FE YOY Max", value);
+					    					
+					    				}
+					    				if((row.getCell(29)!=null)&&(!row.getCell(29).toString().equals(""))){
+					    					String value=row.getCell(29).toString();
+					    					enc.setDynamicProperty("FE YOY Best", value);
+					    					
+					    				}
+					    				if((row.getCell(30)!=null)&&(!row.getCell(30).toString().equals(""))){
+					    					String value=row.getCell(30).toString();
+					    					enc.setDynamicProperty("PhotoID Total Min", value);
+					    					
+					    				}
+					    				if((row.getCell(31)!=null)&&(!row.getCell(31).toString().equals(""))){
+					    					String value=row.getCell(31).toString();
+					    					enc.setDynamicProperty("PhotoID Total Max", value);
+					    					
+					    				}
+					    				if((row.getCell(32)!=null)&&(!row.getCell(32).toString().equals(""))){
+					    					String value=row.getCell(32).toString();
+					    					enc.setDynamicProperty("PhotoID Total Best", value);
+					    					
+					    				}
+					    				if((row.getCell(33)!=null)&&(!row.getCell(33).toString().equals(""))){
+					    					String value=row.getCell(33).toString();
+					    					enc.setDynamicProperty("PhotoID Calves Min", value);
+					    					
+					    				}
+					    				if((row.getCell(34)!=null)&&(!row.getCell(34).toString().equals(""))){
+					    					String value=row.getCell(34).toString();
+					    					enc.setDynamicProperty("PhotoID Calves Max", value);
+					    					
+					    				}
+					    				if((row.getCell(35)!=null)&&(!row.getCell(35).toString().equals(""))){
+					    					String value=row.getCell(35).toString();
+					    					enc.setDynamicProperty("PhotoID Calves Best", value);
+					    					
+					    				}
+					    				if((row.getCell(36)!=null)&&(!row.getCell(36).toString().equals(""))){
+					    					String value=row.getCell(36).toString();
+					    					enc.setDynamicProperty("PhotoID YOY Min", value);
+					    					
+					    				}
+					    				if((row.getCell(37)!=null)&&(!row.getCell(37).toString().equals(""))){
+					    					String value=row.getCell(37).toString();
+					    					enc.setDynamicProperty("PhotoID YOY Max", value);
+					    					
+					    				}
+					    				if((row.getCell(38)!=null)&&(!row.getCell(38).toString().equals(""))){
+					    					String value=row.getCell(38).toString();
+					    					enc.setDynamicProperty("PhotoID YOY Best", value);
+					    					
+					    				}
+					    				
 					    		
 					    				//populate alternate ID
 					    				enc.setAlternateID(occurID);
@@ -181,17 +357,15 @@ public class GADolphinImporter {
 					    	    		LocalDateTime dt = new LocalDateTime();
 					    	    		DateTimeFormatter fmt = ISODateTimeFormat.date();
 					    	    		String strOutputDateTime = fmt.print(dt);
-					    	    		enc.setDWCDateAdded(strOutputDateTime);
-					    	    		enc.setDWCDateAdded(new Long(dt.toDateTime().getMillis()));
+					    	    		if(isNewEncounter){
+					    	    			enc.setDWCDateAdded(strOutputDateTime);
+					    	    			enc.setDWCDateAdded(new Long(dt.toDateTime().getMillis()));
+					    	    		}
+					    	    		
 					    	    		System.out.println("     I set the date as a LONG to: "+enc.getDWCDateAddedLong());
 					    	    		enc.setDWCDateLastModified(strOutputDateTime);
 					    	    		
-					    	    		//prlim fin code
-					    	    		String prelimFinCode="";
-						    			if((idrow.getCell(3)!=null)&&(!idrow.getCell(3).toString().trim().equals(""))){
-						    				prelimFinCode=idrow.getCell(3).toString();
-						    				enc.setDynamicProperty("Prelim fin code", prelimFinCode);
-						    			}
+
 						    			
 					    	    		
 					    	    		
@@ -204,21 +378,12 @@ public class GADolphinImporter {
 					    	    		enc.setDynamicProperty("Sighting Number", intSightingNumber);
 					    	    		//TBD - make this an int as a string
 					    	    		
-					    	    		//catalog number
-					    	    		String proposedCatalogNumber=thisSightingID+encounterIDExtra+prelimFinCode.replaceAll(" " , "");
-					    	    		if(myShepherd.isEncounter(proposedCatalogNumber)){
-					    	    			int iter=0;
-					    	    			while(myShepherd.isEncounter((proposedCatalogNumber+"_"+iter))){
-					    	    				iter++;
-					    	    			}
-					    	    			proposedCatalogNumber+=("_"+iter);
-					    	    		}
-					    	    		enc.setCatalogNumber(proposedCatalogNumber);
-					    	    		System.out.println("     Setting encounter number: "+enc.getCatalogNumber());
-					    	    		
+
 					    	    		
 					    	    		//add comments
-					    	    		enc.addComments("Data imported for Georgia Aquarium.");
+					    	    		if(isNewEncounter){
+					    	    			enc.addComments("Data imported for Georgia Aquarium.");
+					    	    		}
 					    	    		
 					    	    		//genus species
 					    	    		enc.setGenus("Tursiops");
@@ -260,6 +425,26 @@ public class GADolphinImporter {
 					    	    				myShepherd.getPM().makePersistent(thisIndy);
 					    	    				
 					    	    			}
+					    	    			
+					    	    			//let's check and see if we have to remove this encounter from a markedindividual first
+					    	    			if(!isNewEncounter){
+					    	    				
+					    	    				//this is an encounter we have imported before
+					    	    				if(!enc.getIndividualID().equals(myID.trim())){
+					    	    					
+					    	    					//ok, the new ID does not match the old. we are migrating this Encounter to a new Marked Individual
+					    	    					if((myShepherd.isMarkedIndividual(enc.getIndividualID()))){
+					    	    						MarkedIndividual oldIndy = myShepherd.getMarkedIndividual(enc.getIndividualID());
+					    	    						oldIndy.removeEncounter(enc, context);
+					    	    						if(oldIndy.getEncounters().size()==0){myShepherd.getPM().deletePersistent(oldIndy);}
+					    	    						myShepherd.commitDBTransaction();
+					    	    						myShepherd.beginDBTransaction();
+					    	    					}
+					    	    					
+					    	    				}
+					    	    				
+					    	    			}
+					    	    			
 					    	    			enc.setIndividualID(myID.trim());
 					    	    			System.out.println("     Setting ID: "+myID);
 					    	    			thisIndy.addEncounter(enc, context);
