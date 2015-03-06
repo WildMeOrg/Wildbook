@@ -210,15 +210,14 @@ context=ServletUtilities.getContext(request);
   target="_blank"><img src="../images/information_icon_svg.gif"
                        alt="Help" border="0" align="absmiddle"></a></h2>
 </p>
-<p><strong>The following encounter(s) received the best
+<p>The following encounter(s) received the best
   match values using the I3S algorithm against a <%=side%>-side scan of
-  encounter# <a href="encounter.jsp?number=<%=num%>"><%=num%>
-  </a>.</strong></p>
+  encounter <a href="encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
 <%
   if (xmlOK) {%>
-<p><img src="../images/Crystal_Clear_action_flag.png" width="28px" height="28px" hspace="2" vspace="2" align="absmiddle">&nbsp;<strong>Saved
+<p><img src="../images/Crystal_Clear_action_flag.png" width="28px" height="28px" hspace="2" vspace="2" align="absmiddle"><strong>&nbsp;Saved
   scan data may be old and invalid. Check the date below and run a fresh
   scan for the latest results.</strong></p>
 
@@ -227,9 +226,7 @@ context=ServletUtilities.getContext(request);
 
 <%}%>
 
-
-<p><font size="+1">Visualizations for Potential Matches (as
-		  scored above)</font></p>
+<p><a href="#resultstable">See the table below for score breakdowns.</a></p>
 		  <%
 		  
 
@@ -265,7 +262,7 @@ context=ServletUtilities.getContext(request);
 		      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
 		  </OBJECT>
 		</p>
-<table class="tablesorter">
+<a name="resultstable" /><table class="tablesorter">
   <thead>
   
         <tr align="left" valign="top">
