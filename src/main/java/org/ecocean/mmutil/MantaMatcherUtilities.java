@@ -19,10 +19,7 @@
 
 package org.ecocean.mmutil;
 
-import freemarker.template.*;
 import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
 import java.util.*;
 import javax.jdo.Extent;
 import javax.jdo.Query;
@@ -190,46 +187,6 @@ public final class MantaMatcherUtilities {
     mmFiles.get("CSV-REGIONAL").delete();
     mmFiles.get("MMA-INPUT").delete();
     mmFiles.get("MMA-INPUT-REGIONAL").delete();
-  }
-
-	/**
-   * Creates a FreeMarker template configuration instance.
-   * @param dir folder in which templates are located
-   * @return Configuration instance for loading FreeMarker templates
-   * @throws IOException
-   */
-  public static Configuration configureTemplateEngine(File dir) throws IOException
-	{
-		Configuration conf = new Configuration();
-		conf.setDirectoryForTemplateLoading(dir);
-		conf.setObjectWrapper(new DefaultObjectWrapper());
-		conf.setDefaultEncoding("UTF-8");
-    conf.setURLEscapingCharset("ISO-8859-1");
-		conf.setTemplateExceptionHandler(TemplateExceptionHandler.DEBUG_HANDLER);
-		conf.setIncompatibleImprovements(new Version(2, 3, 20));
-    return conf;
-	}
-
-  /**
-   * Parses the MantaMatcher results text file for the specified SinglePhotoVideo.
-   * @param conf FreeMarker configuration
-   * @param mmaResultsFile MantaMatcher algorithm results text file
-   * @param spv {@code SinglePhotoVideo} instance for base reference image
-   * @param dataDir folder containing all webapp data (for deriving reference folders)
-   * @param dataDirUrlPrefix URL prefix for data folder (for image links)
-   * @param pageUrlFormatEnc Format string for encounter page URL (with <em>%s</em> placeholder)
-   * @param pageUrlFormatInd Format string for individual page URL (with <em>%s</em> placeholder)
-   * @return A map containing parsed results ready for use with a FreeMarker template
-   * @throws IOException
-   * @throws ParseException
-   * @throws TemplateException
-   */
-  @SuppressWarnings("unchecked")
-  public static String getResultsHtml(Shepherd shepherd, Configuration conf, File mmaResultsFile, SinglePhotoVideo spv, File dataDir, String dataDirUrlPrefix, String pageUrlFormatEnc, String pageUrlFormatInd) throws IOException, ParseException, TemplateException {
-    // Load results file.
-    String text = new String(FileUtilities.loadFile(mmaResultsFile));
-    // Convert to HTML results page.
-    return MMAResultsProcessor.convertResultsToHtml(shepherd, conf, text, spv, dataDir, dataDirUrlPrefix, pageUrlFormatEnc, pageUrlFormatInd);
   }
 
   /**
