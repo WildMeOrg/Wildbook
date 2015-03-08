@@ -1,10 +1,6 @@
 package org.ecocean.mmutil;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import java.io.*;
-import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -39,191 +35,6 @@ public final class MMAResultsProcessor {
   public static final String MMA_VER = "1.26a";
 
   /**
-   * Parses the MantaMatcher results text file for the specified SPV,
-   * then converts it to a formatted HTML results page (via FreeMarker).
-   * @param conf FreeMarker configuration
-   * @param spv {@code SinglePhotoVideo} instance denoting base reference image
-   * @param dataDir folder containing all webapp data (for deriving reference folders)
-   * @param refUrlPrefix URL prefix to use for reference links
-   * @param pageUrlFormatEnc Format string for encounter page URL (with <em>%s</em> placeholder)
-   * @param pageUrlFormatInd Format string for individual page URL (with <em>%s</em> placeholder)
-   * @return A map containing parsed results ready for use with a FreeMarker template
-   * @throws IOException
-   * @throws ParseException
-   * @throws TemplateException
-   */
-  static String convertResultsToHtml(Shepherd shepherd, Configuration conf, String text, SinglePhotoVideo spv, File dataDir, String refUrlPrefix, String pageUrlFormatEnc, String pageUrlFormatInd) throws IOException, TemplateException, ParseException {
-    // Create null data model for template engine.
-    Map model = null;
-    MMAResult matchResult = parseMatchResults(text, spv, dataDir);
-    try {
-      // Convert results to data model for template engine.
-      model = convertResultsToTemplateModel(shepherd, matchResult, spv, refUrlPrefix, pageUrlFormatEnc, pageUrlFormatInd);
-    } catch (Exception ex) {
-      // Handled by null model recognized by template.
-    }
-    // Fill template and write to output file.
-    Template temp = conf.getTemplate("MantaMatcher-results.ftl");
-    StringWriter sw = new StringWriter();
-    temp.process(model, sw);
-    sw.flush();
-    return sw.getBuffer().toString();
-  }
-
-  /**
-   * Converts a parsed MantaMatcher results object into a FreeMarker template
-   * model for the specified SPV.
-   * The resulting FreeMarker model map can be used directly in a FreeMarker
-   * template, with the following model structure (showing map key names):
-   * <ul>
-   * <li><strong>version</strong> - MantaMatcher algorithm version string
-   * <li><strong>datetime</strong> - {@code Date} instance parsed from version string
-   * <li><strong>matchMethod</strong> - string describing algorithm match method
-   * <li><strong>matchDirection</strong> - string describing algorithm match direction
-   * <li><strong>scoreCombination</strong> - string describing algorithm score combination method
-   * <li><strong>results</strong> - list of test results parsed from results text file
-   *   <ul>
-   *   <li><strong>link</strong> - link to test encounter page
-   *   <li><strong>name</strong> - name of test image
-   *   <li><strong>nameCR</strong> - name of test CR image
-   *   <li><strong>linkCR</strong> - link to test CR image
-   *   <li><strong>nameEH</strong> - name of test EH image
-   *   <li><strong>linkEH</strong> - link to test EH image
-   *   <li><strong>nameFT</strong> - name of test FT image
-   *   <li><strong>linkFT</strong> - link to test FT image
-   *   <li><strong>featureCount</strong> - feature count for this result
-   *   <li><strong>timeTaken</strong> - time taken to process this result
-   *   <li><strong>confidence</strong> - confidence in score of this result
-   *   <li><strong>matches</strong> - list of individual matches (in order)
-   *     <ul>
-   *     <li><strong>rank</strong> - rank of match
-   *     <li><strong>ref</strong> - reference folder name
-   *     <li><strong>imgbase</strong> - reference file name
-   *     <li><strong>link</strong> - link to matched encounter page
-   *     <li><strong>score</strong> - algorithm score of match
-   *     <li><strong>nameCR</strong> - name of match CR image
-   *     <li><strong>linkCR</strong> - link to match CR image
-   *     <li><strong>nameEH</strong> - name of match EH image
-   *     <li><strong>linkEH</strong> - link to match EH image
-   *     <li><strong>nameFT</strong> - name of match FT image
-   *     <li><strong>linkFT</strong> - link to match FT image
-   *     <li><strong>individualID</strong> - individualID of match
-   *     <li><strong>encounterDate</strong> - encounter date of match
-   *     <li><strong>pigmentation</strong> - pigmentation of match
-   *     </ul>
-   *   </ul>
-   * </ul>
-   * @param matchResult MMAResult instance in which to place parsed data
-   * @param spv {@code SinglePhotoVideo} instance denoting base reference image
-   * @param dataDirUrlPrefix URL prefix to use for reference links
-   * @param pageUrlFormatEnc Format string for encounter page URLs (with <em>%s</em> placeholder)
-   * @param pageUrlFormatInd Format string for individual page URLs (with <em>%s</em> placeholder)
-   * @return A map containing parsed results ready for use with a FreeMarker template
-   * @throws FileNotFoundException if unable to find CR image files
-   * @throws UnsupportedEncodingException if unable to encode a URL (unlikely)
-   */
-  @SuppressWarnings("unchecked")
-  private static Map convertResultsToTemplateModel(Shepherd shepherd, MMAResult matchResult, SinglePhotoVideo spv, String dataDirUrlPrefix, String pageUrlFormatEnc, String pageUrlFormatInd) throws FileNotFoundException, UnsupportedEncodingException {
-
-    // Repackage data model into template model.
-    Map model = new HashMap();
-    List modelResults = new ArrayList();
-    model.put("results", modelResults);
-    model.put("version", matchResult.version);
-    model.put("datetime", matchResult.date);
-//    model.put("refCounts", matchResult.mapRefCounts);
-//    model.put("testCounts", matchResult.mapTestCounts);
-    model.put("matchMethod", matchResult.matchingMethod);
-    model.put("matchDirection", matchResult.matchingDirection);
-    model.put("scoreCombination", matchResult.scoreCombination);
-
-    for (Map.Entry<String, List<MMAMatch>> test : matchResult.mapTests.entrySet()) {
-      Map modelResult = new HashMap();
-      modelResults.add(modelResult);
-
-      String pathCR = test.getKey();
-      File fCR = new File(pathCR);
-      if (!fCR.isFile())
-        throw new FileNotFoundException("File not found: " + fCR.getAbsolutePath());
-      String encId = fCR.getParentFile().getName();
-
-      String nameCR = fCR.getName();
-      String nameEH = nameCR.replace("_CR", "_EH");
-      String nameFT = nameCR.replace("_CR", "_FT");
-      String linkCR = convertFileToURL(dataDirUrlPrefix, fCR);
-      String linkEH = linkCR.replace("_CR", "_EH");
-      String linkFT = linkCR.replace("_CR", "_FT");
-      String encUrl = String.format(pageUrlFormatEnc, encId);
-      modelResult.put("link", encUrl);
-      modelResult.put("encounter", matchResult.testEncounterNumber);
-      modelResult.put("name", nameCR.substring(0, nameCR.indexOf("_CR")));
-      modelResult.put("nameCR", nameCR);
-      modelResult.put("linkCR", linkCR);
-      modelResult.put("nameEH", nameEH);
-      modelResult.put("linkEH", linkEH);
-      modelResult.put("nameFT", nameFT);
-      modelResult.put("linkFT", linkFT);
-//      log.trace("Processing: {}", modelResult.get("nameCR"));
-      modelResult.put("featureCount", matchResult.featureCount);
-      modelResult.put("timeTaken", matchResult.timeTaken);
-      modelResult.put("confidence", matchResult.confidence);
-
-      List modelMatches = new ArrayList();
-      modelResult.put("matches", modelMatches);
-      for (MMAMatch match : test.getValue()) {
-//        log.trace(String.format("Match: %s", match));
-        // Null-check needed in case referent wasn't found.
-        if (match.fileRef == null)
-          continue;
-        File dir = match.fileRef.getParentFile();
-        String matchEncId = dir.getName();
-        String encUrlMatch = String.format(pageUrlFormatEnc, matchEncId);
-        Map modelMatch = new HashMap();
-        modelMatch.put("rank", match.rank);
-        modelMatch.put("ref", dir.getName());
-        modelMatch.put("link", encUrlMatch);
-        modelMatch.put("score", match.score);
-        modelMatch.put("imgbase", match.bestMatch);
-
-        // Fill details from match.
-        Encounter enc = shepherd.getEncounter(matchEncId);
-        modelMatch.put("encounter", match.matchEncounterNumber);
-        modelMatch.put("individualId", enc.getIndividualID());
-        if (enc.getIndividualID() != null && !"".equals(enc.getIndividualID()) && !"Unassigned".equals(enc.getIndividualID())) {
-          String indUrl = String.format(pageUrlFormatInd, enc.getIndividualID());
-          modelMatch.put("individualIdLink", indUrl);
-        }
-        modelMatch.put("encounterDate", enc.getDate());
-        modelMatch.put("pigmentation", enc.getPatterningCode());
-
-        if (match.bestMatch != null) {
-          modelMatch.put("nameCR", String.format("%s_CR", match.bestMatch));
-          modelMatch.put("nameEH", String.format("%s_EH", match.bestMatch));
-          modelMatch.put("nameFT", String.format("%s_FT", match.bestMatch));
-          // Derive links to image files for this match.
-          Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(match.fileRef);
-          String mlinkCR = convertFileToURL(dataDirUrlPrefix, mmMap.get("CR"));
-          String mlinkEH = convertFileToURL(dataDirUrlPrefix, mmMap.get("EH"));
-          String mlinkFT = convertFileToURL(dataDirUrlPrefix, mmMap.get("FT"));
-          modelMatch.put("linkCR", mlinkCR);
-          modelMatch.put("linkEH", mlinkEH);
-          modelMatch.put("linkFT", mlinkFT);
-          modelMatches.add(modelMatch);
-        }
-      }
-    }
-
-    return model;
-  }
-
-  private static final String convertFileToURL(String dataDirUrlPrefix, File file) throws UnsupportedEncodingException {
-    File dir = file.getParentFile();
-    String dirStr = dir.getAbsolutePath().replace(File.separatorChar, '/');
-    dirStr = dirStr.replaceFirst("^.*/encounters/", "");
-    return String.format("%s/%s/%s", dataDirUrlPrefix, dirStr, URLEncoder.encode(file.getName(), "UTF-8"));
-  }
-
-  /**
    * Checks the format of the results file text for specification conformance.
    * @param text text of results file
    * @return true if text conforms, false otherwise
@@ -247,12 +58,15 @@ public final class MMAResultsProcessor {
 
   /**
    * Parses the MMA results from the results text.
+   * @param shepherd {@code Shepherd} instance for object reference
    * @param text text of results file
    * @param spv {@code SinglePhotoVideo} instance denoting base reference image
    * @param dataDir folder containing all webapp data (for deriving reference folders)
    * @return MMAResult instance containing parsed data
+   * @throws IOException if thrown during parsing
+   * @throws ParseException if thrown during parsing
    */
-  private static MMAResult parseMatchResults(String text, SinglePhotoVideo spv, File dataDir) throws IOException, ParseException {
+  public static MMAResult parseMatchResults(Shepherd shepherd, String text, SinglePhotoVideo spv, File dataDir) throws IOException, ParseException {
     if (!checkResultsFormat(text))
       throw new IOException("Invalid results file format");
     // Split results into sections.
@@ -266,11 +80,11 @@ public final class MMAResultsProcessor {
     result.testEncounterNumber = spv.getCorrespondingEncounterNumber();
     for (int i = 0; i < sections.length; i++) {
       if (i == 0)
-        parseMatchResultsHeader(result, sections[i].trim());
+        parseMatchResultsHeader(shepherd, result, sections[i].trim());
       else if (i == sections.length - 1)
-        parseMatchResultsSummary(result, sections[i].trim());
+        parseMatchResultsSummary(shepherd, result, sections[i].trim());
       else
-        parseMatchResultsCore(result, sections[i].trim(), dataDir, result.dirTest);
+        parseMatchResultsCore(shepherd, result, sections[i].trim(), dataDir, result.dirTest);
     }
 
     return result;
@@ -278,6 +92,7 @@ public final class MMAResultsProcessor {
 
   /**
    * Parses the core section of MMA results text.
+   * @param shepherd {@code Shepherd} instance for object reference
    * @param result MMAResult instance in which to place parsed data
    * @param text text of core section of the results file
    * @param dataDir folder containing all webapp data (for deriving reference folders)
@@ -285,7 +100,7 @@ public final class MMAResultsProcessor {
    * @throws ParseException if there is a problem during parsing
    * @throws IOException if there is a problem locating {@code dirTest}
    */
-  private static void parseMatchResultsCore(MMAResult result, String text, File dataDir, File dirTest) throws ParseException, IOException {
+  private static void parseMatchResultsCore(Shepherd shepherd, MMAResult result, String text, File dataDir, File dirTest) throws ParseException, IOException {
     try (Scanner sc = new Scanner(text).useDelimiter("[\\r\\n]+")) {
       // Parse header info.
       String s = sc.findInLine("Processing : (.+) \\(original image: (.+)\\)");
@@ -334,6 +149,15 @@ public final class MMAResultsProcessor {
             File dir = new File(Encounter.dir(dataDir, res.matchEncounterNumber));
             // Find matched image file (base image, not CR).
             res.fileRef = findReferenceFile(dir, res.bestMatch, res.bestMatchPath);
+            // Fill details from encounter object.
+            Encounter enc = shepherd.getEncounter(res.matchEncounterNumber);
+            res.individualId = enc.getIndividualID();
+//            if (enc.getIndividualID() != null && !"".equals(enc.getIndividualID()) && !"Unassigned".equals(enc.getIndividualID())) {
+//              String indUrl = String.format(pageUrlFormatInd, enc.getIndividualID());
+//              modelMatch.put("individualIdLink", indUrl);
+//            }
+            res.encounterDate = enc.getDate();
+            res.pigmentation = enc.getPatterningCode();
             // Only add items with a non-zero score (only lines with 'best match' anyway).
             matches.add(res);
           }
@@ -353,17 +177,18 @@ public final class MMAResultsProcessor {
 
   /**
    * Parses the header section of MMA results text.
+   * @param shepherd {@code Shepherd} instance for object reference
    * @param result MMAResult instance in which to place parsed data
    * @param text text of header section of the results file
    */
-  private static void parseMatchResultsHeader(MMAResult result, String text) throws ParseException {
+  private static void parseMatchResultsHeader(Shepherd shepherd, MMAResult result, String text) throws ParseException {
     try (Scanner sc = new Scanner(text).useDelimiter("[\\r\\n]+")) {
       // Parse header info.
-      String s = sc.findInLine("(Manta Matcher version [^,]+),\\s+(.+)");
+      String s = sc.findInLine("(Manta Matcher version ([^,]+)),\\s+(.+)");
       MatchResult mr = sc.match();
       DateFormat df = new SimpleDateFormat("dd MMM yyyy, hh:mm:ss");
-      result.version = mr.group(1);
-      result.date = df.parse(mr.group(2));
+      result.version = mr.group(2);
+      result.date = df.parse(mr.group(3));
       sc.nextLine();
       sc.nextLine();
 
@@ -410,10 +235,11 @@ public final class MMAResultsProcessor {
 
   /**
    * Parses the summary section of MMA results text.
+   * @param shepherd {@code Shepherd} instance for object reference
    * @param result MMAResult instance in which to place parsed data
    * @param text text of summary section of the results file
    */
-  private static void parseMatchResultsSummary(MMAResult result, String text) throws ParseException {
+  private static void parseMatchResultsSummary(Shepherd shepherd, MMAResult result, String text) throws ParseException {
     // TODO: implement
   }
 
@@ -447,7 +273,7 @@ public final class MMAResultsProcessor {
   /**
    * Simple data holder for MMA match results.
    */
-  private static final class MMAResult {
+  public static final class MMAResult {
     /** MantaMatcher Algorithm version string. */
     private String version;
     /** Date/time parsed from version string. */
@@ -487,12 +313,25 @@ public final class MMAResultsProcessor {
       sb.append("}");
       return sb.toString();
     }
+
+    public String getVersion() { return version; }
+    public Date getDate() { return date; }
+    public Integer getSiftCountRef() { return siftCountRef; }
+    public String getTestEncounterNumber() { return testEncounterNumber; }
+    public String getMatchingMethod() { return matchingMethod; }
+    public String getMatchingDirection() { return matchingDirection; }
+    public String getScoreCombination() { return scoreCombination; }
+    public int getFeatureCount() { return featureCount; }
+    public float getTimeTaken() { return timeTaken; }
+    public float getConfidence() { return confidence; }
+    public Map<String, List<MMAMatch>> getMapTests() { return mapTests; }
+    public File getDirTest() { return dirTest; }
   }
 
   /**
    * Simple data holder for each match within a single MMA match result.
    */
-  private static final class MMAMatch {
+  public static final class MMAMatch {
     /** Rank of result within Ranking List. */
     private int rank;
     /** Score, as assigned by MantaMatcher algorithm. */
@@ -505,6 +344,14 @@ public final class MMAResultsProcessor {
     private String bestMatchPath;
     /** Reference file of matched image (base image, not CR, etc.). */
     private File fileRef;
+    /** MarkedIndividual ID relating to this encounter. */
+    private String individualId;
+    /** Date of encounter. */
+    private String encounterDate;
+    /** Pigmentation of manta relating to this encounter. */
+    private String pigmentation;
+
+    private MMAMatch() {}
 
     @Override
     public String toString() {
@@ -519,5 +366,15 @@ public final class MMAResultsProcessor {
       sb.append("}");
       return sb.toString();
     }
+
+    public int getRank() { return rank; }
+    public float getScore() { return score; }
+    public String getMatchEncounterNumber() { return matchEncounterNumber; }
+    public String getBestMatch() { return bestMatch; }
+    public String getBestMatchPath() { return bestMatchPath; }
+    public File getFileRef() { return fileRef; }
+    public String getIndividualId() { return individualId; }
+    public String getEncounterDate() { return encounterDate; }
+    public String getPigmentation() { return pigmentation; }
   }
 }
