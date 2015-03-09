@@ -286,8 +286,8 @@ else{
     <th width="32"><strong>User</strong></th>
     <th><strong>Results</strong></th>
     <th><strong>Actions</strong></th>
-	<th><strong>ID</strong></th>
-	<th><strong>State</strong></th>
+	<th><strong>Individual ID</strong></th>
+	<th><strong>Enc. State</strong></th>
   </tr>
   </thead>
   <tbody>
@@ -405,9 +405,8 @@ single scan are allowed to exceed the total.</span>
     <th width="18"><span>IP</span></th>
     <th width="38"><span>NodeID</span></th>
     <th width="30"  ><span>#CPU</span></th>
-    <th width="51"  ><span>Targeted?</span></th>
-    <th width="62"  ><span >#
-		Finished</span></th>
+
+
     <th width="71"  >
       <div align="left"><span class="style1">Chunk size</span></div>
     </th>
@@ -428,8 +427,7 @@ single scan are allowed to exceed the total.</span>
     <td><span class="style2"><%=nd.ipAddress()%></span></td>
     <td><span class="style2"><%=nd.getNodeIdentifier()%></span></td>
     <td><span class="style2"><%=nd.numProcessors%></span></td>
-    <td><span class="style2"><%=nd.isTargeted()%></span></td>
-    <td><span class="style2"><%=nd.getNumComparisons()%></span></td>
+    
     <td><span class="style2"><%=nd.groupSize%></span></td>
 
 
