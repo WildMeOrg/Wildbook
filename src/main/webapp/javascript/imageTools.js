@@ -97,13 +97,14 @@ console.log('oCtx is %o', this.oCtx);
 console.log('imgEl.width = ' + this.imgEl.width);
 		this.info('img size: <b>' + this.imgEl.naturalWidth + 'x' + this.imgEl.naturalHeight);
 
-		this.wCanvas.addEventListener('click', function(ev) { me.spotClick(ev); }, false);
+		//this.wCanvas.addEventListener('click', function(ev) { me.spotClick(ev); }, false);
 
 		this.scale = this.imgEl.naturalWidth / this.imgEl.width;
 
 		//this allows crop/rotate within the work canvas
 		if (this.allInOne) {
 			this.setRectFrom2(0, 0, 0, this.imgEl.width, this.imgEl.height);
+console.log(this.rect);
 		}
 
 		if (!this.oCanvas) return;
@@ -158,6 +159,7 @@ console.log('drawingRect');
 	};
 
 	this.info = function(s) {
+return;
 		if (!this.infoEl) return;
 		this.infoEl.innerHTML = s;
 	};
@@ -221,7 +223,9 @@ console.log("rtn ========== (%d,%d) =============", r[0], r[1]);
 		//var idata = this.wCtx.getImageData(minX * this.scale, minY * this.scale, (maxX - minX) * this.scale, (maxY - minY) * this.scale);
 
 		var w = (maxX - minX) * this.scale;
+		if (w > this.imgEl.naturalWidth) w = this.imgEl.naturalWidth;
 		var h = (maxY - minY) * this.scale;
+		if (h > this.imgEl.naturalHeight) h = this.imgEl.naturalHeight;
 		var rw = this.rectW() * this.scale;
 		var rh = this.rectH() * this.scale;
 		this.wCanvas.width = rw;
@@ -234,7 +238,7 @@ console.log("rtn ========== (%d,%d) =============", r[0], r[1]);
 
 //console.log('%d, %d', (rw-w)/2, (rh-h)/2);
 		this.wCtx.rotate(-this.rotation);
-console.log(rh);
+console.log('rh = %o', rh);
 
 		var A = Math.atan2(rh/2, rw/2) + this.rotation;
 		var d = this.dist(0, 0, rw, rh)/2;
@@ -243,6 +247,8 @@ console.log(rh);
 //console.log('(nx,ny) %f,%f : (m) %f,%f', nx, ny, w/2, h/2);
 //console.log('%f,%f', w/2 - nx, h/2 - ny);
 
+//console.log('minX %f minY %f', w, h);
+//console.log('foo %f', -(w/2-nx));
 		this.wCtx.drawImage(this.imgEl, minX * this.scale, minY * this.scale, w, h, -(w/2-nx), -(h/2-ny), w, h);
 		//this.wCtx.drawImage(this.imgEl, minX * this.scale, minY * this.scale, w, h, 0, 10, rw, rh);
 		//this.wCtx.drawImage(this.imgEl, minX * this.scale - w/2, minY * this.scale - h/2, w * 1.5, h * 1.5, 0, 0, rw * 1.5, rh * 1.5);
@@ -250,7 +256,7 @@ console.log(rh);
 
 		this.drawSpots();
 
-		this.wCanvas.dispatchEvent(new Event('update'));
+		this.trigger('workCanvas:update');
 	};
 
 
@@ -291,6 +297,7 @@ console.log('%d -> (%d,%d)', i, xy[0], xy[1]);
 
 
 	this.mmove = function(ev) {
+		this.eventPosFix(ev);
 		ev.preventDefault();
 
 		this.info(this.shiftDown +")"+ ev.offsetX + ', ' + ev.offsetY + ': ' + Math.floor(this.angleFromCenter(ev.offsetX, ev.offsetY) * 180/Math.PI));
@@ -361,6 +368,7 @@ if (this.shiftDown) a = Math.floor(a / (Math.PI/4) + 0.5) * (Math.PI/4);
 	};
 
 	this.mdown = function(ev) {
+		this.eventPosFix(ev);
 console.log('down %d,%d', ev.offsetX, ev.offsetY);
 		ev.preventDefault();
 
@@ -406,7 +414,9 @@ console.log('spot stored as (%d,%d) type=%s', xy[0], xy[1], this.activeSpotType)
 		var spot = this.isNearSpot(xy[0], xy[1]);
 		if (spot < 0) {
 			this.spots.push({xy: xy, type: this.activeSpotType});
+			this.trigger('spot:added', {xy: xy, type: this.activeSpotType});
 		} else { //remove
+			this.trigger('spot:removed', this.spots[spot]);
 			this.spots.splice(spot, 1);
 		}
 console.log(this.spots);
@@ -485,6 +495,7 @@ console.log('rw,rh %d %d', rw, rh);
 	};
 
 	this.rectW = function() {
+console.log('rectW %o', this.rect);
 		return this.dist(this.rect[0], this.rect[1], this.rect[2], this.rect[3]);
 	};
 	this.rectH = function() {
@@ -502,6 +513,8 @@ console.log('rw,rh %d %d', rw, rh);
 
 	// pts will be considered opposite corners
 	this.setRectFrom2 = function(corner, x1, y1, x2, y2) {
+		if ((x1 < 0) || (x1 > this.imgEl.width) || (y1 < 0) || (y1 > this.imgEl.height) ||
+			(x2 < 0) || (x2 > this.imgEl.width) || (y2 < 0) || (y2 > this.imgEl.height)) return;
 		var oppc = (corner + 2) % 4;
 		this.rect[corner*2] = x1;
 		this.rect[corner*2+1] = y1;
@@ -544,6 +557,9 @@ console.log('rw,rh %d %d', rw, rh);
 		return [(x1+x2)/2, (y1+y2)/2];
 	};
 
+	this.slidePoint = function(m, x1, y1, x2, y2) {
+		return [(x2-x1) * m + x1, (y2-y1) * m + y1];
+	};
 
 	this.onSide = function(x1, y1, x2, y2, x3, y3) {
 		return (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3);
@@ -585,14 +601,38 @@ console.log('rw,rh %d %d', rw, rh);
 		this.rotation += A;
 	};
 
-	this.scaleRect = function(s) {
+	this.scaleRect = function(s, cx, cy) {
+console.log('scaleRect(%f)', s);
+		if (cx == undefined) {
+			var cp = this.midpoint(this.rect[0], this.rect[1], this.rect[4], this.rect[5]);
+			cx = cp[0];
+			cy = cp[1];
+		}
+		var p0 = this.slidePoint(s, cx, cy, this.rect[0], this.rect[1]);
+		var p1 = this.slidePoint(s, cx, cy, this.rect[4], this.rect[5]);
+console.log('p0 %d,%d', p0[0], p0[1]);
+console.log('p1 %d,%d', p1[0], p1[1]);
+		var fulld = this.dist(0, 0, this.imgEl.width, this.imgEl.height);
+		var d = this.dist(p0[0], p0[1], p1[0], p1[1]);
+console.log('d=%d fulld=%d ', d, fulld);
+		if ((d > fulld) || (p0[0] < 0) || (p0[1] < 0) || (p1[0] > this.imgEl.width) || (p1[1] > this.imgEl.height)) {
+			p0 = [0, 0];
+			p1 = [this.imgEl.width, this.imgEl.height];
+		}
+console.info('=================================================== %o %o', p0, p1);
+console.info(this.rect);
+		this.setRectFrom2(0, p0[0], p0[1], p1[0], p1[1]);
+console.info(this.rect);
 	};
 
 	this.translateRect = function(dx, dy) {
+		var r = [];
 		for (var i = 0 ; i < 4 ; i++) {
-			this.rect[i*2] += dx;
-			this.rect[i*2+1] += dy;
+			r[i*2] = this.rect[i*2] + dx;
+			r[i*2+1] = this.rect[i*2+1] + dy;
+			if ((r[i*2] < 0) || (r[i*2] > this.imgEl.width) || (r[i*2+1] < 0) || (r[i*2+1] > this.imgEl.height)) return;
 		}
+		this.rect = r;
 	};
 
 	this.min = function(arr) {
@@ -633,7 +673,10 @@ console.log('rw,rh %d %d', rw, rh);
 			var pos = this.absPos(ev.target);
 			ev.offsetX = ev.changedTouches[0].clientX - pos[0];
 			ev.offsetY = ev.changedTouches[0].clientY - pos[1];
-		} else if (ev.target && !ev.offsetX) {
+		} else if ((ev.offsetX == undefined) && (ev.layerX != undefined)) {
+			ev.offsetX = ev.layerX;
+			ev.offsetY = ev.layerY;
+		} else if (ev.target && (ev.offsetX == undefined)) {
 			var pos = this.absPos(ev.target);
 			ev.offsetX = ev.screenX - pos[0];
 			ev.offsetY = ev.screenY - pos[1];
@@ -688,6 +731,12 @@ console.log('rw,rh %d %d', rw, rh);
 
 
 
+	this.trigger = function(type, obj) {
+		var ev = new Event(type);
+		ev._object = obj;
+console.info('dispatched event %o', ev);
+		return this.imgEl.dispatchEvent(ev);
+	};
 
 	this.init(opts);
 
