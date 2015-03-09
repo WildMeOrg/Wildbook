@@ -6,12 +6,24 @@
 <script type="text/javascript">
 	var it1, it2, opts1, opts2;
 
+
+
 $(document).ready(function() {
 
 	opts1 = {
+		allInOne: true,
+
 		toolsEnabled: {
-			spotDisplay: true
+			//spotDisplay: true,
+			spotPicker: true,
+			cropRotate: false,
 		},
+
+		imgEl: document.getElementById('target-img1'),
+
+		wCanvas: document.getElementById('work-canvas1'),
+		lCanvas: document.getElementById('label-canvas1'),
+		//oCanvas: document.getElementById('overlay-canvas1'),
 
 		spots: [
 			{ xy: [30,50], type: "spot" },
@@ -25,11 +37,13 @@ $(document).ready(function() {
 			spotPicker: true
 		},
 
+		imgEl: document.getElementById('cr-work-img'),
+
 		wCanvas: document.getElementById('cr-work-canvas'),
 		lCanvas: document.getElementById('cr-label-canvas'),
 		oCanvas: document.getElementById('cr-overlay-canvas'),
-		infoEl: document.getElementById('cr-info'),
-		controlEl: document.getElementById('cr-info'),
+		//infoEl: document.getElementById('cr-info'),
+		//controlEl: document.getElementById('cr-info'),
 
 		spots: [
 			{ xy: [30,50], type: "spot" },
@@ -38,21 +52,38 @@ $(document).ready(function() {
 	};
 
 
-	opts1.imgEl = document.getElementById('target-img1');
-	opts2.imgEl = document.getElementById('cr-work-img');
 
 	it1 = new ImageTools(opts1);
-	it2 = new ImageTools(opts2);
+	//it2 = new ImageTools(opts2);
 
-/*
-		CRtool.toolsEnabled.spotPicker = true;
 		//sometimes .toWork() doesnt fire via .init() above.  wtf?  TODO fix!
-		window.setTimeout(function() { CRtool.toWork(); }, 1100);
-*/
+	window.setTimeout(function() { it1.toWork(); }, 1100);
+
+	it1.wCanvas.addEventListener('wheel', function(ev) {
+		ev.preventDefault();
+		if (ev.deltaY == 0) return;
+		var dir = ev.deltaY / Math.abs(ev.deltaY);
+		if (it1.rotationMode) {
+			it1.rotateRect(dir * 0.04);
+			it1.toWork();
+		} else {
+			it1.scaleRect(1 + dir * 0.2);
+			it1.toWork();
+		}
+
+	}, false);
 
 	console.info('ImageTools "it1" and "it2" created');
+
 });
 
+
+function updateOne() {
+	document.getElementById('one').style.width = opts1.imgEl.width + 'px';
+	document.getElementById('one').style.height = opts1.imgEl.height + 'px';
+console.log('oh');
+}
+	
 
 </script>
 
@@ -98,6 +129,22 @@ img.target {
 }
 
 
+#one {
+	position: absolute;
+	width: 500px;
+	height: 400px;
+	right: 50px;
+	outline: 2px solid blue;
+	top: 30px;
+}
+
+#one canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
 
 </style>
 
@@ -107,6 +154,11 @@ img.target {
 <p>simple (it1)</p>
 
 <img class="target" src="/mantamatcher2_data_dir/encounters/c/e/ce9c367d-985e-4bd2-a10f-bb81b0737528/mantaray_fgbnms_noaa.jpg" id="target-img1" />
+
+<div id="one">
+	<canvas id="work-canvas1"></canvas>
+	<canvas id="label-canvas1" style="pointer-events: none;" ></canvas>
+</div>
 
 <hr><p>complex (it2)</p>
 
@@ -125,4 +177,14 @@ img.target {
 </div>
 
 </body>
+
+<script>
+
+	document.getElementById('target-img1').addEventListener('load', function(ev) {
+		document.getElementById('one').style.width = this.width + 'px';
+		document.getElementById('one').style.height = this.height + 'px';
+	}, false);
+
+</script>
+
 </html>
