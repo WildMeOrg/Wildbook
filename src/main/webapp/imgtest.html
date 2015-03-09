@@ -5,6 +5,9 @@
 
 <script type="text/javascript">
 	var it1, it2, opts1, opts2;
+	var px = 0;
+	var py = 0;
+	var startRotation = 0;
 
 
 
@@ -53,25 +56,119 @@ $(document).ready(function() {
 
 
 
-	it1 = new ImageTools(opts1);
-	//it2 = new ImageTools(opts2);
+	//it1 = new ImageTools(opts1);
+	it2 = new ImageTools(opts2);
+
+
+	it2.wCanvas.addEventListener('click', function(ev) {
+console.info(ev);
+		it2.spotClick(ev);
+	}, false);
 
 		//sometimes .toWork() doesnt fire via .init() above.  wtf?  TODO fix!
 	window.setTimeout(function() { it1.toWork(); }, 1100);
+
+	it1.wCanvas.addEventListener('mousedown', function(ev) {
+		////this.eventPosFix(ev);
+		ev.preventDefault();
+		px = ev.offsetX || ev.layerX;
+		py = ev.offsetY || ev.layerY;
+		it1._mouseDownXY = [px, py];
+		startRotation = it1.rotation;
+/*
+console.info('%d,%d', px, py);
+console.log(ev);
+return;
+*/
+
+		var nearCorner = false;
+		var c = [[0,0], [0,it1.wCanvas.offsetHeight], [it1.wCanvas.offsetWidth,it1.wCanvas.offsetHeight], [it1.wCanvas.offsetWidth,0]];
+		for (var i = 0 ; i < 4 ; i++) {
+			if (it1.dist(px, py, c[i][0], c[i][1]) < 35) nearCorner = true;
+		}
+console.log('DN  %d, %d -> %o (startRotation %f)', px, py, nearCorner, startRotation);
+		if (nearCorner) {
+			it1.rotateMode = true;
+		} else {
+			it1.translateMode = true;
+		}
+	}, false);
+
+	it1.wCanvas.addEventListener('mouseup', function(ev) { mouseDo(ev); }, false);
+	it1.wCanvas.addEventListener('mouseout', function(ev) { mouseDo(ev); }, false);
+	it1.wCanvas.addEventListener('mousemove', function(ev) {
+
+		mouseDo(ev);
+	}, false);
+
+	function mouseDo(ev) {
+		if (!it1._mouseDownXY) return;
+		var mx = ev.offsetX || ev.layerX;
+		var my = ev.offsetY || ev.layerY;
+
+		//console.info('%d tMode=%s', Math.abs(mx - it1._mouseDownXY[0]) + Math.abs(my - it1._mouseDownXY[1]), it1.translateMode);
+		if (Math.abs(mx - it1._mouseDownXY[0]) + Math.abs(my - it1._mouseDownXY[1]) < 6) {
+			if (ev.type != 'mouseup') return;
+			it1.rotateMode = false;
+			it1.translateMode = false;
+			return it1.spotClick(ev);
+		}
+
+		if (it1.translateMode) {
+			var scale = it1.rectW() / it1.wCanvas.offsetWidth;
+			var dx = (px - mx) * scale;
+			var dy = (py - my) * scale;
+			px = mx;
+			py = my;
+//console.info("(s %f) dx, dy %d,%d", scale, dx, dy);
+			it1.translateRect(dx, dy);
+			it1.toWork();
+
+		} else if (it1.rotateMode) {
+			var cp = it1.midpoint(0, 0, it1.wCanvas.offsetWidth, it1.wCanvas.offsetHeight);
+/*
+			var db = it1.dist(cp[0], cp[1], it1._mouseDownXY[0], it1._mouseDownXY[1]);
+			var dc = it1.dist(cp[0], cp[1], ev.offsetX, ev.offsetY);
+			var da = it1.dist(it1._mouseDownXY[0], it1._mouseDownXY[1], ev.offsetX, ev.offsetY);
+console.info('b=%d c=%d a=%d', db, dc, da);
+			var a = Math.acos((db*db + dc*dc - da*da) / (2 * db * dc));
+			console.info('rotation = %f', a);
+*/
+			var a1 = Math.atan2(cp[1] - it1._mouseDownXY[1], cp[0] - it1._mouseDownXY[0]);
+			var a2 = Math.atan2(cp[1] - my, cp[0] - mx);
+console.info('a1 - a2 = %f', (a1 - a2));
+			it1.rotation = a1 - a2 + startRotation;
+			it1.toWork();
+		}
+
+		if (ev.type == 'mouseup' || ev.type == 'mouseout') {
+			it1.rotateMode = false;
+			it1.translateMode = false;
+		}
+	}
 
 	it1.wCanvas.addEventListener('wheel', function(ev) {
 		ev.preventDefault();
 		if (ev.deltaY == 0) return;
 		var dir = ev.deltaY / Math.abs(ev.deltaY);
-		if (it1.rotationMode) {
+		if (it1.rotateMode) {
 			it1.rotateRect(dir * 0.04);
 			it1.toWork();
 		} else {
-			it1.scaleRect(1 + dir * 0.2);
+			it1.scaleRect(1 + dir * 0.08);
 			it1.toWork();
 		}
-
 	}, false);
+
+
+
+/*
+	it1.wCanvas.addEventListener('click', function(ev) {
+console.info(ev);
+		//it1.spotClick(ev);
+	}, false);
+*/
+
 
 	console.info('ImageTools "it1" and "it2" created');
 
