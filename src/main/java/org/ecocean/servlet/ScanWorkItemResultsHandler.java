@@ -19,7 +19,6 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
@@ -33,17 +32,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.HttpURLConnection;
-import java.io.DataOutputStream;
-import java.nio.charset.Charset;
 import java.util.Vector;
 import java.util.ArrayList;
 
@@ -122,46 +113,15 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       int returnedSize = returnedResults.size();
 
 
-      //int numComplete = gm.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
-      int numComplete=0;
-      //int numGenerated = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
-      int numGenerated=0;
-      //int numTaskTot = numComplete + numGenerated;
-      int numTaskTot=0;
-      String scanTaskID="";
-      
-      ArrayList<String> tasksCompleted=new ArrayList<String>();
-      
+      //ArrayList<String> affectedScanTasks=new ArrayList<String>();
+      //String affectedTask="";
       for (int m = 0; m < returnedSize; m++) {
         ScanWorkItemResult wir = (ScanWorkItemResult) returnedResults.get(m);
-        
-        if(!wir.getUniqueNumberTask().equals(scanTaskID)){
-          scanTaskID=wir.getUniqueNumberTask();
-        }
-
-        
         //String swiUniqueNum = wir.getUniqueNumberWorkItem();
         String taskNum = wir.getUniqueNumberTask();
         if(!affectedScanTasks.contains(taskNum)){affectedScanTasks.add(taskNum);}
 
         gm.checkinResult(wir);
-        
-        //auto-generate XML file of results if appropriate
-        numComplete = gm.getNumWorkItemsCompleteForTask(scanTaskID);
-        numGenerated = gm.getNumWorkItemsIncompleteForTask(scanTaskID);
-        numTaskTot = numComplete + numGenerated;
-        if ((numComplete > 0) && (numComplete >= numTaskTot)) {
-          
-          
-          if(!tasksCompleted.contains(scanTaskID)){
-          
-            ScanTask st=myShepherd.getScanTask(scanTaskID);
-            if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
-            
-            tasksCompleted.add(scanTaskID);
-          }
-          
-        }
 
 
       }
@@ -219,100 +179,6 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
 
 
   }
-  
-  
-private void finishScanTask(String scanTaskID, HttpServletRequest request) {
-    
-    
-    //prep our streaming variables
-    URL u=null;
-    //InputStream inputStreamFromServlet=null;
-    //BufferedReader in=null;
-    HttpURLConnection finishConnection=null;
-    DataOutputStream wr=null;
-    
-    try {
-      
-      
-      u = new URL("http://"+CommonConfiguration.getURLLocation(request)+"/WriteOutScanTask");
-      String urlParameters  = "number=" + scanTaskID;
-      byte[] postData       = urlParameters.getBytes( Charset.forName( "UTF-8" ));
-      int    postDataLength = postData.length;
-
-      
-      
-      
-      System.out.println("...writing out scanTask: "+scanTaskID+" to URL: "+u.toString());
-      
-      
-      finishConnection = (HttpURLConnection)u.openConnection();
-      
-      finishConnection.setDoOutput( true );
-      finishConnection.setDoInput ( true );
-      finishConnection.setInstanceFollowRedirects( false );
-      finishConnection.setRequestMethod( "POST" );
-      finishConnection.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded"); 
-      finishConnection.setRequestProperty( "charset", "utf-8");
-      finishConnection.setRequestProperty( "Content-Length", Integer.toString( postDataLength ));
-      finishConnection.setUseCaches( false );
-      wr = new DataOutputStream( finishConnection.getOutputStream());
-      //wr.write( postData );
-      wr.writeBytes(urlParameters);
-      wr.flush();
-      //wr.close();
-   
-      int responseCode = finishConnection.getResponseCode();
-
-      System.out.println("     Post parameters : " + urlParameters);
-      System.out.println("     Response Code : " + responseCode);
-   
-      BufferedReader in = new BufferedReader(
-              new InputStreamReader(finishConnection.getInputStream()));
-      String inputLine;
-      StringBuffer response = new StringBuffer();
-   
-      while ((inputLine = in.readLine()) != null) {
-        response.append(inputLine);
-      }
-      in.close();
-   
-      //print result
-      //System.out.println("     "+response.toString());
-      
-
-      //process the returned line however needed
-
-
-    } 
-    catch (MalformedURLException mue) {
-      System.out.println("!!!!!I hit a MalformedURLException in ScanWorkItemResultsHandler: "+u.toString());
-      mue.printStackTrace();
-
-    } 
-    catch (IOException ioe) {
-      System.out.println("!!!!!I hit an IO exception in ScanWorkItemResultsHandler: "+u.toString());
-      ioe.printStackTrace();
-    } 
-    catch (Exception e) {
-      System.out.println("!!!!!I hit an Exception in ScanWorkItemResultsHandler: "+u.toString());
-      e.printStackTrace();
-    }
-    finally{
-      try{
-        wr.close();
-        finishConnection.disconnect();
-        finishConnection=null;
-        wr=null;
-        //inputStreamFromServlet.close();
-        //in.close();
-      }
-      catch(Exception ex){
-        ex.printStackTrace();
-      }
-    }
-  }
-  
-  
 
 
 }
