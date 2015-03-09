@@ -81,29 +81,50 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
 
 
   private void sendHeartbeat(String appletID) {
+    
+    
+    //prep our streaming variables
+    URL u;
+    InputStream inputStreamFromServlet=null;
+    BufferedReader in=null;
+    URLConnection finishConnection=null;
+    
     try {
-      System.out.println("...sending heartbeat...thump...thump...");
-      URL u = new URL("http://"+rootURL + "/GridHeartbeatReceiver?nodeIdentifier=" + appletID + "&numProcessors=" + numProcessors + "&version=" + version);
-      URLConnection finishConnection = u.openConnection();
+      
+      u = new URL("http://"+rootURL + "/GridHeartbeatReceiver?nodeIdentifier=" + appletID + "&numProcessors=" + numProcessors + "&version=" + version);
+      
+      System.out.println("...sending heartbeat...thump...thump...to: "+u.toString());
+      
+      finishConnection = u.openConnection();
 
-      InputStream inputStreamFromServlet = finishConnection.getInputStream();
-      BufferedReader in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));
+      inputStreamFromServlet = finishConnection.getInputStream();
+      in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));
       String line = in.readLine();
       in.close();
 
       //process the returned line however needed
 
 
-    } catch (MalformedURLException mue) {
+    } 
+    catch (MalformedURLException mue) {
       System.out.println("!!!!!I hit a MalformedURLException in the heartbeat thread!!!!!");
       mue.printStackTrace();
 
-    } catch (IOException ioe) {
-      System.out.println("!!!!!I hit a MalformedURLException in the heartbeat thread!!!!!");
+    } 
+    catch (IOException ioe) {
+      System.out.println("!!!!!I hit an IO exception in the heartbeat thread!!!!!");
       ioe.printStackTrace();
-    } catch (Exception e) {
-      System.out.println("!!!!!I hit a MalformedURLException in the heartbeat thread!!!!!");
+    } 
+    catch (Exception e) {
+      System.out.println("!!!!!I hit an Exception in the heartbeat thread!!!!!");
       e.printStackTrace();
+    }
+    finally{
+      try{
+        inputStreamFromServlet.close();
+        in.close();
+      }
+      catch(Exception ex){}
     }
   }
 
