@@ -1,0 +1,128 @@
+<html><head><title>test</title>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="javascript/imageTools.js"></script>
+
+
+<script type="text/javascript">
+	var it1, it2, opts1, opts2;
+
+$(document).ready(function() {
+
+	opts1 = {
+		toolsEnabled: {
+			spotDisplay: true
+		},
+
+		spots: [
+			{ xy: [30,50], type: "spot" },
+			{ xy: [50,70], type: "mystery" }
+		]
+	};
+
+
+	opts2 = {
+		toolsEnabled: {
+			spotPicker: true
+		},
+
+		wCanvas: document.getElementById('cr-work-canvas'),
+		lCanvas: document.getElementById('cr-label-canvas'),
+		oCanvas: document.getElementById('cr-overlay-canvas'),
+		infoEl: document.getElementById('cr-info'),
+		controlEl: document.getElementById('cr-info'),
+
+		spots: [
+			{ xy: [30,50], type: "spot" },
+			{ xy: [50,70], type: "mystery" }
+		]
+	};
+
+
+	opts1.imgEl = document.getElementById('target-img1');
+	opts2.imgEl = document.getElementById('cr-work-img');
+
+	it1 = new ImageTools(opts1);
+	it2 = new ImageTools(opts2);
+
+/*
+		CRtool.toolsEnabled.spotPicker = true;
+		//sometimes .toWork() doesnt fire via .init() above.  wtf?  TODO fix!
+		window.setTimeout(function() { CRtool.toWork(); }, 1100);
+*/
+
+	console.info('ImageTools "it1" and "it2" created');
+});
+
+
+</script>
+
+<style>
+img.target {
+	width: 700px;
+}
+
+#work-wrapper {
+	max-width: 500px;
+	max-height: 400px;
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+
+#cr-work-img, #cr-overlay-canvas {
+	position: absolute;
+	left: 5px;
+	top: 5px;
+}
+#cr-work-img, #cr-overlay-canvas {
+/*
+	max-height: 300px;
+	max-width: 400px;
+*/
+	width: 400px;
+}
+
+
+#cr-work-img, #cr-work-canvas {
+	outline: 2px solid #444;
+}
+
+#cr-work-canvas, #cr-label-canvas {
+	position: absolute;
+	top: 5px;
+	left: 410px;
+	xborder: solid 1px blue;
+	max-width: 300px;
+	max-height: 400px;
+}
+
+
+
+</style>
+
+</head>
+<body>
+
+<p>simple (it1)</p>
+
+<img class="target" src="/mantamatcher2_data_dir/encounters/c/e/ce9c367d-985e-4bd2-a10f-bb81b0737528/mantaray_fgbnms_noaa.jpg" id="target-img1" />
+
+<hr><p>complex (it2)</p>
+
+<div style="position: relative; padding: 10px; background-color: #888; width: 100%; height: 700px;">
+
+
+		<img class="target" id="cr-work-img" src="/mantamatcher2_data_dir/encounters/c/e/ce9c367d-985e-4bd2-a10f-bb81b0737528/mantaray_fgbnms_noaa.jpg" />
+		<canvas id="cr-overlay-canvas" style="display: none;" ></canvas>
+
+
+	<div style="position: relative; right: 0;">
+		<canvas id="cr-work-canvas" style="position: absolute; right: 0; top: 0;" ></canvas>
+		<canvas id="cr-label-canvas" style="pointer-events: none; position: absolute; right: 0; top: 0;" ></canvas>
+	</div>
+
+</div>
+
+</body>
+</html>
