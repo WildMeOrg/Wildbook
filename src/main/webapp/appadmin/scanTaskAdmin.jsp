@@ -194,9 +194,7 @@ else{
         int numGenerated = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
 
         int numTaskTot = numComplete + numGenerated;
-        if ((st.getUniqueNumber().equals("TuningTask")) || (st.getUniqueNumber().equals("FalseMatchTask"))) {
-          numTaskTot = numGenerated;
-        }
+
 
         
         
@@ -215,12 +213,7 @@ else{
       <form name="scanNum<%=scanNum%>_writeOut" method="post"
             action="../WriteOutScanTask"><input name="number" type="hidden"
                                                 id="number" value="<%=st.getUniqueNumber()%>"> <%
-        if (st.getUniqueNumber().equals("TuningTask")) {
-      %> Boost weight for failed matches<br/>
-        (default is 1): <input name="boostWeight" type="text" id="boostWeight"
-                               size="5" maxlength="10"/> <br/>
-        <%
-          }
+
         %> <input name="scanNum<%=scanNum%>_WriteResult" type="submit"
                   id="scanNum<%=scanNum%>_WriteResult" value="Write Result"></form>
       <br> <%
