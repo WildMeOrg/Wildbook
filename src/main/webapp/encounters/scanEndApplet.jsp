@@ -69,12 +69,16 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
         href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+          <link href="../css/pageableTable.css" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+      
 </head>
 
 <style type="text/css">
+ 
   #tabmenu {
     color: #000;
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid #CDCDCD;
     margin: 12px 0px 0px 0px;
     padding: 0px;
     z-index: 1;
@@ -88,10 +92,10 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   }
 
   #tabmenu a, a.active {
-    color: #DEDECF;
-    background: #000;
-    font: bold 1em "Trebuchet MS", Arial, sans-serif;
-    border: 2px solid black;
+    color: #000;
+    background: #E6EEEE;
+    font: 0.5em "Arial, sans-serif;
+    border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
@@ -99,25 +103,25 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   }
 
   #tabmenu a.active {
-    background: #FFFFFF;
+    background: #8DBDD8;
     color: #000000;
-    border-bottom: 2px solid #FFFFFF;
+    border-bottom: 1px solid #8DBDD8;
   }
 
   #tabmenu a:hover {
-    color: #ffffff;
-    background: #7484ad;
+    color: #000;
+    background: #8DBDD8;
   }
 
   #tabmenu a:visited {
-    color: #E8E9BE;
+    
   }
 
   #tabmenu a.active:hover {
-    background: #7484ad;
-    color: #DEDECF;
-    border-bottom: 2px solid #000000;
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
   }
+  
 </style>
 
 <body>
@@ -232,10 +236,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   target="_blank"><img src="../images/information_icon_svg.gif"
                        alt="Help" border="0" align="absmiddle"></a></h2>
 </p>
-<p><strong>The following encounter(s) received the highest
-  match values against a <%=side%>-side scan of encounter# <a
-    href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%>
-  </a>.</strong></p>
+<p>The following encounter(s) received the highest
+  match values against a <%=side%>-side scan of encounter <a
+    href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
 <%
@@ -247,39 +250,63 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 <p><em>Date of scan: <%=scanDate%>
 </em></p>
 <%}%>
-<table width="524" border="1" cellspacing="0" cellpadding="5">
-  <tr>
-    <td width="143" align="left" valign="top">
-      <%if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != null)) {%>
-      <p><font size="+1">Custom Scan</font></p>
-      <%} else {%>
-      <p><font size="+1">Standard Scan</font></p>
-      <%}%>
-      <p>For this scan, the following variables were used:</p>
-      <ul>
 
+<p><a href="#resultstable">See the table below for score breakdowns.</a></p>
 
-        <li>epsilon (<%=epsilon%>)</li>
-        <li>R (<%=R%>)</li>
-        <li>Sizelim (<%=Sizelim%>)</li>
-        <li>C (<%=C%>)</li>
-        <li>Max. Triangle Rotation (<%=maxTriangleRotation%>)</li>
+<p>
 
-      </ul>
-    </td>
-    <td width="355" align="left" valign="top">
-      <table width="100%" border="1" align="left" cellpadding="3">
+<p>
+
+<%
+    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
+    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
+
+    System.out.println("Base URL is: " + baseURL);
+    if (xmlOK) {
+      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+        feedURL = baseURL + encSubdir + "/lastFullRightScan.xml?";
+      } else {
+        feedURL = baseURL + encSubdir + "/lastFullScan.xml?";
+      }
+    }
+    String rightSA = "";
+    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+      rightSA = "&filePrefix=extractRight";
+    }
+    System.out.println("I made it to the Flash without exception.");
+  %>
+  <OBJECT id=sharkflash
+          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
+          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
+    <PARAM NAME="movie"
+           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
+    <PARAM NAME="qualidty" VALUE="high">
+    <PARAM NAME="scale" VALUE="exactfit">
+    <PARAM NAME="bgcolor" VALUE="#ddddff">
+    <EMBED
+      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
+      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
+      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
+      TYPE="application/x-shockwave-flash"
+      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
+  </OBJECT>
+</p>
+  
+      <a name="resultstable"/><table class="tablesorter">
+      <thead>
         <tr align="left" valign="top">
-          <td><strong>Individual ID</strong></td>
-          <td><strong> Encounter</strong></td>
-          <td><strong>Fraction Matched Triangles </strong></td>
-          <td><strong>Match Score </strong></td>
-          <%//  <td><strong>Triangle logM Breakdown</strong></td> %>
-          <td><strong>logM std. dev.</strong></td>
-          <td><strong>Confidence</strong></td>
-          <td><strong>Matched Keywords</strong></td>
+          <th><strong>Individual ID</strong></th>
+          <th><strong> Encounter</strong></th>
+          <th><strong>Fraction Matched Triangles </strong></th>
+          <th><strong>Match Score </strong></th>
+    
+          <th><strong>logM std. dev.</strong></th>
+          <th><strong>Confidence</strong></th>
+          <th><strong>Matched Keywords</strong></th>
 
         </tr>
+        </thead>
+        <tbody>
         <%
           if (!xmlOK) {
 
@@ -288,7 +315,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
             Arrays.sort(results, new MatchComparator());
             for (int p = 0; p < results.length; p++) {
               if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
-        <tr align="left" valign="top">
+        <tr>
           <td>
             <table width="62">
 
@@ -440,23 +467,13 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
           }
 
         %>
-
+</tbody>
       </table>
-    </td>
-  </tr>
-</table>
-</tr>
-</table>
 
-<p><font size="+1">Visualizations for Potential Matches (as
-  scored above)</font></p>
 
-<p>
 
-<p>
   <%
-    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
-    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
+
 
 
 //myShepherd.rollbackDBTransaction();
@@ -466,37 +483,23 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     initresults = null;
     file = null;
     xmlReader = null;
+    
+if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != null)) {%>
+      <p><font size="+1">Custom Scan</font></p>
+      <%} else {%>
+      <p><font size="+1">Standard Scan</font></p>
+      <%}%>
+      <p>For this scan, the following variables were used:</p>
+      <ul>
 
-    System.out.println("Base URL is: " + baseURL);
-    if (xmlOK) {
-      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        feedURL = baseURL + encSubdir + "/lastFullRightScan.xml?";
-      } else {
-        feedURL = baseURL + encSubdir + "/lastFullScan.xml?";
-      }
-    }
-    String rightSA = "";
-    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      rightSA = "&filePrefix=extractRight";
-    }
-    System.out.println("I made it to the Flash without exception.");
-  %>
-  <OBJECT id=sharkflash
-          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
-          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
-    <PARAM NAME="movie"
-           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
-    <PARAM NAME="qualidty" VALUE="high">
-    <PARAM NAME="scale" VALUE="exactfit">
-    <PARAM NAME="bgcolor" VALUE="#ddddff">
-    <EMBED
-      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
-      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
-      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
-      TYPE="application/x-shockwave-flash"
-      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
-  </OBJECT>
-</p>
+
+        <li>epsilon (<%=epsilon%>)</li>
+        <li>R (<%=R%>)</li>
+        <li>Sizelim (<%=Sizelim%>)</li>
+        <li>C (<%=C%>)</li>
+        <li>Max. Triangle Rotation (<%=maxTriangleRotation%>)</li>
+
+      </ul>
 <jsp:include page="../footer.jsp" flush="true"/>
 </div>
 </div>
