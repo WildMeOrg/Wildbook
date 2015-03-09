@@ -90,24 +90,31 @@ console.log('iCanvas init');
 	};
 
 	this.imageReady = function() {
+		var me = this;
 console.log('imageReady called');
 console.log('iCtx is %o', this.iCtx);
 console.log('oCtx is %o', this.oCtx);
 console.log('imgEl.width = ' + this.imgEl.width);
 		this.info('img size: <b>' + this.imgEl.naturalWidth + 'x' + this.imgEl.naturalHeight);
 
+		this.wCanvas.addEventListener('click', function(ev) { me.spotClick(ev); }, false);
+
 		this.scale = this.imgEl.naturalWidth / this.imgEl.width;
+
+		//this allows crop/rotate within the work canvas
+		if (this.allInOne) {
+			this.setRectFrom2(0, 0, 0, this.imgEl.width, this.imgEl.height);
+		}
+
+		if (!this.oCanvas) return;
+
 		this.setRectFrom2(0,
 			0.25 * this.imgEl.width, 0.25 * this.imgEl.height,
 			0.75 * this.imgEl.width, 0.75 * this.imgEl.height
 		);
 
-
-		if (!this.oCanvas) return;
-
 console.log('starting imageReady');
 
-		var me = this;
 		this.oCanvas.ontouchmove = function(ev) {
 console.log(ev);
 console.log('tmove %o', ev.changedTouches);
@@ -132,8 +139,6 @@ console.log('tstart %o', ev.changedTouches);
 		this.oCanvas.addEventListener('mousedown', function(ev) { me.mdown(ev); }, false);
 		this.oCanvas.addEventListener('mouseup', function(ev) { me.mup(ev); }, false);
 		this.oCanvas.addEventListener('mousemove', function(ev) { me.mmove(ev); }, false);
-
-		this.wCanvas.addEventListener('click', function(ev) { me.spotClick(ev); }, false);
 
 		this.oCanvas.width = this.imgEl.width;
 		this.oCanvas.height = this.imgEl.height;
@@ -221,10 +226,11 @@ console.log("rtn ========== (%d,%d) =============", r[0], r[1]);
 		var rh = this.rectH() * this.scale;
 		this.wCanvas.width = rw;
 		this.wCanvas.height = rh;
-if (this.lCanvas) {
-	this.lCanvas.width = rw;
-	this.lCanvas.height = rh;
-}
+
+		if (this.lCanvas) {
+			this.lCanvas.width = rw;
+			this.lCanvas.height = rh;
+		}
 
 //console.log('%d, %d', (rw-w)/2, (rh-h)/2);
 		this.wCtx.rotate(-this.rotation);
@@ -387,6 +393,7 @@ console.log('down %d,%d', ev.offsetX, ev.offsetY);
 	};
 
 	this.spotClick = function(ev) {
+console.log(ev);
 		if (!this.toolsEnabled || !this.toolsEnabled.spotPicker) return;
 		ev.preventDefault();
 console.log('click ev %o', ev);
@@ -576,6 +583,16 @@ console.log('rw,rh %d %d', rw, rh);
 			this.rect[i*2+1] = p[1];
 		}
 		this.rotation += A;
+	};
+
+	this.scaleRect = function(s) {
+	};
+
+	this.translateRect = function(dx, dy) {
+		for (var i = 0 ; i < 4 ; i++) {
+			this.rect[i*2] += dx;
+			this.rect[i*2+1] += dy;
+		}
 	};
 
 	this.min = function(arr) {
