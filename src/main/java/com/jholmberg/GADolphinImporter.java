@@ -594,6 +594,12 @@ public class GADolphinImporter {
 
 					File destfile = new File(dir, thisFile.getName());
 					
+					if(!destfile.exists()){
+						String fullFileSystemPath = destfile.getAbsolutePath();
+						CaribwhaleMigratorApp.copyFile(thisFile,destfile);
+						System.out.println("   &&&&copying file to: full path??? = " + fullFileSystemPath + " WRITTEN!");
+					}
+					
 					
 					//we have a match! let's add it to the encounter
 					SinglePhotoVideo spv=new SinglePhotoVideo(enc.getCatalogNumber(),destfile);
@@ -606,11 +612,7 @@ public class GADolphinImporter {
 					myShepherd.commitDBTransaction();
 					
 					
-					if(!destfile.exists()){
-						String fullFileSystemPath = destfile.getAbsolutePath();
-						CaribwhaleMigratorApp.copyFile(thisFile,destfile);
-						System.out.println("   &&&&copying file to: full path??? = " + fullFileSystemPath + " WRITTEN!");
-					}
+
 					
 					
 					
