@@ -1547,6 +1547,25 @@ public class Shepherd {
     Collection c = (Collection) (samples.execute());
     return (new ArrayList<TissueSample>(c));
   }
+  
+  public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
+    ArrayList<TissueSample> al = new ArrayList<TissueSample>();
+    if(indy.getEncounters()!=null){
+      int numEncounters = indy.getEncounters().size();
+      for (int i = 0; i < numEncounters; i++) {
+        Encounter enc = (Encounter) indy.getEncounters().get(i);
+        if(getAllTissueSamplesForEncounter(enc.getCatalogNumber())!=null){
+          List<TissueSample> list = getAllTissueSamplesForEncounter(enc.getCatalogNumber());
+          if(list.size()>0){
+            al.addAll(list);
+          }
+        }
+      }
+    return al;
+    }
+    return null;
+  }
+  
 
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
@@ -3026,6 +3045,34 @@ public class Shepherd {
     return occurrenceIDs;
   }
   
+
+  
+  public Measurement getMeasurementOfTypeForEncounter(String type, String encNum) {
+    String filter = "type == \""+type+"\" && correspondingEncounterNumber == \""+encNum+"\"";
+    Extent encClass = pm.getExtent(Measurement.class, true);
+    Query samples = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (samples.execute());
+    if((c!=null)&&(c.size()>0)){return (new ArrayList<Measurement>(c)).get(0);}
+    else{return null;}
+  }
+  
+  public ArrayList<Measurement> getMeasurementsForEncounter(String encNum) {
+    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
+    Extent encClass = pm.getExtent(Measurement.class, true);
+    Query samples = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (samples.execute());
+    if((c!=null)&&(c.size()>0)){return (new ArrayList<Measurement>(c));}
+    else{return null;}
+  }
+  
+  public Iterator<ScanTask> getAllScanTasksForUser(String user) {
+    String filter = "submitter == \""+user+"\"";
+    Extent encClass = pm.getExtent(ScanTask.class, true);
+    Query samples = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (samples.execute());
+    if((c!=null)&&(c.size()>0)){return c.iterator();}
+    else{return null;}
+  }
 
   
 
