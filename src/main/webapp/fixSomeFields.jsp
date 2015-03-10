@@ -59,38 +59,40 @@ int numIssues=0;
 DateTimeFormatter fmt = ISODateTimeFormat.date();
 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 
-String urlToThumbnailJSPPage="http://localhost:8080/wildbook-5.2.0-RELEASE/";
+String urlToThumbnailJSPPage="http://dev.flukebook.org/";
 
-/*
+
 while(allEncs.hasNext()){
 	
 
 	Encounter sharky=(Encounter)allEncs.next();
-	if((sharky.getSinglePhotoVideo()!=null)&&(sharky.getSinglePhotoVideo().size()>0)){
-	try{
-    //System.out.println("Trying to render a thumbnail for: "+IDKey+ "as "+thumbnailTheseImages.get(q));
-    String urlString=urlToThumbnailJSPPage+"resetThumbnail.jsp?number="+sharky.getCatalogNumber()+"&imageNum=1";
-    String urlString2=urlToThumbnailJSPPage+"encounters/encounter.jsp?number="+sharky.getCatalogNumber()+"&imageNum=1";
-    URL url = new URL(urlString);
-    URL url2 = new URL(urlString2);
-      BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-      in.close();
-      Thread.sleep(500);
-      BufferedReader in2 = new BufferedReader(new InputStreamReader(url2.openStream()));
-      in2.close();
-      Thread.sleep(500);
-  } 
-  catch (Exception e) {
+	if(sharky.getCatalogNumber().indexOf(".")!=-1){
+		if((sharky.getSinglePhotoVideo()!=null)&&(sharky.getSinglePhotoVideo().size()>0)){
+		try{
+    		//System.out.println("Trying to render a thumbnail for: "+IDKey+ "as "+thumbnailTheseImages.get(q));
+    		String urlString=urlToThumbnailJSPPage+"resetThumbnail.jsp?number="+sharky.getCatalogNumber()+"&imageNum=1";
+    		String urlString2=urlToThumbnailJSPPage+"encounters/encounter.jsp?number="+sharky.getCatalogNumber()+"&imageNum=1";
+    		URL url = new URL(urlString);
+    		URL url2 = new URL(urlString2);
+      		BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+      		in.close();
+      		Thread.sleep(500);
+      		BufferedReader in2 = new BufferedReader(new InputStreamReader(url2.openStream()));
+      		in2.close();
+      		Thread.sleep(500);
+  		} 
+  		catch (Exception e) {
     
-    //System.out.println("Error trying to render the thumbnail for "+IDKey+".");
-    e.printStackTrace();
+    	//System.out.println("Error trying to render the thumbnail for "+IDKey+".");
+    	e.printStackTrace();
     
   }
 	}
   
-
 }
-*/
+}
+
+/*
 
 while(allSharks.hasNext()){
 
@@ -99,24 +101,10 @@ while(allSharks.hasNext()){
 	myShepherd.commitDBTransaction();
 	myShepherd.beginDBTransaction();
 	
-/*
-	//populate max years between resightings
-	/*
-	if(sharky.totalLogEncounters()>0){
-		//int numLogEncounters=);
-		for(int i=0;i<sharky.totalLogEncounters();i++){
-			Encounter enc=sharky.getLogEncounter(i);
-			sharky.removeLogEncounter(enc);
-			sharky.addEncounter(enc);
-			i--;
-			//check if log encounters still exist
-			numLogEncounters++;
-			
-		}
-	}
-*/
+
 	
 }
+*/
 
 
 

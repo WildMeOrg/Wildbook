@@ -133,7 +133,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
-System.out.println("???? query=" + kwQuery);
+//System.out.println("???? query=" + kwQuery);
   boolean proceed = true;
   boolean haveRendered = false;
 
@@ -3201,7 +3201,8 @@ $("a#autocomments").click(function() {
 <c:forEach var="item" items="${measurements}">
  <% 
     MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
-    Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
+    //Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
+    Measurement event=myShepherd.getMeasurementOfTypeForEncounter(measurementDesc.getType(), num);
     if (event != null) {
         pageContext.setAttribute("measurementValue", event.getValue());
         pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode,context));
@@ -3978,9 +3979,8 @@ dlgSample.dialog("open");
 
 <p>
 <%
-List<TissueSample> tissueSamples=enc.getTissueSamples();
-//List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
-
+//List<TissueSample> tissueSamples=enc.getTissueSamples();
+List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber());
 
 if((tissueSamples!=null)&&(tissueSamples.size()>0)){
 	

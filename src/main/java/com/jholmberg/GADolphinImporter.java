@@ -537,6 +537,14 @@ public class GADolphinImporter {
 	
 	private static void populateImagesForEncounter(Encounter enc, File imagesDir, Shepherd myShepherd, String myID, String dataDirPath){
 		
+		//wipe out previous photos
+		int numPhotos=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
+		for(int i=0;i<numPhotos;i++){
+			enc.removeSinglePhotoVideo(i);
+			myShepherd.commitDBTransaction();
+			myShepherd.beginDBTransaction();
+		}
+		
 		
 		System.out.println("     @@@@@Entering photo processing...");
 		
@@ -577,17 +585,6 @@ public class GADolphinImporter {
 				
 				if(thisFilename.indexOf(consolidatedString)!=-1){
 					
-					
-					
-					//we have a match! let's add it to the encounter
-					SinglePhotoVideo spv=new SinglePhotoVideo(enc.getCatalogNumber(),thisFile);
-					myShepherd.getPM().makePersistent(spv);
-					
-					
-					enc.addSinglePhotoVideo(spv);
-					
-					myShepherd.commitDBTransaction();
-					
 					//now copy the file into Wildbook
 					File dir = new File(enc.dir(dataDirPath));
 					if (!dir.exists()) { dir.mkdirs(); }
@@ -596,6 +593,19 @@ public class GADolphinImporter {
 					//String filename = ServletUtilities.cleanFileName(new File(formFile.getName()).getName());
 
 					File destfile = new File(dir, thisFile.getName());
+					
+					
+					//we have a match! let's add it to the encounter
+					SinglePhotoVideo spv=new SinglePhotoVideo(enc.getCatalogNumber(),destfile);
+					myShepherd.getPM().makePersistent(spv);
+					
+					
+					
+					enc.addSinglePhotoVideo(spv);
+					
+					myShepherd.commitDBTransaction();
+					
+					
 					if(!destfile.exists()){
 						String fullFileSystemPath = destfile.getAbsolutePath();
 						CaribwhaleMigratorApp.copyFile(thisFile,destfile);

@@ -200,9 +200,9 @@ public class ScanResultsServlet extends HttpServlet {
       System.out.println("!!!!DB access problem in scanResultsServlets!!!!");
     }
     myShepherd.rollbackDBTransaction();
-
+    ObjectInputStream inputFromApplet = null;
     try {
-      ObjectInputStream inputFromApplet = null;
+      
       PrintWriter out = null;
       BufferedReader inTest = null;
 
@@ -233,12 +233,13 @@ public class ScanResultsServlet extends HttpServlet {
       out = response.getWriter();
       out.println("success");
       out.close();
-      System.out.println("scanResultsServlet: Transmitted a result of 'success' back to the applet.");
+      //System.out.println("scanResultsServlet: Transmitted a result of 'success' back to the applet.");
 
 
     } catch (Exception e) {
       System.out.println("scanResultsServlet registered the following error...");
       e.printStackTrace();
+      if(inputFromApplet!=null){inputFromApplet.close();}
 
     }
 
