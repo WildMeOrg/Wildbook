@@ -12,6 +12,8 @@ import org.apache.commons.io.*;
 import java.io.*;
 import java.util.*;
 
+import org.ecocean.servlet.ServletUtilities;
+
 public class GADolphinImporter {
 	
 	public static void main(String[] args) {
@@ -592,7 +594,7 @@ public class GADolphinImporter {
 					//String origFilename = new File(formFile.getName()).getName();
 					//String filename = ServletUtilities.cleanFileName(new File(formFile.getName()).getName());
 
-					File destfile = new File(dir, thisFile.getName());
+					File destfile = new File(dir, ServletUtilities.cleanFileName(thisFile.getName()));
 					
 					if(!destfile.exists()){
 						String fullFileSystemPath = destfile.getAbsolutePath();
