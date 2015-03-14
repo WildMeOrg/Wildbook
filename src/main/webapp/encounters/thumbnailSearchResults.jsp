@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration" %>
+         import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,javax.jdo.Extent,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration" %>
 
 <html>
 <head>
@@ -72,7 +72,7 @@
     ArrayList<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
 
     myShepherd.beginDBTransaction();
-    EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
+    //EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
 	
   	StringBuffer prettyPrint=new StringBuffer("");
   	Map<String,Object> paramMap = new HashMap<String, Object>();
@@ -98,9 +98,20 @@
 
 
     if (request.getParameter("noQuery") == null) {
-	  queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+    	
+    	
+    	String jdoqlQueryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+    	Extent encClass = myShepherd.getPM().getExtent(Encounter.class, true);
+        Query query = myShepherd.getPM().newQuery(jdoqlQueryString);
+        //query.setFilter("SELECT "+jdoqlQueryString);
+        query.setResult("catalogNumber");
+        Collection c = (Collection) (query.execute());
+        ArrayList<String> enclist = new ArrayList<String>(c);
+        query.closeAll();
+    	
+	  //queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
 	
-    rEncounters=myShepherd.getThumbnails(request, queryResult.getResult().iterator(), startNum, endNum, keywords);
+    rEncounters=myShepherd.getThumbnails(myShepherd, request, enclist, startNum, endNum, keywords);
     }
     else{
     	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo WHERE correspondingEncounterNumber != null");    	
@@ -907,29 +918,7 @@
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
-  if (request.getParameter("noQuery") == null) {
-%>
-<table>
-  <tr>
-    <td align="left">
-
-
-
-      <p><strong><%=encprops.getProperty("queryDetails")%>
-      </strong></p>
-
-      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
-      </p>
-      
-
-
-    </td>
-  </tr>
-</table>
-<%
-  }
+ 
 %>
 
 <br/>
