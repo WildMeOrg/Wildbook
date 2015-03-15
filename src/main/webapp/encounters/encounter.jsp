@@ -197,6 +197,61 @@ if (request.getParameter("number")!=null) {
   <style type="text/css">
     <!--
 
+#imageTools-wrapper {
+	display: none;
+	position: absolute;
+	width: 800px;
+	height: 600px;
+	background-color: #AAA;
+	border: solid 2px #444;
+	z-index: 1;
+}
+
+#imageTools-wl-wrapper {
+	position: absolute;
+	top: 3px;
+	right: 3px;
+	max-height: 400px;
+	xmax-width: 380px;
+	width: 380px;
+}
+
+#imageTools-workCanvas, #imageTools-layerCanvas {
+	position: absolute;
+	left: 0;
+	top: 0;
+	max-height: 400px;
+	max-width: 380px;
+}
+
+#imageTools-layerCanvas {
+	pointer-events: none;
+}
+
+#imageTools-img-wrapper {
+	position: absolute;
+	top: 3px;
+	left: 3px;
+}
+
+#imageTools-img-wrapper img, #imageTools-overlayCanvas {
+	position: absolute;
+	left: 0;
+	top:0;
+}
+
+#imageTools-img-wrapper img {
+	max-height: 400px;
+	max-width: 380px;
+}
+
+#imageTools-control {
+	position: absolute;
+	bottom: 3px;
+	margin-top: 5px;
+}
+
+
     .style2 {
       color: #000000;
       font-size: small;
@@ -388,6 +443,200 @@ td.measurement{
 		  
         
         }
+
+
+
+
+var encounterNumber = '<%=num%>';
+var itool = false;
+
+function doImageSpots(imgNum, el) {
+	var jel = $(el);
+	var imgEl = jel.closest('table').find('img.enc-photo');
+console.log(imgEl);
+	if (!imgEl.length) {
+		console.warn('could not find image for doImageSpots(%d)', imgNum);
+		return;
+	}
+	console.log('imgNum %o', imgNum);
+
+	imgEl.parent().parent().css('position', 'relative').append($('#imageTools-wrapper'));
+	//imgEl.after($('#imageTools-wrapper'));
+	$('#imageTools-wrapper').css({left: '-545px', display: 'inline-block'});
+
+	var fullImg = $('<img id="imageTools-img" src="' + imgEl.parent().attr('href') + '" />');
+	fullImg.bind('load', function() { startImageTools(); });
+
+	$('#imageTools-img-wrapper').html('');
+	$('#imageTools-img-wrapper').append('<canvas id="imageTools-overlayCanvas"></canvas>');
+	$('#imageTools-img-wrapper').prepend(fullImg);
+}
+
+
+var spotTypes = [ 'ref1', 'ref2', 'ref3', 'spot' ];
+var spotTypeNames = {
+	ref1: '5th gill top',
+	ref2: 'posterior pectoral',
+	ref3: '5th gill bottom',
+	spot: 'spot',
+};
+var side = false;
+
+function startImageTools() {
+	var opts = {
+		toolsEnabled: {
+			cropRotate: true,
+			spotPicker: true
+		},
+
+		imgEl: document.getElementById('imageTools-img'),
+
+		wCanvas: document.getElementById('imageTools-workCanvas'),
+		oCanvas: document.getElementById('imageTools-overlayCanvas'),
+		lCanvas: document.getElementById('imageTools-layerCanvas'),
+		//infoEl: document.getElementById('cr-info'),
+		//controlEl: document.getElementById('cr-info'),
+
+		activeSpotType: 'ref1',
+
+/*
+		spots: [
+			{ xy: [30,50], type: "spot" },
+			{ xy: [50,70], type: "mystery" }
+		]
+*/
+	};
+
+
+	itool = new ImageTools(opts);
+
+	itool._myClick = function(ev) {
+console.info(ev);
+		var sc = itool.spotClick(ev);
+console.log('spot click results: %o', sc);
+		var sv = itool.spotsVisible();
+		var msg = '<b>' + sv.length + ' spot' + ((itool.spots.length == 1) ? '' : 's') + ' in field</b>';
+		msg += ' (' + itool.spots.length + ' spot' + ((itool.spots.length == 1) ? '' : 's') + ' total)';
+		if (sc._removed) {
+			$('#imageTools-spotType').val(sc.type);
+			itool.activeSpotType = sc.type;
+			msg += '- spot removed';
+		} else {
+			var s = spotTypes.indexOf(itool.activeSpotType) + 1;
+			if (s >= spotTypes.length) s = spotTypes.length - 1;
+			$('#imageTools-spotType').val(spotTypes[s]);
+			itool.activeSpotType = spotTypes[s];
+			msg += '- spot added';
+		}
+		updateSide();
+		if (side) msg += ' [<i>' + side + ' side</i>]';
+		$('#imageTools-info').html(msg);
+		updateSaveButton();
+	};
+
+	itool.wCanvas.addEventListener('click', itool._myClick, false);
+
+	var h = '<div id="imageTools-info"></div><select id="imageTools-spotType" onChange="return spotTypeChange()">';
+	for (var i = 0 ; i < spotTypes.length ; i++) {
+		h += '<option value="' + spotTypes[i] + '">' + spotTypeNames[spotTypes[i]] + '</option>';
+	}
+	h += '</select><div><input disabled="disabled" onClick="return spotsSave()" id="imageTools-save-button" value="save" type="button" /><input type="button" value="cancel" onClick="return spotsCancel()" />';
+	
+	$('#imageTools-control').html(h);
+}
+
+function spotTypeChange() {
+	itool.activeSpotType = $('#imageTools-spotType').val();
+}
+
+
+function updateSaveButton() {
+	var sp = itool.spotsVisible();
+	if (sp.length < 1) {
+		$('#imageTools-save-button').attr('disabled', 'disabled');
+	} else {
+		$('#imageTools-save-button').removeAttr('disabled');
+	}
+}
+
+function updateSide() {
+	var x1 = -1;
+	var x2 = -1;
+	for (var i = 0 ; i < itool.spots.length ; i++) {
+		if (itool.spots[i].type == 'ref1') x1 = itool.spots[i].xy[0];
+		if (itool.spots[i].type == 'ref3') x2 = itool.spots[i].xy[0];
+	}
+	if ((x1 < 0) || (x2 < 0) || (x1 == x2)) {
+		side = false;
+	} else if (x1 > x2) {
+		side = 'right';
+	} else {
+		side = 'left';
+	}
+	return side;
+}
+
+function spotsCancel() {
+	$('#imageTools-wrapper').hide();
+	itool.wCanvas.removeEventListener('click', itool._myClick);
+	itool = false;
+}
+
+
+function spotsSave() {
+	var sp = itool.spotsVisible();
+	console.log('sp = %o', sp);
+	if (sp.length < 1) return;
+
+	var scale = itool.wCanvas.width / itool.wCanvas.offsetWidth;
+	var pdata = 'number=' + encounterNumber;
+	var scount = 0;
+	for (var i = 0 ; i < sp.length ; i++) {
+		var xy = itool.xyOrigToWork(sp[i].xy);
+		xy[0] *= scale;
+		xy[1] *= scale;
+		if (sp[i].type == 'spot') {
+			pdata += '&spotx' + scount + '=' + xy[0];
+			pdata += '&spoty' + scount + '=' + xy[1];
+			scount++;
+		} else {
+			pdata += '&' + sp[i].type + 'x=' + xy[0];
+			pdata += '&' + sp[i].type + 'y=' + xy[1];
+		}
+	}
+
+console.log(pdata);
+
+	$.ajax({
+		url: '../InterconnectSubmitSpots',
+		data: pdata,
+		success: function(d) { sendImage(d); },
+		error: function(a,b,c) { console.error('%o %o %o', a,b,c); },
+		type: 'POST'
+	});
+}
+
+
+function sendImage(d) {
+	console.log('SUCCESS!! %o', d);
+	var imgData = itool.wCanvas.toDataURL('image/jpeg', 0.9).substring(23);
+		var data = 'number=' + encounterNumber + '&' + ((side == 'right') ? 'rightSide=true' : '') + '&imageContents=' + encodeURIComponent(imgData);
+//console.log(data); return;
+	$.ajax({
+		url: '../EncounterAddSpotFile',
+		data: data,
+		success: function(d) { allGood(d); },
+		error: function(a,b,c) { console.error('%o %o %o', a,b,c); },
+		type: 'POST'
+	});
+}
+
+
+function allGood(d) {
+	console.log('ALL GOOD!');
+	console.log(d);
+}
+
   </script>
 
 <style type="text/css">
@@ -467,7 +716,6 @@ margin-bottom: 8px !important;
 .ui_tpicker_minute_label {margin-bottom:5px !important;}
 
 
-
 </style>
 
 
@@ -491,9 +739,20 @@ margin-bottom: 8px !important;
  
   <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
  
+<script src="../javascript/imageTools.js"></script>
 
 			
 			<div id="main">
+<div id="imageTools-wrapper">
+	<div id="imageTools-wl-wrapper">
+		<canvas id="imageTools-workCanvas"></canvas>
+		<canvas id="imageTools-layerCanvas"></canvas>
+	</div>
+	<div id="imageTools-img-wrapper">
+	</div>
+<div id="imageTools-control"></div>
+</div>
+
 			<%
   			myShepherd.beginDBTransaction();
 

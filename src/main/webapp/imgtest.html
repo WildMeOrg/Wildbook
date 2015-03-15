@@ -258,6 +258,17 @@ img.target {
 </div>
 
 <hr><p>complex (it2)</p>
+<p><input type="button" value="send these spots!" onClick="sendSpots()" /></p>
+
+<p>
+spot type?<br />
+<select onChange=" it2.activeSpotType = $(this).val(); " />
+	<option>spot</option>
+	<option>ref1</option>
+	<option>ref2</option>
+	<option>ref3</option>
+</select>
+</p>
 
 <div style="position: relative; padding: 10px; background-color: #888; width: 100%; height: 700px;">
 
@@ -282,6 +293,58 @@ img.target {
 		document.getElementById('one').style.height = this.height + 'px';
 	}, false);
 
+
+function sendSpots() {
+	console.log(it2.spots);
+
+	var id = '8bf92419-7b5d-4cf6-be09-902de1b6ce98';
+	var pdata = 'number=' + id;
+	var scount = 0;
+	for (var i = 0 ; i < it2.spots.length ; i++) {
+		if (it2.spots[i].type == 'spot') {
+			pdata += '&spotx' + scount + '=' + it2.spots[i].xy[0];
+			pdata += '&spoty' + scount + '=' + it2.spots[i].xy[1];
+			scount++;
+		} else {
+			pdata += '&' + it2.spots[i].type + 'x=' + it2.spots[i].xy[0];
+			pdata += '&' + it2.spots[i].type + 'y=' + it2.spots[i].xy[1];
+		}
+	}
+
+console.log(pdata);
+	$.ajax({
+		url: 'InterconnectSubmitSpots',
+		data: pdata,
+		success: function(d) { sendImage(d); },
+		error: function(a,b,c) { console.error('%o %o %o', a,b,c); },
+		type: 'POST'
+	});
+}
+
+
+function sendImage(d) {
+	console.log('SUCCESS!! %o', d);
+	var id = '8bf92419-7b5d-4cf6-be09-902de1b6ce98';
+	var imgData = it2.wCanvas.toDataURL('image/jpeg', 0.9).substring(23);
+		var data = 'number=' + id + '&rightSide=true&imageContents=' + encodeURIComponent(imgData);
+//console.log(data); return;
+	$.ajax({
+		url: 'EncounterAddSpotFile',
+		data: data,
+		success: function(d) { allGood(d); },
+		error: function(a,b,c) { console.error('%o %o %o', a,b,c); },
+		type: 'POST'
+	});
+}
+
+
+function allGood(d) {
+	console.log('ALL GOOD!');
+	console.log(d);
+}
+
+
+	
 </script>
 
 </html>
