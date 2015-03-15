@@ -246,11 +246,47 @@ if (request.getParameter("number")!=null) {
 }
 
 #imageTools-control {
+border: solid blue 3px;
 	position: absolute;
-	bottom: 3px;
-	margin-top: 5px;
+	top: 402px;
+	left: 0;
 }
 
+#imageTools-about {
+	text-align: center;
+	width: 300px;
+}
+#imageTools-about div {
+	display: inline-block;
+	padding: 2px 5px;
+	color: #555;
+}
+
+.about-spots-in-region {
+	color: #000 !important;
+	font-weight: bold;
+}
+
+
+.instruction {
+	position: absolute;
+	top: -10px;
+	background-color: rgba(255,255,100,0.8);
+	border: solid rgba(200,200,200,0.8) 2px;
+	z-index: 3;
+	text-align: center;
+	border-radius: 4px;
+	padding: 1px 20px;
+	left: 20px;
+	width: 210px;
+}
+
+.spot-picker-radio.disabled {
+	color: #555;
+}
+.spot-picker-radio.selected {
+	color: #EE4;
+}
 
     .style2 {
       color: #000000;
@@ -449,6 +485,10 @@ td.measurement{
 
 var encounterNumber = '<%=num%>';
 var itool = false;
+document.addEventListener('imageTools:workCanvas:update', function(ev) {
+	updateSpotCounts();
+	updateSaveButton();
+});
 
 function doImageSpots(imgNum, el) {
 	var jel = $(el);
@@ -467,7 +507,10 @@ console.log(imgEl);
 	var fullImg = $('<img id="imageTools-img" src="' + imgEl.parent().attr('href') + '" />');
 	fullImg.bind('load', function() { startImageTools(); });
 
-	$('#imageTools-img-wrapper').html('');
+	//remove old ones if any
+	$('#imageTools-img-wrapper canvas').remove();
+	$('#imageTools-img-wrapper img').remove();
+
 	$('#imageTools-img-wrapper').append('<canvas id="imageTools-overlayCanvas"></canvas>');
 	$('#imageTools-img-wrapper').prepend(fullImg);
 }
@@ -498,6 +541,9 @@ function startImageTools() {
 		//controlEl: document.getElementById('cr-info'),
 
 		activeSpotType: 'ref1',
+		activeSpotLabel: spotTypeNames.ref1,
+
+		eventTarget: document,
 
 /*
 		spots: [
@@ -520,60 +566,151 @@ console.log('spot click results: %o', sc);
 		if (sc._removed) {
 			$('#imageTools-spotType').val(sc.type);
 			itool.activeSpotType = sc.type;
+			itool.activeSpotLabel = spotTypeNames[sc.type];
 			msg += '- spot removed';
 		} else {
+/*
 			var s = spotTypes.indexOf(itool.activeSpotType) + 1;
 			if (s >= spotTypes.length) s = spotTypes.length - 1;
 			$('#imageTools-spotType').val(spotTypes[s]);
-			itool.activeSpotType = spotTypes[s];
+*/
+			var t = nextAvailableSpotType(itool.activeSpotType);
+			itool.activeSpotType = t;
+			itool.activeSpotLabel = spotTypeNames[t];
 			msg += '- spot added';
 		}
+		updateSpotPicker();
 		updateSide();
-		if (side) msg += ' [<i>' + side + ' side</i>]';
-		$('#imageTools-info').html(msg);
 		updateSaveButton();
+		updateSpotCounts();
 	};
+
+	updateSide();
+	updateSaveButton();
+	updateSpotCounts();
 
 	itool.wCanvas.addEventListener('click', itool._myClick, false);
 
+/*
 	var h = '<div id="imageTools-info"></div><select id="imageTools-spotType" onChange="return spotTypeChange()">';
 	for (var i = 0 ; i < spotTypes.length ; i++) {
 		h += '<option value="' + spotTypes[i] + '">' + spotTypeNames[spotTypes[i]] + '</option>';
 	}
 	h += '</select><div><input disabled="disabled" onClick="return spotsSave()" id="imageTools-save-button" value="save" type="button" /><input type="button" value="cancel" onClick="return spotsCancel()" />';
+*/
 	
-	$('#imageTools-control').html(h);
+	var h = '';
+	for (var i = 0 ; i < spotTypes.length ; i++) {
+		h += '<div class="spot-picker-radio"><input onClick="return spotTypeChange(this)" type="radio" name="spot-picker" id="spot-picker-' + i + '" value="' + spotTypes[i] + '" /><label for="spot-picker-' + i + '">' + spotTypeNames[spotTypes[i]] + '</label></div>';
+	}
+	$('#imageTools-spot-type-picker').html(h);
+
+	updateSpotPicker();
+
+	h = '<div><input disabled="disabled" onClick="return spotsSave()" id="imageTools-save-button" value="save" type="button" /><input type="button" value="cancel" onClick="return spotsCancel()" />';
+	$('#imageTools-control').append(h);
 }
 
-function spotTypeChange() {
-	itool.activeSpotType = $('#imageTools-spotType').val();
+
+function nextAvailableSpotType(old) {
+	var foundIt = false;
+	for (var i = 0 ; i < spotTypes.length ; i++) {
+		if (foundIt && spotTypeAvailable(spotTypes[i])) return spotTypes[i];
+		if (spotTypes[i] == old) foundIt = true;
+		if (spotTypeAvailable(old)) return old;  //still can do more of these
+	}
+	return false;
 }
+
+
+function spotTypeAvailable(t) {
+	if (t == 'spot') return true;  //TODO any limit?
+	for (var i = 0 ; i < itool.spots.length ; i++) {
+		if (itool.spots[i].type == t) return false;
+	}
+	return true;
+}
+
+
+function userMessage(m) {
+	$('#imageTools-userMessage').html(m);
+}
+
+function spotTypeChange(el) {
+console.log('spotTypeChange on %o', el);
+	itool.activeSpotType = el.value;
+	itool.activeSpotLabel = spotTypeNames[itool.activeSpotType];
+	updateSpotPicker();
+	return true;
+}
+
+function updateSpotPicker() {
+	$('input[value="' + itool.activeSpotType + '"]').prop('checked', 'checked');
+
+	$('input[name="spot-picker"]').each(function(i,el) {
+		var jel = $(el);
+		jel.parent().removeClass('selected');
+		if (spotTypeAvailable(jel.val())) {
+			jel.removeAttr('disabled');
+			jel.parent().removeClass('disabled');
+		} else {
+			jel.attr('disabled', 'disabled');
+			jel.parent().addClass('disabled');
+		}
+	});
+
+	$('input[value="' + itool.activeSpotType + '"]').parent().addClass('selected');
+}
+
 
 
 function updateSaveButton() {
+	if (!itool) return;
 	var sp = itool.spotsVisible();
-	if (sp.length < 1) {
-		$('#imageTools-save-button').attr('disabled', 'disabled');
-	} else {
+
+	var hasAllNeeded = true;
+	for (var i = 0 ; i < spotTypes.length ; i++) {
+		if ((spotTypes[i] != 'spot') && spotTypeAvailable(spotTypes[i])) hasAllNeeded = false;
+	}
+
+	if (hasAllNeeded) {
 		$('#imageTools-save-button').removeAttr('disabled');
+	} else {
+		$('#imageTools-save-button').attr('disabled', 'disabled');
 	}
 }
 
 function updateSide() {
+	if (!itool) return;
 	var x1 = -1;
 	var x2 = -1;
 	for (var i = 0 ; i < itool.spots.length ; i++) {
-		if (itool.spots[i].type == 'ref1') x1 = itool.spots[i].xy[0];
+		if (itool.spots[i].type == 'ref2') x1 = itool.spots[i].xy[0];
 		if (itool.spots[i].type == 'ref3') x2 = itool.spots[i].xy[0];
 	}
 	if ((x1 < 0) || (x2 < 0) || (x1 == x2)) {
 		side = false;
 	} else if (x1 > x2) {
-		side = 'right';
-	} else {
 		side = 'left';
+	} else {
+		side = 'right';
 	}
+	var text = '';
+	if (side) text = side + ' side';
+	$('.about-side').html(text);
 	return side;
+}
+
+function updateSpotCounts() {
+	if (!itool || !itool.spots || (itool.spots.length < 1)) {
+		$('.about-spots-in-region').html('no spots');
+		$('.about-spots-total').html('');
+		return;
+	}
+
+	$('.about-spots-total').html('total spots: ' + itool.spots.length);
+	var sp = itool.spotsVisible();
+	$('.about-spots-in-region').html('spots in region: ' + sp.length);
 }
 
 function spotsCancel() {
@@ -745,12 +882,32 @@ margin-bottom: 8px !important;
 			<div id="main">
 <div id="imageTools-wrapper">
 	<div id="imageTools-wl-wrapper">
+		<div class="instruction">Place spots here</div>
 		<canvas id="imageTools-workCanvas"></canvas>
 		<canvas id="imageTools-layerCanvas"></canvas>
+
+		<div id="imageTools-control">
+<div id="imageTools-about">
+	<div class="about-spots-in-region"></div>
+	<div class="about-spots-total"></div>
+	<div class="about-side"></div>
+</div>
+
+<div id="imageTools-spot-type-picker">
+</div>
+<!--
+	var h = '<div id="imageTools-info"></div><select id="imageTools-spotType" onChange="return spotTypeChange()">';
+	for (var i = 0 ; i < spotTypes.length ; i++) {
+		h += '<option value="' + spotTypes[i] + '">' + spotTypeNames[spotTypes[i]] + '</option>';
+	}
+	h += '</select><div><input disabled="disabled" onClick="return spotsSave()" id="imageTools-save-button" value="save" type="button" /><input type="button" value="cancel" onClick="return spotsCancel()" />';
+-->
+		</div>
+
 	</div>
 	<div id="imageTools-img-wrapper">
+		<div class="instruction">Select region here</div>
 	</div>
-<div id="imageTools-control"></div>
 </div>
 
 			<%
