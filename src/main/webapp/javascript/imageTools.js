@@ -38,6 +38,7 @@ function ImageTools(opts) {
 	};
 
 	this.init = function(els) {
+console.log('init!!!!');
 		var me = this;
 		for (var k in els) {
 			this[k] = els[k];
@@ -67,7 +68,7 @@ function ImageTools(opts) {
 		this.iCtx = this.iCanvas.getContext('2d');
 console.log('iCanvas init');
 
-		this.imgEl.onload = function() { me.imageReady(); };
+		this.imgEl.addEventListener('load', function() { me.imageReady(); });
 /*
 		if (this.imgEl.complete) {
 			this.imageReady();
@@ -87,9 +88,14 @@ console.log('iCanvas init');
 			this.iconImgs[i].onLoad = this.waitForIcons();
 			document.getElementsByTagName('body')[0].appendChild(this.iconImgs[i]);
 		}
+
+		this.imageReady();
 	};
 
 	this.imageReady = function() {
+		if (this._imageReadyCalled) return;
+		this._imageReadyCalled = true;
+
 		var me = this;
 console.log('imageReady called');
 console.log('iCtx is %o', this.iCtx);
@@ -401,6 +407,7 @@ console.log('down %d,%d', ev.offsetX, ev.offsetY);
 	};
 
 	this.spotClick = function(ev) {
+		var rtn = false;
 console.log(ev);
 		if (!this.toolsEnabled || !this.toolsEnabled.spotPicker) return;
 		ev.preventDefault();
@@ -409,18 +416,22 @@ console.log('click ev %o', ev);
 console.log('offsetX %d, offsetY %d', ev.offsetX, ev.offsetY);
 
 		var xy = this.xyWorkToOrig([ev.offsetX, ev.offsetY]);
-console.log('spot stored as (%d,%d) type=%s', xy[0], xy[1], this.activeSpotType);
+console.log('spot clicked is (%d,%d) type=%s', xy[0], xy[1], this.activeSpotType);
 
 		var spot = this.isNearSpot(xy[0], xy[1]);
 		if (spot < 0) {
-			this.spots.push({xy: xy, type: this.activeSpotType});
-			this.trigger('spot:added', {xy: xy, type: this.activeSpotType});
+			rtn = {xy: xy, type: this.activeSpotType};
+			this.spots.push(rtn);
+			this.trigger('spot:added', rtn);
 		} else { //remove
-			this.trigger('spot:removed', this.spots[spot]);
+			rtn = this.spots[spot];
+			rtn._removed = true;
+			this.trigger('spot:removed', rtn);
 			this.spots.splice(spot, 1);
 		}
 console.log(this.spots);
 		this.toWork();
+		return rtn;
 	};
 
 	this.isNearSpot = function(x, y) {
@@ -434,12 +445,12 @@ console.log(this.spots);
 
 	//only spots which are in selected/visible region
 	this.spotsVisible = function() {
-		var rw = this.rectW() * this.scale;
-		var rh = this.rectH() * this.scale;
-console.log('rw,rh %d %d', rw, rh);
+		var vis = [];
 		for (var i = 0 ; i < this.spots.length ; i++) {
 			var xy = this.xyOrigToWork(this.spots[i].xy);
+			if ((xy[0] >= 0) && (xy[0] <= this.wCanvas.offsetWidth) && (xy[1] >= 0) && (xy[1] <= this.wCanvas.offsetHeight)) vis.push(this.spots[i]);
 		}
+		return vis;
 	};
 
 	this.drawRect = function() {
