@@ -262,7 +262,7 @@ console.log('rh = %o', rh);
 
 		this.drawSpots();
 
-		this.trigger('workCanvas:update');
+		this.triggerEvent('imageTools:workCanvas:update');
 	};
 
 
@@ -295,8 +295,8 @@ console.log('%d -> (%d,%d)', i, xy[0], xy[1]);
 					this.lCtx.strokeStyle = this.styles.spotControlStroke;
 					this.lCtx.stroke();
 					this.lCtx.fillStyle = this.styles.spotFill;
-					this.lCtx.font = (wscale * 12) + 'px Arial';
-					this.lCtx.fillText(this.spots[i].type, (xy[0] + 8) * wscale, (xy[1] + 15) * wscale);
+					this.lCtx.font = 'bold ' + (wscale * 15) + 'px Arial';
+					this.lCtx.fillText((this.spots[i].label || this.spots[i].type), (xy[0] + 8) * wscale, (xy[1] + 15) * wscale);
 				}
 			}
 		};
@@ -420,13 +420,13 @@ console.log('spot clicked is (%d,%d) type=%s', xy[0], xy[1], this.activeSpotType
 
 		var spot = this.isNearSpot(xy[0], xy[1]);
 		if (spot < 0) {
-			rtn = {xy: xy, type: this.activeSpotType};
+			rtn = {xy: xy, type: this.activeSpotType, label: this.activeSpotLabel};
 			this.spots.push(rtn);
-			this.trigger('spot:added', rtn);
+			this.triggerEvent('imageTools:spot:added', rtn);
 		} else { //remove
 			rtn = this.spots[spot];
 			rtn._removed = true;
-			this.trigger('spot:removed', rtn);
+			this.triggerEvent('imageTools:spot:removed', rtn);
 			this.spots.splice(spot, 1);
 		}
 console.log(this.spots);
@@ -742,11 +742,13 @@ console.info(this.rect);
 
 
 
-	this.trigger = function(type, obj) {
+	this.triggerEvent = function(type, obj) {
+		if (!this.eventTarget) return;
 		var ev = new Event(type);
 		ev._object = obj;
+		ev._imageTools = this;
 console.info('dispatched event %o', ev);
-		return this.imgEl.dispatchEvent(ev);
+		return this.eventTarget.dispatchEvent(ev);
 	};
 
 	this.init(opts);
