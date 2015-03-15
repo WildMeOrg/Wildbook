@@ -2335,8 +2335,9 @@ public class Shepherd {
     boolean stopMe = false;
     int encIter=0;
     int count = 0;
+    int numEncs=encList.size();
     //while (it.hasNext()) {
-    while(count<=endNum){
+    while((count<=endNum)&&(encIter<numEncs)){
       
       String nextCatalogNumber=encList.get(encIter);	
       int numImages=getNumSinglePhotoVideosForEncounter(nextCatalogNumber);
