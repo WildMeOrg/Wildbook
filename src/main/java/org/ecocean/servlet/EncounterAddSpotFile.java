@@ -35,9 +35,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.xml.bind.DatatypeConverter;
 
 /**
  *
@@ -81,7 +83,37 @@ public class EncounterAddSpotFile extends HttpServlet {
     String side = "left";
 
 
-    try {
+		String imageContents = request.getParameter("imageContents");
+
+
+		if (imageContents != null) {
+			encounterNumber = request.getParameter("number");
+			if ((request.getParameter("rightSide") != null) && request.getParameter("rightSide").equals("true")) side = "right";
+
+			byte[] imgBytes = new byte[100];
+			try {
+				imgBytes = DatatypeConverter.parseBase64Binary(imageContents);
+			} catch (IllegalArgumentException ex) {
+				System.out.println("could not parse imageContents base64: " + ex.toString());
+			}
+			if (imgBytes.length > 0) {
+				fileName = "spot_image_" + side + ".jpg";
+				File spotFile = new File(Encounter.dir(shepherdDataDir, encounterNumber), fileName);
+System.out.println("got imgBytes! -> " + spotFile.toString());
+				FileOutputStream stream = new FileOutputStream(spotFile);
+				try {
+					stream.write(imgBytes);
+				} finally {
+					stream.close();
+				}
+			}
+
+
+
+		}
+
+
+    if (imageContents == null) try {
 
       MultipartParser mp = new MultipartParser(request, 10 * 1024 * 1024); // 2MB
       Part part;
@@ -104,6 +136,7 @@ public class EncounterAddSpotFile extends HttpServlet {
               side = "right";
             }
           }
+
 
         }
 
