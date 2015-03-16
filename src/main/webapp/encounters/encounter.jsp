@@ -246,7 +246,6 @@ if (request.getParameter("number")!=null) {
 }
 
 #imageTools-control {
-border: solid blue 3px;
 	position: absolute;
 	top: 402px;
 	left: 0;
@@ -286,6 +285,21 @@ border: solid blue 3px;
 }
 .spot-picker-radio.selected {
 	color: #EE4;
+}
+
+
+#imageTools-message {
+	min-height: 1.6em;
+	padding: 6px 20px;
+	font-size: 1.15em;
+	color: #158;
+}
+
+#imageTools-buttons {
+	padding: 5px;
+}
+#imageTools-buttons.input {
+	margin: 0 6px;
 }
 
     .style2 {
@@ -607,8 +621,10 @@ console.log('spot click results: %o', sc);
 
 	updateSpotPicker();
 
-	h = '<div><input disabled="disabled" onClick="return spotsSave()" id="imageTools-save-button" value="save" type="button" /><input type="button" value="cancel" onClick="return spotsCancel()" />';
-	$('#imageTools-control').append(h);
+	if (!$('#imageTools-message').length) {
+		h = '<div id="imageTools-message"></div><div id="imageTools-buttons"><input disabled="disabled" onClick="return spotsSave()" id="imageTools-save-button" value="save" type="button" /><input type="button" value="cancel" onClick="return spotsCancel()" />';
+		$('#imageTools-control').append(h);
+	}
 }
 
 
@@ -724,6 +740,10 @@ function spotsSave() {
 	var sp = itool.spotsVisible();
 	console.log('sp = %o', sp);
 	if (sp.length < 1) return;
+//TODO verify we really have all we need (like when we updateSaveButton())
+
+	$('#imageTools-buttons').hide();
+	$('#imageTools-message').html('saving spot data...');
 
 	var scale = itool.wCanvas.width / itool.wCanvas.offsetWidth;
 	var pdata = 'number=' + encounterNumber;
@@ -744,18 +764,24 @@ function spotsSave() {
 
 console.log(pdata);
 
+
 	$.ajax({
 		url: '../InterconnectSubmitSpots',
 		data: pdata,
 		success: function(d) { sendImage(d); },
-		error: function(a,b,c) { console.error('%o %o %o', a,b,c); },
+		error: function(a,b,c) {
+			console.error('%o %o %o', a,b,c);
+			$('#imageTools-buttons').show();
+			$('#imageTools-message').html('error saving');
+		},
 		type: 'POST'
 	});
 }
 
 
 function sendImage(d) {
-	console.log('SUCCESS!! %o', d);
+	console.info('SUCCESS saving spots: %o', d);
+	$('#imageTools-message').html('saving image...');
 	var imgData = itool.wCanvas.toDataURL('image/jpeg', 0.9).substring(23);
 		var data = 'number=' + encounterNumber + '&' + ((side == 'right') ? 'rightSide=true' : '') + '&imageContents=' + encodeURIComponent(imgData);
 //console.log(data); return;
@@ -763,15 +789,19 @@ function sendImage(d) {
 		url: '../EncounterAddSpotFile',
 		data: data,
 		success: function(d) { allGood(d); },
-		error: function(a,b,c) { console.error('%o %o %o', a,b,c); },
+		error: function(a,b,c) {
+			console.error('%o %o %o', a,b,c);
+			$('#imageTools-buttons').show();
+			$('#imageTools-message').html('error saving');
+		},
 		type: 'POST'
 	});
 }
 
 
 function allGood(d) {
-	console.log('ALL GOOD!');
-	console.log(d);
+	console.info('SUCCESS saving image: %o', d);
+	$('#imageTools-message').html('spot data and image saved.<div style="margin-top: 7px;"><input type="button" value="start ScanTask" onClick="var win = window.open(\'../ScanTaskHandler?action=addTask&encounterNumber=' + encounterNumber + '&rightSide=' + ((side == 'right') ? 'true' : 'false') + '&cutoff=0.02&writeThis=true\', \'_blank\'); win.focus(); return true;" /> <input type="button" value="close spot mapper" onClick="spotsCancel();" /></div>');
 }
 
   </script>
