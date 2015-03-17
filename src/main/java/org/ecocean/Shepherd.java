@@ -1572,8 +1572,20 @@ public class Shepherd {
     Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
-    return (new ArrayList<SinglePhotoVideo>(c));
+    ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>(c);
+    samples.closeAll();
+    return myArray;
   }
+  
+  public int getNumSinglePhotoVideosForEncounter(String encNum) {
+	    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
+	    Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
+	    Query samples = pm.newQuery(encClass, filter);
+	    Collection c = (Collection) (samples.execute());
+	    int numResults=c.size();
+	    samples.closeAll();
+	    return numResults;
+	  }
 
   public Iterator getAllEncountersNoFilter(String order, String filter2use) {
     String filter = filter2use;
@@ -2318,15 +2330,22 @@ public class Shepherd {
   }
 
 
-  public ArrayList<SinglePhotoVideo> getThumbnails(HttpServletRequest request, Iterator it, int startNum, int endNum, String[] keywords) {
+  public ArrayList<SinglePhotoVideo> getThumbnails(Shepherd myShepherd,HttpServletRequest request, ArrayList<String> encList, int startNum, int endNum, String[] keywords) {
     ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
     boolean stopMe = false;
+    int encIter=0;
     int count = 0;
-    while (it.hasNext()) {
-      Encounter enc = (Encounter) it.next();
-      ArrayList<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+    int numEncs=encList.size();
+    //while (it.hasNext()) {
+    while((count<=endNum)&&(encIter<numEncs)){
+      
+      String nextCatalogNumber=encList.get(encIter);	
+      int numImages=getNumSinglePhotoVideosForEncounter(nextCatalogNumber);
+      
 
-      if ((count + images.size()) >= startNum) {
+      if ((count + numImages) >= startNum) {
+    	  Encounter enc = myShepherd.getEncounter(nextCatalogNumber);
+    	  ArrayList<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
         for (int i = 0; i < images.size(); i++) {
           count++;
           if ((count <= endNum) && (count >= startNum)) {
@@ -2385,9 +2404,9 @@ public class Shepherd {
         }
       } //end if
       else {
-        count += images.size();
+        count += numImages;
       }
-
+      encIter++;
     }//end while
     return thumbs;
   }
