@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -468,9 +468,10 @@ System.out.println("trying to fork/create " + thumbPath);
 
             <%
               if (CommonConfiguration.showEXIFData(context)&&!isVideo) {
-            	  
+            	  FileInputStream jin=null;
+            	  try{
             	  File exifImage = new File(Encounter.dir(shepherdDataDir, imageEnc.getCatalogNumber()) + "/" + addTextFile);
-              	
+              	jin=new FileInputStream(exifImage);
             %>
 
 
@@ -494,6 +495,9 @@ System.out.println("trying to fork/create " + thumbPath);
    								</span>
           </td>
           <%
+              }
+            	  catch(Exception e){e.printStackTrace();}
+            	  finally{if(jin!=null){jin.close();}}
             }
           %>
 
