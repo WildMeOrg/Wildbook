@@ -97,7 +97,11 @@ public class EncounterAddSpotFile extends HttpServlet {
 				System.out.println("could not parse imageContents base64: " + ex.toString());
 			}
 			if (imgBytes.length > 0) {
-				fileName = "spot_image_" + side + ".jpg";
+				if (side.equals("right")) {
+					fileName = "extractRight" + encounterNumber + ".jpg";
+				} else {
+					fileName = "extract" + encounterNumber + ".jpg";
+				}
 				File spotFile = new File(Encounter.dir(shepherdDataDir, encounterNumber), fileName);
 //System.out.println("got imgBytes! -> " + spotFile.toString());
 				FileOutputStream stream = new FileOutputStream(spotFile);
