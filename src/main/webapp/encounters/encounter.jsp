@@ -197,16 +197,24 @@ if (request.getParameter("number")!=null) {
   <style type="text/css">
     <!--
 
-	#spot-image-wrapper {
+	#spot-image-wrapper-left,
+	#spot-image-wrapper-right
+	{
 		position: relative;
 		height: 510px;
 	}
-	#spot-image, #spot-image-canvas {
+	#spot-image-left, #spot-image-canvas-left,
+	#spot-image-right, #spot-image-canvas-right
+	{
 		position: absolute;
 		left: 0;
 		top: 0;
 		max-width: 600px;
 		max-height: 500px;
+	}
+
+	.spot-td {
+		display: table;	
 	}
 
     .style2 {
