@@ -99,18 +99,44 @@ public class EncounterAddSpotFile extends HttpServlet {
 			if (imgBytes.length > 0) {
 				fileName = "spot_image_" + side + ".jpg";
 				File spotFile = new File(Encounter.dir(shepherdDataDir, encounterNumber), fileName);
-System.out.println("got imgBytes! -> " + spotFile.toString());
+//System.out.println("got imgBytes! -> " + spotFile.toString());
 				FileOutputStream stream = new FileOutputStream(spotFile);
 				try {
 					stream.write(imgBytes);
 				} finally {
 					stream.close();
+      		myShepherd.beginDBTransaction();
+        	Encounter add2shark = myShepherd.getEncounter(encounterNumber);
+        	try {
+          	if (side.equals("right")) {
+            	add2shark.setRightSpotImageFileName(fileName);
+            	add2shark.hasRightSpotImage = true;
+          	} else {
+            	add2shark.setSpotImageFileName(fileName);
+            	add2shark.hasSpotImage = true;
+          	}
+
+          	String user = "Unknown User";
+          	if (request.getRemoteUser() != null) {
+            	user = request.getRemoteUser();
+          	}
+          	add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Submitted new " + side + "-side spot data graphic.</p>");
+
+        	} catch (Exception le) {
+          	locked = true;
+          	myShepherd.rollbackDBTransaction();
+          	le.printStackTrace();
+        	}
+
+        	if (!locked) {
+          	myShepherd.commitDBTransaction();
+          	myShepherd.closeDBTransaction();
+					}
 				}
 			}
 
-
-
 		}
+
 
 
     if (imageContents == null) try {
