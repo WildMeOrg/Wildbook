@@ -299,6 +299,15 @@ document.addEventListener('imageTools:workCanvas:update', function(ev) {
 	updateSaveButton();
 });
 
+function checkImage(imgEl) {
+	if (imgEl[0].complete) {
+		doImageSpots(imgEl);
+	} else {
+		console.info('waiting on img');
+		imgEl.bind('load', function() { doImageSpots(imgEl); });
+	}
+}
+
 function doImageSpots(imgEl) {
 console.log(imgEl);
 	if (!imgEl.length) {
@@ -312,7 +321,7 @@ console.log(imgEl);
 
 	//var fullImg = $('<img id="imageTools-img" src="' + imgEl.parent().attr('href') + '" />');
 ///////if (imgEl[0].complete) .....
-	imgEl.bind('load', function() { startImageTools(); });
+	//////////imgEl.bind('load', function() { startImageTools(); });
 
 	//remove old ones if any
 	//$('#imageTools-img-wrapper canvas').remove();
@@ -320,6 +329,8 @@ console.log(imgEl);
 
 	$('#imageTools-img-wrapper').append('<canvas id="imageTools-overlayCanvas"></canvas>');
 	//$('#imageTools-img-wrapper').prepend(fullImg);
+
+	startImageTools();
 }
 
 
@@ -648,7 +659,7 @@ function allGood(d) {
 <script src="../javascript/imageTools.js"></script>
 <script>
 $(document).ready(function() {
-	doImageSpots($('#imageTools-img'));
+	checkImage($('#imageTools-img'));
 });
 </script>
 
