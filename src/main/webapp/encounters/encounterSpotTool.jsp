@@ -409,7 +409,7 @@ console.log('spot click results: %o', sc);
 	updateSpotPicker();
 
 	if (!$('#imageTools-message').length) {
-		h = '<div id="imageTools-message"></div><div id="imageTools-buttons"><input disabled="disabled" onClick="return spotsSave()" id="imageTools-save-button" value="save" type="button" /><input type="button" value="cancel" onClick="return spotsCancel()" />';
+		h = '<div id="imageTools-message"></div><div id="imageTools-buttons"><input disabled="disabled" onClick="return spotsSave()" id="imageTools-save-button" value="save" type="button" /><input type="button" value="cancel and return to encounter" onClick="return spotsCancel()" />';
 		$('#imageTools-control').append(h);
 	}
 }
@@ -517,6 +517,8 @@ function updateSpotCounts() {
 }
 
 function spotsCancel() {
+	document.location = 'encounter.jsp?number=' + encounterNumber;
+	return;
 	$('#imageTools-wrapper').hide();
 	itool.wCanvas.removeEventListener('click', itool._myClick);
 	itool = false;
@@ -589,7 +591,7 @@ function sendImage(d) {
 
 function allGood(d) {
 	console.info('SUCCESS saving image: %o', d);
-	$('#imageTools-message').html('spot data and image saved.<div style="margin-top: 7px;"><input type="button" value="start ScanTask" onClick="var win = window.open(\'../ScanTaskHandler?action=addTask&encounterNumber=' + encounterNumber + '&rightSide=' + ((side == 'right') ? 'true' : 'false') + '&cutoff=0.02&writeThis=true\', \'_blank\'); win.focus(); return true;" /> <input type="button" value="close spot mapper" onClick="spotsCancel();" /></div>');
+	$('#imageTools-message').html('spot data and image saved.<div style="margin-top: 7px;"><input type="button" value="start ScanTask" onClick="var win = window.open(\'../ScanTaskHandler?action=addTask&encounterNumber=' + encounterNumber + '&rightSide=' + ((side == 'right') ? 'true' : 'false') + '&cutoff=0.02&writeThis=true\', \'_blank\'); win.focus(); return true;" /> <input type="button" value="return to encounter" onClick="spotsCancel();" /></div>');
 }
 
   </script>
