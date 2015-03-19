@@ -107,9 +107,16 @@ int imageCount = 0;
     	<%=encprops.getProperty("image_commands") %>
     </em>:<br/>
 <ul class="image-commands">
+
+<% 
+if(request.isUserInRole("admin")){
+%>
 <li>
 	<a href="encounterSpotTool.jsp?imageID=<%=images.get(myImage).getDataCollectionEventID()%>"><%=encprops.getProperty("doImageSpots") %></a>
 </li>
+<%
+  }
+%>
 
 <li>
 	<a href="encounterSearch.jsp?referenceImageName=<%=images.get(myImage).getDataCollectionEventID() %>"><%=encprops.getProperty("look4photos") %></a>
