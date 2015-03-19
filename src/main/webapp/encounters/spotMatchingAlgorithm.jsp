@@ -477,9 +477,10 @@ function spotCheckImage(side) {
 	if (!spotJson[side]) return true;
 console.log('spotCheckImage(%s) ?', side);
 	var jimg = $('#spot-image-' + side);
-	if (jimg[0].complete) return true;
+	if (jimg[0].complete && jimg[0].width) return true;
 console.log(side + 'not yet complete!');
 	jimg.bind('load', function() { spotCheckImages(); });
+	return false;
 }
 
 
@@ -487,7 +488,7 @@ var initStarted = false;
 function spotCheckImages() {
 	var ready = spotCheckImage('right') && spotCheckImage('left');
 console.log('spotCheckImages() got ' + ready);
-	if (initStarted) return;
+	if (!ready || initStarted) return;
 	initStarted = true;
 	spotImageInit();
 }
