@@ -291,6 +291,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 <script type="text/javascript">
 
 
+
 var encounterNumber = '<%=num%>';
 var itool = false;
 document.addEventListener('imageTools:workCanvas:update', function(ev) {
@@ -643,6 +644,11 @@ function allGood(d) {
   <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
  
 <script src="../javascript/imageTools.js"></script>
+<script>
+$(document).ready(function() {
+	doImageSpots($('#imageTools-img'));
+});
+</script>
 
 			
 			<div id="main">
