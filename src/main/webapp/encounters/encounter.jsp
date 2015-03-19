@@ -747,6 +747,7 @@ function spotsSave() {
 
 	var scale = itool.wCanvas.width / itool.wCanvas.offsetWidth;
 	var pdata = 'number=' + encounterNumber;
+	if (side == 'right') pdata += '&rightSide=true';
 	var scount = 0;
 	for (var i = 0 ; i < sp.length ; i++) {
 		var xy = itool.xyOrigToWork(sp[i].xy);
