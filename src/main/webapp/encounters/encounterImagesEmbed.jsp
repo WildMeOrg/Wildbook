@@ -108,7 +108,7 @@ int imageCount = 0;
     </em>:<br/>
 <ul class="image-commands">
 <li>
-	<a onClick="doImageSpots(<%=myImage%>, this); return false" href="#"><%=encprops.getProperty("doImageSpots") %></a>
+	<a href="encounterSpotTool.jsp?imageID=<%=images.get(myImage).getDataCollectionEventID()%>"><%=encprops.getProperty("doImageSpots") %></a>
 </li>
 
 <li>
