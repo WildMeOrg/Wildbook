@@ -6,7 +6,7 @@ function ImageTools(opts) {
 	this.maction = false;
 	this.drewHandle = false;
 	this.tolerance = 10; //how close to something to be close enough
-	this.spotTolerance = 20; //how close for spots
+	this.spotTolerance = 5; //how close for spots
 	this.rotation = 0;
 	this.rect = [];
 	this.iconsOn = true;
@@ -285,7 +285,7 @@ console.log('wscale = %f', wscale);
 
 console.log('%d -> (%d,%d)', i, xy[0], xy[1]);
 				this.lCtx.beginPath();
-				this.lCtx.arc(xy[0] * wscale, xy[1] * wscale, this.spotTolerance * wscale/3, 0, 2*Math.PI, false);
+				this.lCtx.arc(xy[0] * wscale, xy[1] * wscale, this.spotTolerance * wscale, 0, 2*Math.PI, false);
 				//this.lCtx.arc(xy[0], xy[1], this.spotTolerance/3, 0, 2*Math.PI, false);
 				if (this.spots[i].type == 'spot') {
 					this.lCtx.fillStyle = this.styles.spotFill;
@@ -435,9 +435,12 @@ console.log(this.spots);
 	};
 
 	this.isNearSpot = function(x, y) {
-		//var wscale = this.rectW() * this.scale / this.wCanvas.offsetWidth;
-		var d = this.spotTolerance;
+		var wscale = this.rectW() * this.scale / this.wCanvas.offsetWidth;
+		var d = this.spotTolerance * wscale;
+//console.log('>>>>> isNearSpot: wscale=%f, tol=%d', wscale, d);
 		for (var i = 0 ; i < this.spots.length ; i++) {
+//var q = this.dist(x, y, this.spots[i].xy[0], this.spots[i].xy[1]);
+//console.log('. . . . . . spot %d: %f  (mod = %f)', i, q, q/wscale);
 			if (this.dist(x, y, this.spots[i].xy[0], this.spots[i].xy[1]) <= d) return i;
 		}
 		return -1;
