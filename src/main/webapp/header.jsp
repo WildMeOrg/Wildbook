@@ -202,7 +202,9 @@ context=ServletUtilities.getContext(request);
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
 </li>
-<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp" style="margin:0px 0 0px 0px; position:relative; width:75px; height:25px; z-index:100;"><strong><%=props.getProperty("individuals") %></strong><!--[if IE 7]><!--></a><!--<![endif]-->
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp" style="margin:0px 0 0px 0px; position:relative; width:75px; height:25px; z-index:100;">
+	<strong><%=props.getProperty("individuals") %></strong>
+	<!--[if IE 7]><!--></a><!--<![endif]-->
 	<!--[if lte IE 6]><table><tr><td><![endif]-->
 	<ul>
 		<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:150px; height:25px;z-index:99;"><%=props.getProperty("viewAll") %> <%=props.getProperty("individuals") %></a></li>
@@ -210,17 +212,12 @@ context=ServletUtilities.getContext(request);
 	</ul>
 	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
 </li>
-<li class="drop"><a
-      
-      style="margin: 0px 0 0px 0px; position: relative; width: 90px; height: 25px; z-index: 100;"><strong><%=props.getProperty("encounters")%>
-    </strong><!--[if IE 7]><!--></a><!--<![endif]-->
-      <!--[if lte IE 6]>
-      <table>
-        <tr>
-          <td><![endif]-->
-      <ul>
-      
-      	<!-- list encounters by state -->
+<li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=approved" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;">
+	<strong><%=props.getProperty("encounters") %></strong>
+	<!--[if IE 7]><!--></a><!--<![endif]-->
+	<!--[if lte IE 6]><table><tr><td><![endif]-->
+	<ul>
+		     	<!-- list encounters by state -->
       						<%
       						boolean moreStates=true;
       						int cNum=0;
@@ -272,11 +269,11 @@ if(request.getUserPrincipal()!=null){
 <%
 }
 %>
-
-
-
-      </ul>
-      <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
+	</ul>
+	<!--[if lte IE 6]></td></tr></table></a><![endif]-->
+</li>
+      
+      
 <li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp?reflect=http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp" style="margin:0px 0 0px 0px; position:relative; width:70px; height:25px; z-index:100;"><strong><%=props.getProperty("search") %></strong>
 
 <!--[if IE 7]><!--></a><!--<![endif]-->
