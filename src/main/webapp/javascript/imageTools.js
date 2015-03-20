@@ -345,7 +345,11 @@ console.log('%d -> (%d,%d)', i, xy[0], xy[1]);
 
 		if (this.maction == 'resize') {
 			var oppc = (this._corner + 2) % 4;
-			this.setRectFrom2(this._corner, ev.offsetX, ev.offsetY, this.rect[oppc*2], this.rect[oppc*2+1]);
+			var r = this.rectFrom2(this._corner, ev.offsetX, ev.offsetY, this.rect[oppc*2], this.rect[oppc*2+1]);
+			if (!r) return;  //"should never happen"
+			if (this.rectOutOfBounds(r)) return;
+			//this.setRectFrom2(this._corner, ev.offsetX, ev.offsetY, this.rect[oppc*2], this.rect[oppc*2+1]);
+			this.rect = r;
 			this.oClear();
 			this.drawRect();
 		}
@@ -355,8 +359,13 @@ console.log('%d -> (%d,%d)', i, xy[0], xy[1]);
 if (this.shiftDown) a = Math.floor(a / (Math.PI/4) + 0.5) * (Math.PI/4);
 			var rot = a - this._prevAngle;
 			if (Math.abs(rot) < 0.05) return;
+
+			var r = this.rotateArbitraryRect(rot, this.rect);
+			if (this.rectOutOfBounds(r)) return;
+
 			this._prevAngle = a;
-			this.rotateRect(rot);
+			this.rect = r;
+			this.rotation += rot;
 			this.oClear();
 			this.drawRect();
 		}
@@ -364,10 +373,25 @@ if (this.shiftDown) a = Math.floor(a / (Math.PI/4) + 0.5) * (Math.PI/4);
 		if (this.maction == 'drag') {
 			var dx = ev.offsetX - this.rect[0] - this._dx;
 			var dy = ev.offsetY - this.rect[1] - this._dy;
+			var r = [];
 			for (var i = 0 ; i < 4 ; i++) {
-				this.rect[i*2] += dx;
-				this.rect[i*2+1] += dy;
+				r[i*2] = this.rect[i*2] + dx;
+				r[i*2+1] = this.rect[i*2+1] + dy;
 			}
+			if (this.rectOutOfBounds(r)) {
+				for (var i = 0 ; i < 4 ; i++) {
+					r[i*2] = this.rect[i*2] + dx;
+					r[i*2+1] = this.rect[i*2+1];
+				}
+			}
+			if (this.rectOutOfBounds(r)) {
+				for (var i = 0 ; i < 4 ; i++) {
+					r[i*2] = this.rect[i*2];
+					r[i*2+1] = this.rect[i*2+1] + dy;
+				}
+			}
+			if (this.rectOutOfBounds(r)) return;
+			this.rect = r;
 			this.oClear();
 			this.drawRect();
 		}
@@ -527,6 +551,59 @@ console.log('rectW %o', this.rect);
 
 	// pts will be considered opposite corners
 	this.setRectFrom2 = function(corner, x1, y1, x2, y2) {
+		var r = this.rectFrom2(corner, x1, y1, x2, y2);
+		if (r) this.rect = r;
+	};
+
+	//computes, but does not set
+	this.rectFrom2 = function(corner, x1, y1, x2, y2) {
+		if ((x1 < 0) || (x1 > this.imgEl.width) || (y1 < 0) || (y1 > this.imgEl.height) ||
+			(x2 < 0) || (x2 > this.imgEl.width) || (y2 < 0) || (y2 > this.imgEl.height)) return;
+		var rect = [];
+		var oppc = (corner + 2) % 4;
+		rect[corner*2] = x1;
+		rect[corner*2+1] = y1;
+		rect[oppc*2] = x2;
+		rect[oppc*2+1] = y2;
+
+		var d = this.dist(x1, y1, x2, y2);
+		var x = x2 - x1;
+		var y = y2 - y1;
+		var A = Math.atan2(y, x);
+		var B = A - this.rotation;
+		var n = d * Math.cos(B);
+		var m = d * Math.sin(B);
+	
+		var c1 = (corner + 1) % 4;
+		var c2 = (corner + 3) % 4;
+		if (corner % 2 == 1) {
+			c1 = (corner + 3) % 4;
+			c2 = (corner + 1) % 4;
+		}
+//console.log('corner=%d, oppc=%d, c1=%d, c2=%d', corner, oppc, c1, c2);
+		rect[c1*2] = x1 + n * Math.cos(this.rotation);
+		rect[c1*2+1] = y1 + n * Math.sin(this.rotation);
+		rect[c2*2] = x1 - m * Math.sin(this.rotation);
+		rect[c2*2+1] = y1 + m * Math.cos(this.rotation);
+//console.log('(%d,%d) (%d,%d) (%d,%d) (%d,%d)', this.rect[0], this.rect[1], this.rect[2], this.rect[3], this.rect[4], this.rect[5], this.rect[6], this.rect[7]);
+		return rect;
+	};
+
+	//can test arbitrary rect or will test this.rect if none passed
+	this.rectOutOfBounds = function(rect) {
+		if (!this.imgEl || (this.imgEl.width < 1)) return true;
+		if (!rect) rect = this.rect;
+		for (var i = 0 ; i < 8 ; i++) {
+			if (rect[i] < 0) return true;
+			if ((i % 2 == 0) && (rect[i] > this.imgEl.width)) return true;
+			if ((i % 2 == 1) && (rect[i] > this.imgEl.height)) return true;
+		}
+		return false;
+	};
+
+
+	// pts will be considered opposite corners
+	this.setRectFrom2____ORIG = function(corner, x1, y1, x2, y2) {
 		if ((x1 < 0) || (x1 > this.imgEl.width) || (y1 < 0) || (y1 > this.imgEl.height) ||
 			(x2 < 0) || (x2 > this.imgEl.width) || (y2 < 0) || (y2 > this.imgEl.height)) return;
 		var oppc = (corner + 2) % 4;
@@ -606,14 +683,32 @@ console.log('rectW %o', this.rect);
 	};
 
 	this.rotateRect = function(A) {
+		var r = this.rotateArbitraryRect(A, this.rect);
+		if (!r) return;
+		this.rect = r;
+/*
 		var cp = this.midpoint(this.rect[0], this.rect[1], this.rect[4], this.rect[5]);
 		for (var i = 0 ; i < 4 ; i++) {
 			var p = this.rotatePoint(this.rect[i*2], this.rect[i*2+1], cp[0], cp[1], A);
 			this.rect[i*2] = p[0];
 			this.rect[i*2+1] = p[1];
 		}
+*/
 		this.rotation += A;
 	};
+
+	this.rotateArbitraryRect = function(A, rect) {
+		if (!rect || (rect.length < 8)) return;
+		var cp = this.midpoint(rect[0], rect[1], rect[4], rect[5]);
+		var r = [];
+		for (var i = 0 ; i < 4 ; i++) {
+			var p = this.rotatePoint(rect[i*2], rect[i*2+1], cp[0], cp[1], A);
+			r[i*2] = p[0];
+			r[i*2+1] = p[1];
+		}
+		return r;
+	};
+
 
 	this.scaleRect = function(s, cx, cy) {
 console.log('scaleRect(%f)', s);
