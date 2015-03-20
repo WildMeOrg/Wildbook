@@ -411,6 +411,9 @@ console.log('spot click results: %o', sc);
 
 	itool.wCanvas.addEventListener('click', itool._myClick, false);
 
+	//mouseup *anywhere* should still complete things
+	addEventListener('mouseup', function(ev) { itool.mup(ev); }, false);
+
 	var h = '';
 	for (var i = 0 ; i < spotTypes.length ; i++) {
 		h += '<div class="spot-picker-radio"><input onClick="return spotTypeChange(this)" type="radio" name="spot-picker" id="spot-picker-' + i + '" value="' + spotTypes[i] + '" /><label for="spot-picker-' + i + '">' + spotTypeNames[spotTypes[i]] + '</label></div>';
