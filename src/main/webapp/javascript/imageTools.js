@@ -60,6 +60,12 @@ console.log('init!!!!');
 
 		if (!this.imgEl) return;
 
+		//sourceEl is what/where actual copy comes from -- and thus can be and img, canvas, or (apparently!) video
+		if (!this.sourceEl) this.sourceEl = this.imgEl;
+		// ... and the offset is where to grab from, which can vary if you have a "padding" border around it
+		if (!this.sourceElOffsetX) this.sourceElOffsetX = 0;
+		if (!this.sourceElOffsetY) this.sourceElOffsetY = 0;
+
 		this.iCanvas = document.createElement('canvas');
 		this.iCanvas.width = 12;
 		this.iCanvas.height = 12;
@@ -255,10 +261,8 @@ console.log('rh = %o', rh);
 
 //console.log('minX %f minY %f', w, h);
 //console.log('foo %f', -(w/2-nx));
-		this.wCtx.drawImage(this.imgEl, minX * this.scale, minY * this.scale, w, h, -(w/2-nx), -(h/2-ny), w, h);
-		//this.wCtx.drawImage(this.imgEl, minX * this.scale, minY * this.scale, w, h, 0, 10, rw, rh);
-		//this.wCtx.drawImage(this.imgEl, minX * this.scale - w/2, minY * this.scale - h/2, w * 1.5, h * 1.5, 0, 0, rw * 1.5, rh * 1.5);
-		//this.wCtx.drawImage(this.imgEl, minX * this.scale - w/2, minY * this.scale - h/2, w * 1.0, h * 1.0, 0, 0, rw, rh);
+		/////this.wCtx.drawImage(this.imgEl, minX * this.scale, minY * this.scale, w, h, -(w/2-nx), -(h/2-ny), w, h);
+		this.wCtx.drawImage(this.sourceEl, this.sourceElOffsetX + minX * this.scale, this.sourceElOffsetY + minY * this.scale, w, h, -(w/2-nx), -(h/2-ny), w, h);
 
 		this.drawSpots();
 
@@ -591,6 +595,7 @@ console.log('rectW %o', this.rect);
 
 	//can test arbitrary rect or will test this.rect if none passed
 	this.rectOutOfBounds = function(rect) {
+		if (this.noBounds) return false;
 		if (!this.imgEl || (this.imgEl.width < 1)) return true;
 		if (!rect) rect = this.rect;
 		for (var i = 0 ; i < 8 ; i++) {
