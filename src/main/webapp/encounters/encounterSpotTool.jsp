@@ -374,6 +374,20 @@ function startImageTools() {
 
 	$('#imageTools-control').css('top', (opts.imgEl.height + 10) + 'px');
 
+	var sw = opts.imgEl.naturalWidth;
+	var sh = opts.imgEl.naturalHeight;
+	opts.sourceEl = document.createElement('canvas');
+	opts.sourceEl.width = sw * 2;
+	opts.sourceEl.height = sh * 2;
+	var sctx = opts.sourceEl.getContext("2d");
+	sctx.rect(0, 0, sw * 2, sh * 2);
+	sctx.fillStyle = '#69D';
+	sctx.fill();
+	sctx.drawImage(opts.imgEl, 0, 0, sw, sh, sw / 2, sh / 2, sw, sh);
+	opts.sourceElOffsetX = sw / 2;
+	opts.sourceElOffsetY = sh / 2;
+	opts.noBounds = true;
+
 	itool = new ImageTools(opts);
 
 	itool._myClick = function(ev) {
