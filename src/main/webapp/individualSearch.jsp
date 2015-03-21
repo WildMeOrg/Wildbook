@@ -1525,6 +1525,8 @@ else {
       </em>
       </td>
       </tr>
+      
+      
       </table>
       <%
         }
@@ -1584,6 +1586,54 @@ else {
     </div>
   </td>
 </tr>
+
+<tr>
+  <td>
+
+    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
+      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+      <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
+  </td>
+</tr>
+
+
+
+
+
+<tr>
+<td>
+  <div id="metadata" style="display:none; ">
+  <p><%=props.getProperty("metadataInstructions") %></p>
+      <%
+        ArrayList<User> users = myShepherd.getAllUsers();
+        int numUsers = users.size();
+
+      %>
+	<strong><%=props.getProperty("username")%></strong><br />
+      <select multiple size="5" name="username" id="username">
+        <option value="None"></option>
+        <%
+          for (int n = 0; n < numUsers; n++) {
+            String username = users.get(n).getUsername();
+            String userFullName=username;
+            if(users.get(n).getFullName()!=null){
+            	userFullName=users.get(n).getFullName();
+            }
+            
+        	%>
+        	<option value="<%=username%>"><%=userFullName%></option>
+        	<%
+          }
+        %>
+      </select>
+
+</div>
+</td>
+</tr>
+
+
+
 <%
   myShepherd.rollbackDBTransaction();
 %>
@@ -1596,7 +1646,7 @@ else {
   </td>
 </tr>
 </table>
-
+<br />
 <input name="submitSearch" type="submit" id="submitSearch"
                    value="<%=props.getProperty("goSearch")%>" />
 </form>
