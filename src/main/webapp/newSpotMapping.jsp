@@ -52,9 +52,13 @@ context=ServletUtilities.getContext(request);
 		<p>Thank you for trying to submit a spot pattern through Interconnect! While it served us well, we are happy to announce that spot mapping is now possible in the browser (Firefox, Chrome, and Safari on Mac)!</p>
 		
 		<p>To map left- and right-side spots the new way, click <b>Mark spots</b> above any image in the encounter page to get started.</p>
-		
+
 			
 		<p><a href="encounters/encounter.jsp?number=<%=request.getParameter("number")%>">Go to your encounter to map spots.</a></p>	
+	
+		<p>Do you want to see the new tool in action? Here's a quick video!</p>
+		<iframe width="854" height="510" src="https://www.youtube.com/embed/VxKKvNs7Kog" frameborder="0" allowfullscreen></iframe>
+	
 	</div>
 	<!-- end maintext -->
 
