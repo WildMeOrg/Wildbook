@@ -64,13 +64,10 @@ context=ServletUtilities.getContext(request);
         <p>Click on a link below to download the appropriate software
           client.</p>
 
-        <p><a href="Interconnect.zip"><strong>Interconnect</strong></a><br/>
-          <em>Purpose</em>: Spot mapping and submission to the Shepherd Project Framework<br/>
-          <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 7</a>
-        </p>
+
 
         <p><a href="GridClient.zip"><strong>Grid Client</strong></a><br/>
-          <em>Purpose</em>: Spot pattern comparison in the Shepherd Project Framework<br/>
+          <em>Purpose</em>: Spot pattern comparison in the Wildbook Framework<br/>
           <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 7</a>
         </p>
 
