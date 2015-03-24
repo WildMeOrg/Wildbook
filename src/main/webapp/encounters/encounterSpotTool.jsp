@@ -146,8 +146,8 @@ String langCode=ServletUtilities.getLanguageCode(request);
 	position: absolute;
 	left: 0;
 	top: 0;
-	max-height: 400px;
-	max-width: 480px;
+	xmax-height: 400px;
+	width: 480px;
 }
 
 #imageTools-layerCanvas {
