@@ -561,8 +561,10 @@ console.log('rectW %o', this.rect);
 
 	//computes, but does not set
 	this.rectFrom2 = function(corner, x1, y1, x2, y2) {
+/*   this is done now via rectOutOfBounds, not here
 		if ((x1 < 0) || (x1 > this.imgEl.width) || (y1 < 0) || (y1 > this.imgEl.height) ||
 			(x2 < 0) || (x2 > this.imgEl.width) || (y2 < 0) || (y2 > this.imgEl.height)) return;
+*/
 		var rect = [];
 		var oppc = (corner + 2) % 4;
 		rect[corner*2] = x1;
