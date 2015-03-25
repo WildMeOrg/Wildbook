@@ -2239,6 +2239,7 @@ public class Shepherd {
     ArrayList<User> list = new ArrayList<User>();
     Extent userClass = pm.getExtent(User.class, true);
     Query users = pm.newQuery(userClass);
+    users.setOrdering("fullName ascending");
     try {
       c = (Collection) (users.execute());
       if(c!=null){
@@ -2246,7 +2247,8 @@ public class Shepherd {
       }
       users.closeAll();
       return list;
-    } catch (Exception npe) {
+    } 
+    catch (Exception npe) {
       //System.out.println("Error encountered when trying to execute Shepherd.getAllUsers. Returning a null collection because I didn't have a transaction to use.");
       npe.printStackTrace();
       return null;

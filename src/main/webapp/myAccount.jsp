@@ -240,6 +240,8 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
             </tr>
             </table>
 <%
+	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
+
 		Properties collabProps = new Properties();
  		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 		ArrayList<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
@@ -297,10 +299,18 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
 			out.println("<div class=\"collab-log\"><h1>Queries by collaborators</h1><div class=\"scrollbox\">" + h + "</div></div>");
 			if (hasOther) out.println("<a href=\"myCollabLog.jsp\">See entire log of queries</a>");
 		}
+	}
 
 %>
     	
     </p>
+    
+    <h3><%=props.getProperty("myData") %></h3>
+    
+    <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
+    
+    <p class="caption"><a href="encounters/searchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
+    
 
       <jsp:include page="footer.jsp" flush="true"/>
     </div>
