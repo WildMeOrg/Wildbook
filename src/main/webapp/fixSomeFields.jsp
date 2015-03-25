@@ -59,7 +59,7 @@ int numIssues=0;
 DateTimeFormatter fmt = ISODateTimeFormat.date();
 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 
-String urlToThumbnailJSPPage="http://dev.flukebook.org/";
+String urlToThumbnailJSPPage="http://www.flukebook.org/";
 
 
 while(allEncs.hasNext()){
@@ -67,6 +67,7 @@ while(allEncs.hasNext()){
 
 	Encounter sharky=(Encounter)allEncs.next();
 	if(sharky.getCatalogNumber().indexOf(".")!=-1){
+		numIssues++;
 		if((sharky.getSinglePhotoVideo()!=null)&&(sharky.getSinglePhotoVideo().size()>0)){
 		try{
     		//System.out.println("Trying to render a thumbnail for: "+IDKey+ "as "+thumbnailTheseImages.get(q));
