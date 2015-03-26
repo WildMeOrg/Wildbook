@@ -535,7 +535,7 @@
                         	try{
                         	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))){
                         	%>
-                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>">
+                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank">
                         	
                         	<%=thisEnc.getIndividualID() %>
                         	
@@ -580,7 +580,7 @@
                         try{
                         if(thisEnc.getCatalogNumber()!=null){
                         %>
-                        <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>">
+                        <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank">
                           <%=thisEnc.getCatalogNumber() %>
                         </a>
                         <%
@@ -778,7 +778,7 @@
       						try{
                         	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))){
                         	%>
-                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>">
+                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank">
                         	
                         	<%=thisEnc.getIndividualID() %>
                         	
@@ -814,7 +814,7 @@
   try{
   if(thisEnc.getCatalogNumber()!=null){
   %>
-  <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
+  <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %>
   </a>
   <%
   }
