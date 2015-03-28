@@ -108,11 +108,15 @@ int imageCount = 0;
     </em>:<br/>
 <ul class="image-commands">
 
-
+<%
+if(CommonConfiguration.useSpotPatternRecognition(context)){
+%>
 <li>
 	<a href="encounterSpotTool.jsp?imageID=<%=images.get(myImage).getDataCollectionEventID()%>"><%=encprops.getProperty("doImageSpots") %></a>
 </li>
-
+<%
+}
+%>
 
 <li>
 	<a href="encounterSearch.jsp?referenceImageName=<%=images.get(myImage).getDataCollectionEventID() %>"><%=encprops.getProperty("look4photos") %></a>
