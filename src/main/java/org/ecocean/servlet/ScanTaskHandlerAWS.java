@@ -265,7 +265,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 					                //if it exists already, advance to the scanTask administration page to await its completion
 					                if(request.getParameter("restart")==null){
-					                  response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp");
+					                  response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier);
                 }
 					}
 					else{
@@ -321,7 +321,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 						out.println("<strong>Success:</strong> Your scan was successfully added to the sharkGrid!");
 						//out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/workAppletScan.jsp?number=scan"+rightFilter+request.getParameter("encounterNumber")+rightURL+"\">Start scanning for a match.</a></p>\n");
 						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("encounterNumber")+"\">Return to encounter "+request.getParameter("encounterNumber")+".</a></p>\n");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp"+"\">Go to sharkGrid administration to monitor for completion.</a></p>\n");
+						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier+ "#"+taskIdentifier+"\">Go to sharkGrid administration to monitor for completion.</a></p>\n");
 						out.println(ServletUtilities.getFooter(context));
 					}
 					else{
@@ -474,7 +474,8 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 						}
 
 
-					} else if(myShepherd.isScanTask(taskIdentifier)) {
+					} 
+					else if(myShepherd.isScanTask(taskIdentifier)) {
 
 						System.out.println("scanTaskHandler: This is an existing scanTask...");
 
@@ -535,7 +536,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 						//confirm success
 						out.println(ServletUtilities.getHeader(request));
 						out.println("<strong>Success:</strong> Your scan was successfully added to the sharkGrid!");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp"+"\">Return to sharkGrid administration.</a></p>\n");
+						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier+"#"+taskIdentifier+"\">Return to sharkGrid administration.</a></p>\n");
 						out.println(ServletUtilities.getFooter(context));
 					}
 					else{

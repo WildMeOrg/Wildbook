@@ -212,11 +212,12 @@ else{
 
         
         
-   
+   String styleString="";
+   if((request.getParameter("task")!=null)&&(st.getUniqueNumber().equals(request.getParameter("task")))){styleString="background-color: #66CCFF;border-collapse:collapse;";}
         
   %>
-  <tr>
-    <td><%=scanNum%>. <%=st.getUniqueNumber()%>
+  <tr id="<%=st.getUniqueNumber()%>" >
+    <td style="<%=styleString %>"><%=scanNum%>. <%=st.getUniqueNumber()%>
     </td>
     <td><%=st.getSubmitter()%>
     </td>
@@ -313,11 +314,14 @@ else{
         }
 
         scanNum++;
+        
+        String styleString="";
+        if((request.getParameter("task")!=null)&&(st.getUniqueNumber().equals(request.getParameter("task")))){styleString="background-color: #66CCFF;border-collapse:collapse;";}
+             
+       %>
+       <tr id="<%=st.getUniqueNumber()%>" >
 
-  %>
-  <tr>
-
-    <td><%=st.getUniqueNumber()%>
+    <td style="<%=styleString %>"><%=st.getUniqueNumber()%>
     </td>
     <td><%=st.getSubmitter()%>
     </td>
