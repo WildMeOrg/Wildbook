@@ -584,7 +584,7 @@ console.log(pdata);
 
 
 	$.ajax({
-		url: '../InterconnectSubmitSpots',
+		url: '../SubmitSpots',
 		data: pdata,
 		success: function(d) { sendImage(d); },
 		error: function(a,b,c) {
