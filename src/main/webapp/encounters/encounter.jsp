@@ -197,6 +197,26 @@ if (request.getParameter("number")!=null) {
   <style type="text/css">
     <!--
 
+	#spot-image-wrapper-left,
+	#spot-image-wrapper-right
+	{
+		position: relative;
+		height: 510px;
+	}
+	#spot-image-left, #spot-image-canvas-left,
+	#spot-image-right, #spot-image-canvas-right
+	{
+		position: absolute;
+		left: 0;
+		top: 0;
+		max-width: 600px;
+		max-height: 500px;
+	}
+
+	.spot-td {
+		display: table;	
+	}
+
     .style2 {
       color: #000000;
       font-size: small;
@@ -388,6 +408,12 @@ td.measurement{
 		  
         
         }
+
+
+
+
+var encounterNumber = '<%=num%>';
+
   </script>
 
 <style type="text/css">
@@ -467,7 +493,6 @@ margin-bottom: 8px !important;
 .ui_tpicker_minute_label {margin-bottom:5px !important;}
 
 
-
 </style>
 
 
@@ -491,9 +516,12 @@ margin-bottom: 8px !important;
  
   <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
  
+<script src="../javascript/imageTools.js"></script>
 
 			
 			<div id="main">
+
+
 			<%
   			myShepherd.beginDBTransaction();
 

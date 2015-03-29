@@ -1,0 +1,350 @@
+<html><head><title>test</title>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="javascript/imageTools.js"></script>
+
+
+<script type="text/javascript">
+	var it1, it2, opts1, opts2;
+	var px = 0;
+	var py = 0;
+	var startRotation = 0;
+
+
+
+$(document).ready(function() {
+
+	opts1 = {
+		allInOne: true,
+
+		toolsEnabled: {
+			//spotDisplay: true,
+			spotPicker: true,
+			cropRotate: false,
+		},
+
+		imgEl: document.getElementById('target-img1'),
+
+		wCanvas: document.getElementById('work-canvas1'),
+		lCanvas: document.getElementById('label-canvas1'),
+		//oCanvas: document.getElementById('overlay-canvas1'),
+
+		spots: [
+			{ xy: [30,50], type: "spot" },
+			{ xy: [50,70], type: "mystery" }
+		]
+	};
+
+
+	opts2 = {
+		toolsEnabled: {
+			spotPicker: true
+		},
+
+		imgEl: document.getElementById('cr-work-img'),
+
+		wCanvas: document.getElementById('cr-work-canvas'),
+		lCanvas: document.getElementById('cr-label-canvas'),
+		oCanvas: document.getElementById('cr-overlay-canvas'),
+		//infoEl: document.getElementById('cr-info'),
+		//controlEl: document.getElementById('cr-info'),
+
+		spots: [
+			{ xy: [30,50], type: "spot" },
+			{ xy: [50,70], type: "mystery" }
+		]
+	};
+
+
+
+	//it1 = new ImageTools(opts1);
+	it2 = new ImageTools(opts2);
+
+
+	it2.wCanvas.addEventListener('click', function(ev) {
+console.info(ev);
+		it2.spotClick(ev);
+	}, false);
+
+		//sometimes .toWork() doesnt fire via .init() above.  wtf?  TODO fix!
+	window.setTimeout(function() { it1.toWork(); }, 1100);
+
+	it1.wCanvas.addEventListener('mousedown', function(ev) {
+		////this.eventPosFix(ev);
+		ev.preventDefault();
+		px = ev.offsetX || ev.layerX;
+		py = ev.offsetY || ev.layerY;
+		it1._mouseDownXY = [px, py];
+		startRotation = it1.rotation;
+/*
+console.info('%d,%d', px, py);
+console.log(ev);
+return;
+*/
+
+		var nearCorner = false;
+		var c = [[0,0], [0,it1.wCanvas.offsetHeight], [it1.wCanvas.offsetWidth,it1.wCanvas.offsetHeight], [it1.wCanvas.offsetWidth,0]];
+		for (var i = 0 ; i < 4 ; i++) {
+			if (it1.dist(px, py, c[i][0], c[i][1]) < 35) nearCorner = true;
+		}
+console.log('DN  %d, %d -> %o (startRotation %f)', px, py, nearCorner, startRotation);
+		if (nearCorner) {
+			it1.rotateMode = true;
+		} else {
+			it1.translateMode = true;
+		}
+	}, false);
+
+	it1.wCanvas.addEventListener('mouseup', function(ev) { mouseDo(ev); }, false);
+	it1.wCanvas.addEventListener('mouseout', function(ev) { mouseDo(ev); }, false);
+	it1.wCanvas.addEventListener('mousemove', function(ev) {
+
+		mouseDo(ev);
+	}, false);
+
+	function mouseDo(ev) {
+		if (!it1._mouseDownXY) return;
+		var mx = ev.offsetX || ev.layerX;
+		var my = ev.offsetY || ev.layerY;
+
+		//console.info('%d tMode=%s', Math.abs(mx - it1._mouseDownXY[0]) + Math.abs(my - it1._mouseDownXY[1]), it1.translateMode);
+		if (Math.abs(mx - it1._mouseDownXY[0]) + Math.abs(my - it1._mouseDownXY[1]) < 6) {
+			if (ev.type != 'mouseup') return;
+			it1.rotateMode = false;
+			it1.translateMode = false;
+			return it1.spotClick(ev);
+		}
+
+		if (it1.translateMode) {
+			var scale = it1.rectW() / it1.wCanvas.offsetWidth;
+			var dx = (px - mx) * scale;
+			var dy = (py - my) * scale;
+			px = mx;
+			py = my;
+//console.info("(s %f) dx, dy %d,%d", scale, dx, dy);
+			it1.translateRect(dx, dy);
+			it1.toWork();
+
+		} else if (it1.rotateMode) {
+			var cp = it1.midpoint(0, 0, it1.wCanvas.offsetWidth, it1.wCanvas.offsetHeight);
+/*
+			var db = it1.dist(cp[0], cp[1], it1._mouseDownXY[0], it1._mouseDownXY[1]);
+			var dc = it1.dist(cp[0], cp[1], ev.offsetX, ev.offsetY);
+			var da = it1.dist(it1._mouseDownXY[0], it1._mouseDownXY[1], ev.offsetX, ev.offsetY);
+console.info('b=%d c=%d a=%d', db, dc, da);
+			var a = Math.acos((db*db + dc*dc - da*da) / (2 * db * dc));
+			console.info('rotation = %f', a);
+*/
+			var a1 = Math.atan2(cp[1] - it1._mouseDownXY[1], cp[0] - it1._mouseDownXY[0]);
+			var a2 = Math.atan2(cp[1] - my, cp[0] - mx);
+console.info('a1 - a2 = %f', (a1 - a2));
+			it1.rotation = a1 - a2 + startRotation;
+			it1.toWork();
+		}
+
+		if (ev.type == 'mouseup' || ev.type == 'mouseout') {
+			it1.rotateMode = false;
+			it1.translateMode = false;
+		}
+	}
+
+	it1.wCanvas.addEventListener('wheel', function(ev) {
+		ev.preventDefault();
+		if (ev.deltaY == 0) return;
+		var dir = ev.deltaY / Math.abs(ev.deltaY);
+		if (it1.rotateMode) {
+			it1.rotateRect(dir * 0.04);
+			it1.toWork();
+		} else {
+			it1.scaleRect(1 + dir * 0.08);
+			it1.toWork();
+		}
+	}, false);
+
+
+
+/*
+	it1.wCanvas.addEventListener('click', function(ev) {
+console.info(ev);
+		//it1.spotClick(ev);
+	}, false);
+*/
+
+
+	console.info('ImageTools "it1" and "it2" created');
+
+});
+
+
+function updateOne() {
+	document.getElementById('one').style.width = opts1.imgEl.width + 'px';
+	document.getElementById('one').style.height = opts1.imgEl.height + 'px';
+console.log('oh');
+}
+	
+
+</script>
+
+<style>
+img.target {
+	width: 700px;
+}
+
+#work-wrapper {
+	max-width: 500px;
+	max-height: 400px;
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+
+#cr-work-img, #cr-overlay-canvas {
+	position: absolute;
+	left: 5px;
+	top: 5px;
+}
+#cr-work-img, #cr-overlay-canvas {
+/*
+	max-height: 300px;
+	max-width: 400px;
+*/
+	width: 400px;
+}
+
+
+#cr-work-img, #cr-work-canvas {
+	outline: 2px solid #444;
+}
+
+#cr-work-canvas, #cr-label-canvas {
+	position: absolute;
+	top: 5px;
+	left: 410px;
+	xborder: solid 1px blue;
+	max-width: 300px;
+	max-height: 400px;
+}
+
+
+#one {
+	position: absolute;
+	width: 500px;
+	height: 400px;
+	right: 50px;
+	outline: 2px solid blue;
+	top: 30px;
+}
+
+#one canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+</style>
+
+</head>
+<body>
+
+<p>simple (it1)</p>
+
+<img class="target" src="/mantamatcher2_data_dir/encounters/c/e/ce9c367d-985e-4bd2-a10f-bb81b0737528/mantaray_fgbnms_noaa.jpg" id="target-img1" />
+
+<div id="one">
+	<canvas id="work-canvas1"></canvas>
+	<canvas id="label-canvas1" style="pointer-events: none;" ></canvas>
+</div>
+
+<hr><p>complex (it2)</p>
+<p><input type="button" value="send these spots!" onClick="sendSpots()" /></p>
+
+<p>
+spot type?<br />
+<select onChange=" it2.activeSpotType = $(this).val(); " />
+	<option>spot</option>
+	<option>ref1</option>
+	<option>ref2</option>
+	<option>ref3</option>
+</select>
+</p>
+
+<div style="position: relative; padding: 10px; background-color: #888; width: 100%; height: 700px;">
+
+
+		<img class="target" id="cr-work-img" src="/mantamatcher2_data_dir/encounters/c/e/ce9c367d-985e-4bd2-a10f-bb81b0737528/mantaray_fgbnms_noaa.jpg" />
+		<canvas id="cr-overlay-canvas" style="display: none;" ></canvas>
+
+
+	<div style="position: relative; right: 0;">
+		<canvas id="cr-work-canvas" style="position: absolute; right: 0; top: 0;" ></canvas>
+		<canvas id="cr-label-canvas" style="pointer-events: none; position: absolute; right: 0; top: 0;" ></canvas>
+	</div>
+
+</div>
+
+</body>
+
+<script>
+
+	document.getElementById('target-img1').addEventListener('load', function(ev) {
+		document.getElementById('one').style.width = this.width + 'px';
+		document.getElementById('one').style.height = this.height + 'px';
+	}, false);
+
+
+function sendSpots() {
+	console.log(it2.spots);
+
+	var id = '8bf92419-7b5d-4cf6-be09-902de1b6ce98';
+	var pdata = 'number=' + id;
+	var scount = 0;
+	for (var i = 0 ; i < it2.spots.length ; i++) {
+		if (it2.spots[i].type == 'spot') {
+			pdata += '&spotx' + scount + '=' + it2.spots[i].xy[0];
+			pdata += '&spoty' + scount + '=' + it2.spots[i].xy[1];
+			scount++;
+		} else {
+			pdata += '&' + it2.spots[i].type + 'x=' + it2.spots[i].xy[0];
+			pdata += '&' + it2.spots[i].type + 'y=' + it2.spots[i].xy[1];
+		}
+	}
+
+console.log(pdata);
+	$.ajax({
+		url: 'InterconnectSubmitSpots',
+		data: pdata,
+		success: function(d) { sendImage(d); },
+		error: function(a,b,c) { console.error('%o %o %o', a,b,c); },
+		type: 'POST'
+	});
+}
+
+
+function sendImage(d) {
+	console.log('SUCCESS!! %o', d);
+	var id = '8bf92419-7b5d-4cf6-be09-902de1b6ce98';
+	var imgData = it2.wCanvas.toDataURL('image/jpeg', 0.9).substring(23);
+		var data = 'number=' + id + '&rightSide=true&imageContents=' + encodeURIComponent(imgData);
+//console.log(data); return;
+	$.ajax({
+		url: 'EncounterAddSpotFile',
+		data: data,
+		success: function(d) { allGood(d); },
+		error: function(a,b,c) { console.error('%o %o %o', a,b,c); },
+		type: 'POST'
+	});
+}
+
+
+function allGood(d) {
+	console.log('ALL GOOD!');
+	console.log(d);
+}
+
+
+	
+</script>
+
+</html>
