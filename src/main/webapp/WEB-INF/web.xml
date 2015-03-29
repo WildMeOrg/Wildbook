@@ -97,8 +97,8 @@
                 /appadmin/** = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[admin]
-                /InterconnectSubmitSpots = authc, roles[admin]
-		/interconnectSubmitSpots= authc, roles[admin]
+                /SubmitSpots = authc, roles[admin]
+
 		/GenePopExport = authc, roles[admin]
 		/individualSearch.jsp = authc, roles[admin]
 		/individualSearchResults.jsp = authc, roles[admin]
@@ -940,8 +940,8 @@
 
   <servlet-mapping>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
-    <url-pattern>/InterconnectSubmitSpots</url-pattern>
-    <url-pattern>/interconnectSubmitSpots</url-pattern>
+    <url-pattern>/SubmitSpots</url-pattern>
+
   </servlet-mapping>
   
     <servlet-mapping>
