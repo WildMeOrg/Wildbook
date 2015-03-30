@@ -110,7 +110,9 @@
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[researcher]
                 /SubmitSpots = authc, roles[imageProcessor]
-				/OldSubmitSpots = authc, roles[imageProcessor]
+				/InterconnectSubmitSpots = authc, roles[imageProcessor]
+				/interconnectSubmitSpots = authc, roles[imageProcessor]
+
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 	
 		/GenePopExport = authc, roles[researcher]
@@ -191,7 +193,6 @@
 		             /EncounterSetBehavior = authc, roles[researcher]
 		      /CJS = authc, roles[researcher]
 		      /software.jsp = authc, roles[researcher]
-		      /interconnect/mac/Interconnect.jar = authc, roles[researcher]
       			/DeleteAllDataPermanently = authc, roles[destroyer]
       			/encounters/searchExport = authc, roles[researcher]
       			/welcome.jsp = authc
@@ -366,10 +367,7 @@
     <servlet-class>org.ecocean.servlet.InterconnectSubmitSpots</servlet-class>
   </servlet>
   
-    <servlet>
-    <servlet-name>OldSubmitSpots</servlet-name>
-    <servlet-class>org.ecocean.servlet.OldSubmitSpots</servlet-class>
-  </servlet>
+ 
 
 
   <servlet>
@@ -1012,13 +1010,11 @@
   <servlet-mapping>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
     <url-pattern>/SubmitSpots</url-pattern>
-  </servlet-mapping>
-  
-    <servlet-mapping>
-    <servlet-name>OldSubmitSpots</servlet-name>
-    <url-pattern>/interconnectSubmitSpots</url-pattern>
+	  <url-pattern>/interconnectSubmitSpots</url-pattern>
 	<url-pattern>/InterconnectSubmitSpots</url-pattern>
   </servlet-mapping>
+  
+
   
     <servlet-mapping>
       <servlet-name>TissueSampleSetHaplotype</servlet-name>
