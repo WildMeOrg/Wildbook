@@ -20,7 +20,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration" %>
+
+         import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration, java.io.FileInputStream, javax.jdo.Extent" %>
+
 
 <html>
 <head>
@@ -72,7 +74,7 @@
     ArrayList<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
 
     myShepherd.beginDBTransaction();
-    EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
+    //EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
 	
   	StringBuffer prettyPrint=new StringBuffer("");
   	Map<String,Object> paramMap = new HashMap<String, Object>();
@@ -98,9 +100,20 @@
 
 
     if (request.getParameter("noQuery") == null) {
-	  queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+    	
+    	
+    	String jdoqlQueryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+    	Extent encClass = myShepherd.getPM().getExtent(Encounter.class, true);
+        Query query = myShepherd.getPM().newQuery(jdoqlQueryString);
+        //query.setFilter("SELECT "+jdoqlQueryString);
+        query.setResult("catalogNumber");
+        Collection c = (Collection) (query.execute());
+        ArrayList<String> enclist = new ArrayList<String>(c);
+        query.closeAll();
+    	
+	  //queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
 	
-    rEncounters=myShepherd.getThumbnails(request, queryResult.getResult().iterator(), startNum, endNum, keywords);
+    rEncounters=myShepherd.getThumbnails(myShepherd, request, enclist, startNum, endNum, keywords);
     }
     else{
     	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo WHERE correspondingEncounterNumber != null");    	
@@ -522,7 +535,7 @@
                         	try{
                         	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))){
                         	%>
-                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>">
+                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank">
                         	
                         	<%=thisEnc.getIndividualID() %>
                         	
@@ -567,7 +580,7 @@
                         try{
                         if(thisEnc.getCatalogNumber()!=null){
                         %>
-                        <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>">
+                        <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank">
                           <%=thisEnc.getCatalogNumber() %>
                         </a>
                         <%
@@ -657,32 +670,37 @@
 						<span class="caption">
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-              try{
-              	//File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
-              	File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
-              
-              	if(exifImage.exists()){
-              		Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              		// iterate through metadata directories
-                  for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
-                    %>
-                    <%=tag.toString() %><br/>
-                    <%
-                  }
-              	} //end if
-              	else{
-            	 %>
-		            <p>File not found on file system. No EXIF data available.</p>
-		            <p>I looked for the file at: <%=exifImage.getAbsolutePath()%></p>
-          		<%  
-              	}
-              } //end try
-              catch(Exception e){
-              %>
-              <p>Cannot read metadata for this file.</p>
-              <%
+            	FileInputStream jin=null;
+            	try{
+              		//File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
+              		File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
+              		jin=new FileInputStream(exifImage);
+              	
+              		if(exifImage.exists()){
+              			Metadata metadata = JpegMetadataReader.readMetadata(jin);
+              			// iterate through metadata directories
+                  		for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
+                    		%>
+                    		<%=tag.toString() %><br/>
+                    		<%
+                  		}
+              		} //end if
+              		else{
+            	 	%>
+		            	<p>File not found on file system. No EXIF data available.</p>
+		            	<p>I looked for the file at: <%=exifImage.getAbsolutePath()%></p>
+          			<%  
+              		}
+              	} //end try
+              	catch(Exception e){
+              	%>
+              	<p>Cannot read metadata for this file.</p>
+              	<%
               	e.printStackTrace();
-              }
+              	}
+              	finally{
+              		if(jin!=null){jin.close();}
+              	}
              }
                 %>
    									</span>
@@ -760,7 +778,7 @@
       						try{
                         	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))){
                         	%>
-                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>">
+                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank">
                         	
                         	<%=thisEnc.getIndividualID() %>
                         	
@@ -796,7 +814,7 @@
   try{
   if(thisEnc.getCatalogNumber()!=null){
   %>
-  <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
+  <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %>
   </a>
   <%
   }
@@ -907,29 +925,7 @@
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
-  if (request.getParameter("noQuery") == null) {
-%>
-<table>
-  <tr>
-    <td align="left">
-
-
-
-      <p><strong><%=encprops.getProperty("queryDetails")%>
-      </strong></p>
-
-      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
-      </p>
-      
-
-
-    </td>
-  </tr>
-</table>
-<%
-  }
+ 
 %>
 
 <br/>

@@ -622,6 +622,27 @@ public class EncounterQueryProcessor {
 
     }
     //end hasPhoto filters-----------------------------------------------
+    
+    //filter for encounters of MarkedIndividuals that have been resighted------------------------------------------
+    if((request.getParameter("resightOnly")!=null)&&(request.getParameter("numResights")!=null)) {
+      int numResights=1;
+
+      try{
+        numResights=(new Integer(request.getParameter("numResights"))).intValue();
+        prettyPrint.append("numResights for related Marked Individual is >= "+numResights+".<br />");
+        }
+      catch(NumberFormatException nfe) {nfe.printStackTrace();}
+      String localFilter="markedindy.encounters.contains(this) && markedindy.encounters.size() >= "+numResights+" ";
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=localFilter;}
+      else {filter+=(" && "+localFilter);}
+      if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.MarkedIndividual markedindy";}
+      else {jdoqlVariableDeclaration+=";org.ecocean.MarkedIndividual markedindy";}
+
+      
+      
+      
+    }
+  //end if resightOnly--------------------------------------------------------------------------------------
 
 
 
@@ -857,6 +878,32 @@ public class EncounterQueryProcessor {
       }
 
     //end genetic sex filters-----------------------------------------------
+    
+    
+  	//start photo filename filtering
+	    if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))) {
+
+	      //clean the input string to create its equivalent as if it had been submitted through the web form
+	      String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
+
+	      String locIDFilter="( photo.filename == \""+nameString+"\" )";
+	      
+	      
+	      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="images.contains(photo) && "+locIDFilter;}
+          else{
+            filter+=" && images.contains(photo) && "+locIDFilter;
+          }
+
+	      prettyPrint.append("SinglePhotoVideo filename is: \""+nameString+"\"<br />");
+          prettyPrint.append("<br />");
+          if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.SinglePhotoVideo photo;";}
+          else{
+            jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo photo";
+            
+          }
+  }
+
+//end photo filename filtering
 
 
 
@@ -1341,6 +1388,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
   //filter for encounters of MarkedIndividuals that have been resighted------------------------------------------
+  /* 
     if((request.getParameter("resightOnly")!=null)&&(request.getParameter("numResights")!=null)) {
       int numResights=1;
 
@@ -1365,6 +1413,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
         //}
       }
     }
+    */
   //end if resightOnly--------------------------------------------------------------------------------------
 
 
@@ -1424,29 +1473,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
   //end keyword filters-----------------------------------------------
 */
 
-  	//start photo filename filtering
-  	    if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))) {
 
-  	      //clean the input string to create its equivalent as if it had been submitted through the web form
-  	      String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
-
-  	           for(int q=0;q<rEncounters.size();q++) {
-		         Encounter rEnc=(Encounter)rEncounters.get(q);
-		         int numPhotos=rEnc.getAdditionalImageNames().size();
-		         boolean hasPhoto=false;
-		         for(int i=0;i<numPhotos;i++){
-					 String thisPhoto=(String)rEnc.getAdditionalImageNames().get(i);
-					 if(thisPhoto.equals(nameString)){hasPhoto=true;}
-				}
-		         if(!hasPhoto){
-		           rEncounters.remove(q);
-		           q--;
-		         }
-               }
-  	      prettyPrint.append("filenameField contains: \""+nameString+"\"<br />");
-      }
-
-	//end photo filename filtering
 
   	query.closeAll();
 

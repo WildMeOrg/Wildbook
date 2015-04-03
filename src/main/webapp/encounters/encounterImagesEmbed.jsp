@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -105,10 +105,23 @@ int imageCount = 0;
   	<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" />
     <em>
     	<%=encprops.getProperty("image_commands") %>
-    </em>:<br/> <font size="-1">
-      [<a
-      href="encounterSearch.jsp?referenceImageName=<%=images.get(myImage).getDataCollectionEventID() %>"><%=encprops.getProperty("look4photos") %>
-    </a>] </font></td>
+    </em>:<br/>
+<ul class="image-commands">
+
+<%
+if(CommonConfiguration.useSpotPatternRecognition(context)){
+%>
+<li>
+	<a href="encounterSpotTool.jsp?imageID=<%=images.get(myImage).getDataCollectionEventID()%>"><%=encprops.getProperty("doImageSpots") %></a>
+</li>
+<%
+}
+%>
+
+<li>
+	<a href="encounterSearch.jsp?referenceImageName=<%=images.get(myImage).getDataCollectionEventID() %>"><%=encprops.getProperty("look4photos") %></a>
+</li>
+</td>
 </tr>
 
 <%
@@ -348,7 +361,7 @@ System.out.println("trying to fork/create " + thumbPath);
                  fillPaint="#000000"><%=encprops.getProperty("nocopying") %>
         </di:text>
       </di:img>
-      <img width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
+      <img width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
            src="<%=encUrlDir%>/<%=(images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
 				}
 
@@ -359,7 +372,7 @@ System.out.println("trying to fork/create " + thumbPath);
       }
     %> <%
   } else if ((!processedImage.exists()) && (haveRendered)) {
-  %> <img width="250" height="200" alt="photo <%=imageEnc.getLocation()%>"
+  %> <img width="250" height="200" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
           src="../images/processed.gif" border="0" align="left" valign="left">
       <%
 		if (session.getAttribute("logged")!=null) {
@@ -372,7 +385,7 @@ System.out.println("trying to fork/create " + thumbPath);
 			String wmDiv = "";
 			String wmText = encprops.getProperty("imgWatermark");
 			if ((wmText != null) && !wmText.equals("")) wmDiv = "<div class=\"img-watermark\">" + wmText + "</div>";
-  %> <div style="position: relative"><img id="img<%=images.get(myImage).getDataCollectionEventID()%> " width="<%=thumbnailWidth %>" alt="photo <%=imageEnc.getLocation()%>"
+  %> <div style="position: relative"><img id="img<%=images.get(myImage).getDataCollectionEventID()%> " width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
           src="<%=encUrlDir%>/<%=(images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
           valign="left"><%=wmDiv%> <%
 
@@ -462,9 +475,10 @@ System.out.println("trying to fork/create " + thumbPath);
 
             <%
               if (CommonConfiguration.showEXIFData(context)&&!isVideo) {
-            	  
+            	  FileInputStream jin=null;
+            	  try{
             	  File exifImage = new File(Encounter.dir(shepherdDataDir, imageEnc.getCatalogNumber()) + "/" + addTextFile);
-              	
+              	jin=new FileInputStream(exifImage);
             %>
 
 
@@ -488,6 +502,9 @@ System.out.println("trying to fork/create " + thumbPath);
    								</span>
           </td>
           <%
+              }
+            	  catch(Exception e){e.printStackTrace();}
+            	  finally{if(jin!=null){jin.close();}}
             }
           %>
 
