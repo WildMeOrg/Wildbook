@@ -376,6 +376,16 @@ myShepherd.rollbackDBTransaction();
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
  <div id="main">
+   <table width="810px" border="0" cellspacing="0" cellpadding="0">
+   <tr>
+     <td>
+       <br/>
+ 
+       <h1 class="intro"><%=encprops.getProperty("title")%>
+       </h1>
+     </td>
+   </tr>
+</table>
  
  <ul id="tabmenu">
  
@@ -396,16 +406,7 @@ myShepherd.rollbackDBTransaction();
      href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
    </a></li>
  </ul>
- <table width="810px" border="0" cellspacing="0" cellpadding="0">
-   <tr>
-     <td>
-       <br/>
- 
-       <h1 class="intro"><%=encprops.getProperty("title")%>
-       </h1>
-     </td>
-   </tr>
-</table>
+
  
  
  

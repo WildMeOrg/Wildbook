@@ -248,7 +248,7 @@ public class ScanTaskHandler extends HttpServlet {
             }
 
             //if it exists already, advance to the scanTask administration page to await its completion
-            response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp");
+            response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier);
           } else {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
@@ -293,7 +293,7 @@ public class ScanTaskHandler extends HttpServlet {
             out.println("<strong>Success:</strong> Your scan was successfully added to the sharkGrid!");
             //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/encounters/workAppletScan.jsp?number=scan"+rightFilter+request.getParameter("encounterNumber")+rightURL+"\">Start scanning for a match.</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("encounterNumber") + "\">Return to encounter " + request.getParameter("encounterNumber") + ".</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp" + "\">Go to sharkGrid administration to monitor for completion.</a></p>\n");
+            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier + "#"+taskIdentifier+"\">Go to sharkGrid administration to monitor for completion.</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
           } else {
             out.println(ServletUtilities.getHeader(request));

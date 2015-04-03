@@ -24,6 +24,7 @@ import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.grid.GridNode;
 import org.ecocean.grid.ScanWorkItemResult;
+import org.ecocean.grid.ScanTask;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.util.Vector;
+import java.util.ArrayList;
 
 
 public class ScanWorkItemResultsHandler extends HttpServlet {
@@ -48,12 +50,15 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
   private static Object receiveObject(ObjectInputStream con) throws Exception {
     //System.out.println("scanresultsServlet: I am about to read in the byte array!");
     Object obj = new ScanWorkItemResult();
-    try {
-      obj = (Object) con.readObject();
-    } catch (java.lang.NullPointerException npe) {
-      System.out.println("scanResultsServlet received an empty results set...no matches whatsoever.");
-      return obj;
-    }
+    //if(obj!=null){
+      try {
+        obj = (Object) con.readObject();
+      } 
+      catch (java.lang.NullPointerException npe) {
+        System.out.println("scanResultsServlet received an empty results set...no matches whatsoever.");
+        return obj;
+      }
+   // }
     //System.out.println("scanresultsServlet: I successfully read in the byte array!");
 
     return obj;
@@ -73,6 +78,8 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
     Shepherd myShepherd = new Shepherd(context);
     String nodeIdentifier = request.getParameter("nodeIdentifier");
     GridManager gm = GridManagerFactory.getGridManager();
+    
+    ArrayList<String> affectedScanTasks=new ArrayList<String>();
 
     //double cutoff=2;
     String statusText = "success";
@@ -80,7 +87,7 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
     response.setContentType("application/octet-stream");
     ObjectInputStream inputFromApplet = null;
     PrintWriter out = null;
-    myShepherd.beginDBTransaction();
+    
     try {
 
       // get an input stream and Vector of results from the applet
@@ -97,7 +104,8 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
         out = response.getWriter();
         out.println(statusText);
         out.close();
-      } catch (Exception e) {
+      } 
+      catch (Exception e) {
         e.printStackTrace();
       }
 
@@ -109,7 +117,9 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       //String affectedTask="";
       for (int m = 0; m < returnedSize; m++) {
         ScanWorkItemResult wir = (ScanWorkItemResult) returnedResults.get(m);
-        String swiUniqueNum = wir.getUniqueNumberWorkItem();
+        //String swiUniqueNum = wir.getUniqueNumberWorkItem();
+        String taskNum = wir.getUniqueNumberTask();
+        if(!affectedScanTasks.contains(taskNum)){affectedScanTasks.add(taskNum);}
 
         gm.checkinResult(wir);
 
@@ -117,21 +127,53 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       }
 
 
-      myShepherd.commitDBTransaction();
-      myShepherd.closeDBTransaction();
+      
+      
 
       if (returnedSize > 0) {
         GridNode node = gm.getGridNode(nodeIdentifier);
         node.checkin(returnedSize);
         gm.incrementCompletedWorkItems(returnedSize);
       }
+      
+      //check if we can wrap up any of these tasks
+     
+      /*int numAffectedTasks=affectedScanTasks.size();
+      myShepherd.beginDBTransaction();
+      for(int i=0;i<numAffectedTasks;i++){
+        
+        String thisTaskNum=affectedScanTasks.get(i);
+        ScanTask st=myShepherd.getScanTask(thisTaskNum);
+        int numTotal = st.getNumComparisons();
 
+        int numComplete = gm.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
 
-    } catch (Exception e) {
+        int numGenerated = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
+
+        int numTaskTot = numComplete + numGenerated;
+        
+        if ((numComplete > 0) && (numComplete >= numTaskTot)) {
+          
+          //OK, now write it out
+          //TBD
+          
+          
+        }
+        
+      }
+      */
+      
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
-      System.out.println("scanResultsServlet registered the following error...");
+
+
+    } 
+    catch (Exception e) {
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
+      System.out.println("scanWorkItemResultsHandler registered the following error...");
       e.printStackTrace();
+      inputFromApplet.close();
       //statusText="failure";
     }
 

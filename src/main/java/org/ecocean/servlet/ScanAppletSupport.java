@@ -61,15 +61,15 @@ public class ScanAppletSupport extends HttpServlet {
     Shepherd myShepherd = new Shepherd(context);
     response.setContentType("application/octet-stream");
     GridManager gm = GridManagerFactory.getGridManager();
-    String supportedAppletVersion = gm.getSupportedAppletVersion();
+    //String supportedAppletVersion = gm.getSupportedAppletVersion();
 
-    if ((request.getParameter("version") != null) && (request.getParameter("version").equals(supportedAppletVersion)) && (request.getParameter("nodeIdentifier") != null)) {
+    //if ((request.getParameter("version") != null) && (request.getParameter("version").equals(supportedAppletVersion)) && (request.getParameter("nodeIdentifier") != null)) {
       //System.out.println("scanAppletSupport: Cleared the first hurdle in scanAppletSupport");
 
       boolean targeted = false;
-      if ((request.getParameter("newEncounterNumber") != null) && (!request.getParameter("newEncounterNumber").equals(""))) {
-        targeted = true;
-      }
+      //if ((request.getParameter("newEncounterNumber") != null) && (!request.getParameter("newEncounterNumber").equals(""))) {
+      //  targeted = true;
+      //}
       boolean gridSpaceAvailable = gm.isGridSpaceAvailable(request, targeted);
       if (gridSpaceAvailable) {
         //System.out.println("I have validated a request, and I am now trying to fill it.");
@@ -93,7 +93,7 @@ public class ScanAppletSupport extends HttpServlet {
           getEncounter(myShepherd, request, response);
         }
       }
-    }
+    //}
   } //end doPost method
 
 

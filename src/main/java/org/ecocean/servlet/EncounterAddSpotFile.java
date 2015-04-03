@@ -35,9 +35,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.xml.bind.DatatypeConverter;
 
 /**
  *
@@ -81,7 +83,67 @@ public class EncounterAddSpotFile extends HttpServlet {
     String side = "left";
 
 
-    try {
+		String imageContents = request.getParameter("imageContents");
+
+
+		if (imageContents != null) {
+			encounterNumber = request.getParameter("number");
+			if ((request.getParameter("rightSide") != null) && request.getParameter("rightSide").equals("true")) side = "right";
+
+			byte[] imgBytes = new byte[100];
+			try {
+				imgBytes = DatatypeConverter.parseBase64Binary(imageContents);
+			} catch (IllegalArgumentException ex) {
+				System.out.println("could not parse imageContents base64: " + ex.toString());
+			}
+			if (imgBytes.length > 0) {
+				if (side.equals("right")) {
+					fileName = "extractRight" + encounterNumber + ".jpg";
+				} else {
+					fileName = "extract" + encounterNumber + ".jpg";
+				}
+				File spotFile = new File(Encounter.dir(shepherdDataDir, encounterNumber), fileName);
+//System.out.println("got imgBytes! -> " + spotFile.toString());
+				FileOutputStream stream = new FileOutputStream(spotFile);
+				try {
+					stream.write(imgBytes);
+				} finally {
+					stream.close();
+      		myShepherd.beginDBTransaction();
+        	Encounter add2shark = myShepherd.getEncounter(encounterNumber);
+        	try {
+          	if (side.equals("right")) {
+            	add2shark.setRightSpotImageFileName(fileName);
+            	add2shark.hasRightSpotImage = true;
+          	} else {
+            	add2shark.setSpotImageFileName(fileName);
+            	add2shark.hasSpotImage = true;
+          	}
+
+          	String user = "Unknown User";
+          	if (request.getRemoteUser() != null) {
+            	user = request.getRemoteUser();
+          	}
+          	add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Submitted new " + side + "-side spot data graphic.</p>");
+
+        	} catch (Exception le) {
+          	locked = true;
+          	myShepherd.rollbackDBTransaction();
+          	le.printStackTrace();
+        	}
+
+        	if (!locked) {
+          	myShepherd.commitDBTransaction();
+          	myShepherd.closeDBTransaction();
+					}
+				}
+			}
+
+		}
+
+
+
+    if (imageContents == null) try {
 
       MultipartParser mp = new MultipartParser(request, 10 * 1024 * 1024); // 2MB
       Part part;
@@ -104,6 +166,7 @@ public class EncounterAddSpotFile extends HttpServlet {
               side = "right";
             }
           }
+
 
         }
 

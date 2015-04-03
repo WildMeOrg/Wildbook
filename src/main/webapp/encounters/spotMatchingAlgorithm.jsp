@@ -273,6 +273,7 @@ try {
 
 		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
 		 				
+/*
 		 				//iInfo.setInput(new FileInputStream(uploadedFile));
 		 				if (!extractImage.exists()) {
 		 					//System.out.println("Made it here.");
@@ -300,6 +301,7 @@ try {
   							
   							<%
 							}
+*/
 						}
 									//set the right file
 									
@@ -308,6 +310,7 @@ try {
 									//iInfo=new ImageInfo();
 									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
 		 				
+/*
 									//iInfo.setInput(new FileInputStream(uploadedRightFile));
 									if (!extractRightImage.exists()) {
 										//System.out.println("Made it here.");
@@ -331,6 +334,7 @@ try {
   										</di:img> 
   									<%
 									}
+*/
 								}
 									
 								String fileloc="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getSpotImageFileName());
@@ -375,31 +379,125 @@ var dlgChangeSpotImage = $("#dialogChangeSpotImage").dialog({
 $("a#changespotimage").click(function() {
   dlgChangeSpotImage.dialog("open");
 });
+
+var spotJson = {};
 </script>   
 <!-- end reset spot image popup --> 
 
   <table border="0" cellpadding="5"><tr>
   <%
+	String spotJsonLeft = null;
+	String spotJsonRight = null;
+
+	ArrayList<SuperSpot> spots = new ArrayList<SuperSpot>();
+
   if ((enc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
-%> <td valign="top">Left-side<em>.</em><em> Click the image to view the full size
-  original. <a href="encounterSpotVisualizer.jsp?number=<%=encNum%>">Click
-    here to see the left-side spots mapped to the left-side image.</a> </em><br/>
-  <a href="<%=fileloc%>"><img src="<%=fileloc%>" alt="image" width="250"></a></td> 
+      spots = enc.getSpots();
+			spotJsonLeft = "[";
+			for (SuperSpot s : spots) {
+				spotJsonLeft += "{ \"type\": \"spot\", \"xy\" : [ " + s.getCentroidX() + "," + s.getCentroidY() + "] },\n";
+			}
+			spotJsonLeft += "];";
+%>
+<td valign="top" class="spot-td spot-td-left"><div>Left-side</div>
+<div id="spot-image-wrapper-left">
+	<img src="<%=fileloc%>" alt="image" id="spot-image-left" />
+	<canvas id="spot-image-canvas-left"></canvas>
+</div>
+</td> 
   <%
     }
 
     if ((enc.getNumRightSpots() > 0)&&(uploadedRightFile.exists())&&(uploadedRightFile.isFile())) {
-  %> <td valign="top">Right-side<em>.</em><em> Click the image to view the full
-    size original. <a
-      href="encounterSpotVisualizer.jsp?number=<%=encNum%>&rightSide=true">Click
-      here to see the right-side spots mapped to the right-side image.</a> </em><br/>
-  
-  		<a href="<%=filelocR%>"><img src="<%=filelocR%>" alt="image" width="250"></a> 
-           </td>                    
+      spots = enc.getRightSpots();
+			spotJsonRight = "[";
+			for (SuperSpot s : spots) {
+				spotJsonRight += "{ \"type\": \"spot\", \"xy\" : [ " + s.getCentroidX() + "," + s.getCentroidY() + "] },\n";
+			}
+			spotJsonRight += "];";
+  %>
+<td valign="top" class="spot-td spot-td-right"><div>Right-side</div>
+<div id="spot-image-wrapper-right">
+	<img src="<%=filelocR%>" alt="image" id="spot-image-right"  />
+	<canvas id="spot-image-canvas-right"></canvas>
+</div>
+</td> 
       <%
       }
-      //--
+
+if (enc.getNumSpots() + enc.getNumRightSpots() > 0) {
+
 %>
+<script type="text/javascript">
+
+<%
+	if (spotJsonRight != null) out.println("spotJson.right = " + spotJsonRight);
+	if (spotJsonLeft != null) out.println("spotJson.left = " + spotJsonLeft);
+%>
+
+var itool = {};
+
+function spotImageInit() {
+	if (spotJson.left) spotInit('left');
+	if (spotJson.right) spotInit('right');
+}
+
+
+
+function spotInit(side) {
+	var opts = {
+		toolsEnabled: {
+			cropRotate: false,
+			spotDisplay: true
+		},
+
+		spots: spotJson[side],
+
+		imgEl: document.getElementById('spot-image-' + side),
+
+		//wCanvas: document.getElementById('imageTools-workCanvas'),
+		//oCanvas: document.getElementById('imageTools-overlayCanvas'),
+		lCanvas: document.getElementById('spot-image-canvas-' + side)
+	};
+
+	opts.lCanvas.width = opts.imgEl.width;
+	opts.lCanvas.height = opts.imgEl.height;
+
+	console.info('initializing itool[%s] with opts %o', side, opts);
+	itool[side] = new ImageTools(opts);
+
+	itool[side].setRectFrom2(0,0,0, itool[side].imgEl.width, itool[side].imgEl.height);
+
+	itool[side].scale = opts.lCanvas.width / itool[side].imgEl.naturalWidth;
+	itool[side].drawSpots();
+}
+
+
+function spotCheckImage(side) {
+	if (!spotJson[side]) return true;
+console.log('spotCheckImage(%s) ?', side);
+	var jimg = $('#spot-image-' + side);
+	if (jimg[0].complete && jimg[0].width) return true;
+console.log(side + 'not yet complete!');
+	jimg.bind('load', function() { spotCheckImages(); });
+	return false;
+}
+
+
+var initStarted = false;
+function spotCheckImages() {
+	var ready = spotCheckImage('right') && spotCheckImage('left');
+console.log('spotCheckImages() got ' + ready);
+	if (!ready || initStarted) return;
+	initStarted = true;
+	spotImageInit();
+}
+
+$(document).ready(function() {
+	spotCheckImages();
+});
+</script>
+<% } %>
 
 </tr></table>
 <!-- END Pattern recognition image pieces -->		
