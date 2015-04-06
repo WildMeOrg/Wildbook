@@ -125,8 +125,9 @@ public class IndividualCreate extends HttpServlet {
             if (request.getParameter("noemail") == null) {
               //send the e-mail
               Vector e_images = new Vector();
-              String emailUpdate = "\nNewly marked: " + newIndividualID+ "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID + "\n\nEncounter: " + request.getParameter("number") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\n";
-              String thanksmessage = ServletUtilities.getText("createdMarkedIndividual.txt") + emailUpdate;
+              String thanksmessage = ServletUtilities.getText("createdMarkedIndividual.html");
+              thanksmessage = thanksmessage.replaceAll("INSERTTEXT",("<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID+"\">Click here to learn more about "+newIndividualID+ " in Wildbook!</a>"));
+              
               ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
               //notify the admins
