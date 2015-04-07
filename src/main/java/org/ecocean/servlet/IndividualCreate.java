@@ -131,7 +131,7 @@ public class IndividualCreate extends HttpServlet {
               ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
               //notify the admins
-              es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getNewSubmissionEmail(context), ("Encounter update: " + request.getParameter("number")), thanksmessage, e_images,context));
+              es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getNewSubmissionEmail(context), ("Encounter update: " + request.getParameter("number")), CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter,context), e_images,context));
 
               if (submitter.indexOf(",") != -1) {
                 StringTokenizer str = new StringTokenizer(submitter, ",");
