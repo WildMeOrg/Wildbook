@@ -142,6 +142,8 @@ public class IndividualAddEncounter extends HttpServlet {
             updateMessage=updateMessage.replaceAll("INSERTTEXT",  emailUpdate);
             add2update=add2update.replaceAll("INSERTTEXT",  emailUpdate);
             
+            
+            
             //updateMessage += emailUpdate;
 
 			ArrayList allAssociatedEmails=addToMe.getAllEmailsToUpdate();
@@ -154,7 +156,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
 
               //notify the administrators
-              NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getAutoEmailAddress(context), ("Encounter update sent to submitters: " + request.getParameter("number")), add2update, e_images,context);
+              NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getAutoEmailAddress(context), ("Encounter update sent to submitters: " + request.getParameter("number")), add2update.replaceAll("REMOVEME", ""), e_images,context);
 			  es.execute(mailer);
 
 			  //notify submitters, photographers, and informOthers values
