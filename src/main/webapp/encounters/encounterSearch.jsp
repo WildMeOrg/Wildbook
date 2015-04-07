@@ -743,8 +743,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         if (totalVBDs > 1) {
       %>
 
-      <select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField"
-              id="verbatimEventDateField">
+      <select multiple name="verbatimEventDateField" id="verbatimEventDateField" size="5">
         <option value="None"></option>
         <%
           for (int f = 0; f < totalVBDs; f++) {
