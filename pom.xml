@@ -426,7 +426,7 @@
    
    <executions>
         <execution>
-          <phase>process-resources</phase>
+          <phase>install</phase>
           <goals>
             <goal>javadoc</goal>
           </goals>
