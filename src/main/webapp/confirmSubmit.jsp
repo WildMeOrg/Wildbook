@@ -289,7 +289,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   }
 
   //thank the submitter and photographer
-  String thanksmessage = ServletUtilities.getText("thankyou.html");
+  String thanksmessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"thankyou.html",ServletUtilities.getLanguageCode(request));
 
   //add the encounter link
   thanksmessage=thanksmessage.replaceAll("INSERTTEXT", ("http://" + CommonConfiguration.getURLLocation
