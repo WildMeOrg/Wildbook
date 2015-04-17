@@ -21,6 +21,8 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 
+import org.ecocean.CommonConfiguration;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -125,7 +127,7 @@ public class IndividualCreate extends HttpServlet {
             if (request.getParameter("noemail") == null) {
               //send the e-mail
               Vector e_images = new Vector();
-              String thanksmessage = ServletUtilities.getText("createdMarkedIndividual.html");
+              String thanksmessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"createdMarkedIndividual.html",ServletUtilities.getLanguageCode(request));
               thanksmessage = thanksmessage.replaceAll("INSERTTEXT",("<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID+"\">Click here to learn more about "+newIndividualID+ " in Wildbook!</a>"));
               
               ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();

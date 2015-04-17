@@ -122,11 +122,13 @@ public class IndividualAddEncounter extends HttpServlet {
             myShepherd.commitDBTransaction();
             Vector e_images = new Vector();
 
-            String updateMessage = ServletUtilities.getText("markedIndividualUpdate.html");
+            String updateMessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"markedIndividualUpdate.html",ServletUtilities.getLanguageCode(request));
 			
-            String thanksmessage = ServletUtilities.getText("add2MarkedIndividual.html");
+            String thanksmessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"add2MarkedIndividual.html",ServletUtilities.getLanguageCode(request));
 
-            String add2update=ServletUtilities.getText("add2MarkedIndividual.html");
+            String add2update=ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"add2MarkedIndividual.html",ServletUtilities.getLanguageCode(request));
+            
+            String adopterUpdate=ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"adopterUpdate.html",ServletUtilities.getLanguageCode(request));
             
             //let's get ready for emailing
             ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
@@ -141,6 +143,7 @@ public class IndividualAddEncounter extends HttpServlet {
             thanksmessage =thanksmessage.replaceAll("INSERTTEXT", emailUpdate);
             updateMessage=updateMessage.replaceAll("INSERTTEXT",  emailUpdate);
             add2update=add2update.replaceAll("INSERTTEXT",  emailUpdate);
+            adopterUpdate=add2update.replaceAll("INSERTTEXT",  emailUpdate);
             
             
             
@@ -268,7 +271,7 @@ public class IndividualAddEncounter extends HttpServlet {
               for (int t = 0; t < adopters.size(); t++) {
                 String adEmail = (String) adopters.get(t);
                 if ((allAssociatedEmails.indexOf(adEmail) == -1)) {
-                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), adEmail, ("Sighting update: " + request.getParameter("individual")), ServletUtilities.getText("adopterUpdate.html") + emailUpdate, e_images,context));
+                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), adEmail, ("Sighting update: " + request.getParameter("individual")), ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"adopterUpdate.html",ServletUtilities.getLanguageCode(request)) + adopterUpdate, e_images,context));
                   allAssociatedEmails.add(adEmail);
                 }
               }
