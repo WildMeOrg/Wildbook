@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.ServletContext;
 //import javax.servlet.http.HttpSession;
 
+
 import java.io.*;
 import java.net.URL;
 import java.text.CharacterIterator;
@@ -143,7 +144,7 @@ public class ServletUtilities {
         if (size > 0) {
           Vector e_images = new Vector();
           String mailMe = interested[0];
-          String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Encounter " + number + ": " + message + "\n\nLink to encounter: http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + number));
+          String email = getText(CommonConfiguration.getDataDirectoryName(context),"dataUpdate.txt",getLanguageCode(request)).replaceAll("INSERTTEXT", ("Encounter " + number + ": " + message + "\n\nLink to encounter: http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + number));
           email += ("\n\nWant to stop tracking this set of encounter data? Use this link.\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?number=" + number + "&email=");
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
           es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images, context));
@@ -192,7 +193,7 @@ public class ServletUtilities {
 
             Vector e_images = new Vector();
             String mailMe = interested[0];
-            String email = getText("dataUpdate.txt").replaceAll("INSERTTEXT", ("Tag " + shark + ": " + message + "\n\nLink to individual: http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark));
+            String email = getText(CommonConfiguration.getDataDirectoryName(context),"dataUpdate.txt",getLanguageCode(request)).replaceAll("INSERTTEXT", ("Tag " + shark + ": " + message + "\n\nLink to individual: http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark));
             email += ("\n\nWant to stop tracking this set of this individual's data? Use this link.\n\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?shark=" + shark + "&email=");
 
             es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), mailMe, ("Marked individual data update: " + shark), (email + mailMe), e_images,context));
@@ -220,23 +221,30 @@ public class ServletUtilities {
 
   //Loads a String of text from a specified file.
   //This is generally used to load an email template for automated emailing
-  public static String getText(String fileName) {
-    try {
-      StringBuffer SBreader = new StringBuffer();
-      String line;
-      FileReader fileReader = new FileReader(findResourceOnFileSystem(fileName));
+  public static String getText(String shepherdDataDir, String fileName, String langCode) {
+    String overrideText=loadOverrideText(shepherdDataDir, fileName, langCode);
+    if(!overrideText.equals("")){
+      return overrideText;
+    }
+    else{
+      try {
+        StringBuffer SBreader = new StringBuffer();
+        String line;
+        FileReader fileReader = new FileReader(findResourceOnFileSystem(fileName));
 
-      BufferedReader buffread = new BufferedReader(fileReader);
-      while ((line = buffread.readLine()) != null) {
-        SBreader.append(line + "\n");
-      }
-      line = SBreader.toString();
-      fileReader.close();
-      buffread.close();
-      return line;
-    } catch (Exception e) {
-      e.printStackTrace();
-      return "";
+        BufferedReader buffread = new BufferedReader(fileReader);
+        while ((line = buffread.readLine()) != null) {
+          SBreader.append(line + "\n");
+        }
+        line = SBreader.toString();
+        fileReader.close();
+        buffread.close();
+        return line;
+        } 
+        catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
     }
   }
 
@@ -616,4 +624,54 @@ String rootWebappPath = "xxxxxx";
 	}
 */
 
+	
+  private static String loadOverrideText(String shepherdDataDir, String fileName, String langCode) {
+    //System.out.println("Starting loadOverrideProps");
+    StringBuffer myText=new StringBuffer("");
+    //Properties myProps=new Properties();
+    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
+    //System.out.println(configDir.getAbsolutePath());
+    //sometimes this ends up being the "bin" directory of the J2EE container
+    //we need to fix that
+    if((configDir.getAbsolutePath().contains("/bin/")) || (configDir.getAbsolutePath().contains("\\bin\\"))){
+      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
+      configDir=new File(fixedPath);
+      //System.out.println("Fixing the bin issue in Shepherd PMF. ");
+      //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+    }
+    //System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
+    if(!configDir.exists()){configDir.mkdirs();}
+    File configFile = new File(configDir, fileName);
+    if (configFile.exists()) {
+      //System.out.println("ShepherdProps: "+"Overriding default properties with " + configFile.getAbsolutePath());
+      FileInputStream fileInputStream = null;
+      try {
+        fileInputStream = new FileInputStream(configFile);
+        
+        
+        BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
+        StringBuilder out = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            myText.append(line);
+        }
+        
+        
+        
+        
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      finally {
+        if (fileInputStream != null) {
+          try {
+            fileInputStream.close();
+          } catch (Exception e2) {
+            e2.printStackTrace();
+          }
+        }
+      }
+    }
+    return myText.toString();
+  }
 }
