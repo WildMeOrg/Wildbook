@@ -71,7 +71,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
     if ((request.getParameter("number") != null) && (request.getParameter("individual") != null) && (request.getParameter("matchType") != null)) {
 
-      String altID = "";
+      String nickname = "";
       myShepherd.beginDBTransaction();
       Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2add);
@@ -84,8 +84,8 @@ public class IndividualAddEncounter extends HttpServlet {
 
           //myShepherd.beginDBTransaction();
           MarkedIndividual addToMe = myShepherd.getMarkedIndividual(request.getParameter("individual"));
-          if ((addToMe.getAlternateID() != null) && (!addToMe.getAlternateID().equals(""))) {
-            altID = " (Alternate ID: " + addToMe.getAlternateID() + ")";
+          if ((addToMe.getNickName() != null) && (!addToMe.getNickName().equals(""))) {
+            nickname = " ("+addToMe.getNickName() + ")";
           }
           try {
             if (!addToMe.getEncounters().contains(enc2add)) {
@@ -122,8 +122,9 @@ public class IndividualAddEncounter extends HttpServlet {
             myShepherd.commitDBTransaction();
             Vector e_images = new Vector();
 
-            String updateMessage = ServletUtilities.getText("markedIndividualUpdate.txt");
-			String thanksmessage = ServletUtilities.getText("add2MarkedIndividual.txt");
+            String updateMessage = ServletUtilities.getText("markedIndividualUpdate.html");
+			
+            String thanksmessage = ServletUtilities.getText("add2MarkedIndividual.html");
 
             //let's get ready for emailing
             ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
@@ -131,12 +132,15 @@ public class IndividualAddEncounter extends HttpServlet {
 
             myShepherd.beginDBTransaction();
 
-            String emailUpdate = "\nPreviously identified record: " + request.getParameter("individual");
-            emailUpdate = emailUpdate + altID;
-            emailUpdate = emailUpdate + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\n\nNew encounter: " + request.getParameter("number") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\n";
+            //String emailUpdate = "\nPreviously identified record: " + request.getParameter("individual");
+            //emailUpdate = emailUpdate + altID;
+            String emailUpdate = "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">"+request.getParameter("individual")+" "+nickname+"</a>)";
 
-            thanksmessage += emailUpdate;
-            updateMessage += emailUpdate;
+            thanksmessage =thanksmessage.replaceAll("INSERTTEXT", emailUpdate);
+            updateMessage=updateMessage.replaceAll("INSERTTEXT",  emailUpdate);
+            
+            
+            //updateMessage += emailUpdate;
 
 			ArrayList allAssociatedEmails=addToMe.getAllEmailsToUpdate();
 
