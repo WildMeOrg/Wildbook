@@ -19,11 +19,9 @@
 
 package org.ecocean;
 
-import javax.mail.Message;
-import javax.mail.Session;
+import javax.mail.*;
 import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import javax.mail.internet.*;
 import java.util.Properties;
 import java.util.Vector;
 
@@ -51,11 +49,20 @@ public class NotificationMailer implements Runnable {
     this.text = text;
     this.images = images;
     this.from = from;
+    this.context=context;
     props = System.getProperties();
     props.put("mail.smtp.host", host);
     session = Session.getDefaultInstance(props, null);
     message = new MimeMessage(session);
-    this.context=context;
+    //MimeBodyPart textPart = new MimeBodyPart();
+    //textPart.setText(text, "utf-8");
+
+
+    
+    
+    
+    
+    
   }
 
 
@@ -76,7 +83,19 @@ public class NotificationMailer implements Runnable {
 	        message.setFrom(new InternetAddress(from3));
 	        message.addRecipients(Message.RecipientType.TO, to3);
 	        message.setSubject(subject3);
-	        message.setText(text3);
+	        
+	        Multipart multiPart = new MimeMultipart("alternative");
+	        MimeBodyPart htmlPart = new MimeBodyPart();
+	        try{
+	          htmlPart.setContent(text3, "text/html; charset=utf-8");
+	          multiPart.addBodyPart(htmlPart); 
+	          message.setContent(multiPart);
+	        }
+	        catch(Exception e){
+	          e.printStackTrace();
+	        }
+	        
+	        
 	        Transport.send(message);
 
 	      } catch (Exception e) {
