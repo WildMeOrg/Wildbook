@@ -469,6 +469,11 @@
   </servlet>
   
       <servlet>
+      <servlet-name>UserResetPasswordSendEmail</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserResetPasswordSendEmail</servlet-class>
+  </servlet>
+  
+      <servlet>
       <servlet-name>UserSelfUpdate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserSelfUpdate</servlet-class>
   </servlet>
@@ -1056,8 +1061,8 @@
   </servlet-mapping>
   
       <servlet-mapping>
-          <servlet-name>UserCreate</servlet-name>
-          <url-pattern>/UserCreate</url-pattern>
+          <servlet-name>UserResetPasswordSendEmail</servlet-name>
+          <url-pattern>/UserResetPasswordSendEmail</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>

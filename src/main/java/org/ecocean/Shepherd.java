@@ -1489,6 +1489,22 @@ public class Shepherd {
       query.closeAll();
       return occur;
     }
+    query.closeAll();
+    return null;
+  }
+  
+  public User getUserByEmailAddress(String email){
+    String filter="SELECT FROM org.ecocean.User WHERE emailAddress == \""+email+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+
+    while(it.hasNext()){
+      User myUser=(User)it.next();
+      query.closeAll();
+      return myUser;
+    }
+    query.closeAll();
     return null;
   }
 
