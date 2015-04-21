@@ -107,7 +107,7 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
     		    
     		        	<tr>
 		        		   
-		        			<form action="UserResetPassword?context=context0" method="post" id="editUser">	    
+		        			<form action="UserResetPassword" method="post" id="editUser">	    
     		    	
     		    				<input type="hidden" name="username" value="<%=request.getParameter("username") %>" />
     		    				<input type="hidden" name="OTP" value="<%=request.getParameter("OTP") %>" />
