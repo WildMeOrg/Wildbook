@@ -95,41 +95,25 @@ context=ServletUtilities.getContext(request);
 
             <div id="maintext">
 
-              <h1 class="intro"><%=props.getProperty("databaseLogin")%>
+              <h1 class="intro"><%=props.getProperty("resetPassword")%>
               </h1>
 
-              <p align="center"><%=props.getProperty("requested")%>
+              <p align="center"><%=props.getProperty("resetPasswordDescription")%>
               </p>
 
               <p align="center">
-		
+
               
-              <form action="LoginUser" method="post">
+              <form action="UserResetPasswordSendEmail" method="post">
     <table align="left" border="0" cellspacing="0" cellpadding="3">
         <tr>
-            <td><%=props.getProperty("username") %></td>
+            <td><%=props.getProperty("usernameOrEmail") %></td>
             <td><input type="text" name="username" maxlength="50" /></td>
         </tr>
-        <tr>
-            <td><%=props.getProperty("password") %></td>
-            <td><input type="password" name="password" maxlength="50" /></td>
-        </tr>
-        <tr>
-        <td align="left">
-        <input type="checkbox" name="rememberMe" value="true"/> <%=props.getProperty("rememberMe") %> 
-        </td>
+   
         
-        <%
-        if(request.isUserInRole("admin")){ 
-        %>
-        <td><a href="resetPassword.jsp"><%=props.getProperty("forgotPassword") %></a></td>
-        <%
-        }
-        %>
-        
-        </tr>
         <tr>
-            <td colspan="2" align="right"><input type="submit" name="submit" value="<%=props.getProperty("login") %>" /></td>
+            <td colspan="2" align="right"><input type="submit" name="submit" value="<%=props.getProperty("reset") %>" /></td>
         </tr>
     </table>
 </form>

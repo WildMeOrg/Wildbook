@@ -413,6 +413,16 @@
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
   </servlet>
   
+      <servlet>
+      <servlet-name>UserResetPasswordSendEmail</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserResetPasswordSendEmail</servlet-class>
+  </servlet>
+  
+        <servlet>
+      <servlet-name>UserResetPassword</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserResetPassword</servlet-class>
+  </servlet>
+  
     <servlet>
       <servlet-name>UserSelfUpdate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserSelfUpdate</servlet-class>
@@ -981,6 +991,17 @@
           <servlet-name>UserCreate</servlet-name>
           <url-pattern>/UserCreate</url-pattern>
   </servlet-mapping>
+  
+        <servlet-mapping>
+          <servlet-name>UserResetPasswordSendEmail</servlet-name>
+          <url-pattern>/UserResetPasswordSendEmail</url-pattern>
+  </servlet-mapping>
+  
+          <servlet-mapping>
+          <servlet-name>UserResetPassword</servlet-name>
+          <url-pattern>/UserResetPassword</url-pattern>
+  </servlet-mapping>
+  
   
         <servlet-mapping>
           <servlet-name>UserSelfUpdate</servlet-name>
