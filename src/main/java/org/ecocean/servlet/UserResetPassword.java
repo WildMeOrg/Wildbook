@@ -98,10 +98,15 @@ public class UserResetPassword extends HttpServlet {
           String matchingOtpString=myUser.getPassword()+time+myUser.getSalt();
           matchingOtpString=ServletUtilities.hashAndSaltPassword(matchingOtpString, myUser.getSalt());
         
+          //log it
+          //about to compare
+          //System.out.println("OTP is: "+OTP);
+          //System.out.println("matchOTP is: "+matchingOtpString);
+          
           if(matchingOtpString.equals(OTP)){
             
             //set the new password
-            myUser.setPassword(password2);
+            myUser.setPassword(ServletUtilities.hashAndSaltPassword(password2, myUser.getSalt()));
             myShepherd.commitDBTransaction();
             
           //output success statement
