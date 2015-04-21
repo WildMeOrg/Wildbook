@@ -34,13 +34,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Vector;
+
 import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-
 import java.util.Properties;
 
 
@@ -110,9 +110,18 @@ public class UserResetPasswordSendEmail extends HttpServlet {
         
         if((myUser!=null)&&(myUser.getEmailAddress()!=null)){
           
-          //let's build the link
+          //time
           LocalDateTime dt = new LocalDateTime();
-          String emailLink="<a href=\"http://" + CommonConfiguration.getURLLocation(request)+"/setNewPassword.jsp?username="+myUser.getUsername()+"&time="+dt.toDateTime().getMillis()+"&OTP="+myUser.getPassword()+"\">Reset my password</a>";
+          long time=dt.toDateTime().getMillis();
+          
+          //OTP string
+          
+          String otpString=myUser.getPassword()+time+myUser.getSalt();
+          otpString=ServletUtilities.hashAndSaltPassword(otpString, myUser.getSalt());
+          
+          //let's build the link
+          
+          String emailLink="<a href=\"http://" + CommonConfiguration.getURLLocation(request)+"/setNewPassword.jsp?username="+myUser.getUsername()+"&time="+time+"&OTP="+otpString+"\">Reset my password</a>";
           
           
           String resetmessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"passwordreset.html",ServletUtilities.getLanguageCode(request));
