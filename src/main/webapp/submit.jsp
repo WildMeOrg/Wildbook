@@ -40,8 +40,8 @@ context=ServletUtilities.getContext(request);
   props = ShepherdProperties.getProperties("submit.properties", langCode,context);
 
 
-	long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
-	long maxSizeBytes = maxSizeMB * 1048576;
+    long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
+    long maxSizeBytes = maxSizeMB * 1048576;
 
   
 
@@ -223,52 +223,52 @@ var map;
 var marker;
 
 function placeMarker(location) {
-	if(marker!=null){marker.setMap(null);}  
-	marker = new google.maps.Marker({
-	      position: location,
-	      map: map
-	  });
+    if(marker!=null){marker.setMap(null);}  
+    marker = new google.maps.Marker({
+          position: location,
+          map: map
+      });
 
-	  //map.setCenter(location);
-	  
-	    var ne_lat_element = document.getElementById('lat');
-	    var ne_long_element = document.getElementById('longitude');
+      //map.setCenter(location);
+      
+        var ne_lat_element = document.getElementById('lat');
+        var ne_long_element = document.getElementById('longitude');
 
 
-	    ne_lat_element.value = location.lat();
-	    ne_long_element.value = location.lng();
-	}
+        ne_lat_element.value = location.lat();
+        ne_long_element.value = location.lng();
+    }
 
   function initialize() {
-	//alert("initializing map!");
-	
-	var mapZoom = 3;
-	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+    //alert("initializing map!");
+    
+    var mapZoom = 3;
+    if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
-	if(marker!=null){
-		center = new google.maps.LatLng(10.8, 160.8);
-	}
-	
-	map = new google.maps.Map(document.getElementById('map_canvas'), {
-		  zoom: mapZoom,
-		  center: center,
-		  mapTypeId: google.maps.MapTypeId.HYBRID
-		});
-	
-	if(marker!=null){
-		marker.setMap(map);    
-	}
+    if(marker!=null){
+        center = new google.maps.LatLng(10.8, 160.8);
+    }
+    
+    map = new google.maps.Map(document.getElementById('map_canvas'), {
+          zoom: mapZoom,
+          center: center,
+          mapTypeId: google.maps.MapTypeId.HYBRID
+        });
+    
+    if(marker!=null){
+        marker.setMap(map);    
+    }
 
-	  //adding the fullscreen control to exit fullscreen
-	  var fsControlDiv = document.createElement('DIV');
-	  var fsControl = new FSControl(fsControlDiv, map);
-	  fsControlDiv.index = 1;
-	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+      //adding the fullscreen control to exit fullscreen
+      var fsControlDiv = document.createElement('DIV');
+      var fsControl = new FSControl(fsControlDiv, map);
+      fsControlDiv.index = 1;
+      map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
-	  google.maps.event.addListener(map, 'click', function(event) {
-		    placeMarker(event.latLng);
-		  });
+      google.maps.event.addListener(map, 'click', function(event) {
+            placeMarker(event.latLng);
+          });
  }
   
  
@@ -277,25 +277,25 @@ function placeMarker(location) {
 
 
 function fullScreen(){
-	$("#map_canvas").addClass('full_screen_map');
-	$('html, body').animate({scrollTop:0}, 'slow');
-	initialize();
-	
-	//hide header
-	$("#header_menu").hide();
-	
-	//if(overlaysSet){overlaysSet=false;setOverlays();}
-	//alert("Trying to execute fullscreen!");
+    $("#map_canvas").addClass('full_screen_map');
+    $('html, body').animate({scrollTop:0}, 'slow');
+    initialize();
+    
+    //hide header
+    $("#header_menu").hide();
+    
+    //if(overlaysSet){overlaysSet=false;setOverlays();}
+    //alert("Trying to execute fullscreen!");
 }
 
 
 function exitFullScreen() {
-	$("#header_menu").show();
-	$("#map_canvas").removeClass('full_screen_map');
+    $("#header_menu").show();
+    $("#map_canvas").removeClass('full_screen_map');
 
-	initialize();
-	//if(overlaysSet){overlaysSet=false;setOverlays();}
-	//alert("Trying to execute exitFullScreen!");
+    initialize();
+    //if(overlaysSet){overlaysSet=false;setOverlays();}
+    //alert("Trying to execute exitFullScreen!");
 }
 
 
@@ -402,8 +402,8 @@ function FSControl(controlDiv, map) {
     <tr class="form_row">
     <td class="form_label"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
     <td colspan="2">  
-    	<input type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" />
-	</td>
+        <input type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" />
+    </td>
     </tr>
 </c:if>
 
@@ -432,26 +432,26 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
   <td class="form_label"><strong><%=props.getProperty("species")%>:</strong></td>
   <td colspan="2">
   <select name="genusSpecies" id="genusSpecies">
-  	<option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
+      <option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
   <%
-  			       boolean hasMoreTax=true;
-  			       int taxNum=0;
-  			       if(CommonConfiguration.showProperty("showTaxonomy",context)){
-  			       while(hasMoreTax){
-  			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
-  			       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-  			       	  	<%
-  			       		taxNum++;
-  			          }
-  			          else{
-  			             hasMoreTax=false;
-  			          }
-  			          
-			       }
-			       }
+                     boolean hasMoreTax=true;
+                     int taxNum=0;
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+                     while(hasMoreTax){
+                           String currentGenuSpecies = "genusSpecies"+taxNum;
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                               %>
+                                
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                               <%
+                             taxNum++;
+                        }
+                        else{
+                           hasMoreTax=false;
+                        }
+                        
+                   }
+                   }
  %>
   </select></td>
 </tr>
@@ -472,34 +472,34 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()>0){
 %>
 <tr class="form_row">
-			<td class="form_label1"><strong><%=props.getProperty("locationID")%>:</strong></td>
-		<td>
-	  		<select name="locationID" id="locationID">
-	  			<option value="" selected="selected"></option>
-	  			<%
-	  			       boolean hasMoreLocationsIDs=true;
-	  			       int locNum=0;
-	  			       
-	  			       while(hasMoreLocationsIDs){
-	  			       	  String currentLocationID = "locationID"+locNum;
-	  			       	  if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
-	  			       	  	%>
-	  			       	  	 
-	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
-	  			       	  	<%
-	  			       		locNum++;
-	  			          }
-	  			          else{
-	  			             hasMoreLocationsIDs=false;
-	  			          }
-	  			          
-				       }
-				       
-	 %>
-	  </select>
-	
+            <td class="form_label1"><strong><%=props.getProperty("locationID")%>:</strong></td>
+        <td>
+              <select name="locationID" id="locationID">
+                  <option value="" selected="selected"></option>
+                  <%
+                         boolean hasMoreLocationsIDs=true;
+                         int locNum=0;
+                         
+                         while(hasMoreLocationsIDs){
+                               String currentLocationID = "locationID"+locNum;
+                               if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
+                                   %>
+                                    
+                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
+                                   <%
+                                 locNum++;
+                            }
+                            else{
+                               hasMoreLocationsIDs=false;
+                            }
+                            
+                       }
+                       
+     %>
+      </select>
+    
 </td>
-	</tr>
+    </tr>
 <%
 }
 
@@ -507,38 +507,38 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
 
-		<tr class="form_row">
-			<td class="form_label1"><strong><%=props.getProperty("country")%>:</strong></td>
-		<td>
-	  		<select name="country" id="country">
-	  			<option value="" selected="selected"></option>
-	  			<%
-	  			       boolean hasMoreCountries=true;
-	  			       int taxNum=0;
-	  			       
-	  			       while(hasMoreCountries){
-	  			       	  String currentCountry = "country"+taxNum;
-	  			       	  if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-	  			       	  	%>
-	  			       	  	 
-	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-	  			       	  	<%
-	  			       		taxNum++;
-	  			          }
-	  			          else{
-	  			             hasMoreCountries=false;
-	  			          }
-	  			          
-				       }
-				       
-	 %>
-	  </select>
-	
+        <tr class="form_row">
+            <td class="form_label1"><strong><%=props.getProperty("country")%>:</strong></td>
+        <td>
+              <select name="country" id="country">
+                  <option value="" selected="selected"></option>
+                  <%
+                         boolean hasMoreCountries=true;
+                         int taxNum=0;
+                         
+                         while(hasMoreCountries){
+                               String currentCountry = "country"+taxNum;
+                               if(CommonConfiguration.getProperty(currentCountry,context)!=null){
+                                   %>
+                                    
+                                     <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
+                                   <%
+                                 taxNum++;
+                            }
+                            else{
+                               hasMoreCountries=false;
+                            }
+                            
+                       }
+                       
+     %>
+      </select>
+    
 </td>
-	</tr>
-	
-	
-	
+    </tr>
+    
+    
+    
 
 <%
 }  //end if showCountry
@@ -554,33 +554,33 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         latitude and longitude.</p>
     -->
 
-      	<p id="map_canvas" style="width: 578px; height: 383px; "></p>
-      		<p id="map_overlay_buttons"></p>
+          <p id="map_canvas" style="width: 578px; height: 383px; "></p>
+              <p id="map_overlay_buttons"></p>
     </p>
 </td>
 </tr>
 
 <tr class="form_row">
-		<td class="form_label1"><strong><%=props.getProperty("submit_gpslatitude")%>:</strong></td>
-		<td>
-		<input name="lat" type="text" id="lat" size="10" />
-		&deg;
-		</td>
-	</tr>
-	
-	<tr class="form_row">
-		<td class="form_label1"><strong><%=props.getProperty("submit_gpslongitude")%>:</strong></td>
-		<td>
-			<input name="longitude" type="text" id="longitude" size="10" />
-	
-		&deg;
-		<br/>
-		<br/> <%=props.getProperty("gpsConverter") %>
-		</td>
-	</tr>
-	
-	
-	      <%
+        <td class="form_label1"><strong><%=props.getProperty("submit_gpslatitude")%>:</strong></td>
+        <td>
+        <input name="lat" type="text" id="lat" size="10" />
+        &deg;
+        </td>
+    </tr>
+    
+    <tr class="form_row">
+        <td class="form_label1"><strong><%=props.getProperty("submit_gpslongitude")%>:</strong></td>
+        <td>
+            <input name="longitude" type="text" id="longitude" size="10" />
+    
+        &deg;
+        <br/>
+        <br/> <%=props.getProperty("gpsConverter") %>
+        </td>
+    </tr>
+    
+    
+          <%
 
 
 
@@ -633,26 +633,26 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <td class="form_label"><strong><%=props.getProperty("lifeStage")%></strong></td>
   <td colspan="2">
   <select name="lifeStage" id="lifeStage">
-  	<option value="" selected="selected"></option>
+      <option value="" selected="selected"></option>
   <%
-  			       boolean hasMoreStages=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMoreStages){
-  			       	  String currentLifeStage = "lifeStage"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMoreStages=false;
-  			          }
-  			          
-			       }
-			       
+                     boolean hasMoreStages=true;
+                     int stageNum=0;
+                     
+                     while(hasMoreStages){
+                           String currentLifeStage = "lifeStage"+stageNum;
+                           if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
+                               %>
+                                
+                                 <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
+                               <%
+                             stageNum++;
+                        }
+                        else{
+                          hasMoreStages=false;
+                        }
+                        
+                   }
+                   
  %>
   </select></td>
 </tr>
@@ -799,15 +799,15 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     String affiliation="";
     String project="";
     if(request.getRemoteUser()!=null){
-    	submitterName=request.getRemoteUser();
-    	Shepherd myShepherd=new Shepherd(context);
-    	if(myShepherd.getUser(submitterName)!=null){
-    		User user=myShepherd.getUser(submitterName);
-    		if(user.getFullName()!=null){submitterName=user.getFullName();}
-    		if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-    		if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-    		if(user.getUserProject()!=null){project=user.getUserProject();}
-    	}
+        submitterName=request.getRemoteUser();
+        Shepherd myShepherd=new Shepherd(context);
+        if(myShepherd.getUser(submitterName)!=null){
+            User user=myShepherd.getUser(submitterName);
+            if(user.getFullName()!=null){submitterName=user.getFullName();}
+            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+            if(user.getUserProject()!=null){project=user.getUserProject();}
+        }
     }
     %>
   <tr>
@@ -866,40 +866,40 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 <p align="center"><strong><%=props.getProperty("submit_image")%></strong>
 
-<div id="xdropzone-previews" class="dropzone-previews" style="display: none;">
-	<div style="text-align: center;" ><b>drop</b> image/video files here, or <b>click</b> for file dialog</div>
+<div class="dropzone-previews" style="display: none;">
+    <div style="text-align: center;" ><b>drop</b> image/video files here, or <b>click</b> for file dialog</div>
 </div>
 
 <script>
 function updateList(inp) {
-	var f = '';
-	if (inp.files && inp.files.length) {
-		var all = [];
-		for (var i = 0 ; i < inp.files.length ; i++) {
-			if (inp.files[i].size > <%=maxSizeBytes%>) {
-				all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
-			} else {
-				all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
-			}
-		}
-		f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
-	} else {
-		f = inp.value;
-	}
-	document.getElementById('input-file-list').innerHTML = f;
+    var f = '';
+    if (inp.files && inp.files.length) {
+        var all = [];
+        for (var i = 0 ; i < inp.files.length ; i++) {
+            if (inp.files[i].size > <%=maxSizeBytes%>) {
+                all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
+            } else {
+                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+            }
+        }
+        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
+    } else {
+        f = inp.value;
+    }
+    document.getElementById('input-file-list').innerHTML = f;
 }
 </script>
 
-	<div class="input-file-drop" xonClick="return fileClick();">
+    <div class="input-file-drop" xonClick="return fileClick();">
 <% if (isIE) { %>
-		<div><%=props.getProperty("dragInstructionsIE")%></div>
-		<input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+        <div><%=props.getProperty("dragInstructionsIE")%></div>
+        <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
 <% } else { %>
-		<input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-		<div><%=props.getProperty("dragInstructions")%></div>
+        <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+        <div><%=props.getProperty("dragInstructions")%></div>
 <% } %>
-		<div id="input-file-list"></div>
-	</div>
+        <div id="input-file-list"></div>
+    </div>
 
 </p>
 
