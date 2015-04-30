@@ -486,7 +486,7 @@ function FSControl(controlDiv, map) {
         </em>
       </p>
 
-      <p><strong><%=props.getProperty("locationID")%>:</strong> <span class="para"><a
+      <p><strong><%=props.getProperty("locationID")%></strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>locationID"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
@@ -505,7 +505,7 @@ function FSControl(controlDiv, map) {
         if (totalLocIDs >= 1) {
       %>
 
-      <select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
+      <select multiple size="10" name="locationCodeField" id="locationCodeField" size="10">
         <option value="None"></option>
         <%
           for (int n = 0; n < totalLocIDs; n++) {
@@ -1017,7 +1017,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
               if (totalKeywords > 0) {
             %>
 
-            <select multiple size="<%=(totalKeywords+1) %>" name="keyword" id="keyword">
+            <select multiple name="keyword" id="keyword" size="10">
               <option value="None"></option>
               <%
 
@@ -1218,7 +1218,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         if (totalHaplos >= 1) {
       %>
 
-      <select multiple size="<%=(totalHaplos+1) %>" name="haplotypeField" id="haplotypeField">
+      <select multiple size="10" name="haplotypeField" id="haplotypeField">
         <option value="None"></option>
         <%
           for (int n = 0; n < totalHaplos; n++) {
@@ -1592,7 +1592,7 @@ else {
 
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
       <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
   </td>
 </tr>
