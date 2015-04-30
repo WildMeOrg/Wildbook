@@ -386,7 +386,7 @@ public class CommonConfiguration {
                                                    originalString, String emailAddress, String context) {
     initialize(context);
     if (getProperty("removeEmailString",context) != null) {
-      originalString += "\n\n" + getProperty("removeEmailString",context) + "\nhttp://" + getURLLocation(request) + "/removeEmailAddress.jsp?hashedEmail=" + Encounter.getHashOfEmailString(emailAddress);
+      originalString=originalString.replaceAll("REMOVEME",("\n\n" + getProperty("removeEmailString",context) + "\nhttp://" + getURLLocation(request) + "/removeEmailAddress.jsp?hashedEmail=" + Encounter.getHashOfEmailString(emailAddress)));
     }
     return originalString;
   }
