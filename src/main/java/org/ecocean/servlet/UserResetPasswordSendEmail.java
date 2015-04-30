@@ -133,7 +133,7 @@ public class UserResetPasswordSendEmail extends HttpServlet {
           //get the email thread handler
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
-           NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getNewSubmissionEmail(context), ("("+CommonConfiguration.getHTMLTitle(context)+") Password reset request"), resetmessage, e_images,context);
+           NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), myUser.getEmailAddress(), ("("+CommonConfiguration.getHTMLTitle(context)+") Password reset request"), resetmessage, e_images,context);
           //email the new submission address defined in commonConfiguration.properties
           es.execute(mailer);
 
