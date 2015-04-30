@@ -1593,6 +1593,15 @@ public class Shepherd {
     return myArray;
   }
   
+  public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
+	  String keywordQueryString="SELECT FROM org.ecocean.SinglePhotoVideo WHERE keywords.contains(word0) && ( word0.indexname == \""+word.getIndexname()+"\" ) VARIABLES org.ecocean.Keyword word0";
+      Query samples = pm.newQuery(keywordQueryString);
+	  Collection c = (Collection) (samples.execute());
+	    ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>(c);
+	    samples.closeAll();
+	    return myArray;
+	  }
+  
   public int getNumSinglePhotoVideosForEncounter(String encNum) {
 	    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
 	    Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
