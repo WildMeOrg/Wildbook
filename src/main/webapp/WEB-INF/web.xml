@@ -186,6 +186,14 @@
                		/IndividualSetYearOfBirth = authc, roles[admin]
                		/IndividualSetYearOfDeath = authc, roles[admin]
 					
+					               		/index.jsp = anon
+               		/individuals.jsp = authc
+               		/individualSearchResults.jsp = authc
+               		/encounters/encounter.jsp = anon
+               		/encounters/searchResults.jsp = authc
+		
+					/login.jsp = anon
+					
 					/KinalyzerExport = authc, roles[admin]
 					
 					/myAccount.jsp = authc
@@ -413,7 +421,7 @@
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
   </servlet>
   
-      <servlet>
+        <servlet>
       <servlet-name>UserResetPasswordSendEmail</servlet-name>
       <servlet-class>org.ecocean.servlet.UserResetPasswordSendEmail</servlet-class>
   </servlet>
@@ -422,6 +430,8 @@
       <servlet-name>UserResetPassword</servlet-name>
       <servlet-class>org.ecocean.servlet.UserResetPassword</servlet-class>
   </servlet>
+  
+
   
     <servlet>
       <servlet-name>UserSelfUpdate</servlet-name>
@@ -915,6 +925,31 @@
       <param-value>ShepherdPMF</param-value>
     </init-param>
   </servlet>
+  
+    <servlet>
+    <servlet-name>FinTraceServlet</servlet-name>
+    <servlet-class>com.ecostats.flukes.FinTraceServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>FinTraceServlet</servlet-name>
+    <url-pattern>/FinTraceServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>FlukeMatchServlet</servlet-name>
+    <servlet-class>com.ecostats.flukes.FlukeMatchServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>FlukeMatchServlet</servlet-name>
+    <url-pattern>/FlukeMatchServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>FlukeGetTracing</servlet-name>
+    <servlet-class>com.ecostats.flukes.FlukeGetTracing</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>FlukeGetTracing</servlet-name>
+    <url-pattern>/FlukeGetTracing</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>DataNucleus</servlet-name>
@@ -991,6 +1026,8 @@
           <servlet-name>UserCreate</servlet-name>
           <url-pattern>/UserCreate</url-pattern>
   </servlet-mapping>
+
+  
   
         <servlet-mapping>
           <servlet-name>UserResetPasswordSendEmail</servlet-name>
@@ -1595,16 +1632,5 @@
   </servlet-mapping>
   
 
-  <!-- Struts 1 Action Servlet Mapping 
-  <servlet-mapping>
-    <servlet-name>action</servlet-name>
-    <url-pattern>*.do</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>uploadAction</servlet-name>
-    <url-pattern>*.jh</url-pattern>
-  </servlet-mapping>
--->
 
 </web-app>
