@@ -488,7 +488,7 @@ function FSControl(controlDiv, map) {
         </em>
       </p>
 
-      <p><strong><%=encprops.getProperty("locationID")%>:</strong> <span class="para"><a
+      <p><strong><%=encprops.getProperty("locationID")%></strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>locationID"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br>
@@ -502,7 +502,7 @@ function FSControl(controlDiv, map) {
         if (totalLocIDs >= 1) {
       %>
 
-      <select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
+      <select multiple name="locationCodeField" id="locationCodeField" size="10">
         <option value="None"></option>
         <%
           for (int n = 0; n < totalLocIDs; n++) {
@@ -743,8 +743,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         if (totalVBDs > 1) {
       %>
 
-      <select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField"
-              id="verbatimEventDateField">
+      <select multiple name="verbatimEventDateField" id="verbatimEventDateField" size="5">
         <option value="None"></option>
         <%
           for (int f = 0; f < totalVBDs; f++) {
@@ -1169,7 +1168,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       if (totalKeywords > 0) {
     %>
 
-    <select multiple size="<%=(totalKeywords+1) %>" name="keyword" id="keyword">
+    <select multiple size="10" name="keyword" id="keyword" >
       <option value="None"></option>
       <%
 
@@ -1374,7 +1373,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
         if (totalHaplos >= 1) {
       %>
 
-      <select multiple size="<%=(totalHaplos+1) %>" name="haplotypeField" id="haplotypeField">
+      <select multiple size="10" name="haplotypeField" id="haplotypeField">
         <option value="None" ></option>
         <%
           for (int n = 0; n < totalHaplos; n++) {
@@ -1412,7 +1411,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
         if (totalSexes >= 1) {
       %>
 
-      <select multiple size="<%=(totalSexes+1) %>" name="geneticSexField" id="geneticSexField">
+      <select multiple size="10" name="geneticSexField" id="geneticSexField">
         <option value="None" ></option>
         <%
           for (int n = 0; n < totalSexes; n++) {

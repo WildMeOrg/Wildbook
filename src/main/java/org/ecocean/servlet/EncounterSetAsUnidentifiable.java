@@ -108,7 +108,7 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           String message = "Encounter " + request.getParameter("number") + " was set as unidentifiable in the database.";
           ServletUtilities.informInterestedParties(request, request.getParameter("number"),message,context);
 
-          String emailUpdate = ServletUtilities.getText("dataOnlyUpdate.txt") + "\nEncounter: " + request.getParameter("number") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\n";
+          String emailUpdate = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"dataUpdate.txt",ServletUtilities.getLanguageCode(request)) + "\nEncounter: " + request.getParameter("number") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\n";
 
           Vector e_images = new Vector();
 

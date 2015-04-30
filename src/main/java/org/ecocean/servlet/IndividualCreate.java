@@ -21,6 +21,8 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 
+import org.ecocean.CommonConfiguration;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -125,12 +127,13 @@ public class IndividualCreate extends HttpServlet {
             if (request.getParameter("noemail") == null) {
               //send the e-mail
               Vector e_images = new Vector();
-              String emailUpdate = "\nNewly marked: " + newIndividualID+ "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID + "\n\nEncounter: " + request.getParameter("number") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\n";
-              String thanksmessage = ServletUtilities.getText("createdMarkedIndividual.txt") + emailUpdate;
+              String thanksmessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"createdMarkedIndividual.html",ServletUtilities.getLanguageCode(request));
+              thanksmessage = thanksmessage.replaceAll("INSERTTEXT",("<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID+"\">Click here to learn more about "+newIndividualID+ " in Wildbook!</a>"));
+              
               ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
               //notify the admins
-              es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getNewSubmissionEmail(context), ("Encounter update: " + request.getParameter("number")), thanksmessage, e_images,context));
+              es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getNewSubmissionEmail(context), ("Encounter update: " + request.getParameter("number")), CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter,context), e_images,context));
 
               if (submitter.indexOf(",") != -1) {
                 StringTokenizer str = new StringTokenizer(submitter, ",");
