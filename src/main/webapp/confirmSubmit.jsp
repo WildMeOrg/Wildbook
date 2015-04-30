@@ -97,11 +97,13 @@ context=ServletUtilities.getContext(request);
 <div id="maintext">
 <%
   StringBuffer new_message = new StringBuffer();
+new_message.append("<html><body>");
+
   new_message.append("The "+CommonConfiguration.getProperty("htmlTitle",context)+" library has received a new encounter submission. You can " +
-    "view it at:\nhttp://" + CommonConfiguration.getURLLocation(request) +
+    "view it at:<br>http://" + CommonConfiguration.getURLLocation(request) +
     "/encounters/encounter" +
     ".jsp?number="+ number);
-  new_message.append("\n\nQuick stats:\n");
+  new_message.append("<br><br>Quick stats:<br>");
   String photographer = "None";
   boolean emailPhoto = false;
   //get all needed DB reads out of the way in case Dynamic Image fails
@@ -144,16 +146,17 @@ context=ServletUtilities.getContext(request);
       } else {
         hasImages = false;
       }
-      new_message.append("Location: " + enc.getLocation() + "\n");
-      new_message.append("Date: " + enc.getDate() + "\n");
+      new_message.append("Location: " + enc.getLocation() + "<br>");
+      new_message.append("Date: " + enc.getDate() + "<br>");
       if(enc.getSex()!=null){
-      	new_message.append("Sex: " + enc.getSex() + "\n");
+      	new_message.append("Sex: " + enc.getSex() + "<br>");
       }
-      new_message.append("Submitter: " + enc.getSubmitterName() + "\n");
-      new_message.append("Email: " + enc.getSubmitterEmail() + "\n");
-      new_message.append("Photographer: " + enc.getPhotographerName() + "\n");
-      new_message.append("Email: " + enc.getPhotographerEmail() + "\n");
-      new_message.append("Comments: " + enc.getComments() + "\n");
+      new_message.append("Submitter: " + enc.getSubmitterName() + "<br>");
+      new_message.append("Email: " + enc.getSubmitterEmail() + "<br>");
+      new_message.append("Photographer: " + enc.getPhotographerName() + "<br>");
+      new_message.append("Email: " + enc.getPhotographerEmail() + "<br>");
+      new_message.append("Comments: " + enc.getComments() + "<br>");
+      new_message.append("</body></html>");
       submitter = enc.getSubmitterEmail();
       if ((enc.getPhotographerEmail() != null) && (!enc.getPhotographerEmail().equals("None")) && (!enc.getPhotographerEmail().equals(""))) {
         photographer = enc.getPhotographerEmail();
@@ -264,7 +267,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
 
 
   //email the new submission address defined in commonConfiguration.properties
-  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getNewSubmissionEmail(context), ("New encounter submission: " + number), new_message.toString(), e_images,context));
+  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getNewSubmissionEmail(context), ("("+CommonConfiguration.getHTMLTitle(context)+") New encounter submission: " + number), new_message.toString(), e_images,context));
 
   //now email those assigned this location code
   if (informMe != null) {
@@ -286,11 +289,11 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   }
 
   //thank the submitter and photographer
-  String thanksmessage = ServletUtilities.getText("thankyou.txt");
+  String thanksmessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"thankyou.html",ServletUtilities.getLanguageCode(request));
 
   //add the encounter link
-  thanksmessage += "\nEncounter :" + number + "\nhttp://" + CommonConfiguration.getURLLocation
-    (request) + "/encounters/encounter.jsp?number=" + number;
+  thanksmessage=thanksmessage.replaceAll("INSERTTEXT", ("http://" + CommonConfiguration.getURLLocation
+    (request) + "/encounters/encounter.jsp?number=" + number));
 
   //add the removal message
 

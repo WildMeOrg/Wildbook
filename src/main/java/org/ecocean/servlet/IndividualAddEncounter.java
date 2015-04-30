@@ -71,7 +71,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
     if ((request.getParameter("number") != null) && (request.getParameter("individual") != null) && (request.getParameter("matchType") != null)) {
 
-      String altID = "";
+      String nickname = "";
       myShepherd.beginDBTransaction();
       Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2add);
@@ -84,8 +84,8 @@ public class IndividualAddEncounter extends HttpServlet {
 
           //myShepherd.beginDBTransaction();
           MarkedIndividual addToMe = myShepherd.getMarkedIndividual(request.getParameter("individual"));
-          if ((addToMe.getAlternateID() != null) && (!addToMe.getAlternateID().equals(""))) {
-            altID = " (Alternate ID: " + addToMe.getAlternateID() + ")";
+          if ((addToMe.getNickName() != null) && (!addToMe.getNickName().equals(""))) {
+            nickname = " ("+addToMe.getNickName() + ")";
           }
           try {
             if (!addToMe.getEncounters().contains(enc2add)) {
@@ -122,21 +122,32 @@ public class IndividualAddEncounter extends HttpServlet {
             myShepherd.commitDBTransaction();
             Vector e_images = new Vector();
 
-            String updateMessage = ServletUtilities.getText("markedIndividualUpdate.txt");
-			String thanksmessage = ServletUtilities.getText("add2MarkedIndividual.txt");
+            String updateMessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"markedIndividualUpdate.html",ServletUtilities.getLanguageCode(request));
+			
+            String thanksmessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"add2MarkedIndividual.html",ServletUtilities.getLanguageCode(request));
 
+            String add2update=ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"add2MarkedIndividual.html",ServletUtilities.getLanguageCode(request));
+            
+            String adopterUpdate=ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"adopterUpdate.html",ServletUtilities.getLanguageCode(request));
+            
             //let's get ready for emailing
             ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
 
             myShepherd.beginDBTransaction();
 
-            String emailUpdate = "\nPreviously identified record: " + request.getParameter("individual");
-            emailUpdate = emailUpdate + altID;
-            emailUpdate = emailUpdate + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\n\nNew encounter: " + request.getParameter("number") + "\nhttp://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\n";
+            //String emailUpdate = "\nPreviously identified record: " + request.getParameter("individual");
+            //emailUpdate = emailUpdate + altID;
+            String emailUpdate = "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">"+request.getParameter("individual")+" "+nickname+"</a><br><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">See the new encounter</a><br>";
 
-            thanksmessage += emailUpdate;
-            updateMessage += emailUpdate;
+            thanksmessage =thanksmessage.replaceAll("INSERTTEXT", emailUpdate);
+            updateMessage=updateMessage.replaceAll("INSERTTEXT",  emailUpdate);
+            add2update=add2update.replaceAll("INSERTTEXT",  emailUpdate);
+            adopterUpdate=add2update.replaceAll("INSERTTEXT",  emailUpdate);
+            
+            
+            
+            //updateMessage += emailUpdate;
 
 			ArrayList allAssociatedEmails=addToMe.getAllEmailsToUpdate();
 
@@ -148,7 +159,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
 
               //notify the administrators
-              NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getAutoEmailAddress(context), ("Encounter update sent to submitters: " + request.getParameter("number")), ServletUtilities.getText("add2MarkedIndividual.txt") + emailUpdate, e_images,context);
+              NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getAutoEmailAddress(context), ("Encounter update sent to submitters: " + request.getParameter("number")), add2update.replaceAll("REMOVEME", ""), e_images,context);
 			  es.execute(mailer);
 
 			  //notify submitters, photographers, and informOthers values
@@ -159,11 +170,14 @@ public class IndividualAddEncounter extends HttpServlet {
 				if((enc2add.getSubmitterEmail().indexOf(submitter)!=-1)||(enc2add.getPhotographerEmail().indexOf(submitter)!=-1)||(enc2add.getInformOthers().indexOf(submitter)!=-1)){
 
 				  	String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter,context);
-					es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images,context));
+				  	personalizedThanksMessage=personalizedThanksMessage.replaceAll("INSERTTEXT",  emailUpdate);
+				  	es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images,context));
 				}
 				else{
 					  	String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, updateMessage, submitter,context);
-						es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images,context));
+					  	personalizedThanksMessage=personalizedThanksMessage.replaceAll("INSERTTEXT",  emailUpdate);
+	            
+					  	es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images,context));
 
 				}
 
@@ -257,7 +271,7 @@ public class IndividualAddEncounter extends HttpServlet {
               for (int t = 0; t < adopters.size(); t++) {
                 String adEmail = (String) adopters.get(t);
                 if ((allAssociatedEmails.indexOf(adEmail) == -1)) {
-                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), adEmail, ("Sighting update: " + request.getParameter("individual")), ServletUtilities.getText("adopterUpdate.txt") + emailUpdate, e_images,context));
+                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), adEmail, ("Sighting update: " + request.getParameter("individual")), ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"adopterUpdate.html",ServletUtilities.getLanguageCode(request)) + adopterUpdate, e_images,context));
                   allAssociatedEmails.add(adEmail);
                 }
               }

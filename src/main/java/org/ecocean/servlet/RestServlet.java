@@ -25,6 +25,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.ecocean.ShepherdPMF;
+
 import java.lang.reflect.Method;
 
 import javax.jdo.JDOHelper;
@@ -93,12 +95,15 @@ public class RestServlet extends HttpServlet
 
     public void init(ServletConfig config) throws ServletException
     {
+      
+     /*
         String factory = config.getInitParameter("persistence-context");
         if (factory == null)
         {
             throw new ServletException("You haven't specified \"persistence-context\" property defining the persistence unit");
         }
 
+  
         try
         {
             LOGGER_REST.info("REST : Creating PMF for factory=" + factory);
@@ -110,6 +115,7 @@ public class RestServlet extends HttpServlet
             LOGGER_REST.error("Exception creating PMF", e);
             throw new ServletException("Could not create internal PMF. See nested exception for details", e);
         }
+        */
 
         super.init(config);
     }
@@ -198,6 +204,7 @@ public class RestServlet extends HttpServlet
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
+      getPMF(req);
         // Retrieve any fetch group that needs applying to the fetch
         String fetchParam = req.getParameter("fetch");
 
@@ -458,6 +465,8 @@ public class RestServlet extends HttpServlet
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) 
     throws ServletException, IOException
     {
+      
+      getPMF(req);
         if (req.getContentLength() < 1)
         {
             resp.setContentLength(0);
@@ -617,6 +626,8 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) 
     throws ServletException, IOException
     {
+      
+      getPMF(req);
         PersistenceManager pm = pmf.getPersistenceManager();
         try
         {
@@ -731,6 +742,7 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
 
     protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
+      getPMF(req);
         String className = getNextTokenAfterSlash(req);
         ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(RestServlet.class.getClassLoader());
         AbstractClassMetaData cmd = nucCtx.getMetaDataManager().getMetaDataForEntityName(className);
@@ -872,6 +884,13 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
 				gz.close();
 				o.close();
 			}
+		}
+		
+		private void getPMF(HttpServletRequest req){
+		  String context="context0";
+		  context=ServletUtilities.getContext(req);
+		  pmf=ShepherdPMF.getPMF(context);
+		  
 		}
 
 

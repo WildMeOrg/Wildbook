@@ -453,7 +453,7 @@
 
                       <tr>
                         <td><span class="caption"><%=encprops.getProperty("individualID") %>: <a
-                          href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %>
+                          href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank"><%=thisEnc.getIndividualID() %>
                         </a></span></td>
                       </tr>
                       
@@ -474,7 +474,7 @@
                       %>
                       <tr>
                         <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a
-                          href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
+                          href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %>
                         </a></span></td>
                       </tr>
                       <%
@@ -587,7 +587,7 @@
 </tr>
 <tr>
   <td><span class="caption"><%=encprops.getProperty("individualID") %>: <a
-    href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %>
+    href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank"><%=thisEnc.getIndividualID() %>
   </a></span></td>
 </tr>
                       <%
@@ -607,7 +607,7 @@
                       %>
 <tr>
   <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: <a
-    href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
+    href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %>
   </a></span></td>
 </tr>
 <tr>
