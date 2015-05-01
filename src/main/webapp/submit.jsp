@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,org.ecocean.*, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
 
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -61,6 +61,7 @@ context=ServletUtilities.getContext(request);
         rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon"
         href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+  <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
         
   <script language="javascript" type="text/javascript">
@@ -857,19 +858,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   
 </table>
 <p><em><%=props.getProperty("multipleEmailNote")%></em>.</p>
-<hr>
+<hr/>
 
 <p><%=props.getProperty("submit_pleaseadd")%>
 </p>
 
 <p>&nbsp;</p>
-
-<p align="center"><strong><%=props.getProperty("submit_image")%></strong>
-
-<div class="dropzone-previews" style="display: none;">
-    <div style="text-align: center;" ><b>drop</b> image/video files here, or <b>click</b> for file dialog</div>
-</div>
-
 <script>
 function updateList(inp) {
     var f = '';
@@ -890,16 +884,30 @@ function updateList(inp) {
 }
 </script>
 
-    <div class="input-file-drop" xonClick="return fileClick();">
-<% if (isIE) { %>
-        <div><%=props.getProperty("dragInstructionsIE")%></div>
-        <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-<% } else { %>
-        <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-        <div><%=props.getProperty("dragInstructions")%></div>
-<% } %>
-        <div id="input-file-list"></div>
+<p align="center"><strong><%=props.getProperty("submit_image")%></strong></p>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-1">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Computer</a></li>
+                <li><a href="#">Facebook</a></li>
+                <li><a href="#">Twitter</a></li>
+            </ul>
+        </div>
+        <div class="col-md-11">
+            <div class="input-file-drop">
+        <% if (isIE) { %>
+                <div><%=props.getProperty("dragInstructionsIE")%></div>
+                <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+        <% } else { %>
+                <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+                <div><%=props.getProperty("dragInstructions")%></div>
+        <% } %>
+                <div id="input-file-list"></div>
+            </div>
+        </div>
     </div>
+</div>
 
 </p>
 
