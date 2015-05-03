@@ -1,0 +1,15 @@
+SUBJECT: Encounter update: @ENCOUNTER_ID@
+Hello!
+
+Just a quick email to let you know that the encounter that you submitted has
+been matched to an identified individual in the Wildbook photo-identification
+library.
+Follow these links to find out more:
+
+Previously identified record: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@)
+@INDIVIDUAL_LINK@
+
+New encounter: @ENCOUNTER_ID@
+@ENCOUNTER_LINK@
+
+Thanks again for your critical help!

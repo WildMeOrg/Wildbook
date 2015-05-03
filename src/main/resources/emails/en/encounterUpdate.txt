@@ -1,0 +1,2 @@
+SUBJECT: Encounter update: @ENCOUNTER_ID@
+@TEXT_CONTENT@
