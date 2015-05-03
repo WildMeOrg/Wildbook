@@ -115,9 +115,18 @@ public class CommonConfiguration {
   }
 
   public static String getMailHost(String context) {
-    return getProperty("mailHost", context).trim();
+    String s = getProperty("mailHost", context);
+    return s != null ? s.trim() : s;
   }
 
+  public static boolean getMailHostSslOption(String context) {
+    return parseBoolean(getProperty("mailHostSSL",context), false);
+  }
+
+  public static String getMailAuth(String context) {
+    String s = getProperty("mailAuth", context);
+    return s != null ? s.trim() : s;
+  }
 
   public static String getWikiLocation(String context) {
     Properties props=initialize(context);
