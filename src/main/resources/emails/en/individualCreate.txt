@@ -1,0 +1,15 @@
+SUBJECT: Encounter update: @ENCOUNTER_ID@
+Hello!
+
+Just a quick email to let you know that the encounter that you submitted
+has been added as a new, previously unidentified individual!
+
+You discovered a new individual for science!
+
+Newly marked: @INDIVIDUAL_ID@
+@INDIVIDUAL_LINK@
+
+Encounter: @ENCOUNTER_ID@
+@ENCOUNTER_LINK@
+
+Thanks again for your critical help!
