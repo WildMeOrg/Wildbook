@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.sql.*;
+import java.util.Collection;
+import java.util.Map;
 
 import org.ecocean.*;
 import org.apache.shiro.crypto.hash.*;
@@ -123,99 +125,70 @@ public class ServletUtilities {
 
   }
 
-  public static void informInterestedParties(HttpServletRequest request, String number, String message, String context) {
-    //String context="context0";
-    //context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.beginDBTransaction();
-    
-    if(myShepherd.isEncounter(number)){
-      
-      Encounter enc = myShepherd.getEncounter(number);
-      if(enc.getInterestedResearchers()!=null){
-        Vector notifyMe = enc.getInterestedResearchers();
-        int size = notifyMe.size();
-        String[] interested = new String[size];
-        for (int i = 0; i < size; i++) {
-          interested[i] = (String) notifyMe.get(i);
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        if (size > 0) {
-          Vector e_images = new Vector();
-          String mailMe = interested[0];
-          String email = getText(CommonConfiguration.getDataDirectoryName(context),"dataUpdate.txt",getLanguageCode(request)).replaceAll("INSERTTEXT", ("Encounter " + number + ": " + message + "\n\nLink to encounter: http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + number));
-          email += ("\n\nWant to stop tracking this set of encounter data? Use this link.\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?number=" + number + "&email=");
+  /**
+   * Inform (via email) researchers who've logged an interest in encounter.
+   * @param request servlet request
+   * @param encounterNumber ID of encounter to inform about
+   * @param message message to include in email notification
+   * @param context webapp context
+   */
+  public static void informInterestedParties(HttpServletRequest request, String encounterNumber, String message, String context) {
+    Shepherd shep = new Shepherd(context);
+    shep.beginDBTransaction();
+    if (shep.isEncounter(encounterNumber)) {
+      Encounter enc = shep.getEncounter(encounterNumber);
+      if(enc.getInterestedResearchers() != null){
+        Collection<String> notifyMe = enc.getInterestedResearchers();
+        if (!notifyMe.isEmpty()) {
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images, context));
-
-
-          //NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), mailMe, ("Encounter data update: "+number), (email+mailMe), e_images);
-          for (int j = 1; j < size; j++) {
-            mailMe = interested[j];
-            es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), mailMe, ("Encounter data update: " + number), (email + mailMe), e_images, context));
+          for (String mailTo : notifyMe) {
+            Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+            tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + encounterNumber);
+            tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(mailTo));
+            tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, message == null ? "" : message);
+//            String langCode = ServletUtilities.getLanguageCode(request);
+            NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "encounterDataUpdate", tagMap);
+            es.execute(mailer);
           }
+          es.shutdown();
         }
       }
-      else{
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-      }
-      
-    
     }
-    else{
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
-    }
-    
+    shep.rollbackDBTransaction();
+    shep.closeDBTransaction();
   }
 
-  //inform researchers that have logged an interest with the encounter or marked individual
-  public static void informInterestedIndividualParties(HttpServletRequest request, String shark, String message, String context) {
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.beginDBTransaction();
-
-      if(myShepherd.isMarkedIndividual(shark)){
-        MarkedIndividual sharkie = myShepherd.getMarkedIndividual(shark);
-        if(sharkie.getInterestedResearchers()!=null){
-          Vector notifyMe = sharkie.getInterestedResearchers();
-          int size = notifyMe.size();
-          String[] interested = new String[size];
-          for (int i = 0; i < size; i++) {
-            interested[i] = (String) notifyMe.get(i);
+  /**
+   * Inform (via email) researchers who've logged an interest in individual.
+   * @param request servlet request
+   * @param individualID ID of individual to inform about
+   * @param message message to include in email notification
+   * @param context webapp context
+   */
+  public static void informInterestedIndividualParties(HttpServletRequest request, String individualID, String message, String context) {
+    Shepherd shep = new Shepherd(context);
+    shep.beginDBTransaction();
+    if (shep.isMarkedIndividual(individualID)) {
+      MarkedIndividual ind = shep.getMarkedIndividual(individualID);
+      if (ind.getInterestedResearchers() != null) {
+        Collection<String> notifyMe = ind.getInterestedResearchers();
+        if (!notifyMe.isEmpty()) {
+          ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+          for (String mailTo : notifyMe) {
+            Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, ind);
+            tagMap.put(NotificationMailer.EMAIL_NOTRACK, "individual=" + individualID);
+            tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(mailTo));
+            tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, message == null ? "" : message);
+//            String langCode = ServletUtilities.getLanguageCode(request);
+            NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "individualDataUpdate", tagMap);
+            es.execute(mailer);
           }
-          myShepherd.rollbackDBTransaction();
-          myShepherd.closeDBTransaction();
-          if (size > 0) {
-
-            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-
-            Vector e_images = new Vector();
-            String mailMe = interested[0];
-            String email = getText(CommonConfiguration.getDataDirectoryName(context),"dataUpdate.txt",getLanguageCode(request)).replaceAll("INSERTTEXT", ("Tag " + shark + ": " + message + "\n\nLink to individual: http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark));
-            email += ("\n\nWant to stop tracking this set of this individual's data? Use this link.\n\nhttp://" + CommonConfiguration.getURLLocation(request) + "/dontTrack?shark=" + shark + "&email=");
-
-            es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), mailMe, ("Marked individual data update: " + shark), (email + mailMe), e_images,context));
-            for (int j = 1; j < size; j++) {
-              mailMe = interested[j];
-              es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), mailMe, ("Individual data update: " + shark), (email + mailMe), e_images,context));
-            }
-          }
-        }
-        else{
-          myShepherd.rollbackDBTransaction();
-          myShepherd.closeDBTransaction();
+          es.shutdown();
         }
       }
-      else{
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-      }
-
-    
-    
-    
+    }
+    shep.rollbackDBTransaction();
+    shep.closeDBTransaction();
   }
 
 
@@ -227,25 +200,25 @@ public class ServletUtilities {
       return overrideText;
     }
     else{
-      try {
-        StringBuffer SBreader = new StringBuffer();
-        String line;
-        FileReader fileReader = new FileReader(findResourceOnFileSystem(fileName));
+    try {
+      StringBuffer SBreader = new StringBuffer();
+      String line;
+      FileReader fileReader = new FileReader(findResourceOnFileSystem(fileName));
 
-        BufferedReader buffread = new BufferedReader(fileReader);
-        while ((line = buffread.readLine()) != null) {
-          SBreader.append(line + "\n");
-        }
-        line = SBreader.toString();
-        fileReader.close();
-        buffread.close();
-        return line;
+      BufferedReader buffread = new BufferedReader(fileReader);
+      while ((line = buffread.readLine()) != null) {
+        SBreader.append(line + "\n");
+      }
+      line = SBreader.toString();
+      fileReader.close();
+      buffread.close();
+      return line;
         } 
         catch (Exception e) {
-            e.printStackTrace();
-            return "";
-        }
+      e.printStackTrace();
+      return "";
     }
+  }
   }
 
   //Logs a new ATOM entry
@@ -638,7 +611,7 @@ String rootWebappPath = "xxxxxx";
       configDir=new File(fixedPath);
       //System.out.println("Fixing the bin issue in Shepherd PMF. ");
       //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
-    }
+}
     //System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, fileName);
