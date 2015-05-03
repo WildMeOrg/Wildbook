@@ -1,10 +1,10 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
-Just a quick email to let you know that the encounter that you submitted
-has been added as a new, previously unidentified individual!
+Just a quick e-mail to let you know that the encounter that you submitted
+has been added as a new, previously unidentified manta!
 
-You discovered a new individual for science!
+You discovered a new manta for science!
 
 Newly marked: @INDIVIDUAL_ID@
 @INDIVIDUAL_LINK@
@@ -12,4 +12,8 @@ Newly marked: @INDIVIDUAL_ID@
 Encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Thanks again for your critical help!
+Thanks again for your critical help! If you're interested in supporting our
+research to understand and protect mantas like yours, please adopt and
+nickname your manta:
+
+        http://www.mantamatcher.org/adoptamanta.jsp
