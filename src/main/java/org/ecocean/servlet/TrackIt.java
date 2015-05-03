@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
 import java.util.Vector;
 
 //import javax.jdo.*;
@@ -53,6 +54,7 @@ public class TrackIt extends HttpServlet {
     
     String context="context0";
     context=ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
     
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
@@ -64,9 +66,10 @@ public class TrackIt extends HttpServlet {
 
     email = request.getParameter("email");
     encounterNumber = request.getParameter("number");
+    Encounter enc = null;
     myShepherd.beginDBTransaction();
     if ((request.getParameter("number") != null) && (myShepherd.isEncounter(request.getParameter("number"))) && (email != null) && (!email.equals("")) && (email.indexOf("@") != -1)) {
-      Encounter enc = myShepherd.getEncounter(encounterNumber);
+      enc = myShepherd.getEncounter(encounterNumber);
 
 
       //int positionInList=0;
@@ -87,9 +90,13 @@ public class TrackIt extends HttpServlet {
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-        Vector e_images = new Vector();
+
         String message = "This is a confirmation that e-mail tracking of data changes to encounter " + encounterNumber + " has now started. You should receive e-mail updates any time changes to this encounter are made.";
-        NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), email, ("Encounter data tracking started for encounter: " + encounterNumber), message, e_images,context);
+        Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+        NotificationMailer mailer = new NotificationMailer(context, null, email, "encounterTrackingStarted", message);
+//        ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+//        es.execute(mailer);
+//        es.shutdown();
       } else {
 
         out.println(ServletUtilities.getHeader(request));
@@ -125,7 +132,11 @@ public class TrackIt extends HttpServlet {
         out.println(ServletUtilities.getFooter(context));
         Vector e_images = new Vector();
         String message = "This is a confirmation that e-mail tracking of data changes to " + shark + " has now started. You should receive e-mail updates any time changes to this record are made.";
-        NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), email, ("Data tracking started for encounter: " + shark), message, e_images,context);
+        Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+        NotificationMailer mailer = new NotificationMailer(context, null, email, "encounterTrackingStarted", message);
+//        ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+//        es.execute(mailer);
+//        es.shutdown();
       } else {
 
         out.println(ServletUtilities.getHeader(request));
