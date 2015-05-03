@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -58,6 +59,7 @@ public class EncounterDelete extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context="context0";
     context=ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
@@ -147,15 +149,15 @@ public class EncounterDelete extends HttpServlet {
           }
           
           out.println(ServletUtilities.getFooter(context));
-          Vector e_images = new Vector();
-          NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getNewSubmissionEmail(context), ("Removed encounter " + request.getParameter("number")), "Encounter " + request.getParameter("number") + " has been removed from the database by user " + request.getRemoteUser() + ".", e_images,context);
 
-		  //let's get ready for emailing
+          // Notify new-submissions address
+          Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc2trash);
+          tagMap.put("@USER@", request.getRemoteUser());
+          String mailTo = CommonConfiguration.getNewSubmissionEmail(context);
+          NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "encounterDelete", tagMap);
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-		  es.execute(mailer);
-		  es.shutdown();
-
-
+          es.execute(mailer);
+          es.shutdown();
         } 
         else {
           out.println(ServletUtilities.getHeader(request));
