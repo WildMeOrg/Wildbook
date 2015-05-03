@@ -4,15 +4,15 @@ SUBJECT: Email from Wildbook
 
 Sincerely,
 
-The Wildbook Team
+The MantaMatcher Team
 
 
 LEGAL STATEMENT
 
-Wildbook for Whale Sharks is copyrighted 2009-2015 by Wild Me.
-Individual contributors to Wildbook for Whale Sharks retain copyrights for
-submitted images. No reproduction or usage of material in this library is
-permitted without the express permission of the copyright holders.
+MantaMatcher is copyrighted 2009-2015 by Wild Me.
+Individual contributors to MantaMatcher retain copyrights for submitted images.
+No reproduction or usage of material in this library is permitted without the
+express permission of the copyright holders.
 
 @REMOVEME_START@
 Do you want to REMOVE your email address from this database? Click the link

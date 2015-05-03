@@ -1,5 +1,5 @@
 SUBJECT: New encounter submission: @ENCOUNTER_ID@
-The Wildbook library has received a new encounter submission. You can view it at:
+The MantaMatcher library has received a new encounter submission. You can view it at:
 @ENCOUNTER_LINK@
 
 Location:  @ENCOUNTER_LOCATION@
