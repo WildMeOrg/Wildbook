@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style type="text/css">
+html, body {
+	background-image: none;
+	background-color: white;
+}
+body {
+  margin: 0px;
+  padding: 0px;
+  text-align: left;
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 14px;
+  height: auto;
+}
+img#mailMasthead {
+	margin: none;
+	padding: none;
+	width: 810px;
+	height: 300px;
+}
+div#mailContent {
+	width: 790px;
+	text-align: left;
+	margin: none;
+	padding: 10px 10px;
+}
+div#mailContent p span.bold {
+	text-transform: uppercase;
+}
+div#textContent {
+}
+p.wow {
+	font-weight: bold;
+	font-style: italic;
+}
+.caption {
+	margin-top: 0px;
+	padding-top: 0px;
+	font-size: 0.8em;
+}
+.legal {
+	font-style: italic;
+}
+.legal .title {
+	font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<div id="mailHeader">
+	<a href="http://www.whaleshark.org/" title="Wildbook for Whale Sharks">
+		<img id="mailMasthead" name="masthead" alt="Wildbook for Whale Sharks" src="http://www.whaleshark.org/images/masthead.jpg" usemap="#masthead">
+		<map name="masthead">
+			<area shape="rect" coords="652,158,782,290" href="http://www.wildme.org/wildbook" alt="Wildbook: a Wild Me project">
+		</map>
+	</a>
+</div>
+
+<div id="mailContent">
+
+@EMAIL_CONTENT@
+
+	<p>Sincerely,</p>
+	<p>The Wildbook Team</p>
+
+	<div class="mailLogoFB">
+		<a href="https://www.facebook.com/wildmeorg"><img src="http://www.whaleshark.org/images/facebookicon_small.png"></a>
+	</div>
+
+	<div class="legal caption">
+	<p class="title">LEGAL STATEMENT</p>
+	<p>Wildbook for Whale Sharks is copyrighted 2009-2015 by Wild Me. Individual contributors to Wildbook for Whale Sharks retain copyrights for submitted images. No reproduction or usage of material in this library is permitted without the express permission of the copyright holders.</p>
+	</div>
+
+<!--@REMOVEME_START@-->
+	<div id="removeMe" class="caption">
+		<p>Do you want to REMOVE your email address from this database? Click <a href="@REMOVEME_LINK@">here</a> to remove it. You will no longer receive updates on your encounters.</p>
+	</div>
+<!--@REMOVEME_END@-->
+
+</div>
+
+</body>
+</html>
