@@ -1508,6 +1508,21 @@ public class Shepherd {
     return null;
   }
 
+  public User getUserBySocialId(String service, String id) {
+    String filter="SELECT FROM org.ecocean.User WHERE social_" + service + " == \"" + id + "\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+
+    while(it.hasNext()){
+      User myUser=(User)it.next();
+      query.closeAll();
+      return myUser;
+    }
+    query.closeAll();
+    return null;
+  }
+
   public ArrayList<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
     HashMap<String,Integer> hmap = new HashMap<String,Integer>();
     //TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
