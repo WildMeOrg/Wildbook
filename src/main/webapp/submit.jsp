@@ -1,28 +1,13 @@
-<%--
-  ~ Wildbook - A Mark-Recapture Framework
-  ~ Copyright (C) 2008-2014 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
+<jsp:include page="headerfull.jsp" flush="true"/>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,org.ecocean.*, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="java.util.GregorianCalendar,
+                 org.ecocean.servlet.ServletUtilities,
+                 org.ecocean.*,
+                 java.util.Properties" %>
+
+<link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+
 <%
-
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -35,33 +20,13 @@ context=ServletUtilities.getContext(request);
   String langCode=ServletUtilities.getLanguageCode(request);
   
 
-  //set up the file input stream
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-  props = ShepherdProperties.getProperties("submit.properties", langCode,context);
-
-
+    //set up the file input stream
+    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+    props = ShepherdProperties.getProperties("submit.properties", langCode, context);
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
-
-  
-
 %>
 
-<html>
-<head>
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-  <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
         
   <script language="javascript" type="text/javascript">
@@ -101,8 +66,6 @@ context=ServletUtilities.getContext(request);
 
     //-->
   </script>
-
-</head>
 
 
 <style type="text/css">
@@ -150,33 +113,24 @@ margin-bottom: 8px !important;
 
   }
 
+  $(window).unload(resetMap);
+  $(resetMap);
 </script>
 
+<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+<script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
 
-<body onload="resetMap()" onunload="resetMap()">
-<div id="wrapper">
-<div id="page">
-<jsp:include page="header.jsp" flush="true">
+<script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-
- <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
- <script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
- <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
- 
-  <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
- 
  <%
  if(!langCode.equals("en")){
  %>
- <script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
-  <script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
- 
-  
-  
-  
+
+<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
+<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+
  <%
  }
  %>
@@ -890,8 +844,8 @@ function updateList(inp) {
         <div class="col-md-1">
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Computer</a></li>
-                <li><a href="#">Facebook</a></li>
-                <li><a href="#">Twitter</a></li>
+                <li><a href="#" class="zocial icon facebook">Facebook</a></li>
+                <li><a href="#" class="zocial icon twitter">Twitter</a></li>
             </ul>
         </div>
         <div class="col-md-11">
@@ -926,9 +880,4 @@ function updateList(inp) {
 </div>
 <!-- end maintext --></div>
 <!-- end maincol -->
-<jsp:include page="footer.jsp" flush="true"/>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+<jsp:include page="footerfull.jsp" flush="true"/>
