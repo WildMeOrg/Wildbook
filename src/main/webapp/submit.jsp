@@ -311,11 +311,11 @@ function getPhotos(network, id){
         limit:10
     }, function(r){
         if(r.error){
-            alert(r.error.message);
+            wildbook.showAlert(r.error.message);
             return;
         }
         else if(!r.data||r.data.length===0){
-            alert("There are no photos in this album");
+            wildbook.showAlert("There are no photos in this album");
             return
         }
 
@@ -351,31 +351,52 @@ function getAlbums(network) {
     list.innerHTML = ''; // flush its content
 
     //
-    // Setting force:false means we'll only trigger auth flow if the user is not already signed in with the correct credentials
-    hello( network ).login({
+    // Setting force:false means we'll only trigger auth flow if the user is not
+    // already signed in with the correct credentials
+    //
+    hello(network).login({
         force:false
     },function(auth) {
         // Get albums
-        hello.api( network+':me/albums', function(r){
-
-            if(!r||r.error){
-                alert("Could not open albums from " + network + ", try resigning in");
+        hello.api(network + ':me/albums', function(r) {
+            if(!r||r.error) {
+                wildbook.showAlert("Could not open albums from " + network + ": " + r.error.message);
                 return;
-            }
-            else if(!r.data||r.data.length===0){
-                alert("There are no albums in the users account");
+            } else if(!r.data||r.data.length===0) {
+                wildbook.showAlert("There are no photo albums in your account");
                 return
             }
 
             // Build buttons with the albums
-            for(var i=0;i<r.data.length;i++){
-                buildAlbumBtn( r.data[i], network );
+            for (var i=0;i<r.data.length;i++) {
+                buildAlbumBtn(r.data[i], network);
             }
         });
-    }), function (ex) {
-        alert("Signin error: " + ex.error.message);
+    }, function(ex) {
+        wildbook.showAlert(ex.error.message);
     });
 }
+
+
+/* //Get User
+hello.on('auth.login', function(auth){
+    // Get Profile
+    hello.api(auth.network + ':me', function(r){
+        if(!r||r.error) {
+            wildbook.showAlert(r.error.message);
+            return;
+        }
+        document.getElementById(auth.network).innerHTML = "Get Albums from " + r.name + " at "+auth.network+"";
+    });
+});
+ */
+
+//Initiate hellojs
+hello.init({ facebook: {'wildme.org': '363791400412043'}}, {
+   scope: "files, photos"/* ,
+   redirect_uri : "../redirect.html" */
+});
+
 </script>
 
 <div id="main">
