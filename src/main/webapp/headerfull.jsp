@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
          import="org.ecocean.servlet.ServletUtilities, org.ecocean.CommonConfiguration" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
 String context = ServletUtilities.getContext(request);
 String requestUrl = "http://" + CommonConfiguration.getURLLocation(request);
@@ -39,10 +39,11 @@ String requestUrl = "http://" + CommonConfiguration.getURLLocation(request);
   <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>" rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
   <link href="<%=requestUrl%>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
-        
-    <script type="text/javascript" src="<%=requestUrl%>/tools/hello/javascript/hello.all.min.js"></script>
+
+<%--     <script type="text/javascript" src="<%=requestUrl%>/tools/hello/javascript/hello.all.min.js"></script> --%>
+    <script type="text/javascript" src="<%=requestUrl%>/tools/hello/javascript/hello.js"></script>
 </head>
-        
+
 <body>
 
 <div id="wrapper">
