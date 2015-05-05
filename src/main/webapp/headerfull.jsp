@@ -40,6 +40,7 @@ String requestUrl = "http://" + CommonConfiguration.getURLLocation(request);
   <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
   <link href="<%=requestUrl%>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
 
+    <script type="text/javascript" src="<%=requestUrl%>/javascript/core.js"></script>
 <%--     <script type="text/javascript" src="<%=requestUrl%>/tools/hello/javascript/hello.all.min.js"></script> --%>
     <script type="text/javascript" src="<%=requestUrl%>/tools/hello/javascript/hello.js"></script>
 </head>
