@@ -28,8 +28,7 @@ context=ServletUtilities.getContext(request);
 %>
 
 
-        
-  <script language="javascript" type="text/javascript">
+<script language="javascript" type="text/javascript">
     <!--
 
     function validate() {
@@ -65,7 +64,7 @@ context=ServletUtilities.getContext(request);
     }
 
     //-->
-  </script>
+</script>
 
 
 <style type="text/css">
@@ -102,21 +101,6 @@ margin-bottom: 8px !important;
 
 </style>
 
-<script>
-  function resetMap() {
-    var ne_lat_element = document.getElementById('lat');
-    var ne_long_element = document.getElementById('longitude');
-
-
-    ne_lat_element.value = "";
-    ne_long_element.value = "";
-
-  }
-
-  $(window).unload(resetMap);
-  $(resetMap);
-</script>
-
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
@@ -134,9 +118,26 @@ margin-bottom: 8px !important;
  <%
  }
  %>
- 
-  <script type="text/javascript">
-  $(function() {
+
+<script type="text/javascript">
+$(function() {
+  function resetMap() {
+      var ne_lat_element = document.getElementById('lat');
+      var ne_long_element = document.getElementById('longitude');
+
+
+      ne_lat_element.value = "";
+      ne_long_element.value = "";
+
+    }
+
+    $(window).unload(resetMap);
+    
+    //
+    // Call it now on page load.
+    //
+    resetMap();
+
     $( "#datepicker" ).datetimepicker({
       changeMonth: true,
       changeYear: true,
@@ -144,36 +145,21 @@ margin-bottom: 8px !important;
       maxDate: '+1d',
       controlType: 'select',
       alwaysSetTime: false
-      
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
 
-
-    
-  });
-  </script>
-  
-   <script type="text/javascript">
-  $(function() {
     $( "#releasedatepicker" ).datepicker({
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: 'yy-mm-dd'
-      
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'yy-mm-dd'
     });
     $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
-  });
-  </script>
- 
- 
-<script type="text/javascript">
-//alert("Prepping map functions.");
+});
+
 var center = new google.maps.LatLng(10.8, 160.8);
 
 var map;
-
-
 
 var marker;
 
@@ -224,14 +210,9 @@ function placeMarker(location) {
       google.maps.event.addListener(map, 'click', function(event) {
             placeMarker(event.latLng);
           });
- }
-  
- 
+}
 
- 
-
-
-function fullScreen(){
+function fullScreen() {
     $("#map_canvas").addClass('full_screen_map');
     $('html, body').animate({scrollTop:0}, 'slow');
     initialize();
@@ -301,16 +282,102 @@ function FSControl(controlDiv, map) {
     fullScreen();
     }
   });
-
 }
 
+google.maps.event.addDomListener(window, 'load', initialize);
 
-  google.maps.event.addDomListener(window, 'load', initialize);
-  
-  
-    </script>
- 
- 
+
+
+function buildPhotoThumnail(item){
+
+    var list = document.getElementById('photos');
+
+    var o = document.createElement('img');
+    o.className='picture';
+    o.src = item.thumbnail;
+    o.title = item.name;
+
+    // Append to the list
+    list.appendChild(o);
+}
+
+function getPhotos(network, id){
+
+    var list = document.getElementById('photos');
+    list.innerHTML = ''; // flush its content
+
+    hello( network ).api('me/album', {
+        id: id,
+        limit:10
+    }, function(r){
+        if(r.error){
+            alert(r.error.message);
+            return;
+        }
+        else if(!r.data||r.data.length===0){
+            alert("There are no photos in this album");
+            return
+        }
+
+        // Create a new image in the DOM, give it some randomness and insert it into the dom.
+        for(var i=0;i<r.data.length;i++){
+            buildPhotoThumnail( r.data[i] );
+        }
+    });
+}
+
+//Create a button selecting the album
+function buildAlbumBtn(item, network) {
+    // Target where to put the list of albums
+    var list = document.getElementById('albums');
+
+    // construct the button
+    var o = document.createElement('button');
+    o.innerHTML = item.name;
+
+    // Add the controls
+    o.onclick = function(){
+         // Trigger get 
+        getPhotos( network, item.id );
+    };
+
+        // Append to the list
+    list.appendChild(o);
+}
+
+function getAlbums(network) {
+    // Target where to put the list of albums
+    var list = document.getElementById('albums');
+    list.innerHTML = ''; // flush its content
+
+    //
+    // Setting force:false means we'll only trigger auth flow if the user is not already signed in with the correct credentials
+    hello( network ).login({
+        force:false
+    },function(auth) {
+        // Get albums
+        hello.api( network+':me/albums', function(r){
+
+            if(!r||r.error){
+                alert("Could not open albums from " + network + ", try resigning in");
+                return;
+            }
+            else if(!r.data||r.data.length===0){
+                alert("There are no albums in the users account");
+                return
+            }
+
+            // Build buttons with the albums
+            for(var i=0;i<r.data.length;i++){
+                buildAlbumBtn( r.data[i], network );
+            }
+        });
+    }), function (ex) {
+        alert("Signin error: " + ex.error.message);
+    });
+}
+</script>
+
 <div id="main">
 
 <div id="maincol-wide-solo">
@@ -319,7 +386,7 @@ function FSControl(controlDiv, map) {
   <h1 class="intro"><%=props.getProperty("submit_report")%>
   </h1>
 </div>
-<form xclass="dropzone" id="encounterForm" action="EncounterForm" method="post" enctype="multipart/form-data"
+<form id="encounterForm" action="EncounterForm" method="post" enctype="multipart/form-data"
       name="encounter_submission" target="_self" dir="ltr" lang="en"
       onsubmit="return validate();">
 <div class="dz-message"></div>
@@ -361,9 +428,6 @@ function FSControl(controlDiv, map) {
     </td>
     </tr>
 </c:if>
-
-
-
 
 
 <tr class="form_row">
@@ -461,7 +525,6 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
 if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
-
         <tr class="form_row">
             <td class="form_label1"><strong><%=props.getProperty("country")%>:</strong></td>
         <td>
@@ -844,8 +907,8 @@ function updateList(inp) {
         <div class="col-md-1">
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Computer</a></li>
-                <li><a href="#" class="zocial icon facebook">Facebook</a></li>
-                <li><a href="#" class="zocial icon twitter">Twitter</a></li>
+                <li><button class="zocial icon facebook" onclick="getAlbums('facebook')"/></li>
+                <li><button class="zocial icon twitter" onclick="getAlbums('twitter')"/></li>
             </ul>
         </div>
         <div class="col-md-11">
@@ -862,6 +925,8 @@ function updateList(inp) {
         </div>
     </div>
 </div>
+<div id="albums"></div>
+<div id="photos"></div>
 
 </p>
 
