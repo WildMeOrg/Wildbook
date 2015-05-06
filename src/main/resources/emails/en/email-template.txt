@@ -1,4 +1,4 @@
-SUBJECT: Email from Wildbook
+SUBJECT: Email from MantaMatcher
 
 @EMAIL_CONTENT@
 
