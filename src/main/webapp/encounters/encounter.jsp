@@ -2905,16 +2905,17 @@ $("a#comments").click(function() {
                          				if(enc.getAssignedUsername()!=null){
 
                         	 				String username=enc.getAssignedUsername();
-                         					if(myShepherd.getUser(username)!=null){
+                        	 				Shepherd aUserShepherd=new Shepherd("context0");
+                         					if(aUserShepherd.getUser(username)!=null){
                          					%>
                                 			<table>
                                 			<%
                          	
-                         					User thisUser=myShepherd.getUser(username);
+                         					User thisUser=aUserShepherd.getUser(username);
                                 			String profilePhotoURL="../images/empty_profile.jpg";
                     		    
                          					if(thisUser.getUserImage()!=null){
-                         						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                         						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
                          					}
                          					%>
                      						<tr>
@@ -3015,7 +3016,10 @@ $("a#username").click(function() {
                       	&nbsp;
                       	<%	
                       	}
-                      	} //end if show users to general public
+                        aUserShepherd.rollbackDBTransaction();
+                        aUserShepherd.closeDBTransaction();
+                      	} 
+                         				//insert here
                          	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 
@@ -3037,17 +3041,25 @@ $("a#username").click(function() {
           <select name="submitter" id="submitter">
         	<option value=""></option>
         	<%
-        	ArrayList<String> usernames=myShepherd.getAllUsernames();
+        	
+        	Shepherd userShepherd=new Shepherd("context0");
+        	userShepherd.beginDBTransaction();
+        	ArrayList<String> usernames=userShepherd.getAllUsernames();
+        	
+        	
+        	
         	int numUsers=usernames.size();
         	for(int i=0;i<numUsers;i++){
         		String thisUsername=usernames.get(i);
-        		User thisUser2=myShepherd.getUser(thisUsername);
+        		User thisUser2=userShepherd.getUser(thisUsername);
         		String thisUserFullname=thisUsername;
         		if(thisUser2.getFullName()!=null){thisUserFullname=thisUser2.getFullName();}
         	%>
         	<option value="<%=thisUsername%>"><%=thisUserFullname%></option>
         	<%
 			}
+        	userShepherd.rollbackDBTransaction();
+        	userShepherd.closeDBTransaction();
         	%>
       	</select> 
               

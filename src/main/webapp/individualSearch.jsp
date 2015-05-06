@@ -1605,12 +1605,15 @@ else {
 <td>
   <div id="metadata" style="display:none; ">
   <p><%=props.getProperty("metadataInstructions") %></p>
+
+	<strong><%=props.getProperty("username")%></strong><br />
       <%
-        ArrayList<User> users = myShepherd.getAllUsers();
+      	Shepherd inShepherd=new Shepherd("context0");
+        ArrayList<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 
       %>
-	<strong><%=props.getProperty("username")%></strong><br />
+
       <select multiple size="5" name="username" id="username">
         <option value="None"></option>
         <%
@@ -1627,7 +1630,11 @@ else {
           }
         %>
       </select>
+<%
+inShepherd.rollbackDBTransaction();
+inShepherd.closeDBTransaction();
 
+%>
 </div>
 </td>
 </tr>
