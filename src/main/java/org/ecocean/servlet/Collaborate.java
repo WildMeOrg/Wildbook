@@ -130,6 +130,7 @@ System.out.println(collabs);
 					System.out.println("/Collaborate: attempting email to (" + username + ") " + mailTo);
 					ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 					es.execute(new NotificationMailer(context, null, mailTo, "collaborationInvite", tagMap));
+          es.shutdown();
 				} else {
 					System.out.println("/Collaborate: skipping email to uid=" + username);
 				}
