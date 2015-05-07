@@ -48,7 +48,7 @@
   <appender name="USERFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>../webapps/ROOT/logs/user-access.htm</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <fileNamePattern>../webapps/ROOT/logs/%d{yyyy-MM-dd_HH_mm-}user-access.htm</fileNamePattern>
+        <fileNamePattern>../webapps/ROOT/logs/%d{yyyy-MM-}user-access.htm</fileNamePattern>
       </rollingPolicy>
     <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
       <!-- Assigned PatternLayoutEncoder by default -->
