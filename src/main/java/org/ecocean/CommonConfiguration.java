@@ -27,6 +27,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -290,6 +291,21 @@ public class CommonConfiguration {
       canAdopt = false;
     }
     return canAdopt;
+  }
+
+  /**
+   * Helper method to parse boolean from string.
+   * @param s string to parse
+   * @return true if s is one of { true, yes, ok, 1 }
+   */
+  private static boolean parseBoolean(String s, boolean def) {
+    if (s == null)
+      return def;
+    String prop = s.trim().toLowerCase(Locale.US);
+    if ("true".equals(prop) || "yes".equals(prop) || "ok".equals(prop) || "1".equals(prop)) {
+      return true;
+    }
+    return false;
   }
 
   public static boolean sendEmailNotifications(String context) {
