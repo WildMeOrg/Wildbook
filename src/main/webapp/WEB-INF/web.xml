@@ -420,6 +420,10 @@
       <servlet-name>UserCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
   </servlet>
+    <servlet>
+      <servlet-name>UserCreateSocial</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserCreateSocial</servlet-class>
+  </servlet>
   
         <servlet>
       <servlet-name>UserResetPasswordSendEmail</servlet-name>
@@ -480,6 +484,12 @@
 
     
     <servlet>
+      	<servlet-name>LoginUserSocial</servlet-name>
+      	<servlet-class>
+      	org.ecocean.servlet.LoginUserSocial</servlet-class>
+   </servlet>
+
+    <servlet>
       	<description>
       	Log in user using username and password provided</description>
       	<display-name>
@@ -499,6 +509,10 @@
       	org.ecocean.servlet.LogoutUser</servlet-class>
   </servlet>
   
+    <servlet>
+      	<servlet-name>SocialConnect</servlet-name>
+      	<servlet-class>org.ecocean.servlet.SocialConnect</servlet-class>
+   </servlet>
   
   <!-- end Shiro filters -->
   
@@ -1026,6 +1040,10 @@
           <servlet-name>UserCreate</servlet-name>
           <url-pattern>/UserCreate</url-pattern>
   </servlet-mapping>
+      <servlet-mapping>
+          <servlet-name>UserCreateSocial</servlet-name>
+          <url-pattern>/UserCreateSocial</url-pattern>
+  </servlet-mapping>
 
   
   
@@ -1385,9 +1403,17 @@
     	<url-pattern>/LoginUser</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
+    	<servlet-name>LoginUserSocial</servlet-name>
+    	<url-pattern>/LoginUserSocial</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
     	<servlet-name>LogoutUser</servlet-name>
     	<url-pattern>/LogoutUser</url-pattern>
   </servlet-mapping>
+    <servlet-mapping>
+    	<servlet-name>SocialConnect</servlet-name>
+    	<url-pattern>/SocialConnect</url-pattern>
+    </servlet-mapping>
   
 
   <servlet-mapping>

@@ -36,7 +36,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
    String context=ServletUtilities.getContext(request);
 
-  Shepherd myShepherd = new Shepherd(context);
+  //Shepherd myShepherd = new Shepherd(context);
 		//User newUser=new User("tomcat",hashedPassword,salt);
 		//myShepherd.getPM().makePersistent(newUser);
 
@@ -47,6 +47,7 @@ fbclient.setCallbackUrl("http://localhost.wildme.org/a/auth-test-return.jsp");
 
 OAuthCredentials credentials = fbclient.getCredentials(ctx);
 FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
+System.out.println("getId() -> " + facebookProfile.getId());
 System.out.println("Hello: " + facebookProfile.getDisplayName() + " born the " + facebookProfile.getBirthday());
 
 
