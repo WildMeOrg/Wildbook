@@ -1,28 +1,13 @@
-<%--
-  ~ Wildbook - A Mark-Recapture Framework
-  ~ Copyright (C) 2008-2014 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
+<jsp:include page="headerfull.jsp" flush="true"/>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="UTF-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,org.ecocean.*, org.ecocean.Util, java.util.GregorianCalendar, java.util.Properties, java.util.List" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
+<%@ page import="java.util.GregorianCalendar,
+                 org.ecocean.servlet.ServletUtilities,
+                 org.ecocean.*,
+                 java.util.Properties" %>
+
+<link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+
 <%
-
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -35,35 +20,15 @@ context=ServletUtilities.getContext(request);
   String langCode=ServletUtilities.getLanguageCode(request);
   
 
-  //set up the file input stream
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-  props = ShepherdProperties.getProperties("submit.properties", langCode,context);
-
-
+    //set up the file input stream
+    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+    props = ShepherdProperties.getProperties("submit.properties", langCode, context);
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
-
-  
-
 %>
 
-<html>
-<head>
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
-        
-  <script language="javascript" type="text/javascript">
+<script language="javascript" type="text/javascript">
     <!--
 
     function validate() {
@@ -99,9 +64,7 @@ context=ServletUtilities.getContext(request);
     }
 
     //-->
-  </script>
-
-</head>
+</script>
 
 
 <style type="text/css">
@@ -138,50 +101,43 @@ margin-bottom: 8px !important;
 
 </style>
 
-<script>
-  function resetMap() {
-    var ne_lat_element = document.getElementById('lat');
-    var ne_long_element = document.getElementById('longitude');
+<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+<script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
 
+<script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 
-    ne_lat_element.value = "";
-    ne_long_element.value = "";
-
-  }
-
-</script>
-
-
-<body onload="resetMap()" onunload="resetMap()">
-<div id="wrapper">
-<div id="page">
-<jsp:include page="header.jsp" flush="true">
-
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-
- <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
- <script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
- <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
- 
-  <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
- 
  <%
  if(!langCode.equals("en")){
  %>
- <script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
-  <script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
- 
-  
-  
-  
+
+<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
+<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+
  <%
  }
  %>
- 
-  <script type="text/javascript">
-  $(function() {
+
+<script type="text/javascript">
+$(function() {
+  function resetMap() {
+      var ne_lat_element = document.getElementById('lat');
+      var ne_long_element = document.getElementById('longitude');
+
+
+      ne_lat_element.value = "";
+      ne_long_element.value = "";
+
+    }
+
+    $(window).unload(resetMap);
+    
+    //
+    // Call it now on page load.
+    //
+    resetMap();
+
     $( "#datepicker" ).datetimepicker({
       changeMonth: true,
       changeYear: true,
@@ -189,36 +145,21 @@ margin-bottom: 8px !important;
       maxDate: '+1d',
       controlType: 'select',
       alwaysSetTime: false
-      
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
 
-
-    
-  });
-  </script>
-  
-   <script type="text/javascript">
-  $(function() {
     $( "#releasedatepicker" ).datepicker({
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: 'yy-mm-dd'
-      
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'yy-mm-dd'
     });
     $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
-  });
-  </script>
- 
- 
-<script type="text/javascript">
-//alert("Prepping map functions.");
+});
+
 var center = new google.maps.LatLng(10.8, 160.8);
 
 var map;
-
-
 
 var marker;
 
@@ -269,14 +210,9 @@ function placeMarker(location) {
       google.maps.event.addListener(map, 'click', function(event) {
             placeMarker(event.latLng);
           });
- }
-  
- 
+}
 
- 
-
-
-function fullScreen(){
+function fullScreen() {
     $("#map_canvas").addClass('full_screen_map');
     $('html, body').animate({scrollTop:0}, 'slow');
     initialize();
@@ -346,16 +282,123 @@ function FSControl(controlDiv, map) {
     fullScreen();
     }
   });
+}
 
+google.maps.event.addDomListener(window, 'load', initialize);
+
+
+
+function buildPhotoThumnail(item){
+
+    var list = document.getElementById('photos');
+
+    var o = document.createElement('img');
+    o.className='picture';
+    o.src = item.thumbnail;
+    o.title = item.name;
+
+    // Append to the list
+    list.appendChild(o);
+}
+
+function getPhotos(network, id){
+
+    var list = document.getElementById('photos');
+    list.innerHTML = ''; // flush its content
+
+    hello( network ).api('me/album', {
+        id: id,
+        limit:10
+    }, function(r){
+        if(r.error){
+            wildbook.showAlert(r.error.message);
+            return;
+        }
+        else if(!r.data||r.data.length===0){
+            wildbook.showAlert("There are no photos in this album");
+            return
+        }
+
+        // Create a new image in the DOM, give it some randomness and insert it into the dom.
+        for(var i=0;i<r.data.length;i++){
+            buildPhotoThumnail( r.data[i] );
+        }
+    });
+}
+
+//Create a button selecting the album
+function buildAlbumBtn(item, network) {
+    // Target where to put the list of albums
+    var list = document.getElementById('albums');
+
+    // construct the button
+    var o = document.createElement('button');
+    o.innerHTML = item.name;
+
+    // Add the controls
+    o.onclick = function(){
+         // Trigger get 
+        getPhotos( network, item.id );
+    };
+
+        // Append to the list
+    list.appendChild(o);
+}
+
+function getAlbums(network) {
+    // Target where to put the list of albums
+    var list = document.getElementById('albums');
+    list.innerHTML = ''; // flush its content
+
+    //
+    // Setting force:false means we'll only trigger auth flow if the user is not
+    // already signed in with the correct credentials
+    //
+    hello(network).login({
+        force:false
+    },function(auth) {
+        // Get albums
+        hello.api(network + ':me/albums', function(r) {
+            if(!r||r.error) {
+                wildbook.showAlert("Could not open albums from " + network + ": " + r.error.message);
+                return;
+            } else if(!r.data||r.data.length===0) {
+                wildbook.showAlert("There are no photo albums in your account");
+                return
+            }
+
+            // Build buttons with the albums
+            for (var i=0;i<r.data.length;i++) {
+                buildAlbumBtn(r.data[i], network);
+            }
+        });
+    }, function(ex) {
+        wildbook.showAlert(ex.error.message);
+    });
 }
 
 
-  google.maps.event.addDomListener(window, 'load', initialize);
-  
-  
-    </script>
- 
- 
+/* //Get User
+hello.on('auth.login', function(auth){
+    // Get Profile
+    hello.api(auth.network + ':me', function(r){
+        if(!r||r.error) {
+            wildbook.showAlert(r.error.message);
+            return;
+        }
+        document.getElementById(auth.network).innerHTML = "Get Albums from " + r.name + " at "+auth.network+"";
+    });
+});
+ */
+
+//Initiate hellojs
+hello.init({ facebook: {'wildme.org': '363791400412043'}}, {
+   scope: "files, photos"/* ,
+   redirect_uri : "../redirect.html" */
+});
+
+</script>
+
 <div id="main">
 
 <div id="maincol-wide-solo">
@@ -364,7 +407,7 @@ function FSControl(controlDiv, map) {
   <h1 class="intro"><%=props.getProperty("submit_report")%>
   </h1>
 </div>
-<form xclass="dropzone" id="encounterForm" action="EncounterForm" method="post" enctype="multipart/form-data"
+<form id="encounterForm" action="EncounterForm" method="post" enctype="multipart/form-data"
       name="encounter_submission" target="_self" dir="ltr" lang="en"
       onsubmit="return validate();">
 <div class="dz-message"></div>
@@ -406,9 +449,6 @@ function FSControl(controlDiv, map) {
     </td>
     </tr>
 </c:if>
-
-
-
 
 
 <tr class="form_row">
@@ -506,7 +546,6 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
 if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
-
         <tr class="form_row">
             <td class="form_label1"><strong><%=props.getProperty("country")%>:</strong></td>
         <td>
@@ -857,19 +896,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   
 </table>
 <p><em><%=props.getProperty("multipleEmailNote")%></em>.</p>
-<hr>
+<hr/>
 
 <p><%=props.getProperty("submit_pleaseadd")%>
 </p>
 
 <p>&nbsp;</p>
-
-<p align="center"><strong><%=props.getProperty("submit_image")%></strong>
-
-<div class="dropzone-previews" style="display: none;">
-    <div style="text-align: center;" ><b>drop</b> image/video files here, or <b>click</b> for file dialog</div>
-</div>
-
 <script>
 function updateList(inp) {
     var f = '';
@@ -890,16 +922,32 @@ function updateList(inp) {
 }
 </script>
 
-    <div class="input-file-drop" xonClick="return fileClick();">
-<% if (isIE) { %>
-        <div><%=props.getProperty("dragInstructionsIE")%></div>
-        <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-<% } else { %>
-        <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-        <div><%=props.getProperty("dragInstructions")%></div>
-<% } %>
-        <div id="input-file-list"></div>
+<p align="center"><strong><%=props.getProperty("submit_image")%></strong></p>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-1">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Computer</a></li>
+                <li><button class="zocial icon facebook" onclick="getAlbums('facebook')"/></li>
+                <li><button class="zocial icon twitter" onclick="getAlbums('twitter')"/></li>
+            </ul>
+        </div>
+        <div class="col-md-11">
+            <div class="input-file-drop">
+        <% if (isIE) { %>
+                <div><%=props.getProperty("dragInstructionsIE")%></div>
+                <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+        <% } else { %>
+                <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+                <div><%=props.getProperty("dragInstructions")%></div>
+        <% } %>
+                <div id="input-file-list"></div>
+            </div>
+        </div>
     </div>
+</div>
+<div id="albums"></div>
+<div id="photos"></div>
 
 </p>
 
@@ -918,9 +966,4 @@ function updateList(inp) {
 </div>
 <!-- end maintext --></div>
 <!-- end maincol -->
-<jsp:include page="footer.jsp" flush="true"/>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+<jsp:include page="footerfull.jsp" flush="true"/>
