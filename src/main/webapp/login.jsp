@@ -103,6 +103,9 @@ context=ServletUtilities.getContext(request);
 
               <p align="left">
 		
+<div style="padding: 10px;" class="error">
+<% if (session.getAttribute("error") != null) out.println(session.getAttribute("error")); %>
+</div>
               
               <form action="LoginUser" method="post">
     <table align="left" border="0" cellspacing="0" cellpadding="3">
@@ -122,9 +125,19 @@ context=ServletUtilities.getContext(request);
 
         </tr>
         <tr>
-            <td colspan="2" align="left"><input type="submit" name="submit" value="<%=props.getProperty("login") %>" /></td>
+					<td colspan="3">
+            <input type="submit" name="submit" value="<%=props.getProperty("login") %>" />
+					</td>
         </tr>
         <tr><td>&nbsp;</td></tr>
+
+<tr><td>
+            <input type="button" value="<%=props.getProperty("loginFacebook")%>" onClick="window.location.href='LoginUserSocial?type=facebook';" />
+<!--
+            <input type="button" value="<%=props.getProperty("loginFlickr") %>" />
+-->
+</td></tr>
+
         <tr><td colspan="2" align="left"><a href="resetPassword.jsp"><%=props.getProperty("forgotPassword") %></a>
      </td></tr>
     </table>
@@ -139,43 +152,6 @@ context=ServletUtilities.getContext(request);
             </div>
             <!-- end maintext --></div>
 
-<script type="text/javascript">
-
-hello.on('auth.login', function(auth){
-	// call user information, for the given network
-	hello( auth.network ).api( '/me' ).then( function(r){
-console.info('auth.network = %o', auth.network)
-console.info('r = %o', r);
-alert('hello, ' + r.name + '. you came are logged in via ' + auth.network);
-/*
-		// Inject it into the container
-		var label = document.getElementById( "profile_"+ auth.network );
-		if(!label){
-			label = document.createElement('div');
-			label.id = "profile_"+auth.network;
-			document.getElementById('profile').appendChild(label);
-		}
-		label.innerHTML = '<img src="'+ r.thumbnail +'" /> Hey '+r.name;
-*/
-	});
-});
-
-
-hello.init({ 
-	facebook: "363791400412043",
-	google: "621163575124-e7eapeq1o7b5j3gqf7mvv17p7djidjnn.apps.googleusercontent.com"
-}
-//,{redirect_uri:'oauth2callback.jsp'}
-);
-
-
-</script>
-<div>
-<div>or login via one of these things</div>
-<button onclick="hello( 'google' ).login()">google</button>
-<button onclick="hello( 'facebook' ).login()">facebook</button>
-
-</div>
           <!-- end maincol -->
           <jsp:include page="footer.jsp" flush="true"/>
         </div>
