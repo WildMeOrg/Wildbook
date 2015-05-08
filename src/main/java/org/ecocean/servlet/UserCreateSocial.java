@@ -1,7 +1,7 @@
 package org.ecocean.servlet;
 
 import java.io.IOException;
-
+import java.io.PrintWriter;
 
 
 import javax.servlet.RequestDispatcher;
@@ -40,13 +40,13 @@ import org.ecocean.*;
  * an error message
  *
  */
- public class LoginUserSocial extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
+ public class UserCreateSocial extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
    static final long serialVersionUID = 1L;
    
     /* (non-Java-doc)
 	 * @see javax.servlet.http.HttpServlet#HttpServlet()
 	 */
-	public LoginUserSocial() {
+	public UserCreateSocial() {
 		super();
 	}   	
 	
@@ -64,25 +64,27 @@ import org.ecocean.*;
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     HttpSession session = request.getSession(true);
 
-		String url = "/login.jsp";
-		
-		System.out.println("Starting LoginUserSocial servlet...");
-		
+/*
+----------
+*/
+    PrintWriter out = response.getWriter();
 		String context = "context0";
 		Shepherd myShepherd = new Shepherd(context);
 		//myShepherd.beginDBTransaction();
 
 		String socialType = request.getParameter("type");
-		String username = "";
-		String hashedPassword = "";
+
+		if (request.getUserPrincipal() != null) {
+     	out.println("logout first. you cannot create a user when logged in.");
+			return;
+		}
 
 		if ("facebook".equals(socialType)) {
 			FacebookClient fbclient = new FacebookClient("363791400412043", "719b2c0b21cc5e53bdc9086a283dc589");
 			WebContext ctx = new J2EContext(request, response);
-			//fbclient.setCallbackUrl("http://localhost.wildme.org/a/auth-test-return.jsp");
-			//fbclient.setCallbackUrl("http://localhost.wildme.org/a/LoginUserSocial?type=facebook");
-			fbclient.setCallbackUrl("http://" + CommonConfiguration.getURLLocation(request) + "/LoginUserSocial?type=facebook");
-			//fbclient.setCallbackUrl("http://localhost.wildme.org/a/LoginUserSocial");
+			//String callbackUrl = "http://localhost.wildme.org/a/UserCreateSocial?type=facebook";
+			String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=facebook";
+			fbclient.setCallbackUrl(callbackUrl);
 
 			OAuthCredentials credentials = null;
 			try {
@@ -95,16 +97,22 @@ import org.ecocean.*;
 				FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
 				User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
 				System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
-				if (fbuser == null) {
-					session.setAttribute("error", "don't have a user associated with this Facebook account");
-        	//response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp");
-        	response.sendRedirect("login.jsp");
-					return;
-				} else {  //we found a matching user!
-					username = fbuser.getUsername();
-					hashedPassword = fbuser.getPassword();
-System.out.println("found a user that matched fb id: " + username);
-					//System.out.println("Hello: " + facebookProfile.getDisplayName() + " born the " + facebookProfile.getBirthday());
+
+				if (fbuser != null) {
+					out.println("already a user connected to this facebook");
+
+				} else {
+					String username = facebookProfile.getDisplayName().replaceAll(" ", "").toLowerCase();  //TODO handle this better!
+System.out.println("username: " + facebookProfile.getUsername());
+System.out.println("displayname: " + facebookProfile.getDisplayName());
+System.out.println("firstname: " + facebookProfile.getFirstName());
+System.out.println("familyname: " + facebookProfile.getFamilyName());
+System.out.println("email: " + facebookProfile.getEmail());
+//TODO other fields?  --> https://pac4j.github.io/pac4j/apidocs/pac4j/org/pac4j/oauth/profile/facebook/FacebookProfile.html
+					fbuser = createUser(username, context);
+					fbuser.setSocialFacebook(facebookProfile.getId());
+					//myShepherd.getPM().makePersistent(fbuser);
+					out.println("account " + fbuser.getUsername() + " created!  [TODO log them in]");
 				}
 			} else {
 
@@ -119,36 +127,25 @@ System.out.println("*** trying redirect?");
 
 
 		} else {
-			session.setAttribute("error", "invalid type");
-     	//response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp");
-     	response.sendRedirect("login.jsp");
+			out.println("invalid type");
 			return;
 		}
 
 
-		UsernamePasswordToken token = new UsernamePasswordToken(username, hashedPassword);
-		
-	
-		try {
-			Subject subject = SecurityUtils.getSubject();
-			subject.login(token);
-			token.clear();
-		} catch (UnknownAccountException ex) {
-			//username provided was not found
-			ex.printStackTrace();
-			session.setAttribute("error", ex.getMessage() );
-		} catch (IncorrectCredentialsException ex) {
-			//password provided did not match password found in database
-			//for the username provided
-			ex.printStackTrace();
-			session.setAttribute("error", ex.getMessage());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			session.setAttribute("error", "Login NOT SUCCESSFUL - cause not known!");
-		}
-
-
-		WebUtils.redirectToSavedRequest(request, response, "welcome.jsp");
+		out.println("ok????");
 	}   	  	    
+
+
+	private User createUser(String username, String context) {
+		String salt = ServletUtilities.getSalt().toHex();
+		String hashedPassword = ServletUtilities.hashAndSaltPassword("fixme", salt);
+		User user = new User(username, hashedPassword, salt);
+		Shepherd myShepherd = new Shepherd(context);
+		myShepherd.getPM().makePersistent(user);
+		Role role = new Role(username, "fromSocial");
+		role.setContext(context);
+		myShepherd.getPM().makePersistent(role);
+		return user;
+	}
 
 }
