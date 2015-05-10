@@ -84,7 +84,7 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
     
     
     //prep our streaming variables
-    URL u;
+    URL u=null;
     InputStream inputStreamFromServlet=null;
     BufferedReader in=null;
     URLConnection finishConnection=null;
@@ -100,7 +100,9 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
       inputStreamFromServlet = finishConnection.getInputStream();
       in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));
       String line = in.readLine();
-      in.close();
+      //in.close();
+      //inputStreamFromServlet.close();
+
 
       //process the returned line however needed
 
@@ -121,8 +123,12 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
     }
     finally{
       try{
-        inputStreamFromServlet.close();
-        in.close();
+        if(inputStreamFromServlet!=null)inputStreamFromServlet.close();
+        if(in!=null)in.close();
+        in=null;
+        inputStreamFromServlet=null;
+        finishConnection=null;
+        u=null;
       }
       catch(Exception ex){}
     }
