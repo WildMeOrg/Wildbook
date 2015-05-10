@@ -75,28 +75,7 @@ public class WorkAppletHeadlessEpic {
   }
     */
 
-  /*
-  *Send serialized content to the server.
-  */
-  private void sendObject(ObjectOutputStream con, Object obj) throws IOException {
-    System.out.println("     : Sending returned results...");
-    //new modification
-    ObjectOutputStream out=null;
-    try{
-      out = con;
-      out.reset();
-      if (obj != null) {
-        out.writeObject(obj);
-      }
-      out.close();
-     }
-    catch(Exception e){
-      if(out!=null)out.close();
-      System.out.println("     : Transmission exception in sendObject.");
-      e.printStackTrace();
-    }
-    System.out.println("     : Transmission complete. Waiting for response...");
-  }
+
 
 
   public static void main(String args[]) {
@@ -362,7 +341,24 @@ public class WorkAppletHeadlessEpic {
                   // send the results Vector to the servlet using serialization
                   outputToFinalServlet = new ObjectOutputStream(finishConnection.getOutputStream());
 
-                  sendObject(outputToFinalServlet, workItemResults);
+                  //sendObject(outputToFinalServlet, workItemResults);
+                  System.out.println("     : Sending returned results...");
+                  //new modification
+                  ObjectOutputStream out=null;
+                  try{
+                    //out = con;
+                    outputToFinalServlet.reset();
+                    if (workItemResults != null) {
+                      outputToFinalServlet.writeObject(workItemResults);
+                    }
+                    outputToFinalServlet.close();
+                   }
+                  catch(Exception e){
+                    if(out!=null)out.close();
+                    System.out.println("     : Transmission exception in sendObject.");
+                    e.printStackTrace();
+                  }
+                  System.out.println("     : Transmission complete. Waiting for response...");
 
                   outputToFinalServlet.close();
                   outputToFinalServlet = null;
@@ -426,7 +422,7 @@ public class WorkAppletHeadlessEpic {
       System.exit(0);
 
     }
-
+    System.exit(0);
   }        //end getGoing method
 
 
