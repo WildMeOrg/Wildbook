@@ -785,6 +785,16 @@ public class IndividualQueryProcessor {
 
       prettyPrint.append("alternateID field contains \""+altID+"\".<br />");
     }
+
+
+
+    //filter for nick name------------------------------------------
+    if((request.getParameter("nickNameField")!=null)&&(!request.getParameter("nickNameField").equals(""))) {
+      String nickName=request.getParameter("nickNameField").replaceAll("%20", " ").trim().toLowerCase();
+      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(nickName.toLowerCase().indexOf('"+nickName+"') != -1)";}
+
+      prettyPrint.append("nickName field contains \""+nickName+"\".<br />");
+    }
     
 
     //------------------------------------------------------------------
