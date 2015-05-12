@@ -40,7 +40,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 		//User newUser=new User("tomcat",hashedPassword,salt);
 		//myShepherd.getPM().makePersistent(newUser);
 
-FacebookClient fbclient = new FacebookClient("363791400412043", "719b2c0b21cc5e53bdc9086a283dc589");
+FacebookClient fbclient = new FacebookClient();
 WebContext ctx = new J2EContext(request, response);
 fbclient.setCallbackUrl("http://localhost.wildme.org/a/auth-test-return.jsp");
 fbclient.redirect(ctx, false, false);

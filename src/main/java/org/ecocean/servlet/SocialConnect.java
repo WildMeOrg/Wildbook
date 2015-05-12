@@ -27,6 +27,7 @@ import org.pac4j.oauth.profile.facebook.*;
 
 import org.apache.shiro.web.util.WebUtils;
 import org.ecocean.*;
+import org.ecocean.security.SocialAuth;
 
 
 
@@ -82,7 +83,12 @@ import org.ecocean.*;
 		}
 
 		if ("facebook".equals(socialType)) {
-			FacebookClient fbclient = new FacebookClient("363791400412043", "719b2c0b21cc5e53bdc9086a283dc589");
+        FacebookClient fbclient = null;
+        try {
+            fbclient = SocialAuth.getFacebookClient(context);
+        } catch (Exception ex) {
+            System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
+        }
 			WebContext ctx = new J2EContext(request, response);
 			//String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
 			String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
@@ -102,13 +108,13 @@ import org.ecocean.*;
 				System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
 if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuser = " + fbuser.getUsername());
 				if ((fbuser != null) && (fbuser.getUsername().equals(user.getUsername())) && (request.getParameter("disconnect") != null)) {
-					fbuser.setSocialFacebook(null);
+					fbuser.unsetSocial("facebook");
 					//myShepherd.getPM().makePersistent(user);
 					out.println("disconnected");
 				} else if (fbuser != null) {
 					out.println("looks like this account is already connected to a user!");
 				} else {  //lets do this
-					user.setSocialFacebook(facebookProfile.getId());
+					user.setSocial("facebook", facebookProfile.getId());
 					//myShepherd.getPM().makePersistent(user);
 					out.println("connected");
 				}
