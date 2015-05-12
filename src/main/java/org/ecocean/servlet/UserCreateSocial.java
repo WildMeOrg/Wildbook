@@ -27,6 +27,7 @@ import org.pac4j.oauth.profile.facebook.*;
 
 import org.apache.shiro.web.util.WebUtils;
 import org.ecocean.*;
+import org.ecocean.security.SocialAuth;
 
 
 
@@ -80,7 +81,12 @@ import org.ecocean.*;
 		}
 
 		if ("facebook".equals(socialType)) {
-			FacebookClient fbclient = new FacebookClient("363791400412043", "719b2c0b21cc5e53bdc9086a283dc589");
+        FacebookClient fbclient = null;
+        try {
+            fbclient = SocialAuth.getFacebookClient(context);
+        } catch (Exception ex) {
+            System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
+        }
 			WebContext ctx = new J2EContext(request, response);
 			//String callbackUrl = "http://localhost.wildme.org/a/UserCreateSocial?type=facebook";
 			String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=facebook";
@@ -110,7 +116,7 @@ System.out.println("familyname: " + facebookProfile.getFamilyName());
 System.out.println("email: " + facebookProfile.getEmail());
 //TODO other fields?  --> https://pac4j.github.io/pac4j/apidocs/pac4j/org/pac4j/oauth/profile/facebook/FacebookProfile.html
 					fbuser = createUser(username, context);
-					fbuser.setSocialFacebook(facebookProfile.getId());
+					fbuser.setSocial("facebook", facebookProfile.getId());
 					//myShepherd.getPM().makePersistent(fbuser);
 					out.println("account " + fbuser.getUsername() + " created!  [TODO log them in]");
 				}

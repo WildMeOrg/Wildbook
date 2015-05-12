@@ -27,6 +27,7 @@ import org.pac4j.oauth.profile.facebook.*;
 
 import org.apache.shiro.web.util.WebUtils;
 import org.ecocean.*;
+import org.ecocean.security.SocialAuth;
 
 
 
@@ -77,7 +78,12 @@ import org.ecocean.*;
 		String hashedPassword = "";
 
 		if ("facebook".equals(socialType)) {
-			FacebookClient fbclient = new FacebookClient("363791400412043", "719b2c0b21cc5e53bdc9086a283dc589");
+        FacebookClient fbclient = null;
+        try {
+            fbclient = SocialAuth.getFacebookClient(context);
+        } catch (Exception ex) {
+            System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
+        }
 			WebContext ctx = new J2EContext(request, response);
 			//fbclient.setCallbackUrl("http://localhost.wildme.org/a/auth-test-return.jsp");
 			//fbclient.setCallbackUrl("http://localhost.wildme.org/a/LoginUserSocial?type=facebook");

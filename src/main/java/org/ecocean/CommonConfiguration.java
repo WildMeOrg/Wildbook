@@ -111,7 +111,8 @@ public class CommonConfiguration {
 
   //start getter methods
   public static String getURLLocation(HttpServletRequest request) {
-    return request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+return "localhost.wildme.org/a";
+    //return request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
   }
 
   public static String getMailHost(String context) {
