@@ -35,17 +35,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.concurrent.ThreadPoolExecutor;
 import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.servlet.ServletContext;
 import org.apache.sanselan.ImageReadException;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Keyword;
-import org.ecocean.MarkedIndividual;
-import org.ecocean.Measurement;
-import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
+import org.ecocean.*;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.servlet.BatchUpload;
 import org.ecocean.mmutil.DataUtilities;
@@ -102,8 +97,10 @@ public final class BatchProcessor implements Runnable {
   private String urlLocation;
   /** ServletContext for web application, to allow access to resources. */
   private ServletContext servletContext;
-  /** Username of person doing batch upload (for logging in comments). */
-  private String user;
+  /** Username of person doing batch upload (for logging/email). */
+  private String username;
+  /** Email address of person doing batch upload. */
+  private String userEmail;
   /** Maximum &quot;item&quot; count (used for progress display). */
   private int maxCount;
   /** Current &quot;item&quot; count (used for progress display). */
@@ -174,16 +171,15 @@ public final class BatchProcessor implements Runnable {
   }
 
   /**
-   * Sets the {@code ServletContext} to use for contextual reference,
-   * which is required to access web application data files.
+   * Sets the username for which this instance will be processing data.
    * @param username name of user
    */
-  public void setUser(String username) {
+  public void setUsername(String username) {
     if (username == null)
       throw new NullPointerException();
     if ("".equals(username.trim()))
       throw new IllegalArgumentException();
-    this.user = username;
+    this.username = username;
   }
 
   /**
@@ -303,11 +299,11 @@ public final class BatchProcessor implements Runnable {
         throw new IllegalStateException("ServletContext has not been configured");
       if (dataDir == null || dataDirUsers == null)
         throw new IllegalStateException("Data folders have not been configured");
-      if (user == null)
+      if (username == null)
         throw new IllegalStateException("User has not been configured");
 
       if (dataDirUser == null) {
-        dataDirUser = new File(dataDirUsers, user);
+        dataDirUser = new File(dataDirUsers, username);
         if (!dataDirUser.exists()) {
           if (!dataDirUser.mkdir())
             throw new RuntimeException(String.format("Unable to create user folder: %s", dataDirUser.getAbsolutePath()));
@@ -332,6 +328,15 @@ public final class BatchProcessor implements Runnable {
 
       // Setup persistence infrastructure.
       shepherd = new Shepherd(context);
+      PersistenceManager pm = shepherd.getPM();
+      // Find user email address for notifications (if opted in, otherwise keep as null).
+      User user = shepherd.getUser(username);
+      if (user == null) {
+        throw new RuntimeException("Failed to find user with username: " + username);
+      }
+      else if (user.getReceiveEmails() && user.getEmailAddress() != null) {
+        userEmail = user.getEmailAddress().trim();
+      }
 
       // Find & instantiate plugin.
       setupPlugin(context);
@@ -404,11 +409,13 @@ public final class BatchProcessor implements Runnable {
       }
       if (!errors.isEmpty()) {
         status = Status.ERROR;
+        // Notify user via email (if requested to receive emails).
+        if (userEmail != null)
+          notifyByEmail(userEmail);
         return;
       }
 
       phase = Phase.PERSISTENCE;
-      PersistenceManager pm = shepherd.getPM();
       try {
         shepherd.beginDBTransaction();
 
@@ -525,9 +532,9 @@ public final class BatchProcessor implements Runnable {
           }
           // (must be done within current transaction to ensure referential integrity in database).
           // Set submitterID for later reference.
-          enc.setSubmitterID(user);
+          enc.setSubmitterID(username);
           // Add comment to reflect batch upload.
-          enc.addComments("<p><em>" + user + " on " + (new Date()).toString() + "</em><br>" + "Imported via batch upload.</p>");
+          enc.addComments("<p><em>" + username + " on " + (new Date()).toString() + "</em><br>" + "Imported via batch upload.</p>");
           // Finally, if IndividualID for encounter is null, set it to "Unassigned".
           if (enc.getIndividualID() == null)
             enc.setIndividualID("Unassigned");
@@ -667,6 +674,11 @@ public final class BatchProcessor implements Runnable {
         long timeEnd = System.currentTimeMillis();
         long timeElapsed = (timeEnd - timeStart);
         log.debug(String.format("Time taken for media processing: %,d milliseconds", timeElapsed));
+
+        // Notify user via email (if requested to receive emails).
+        if (userEmail != null)
+          notifyByEmail(userEmail);
+
       } catch (Exception ex) {
         shepherd.rollbackDBTransaction();
         throw ex;
@@ -682,6 +694,43 @@ public final class BatchProcessor implements Runnable {
       status = Status.ERROR;
       log.error(th.getMessage(), th);
     }
+  }
+
+  /**
+   * Custom emailer implementation (differs slightly from usual use of NotificationMailer).
+   * Batch errors are collated as HTML list items for the HTML email version, then stripped of tags for the plain
+   * text email version. This saves having to reconstruct them all, and accounts for i18n in generated messages.
+   */
+  private void notifyByEmail(String userEmail) {
+    assert userEmail != null && !"".equals(userEmail);
+    ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+    Map<String, String> tagMap = new HashMap<>();
+    tagMap.put("@URL_LOCATION@", String.format("http://%s/", urlLocation));
+    if (errors.isEmpty()) {
+      tagMap.put("@BATCH_ERRORS_MESSAGE@", "");
+      tagMap.put("@BATCH_ERRORS_CONTENT@", "");
+    } else {
+      tagMap.put("@BATCH_ERRORS_MESSAGE@", "<p>" + bundle.getString("batchUpload.email.errors") + "</p>");
+      StringBuilder sb = new StringBuilder("<ul class=\"batchErrors\">\n");
+      for (String s : errors)
+        sb.append("<li class=\"batchError\">").append(s).append("</li>\n");
+      sb.append("</ul>\n");
+      tagMap.put("@BATCH_ERRORS_CONTENT@", sb.toString());
+    }
+    if (warnings.isEmpty()) {
+      tagMap.put("@BATCH_WARNINGS_MESSAGE@", "");
+      tagMap.put("@BATCH_WARNINGS_CONTENT@", "");
+    } else {
+      tagMap.put("@BATCH_WARNINGS_MESSAGE@", "<p>" + bundle.getString("batchUpload.email.warnings") + "</p>");
+      StringBuilder sb = new StringBuilder("<ul class=\"batchWarnings\">\n");
+      for (String s : warnings)
+        sb.append("<li class=\"batchWarning\">").append(s).append("</li>\n");
+      sb.append("</ul>\n");
+      tagMap.put("@BATCH_WARNINGS_CONTENT@", sb.toString());
+    }
+    NotificationMailer mailer = new NotificationMailer(context, null, userEmail, "batchUploadFinished", tagMap);
+    mailer.replaceRegexInPlainText("<[^>]+?>", "");
+    es.execute(mailer);
   }
 
   private void cleanupTemporaryFiles() {

@@ -530,7 +530,7 @@ public final class BatchUpload extends DispatchServlet {
         proc.setMapMedia(data.mapMedia);
         proc.setListSam(data.listSam);
         proc.setServletContext(getServletContext(),context);
-        proc.setUser(req.getRemoteUser());
+        proc.setUsername(req.getRemoteUser());
         proc.setURLLocation(CommonConfiguration.getURLLocation(req));
         log.info(String.format("Assigning batch processor for user %s: %s", req.getRemoteUser(), proc));
         processMap.put(req.getRemoteUser(), proc);
