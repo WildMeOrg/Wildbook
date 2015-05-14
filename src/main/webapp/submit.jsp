@@ -883,7 +883,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <p><%=props.getProperty("submit_pleaseadd")%>
 </p>
 
-<p>&nbsp;</p>
 <script>
 function updateList(inp) {
     var f = '';
@@ -904,20 +903,27 @@ function updateList(inp) {
 }
 </script>
 
-<p align="center"><strong><%=props.getProperty("submit_image")%></strong></p>
-<div class="container-fluid">
+<div style="display: block; margin-left: auto; margin-right: auto">
+    <strong><%=props.getProperty("submit_image")%>:&nbsp;</strong>
+    <ul class="nav navbar-nav">
+        <li class="active">
+            <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()"
+                    style="background:url(images/computer.png);">
+            </button>
+        </li>
+        <li><button class="zocial icon facebook" title="Import from Facebook" onclick="getAlbums('facebook')"/></button></li>
+<!--                 <li><button class="zocial icon twitter" title="Import from Twitter" onclick="getAlbums('twitter')"/></li> -->
+        <li><button class="zocial icon google" title="Import from Google+" onclick="getAlbums('google')"/></button></li>
+        <li><button class="zocial icon flickr" title="Import from Flickr" onclick="getAlbums('flickr')"/></button></li>
+    </ul>
+</div>
+
+<!-- <div class="container-fluid">
     <div class="row">
         <div class="col-md-1">
-            <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Computer</a></li>
-                <li><button class="zocial icon facebook" onclick="getAlbums('facebook')"/></button></li>
-<!--                 <li><button class="zocial icon twitter" onclick="getAlbums('twitter')"/></li> -->
-                <li><button class="zocial icon google" onclick="getAlbums('google')"/></button></li>
-                <li><button class="zocial icon flickr" onclick="getAlbums('flickr')"/></button></li>
-            </ul>
         </div>
         <div class="col-md-11">
-            <div class="input-file-drop">
+ -->            <div class="input-file-drop">
         <% if (isIE) { %>
                 <div><%=props.getProperty("dragInstructionsIE")%></div>
                 <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
@@ -927,9 +933,11 @@ function updateList(inp) {
         <% } %>
                 <div id="input-file-list"></div>
             </div>
-        </div>
+<!--         </div>
     </div>
 </div>
+ -->
+
 <div id="albums"></div>
 <div id="photos"></div>
 
