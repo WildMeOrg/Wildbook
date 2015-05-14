@@ -892,7 +892,7 @@ function updateList(inp) {
 <p align="center"><strong><%=props.getProperty("submit_image")%></strong></p>
 <div class="container-fluid">
     <div class="row">
-        <ul class="nav navbar-nav">
+        <ul class="list-inline" style="text-align: center;">
             <li class="active">
                 <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()"
                         style="background:url(images/computer.png);">
