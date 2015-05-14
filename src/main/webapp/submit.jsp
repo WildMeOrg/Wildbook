@@ -270,69 +270,48 @@ function addFullscreenButton(controlDiv, map) {
 google.maps.event.addDomListener(window, 'load', initialize);
 
 
-
-function buildPhotoThumnail(item){
-
-    var list = document.getElementById('photos');
-
+function buildPhotoThumnail(item) {
     var o = document.createElement('img');
     o.className='picture';
     o.src = item.thumbnail;
     o.title = item.name;
 
-    // Append to the list
-    list.appendChild(o);
+    document.getElementById('socialphotos').appendChild(o);
 }
 
-function getPhotos(network, id){
-
-    var list = document.getElementById('photos');
-    list.innerHTML = ''; // flush its content
+function getPhotos(network, id) {
+    $("#socialphotos").empty();
 
     hello( network ).api('me/album', {
         id: id,
         limit:10
-    }, function(r){
-        if(r.error){
-            wildbook.showAlert(r.error.message);
+    }, function(resp){
+        if(resp.error){
+            wildbook.showAlert(resp.error.message);
             return;
         }
-        else if(!r.data||r.data.length===0){
+        else if(!resp.data || resp.data.length === 0) {
             wildbook.showAlert("There are no photos in this album");
-            return
+            return;
         }
 
-        // Create a new image in the DOM, give it some randomness and insert it into the dom.
-        for(var i=0;i<r.data.length;i++){
-            buildPhotoThumnail( r.data[i] );
+        for (var i = 0; i < resp.data.length; i++) {
+            buildPhotoThumnail(resp.data[i]);
         }
     });
 }
 
-//Create a button selecting the album
-function buildAlbumBtn(item, network) {
-    // Target where to put the list of albums
-    var list = document.getElementById('albums');
-
-    // construct the button
-    var o = document.createElement('button');
-    o.innerHTML = item.name;
-
-    // Add the controls
-    o.onclick = function(){
-         // Trigger get 
-        getPhotos( network, item.id );
-    };
-
-        // Append to the list
-    list.appendChild(o);
+function showUploadBox() {
+    $("#submitsocialmedia").addClass("hidden");
+    $("#submitupload").removeClass("hidden");
 }
 
 function getAlbums(network) {
-    // Target where to put the list of albums
-    var list = document.getElementById('albums');
-    list.innerHTML = ''; // flush its content
-
+    $("#submitsocialmedia").removeClass("hidden");
+    $("#submitupload").addClass("hidden");
+    
+    $("#socialalbums").empty();
+    $("#socialphotos").empty();
     //
     // Setting force:false means we'll only trigger auth flow if the user is not
     // already signed in with the correct credentials
@@ -349,9 +328,16 @@ function getAlbums(network) {
             }
 
             // Build buttons with the albums
-            for (var i = 0; i < resp.data.length;i++) {
-                buildAlbumBtn(resp.data[i], network);
-            }
+            $.each(resp.data, function() {                
+                var button = $('<button>').text(this.name).prop("title", this.name)
+                                     .addClass("btn btn-block btn-primary");
+                var id = this.id;
+                button.click(function() {
+                    getPhotos(network, id);
+                });
+
+                $('#socialalbums').append(button);
+            });
         });
     }, function(ex) {
         wildbook.showAlert(ex.error.message);
@@ -373,7 +359,7 @@ hello.on('auth.login', function(auth){
  */
 
 //Initiate hellojs
-/* hello.init({ facebook: {'wildme.org': '363791400412043'}}, { */
+/* hello.init({ facebook: {'wildme.org': '363791400412043'}}, { */ // Can base your keys off urls if the service allows/requires
 hello.init({facebook: "363791400412043",
 /*             twitter: "UTEfL90bUGqXcsERcFbJRU4Ng", */
             google: "195771644717-2am21965cpsueu7u49f6dgnnmqg7nmm1.apps.googleusercontent.com",
@@ -903,44 +889,42 @@ function updateList(inp) {
 }
 </script>
 
-<div style="display: block; margin-left: auto; margin-right: auto">
-    <strong><%=props.getProperty("submit_image")%>:&nbsp;</strong>
-    <ul class="nav navbar-nav">
-        <li class="active">
-            <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()"
-                    style="background:url(images/computer.png);">
-            </button>
-        </li>
-        <li><button class="zocial icon facebook" title="Import from Facebook" onclick="getAlbums('facebook')"/></button></li>
-<!--                 <li><button class="zocial icon twitter" title="Import from Twitter" onclick="getAlbums('twitter')"/></li> -->
-        <li><button class="zocial icon google" title="Import from Google+" onclick="getAlbums('google')"/></button></li>
-        <li><button class="zocial icon flickr" title="Import from Flickr" onclick="getAlbums('flickr')"/></button></li>
-    </ul>
-</div>
-
-<!-- <div class="container-fluid">
+<p align="center"><strong><%=props.getProperty("submit_image")%></strong></p>
+<div class="container-fluid">
     <div class="row">
-        <div class="col-md-1">
+        <ul class="nav navbar-nav">
+            <li class="active">
+                <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()"
+                        style="background:url(images/computer.png);">
+                </button>
+            </li>
+            <li><button class="zocial icon facebook" title="Import from Facebook" onclick="getAlbums('facebook')"/></button></li>
+            <!-- <li><button class="zocial icon twitter" title="Import from Twitter" onclick="getAlbums('twitter')"/></li> -->
+            <li><button class="zocial icon google" title="Import from Google+" onclick="getAlbums('google')"/></button></li>
+            <li><button class="zocial icon flickr" title="Import from Flickr" onclick="getAlbums('flickr')"/></button></li>
+        </ul>
+    </div>
+    <div class="row">
+        <div id="submitupload" class="input-file-drop">
+            <% if (isIE) { %>
+            <div><%=props.getProperty("dragInstructionsIE")%></div>
+            <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            <% } else { %>
+            <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            <div><%=props.getProperty("dragInstructions")%></div>
+            <% } %>
+            <div id="input-file-list"></div>
         </div>
-        <div class="col-md-11">
- -->            <div class="input-file-drop">
-        <% if (isIE) { %>
-                <div><%=props.getProperty("dragInstructionsIE")%></div>
-                <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-        <% } else { %>
-                <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-                <div><%=props.getProperty("dragInstructions")%></div>
-        <% } %>
-                <div id="input-file-list"></div>
+        <div id="submitsocialmedia" class="container-fluid hidden" style="max-height:300px;">
+            <div class="row">
+                <div id="socialalbums" class="col-md-4" style="overflow-y:auto;">
+                </div>
+                <div id="socialphotos" class="col-md-8" style="overflow-y:auto;">
+                </div>
             </div>
-<!--         </div>
+        </div>
     </div>
 </div>
- -->
-
-<div id="albums"></div>
-<div id="photos"></div>
-
 
 <p>&nbsp;</p>
 <%if (request.getRemoteUser() != null) {%> <input name="submitterID"
