@@ -27,46 +27,6 @@ context=ServletUtilities.getContext(request);
     long maxSizeBytes = maxSizeMB * 1048576;
 %>
 
-
-<script language="javascript" type="text/javascript">
-    <!--
-
-    function validate() {
-      var requiredfields = "";
-
-      if (document.encounter_submission.submitterName.value.length == 0) {
-        /*
-         * the value.length returns the length of the information entered
-         * in the Submitter's Name field.
-         */
-        requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
-      }
-
-        /*         
-        if ((document.encounter_submission.submitterEmail.value.length == 0) ||
-          (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
-          (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
-      
-             requiredfields += "\n   *  valid Email address";
-        }
-        if ((document.encounter_submission.location.value.length == 0)) {
-            requiredfields += "\n   *  valid sighting location";
-        }
-        */
-
-      if (requiredfields != "") {
-        requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
-        alert(requiredfields);
-// the alert function will popup the alert window
-        return false;
-      }
-      else return true;
-    }
-
-    //-->
-</script>
-
-
 <style type="text/css">
 
 .full_screen_map {
@@ -103,8 +63,6 @@ margin-bottom: 8px !important;
 
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
-<script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 
@@ -120,6 +78,37 @@ margin-bottom: 8px !important;
  %>
 
 <script type="text/javascript">
+function validate() {
+  var requiredfields = "";
+
+  if (document.encounter_submission.submitterName.value.length == 0) {
+    /*
+     * the value.length returns the length of the information entered
+     * in the Submitter's Name field.
+     */
+    requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
+  }
+
+    /*         
+    if ((document.encounter_submission.submitterEmail.value.length == 0) ||
+      (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
+      (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
+  
+         requiredfields += "\n   *  valid Email address";
+    }
+    if ((document.encounter_submission.location.value.length == 0)) {
+        requiredfields += "\n   *  valid sighting location";
+    }
+    */
+
+  if (requiredfields != "") {
+    requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
+    wildbook.showAlert(requiredfields, null, "Validate Issue");
+    return false;
+  }
+  else return true;
+}
+
 $(function() {
   function resetMap() {
       var ne_lat_element = document.getElementById('lat');
@@ -181,8 +170,6 @@ function placeMarker(location) {
     }
 
   function initialize() {
-    //alert("initializing map!");
-    
     var mapZoom = 3;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
@@ -203,7 +190,7 @@ function placeMarker(location) {
 
       //adding the fullscreen control to exit fullscreen
       var fsControlDiv = document.createElement('DIV');
-      var fsControl = new FSControl(fsControlDiv, map);
+      addFullscreenButton(fsControlDiv, map);
       fsControlDiv.index = 1;
       map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
@@ -221,7 +208,6 @@ function fullScreen() {
     $("#header_menu").hide();
     
     //if(overlaysSet){overlaysSet=false;setOverlays();}
-    //alert("Trying to execute fullscreen!");
 }
 
 
@@ -231,57 +217,54 @@ function exitFullScreen() {
 
     initialize();
     //if(overlaysSet){overlaysSet=false;setOverlays();}
-    //alert("Trying to execute exitFullScreen!");
 }
 
 
 //making the exit fullscreen button
-function FSControl(controlDiv, map) {
+function addFullscreenButton(controlDiv, map) {
+    // Set CSS styles for the DIV containing the control
+    // Setting padding to 5 px will offset the control
+    // from the edge of the map
+    controlDiv.style.padding = '5px';
 
-  // Set CSS styles for the DIV containing the control
-  // Setting padding to 5 px will offset the control
-  // from the edge of the map
-  controlDiv.style.padding = '5px';
+    // Set CSS for the control border
+    var controlUI = document.createElement('DIV');
+    controlUI.style.backgroundColor = '#f8f8f8';
+    controlUI.style.borderStyle = 'solid';
+    controlUI.style.borderWidth = '1px';
+    controlUI.style.borderColor = '#a9bbdf';;
+    controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
+    controlUI.style.cursor = 'pointer';
+    controlUI.style.textAlign = 'center';
+    controlUI.title = 'Toggle the fullscreen mode';
+    controlDiv.appendChild(controlUI);
 
-  // Set CSS for the control border
-  var controlUI = document.createElement('DIV');
-  controlUI.style.backgroundColor = '#f8f8f8';
-  controlUI.style.borderStyle = 'solid';
-  controlUI.style.borderWidth = '1px';
-  controlUI.style.borderColor = '#a9bbdf';;
-  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-  controlUI.style.cursor = 'pointer';
-  controlUI.style.textAlign = 'center';
-  controlUI.title = 'Toggle the fullscreen mode';
-  controlDiv.appendChild(controlUI);
-
-  // Set CSS for the control interior
-  var controlText = document.createElement('DIV');
-  controlText.style.fontSize = '12px';
-  controlText.style.fontWeight = 'bold';
-  controlText.style.color = '#000000';
-  controlText.style.paddingLeft = '4px';
-  controlText.style.paddingRight = '4px';
-  controlText.style.paddingTop = '3px';
-  controlText.style.paddingBottom = '2px';
-  controlUI.appendChild(controlText);
-  //toggle the text of the button
-   if($("#map_canvas").hasClass("full_screen_map")){
-      controlText.innerHTML = '<%=props.getProperty("exitFullscreen")%>';
+    // Set CSS for the control interior
+    var controlText = document.createElement('DIV');
+    controlText.style.fontSize = '12px';
+    controlText.style.fontWeight = 'bold';
+    controlText.style.color = '#000000';
+    controlText.style.paddingLeft = '4px';
+    controlText.style.paddingRight = '4px';
+    controlText.style.paddingTop = '3px';
+    controlText.style.paddingBottom = '2px';
+    controlUI.appendChild(controlText);
+    
+    //toggle the text of the button
+    if($("#map_canvas").hasClass("full_screen_map")){
+        controlText.innerHTML = '<%=props.getProperty("exitFullscreen")%>';
     } else {
-      controlText.innerHTML = '<%=props.getProperty("fullscreen")%>';
+        controlText.innerHTML = '<%=props.getProperty("fullscreen")%>';
     }
 
-  // Setup the click event listeners: toggle the full screen
-
-  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-   if($("#map_canvas").hasClass("full_screen_map")){
-    exitFullScreen();
-    } else {
-    fullScreen();
-    }
-  });
+    // Setup the click event listeners: toggle the full screen
+    google.maps.event.addDomListener(controlUI, 'click', function() {
+        if($("#map_canvas").hasClass("full_screen_map")) {
+            exitFullScreen();
+        } else {
+            fullScreen();
+        }
+    });
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
@@ -354,22 +337,20 @@ function getAlbums(network) {
     // Setting force:false means we'll only trigger auth flow if the user is not
     // already signed in with the correct credentials
     //
-    hello(network).login({
-        force:false
-    },function(auth) {
+    hello(network).login({force:false}, function(auth) {
         // Get albums
-        hello.api(network + ':me/albums', function(r) {
-            if(!r||r.error) {
-                wildbook.showAlert("Could not open albums from " + network + ": " + r.error.message);
+        hello.api(network + ':me/albums', function(resp) {
+            if(!resp || resp.error) {
+                wildbook.showAlert("Could not open albums from " + network + ": " + resp.error.message);
                 return;
-            } else if(!r.data||r.data.length===0) {
-                wildbook.showAlert("There are no photo albums in your account");
+            } else if(!resp.data || resp.data.length === 0) {
+                wildbook.showAlert("There does not appear to be any photo albums in your account");
                 return
             }
 
             // Build buttons with the albums
-            for (var i=0;i<r.data.length;i++) {
-                buildAlbumBtn(r.data[i], network);
+            for (var i = 0; i < resp.data.length;i++) {
+                buildAlbumBtn(resp.data[i], network);
             }
         });
     }, function(ex) {
@@ -392,7 +373,11 @@ hello.on('auth.login', function(auth){
  */
 
 //Initiate hellojs
-hello.init({ facebook: {'wildme.org': '363791400412043'}}, {
+/* hello.init({ facebook: {'wildme.org': '363791400412043'}}, { */
+hello.init({facebook: "363791400412043",
+/*             twitter: "UTEfL90bUGqXcsERcFbJRU4Ng", */
+            google: "195771644717-2am21965cpsueu7u49f6dgnnmqg7nmm1.apps.googleusercontent.com",
+            flickr: "d8de31bc9e774909bdcd77d0c3f7c6e2"}, {
    scope: "files, photos"/* ,
    redirect_uri : "../redirect.html" */
 });
@@ -409,7 +394,7 @@ hello.init({ facebook: {'wildme.org': '363791400412043'}}, {
 </div>
 <form id="encounterForm" action="EncounterForm" method="post" enctype="multipart/form-data"
       name="encounter_submission" target="_self" dir="ltr" lang="en"
-      onsubmit="return validate();">
+      onsubmit="return false;">
 <div class="dz-message"></div>
 
 <p><%=props.getProperty("submit_overview")%>
@@ -417,7 +402,7 @@ hello.init({ facebook: {'wildme.org': '363791400412043'}}, {
 
 <p><%=props.getProperty("submit_note_red")%>
 </p>
-<table id="encounter_report" border="0" width="100%">
+<table id="encounter_report" style="border:0">
 <tr class="form_row">
   <td class="form_label"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%></font></strong>
   </td>
@@ -586,16 +571,13 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <tr class="form_row"><td colspan="2">
     <p id="map">
-    
     <!--  
       <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
         a point to set the sighting location. You can also use the text boxes below the map to specify exact
         latitude and longitude.</p>
     -->
-
-          <p id="map_canvas" style="width: 578px; height: 383px; "></p>
-              <p id="map_overlay_buttons"></p>
-    </p>
+    <p id="map_canvas" style="width: 578px; height: 383px; "></p>
+    <p id="map_overlay_buttons"></p>
 </td>
 </tr>
 
@@ -928,8 +910,10 @@ function updateList(inp) {
         <div class="col-md-1">
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Computer</a></li>
-                <li><button class="zocial icon facebook" onclick="getAlbums('facebook')"/></li>
-                <li><button class="zocial icon twitter" onclick="getAlbums('twitter')"/></li>
+                <li><button class="zocial icon facebook" onclick="getAlbums('facebook')"/></button></li>
+<!--                 <li><button class="zocial icon twitter" onclick="getAlbums('twitter')"/></li> -->
+                <li><button class="zocial icon google" onclick="getAlbums('google')"/></button></li>
+                <li><button class="zocial icon flickr" onclick="getAlbums('flickr')"/></button></li>
             </ul>
         </div>
         <div class="col-md-11">
@@ -949,8 +933,6 @@ function updateList(inp) {
 <div id="albums"></div>
 <div id="photos"></div>
 
-</p>
-
 
 <p>&nbsp;</p>
 <%if (request.getRemoteUser() != null) {%> <input name="submitterID"
@@ -958,7 +940,8 @@ function updateList(inp) {
                                                   value="<%=request.getRemoteUser()%>"/> <%} else {%>
 <input
   name="submitterID" type="hidden" value="N/A"/> <%}%>
-<p align="center"><input type="submit" name="Submit" value="<%=props.getProperty("submit_send")%>"/>
+<p align="center">
+<button onclick="if (validate()) {document.forms['encounterForm'].submit();}"><%=props.getProperty("submit_send")%></button>
 </p>
 
 <p>&nbsp;</p>
