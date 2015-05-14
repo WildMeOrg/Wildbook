@@ -505,7 +505,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
       List<Measurement> measurements = getMeasurements(fv, encID, context);
       for (Measurement measurement : measurements) {
-        enc.addMeasurement(measurement);
+        enc.setMeasurement(measurement, myShepherd);
       }
 
 
