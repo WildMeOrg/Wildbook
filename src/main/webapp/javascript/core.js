@@ -109,10 +109,11 @@ console.log('is %o', ajax);
             message = "Error " + ex.status + ": " + ex.statusText;
             details = null;
         }
-        showAlert(message, details);
+        this.showAlert(message, details, 'Error');
     },
 
-    showAlert: function(message, details) {
+    showAlert: function(message, details, title) {
+				if (!title) title = 'Info';
         var dialog;
         if (! this.errorDialog) {
             dialog = $('<div id="alertdialog" style="display: none;">')
@@ -140,7 +141,7 @@ console.log('is %o', ajax);
             autoOpen: true,
             //dialogClass: "alertdialog",
             modal: true,
-            title: "Error",
+            title: title,
             closeOnEscape: true,
             buttons: { "OK": function() { $(this).dialog("close"); } },
             open: function() {
