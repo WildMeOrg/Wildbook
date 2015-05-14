@@ -122,13 +122,21 @@ if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuse
                 if ((fbuser != null) && (fbuser.getUsername().equals(user.getUsername())) && (request.getParameter("disconnect") != null)) {
                     fbuser.unsetSocial("facebook");
                     //myShepherd.getPM().makePersistent(user);
-                    out.println("disconnected");
+                    session.setAttribute("message", "disconnected from facebook");
+                    response.sendRedirect("myAccount.jsp");
+                    return;
+
                 } else if (fbuser != null) {
-                    out.println("looks like this account is already connected to a user!");
+                    session.setAttribute("error", "looks like this account is already connected to an account");
+                    response.sendRedirect("myAccount.jsp");
+                    return;
+
                 } else {  //lets do this
                     user.setSocial("facebook", facebookProfile.getId());
                     //myShepherd.getPM().makePersistent(user);
-                    out.println("connected");
+                    session.setAttribute("message", "connected to facebook");
+                    response.sendRedirect("myAccount.jsp");
+                    return;
                 }
             } else {
 
@@ -150,6 +158,6 @@ System.out.println("*** trying redirect?");
         }
 
 
-        out.println("ok????");
+        //out.println("ok????");
     }
 }

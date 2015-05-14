@@ -104,7 +104,12 @@ context=ServletUtilities.getContext(request);
               <p align="left">
 		
 <div style="padding: 10px;" class="error">
-<% if (session.getAttribute("error") != null) out.println(session.getAttribute("error")); %>
+<%
+if (session.getAttribute("error") != null) {
+	out.println(session.getAttribute("error"));
+	session.removeAttribute("error");
+}
+%>
 </div>
               
               <form action="LoginUser" method="post">
@@ -136,6 +141,10 @@ context=ServletUtilities.getContext(request);
 <!--
             <input type="button" value="<%=props.getProperty("loginFlickr") %>" />
 -->
+</td></tr>
+
+<tr><td>
+            <input type="button" value="<%=props.getProperty("createUserFacebook")%>" onClick="window.location.href='UserCreateSocial?type=facebook';" />
 </td></tr>
 
         <tr><td colspan="2" align="left"><a href="resetPassword.jsp"><%=props.getProperty("forgotPassword") %></a>
