@@ -105,7 +105,8 @@ import org.ecocean.security.SocialAuth;
 				System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
 
 				if (fbuser != null) {
-					out.println("already a user connected to this facebook");
+            session.setAttribute("error", "There is already a user associated with this Facebook account.");
+            WebUtils.redirectToSavedRequest(request, response, "login.jsp");
 
 				} else {
 					String username = facebookProfile.getDisplayName().replaceAll(" ", "").toLowerCase();  //TODO handle this better!
@@ -115,14 +116,37 @@ System.out.println("firstname: " + facebookProfile.getFirstName());
 System.out.println("familyname: " + facebookProfile.getFamilyName());
 System.out.println("email: " + facebookProfile.getEmail());
 //TODO other fields?  --> https://pac4j.github.io/pac4j/apidocs/pac4j/org/pac4j/oauth/profile/facebook/FacebookProfile.html
-					fbuser = createUser(username, context);
+					fbuser = createUser(username, facebookProfile.getEmail(), facebookProfile.getFirstName() + " " + facebookProfile.getFamilyName(), context);
 					fbuser.setSocial("facebook", facebookProfile.getId());
 					//myShepherd.getPM().makePersistent(fbuser);
-					out.println("account " + fbuser.getUsername() + " created!  [TODO log them in]");
+					System.out.println("account " + fbuser.getUsername() + " created!");
+          session.setAttribute("message", "new account created");
+
+            //account created, now lets try to log them in
+            UsernamePasswordToken token = new UsernamePasswordToken(fbuser.getUsername(), fbuser.getPassword());
+            try {
+                Subject subject = SecurityUtils.getSubject();
+                subject.login(token);
+                token.clear();
+            } catch (UnknownAccountException ex) {
+                //username provided was not found
+                ex.printStackTrace();
+                session.setAttribute("error", ex.getMessage() );
+            } catch (IncorrectCredentialsException ex) {
+                //password provided did not match password found in database
+                //for the username provided
+                ex.printStackTrace();
+                session.setAttribute("error", ex.getMessage());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                session.setAttribute("error", "Login NOT SUCCESSFUL - cause not known!");
+            }
+
+            WebUtils.redirectToSavedRequest(request, response, "welcome.jsp");
 				}
 			} else {
 
-System.out.println("*** trying redirect?");
+//System.out.println("*** trying redirect?");
 				try {
 					fbclient.redirect(ctx, false, false);
 				} catch (Exception ex) {
@@ -142,11 +166,24 @@ System.out.println("*** trying redirect?");
 	}   	  	    
 
 
-	private User createUser(String username, String context) {
+	private User createUser(String username, String emailAddress, String fullName, String context) {
 		String salt = ServletUtilities.getSalt().toHex();
 		String hashedPassword = ServletUtilities.hashAndSaltPassword("fixme", salt);
-		User user = new User(username, hashedPassword, salt);
 		Shepherd myShepherd = new Shepherd(context);
+
+    String origUsername = username;
+    int count = 0;
+    User already = myShepherd.getUser(username);
+    while (already != null) {
+        count++;
+System.out.println("UserCreateSocial.createUser: username " + username + " already exists, appending " + count);
+        username = origUsername + count;
+        already = myShepherd.getUser(username);
+    }
+
+		User user = new User(username, hashedPassword, salt);
+    if (emailAddress != null) user.setEmailAddress(emailAddress);
+    if (fullName != null) user.setFullName(fullName);
 		myShepherd.getPM().makePersistent(user);
 		Role role = new Role(username, "fromSocial");
 		role.setContext(context);
