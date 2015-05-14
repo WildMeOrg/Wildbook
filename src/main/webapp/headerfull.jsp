@@ -38,11 +38,14 @@ String requestUrl = "http://" + CommonConfiguration.getURLLocation(request);
   <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
   <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>" rel="stylesheet" type="text/css"/>
   <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-  <link href="<%=requestUrl%>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+  <link href="tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+  <link href="tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css">
 
-    <script type="text/javascript" src="<%=requestUrl%>/javascript/core.js"></script>
-<%--     <script type="text/javascript" src="<%=requestUrl%>/tools/hello/javascript/hello.all.min.js"></script> --%>
-    <script type="text/javascript" src="<%=requestUrl%>/tools/hello/javascript/hello.js"></script>
+    <script type="text/javascript" src="javascript/core.js"></script>
+    <script type="text/javascript" src="tools/jquery/javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="tools/jquery-ui/javascript/jquery-ui.min.js"></script>
+<%--     <script type="text/javascript" src="tools/hello/javascript/hello.all.min.js"></script> --%>
+    <script type="text/javascript" src="tools/hello/javascript/hello.js"></script>
 </head>
 
 <body>
