@@ -58,7 +58,7 @@ public class EncounterSetMeasurements extends HttpServlet {
           if (requestEventValues.id == null || requestEventValues.id.trim().length() == 0) {
             // New Event -- the user didn't enter any values the first time.
             measurement = new Measurement(encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
-            enc.addMeasurement(measurement);
+            enc.setMeasurement(measurement, myShepherd);
             //log the new measurement addition
             enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Added measurement:<br><i>" + requestEventValues.type + " "+requestEventValues.value+" "+requestEventValues.units+" ("+requestEventValues.samplingProtocol+")</i></p>");
             
@@ -116,7 +116,7 @@ public class EncounterSetMeasurements extends HttpServlet {
     else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to set the measurements. I cannot find the encounter that you intended in the database.");
+      out.println("<strong>Error:</strong> I was unable to set the measurement(s). I cannot find the encounter that you intended in the database.");
       out.println(ServletUtilities.getFooter(context));
 
     }
