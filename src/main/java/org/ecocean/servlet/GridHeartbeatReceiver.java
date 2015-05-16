@@ -65,9 +65,14 @@ public class GridHeartbeatReceiver extends HttpServlet {
       response.setContentType("text/plain");
       out = response.getWriter();
       out.println(statusText);
-      out.close();
-    } catch (Exception e) {
+      
+    } 
+    catch (Exception e) {
       e.printStackTrace();
+    }
+    finally{
+      if(out!=null)out.close();
+
     }
 
 

@@ -55,6 +55,7 @@ public class EC2RequestThread implements Runnable, ISharkGridThread {
 		  AWSCredentials credentials = new PropertiesCredentials(new File(props.getProperty("credentialsFileFullPath")));
 		  AmazonEC2Client amazonEC2Client = new AmazonEC2Client(credentials);
 		  amazonEC2Client.setEndpoint(props.getProperty("endpoint"));
+		  
 		  /*
 		  //Step 2: create a security group
 		  CreateSecurityGroupRequest csgr = new CreateSecurityGroupRequest();
@@ -95,6 +96,7 @@ public class EC2RequestThread implements Runnable, ISharkGridThread {
 			                     .withInstanceType(props.getProperty("instanceType"))
 			                     .withMinCount(numInstancesToLaunch)
 			                     .withMaxCount(numInstancesToLaunch)
+			                     .withKeyName(props.getProperty("keyName"))
 			                     .setInstanceInitiatedShutdownBehavior("terminate");
 			
 			
