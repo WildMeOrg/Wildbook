@@ -7,7 +7,11 @@ import org.ecocean.ShepherdProperties;
 
 //Amazon EC2 imports
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
+import com.amazonaws.services.ec2.model.RequestSpotInstancesRequest;
+import com.amazonaws.services.ec2.model.SpotInstanceRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
+import com.amazonaws.services.ec2.model.RequestSpotInstancesResult;
+import com.amazonaws.services.ec2.model.LaunchSpecification;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.auth.PropertiesCredentials;
@@ -88,7 +92,52 @@ public class EC2RequestThread implements Runnable, ISharkGridThread {
 	     
 	     int numInstancesToLaunch=maxInstances-numInstances;
 	     System.out.println(".....There are already "+reservList.size()+" instances in the pending or running states. So I will launch: "+numInstancesToLaunch);
+
+	     /*
+	     //first try the spot market
+	     
+	  
+	     
+	     // Initializes a Spot Instance Request
+	     RequestSpotInstancesRequest requestRequest = new RequestSpotInstancesRequest();
+
+	     requestRequest.setSpotPrice(props.getProperty("spotInstanceBidPrice"));
+	     requestRequest.setInstanceCount(Integer.valueOf(numInstancesToLaunch));
+
+
+	     // Setup the specifications of the launch. This includes the
+	     // instance type (e.g. t1.micro) and the latest Amazon Linux
+	     // AMI id available. Note, you should always use the latest
+	     // Amazon Linux AMI id or another of your choosing.
+	     LaunchSpecification launchSpecification = new LaunchSpecification();
+	     launchSpecification.setImageId(props.getProperty("amiID"));
+	     launchSpecification.setInstanceType(props.getProperty("instanceType"));
+	     launchSpecification.setKeyName(props.getProperty("keyName"));
+	     
+
+	     // Add the security group to the request.
+	     //ArrayList<String> securityGroups = new ArrayList<String>();
+	     //securityGroups.add("GettingStartedGroup");
+	     //launchSpecification.setSecurityGroups(securityGroups);
+
+	     // Add the launch specifications to the request.
+	     requestRequest.setLaunchSpecification(launchSpecification);
+
+	     // Call the RequestSpotInstance API.
+	     RequestSpotInstancesResult requestResult = amazonEC2Client.requestSpotInstances(requestRequest);
+	     List<SpotInstanceRequest> requestResponses = requestResult.getSpotInstanceRequests();
+
+	     ArrayList<String> spotInstanceRequestIds = new ArrayList<String>();
+	     
+	     numInstancesToLaunch=numInstancesToLaunch-spotInstanceRequestIds.size();
+	     */
+	     
 	     if(numInstancesToLaunch>0){
+	       
+	       
+	       
+
+	       
 			
 	       RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
 			          
