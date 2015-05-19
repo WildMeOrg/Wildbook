@@ -29,6 +29,10 @@ import org.apache.shiro.web.util.WebUtils;
 import org.ecocean.*;
 import org.ecocean.security.SocialAuth;
 
+import org.scribe.builder.*;
+import org.scribe.builder.api.*;
+import org.scribe.model.*;
+import org.scribe.oauth.*;
 
 
 /**
@@ -119,7 +123,7 @@ System.out.println("email: " + facebookProfile.getEmail());
 					fbuser = createUser(username, facebookProfile.getEmail(), facebookProfile.getFirstName() + " " + facebookProfile.getFamilyName(), context);
 					fbuser.setSocial("facebook", facebookProfile.getId());
 					//myShepherd.getPM().makePersistent(fbuser);
-					System.out.println("account " + fbuser.getUsername() + " created!");
+					System.out.println("account " + fbuser.getUsername() + " created via facebook!");
           session.setAttribute("message", "new account created");
 
             //account created, now lets try to log them in
@@ -156,6 +160,90 @@ System.out.println("email: " + facebookProfile.getEmail());
 			}
 
 
+        } else if ("flickr".equals(socialType)) {
+            String overif = request.getParameter("oauth_verifier");
+            String otoken = request.getParameter("oauth_token");
+
+            OAuthService service = null;
+            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=flickr";
+            try {
+                service = SocialAuth.getFlickrOauth(context, callbackUrl);
+            } catch (Exception ex) {
+                System.out.println("SocialAuth.getFlickrOauth() threw exception " + ex.toString());
+            }
+
+            if (overif == null) {
+                Token requestToken = service.getRequestToken();
+                session.setAttribute("requestToken", requestToken);
+       //System.out.println("==============================================requestToken = " + requestToken);
+                String authorizationUrl = service.getAuthorizationUrl(requestToken) + "&perms=read";
+                response.sendRedirect(authorizationUrl);
+                return;
+
+            } else {
+System.out.println("verifier -> " + overif);
+                Token requestToken = (Token)session.getAttribute("requestToken");
+                Verifier verifier = new Verifier(overif);
+                Token accessToken = service.getAccessToken(requestToken, verifier);
+       System.out.println("==============================================requestToken = " + requestToken);
+       System.out.println("=- - - - - - - - - - - - - -==================accessToken = " + accessToken);
+System.out.println("-----------------------------------------otoken= " + otoken);
+       System.out.println("verifier = " + verifier);
+
+                OAuthRequest oRequest = new OAuthRequest(Verb.GET, SocialAuth.FLICKR_URL);
+                oRequest.addQuerystringParameter("method", "flickr.test.login");
+                service.signRequest(accessToken, oRequest);
+                Response oResponse = oRequest.send();
+//System.out.println("GOT RESPONSE!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//System.out.println(oResponse.getBody());
+
+                String fusername = null;   //should we use <user id="XXXXXXXXX"> instead?  TODO
+                int i = oResponse.getBody().indexOf("<username>");
+                if (i > -1) {
+                    fusername = oResponse.getBody().substring(i + 10);
+                    i = fusername.indexOf("</username>");
+                    if (i > -1) fusername = fusername.substring(0, i);
+                }
+                User fuser = myShepherd.getUserBySocialId("flickr", fusername);
+   System.out.println("fusername = " + fusername + " -> user = " + fuser);
+
+				if (fuser != null) {
+            session.setAttribute("error", "There is already a user associated with this Flickr account.");
+            WebUtils.redirectToSavedRequest(request, response, "login.jsp");
+
+				} else {
+            //TODO handle creating new username better?
+            fuser = createUser(fusername.toLowerCase(), "", "", context);
+            fuser.setSocial("flickr", fusername);
+            System.out.println("account " + fuser.getUsername() + " created via flickr!");
+            session.setAttribute("message", "new account created");
+
+            //account created, now lets try to log them in
+            UsernamePasswordToken token = new UsernamePasswordToken(fuser.getUsername(), fuser.getPassword());
+            try {
+                Subject subject = SecurityUtils.getSubject();
+                subject.login(token);
+                token.clear();
+            } catch (UnknownAccountException ex) {
+                //username provided was not found
+                ex.printStackTrace();
+                session.setAttribute("error", ex.getMessage() );
+            } catch (IncorrectCredentialsException ex) {
+                //password provided did not match password found in database
+                //for the username provided
+                ex.printStackTrace();
+                session.setAttribute("error", ex.getMessage());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                session.setAttribute("error", "Login NOT SUCCESSFUL - cause not known!");
+            }
+
+            WebUtils.redirectToSavedRequest(request, response, "welcome.jsp");
+        }
+
+      }
+
+
 		} else {
 			out.println("invalid type");
 			return;
@@ -168,7 +256,7 @@ System.out.println("email: " + facebookProfile.getEmail());
 
 	private User createUser(String username, String emailAddress, String fullName, String context) {
 		String salt = ServletUtilities.getSalt().toHex();
-		String hashedPassword = ServletUtilities.hashAndSaltPassword("fixme", salt);
+		String hashedPassword = ServletUtilities.hashAndSaltPassword(Util.generateUUID(), salt);  //good luck guessing that password
 		Shepherd myShepherd = new Shepherd(context);
 
     String origUsername = username;

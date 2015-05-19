@@ -138,13 +138,12 @@ if (session.getAttribute("error") != null) {
 
 <tr><td>
             <input type="button" value="<%=props.getProperty("loginFacebook")%>" onClick="window.location.href='LoginUserSocial?type=facebook';" />
-<!--
-            <input type="button" value="<%=props.getProperty("loginFlickr") %>" />
--->
+            <input type="button" value="<%=props.getProperty("loginFlickr")%>" onClick="window.location.href='LoginUserSocial?type=flickr';" />
 </td></tr>
 
 <tr><td>
             <input type="button" value="<%=props.getProperty("createUserFacebook")%>" onClick="window.location.href='UserCreateSocial?type=facebook';" />
+            <input type="button" value="<%=props.getProperty("createUserFlickr")%>" onClick="window.location.href='UserCreateSocial?type=flickr';" />
 </td></tr>
 
         <tr><td colspan="2" align="left"><a href="resetPassword.jsp"><%=props.getProperty("forgotPassword") %></a>
