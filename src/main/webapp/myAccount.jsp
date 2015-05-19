@@ -266,7 +266,7 @@ if (session.getAttribute("message") != null) {
 <h1>External connections</h1>
 <div style="padding-bottom: 10px;">
 <%
-	String types[] = new String[] {"facebook"};
+	String types[] = new String[] {"facebook", "flickr"};
 	for (int i = 0 ; i < types.length ; i++) {
 		if (thisUser.getSocial(types[i]) == null) {
 			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + types[i] + "');\" value=\"connect to " + types[i] + "\" /></div>");
