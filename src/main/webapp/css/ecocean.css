@@ -222,6 +222,11 @@ a.launchPopup {
   vertical-align: bottom;
 }
 
+#alertmessage {
+    word-break: normal;
+    white-space: normal;
+}
+
 .search {
   margin: 0px;
   padding: 0px;
@@ -1686,7 +1691,3 @@ div.state-approved span.state {
     transform: rotate(-21deg);
     color: rgba(0,0,0,0.9);
 }
-
-
-
-
