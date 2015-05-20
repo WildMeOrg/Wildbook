@@ -891,19 +891,7 @@ function updateList(inp) {
 
 <p align="center"><strong><%=props.getProperty("submit_image")%></strong></p>
 <div class="container-fluid">
-    <div class="row">
-        <ul class="list-inline" style="text-align: center;">
-            <li class="active">
-                <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()"
-                        style="background:url(images/computer.png);">
-                </button>
-            </li>
-            <li><button class="zocial icon facebook" title="Import from Facebook" onclick="getAlbums('facebook')"/></button></li>
-            <!-- <li><button class="zocial icon twitter" title="Import from Twitter" onclick="getAlbums('twitter')"/></li> -->
-            <li><button class="zocial icon google" title="Import from Google+" onclick="getAlbums('google')"/></button></li>
-            <li><button class="zocial icon flickr" title="Import from Flickr" onclick="getAlbums('flickr')"/></button></li>
-        </ul>
-    </div>
+
     <div class="row">
         <div id="submitupload" class="input-file-drop">
             <% if (isIE) { %>
@@ -915,14 +903,7 @@ function updateList(inp) {
             <% } %>
             <div id="input-file-list"></div>
         </div>
-        <div id="submitsocialmedia" class="container-fluid hidden" style="max-height:300px;">
-            <div class="row">
-                <div id="socialalbums" class="col-md-4" style="overflow-y:auto;">
-                </div>
-                <div id="socialphotos" class="col-md-8" style="overflow-y:auto;">
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
 
