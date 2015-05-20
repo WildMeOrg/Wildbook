@@ -28,43 +28,40 @@ context=ServletUtilities.getContext(request);
 %>
 
 <style type="text/css">
-
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-
-
-/* css for timepicker */
-.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
-.ui-timepicker-div dl { text-align: left; padding: 0 5px 0 0;}
-.ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
-.ui-timepicker-div dl dd { margin: 0 10px 10px 45%; }
-.ui-timepicker-div td { font-size: 90%; }
-.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
-
-.ui-timepicker-rtl{ direction: rtl; }
-.ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
-.ui-timepicker-rtl dl dt{ float: right; clear: right; }
-.ui-timepicker-rtl dl dd { margin: 0 45% 10px 10px; }
-
-/*customizations*/
-.ui_tpicker_hour_label {margin-bottom:5px !important;}
-.ui_tpicker_minute_label {margin-bottom:5px !important;}
-
-
-
+    .full_screen_map {
+    position: absolute !important;
+    top: 0px !important;
+    left: 0px !important;
+    z-index: 1 !imporant;
+    width: 100% !important;
+    height: 100% !important;
+    margin-top: 0px !important;
+    margin-bottom: 8px !important;
+    
+    
+    /* css for timepicker */
+    .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+    .ui-timepicker-div dl { text-align: left; padding: 0 5px 0 0;}
+    .ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
+    .ui-timepicker-div dl dd { margin: 0 10px 10px 45%; }
+    .ui-timepicker-div td { font-size: 90%; }
+    .ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+    
+    .ui-timepicker-rtl{ direction: rtl; }
+    .ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
+    .ui-timepicker-rtl dl dt{ float: right; clear: right; }
+    .ui-timepicker-rtl dl dd { margin: 0 45% 10px 10px; }
+    
+    /*customizations*/
+    .ui_tpicker_hour_label {margin-bottom:5px !important;}
+    .ui_tpicker_minute_label {margin-bottom:5px !important;}
 </style>
 
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+<script src="javascript/pages/submit.js"></script>
 
  <%
  if(!langCode.equals("en")){
@@ -79,295 +76,36 @@ margin-bottom: 8px !important;
 
 <script type="text/javascript">
 function validate() {
-  var requiredfields = "";
+    var requiredfields = "";
 
-  if (document.encounter_submission.submitterName.value.length == 0) {
-    /*
-     * the value.length returns the length of the information entered
-     * in the Submitter's Name field.
-     */
-    requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
-  }
-
-    /*         
-    if ((document.encounter_submission.submitterEmail.value.length == 0) ||
-      (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
-      (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
-  
-         requiredfields += "\n   *  valid Email address";
-    }
-    if ((document.encounter_submission.location.value.length == 0)) {
-        requiredfields += "\n   *  valid sighting location";
-    }
-    */
-
-  if (requiredfields != "") {
-    requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
-    wildbook.showAlert(requiredfields, null, "Validate Issue");
-    return false;
-  }
-  else return true;
-}
-
-$(function() {
-  function resetMap() {
-      var ne_lat_element = document.getElementById('lat');
-      var ne_long_element = document.getElementById('longitude');
-
-
-      ne_lat_element.value = "";
-      ne_long_element.value = "";
-
+    if ($("#submitterName").val().length == 0) {
+      /*
+       * the value.length returns the length of the information entered
+       * in the Submitter's Name field.
+       */
+      requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
     }
 
-    $(window).unload(resetMap);
-    
-    //
-    // Call it now on page load.
-    //
-    resetMap();
+      /*
+      if ((document.encounter_submission.submitterEmail.value.length == 0) ||
+        (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
+        (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
 
-    $( "#datepicker" ).datetimepicker({
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: 'yy-mm-dd',
-      maxDate: '+1d',
-      controlType: 'select',
-      alwaysSetTime: false
-    });
-    $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+           requiredfields += "\n   *  valid Email address";
+      }
+      if ((document.encounter_submission.location.value.length == 0)) {
+          requiredfields += "\n   *  valid sighting location";
+      }
+      */
 
-    $( "#releasedatepicker" ).datepicker({
-        changeMonth: true,
-        changeYear: true,
-        dateFormat: 'yy-mm-dd'
-    });
-    $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
-    $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
-});
-
-var center = new google.maps.LatLng(10.8, 160.8);
-
-var map;
-
-var marker;
-
-function placeMarker(location) {
-    if(marker!=null){marker.setMap(null);}  
-    marker = new google.maps.Marker({
-          position: location,
-          map: map
-      });
-
-      //map.setCenter(location);
-      
-        var ne_lat_element = document.getElementById('lat');
-        var ne_long_element = document.getElementById('longitude');
-
-
-        ne_lat_element.value = location.lat();
-        ne_long_element.value = location.lng();
-    }
-
-  function initialize() {
-    var mapZoom = 3;
-    if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-
-
-    if(marker!=null){
-        center = new google.maps.LatLng(10.8, 160.8);
-    }
-    
-    map = new google.maps.Map(document.getElementById('map_canvas'), {
-          zoom: mapZoom,
-          center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID
-        });
-    
-    if(marker!=null){
-        marker.setMap(map);    
-    }
-
-      //adding the fullscreen control to exit fullscreen
-      var fsControlDiv = document.createElement('DIV');
-      addFullscreenButton(fsControlDiv, map);
-      fsControlDiv.index = 1;
-      map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
-      google.maps.event.addListener(map, 'click', function(event) {
-            placeMarker(event.latLng);
-          });
-}
-
-function fullScreen() {
-    $("#map_canvas").addClass('full_screen_map');
-    $('html, body').animate({scrollTop:0}, 'slow');
-    initialize();
-    
-    //hide header
-    $("#header_menu").hide();
-    
-    //if(overlaysSet){overlaysSet=false;setOverlays();}
-}
-
-
-function exitFullScreen() {
-    $("#header_menu").show();
-    $("#map_canvas").removeClass('full_screen_map');
-
-    initialize();
-    //if(overlaysSet){overlaysSet=false;setOverlays();}
-}
-
-
-//making the exit fullscreen button
-function addFullscreenButton(controlDiv, map) {
-    // Set CSS styles for the DIV containing the control
-    // Setting padding to 5 px will offset the control
-    // from the edge of the map
-    controlDiv.style.padding = '5px';
-
-    // Set CSS for the control border
-    var controlUI = document.createElement('DIV');
-    controlUI.style.backgroundColor = '#f8f8f8';
-    controlUI.style.borderStyle = 'solid';
-    controlUI.style.borderWidth = '1px';
-    controlUI.style.borderColor = '#a9bbdf';;
-    controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-    controlUI.style.cursor = 'pointer';
-    controlUI.style.textAlign = 'center';
-    controlUI.title = 'Toggle the fullscreen mode';
-    controlDiv.appendChild(controlUI);
-
-    // Set CSS for the control interior
-    var controlText = document.createElement('DIV');
-    controlText.style.fontSize = '12px';
-    controlText.style.fontWeight = 'bold';
-    controlText.style.color = '#000000';
-    controlText.style.paddingLeft = '4px';
-    controlText.style.paddingRight = '4px';
-    controlText.style.paddingTop = '3px';
-    controlText.style.paddingBottom = '2px';
-    controlUI.appendChild(controlText);
-    
-    //toggle the text of the button
-    if($("#map_canvas").hasClass("full_screen_map")){
-        controlText.innerHTML = '<%=props.getProperty("exitFullscreen")%>';
+    if (requiredfields != "") {
+      requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
+      wildbook.showAlert(requiredfields, null, "Validate Issue");
+      return false;
     } else {
-        controlText.innerHTML = '<%=props.getProperty("fullscreen")%>';
+        return true;
     }
-
-    // Setup the click event listeners: toggle the full screen
-    google.maps.event.addDomListener(controlUI, 'click', function() {
-        if($("#map_canvas").hasClass("full_screen_map")) {
-            exitFullScreen();
-        } else {
-            fullScreen();
-        }
-    });
 }
-
-google.maps.event.addDomListener(window, 'load', initialize);
-
-
-function buildPhotoThumnail(item) {
-    var o = document.createElement('img');
-    o.className='picture';
-    o.src = item.thumbnail;
-    o.title = item.name;
-
-    document.getElementById('socialphotos').appendChild(o);
-}
-
-function getPhotos(network, id) {
-    $("#socialphotos").empty();
-
-    hello( network ).api('me/album', {
-        id: id,
-        limit:10
-    }, function(resp){
-        if(resp.error){
-            wildbook.showAlert(resp.error.message);
-            return;
-        }
-        else if(!resp.data || resp.data.length === 0) {
-            wildbook.showAlert("There are no photos in this album");
-            return;
-        }
-
-        for (var i = 0; i < resp.data.length; i++) {
-            buildPhotoThumnail(resp.data[i]);
-        }
-    });
-}
-
-function showUploadBox() {
-    $("#submitsocialmedia").addClass("hidden");
-    $("#submitupload").removeClass("hidden");
-}
-
-function getAlbums(network) {
-    $("#submitsocialmedia").removeClass("hidden");
-    $("#submitupload").addClass("hidden");
-    
-    $("#socialalbums").empty();
-    $("#socialphotos").empty();
-    //
-    // Setting force:false means we'll only trigger auth flow if the user is not
-    // already signed in with the correct credentials
-    //
-    hello(network).login({force:false}, function(auth) {
-        // Get albums
-        hello.api(network + ':me/albums', function(resp) {
-            if(!resp || resp.error) {
-                wildbook.showAlert("Could not open albums from " + network + ": " + resp.error.message);
-                return;
-            } else if(!resp.data || resp.data.length === 0) {
-                wildbook.showAlert("There does not appear to be any photo albums in your account");
-                return
-            }
-
-            // Build buttons with the albums
-            $.each(resp.data, function() {                
-                var button = $('<button>').text(this.name).prop("title", this.name)
-                                     .addClass("btn btn-block btn-primary");
-                var id = this.id;
-                button.click(function() {
-                    getPhotos(network, id);
-                });
-
-                $('#socialalbums').append(button);
-            });
-        });
-    }, function(ex) {
-        wildbook.showAlert(ex.error.message);
-    });
-}
-
-
-/* //Get User
-hello.on('auth.login', function(auth){
-    // Get Profile
-    hello.api(auth.network + ':me', function(r){
-        if(!r||r.error) {
-            wildbook.showAlert(r.error.message);
-            return;
-        }
-        document.getElementById(auth.network).innerHTML = "Get Albums from " + r.name + " at "+auth.network+"";
-    });
-});
- */
-
-//Initiate hellojs
-/* hello.init({ facebook: {'wildme.org': '363791400412043'}}, { */ // Can base your keys off urls if the service allows/requires
-hello.init({facebook: "363791400412043",
-/*             twitter: "UTEfL90bUGqXcsERcFbJRU4Ng", */
-            google: "195771644717-2am21965cpsueu7u49f6dgnnmqg7nmm1.apps.googleusercontent.com",
-            flickr: "d8de31bc9e774909bdcd77d0c3f7c6e2"}, {
-   scope: "files, photos"/* ,
-   redirect_uri : "../redirect.html" */
-});
-
 </script>
 
 <div id="main">
@@ -894,17 +632,17 @@ function updateList(inp) {
     <div class="row">
         <ul class="list-inline" style="text-align: center;">
             <li class="active">
-                <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()"
+                <button class="zocial icon" title="Upload from your computer" onclick="wildbook.submit.showUploadBox()"
                         style="background:url(images/computer.png);">
                 </button>
             </li>
-            <li><button class="zocial icon facebook" title="Import from Facebook" onclick="getAlbums('facebook')"/></button></li>
-            <!-- <li><button class="zocial icon twitter" title="Import from Twitter" onclick="getAlbums('twitter')"/></li> -->
-            <li><button class="zocial icon google" title="Import from Google+" onclick="getAlbums('google')"/></button></li>
-            <li><button class="zocial icon flickr" title="Import from Flickr" onclick="getAlbums('flickr')"/></button></li>
+            <li><button class="zocial icon facebook" title="Import from Facebook" onclick="wildbook.submit.getAlbums('facebook')"/></button></li>
+            <!-- <li><button class="zocial icon twitter" title="Import from Twitter" onclick="wildbook.submit.getAlbums('twitter')"/></li> -->
+            <li><button class="zocial icon google" title="Import from Google+" onclick="wildbook.submit.getAlbums('google')"/></button></li>
+            <li><button class="zocial icon flickr" title="Import from Flickr" onclick="wildbook.submit.getAlbums('flickr')"/></button></li>
         </ul>
     </div>
-    <div class="row">
+    <div class="row" style="height:300px;">
         <div id="submitupload" class="input-file-drop">
             <% if (isIE) { %>
             <div><%=props.getProperty("dragInstructionsIE")%></div>
@@ -915,12 +653,10 @@ function updateList(inp) {
             <% } %>
             <div id="input-file-list"></div>
         </div>
-        <div id="submitsocialmedia" class="container-fluid hidden" style="max-height:300px;">
-            <div class="row">
-                <div id="socialalbums" class="col-md-4" style="overflow-y:auto;">
-                </div>
-                <div id="socialphotos" class="col-md-8" style="overflow-y:auto;">
-                </div>
+        <div id="submitsocialmedia" class="container-fluid hidden" style="height:100%;">
+            <div id="socialalbums" class="col-md-4" style="height:100%;overflow-y:auto;">
+            </div>
+            <div id="socialphotos" class="col-md-8" style="height:100%;overflow-y:auto;">
             </div>
         </div>
     </div>
