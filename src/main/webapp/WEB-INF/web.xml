@@ -118,7 +118,7 @@
 		/GenePopExport = authc, roles[researcher]
 		
 
-		/individualSearch.jsp = authc
+		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
 		/individualSearch.jsp = authc, roles[researcher]
 		/individualSearchResults.jsp = anon
@@ -128,12 +128,12 @@
 		/individualThumbnailSearchResults.jsp = authc, roles[researcher]
 	
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
-		 /encounters/encounterSearch.jsp = authc
+		 /encounters/encounterSearch.jsp = roles[researcher]
 		 /encounters/searchResults.jsp = anon
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
 		 /encounters/mappedSearchResults.jsp = authc
-		 /encounters/mappedSearchResultsSex.jsp = anon
-		 /encounters/mappedSearchResultsHaplotype.jsp = anon
+		 /encounters/mappedSearchResultsSex.jsp = authc
+		 /encounters/mappedSearchResultsHaplotype.jsp = authc
 		 /encounters/exportSearchResults.jsp = authc, roles[researcher]
 		 /googleSearch.jsp = authc, roles[researcher]
 		 /googleSearchResults.jsp = authc, roles[researcher]
