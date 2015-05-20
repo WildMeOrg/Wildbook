@@ -197,6 +197,11 @@ a.launchPopup {
   vertical-align: bottom;
 }
 
+#alertmessage {
+    word-break: normal;
+    white-space: normal;
+}
+
 .search {
   margin: 0px;
   padding: 0px;

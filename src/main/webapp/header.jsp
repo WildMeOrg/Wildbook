@@ -385,6 +385,7 @@ if(CommonConfiguration.isCatalogEditable(context)){
 </div>
 
 <!-- define our JavaScript -->
+	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/hello.all.min.js"></script>
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.blockUI.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
