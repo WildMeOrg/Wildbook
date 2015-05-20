@@ -196,7 +196,7 @@ public class WorkAppletHeadlessEpic {
             inputFromServlet = new ObjectInputStream(con.getInputStream());
             workItems = (Vector) inputFromServlet.readObject();
             
-            if(workItems.size()>0){
+            if((workItems!=null)&&(workItems.size()>0)){
               swi = (ScanWorkItem) workItems.get(0);
               successfulConnect = true;
             }
@@ -223,7 +223,7 @@ public class WorkAppletHeadlessEpic {
           } 
           catch (Exception ioe) {
             if(inputFromServlet!=null)inputFromServlet.close();
-            //ioe.printStackTrace();
+            ioe.printStackTrace();
             successfulConnect = false;
             //Thread.sleep(60000);
             //System.exit(0);
