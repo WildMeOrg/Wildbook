@@ -111,15 +111,18 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
     catch (MalformedURLException mue) {
       System.out.println("!!!!!I hit a MalformedURLException in the heartbeat thread!!!!!");
       mue.printStackTrace();
+      System.exit(0);
 
     } 
     catch (IOException ioe) {
       System.out.println("!!!!!I hit an IO exception in the heartbeat thread!!!!!");
       ioe.printStackTrace();
+      System.exit(0);
     } 
     catch (Exception e) {
       System.out.println("!!!!!I hit an Exception in the heartbeat thread!!!!!");
       e.printStackTrace();
+      System.exit(0);
     }
     finally{
       try{

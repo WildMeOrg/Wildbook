@@ -247,17 +247,24 @@ public class ScanAppletSupport extends HttpServlet {
 
   //transmits requested objects to the applet
   public boolean sendObject(HttpServletResponse response, Object encounterVector) {
-    ObjectOutputStream outputToApplet;
+    ObjectOutputStream outputToApplet=null;
     try {
       outputToApplet = new ObjectOutputStream(response.getOutputStream());
       outputToApplet.writeObject(encounterVector);
       outputToApplet.flush();
       outputToApplet.close();
       return true;
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       System.out.println("Caught an error when attempting to return data via the sendEncounterList method of scanAppletSupport servlet");
       e.printStackTrace();
       return false;
+    }
+    finally{
+      try{
+        if(outputToApplet!=null)outputToApplet.close();
+      }
+      catch(Exception e){}
     }
   }
 
