@@ -103,6 +103,14 @@ context=ServletUtilities.getContext(request);
 
               <p align="left">
 		
+<div style="padding: 10px;" class="error">
+<%
+if (session.getAttribute("error") != null) {
+	out.println(session.getAttribute("error"));
+	session.removeAttribute("error");
+}
+%>
+</div>
               
               <form action="LoginUser" method="post">
     <table align="left" border="0" cellspacing="0" cellpadding="3">
@@ -122,9 +130,45 @@ context=ServletUtilities.getContext(request);
 
         </tr>
         <tr>
-            <td colspan="2" align="left"><input type="submit" name="submit" value="<%=props.getProperty("login") %>" /></td>
+					<td colspan="3">
+            <input type="submit" name="submit" value="<%=props.getProperty("login") %>" />
+					</td>
         </tr>
         <tr><td>&nbsp;</td></tr>
+
+<tr><td>
+
+<%
+if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
+%>
+            <input type="button" value="<%=props.getProperty("loginFacebook")%>" onClick="window.location.href='LoginUserSocial?type=facebook';" />
+<%
+}
+
+if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
+%>
+            <input type="button" value="<%=props.getProperty("loginFlickr")%>" onClick="window.location.href='LoginUserSocial?type=flickr';" />
+<%
+}
+%>
+</td></tr>
+
+<tr><td>
+<%
+if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
+%>
+            <input type="button" value="<%=props.getProperty("createUserFacebook")%>" onClick="window.location.href='UserCreateSocial?type=facebook';" />
+<%
+}
+
+if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
+%>           
+            <input type="button" value="<%=props.getProperty("createUserFlickr")%>" onClick="window.location.href='UserCreateSocial?type=flickr';" />
+<%
+}
+%>
+</td></tr>
+
         <tr><td colspan="2" align="left"><a href="resetPassword.jsp"><%=props.getProperty("forgotPassword") %></a>
      </td></tr>
     </table>
@@ -138,6 +182,7 @@ context=ServletUtilities.getContext(request);
               
             </div>
             <!-- end maintext --></div>
+
           <!-- end maincol -->
           <jsp:include page="footer.jsp" flush="true"/>
         </div>

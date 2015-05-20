@@ -20,7 +20,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
-<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat, java.io.*" %>
+<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat,
+javax.servlet.http.HttpSession,
+java.io.*" %>
 
 
 <%
@@ -34,6 +36,19 @@ String langCode = ServletUtilities.getLanguageCode(request);
 //load user props
 Properties props=ShepherdProperties.getProperties("users.properties", langCode,context);
 
+if (session.getAttribute("error") != null) {
+	%><script>var errorMessage = '<%=session.getAttribute("error").toString().replaceAll("'", "\\'")%>';</script><%
+	session.removeAttribute("error");
+} else {
+	%><script>var errorMessage = false;</script><%
+}
+
+if (session.getAttribute("message") != null) {
+	%><script>var message = '<%=session.getAttribute("message").toString().replaceAll("'", "\\'")%>';</script><%
+	session.removeAttribute("message");
+} else {
+	%><script>var message = false;</script><%
+}
 
 
   	
@@ -67,6 +82,9 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
   <link rel="shortcut icon"
         href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
+
+<script src="javascript/core.js"></script>
+
   <style type="text/css">
     <!--
     .style1 {
@@ -85,6 +103,11 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
       <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
     <div id="main">
+
+
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
 
 	<h1 class="intro"><%=(props.getProperty("userAccount")+" "+request.getUserPrincipal()) %></h1>
 
@@ -239,6 +262,33 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
             </form>
             </tr>
             </table>
+
+<h1>External connections</h1>
+<div style="padding-bottom: 10px;">
+<%
+	String types[] = new String[] {"facebook", "flickr"};
+
+if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
+
+		String socialType="facebook";
+		if (thisUser.getSocial(socialType) == null) {
+			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
+		} else {
+			out.println("<div class=\"social-connected\">connected to " + socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
+		}
+}
+if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
+
+	String socialType="flickr";
+	if (thisUser.getSocial(socialType) == null) {
+		out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
+	} else {
+		out.println("<div class=\"social-connected\">connected to " + socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
+	}
+}
+%>
+</div>
+
 <%
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
 
@@ -321,6 +371,22 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 %>
+<script>
+if (errorMessage) wildbook.showAlert(errorMessage, '', 'Error');
+if (message) wildbook.showAlert(message);
+
+function socialDisconnect(svc) {
+//console.info('disconnect %s', svc);
+	window.location.href = 'SocialConnect?disconnect=1&type=' + svc;
+}
+
+function socialConnect(svc) {
+//console.info('connect %s', svc);
+	window.location.href = 'SocialConnect?type=' + svc;
+}
+
+</script>
+
 </body>
 </html>
 

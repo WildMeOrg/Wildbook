@@ -33,6 +33,8 @@ import java.lang.reflect.Field;
 import java.io.*;
 import java.util.*;
 
+import org.ecocean.security.SocialAuth;
+
 import org.w3c.dom.Document;
 import com.google.gson.Gson;
 
@@ -104,6 +106,13 @@ public class JavascriptGlobals extends HttpServlet {
 			classDefn.put(cls.getName(), defn);
 		}
 		rtn.put("classDefinitions", classDefn);
+
+    HashMap soc = new HashMap();
+    Properties authprops = SocialAuth.authProps(context);
+    if (authprops != null) {
+        if (authprops.getProperty("facebookAppId") != null) soc.put("facebookAppId", authprops.getProperty("facebookAppId"));
+    }
+    rtn.put("social", soc);
 
     response.setContentType("text/javascript");
     response.setCharacterEncoding("UTF-8");
