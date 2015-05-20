@@ -66,7 +66,7 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
         sendHeartbeat(appletID);
         Thread.sleep(90000);
       } catch (Exception e) {
-        System.out.println("     Heartbeat thread registering an exception while trying to sleep!");
+        System.out.println("Heartbeat thread registering an exception while trying to sleep!");
       }
     }
   }
@@ -130,9 +130,7 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
         finishConnection=null;
         u=null;
       }
-      catch(Exception ex){
-        System.exit(0);
-      }
+      catch(Exception ex){}
     }
   }
 
