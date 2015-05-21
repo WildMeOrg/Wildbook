@@ -137,13 +137,36 @@ if (session.getAttribute("error") != null) {
         <tr><td>&nbsp;</td></tr>
 
 <tr><td>
+
+<%
+if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
+%>
             <input type="button" value="<%=props.getProperty("loginFacebook")%>" onClick="window.location.href='LoginUserSocial?type=facebook';" />
+<%
+}
+
+if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
+%>
             <input type="button" value="<%=props.getProperty("loginFlickr")%>" onClick="window.location.href='LoginUserSocial?type=flickr';" />
+<%
+}
+%>
 </td></tr>
 
 <tr><td>
+<%
+if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
+%>
             <input type="button" value="<%=props.getProperty("createUserFacebook")%>" onClick="window.location.href='UserCreateSocial?type=facebook';" />
+<%
+}
+
+if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
+%>           
             <input type="button" value="<%=props.getProperty("createUserFlickr")%>" onClick="window.location.href='UserCreateSocial?type=flickr';" />
+<%
+}
+%>
 </td></tr>
 
         <tr><td colspan="2" align="left"><a href="resetPassword.jsp"><%=props.getProperty("forgotPassword") %></a>
