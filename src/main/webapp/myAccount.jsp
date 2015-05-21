@@ -267,13 +267,25 @@ if (session.getAttribute("message") != null) {
 <div style="padding-bottom: 10px;">
 <%
 	String types[] = new String[] {"facebook", "flickr"};
-	for (int i = 0 ; i < types.length ; i++) {
-		if (thisUser.getSocial(types[i]) == null) {
-			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + types[i] + "');\" value=\"connect to " + types[i] + "\" /></div>");
+
+if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
+
+		String socialType="facebook";
+		if (thisUser.getSocial(socialType) == null) {
+			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
 		} else {
-			out.println("<div class=\"social-connected\">connected to " + types[i] + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + types[i] + "');\" value=\"disconnect\" /></div>");
+			out.println("<div class=\"social-connected\">connected to " + socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
 		}
+}
+if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
+
+	String socialType="flickr";
+	if (thisUser.getSocial(socialType) == null) {
+		out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
+	} else {
+		out.println("<div class=\"social-connected\">connected to " + socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
 	}
+}
 %>
 </div>
 

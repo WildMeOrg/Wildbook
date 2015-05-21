@@ -1657,6 +1657,36 @@
     <url-pattern>/IndividualRemoveDataFile</url-pattern>
   </servlet-mapping>
   
+      <servlet>
+      <servlet-name>UserCreateSocial</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserCreateSocial</servlet-class>
+  </servlet>
+  
+      <servlet>
+      	<servlet-name>LoginUserSocial</servlet-name>
+      	<servlet-class>org.ecocean.servlet.LoginUserSocial</servlet-class>
+   </servlet>
+   
+     <servlet>
+      	<servlet-name>SocialConnect</servlet-name>
+      	<servlet-class>org.ecocean.servlet.SocialConnect</servlet-class>
+   </servlet>
+   
+   <servlet-mapping>
+          <servlet-name>UserCreateSocial</servlet-name>
+          <url-pattern>/UserCreateSocial</url-pattern>
+  </servlet-mapping>
+  
+      <servlet-mapping>
+    	<servlet-name>LoginUserSocial</servlet-name>
+    	<url-pattern>/LoginUserSocial</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+    	<servlet-name>SocialConnect</servlet-name>
+    	<url-pattern>/SocialConnect</url-pattern>
+    </servlet-mapping>
+  
 
 
 </web-app>
