@@ -140,7 +140,7 @@ console.log('is %o', ajax);
         dialog.dialog( {
             autoOpen: true,
             //dialogClass: "alertdialog",
-            modal: true,
+            modal: false,
             title: title,
             closeOnEscape: true,
             buttons: { "OK": function() { $(this).dialog("close"); } },
