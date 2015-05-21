@@ -262,8 +262,8 @@ if (session.getAttribute("message") != null) {
             </form>
             </tr>
             </table>
-
-<h1>External connections</h1>
+<br ></br>
+<h1><%=props.getProperty("socialMediaConnections") %></h1>
 <div style="padding-bottom: 10px;">
 <%
 	String types[] = new String[] {"facebook", "flickr"};
@@ -274,7 +274,7 @@ if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(C
 		if (thisUser.getSocial(socialType) == null) {
 			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
 		} else {
-			out.println("<div class=\"social-connected\">connected to " + socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
+			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
 		}
 }
 if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
@@ -283,7 +283,7 @@ if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(Com
 	if (thisUser.getSocial(socialType) == null) {
 		out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
 	} else {
-		out.println("<div class=\"social-connected\">connected to " + socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
+		out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
 	}
 }
 %>
