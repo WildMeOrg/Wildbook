@@ -357,7 +357,16 @@ if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(Com
     
     <h3><%=props.getProperty("myData") %></h3>
     
-    <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
+
+<%
+String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+thisUser.getUsername()+"'";
+%>
+    <jsp:include page="encounters/encounterSearchResultsAnalysisEmbed.jsp" flush="true">
+    	<jsp:param name="jdoqlString" value="<%=jdoqlString %>" />
+    </jsp:include>
+    
+    <p><strong>Links to My Data</strong></p>
+        <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
     
     <p class="caption"><a href="encounters/searchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
     
