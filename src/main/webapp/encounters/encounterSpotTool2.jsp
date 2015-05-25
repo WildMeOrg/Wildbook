@@ -672,21 +672,41 @@ function allGood(d) {
       function render_corners(corners, count, img, step) {
 			//alert("render_corners");
           var pix = (0xff << 24) | (0x00 << 16) | (0xff << 8) | 0x00;
+          
+          var rw = itool.rectW() * itool.scale;                                                                                                                                  
+          var wscale = rw / itool.wCanvas.offsetWidth;
+          
+          var jasonScale=itool.wCanvas.width/itool.imgEl.naturalWidth;
+          //var jasonScale=1.1;
+          alert(jasonScale);
+          itool.spots=[];
+          
           for(var i=0; i < count; ++i)
           {
         	  //old spot creating with JSFeat - replace this
+              
               var x = corners[i].x;
               var y = corners[i].y;
+              
+              
               var off = (x + y * step);
+             /*
               img[off] = pix;
               img[off-1] = pix;
               img[off+1] = pix;
               img[off-step] = pix;
               img[off+step] = pix;
+              */
+              
               
               //Jon - how can I create your spots here instead of those above?
-              //TBD
-            		  
+             itool.spots.push({xy: [(x*jasonScale), (y*jasonScale)], type: 'spot'});
+              console.debug("%d,%d",x,y);
+              
+              //itool.spots.push({xy: [(x), (y)], type: 'spot'});
+              
+              //push({xy:  itool.xyOrigToWork([x,y]) .....})                                                        
+            //push({xy: [x * this.scale, y * this.scale] ..})    		  
             		  
               
           }
@@ -703,24 +723,30 @@ function allGood(d) {
               	//compatibility.requestAnimationFrame(tick);
               	//stat.new_frame();
               	//if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        		alert("about to draw image!");
+        		//alert("about to draw image!");
               	//sctx.drawImage(localPatternImage, 0, 0, 640, 480);
-                    var imageData = sctx.getImageData(0, 0, 800, 600);
+              	
+              	//var myWidth=itool.wCanvas.width;
+               //var myHeight=itool.wCanvas.height;
+               var myWidth=800;
+               var myHeight=600;
+              	
+                    var imageData = sctx.getImageData(0, 0, myWidth, myHeight);
        			//alert("Retrieved image data!");
 
                     stat.start("grayscale");
-                    jsfeat.imgproc.grayscale(imageData.data, 800, 600, img_u8);
+                    jsfeat.imgproc.grayscale(imageData.data, myWidth, myHeight, img_u8);
                     stat.stop("grayscale");
-                    alert("post grayscale");
+                    //alert("post grayscale");
 
                     stat.start("gauss blur");
                     jsfeat.imgproc.gaussian_blur(img_u8, img_u8_smooth, options.blur_size|0);
                     stat.stop("gauss blur");
-                    alert("post gauss lur");
+                    //alert("post gauss lur");
 
                     jsfeat.yape06.laplacian_threshold = options.lap_thres|0;
                     jsfeat.yape06.min_eigen_value_threshold = options.eigen_thres|0;
-                    alert("post yape06");
+                    //alert("post yape06");
 
                     stat.start("keypoints");
                     num_corners = detect_keypoints(img_u8_smooth, screen_corners, 500);
@@ -732,7 +758,8 @@ function allGood(d) {
 
                     // render result back to canvas
                     var data_u32 = new Uint32Array(imageData.data.buffer);
-                    render_corners(screen_corners, num_corners, data_u32, 800);
+                    console.log("%d,%d",itool.wCanvas.width,itool.wCanvas.height);
+                    render_corners(screen_corners, num_corners, data_u32, myWidth);
         
         //alert("end render_corners!");
 
@@ -782,14 +809,14 @@ function allGood(d) {
             })();
       
        var demo_opt = function(){
-             alert("Starting demo_opt!");
+             //alert("Starting demo_opt!");
                 this.blur_size = 5;
                 this.lap_thres = 30;
                 this.eigen_thres = 25;
                 this.match_threshold = 48;
 
                 this.train_pattern = function() {
-                    alert("Starting train_pattern!");
+                    //alert("Starting train_pattern!");
                     var lev=0, i=0;
                     var sc = 1.0;
                     var max_pattern_size = 512;
@@ -861,7 +888,7 @@ function allGood(d) {
 
                         sc /= sc_inc;
                     }
-                    alert("Ending train_pattern!");
+                    //alert("Ending train_pattern!");
                   //tick(patternImage2);
                 };
          
@@ -900,7 +927,7 @@ function allGood(d) {
                 match_mask = new jsfeat.matrix_t(500,1,jsfeat.U8C1_t);
 
                 options = new demo_opt();
-                alert("completed demo_opt!");
+                //alert("completed demo_opt!");
                 gui = new dat.GUI();
         		//alert("completed dat.GUI!");
         
@@ -927,7 +954,7 @@ function allGood(d) {
                 stat.add("keypoints");
                 stat.add("orb descriptors");
                 stat.add("matching");
-              alert("Completed demo_app!");
+              //alert("Completed demo_app!");
             }
 
 
