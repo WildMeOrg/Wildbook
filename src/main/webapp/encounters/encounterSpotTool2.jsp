@@ -678,7 +678,7 @@ function allGood(d) {
           
           var jasonScale=itool.wCanvas.width/itool.imgEl.naturalWidth;
           //var jasonScale=1.1;
-          alert(jasonScale);
+          //alert(jasonScale);
           itool.spots=[];
           
           for(var i=0; i < count; ++i)
@@ -700,7 +700,7 @@ function allGood(d) {
               
               
               //Jon - how can I create your spots here instead of those above?
-             itool.spots.push({xy: [(x*jasonScale), (y*jasonScale)], type: 'spot'});
+             itool.spots.push({xy: [(x-itool.wCanvas.width), (y-itool.wCanvas.height)], type: 'spot'});
               console.debug("%d,%d",x,y);
               
               //itool.spots.push({xy: [(x), (y)], type: 'spot'});
