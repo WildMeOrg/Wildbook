@@ -510,6 +510,11 @@
   </servlet>
   
     <servlet>
+      	<servlet-name>SocialGrabFiles</servlet-name>
+      	<servlet-class>org.ecocean.servlet.SocialGrabFiles</servlet-class>
+   </servlet>
+
+    <servlet>
       	<servlet-name>SocialConnect</servlet-name>
       	<servlet-class>org.ecocean.servlet.SocialConnect</servlet-class>
    </servlet>
@@ -1414,6 +1419,11 @@
     	<servlet-name>SocialConnect</servlet-name>
     	<url-pattern>/SocialConnect</url-pattern>
     </servlet-mapping>
+
+    <servlet-mapping>
+    	<servlet-name>SocialGrabFiles</servlet-name>
+    	<url-pattern>/SocialGrabFiles</url-pattern>
+    </servlet-mapping>
   
 
   <servlet-mapping>
@@ -1672,21 +1682,5 @@
       	<servlet-class>org.ecocean.servlet.SocialConnect</servlet-class>
    </servlet>
    
-   <servlet-mapping>
-          <servlet-name>UserCreateSocial</servlet-name>
-          <url-pattern>/UserCreateSocial</url-pattern>
-  </servlet-mapping>
   
-      <servlet-mapping>
-    	<servlet-name>LoginUserSocial</servlet-name>
-    	<url-pattern>/LoginUserSocial</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-    	<servlet-name>SocialConnect</servlet-name>
-    	<url-pattern>/SocialConnect</url-pattern>
-    </servlet-mapping>
-  
-
-
 </web-app>

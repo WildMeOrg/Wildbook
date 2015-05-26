@@ -185,7 +185,7 @@ wildbook.submit = (function() {
         } else {
             photo.addClass("selected");
 
-            var input = $("<input>").attr("type", "hidden").attr("name", name).val(photo.data("source"));
+            var input = $("<input>").attr("type", "hidden").attr("name", name).attr("class", "social-photo-input").val(photo.data("source"));
             $("#encounterForm").append(input);
 
 //            reader = new FileReader();

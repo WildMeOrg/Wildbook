@@ -75,6 +75,7 @@ context=ServletUtilities.getContext(request);
  %>
 
 <script type="text/javascript">
+var foo = false;
 function validate() {
     var requiredfields = "";
 
@@ -102,9 +103,22 @@ function validate() {
       requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
       wildbook.showAlert(requiredfields, null, "Validate Issue");
       return false;
-    } else {
-        return true;
     }
+
+		$('#submit-button').attr('disabled', 'disabled');
+		var s = $('.social-photo-input');
+		if (s.length) {
+			var iframeUrl = 'SocialGrabFiles?';
+			s.each(function(i, el) {
+				iframeUrl += '&fileUrl=' + escape($(el).val());
+			});
+foo = iframeUrl;
+console.log('url %o', iframeUrl);
+			document.getElementById('social_files_iframe').src = iframeUrl;
+			return false;  //on('load') for the iframe will do actual form submission
+		}
+
+		return true;
 }
 </script>
 
@@ -116,6 +130,7 @@ function validate() {
   <h1 class="intro"><%=props.getProperty("submit_report")%>
   </h1>
 </div>
+<iframe id="social_files_iframe" style="display: none;" ></iframe>
 <form id="encounterForm" action="EncounterForm" method="post" enctype="multipart/form-data"
       name="encounter_submission" target="_self" dir="ltr" lang="en"
       onsubmit="return false;">
@@ -608,6 +623,29 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </p>
 
 <script>
+
+
+$('#social_files_iframe').on('load', function(ev) {
+	if (!ev || !ev.target) return;
+//console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
+//console.warn('doc is %o', doc);
+	if (!doc) return;
+//var x = $(doc).find('body').text();
+//console.warn('body %o', x);
+	var j = JSON.parse($(doc).find('body').text());
+	console.info('iframe returned %o', j);
+
+	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
+	//now do actual submit
+	//document.forms['encounterForm'].submit();
+});
+
+
+function socialPhotoGrab() {
+}
+
+
 function updateList(inp) {
     var f = '';
     if (inp.files && inp.files.length) {
@@ -669,7 +707,7 @@ function updateList(inp) {
 <input
   name="submitterID" type="hidden" value="N/A"/> <%}%>
 <p align="center">
-<button onclick="if (validate()) {document.forms['encounterForm'].submit();}"><%=props.getProperty("submit_send")%></button>
+<button id="submit-button" onclick="if (validate()) {document.forms['encounterForm'].submit();}"><%=props.getProperty("submit_send")%></button>
 </p>
 
 <p>&nbsp;</p>
