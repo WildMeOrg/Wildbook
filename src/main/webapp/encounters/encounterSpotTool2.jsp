@@ -701,6 +701,7 @@ function allGood(d) {
               
               //Jon - how can I create your spots here instead of those above?
              itool.spots.push({xy: [(x-itool.wCanvas.width), (y-itool.wCanvas.height)], type: 'spot'});
+              
               console.debug("%d,%d",x,y);
               
               //itool.spots.push({xy: [(x), (y)], type: 'spot'});
@@ -710,6 +711,7 @@ function allGood(d) {
             		  
               
           }
+          itool.drawSpots();
 			//alert("done render_corners");
       }
       
@@ -756,7 +758,7 @@ function allGood(d) {
                var myWidth=itool.imgEl.naturalWidth;
                var myHeight=itool.imgEl.naturalHeight;
                
-               alert("width: "+itool.imgEl.naturalWidth+" height: "+itool.imgEl.naturalHeight);
+               //alert("width: "+itool.imgEl.naturalWidth+" height: "+itool.imgEl.naturalHeight);
               	
                     var imageData = sctx.getImageData(0, 0, myWidth, myHeight);
        			//alert("Retrieved image data!");
