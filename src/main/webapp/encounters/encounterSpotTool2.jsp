@@ -716,7 +716,30 @@ function allGood(d) {
       
       function findSpots() {
     	  
-    	  
+          canvasWidth=itool.wCanvas.width;
+          canvasHeight=itool.wCanvas.height;
+          
+          //alert("width: "+itool.wCanvas.width+" height: "+itool.wCanvas.height);
+
+          //sctx.fillStyle = "rgb(0,255,0)";
+          //sctx.strokeStyle = "rgb(0,255,0)";
+
+          img_u8 = new jsfeat.matrix_t(canvasWidth, canvasHeight, jsfeat.U8_t | jsfeat.C1_t);
+          // after blur
+          img_u8_smooth = new jsfeat.matrix_t(canvasWidth, canvasHeight, jsfeat.U8_t | jsfeat.C1_t);
+          // we wll limit to 500 strongest points
+          screen_descriptors = new jsfeat.matrix_t(32, 500, jsfeat.U8_t | jsfeat.C1_t);
+          pattern_descriptors = [];
+          
+          screen_corners = [];
+          pattern_corners = [];
+          matches = [];
+
+          var i = canvasWidth*canvasHeight;
+          while(--i >= 0) {
+              screen_corners[i] = new jsfeat.keypoint_t(0,0,0,0,-1);
+              matches[i] = new match_t();
+          }
     	  //screen_corners = [];
           //pattern_corners = [];
           //matches = [];
@@ -728,8 +751,12 @@ function allGood(d) {
               	
               	//var myWidth=itool.wCanvas.width;
                //var myHeight=itool.wCanvas.height;
-               var myWidth=800;
-               var myHeight=600;
+               //var myWidth=800;
+               //var myHeight=600;
+               var myWidth=itool.imgEl.naturalWidth;
+               var myHeight=itool.imgEl.naturalHeight;
+               
+               alert("width: "+itool.imgEl.naturalWidth+" height: "+itool.imgEl.naturalHeight);
               	
                     var imageData = sctx.getImageData(0, 0, myWidth, myHeight);
        			//alert("Retrieved image data!");
@@ -749,7 +776,7 @@ function allGood(d) {
                     //alert("post yape06");
 
                     stat.start("keypoints");
-                    num_corners = detect_keypoints(img_u8_smooth, screen_corners, 500);
+                    num_corners = detect_keypoints(img_u8_smooth, screen_corners, 5000);
                     stat.stop("keypoints");
 
                     stat.start("orb descriptors");
@@ -758,7 +785,7 @@ function allGood(d) {
 
                     // render result back to canvas
                     var data_u32 = new Uint32Array(imageData.data.buffer);
-                    console.log("%d,%d",itool.wCanvas.width,itool.wCanvas.height);
+                    //console.log("%d,%d",itool.wCanvas.width,itool.wCanvas.height);
                     render_corners(screen_corners, num_corners, data_u32, myWidth);
         
         //alert("end render_corners!");
@@ -766,14 +793,14 @@ function allGood(d) {
                     // render pattern and matches
                     var num_matches = 0;
                     var good_matches = 0;
-                    if(pattern_preview) {
-                        render_mono_image(pattern_preview.data, data_u32, pattern_preview.cols, pattern_preview.rows, 800);
+                    //if(pattern_preview) {
+                    //    render_mono_image(pattern_preview.data, data_u32, pattern_preview.cols, pattern_preview.rows, 800);
                       //alert("end render_mono_image");
-                        stat.start("matching");
-                        num_matches = match_pattern();
-                        good_matches = find_transform(matches, num_matches);
-                        stat.stop("matching");
-                    }
+                     //   stat.start("matching");
+                     //   num_matches = match_pattern();
+                     //   good_matches = find_transform(matches, num_matches);
+                     //   stat.stop("matching");
+                    //}
         
         //alert("end render pattern and matches!");
         
@@ -897,29 +924,13 @@ function allGood(d) {
       
       function startJFeat() {
         //alert("Starting demo_app");
-                canvasWidth  = itool.wCanvas.width;
-                canvasHeight = itool.wCanvas.height;
-                //alert("width: "+itool.wCanvas.width+" height: "+itool.wCanvas.height);
-
-                //sctx.fillStyle = "rgb(0,255,0)";
-                //sctx.strokeStyle = "rgb(0,255,0)";
-
-                img_u8 = new jsfeat.matrix_t(canvasWidth, canvasHeight, jsfeat.U8_t | jsfeat.C1_t);
-                // after blur
-                img_u8_smooth = new jsfeat.matrix_t(canvasWidth, canvasHeight, jsfeat.U8_t | jsfeat.C1_t);
-                // we wll limit to 500 strongest points
-                screen_descriptors = new jsfeat.matrix_t(32, 500, jsfeat.U8_t | jsfeat.C1_t);
-                pattern_descriptors = [];
+                //canvasWidth  = itool.wCanvas.width;
+                //canvasHeight = itool.wCanvas.height;
                 
-                screen_corners = [];
-                pattern_corners = [];
-                matches = [];
+                //canvasWidth=itool.imgEl.naturalWidth;
+                //canvasHeight=itool.imgEl.naturalHeight;
+                
 
-                var i = canvasWidth*canvasHeight;
-                while(--i >= 0) {
-                    screen_corners[i] = new jsfeat.keypoint_t(0,0,0,0,-1);
-                    matches[i] = new match_t();
-                }
         
 
                 // transform matrix
@@ -1065,14 +1076,7 @@ $(document).ready(function() {
               </div>
             </div>
           </li>
-          <li class="cr number has-slider">
-            <div><span class="property-name">match_threshold</span>
-              <div class="c">
-                <div><input type="text"></div>
-                <div class="slider"> </div>
-              </div>
-            </div>
-          </li>
+      
           <li class="cr function">
             <div><span class="property-name">train_pattern</span>
               <div class="c"> </div>
