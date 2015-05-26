@@ -646,7 +646,7 @@ function allGood(d) {
     <script type="text/javascript" src="../javascript/jsfeat/compatibility.js"></script>
     <script type="text/javascript" src="../javascript/jsfeat/profiler.js"></script>
     <script type="text/javascript" src="../javascript/jsfeat/dat.gui.min.js"></script>
-    <script type="text/javascript" src="../javascript/jsfeat/wildbook.jsfeat.js"></script>
+    <script type="text/javascript" src="../javascript/jsfeat/custom.jsfeat.js"></script>
   <script type="text/javascript">
       
       //var patternImage = document.getElementById("imageTools-img");
@@ -672,14 +672,17 @@ function allGood(d) {
       function render_corners(corners, count, img, step) {
 			//alert("render_corners");
           var pix = (0xff << 24) | (0x00 << 16) | (0xff << 8) | 0x00;
+console.warn('step = %d', step);
+//console.warn(corners); return;
           
-          var rw = itool.rectW() * itool.scale;                                                                                                                                  
-          var wscale = rw / itool.wCanvas.offsetWidth;
-          
-          var jasonScale=itool.wCanvas.width/itool.imgEl.naturalWidth;
-          //var jasonScale=1.1;
-          //alert(jasonScale);
+          //var spotScale=itool.wCanvas.width/itool.imgEl.naturalWidth;
+          var spotScale = $(itool.wCanvas).width() / itool.wCanvas.width;
+          //var spotScale=1.1;
+          //alert(spotScale);
+//spotScale = 1;
+console.warn('spotScale = %f', spotScale);
           itool.spots=[];
+					itool.lCtx.clearRect(0,0,itool.lCanvas.width, itool.lCanvas.height);
           
           for(var i=0; i < count; ++i)
           {
@@ -687,22 +690,14 @@ function allGood(d) {
               
               var x = corners[i].x;
               var y = corners[i].y;
-              
-              
-              var off = (x + y * step);
-             /*
-              img[off] = pix;
-              img[off-1] = pix;
-              img[off+1] = pix;
-              img[off-step] = pix;
-              img[off+step] = pix;
-              */
-              
+							var xy = itool.xyWorkToOrig([x*spotScale, y*spotScale]);
+							//if (itool.isNearSpot(xy[0],xy[1])) continue;
+              console.info("(%d,%d) -> (%d,%d)",x,y, xy[0],xy[1]);
               
               //Jon - how can I create your spots here instead of those above?
-             itool.spots.push({xy: [(x-itool.wCanvas.width), (y-itool.wCanvas.height)], type: 'spot'});
+             itool.spots.push({xy: xy, type: 'spot'});
+             //itool.spots.push({xy: [(x-itool.wCanvas.width), (y-itool.wCanvas.height)], type: 'spot'});
               
-              console.debug("%d,%d",x,y);
               
               //itool.spots.push({xy: [(x), (y)], type: 'spot'});
               
@@ -751,16 +746,18 @@ function allGood(d) {
         		//alert("about to draw image!");
               	//sctx.drawImage(localPatternImage, 0, 0, 640, 480);
               	
-              	//var myWidth=itool.wCanvas.width;
-               //var myHeight=itool.wCanvas.height;
+              	var myWidth=itool.wCanvas.width;
+               var myHeight=itool.wCanvas.height;
                //var myWidth=800;
                //var myHeight=600;
-               var myWidth=itool.imgEl.naturalWidth;
-               var myHeight=itool.imgEl.naturalHeight;
+               //var myWidth=itool.imgEl.naturalWidth;
+               //var myHeight=itool.imgEl.naturalHeight;
+console.warn('myW, myH = (%d, %d)', myWidth, myHeight);
                
                //alert("width: "+itool.imgEl.naturalWidth+" height: "+itool.imgEl.naturalHeight);
               	
-                    var imageData = sctx.getImageData(0, 0, myWidth, myHeight);
+                    //var imageData = sctx.getImageData(0, 0, myWidth, myHeight);
+                    var imageData = itool.wCtx.getImageData(0, 0, myWidth, myHeight);
        			//alert("Retrieved image data!");
 
                     stat.start("grayscale");
@@ -845,6 +842,7 @@ function allGood(d) {
                 this.match_threshold = 48;
 
                 this.train_pattern = function() {
+return findSpots();
                     //alert("Starting train_pattern!");
                     var lev=0, i=0;
                     var sc = 1.0;
@@ -950,7 +948,7 @@ function allGood(d) {
                 var lapController = gui.add(options, "lap_thres", 1, 100);
                 var eigenController = gui.add(options, "eigen_thres", 1, 100);
                 var thresholdController = gui.add(options, "match_threshold", 16, 128);
-                var trainer=gui.add(options, "train_pattern");
+                var trainer=gui.add(options, "train_pattern").name("find spots");
                 
         		//alert("completed dat.GUI add options!");
         		blurController.onFinishChange(findSpots);
@@ -989,6 +987,8 @@ function allGood(d) {
  
 <script src="../javascript/imageTools.js"></script>
 <script>
+window.alert = function(a) { console.debug(a); }
+
 $(document).ready(function() {
 	checkImage($('#imageTools-img'));
     "use strict";
