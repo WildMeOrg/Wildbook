@@ -66,6 +66,21 @@ import org.ecocean.SinglePhotoVideo;
 import org.ecocean.User;
 */
 
+
+import org.apache.shiro.web.util.WebUtils;
+//import org.ecocean.*;
+import org.ecocean.security.SocialAuth;
+
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Shepherd;
+import org.ecocean.User;
+import org.pac4j.core.context.J2EContext;
+import org.pac4j.core.context.WebContext;
+import org.pac4j.oauth.client.FacebookClient;
+//import org.pac4j.oauth.client.YahooClient;
+import org.pac4j.oauth.credentials.OAuthCredentials;
+import org.pac4j.oauth.profile.facebook.FacebookProfile;
+
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record
  *
@@ -206,7 +221,72 @@ System.out.println("in context " + context);
         String rootDir = getServletContext().getRealPath("/");
 System.out.println("rootDir=" + rootDir);
 
+/*
+    Vector<String> fbImages = new Vector<String>();
+    int fbi = 0;
+    while (request.getParameter("socialphoto_" + fbi) != null) {
+        fbImages.add(request.getParameter("socialphoto_" + fbi));
+        fbi++;
+    }
 
+System.out.println(fbImages);
+    if (fbImages.size() > 0) {
+        FacebookClient fbclient = null;
+        try {
+            fbclient = SocialAuth.getFacebookClient(context);
+        } catch (Exception ex) {
+            System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
+        }
+            WebContext ctx = new J2EContext(request, response);
+            //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
+            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/XXXSocialConnect?type=facebook";
+            if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
+            fbclient.setCallbackUrl(callbackUrl);
+
+            OAuthCredentials credentials = null;
+            try {
+                credentials = fbclient.getCredentials(ctx);
+            } catch (Exception ex) {
+                System.out.println("caught exception on facebook credentials: " + ex.toString());
+            }
+
+            if (credentials != null) {
+                FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
+                User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
+                System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
+if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuser = " + fbuser.getUsername());
+                if ((fbuser != null) && (fbuser.getUsername().equals(user.getUsername())) && (request.getParameter("disconnect") != null)) {
+                    fbuser.unsetSocial("facebook");
+                    //myShepherd.getPM().makePersistent(user);
+                    session.setAttribute("message", "disconnected from facebook");
+                    response.sendRedirect("myAccount.jsp");
+                    return;
+
+                } else if (fbuser != null) {
+                    session.setAttribute("error", "looks like this account is already connected to an account");
+                    response.sendRedirect("myAccount.jsp");
+                    return;
+
+                } else {  //lets do this
+                    user.setSocial("facebook", facebookProfile.getId());
+                    //myShepherd.getPM().makePersistent(user);
+                    session.setAttribute("message", "connected to facebook");
+                    response.sendRedirect("myAccount.jsp");
+                    return;
+                }
+            } else {
+
+System.out.println("*** trying redirect?");
+                try {
+                    fbclient.redirect(ctx, false, false);
+                } catch (Exception ex) {
+                    System.out.println("caught exception on facebook processing: " + ex.toString());
+                }
+                return;
+            }
+    }
+
+*/
       //private Map<String, Object> measurements = new HashMap<String, Object>();
       //Map<String, Object> metalTags = new HashMap<String, Object>();
 

@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import java.util.Date;
+import java.util.HashMap;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -25,6 +26,8 @@ import org.pac4j.oauth.credentials.*;
 import org.pac4j.oauth.profile.facebook.*;
 */
 
+import org.apache.commons.io.FileUtils;
+
 import org.apache.shiro.web.util.WebUtils;
 //import org.ecocean.*;
 import org.ecocean.security.SocialAuth;
@@ -32,6 +35,7 @@ import org.ecocean.security.SocialAuth;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.ecocean.Util;
 import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.oauth.client.FacebookClient;
@@ -39,6 +43,10 @@ import org.pac4j.oauth.client.FacebookClient;
 import org.pac4j.oauth.credentials.OAuthCredentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
 //import org.pac4j.oauth.profile.yahoo.YahooProfile;
+
+import java.io.File;
+import java.net.URL;
+import com.google.gson.Gson;
 
 import org.scribe.builder.*;
 import org.scribe.builder.api.*;
@@ -57,13 +65,13 @@ import org.scribe.oauth.*;
  * an error message
  *
  */
- public class SocialConnect extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
+ public class SocialGrabFiles extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
    static final long serialVersionUID = 1L;
 
     /* (non-Java-doc)
      * @see javax.servlet.http.HttpServlet#HttpServlet()
      */
-    public SocialConnect() {
+    public SocialGrabFiles() {
         super();
     }
 
@@ -88,9 +96,32 @@ import org.scribe.oauth.*;
         Shepherd myShepherd = new Shepherd(context);
         //myShepherd.beginDBTransaction();
 
-        String socialType = request.getParameter("type");
+        String[] fileUrls = request.getParameterValues("fileUrl");
+        if (fileUrls != null) {
+    System.out.println("(A) fileUrls.length = " + fileUrls.length);
+    for (int i = 0 ; i < fileUrls.length ; i++) {
+        System.out.println("- " + fileUrls[i]);
+    }
+        } else {
+            Object urls = session.getAttribute("fileUrls");
+            if (urls != null) fileUrls = (String[])urls;
+        }
+        String socialType = "facebook";
+if (fileUrls != null) System.out.println("(B) fileUrls.length = " + fileUrls.length);
+
+        response.setHeader("Content-type", "application/json");
+        if (fileUrls == null) {
+            out.println("[\"no fileUrls\"]");
+            out.close();
+            return;
+        } else {
+            session.setAttribute("fileUrls", fileUrls);
+        }
+
 
         String username = null;
+User user = null;
+/*
         if (request.getUserPrincipal() != null) username = request.getUserPrincipal().getName();
         if (username == null) username = "";
         User user = myShepherd.getUser(username);
@@ -99,6 +130,10 @@ import org.scribe.oauth.*;
             response.sendRedirect("login.jsp");
             return;
         }
+*/
+
+        String rootDir = getServletContext().getRealPath("/");
+        String baseDir = ServletUtilities.dataDir(context, rootDir) + "/social_files";
 
         if ("facebook".equals(socialType)) {
         FacebookClient fbclient = null;
@@ -109,8 +144,7 @@ import org.scribe.oauth.*;
         }
             WebContext ctx = new J2EContext(request, response);
             //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
-            if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
+            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialGrabFiles";
             fbclient.setCallbackUrl(callbackUrl);
 
             OAuthCredentials credentials = null;
@@ -121,6 +155,33 @@ import org.scribe.oauth.*;
             }
 
             if (credentials != null) {
+                HashMap rtn = new HashMap();
+                rtn.put("fileUrls", fileUrls);
+System.out.println("************ hey i think i am authorized???");
+                String id = Util.generateUUID();
+                session.setAttribute("socialFilesID", id);
+                rtn.put("id", id);
+                File dir = new File(baseDir, id);
+                if (!dir.exists()) dir.mkdirs();
+System.out.println(dir);
+                HashMap fmap = new HashMap();
+                for (int i = 0 ; i < fileUrls.length ; i++) {
+                    String fname = "img" + i;
+                    int f = fileUrls[i].lastIndexOf("/");
+                    if (f > -1) fname = fileUrls[i].substring(f+1);
+                    f = fname.indexOf("?");
+                    if (f > -1) fname = fname.substring(0, f);
+                    fmap.put(fname, fileUrls[i]);
+                    File imgf = new File(dir, fname);
+System.out.println(fname + ") --- " + fileUrls[i]);
+                    FileUtils.copyURLToFile(new URL(fileUrls[i]), imgf);
+                }
+                rtn.put("files", fmap);
+                String json = new Gson().toJson(rtn);
+                out.println(json);
+                out.close();
+                return;
+/*
                 FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
                 User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
                 System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
@@ -144,6 +205,7 @@ if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuse
                     response.sendRedirect("myAccount.jsp");
                     return;
                 }
+*/
             } else {
 
 System.out.println("*** trying redirect?");
