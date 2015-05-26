@@ -529,7 +529,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
           if (request.getRemoteUser() != null) {
             user = request.getRemoteUser();
           }
-          if (action.equals("imageadd")){
+          if (action.equals("imageadd") || action.equals("imageadd2")){
             add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Submitted new mantamatcher data image.</p>");
           }
           else if (action.equals("rescan")){
