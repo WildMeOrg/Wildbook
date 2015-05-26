@@ -267,7 +267,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   List<String> mailTo = NotificationMailer.splitEmails(CommonConfiguration.getNewSubmissionEmail(context));
   String mailSubj = "New encounter submission: " + number;
   for (String emailTo : mailTo) {
-    NotificationMailer mailer = new NotificationMailer(context, emailTo, mailSubj, "newSubmission-summary", tagMap);
+    NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
     es.execute(mailer);
   }
 
