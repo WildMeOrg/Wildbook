@@ -646,7 +646,7 @@ function allGood(d) {
     <script type="text/javascript" src="../javascript/jsfeat/compatibility.js"></script>
     <script type="text/javascript" src="../javascript/jsfeat/profiler.js"></script>
     <script type="text/javascript" src="../javascript/jsfeat/dat.gui.min.js"></script>
-    <script type="text/javascript" src="../javascript/jsfeat/wildbook.jsfeat.js"></script>
+    <script type="text/javascript" src="../javascript/jsfeat/custom.jsfeat.js"></script>
   <script type="text/javascript">
       
       //var patternImage = document.getElementById("imageTools-img");
