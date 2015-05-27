@@ -550,6 +550,13 @@ $(document).ready(function() {
               						}
             						%>
           						</tr>
+          						<%
+          						if(request.isUserInRole("admin")){
+          						%>
+          						<tr>Advanced JDOQL: <input name="jdoql" type="text" id="jdoql" size="500"/> <i>(optional)</i></tr>
+        						<%
+          						}
+        						%>
         					</table>
 
         					<input name="writeThis" type="hidden" id="writeThis" value="true" />

@@ -278,6 +278,11 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 				if(!locked&&successfulStore) {
 
 					try{
+					  
+					  String jdoql="";
+					  if(request.getParameter("jdoql")!=null){jdoql=request.getParameter("jdoql");}
+					  
+					  System.out.println("jdoql is: "+jdoql);
 
 						//kick off the building thread
 						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
@@ -286,7 +291,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
             es.execute(new EC2RequestThread());
 						
             //now build our jobs for the task
-						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context));
+						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql));
 
 						
 
