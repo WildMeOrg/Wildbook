@@ -284,7 +284,7 @@ public class ScanTaskHandlerIVEC extends HttpServlet {
 
 						//kick off the building thread
 						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
-						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context));
+						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context,""));
 
 						//check if we can get some IVEC help
 						//es.execute(new IVECRequestThread("cognac.ivec.org", "jholmberg", "lookthisup"));

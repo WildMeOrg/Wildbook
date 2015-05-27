@@ -20,10 +20,14 @@
 package org.ecocean.grid;
 
 import org.ecocean.Encounter;
+import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Vector;
+
+import javax.jdo.Query;
 
 
 public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
@@ -37,11 +41,12 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
   boolean finished = false;
   GridManager gm;
   String context="context0";
+  String jdoql="SELECT FROM org.ecocean.Encounter";
 
   /**
    * Constructor to create a new thread object
    */
-  public ScanWorkItemCreationThread(String taskID, boolean rightSide, String encounterNum, boolean writeThis, String context) {
+  public ScanWorkItemCreationThread(String taskID, boolean rightSide, String encounterNum, boolean writeThis, String context, String jdoql) {
     this.taskID = taskID;
     this.writeThis = writeThis;
     this.rightSide = rightSide;
@@ -49,6 +54,11 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
     gm = GridManagerFactory.getGridManager();
     threadCreationObject = new Thread(this, ("scanWorkItemCreation_" + taskID));
     this.context=context;
+    
+    if((jdoql!=null)&&(!jdoql.trim().equals(""))){
+      this.jdoql=jdoql;
+    }
+    
   }
 
 
@@ -96,12 +106,21 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
     System.out.println("Successfully created the scanTask shell!");
     //now, add the workItems
     myShepherd.beginDBTransaction();
+    Query query=null;
     try {
-      Iterator encounters = myShepherd.getAllEncountersNoQuery();
+      //Iterator encounters = myShepherd.getAllEncountersNoQuery();
+      
+      query=myShepherd.getPM().newQuery(jdoql);
+      Collection c = (Collection) (query.execute());
+      System.out.println("Num scans to do: "+c.size());
+      Iterator encounters = c.iterator();
+      
+
+      
       int count = 0;
 
       while (encounters.hasNext()) {
-        //System.out.println("Iterating encounters to create scanWorkItems...");
+        System.out.println("     Iterating encounters to create scanWorkItems...");
         Encounter enc = (Encounter) encounters.next();
         if (!enc.getEncounterNumber().equals(encounterNumber)) {
           String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
@@ -134,11 +153,15 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
       myShepherd.commitDBTransaction();
       myShepherd.closeDBTransaction();
       finished = true;
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       System.out.println("I failed while constructing the workItems for a new scanTask.");
       e.printStackTrace();
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
+    }
+    finally{
+      if(query!=null){query.closeAll();}
     }
 
   }
