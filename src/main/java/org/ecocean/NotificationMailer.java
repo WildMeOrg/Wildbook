@@ -603,7 +603,7 @@ public final class NotificationMailer implements Runnable {
   private static void addTags(Map<String, String> map, HttpServletRequest req, MarkedIndividual ind) {
     Objects.requireNonNull(map);
     if (!map.containsKey("URL_LOCATION"))
-      map.put("@URL_LOCATION@", CommonConfiguration.getURLLocation(req));
+      map.put("@URL_LOCATION@", String.format("http://%s/", CommonConfiguration.getURLLocation(req)));
     if (ind != null) {
       map.put("@INDIVIDUAL_LINK@", String.format("http://%s/individuals.jsp?number=%s", map.get("@URL_LOCATION@"), ind.getIndividualID()));
       map.put("@INDIVIDUAL_ID@", ind.getIndividualID());
@@ -626,8 +626,9 @@ public final class NotificationMailer implements Runnable {
    */
   private static void addTags(Map<String, String> map, HttpServletRequest req, Encounter enc) {
     Objects.requireNonNull(map);
+    if (!map.containsKey("URL_LOCATION"))
+      map.put("@URL_LOCATION@", String.format("http://%s/", CommonConfiguration.getURLLocation(req)));
     if (enc != null) {
-      map.put("@URL_LOCATION@", CommonConfiguration.getURLLocation(req));
       // Add useful encounter fields.
       map.put("@ENCOUNTER_LINK@", String.format("http://%s/encounters/encounter.jsp?number=%s", map.get("@URL_LOCATION@"), enc.getCatalogNumber()));
       map.put("@ENCOUNTER_ID@", enc.getCatalogNumber());
