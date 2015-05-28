@@ -365,7 +365,7 @@ System.out.println("*** trying redirect?");
             //TODO better checking of files (size, type etc)
             File socDir = new File(ServletUtilities.dataDir(context, rootDir) + "/social_files/" + fv.get("social_files_id"));
             for (File sf : socDir.listFiles()) {
-                socialFiles.add(new File(socDir, sf));
+                socialFiles.add(sf);
                 filesOK.add(sf.getName());
             }
             fileSuccess = true;
@@ -553,7 +553,9 @@ System.out.println("enc ?= " + enc.toString());
             }
 
             for (File sf : socialFiles) {
-                File targetFile = new File(enc.dir(baseDir), sf.getName());
+								File encDir = new File(enc.dir(baseDir));
+								if (!encDir.exists()) encDir.mkdirs();
+                File targetFile = new File(encDir, sf.getName());
 System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.toString());
                 Files.copy(sf.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 SinglePhotoVideo spv = new SinglePhotoVideo(encID, targetFile);
