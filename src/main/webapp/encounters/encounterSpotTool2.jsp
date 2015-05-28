@@ -684,18 +684,18 @@ console.warn('spotScale = %f', spotScale);
           itool.spots=[];
 					itool.lCtx.clearRect(0,0,itool.lCanvas.width, itool.lCanvas.height);
           
-          for(var i=0; i < count; ++i)
-          {
-        	  //old spot creating with JSFeat - replace this
+          for(var i=0; i < count; ++i){
+        	  if(i<options.maxspots){
+        	  	//old spot creating with JSFeat - replace this
               
-              var x = corners[i].x;
-              var y = corners[i].y;
+              	var x = corners[i].x;
+              	var y = corners[i].y;
 							var xy = itool.xyWorkToOrig([x*spotScale, y*spotScale]);
 							//if (itool.isNearSpot(xy[0],xy[1])) continue;
-              console.info("(%d,%d) -> (%d,%d)",x,y, xy[0],xy[1]);
+              	console.info("(%d,%d) -> (%d,%d)",x,y, xy[0],xy[1]);
               
               //Jon - how can I create your spots here instead of those above?
-             itool.spots.push({xy: xy, type: 'spot'});
+             	itool.spots.push({xy: xy, type: 'spot'});
              //itool.spots.push({xy: [(x-itool.wCanvas.width), (y-itool.wCanvas.height)], type: 'spot'});
               
               
@@ -703,7 +703,7 @@ console.warn('spotScale = %f', spotScale);
               
               //push({xy:  itool.xyOrigToWork([x,y]) .....})                                                        
             //push({xy: [x * this.scale, y * this.scale] ..})    		  
-            		  
+        	  }	  
               
           }
           itool.drawSpots();
@@ -840,6 +840,7 @@ console.warn('myW, myH = (%d, %d)', myWidth, myHeight);
                 this.lap_thres = 30;
                 this.eigen_thres = 25;
                 this.match_threshold = 48;
+                this.maxspots=80;
 
                 this.train_pattern = function() {
 return findSpots();
@@ -944,17 +945,20 @@ return findSpots();
         
         
 
-                var blurController = gui.add(options, "blur_size", 3, 9).step(1);
+                var blurController = gui.add(options, "blur_size", 3, 12).step(1);
                 var lapController = gui.add(options, "lap_thres", 1, 100);
                 var eigenController = gui.add(options, "eigen_thres", 1, 100);
-                var thresholdController = gui.add(options, "match_threshold", 16, 128);
+                //var thresholdController = gui.add(options, "match_threshold", 16, 128);
+                var maxspots=gui.add(options, "maxspots",1,150).name("max # spots").step(5);
                 var trainer=gui.add(options, "train_pattern").name("find spots");
+                
                 
         		//alert("completed dat.GUI add options!");
         		blurController.onFinishChange(findSpots);
          		eigenController.onFinishChange(findSpots);
               	lapController.onFinishChange(findSpots);
-              	thresholdController.onFinishChange(findSpots);
+              	maxspots.onFinishChange(findSpots);
+              	//thresholdController.onFinishChange(findSpots);
                 
         
                 
@@ -1078,6 +1082,15 @@ $(document).ready(function() {
               </div>
             </div>
           </li>
+          
+          <li class="cr number has-slider">
+            <div><span class="property-name">maxspots</span>
+              <div class="c">
+                <div><input type="text"></div>
+                <div class="slider"> </div>
+              </div>
+            </div>
+          </li>
       
           <li class="cr function">
             <div><span class="property-name">train_pattern</span>
@@ -1085,7 +1098,7 @@ $(document).ready(function() {
             </div>
           </li>
         </ul>
-        <div class="close-button" style="width: 245px;">Close Controls</div>
+      
       </div>
 
 
