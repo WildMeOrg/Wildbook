@@ -638,7 +638,7 @@ $('#social_files_iframe').on('load', function(ev) {
 
 	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
 	//now do actual submit
-	//document.forms['encounterForm'].submit();
+	document.forms['encounterForm'].submit();
 });
 
 

@@ -31,6 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -314,6 +317,7 @@ System.out.println("*** trying redirect?");
         HashMap<String, String> filesBad = new HashMap<String, String>();
 
         List<FileItem> formFiles = new ArrayList<FileItem>();
+        List<File> socialFiles = new ArrayList<File>();
 
       //Calendar date = Calendar.getInstance();
 
@@ -355,6 +359,16 @@ System.out.println("*** trying redirect?");
 
         } else {
             doneMessage = "Sorry this Servlet only handles file upload request";
+        }
+
+        if (fv.get("social_files_id") != null) {
+            //TODO better checking of files (size, type etc)
+            File socDir = new File(ServletUtilities.dataDir(context, rootDir) + "/social_files/" + fv.get("social_files_id"));
+            for (File sf : socDir.listFiles()) {
+                socialFiles.add(new File(socDir, sf));
+                filesOK.add(sf.getName());
+            }
+            fileSuccess = true;
         }
 
         session.setAttribute("filesOKMessage", (filesOK.isEmpty() ? "none" : Arrays.toString(filesOK.toArray())));
@@ -536,6 +550,14 @@ System.out.println("enc ?= " + enc.toString());
                 } catch (Exception ex) {
                     System.out.println("failed to save " + item.toString() + ": " + ex.toString());
                 }
+            }
+
+            for (File sf : socialFiles) {
+                File targetFile = new File(enc.dir(baseDir), sf.getName());
+System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.toString());
+                Files.copy(sf.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                SinglePhotoVideo spv = new SinglePhotoVideo(encID, targetFile);
+                enc.addSinglePhotoVideo(spv);
             }
 
 
