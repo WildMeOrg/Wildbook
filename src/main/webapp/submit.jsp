@@ -66,6 +66,8 @@ context=ServletUtilities.getContext(request);
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 <script src="javascript/pages/submit.js"></script>
 
+<script type="text/javascript" src="javascript/animatedcollapse.js"></script>
+
  <%
  if(!langCode.equals("en")){
  %>
@@ -364,27 +366,6 @@ function getAlbums(network) {
 }
 
 
-//Initiate hellojs
-hello.init(
-	
-		//define our services
-		{
-		<%
-		if(socialProps.getProperty("facebookAppId")!=null){
-		%>
-		facebook: '<%=socialProps.getProperty("facebookAppId") %>' ,
-		<%
-		}
-		%>
-		}, //end define services in js
-		
-		// define our options
-   		{
-   			scope: "files, photos" ,
-   		//redirect_uri : "../redirect.html"
-   		}
-   		
-);
 
 </script>
 
@@ -952,7 +933,7 @@ function updateList(inp) {
             <!-- <li><button class="zocial icon flickr" title="Import from Flickr" onclick="wildbook.submit.getAlbums('flickr')"/></button></li> -->
         </ul>
     </div>
-    <div class="row" style="height:300px;">
+    <div class="row" >
         <div id="submitupload" class="input-file-drop">
             <% if (isIE) { %>
             <div><%=props.getProperty("dragInstructionsIE")%></div>
@@ -963,7 +944,7 @@ function updateList(inp) {
             <% } %>
             <div id="input-file-list"></div>
         </div>
-        <div id="submitsocialmedia" class="container-fluid hidden" style="height:100%;">
+        <div id="submitsocialmedia" class="container-fluid hidden" style="height:300px;">
             <div id="socialalbums" class="col-md-4" style="height:100%;overflow-y:auto;">
             </div>
             <div id="socialphotos" class="col-md-8" style="height:100%;overflow-y:auto;">

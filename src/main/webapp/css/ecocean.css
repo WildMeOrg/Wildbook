@@ -34,7 +34,7 @@ body {
   font-family: verdana, arial, sans-serif;
   font-size: 14px;
   height: auto;
-  //background-color: #D55500
+  
   background-color: rgb(30, 30, 30);
 }
 
@@ -86,7 +86,7 @@ a,a.ecocean {
   text-decoration: none;
   font-weight: bold;
   border: none;
-  color: 379AE8;
+  color: #379AE8;
 }
 
 a:hover,a.ecocean:hover {
@@ -1139,7 +1139,7 @@ table.metalTags th
  {
   border-bottom: 1px dotted;
   text-align: center;
-  padding: 0px; 5px;
+  padding: 0px 5px;
 }
 
 table.measurements td,
@@ -1639,6 +1639,7 @@ div.row-lock.pending {
 }
 div.row-lock.blocked {
 	background: url(../images/lock-icon-no.png) no-repeat;
+	}
 
 .throbbing {
 	background: url(../images/throbber.gif) no-repeat left top;
@@ -1723,7 +1724,7 @@ tr.no-access:hover td {
 	z-index: 300;
 }
 
->>>>>>> 20eac93... ImageMajick support 3
+
 /* generic "notice me!" error text? */
 .error {
 	color: #820;
@@ -1742,19 +1743,8 @@ tr.no-access:hover td {
 
 .user-bio-button:hover {
 	background-color: #FFE;
-
-.img-watermark {
-	background-color: rgba(255,255,255,0.3);
-	position: absolute;
-	top: 75px;
-	left: -25px;
-	font-size: 0.85em;
-	width: 110%;
-	text-align: center;
-	padding: 13px;
-	transform: rotate(-21deg);
-	color: rgba(0,0,0,0.9);
 }
+
 
 
 .collaboration-invite-notification {
@@ -1871,6 +1861,7 @@ div.state-approved span.state {
 
 .user-bio-button:hover {
 	background-color: #FFE;
+}
 
 .img-watermark {
 
@@ -1933,17 +1924,7 @@ div.state-approved span.state {
   }
 
 
-    background-color: rgba(255,255,255,0.3);
-    position: absolute;
-    top: 75px;
-    left: -25px;
-    font-size: 0.85em;
-    width: 110%;
-    text-align: center;
-    padding: 13px;
-    transform: rotate(-21deg);
-    color: rgba(0,0,0,0.9);
-}
+
 .socialphoto {
     margin: 5px;
     padding: 5px;
