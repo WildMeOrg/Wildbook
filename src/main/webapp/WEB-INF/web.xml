@@ -1734,7 +1734,10 @@
       	<servlet-class>org.ecocean.servlet.LoginUserSocial</servlet-class>
    </servlet>
    
-
+ <servlet-mapping>
+    <servlet-name>LoginUserSocial</servlet-name>
+    <url-pattern>/LoginUserSocial</url-pattern>
+  </servlet-mapping>
    
   
 </web-app>
