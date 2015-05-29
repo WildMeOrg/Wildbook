@@ -165,7 +165,7 @@ $(function() {
 
     //Initiate hellojs
     /* hello.init({ facebook: {'wildme.org': '363791400412043'}}, { */ // Can base your keys off urls if the service allows/requires
-    hello.init({facebook: "363791400412043",
+    hello.init({facebook: wildbookGlobals.social.facebookAppId,
     /*             twitter: "UTEfL90bUGqXcsERcFbJRU4Ng", */
                 google: "195771644717-2am21965cpsueu7u49f6dgnnmqg7nmm1.apps.googleusercontent.com",
                 flickr: "d8de31bc9e774909bdcd77d0c3f7c6e2"}, {
