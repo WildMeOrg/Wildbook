@@ -4,7 +4,7 @@
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>    
+
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
 <%
@@ -22,49 +22,50 @@ context=ServletUtilities.getContext(request);
 
     //set up the file input stream
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+    
     props = ShepherdProperties.getProperties("submit.properties", langCode, context);
+    
+    Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
+    
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
 %>
 
 <style type="text/css">
-
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-
-
-/* css for timepicker */
-.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
-.ui-timepicker-div dl { text-align: left; padding: 0 5px 0 0;}
-.ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
-.ui-timepicker-div dl dd { margin: 0 10px 10px 45%; }
-.ui-timepicker-div td { font-size: 90%; }
-.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
-
-.ui-timepicker-rtl{ direction: rtl; }
-.ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
-.ui-timepicker-rtl dl dt{ float: right; clear: right; }
-.ui-timepicker-rtl dl dd { margin: 0 45% 10px 10px; }
-
-/*customizations*/
-.ui_tpicker_hour_label {margin-bottom:5px !important;}
-.ui_tpicker_minute_label {margin-bottom:5px !important;}
-
-
-
+    .full_screen_map {
+    position: absolute !important;
+    top: 0px !important;
+    left: 0px !important;
+    z-index: 1 !imporant;
+    width: 100% !important;
+    height: 100% !important;
+    margin-top: 0px !important;
+    margin-bottom: 8px !important;
+    
+    
+    /* css for timepicker */
+    .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+    .ui-timepicker-div dl { text-align: left; padding: 0 5px 0 0;}
+    .ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
+    .ui-timepicker-div dl dd { margin: 0 10px 10px 45%; }
+    .ui-timepicker-div td { font-size: 90%; }
+    .ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+    
+    .ui-timepicker-rtl{ direction: rtl; }
+    .ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
+    .ui-timepicker-rtl dl dt{ float: right; clear: right; }
+    .ui-timepicker-rtl dl dd { margin: 0 45% 10px 10px; }
+    
+    /*customizations*/
+    .ui_tpicker_hour_label {margin-bottom:5px !important;}
+    .ui_tpicker_minute_label {margin-bottom:5px !important;}
 </style>
 
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+<script src="javascript/pages/submit.js"></script>
 
  <%
  if(!langCode.equals("en")){
@@ -78,6 +79,56 @@ margin-bottom: 8px !important;
  %>
 
 <script type="text/javascript">
+var foo = false;
+function validate() {
+    var requiredfields = "";
+
+    if ($("#submitterName").val().length == 0) {
+      /*
+       * the value.length returns the length of the information entered
+       * in the Submitter's Name field.
+       */
+      requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
+    }
+
+      /*
+      if ((document.encounter_submission.submitterEmail.value.length == 0) ||
+        (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
+        (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
+
+           requiredfields += "\n   *  valid Email address";
+      }
+      if ((document.encounter_submission.location.value.length == 0)) {
+          requiredfields += "\n   *  valid sighting location";
+      }
+      */
+
+    if (requiredfields != "") {
+      requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
+      wildbook.showAlert(requiredfields, null, "Validate Issue");
+      return false;
+    }
+
+		$('#submit-button').attr('disabled', 'disabled');
+		var s = $('.social-photo-input');
+		if (s.length) {
+			var iframeUrl = 'SocialGrabFiles?';
+			s.each(function(i, el) {
+				iframeUrl += '&fileUrl=' + escape($(el).val());
+			});
+foo = iframeUrl;
+console.log('url %o', iframeUrl);
+			document.getElementById('social_files_iframe').src = iframeUrl;
+			return false;  //on('load') for the iframe will do actual form submission
+		}
+
+		return true;
+}
+</script>
+<script>
+
+<script type="text/javascript">
+/*
 function validate() {
   var requiredfields = "";
 
@@ -108,6 +159,7 @@ function validate() {
   }
   else return true;
 }
+*/
 
 $(function() {
   function resetMap() {
@@ -252,9 +304,13 @@ function addFullscreenButton(controlDiv, map) {
     
     //toggle the text of the button
     if($("#map_canvas").hasClass("full_screen_map")){
-        controlText.innerHTML = '<%=props.getProperty("exitFullscreen")%>';
+        controlText.innerHTML = '
+        <%=props.getProperty("exitFullscreen")%>
+        ';
     } else {
-        controlText.innerHTML = '<%=props.getProperty("fullscreen")%>';
+        controlText.innerHTML = '
+        <%=props.getProperty("fullscreen")%>
+        ';
     }
 
     // Setup the click event listeners: toggle the full screen
@@ -360,13 +416,29 @@ hello.on('auth.login', function(auth){
 
 //Initiate hellojs
 /* hello.init({ facebook: {'wildme.org': '363791400412043'}}, { */ // Can base your keys off urls if the service allows/requires
-hello.init({facebook: "363791400412043",
-/*             twitter: "UTEfL90bUGqXcsERcFbJRU4Ng", */
-            google: "195771644717-2am21965cpsueu7u49f6dgnnmqg7nmm1.apps.googleusercontent.com",
-            flickr: "d8de31bc9e774909bdcd77d0c3f7c6e2"}, {
-   scope: "files, photos"/* ,
-   redirect_uri : "../redirect.html" */
-});
+hello.init(
+	
+		//define our services
+		{
+		<%
+		if(socialProps.getProperty("facebookAppId")!=null){
+		%>
+		facebook: '<%=socialProps.getProperty("facebookAppId") %>' ,
+		/*twitter: "UTEfL90bUGqXcsERcFbJRU4Ng", */
+        //google: "195771644717-2am21965cpsueu7u49f6dgnnmqg7nmm1.apps.googleusercontent.com",
+        //flickr: "d8de31bc9e774909bdcd77d0c3f7c6e2"}, {
+		<%
+		}
+		%>
+		}, //end define services in js
+		
+		// define our options
+   		{
+   			scope: "files, photos" ,
+   		//redirect_uri : "../redirect.html"
+   		}
+   		
+);
 
 </script>
 
@@ -378,6 +450,7 @@ hello.init({facebook: "363791400412043",
   <h1 class="intro"><%=props.getProperty("submit_report")%>
   </h1>
 </div>
+<iframe id="social_files_iframe" style="display: none;" ></iframe>
 <form id="encounterForm" action="EncounterForm" method="post" enctype="multipart/form-data"
       name="encounter_submission" target="_self" dir="ltr" lang="en"
       onsubmit="return false;">
@@ -870,6 +943,29 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </p>
 
 <script>
+
+
+$('#social_files_iframe').on('load', function(ev) {
+	if (!ev || !ev.target) return;
+//console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
+//console.warn('doc is %o', doc);
+	if (!doc) return;
+//var x = $(doc).find('body').text();
+//console.warn('body %o', x);
+	var j = JSON.parse($(doc).find('body').text());
+	console.info('iframe returned %o', j);
+
+	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
+	//now do actual submit
+	document.forms['encounterForm'].submit();
+});
+
+
+function socialPhotoGrab() {
+}
+
+
 function updateList(inp) {
     var f = '';
     if (inp.files && inp.files.length) {
@@ -891,8 +987,26 @@ function updateList(inp) {
 
 <p align="center"><strong><%=props.getProperty("submit_image")%></strong></p>
 <div class="container-fluid">
-
     <div class="row">
+        <ul class="list-inline" style="text-align: center;">
+            <li class="active">
+                <button class="zocial icon" title="Upload from your computer" onclick="wildbook.submit.showUploadBox()"
+                        style="background:url(images/computer.png);">
+                </button>
+            </li>
+            <%
+			if(socialProps.getProperty("facebookAppId")!=null){
+			%>
+            <li><button class="zocial icon facebook" title="Import from Facebook" onclick="wildbook.submit.getAlbums('facebook')"/></button></li>
+            <%
+			}
+            %>
+            <!-- <li><button class="zocial icon twitter" title="Import from Twitter" onclick="wildbook.submit.getAlbums('twitter')"/></li> -->
+            <!-- <li><button class="zocial icon google" title="Import from Google+" onclick="wildbook.submit.getAlbums('google')"/></button></li> -->
+            <!-- <li><button class="zocial icon flickr" title="Import from Flickr" onclick="wildbook.submit.getAlbums('flickr')"/></button></li> -->
+        </ul>
+    </div>
+    <div class="row" style="height:300px;">
         <div id="submitupload" class="input-file-drop">
             <% if (isIE) { %>
             <div><%=props.getProperty("dragInstructionsIE")%></div>
@@ -903,7 +1017,12 @@ function updateList(inp) {
             <% } %>
             <div id="input-file-list"></div>
         </div>
-
+        <div id="submitsocialmedia" class="container-fluid hidden" style="height:100%;">
+            <div id="socialalbums" class="col-md-4" style="height:100%;overflow-y:auto;">
+            </div>
+            <div id="socialphotos" class="col-md-8" style="height:100%;overflow-y:auto;">
+            </div>
+        </div>
     </div>
 </div>
 
@@ -914,7 +1033,7 @@ function updateList(inp) {
 <input
   name="submitterID" type="hidden" value="N/A"/> <%}%>
 <p align="center">
-<button onclick="if (validate()) {document.forms['encounterForm'].submit();}"><%=props.getProperty("submit_send")%></button>
+<button id="submit-button" onclick="if (validate()) {document.forms['encounterForm'].submit();}"><%=props.getProperty("submit_send")%></button>
 </p>
 
 <p>&nbsp;</p>
