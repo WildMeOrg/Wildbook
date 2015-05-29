@@ -539,6 +539,15 @@
       	org.ecocean.servlet.LogoutUser</servlet-class>
   </servlet>
   
+    <servlet>
+      	<servlet-name>SocialGrabFiles</servlet-name>
+      	<servlet-class>org.ecocean.servlet.SocialGrabFiles</servlet-class>
+   </servlet>
+
+    <servlet>
+      	<servlet-name>SocialConnect</servlet-name>
+      	<servlet-class>org.ecocean.servlet.SocialConnect</servlet-class>
+   </servlet>
   
   <!-- end Shiro filters -->
 
@@ -1441,6 +1450,15 @@
     	<servlet-name>LogoutUser</servlet-name>
     	<url-pattern>/LogoutUser</url-pattern>
   </servlet-mapping>
+    <servlet-mapping>
+    	<servlet-name>SocialConnect</servlet-name>
+    	<url-pattern>/SocialConnect</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+    	<servlet-name>SocialGrabFiles</servlet-name>
+    	<url-pattern>/SocialGrabFiles</url-pattern>
+    </servlet-mapping>
   
 
   <servlet-mapping>
@@ -1721,32 +1739,5 @@
       	<servlet-class>org.ecocean.servlet.SocialConnect</servlet-class>
    </servlet>
    
-   <servlet-mapping>
-          <servlet-name>UserCreateSocial</servlet-name>
-          <url-pattern>/UserCreateSocial</url-pattern>
-  </servlet-mapping>
   
-      <servlet-mapping>
-    	<servlet-name>LoginUserSocial</servlet-name>
-    	<url-pattern>/LoginUserSocial</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-    	<servlet-name>SocialConnect</servlet-name>
-    	<url-pattern>/SocialConnect</url-pattern>
-    </servlet-mapping>
-  
-
-  <!-- Struts 1 Action Servlet Mapping 
-  <servlet-mapping>
-    <servlet-name>action</servlet-name>
-    <url-pattern>*.do</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>uploadAction</servlet-name>
-    <url-pattern>*.jh</url-pattern>
-  </servlet-mapping>
--->
-
 </web-app>
