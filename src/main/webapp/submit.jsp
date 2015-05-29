@@ -22,7 +22,6 @@ context=ServletUtilities.getContext(request);
 
     //set up the file input stream
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-    
     props = ShepherdProperties.getProperties("submit.properties", langCode, context);
     
     Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
@@ -125,41 +124,9 @@ console.log('url %o', iframeUrl);
 		return true;
 }
 </script>
+
 <script>
 
-<script type="text/javascript">
-/*
-function validate() {
-  var requiredfields = "";
-
-  if (document.encounter_submission.submitterName.value.length == 0) {
-    /*
-     * the value.length returns the length of the information entered
-     * in the Submitter's Name field.
-     */
-    requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
-  }
-
-    /*         
-    if ((document.encounter_submission.submitterEmail.value.length == 0) ||
-      (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
-      (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
-  
-         requiredfields += "\n   *  valid Email address";
-    }
-    if ((document.encounter_submission.location.value.length == 0)) {
-        requiredfields += "\n   *  valid sighting location";
-    }
-    */
-
-  if (requiredfields != "") {
-    requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
-    wildbook.showAlert(requiredfields, null, "Validate Issue");
-    return false;
-  }
-  else return true;
-}
-*/
 
 $(function() {
   function resetMap() {
@@ -304,13 +271,9 @@ function addFullscreenButton(controlDiv, map) {
     
     //toggle the text of the button
     if($("#map_canvas").hasClass("full_screen_map")){
-        controlText.innerHTML = '
-        <%=props.getProperty("exitFullscreen")%>
-        ';
+        controlText.innerHTML = '<%=props.getProperty("exitFullscreen") %>';
     } else {
-        controlText.innerHTML = '
-        <%=props.getProperty("fullscreen")%>
-        ';
+        controlText.innerHTML = '<%=props.getProperty("fullscreen") %>';
     }
 
     // Setup the click event listeners: toggle the full screen
@@ -401,21 +364,7 @@ function getAlbums(network) {
 }
 
 
-/* //Get User
-hello.on('auth.login', function(auth){
-    // Get Profile
-    hello.api(auth.network + ':me', function(r){
-        if(!r||r.error) {
-            wildbook.showAlert(r.error.message);
-            return;
-        }
-        document.getElementById(auth.network).innerHTML = "Get Albums from " + r.name + " at "+auth.network+"";
-    });
-});
- */
-
 //Initiate hellojs
-/* hello.init({ facebook: {'wildme.org': '363791400412043'}}, { */ // Can base your keys off urls if the service allows/requires
 hello.init(
 	
 		//define our services
@@ -424,9 +373,6 @@ hello.init(
 		if(socialProps.getProperty("facebookAppId")!=null){
 		%>
 		facebook: '<%=socialProps.getProperty("facebookAppId") %>' ,
-		/*twitter: "UTEfL90bUGqXcsERcFbJRU4Ng", */
-        //google: "195771644717-2am21965cpsueu7u49f6dgnnmqg7nmm1.apps.googleusercontent.com",
-        //flickr: "d8de31bc9e774909bdcd77d0c3f7c6e2"}, {
 		<%
 		}
 		%>

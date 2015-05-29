@@ -1944,3 +1944,11 @@ div.state-approved span.state {
     transform: rotate(-21deg);
     color: rgba(0,0,0,0.9);
 }
+.socialphoto {
+    margin: 5px;
+    padding: 5px;
+}
+
+.socialphoto.selected {
+    background-color: greenyellow;
+}
