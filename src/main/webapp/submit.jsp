@@ -1,6 +1,6 @@
 <jsp:include page="headerfull.jsp" flush="true"/>
 
-<%@ page import="java.util.GregorianCalendar,
+<%@ page contentType="text/html; charset=utf-8" import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties" %>
@@ -81,6 +81,16 @@ context=ServletUtilities.getContext(request);
 <script src="javascript/pages/submit.js"></script>
 
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
+  <script type="text/javascript">
+    animatedcollapse.addDiv('advancedInformation', 'fade=1');
+
+    animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
+      //$: Access to jQuery
+      //divobj: DOM reference to DIV being expanded/ collapsed. Use "divobj.id" to get its ID
+      //state: "block" or "none", depending on state
+    }
+    animatedcollapse.init();
+  </script>
 
  <%
  if(!langCode.equals("en")){
@@ -402,8 +412,99 @@ function getAlbums(network) {
 <p><%=props.getProperty("submit_overview")%>
 </p>
 
+
+
+
+
+<script>
+
+
+$('#social_files_iframe').on('load', function(ev) {
+	if (!ev || !ev.target) return;
+//console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
+//console.warn('doc is %o', doc);
+	if (!doc) return;
+//var x = $(doc).find('body').text();
+//console.warn('body %o', x);
+	var j = JSON.parse($(doc).find('body').text());
+	console.info('iframe returned %o', j);
+
+	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
+	//now do actual submit
+	document.forms['encounterForm'].submit();
+});
+
+
+function socialPhotoGrab() {
+}
+
+
+function updateList(inp) {
+    var f = '';
+    if (inp.files && inp.files.length) {
+        var all = [];
+        for (var i = 0 ; i < inp.files.length ; i++) {
+            if (inp.files[i].size > <%=maxSizeBytes%>) {
+                all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
+            } else {
+                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+            }
+        }
+        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
+    } else {
+        f = inp.value;
+    }
+    document.getElementById('input-file-list').innerHTML = f;
+}
+</script>
+
+<h3 align="center"><strong><%=props.getProperty("submit_image")%></strong></h3>
+<p><%=props.getProperty("submit_pleaseadd")%>
+<div class="container-fluid">
+    <div class="row">
+        <ul class="list-inline" style="text-align: center;">
+            <li class="active">
+                <button class="zocial icon" title="Upload from your computer" onclick="wildbook.submit.showUploadBox()"
+                        style="background:url(images/computer.png);">
+                </button>
+            </li>
+            <%
+			if(socialProps.getProperty("facebookAppId")!=null){
+			%>
+            <li><button class="zocial icon facebook" title="Import from Facebook" onclick="wildbook.submit.getAlbums('facebook')"/></button></li>
+            <%
+			}
+            %>
+            <!-- <li><button class="zocial icon twitter" title="Import from Twitter" onclick="wildbook.submit.getAlbums('twitter')"/></li> -->
+            <!-- <li><button class="zocial icon google" title="Import from Google+" onclick="wildbook.submit.getAlbums('google')"/></button></li> -->
+            <!-- <li><button class="zocial icon flickr" title="Import from Flickr" onclick="wildbook.submit.getAlbums('flickr')"/></button></li> -->
+        </ul>
+    </div>
+    <div class="row" >
+        <div id="submitupload" class="input-file-drop">
+            <% if (isIE) { %>
+            <div><%=props.getProperty("dragInstructionsIE")%></div>
+            <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            <% } else { %>
+            <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            <div><%=props.getProperty("dragInstructions")%></div>
+            <% } %>
+            <div id="input-file-list"></div>
+        </div>
+        <div id="submitsocialmedia" class="container-fluid hidden" style="height:300px;">
+            <div id="socialalbums" class="col-md-4" style="height:100%;overflow-y:auto;">
+            </div>
+            <div id="socialphotos" class="col-md-8" style="height:100%;overflow-y:auto;">
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<h3 align="center"><strong><%=props.getProperty("dateAndLocation")%></strong></h3>
+
 <p><%=props.getProperty("submit_note_red")%>
-</p>
+
 <table id="encounter_report" style="border:0">
 <tr class="form_row">
   <td class="form_label"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%></font></strong>
@@ -426,70 +527,25 @@ function getAlbums(network) {
 </tr>
 
 <%
-  pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
+if(CommonConfiguration.showReleaseDate(context)){
 %>
-<c:if test="${showReleaseDate}">
+
     <tr class="form_row">
     <td class="form_label"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
     <td colspan="2">  
         <input type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" />
     </td>
     </tr>
-</c:if>
-
-
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_sex")%>:</strong></td>
-  <td colspan="2" class="form_label"><label> <input type="radio" name="sex"
-                                 value="male"/> <%=props.getProperty("submit_male")%>
-  </label> <label>
-    <input type="radio" name="sex" value="female"/> <%=props.getProperty("submit_female")%>
-  </label>
-
-    <label> <input name="sex" type="radio" value="unknown"
-                   checked="checked"/> <%=props.getProperty("submit_unknown")%>
-    </label></td>
-</tr>
-<%
-
-if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-%>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("species")%>:</strong></td>
-  <td colspan="2">
-  <select name="genusSpecies" id="genusSpecies">
-      <option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
-  <%
-                     boolean hasMoreTax=true;
-                     int taxNum=0;
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-                             taxNum++;
-                        }
-                        else{
-                           hasMoreTax=false;
-                        }
-                        
-                   }
-                   }
- %>
-  </select></td>
-</tr>
 <%
 }
-//test comment
 %>
+
+
+
 
 <tr class="form_row">
   <td class="form_label" rowspan="5"><strong><font
-    color="#CC0000"><%=props.getProperty("submit_location")%>:</font></strong></td>
+    color="#CC0000"><%=props.getProperty("submit_location")%></font></strong></td>
   <td colspan="2"><input name="location" type="text" id="location" size="40"/></td>
 </tr>
 <%
@@ -632,6 +688,119 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 </tr>
 <%
 }
+%>
+
+</table>
+<br />
+<h3 align="center"><strong><%=props.getProperty("aboutYou")%></strong></h3>
+
+<table style="border:0;">
+<tr>
+    <td class="you" colspan="2"><strong><%=props.getProperty("submit_contactinfo")%>*</strong></td>
+    <td class="photo" colspan="2"><strong><%=props.getProperty("submit_contactphoto")%>
+    </strong><br/><%=props.getProperty("submit_ifyou")%>
+    </td>
+  </tr>
+    <%
+    //let's pre-populate important info for logged in users
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation="";
+    String project="";
+    if(request.getRemoteUser()!=null){
+        submitterName=request.getRemoteUser();
+        Shepherd myShepherd=new Shepherd(context);
+        if(myShepherd.getUser(submitterName)!=null){
+            User user=myShepherd.getUser(submitterName);
+            if(user.getFullName()!=null){submitterName=user.getFullName();}
+            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+            if(user.getUserProject()!=null){project=user.getUserProject();}
+        }
+    }
+    %>
+  <tr>
+    <td><font color="#CC0000"><%=props.getProperty("submit_name")%></font></td>
+    <td><input name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName%>"/></td>
+    <td><%=props.getProperty("submit_name")%></td>
+    <td><input name="photographerName" type="text" id="photographerName" size="24"/></td>
+  </tr>
+  <tr>
+    <td><font color="#CC0000"><%=props.getProperty("submit_email")%></font></td>
+
+    <td><input name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>"/></td>
+    <td><%=props.getProperty("submit_email")%>:</td>
+    <td><input name="photographerEmail" type="text" id="photographerEmail" size="24"/></td>
+  </tr>
+</table>
+<table style="border:0;">
+  <tr>
+    <td ><br /><strong><%=props.getProperty("submitterOrganization")%></strong><br />
+    <input name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation%>"/>
+    </td>
+  </tr>
+  
+    <tr>
+      <td><br /><strong><%=props.getProperty("submitterProject")%></strong><br />
+      <input name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project%>"/>
+      </td>
+  </tr>
+  </table>
+  
+  <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+      href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none"><img
+      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+      <font color="#000000"><%=props.getProperty("advancedInformation") %></font></a></h4>
+
+<div id="advancedInformation" style="display:none;">
+<table style="border:0;">
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("submit_sex")%>:</strong></td>
+  <td colspan="2" class="form_label"><label> <input type="radio" name="sex"
+                                 value="male"/> <%=props.getProperty("submit_male")%>
+  </label> <label>
+    <input type="radio" name="sex" value="female"/> <%=props.getProperty("submit_female")%>
+  </label>
+
+    <label> <input name="sex" type="radio" value="unknown"
+                   checked="checked"/> <%=props.getProperty("submit_unknown")%>
+    </label></td>
+</tr>
+<%
+
+if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+%>
+<tr class="form_row">
+  <td class="form_label"><strong><%=props.getProperty("species")%>:</strong></td>
+  <td colspan="2">
+  <select name="genusSpecies" id="genusSpecies">
+      <option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
+  <%
+                     boolean hasMoreTax=true;
+                     int taxNum=0;
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+                     while(hasMoreTax){
+                           String currentGenuSpecies = "genusSpecies"+taxNum;
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                               %>
+                                
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                               <%
+                             taxNum++;
+                        }
+                        else{
+                           hasMoreTax=false;
+                        }
+                        
+                   }
+                   }
+ %>
+  </select></td>
+</tr>
+<%
+}
+
 %>
 
 <tr class="form_row">
@@ -809,68 +978,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </tr>
 </table>
 <table id="encounter_contact">
-  <tr>
-    <td class="you" colspan="2"><strong><%=props.getProperty("submit_contactinfo")%>*</strong></td>
-    <td class="photo" colspan="2"><strong><%=props.getProperty("submit_contactphoto")%>
-    </strong><br/><%=props.getProperty("submit_ifyou")%>
-    </td>
-  </tr>
-    <%
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation="";
-    String project="";
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-        Shepherd myShepherd=new Shepherd(context);
-        if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-    }
-    %>
-  <tr>
-    <td><font color="#CC0000"><%=props.getProperty("submit_name")%>:</font></td>
-    <td><input name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName%>"/></td>
-    <td><%=props.getProperty("submit_name")%>:</td>
-    <td><input name="photographerName" type="text" id="photographerName" size="24"/></td>
-  </tr>
-  <tr>
-    <td><font color="#CC0000"><%=props.getProperty("submit_email")%>:</font></td>
-
-    <td><input name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>"/></td>
-    <td><%=props.getProperty("submit_email")%>:</td>
-    <td><input name="photographerEmail" type="text" id="photographerEmail" size="24"/></td>
-  </tr>
-
-  <tr>
-    <td><%=props.getProperty("submit_address")%>:</td>
-    <td><input name="submitterAddress" type="text" id="submitterAddress" size="24"/></td>
-    <td><%=props.getProperty("submit_address")%>:</td>
-    <td><input name="photographerAddress" type="text" id="photographerAddress" size="24"/></td>
-  </tr>
-  <tr>
-    <td><%=props.getProperty("submit_telephone")%>:</td>
-    <td><input name="submitterPhone" type="text" id="submitterPhone" size="24"/></td>
-    <td><%=props.getProperty("submit_telephone")%>:</td>
-    <td><input name="photographerPhone" type="text" id="photographerPhone" size="24"/></td>
-  </tr>
-
-  <tr>
-    <td colspan="4"><br /><strong><%=props.getProperty("submitterOrganization")%></strong><br />
-    <input name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation%>"/>
-    </td>
-  </tr>
   
-    <tr>
-      <td colspan="4"><br /><strong><%=props.getProperty("submitterProject")%></strong><br />
-      <input name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project%>"/>
-      </td>
-  </tr>
 
   <tr>
     <td colspan="4"><br /><strong><%=props.getProperty("otherEmails")%></strong><br />
@@ -881,93 +989,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </table>
 <p><em><%=props.getProperty("multipleEmailNote")%></em>.</p>
 <hr/>
-
-<p><%=props.getProperty("submit_pleaseadd")%>
-</p>
-
-<script>
-
-
-$('#social_files_iframe').on('load', function(ev) {
-	if (!ev || !ev.target) return;
-//console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
-//console.warn('doc is %o', doc);
-	if (!doc) return;
-//var x = $(doc).find('body').text();
-//console.warn('body %o', x);
-	var j = JSON.parse($(doc).find('body').text());
-	console.info('iframe returned %o', j);
-
-	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
-	//now do actual submit
-	document.forms['encounterForm'].submit();
-});
-
-
-function socialPhotoGrab() {
-}
-
-
-function updateList(inp) {
-    var f = '';
-    if (inp.files && inp.files.length) {
-        var all = [];
-        for (var i = 0 ; i < inp.files.length ; i++) {
-            if (inp.files[i].size > <%=maxSizeBytes%>) {
-                all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
-            } else {
-                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
-            }
-        }
-        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
-    } else {
-        f = inp.value;
-    }
-    document.getElementById('input-file-list').innerHTML = f;
-}
-</script>
-
-<p align="center"><strong><%=props.getProperty("submit_image")%></strong></p>
-<div class="container-fluid">
-    <div class="row">
-        <ul class="list-inline" style="text-align: center;">
-            <li class="active">
-                <button class="zocial icon" title="Upload from your computer" onclick="wildbook.submit.showUploadBox()"
-                        style="background:url(images/computer.png);">
-                </button>
-            </li>
-            <%
-			if(socialProps.getProperty("facebookAppId")!=null){
-			%>
-            <li><button class="zocial icon facebook" title="Import from Facebook" onclick="wildbook.submit.getAlbums('facebook')"/></button></li>
-            <%
-			}
-            %>
-            <!-- <li><button class="zocial icon twitter" title="Import from Twitter" onclick="wildbook.submit.getAlbums('twitter')"/></li> -->
-            <!-- <li><button class="zocial icon google" title="Import from Google+" onclick="wildbook.submit.getAlbums('google')"/></button></li> -->
-            <!-- <li><button class="zocial icon flickr" title="Import from Flickr" onclick="wildbook.submit.getAlbums('flickr')"/></button></li> -->
-        </ul>
-    </div>
-    <div class="row" >
-        <div id="submitupload" class="input-file-drop">
-            <% if (isIE) { %>
-            <div><%=props.getProperty("dragInstructionsIE")%></div>
-            <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-            <% } else { %>
-            <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-            <div><%=props.getProperty("dragInstructions")%></div>
-            <% } %>
-            <div id="input-file-list"></div>
-        </div>
-        <div id="submitsocialmedia" class="container-fluid hidden" style="height:300px;">
-            <div id="socialalbums" class="col-md-4" style="height:100%;overflow-y:auto;">
-            </div>
-            <div id="socialphotos" class="col-md-8" style="height:100%;overflow-y:auto;">
-            </div>
-        </div>
-    </div>
 </div>
+
 
 <p>&nbsp;</p>
 <%if (request.getRemoteUser() != null) {%> <input name="submitterID"
