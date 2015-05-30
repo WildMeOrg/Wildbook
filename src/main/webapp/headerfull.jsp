@@ -52,5 +52,5 @@ String requestUrl = "http://" + CommonConfiguration.getURLLocation(request);
 
 <div id="wrapper">
     <div id="page">
-        <jsp:include page="header.jsp" flush="true"/>
+        <jsp:include page="header2.jsp" flush="true"/>
         
