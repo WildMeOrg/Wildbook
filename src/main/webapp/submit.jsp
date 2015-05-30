@@ -398,7 +398,7 @@ function getAlbums(network) {
 
 <div id="main">
 
-<div id="maincol-wide-solo">
+<div id="maincol-wide-solo" style="padding: 3px;">
 
 <div id="maintext">
   <h1 class="intro"><%=props.getProperty("submit_report")%>
@@ -508,14 +508,14 @@ function updateList(inp) {
 
 <table id="encounter_report" style="border:0">
 <tr class="form_row">
-  <td class="form_label"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%></font></strong>
+  <td class="form_label" style="border-bottom: #ffffff;"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%></font></strong>
   </td>
-  <td>
+  <td style="border-bottom: #ffffff;">
   
      <input type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
 
     </td>
-    <td>
+    <td style="border-bottom: #ffffff;">
     <%=props.getProperty("examples") %>
     <ul>
     <li>2014-01-05 12:30</li>
@@ -532,8 +532,8 @@ if(CommonConfiguration.showReleaseDate(context)){
 %>
 
     <tr class="form_row">
-    <td class="form_label"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
-    <td colspan="2">  
+    <td class="form_label" style="border-bottom: #ffffff;"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
+    <td colspan="2" style="border-bottom: #ffffff;">  
         <input type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" />
     </td>
     </tr>
@@ -544,10 +544,13 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 
 
-<tr class="form_row">
-  <td class="form_label" rowspan="5"><strong><font
+<tr>
+  <td class="form_label" rowspan="7" style="border-bottom: #ffffff;"><strong><font
     color="#CC0000"><%=props.getProperty("submit_location")%></font></strong></td>
-  <td colspan="2"><input name="location" type="text" id="location" size="40"/></td>
+    </tr>
+    
+    <tr>
+  <td ><em><%=props.getProperty("where") %></em><br /><input name="location" type="text" id="location" size="40"/></td>
 </tr>
 <%
 //add locationID to fields selectable
@@ -555,9 +558,8 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()>0){
 %>
-<tr class="form_row">
-            <td class="form_label1"><strong><%=props.getProperty("locationID")%>:</strong></td>
-        <td>
+<tr>
+            <td class="form_label1"><em><%=props.getProperty("locationID")%></em><br />
               <select name="locationID" id="locationID">
                   <option value="" selected="selected"></option>
                   <%
@@ -590,8 +592,8 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
 if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
-        <tr class="form_row">
-            <td class="form_label1"><strong><%=props.getProperty("country")%>:</strong></td>
+        <tr >
+            <td class="form_label1"><em><%=props.getProperty("country")%></em></td>
         <td>
               <select name="country" id="country">
                   <option value="" selected="selected"></option>
@@ -628,7 +630,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
 
-<tr class="form_row"><td colspan="2">
+<tr><td colspan="2">
     <p id="map">
     <!--  
       <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
@@ -640,22 +642,14 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 </td>
 </tr>
 
-<tr class="form_row">
-        <td class="form_label1"><strong><%=props.getProperty("submit_gpslatitude")%>:</strong></td>
-        <td>
+<tr>
+        <td class="form_label1" colspan="2"><em><%=props.getProperty("submit_gpslatitude")%></em>
         <input name="lat" type="text" id="lat" size="10" />
         &deg;
-        </td>
-    </tr>
-    
-    <tr class="form_row">
-        <td class="form_label1"><strong><%=props.getProperty("submit_gpslongitude")%>:</strong></td>
-        <td>
-            <input name="longitude" type="text" id="longitude" size="10" />
-    
-        &deg;
-        <br/>
-        <br/> <%=props.getProperty("gpsConverter") %>
+        &nbsp;<em><%=props.getProperty("submit_gpslongitude")%></em>
+            <input name="longitude" type="text" id="longitude" size="10" /> &deg;
+
+        <br/><br /> <%=props.getProperty("gpsConverter") %><br /><br />
         </td>
     </tr>
     
@@ -666,25 +660,22 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 %>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_depth")%>:</strong></td>
-  <td colspan="2">
+<tr class="">
+  <td colspan="2"><em><%=props.getProperty("submit_depth")%></em> 
 <input name="depth" type="text" id="depth" size="10" />
-  &nbsp;<%=props.getProperty("submit_meters")%>
+  &nbsp;<%=props.getProperty("submit_meters")%> <br />
     </td>
 </tr>
 <%
 }
-%>
 
-<%
 if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 %>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_elevation")%>:</strong></td>
-  <td colspan="2">
+<tr>
+  <td class="form_label1" colspan="2"><em><%=props.getProperty("submit_elevation")%></em> 
 <input name="elevation" type="text" id="elevation" size="10" />
   &nbsp;<%=props.getProperty("submit_meters")%>
+ 
     </td>
 </tr>
 <%
