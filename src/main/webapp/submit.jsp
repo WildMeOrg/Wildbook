@@ -5,6 +5,7 @@
                  org.ecocean.*,
                  java.util.Properties" %>
 
+<link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -30,10 +31,6 @@ context=ServletUtilities.getContext(request);
 %>
 
 <style type="text/css">
-
-.list-inline{padding-left:0;margin-left:-5px;list-style:none}
-.list-inline>li{display:inline-block;padding-right:5px;padding-left:5px}
-
     .full_screen_map {
     position: absolute !important;
     top: 0px !important;
