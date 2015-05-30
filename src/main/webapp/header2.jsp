@@ -420,7 +420,7 @@ if(request.getUserPrincipal()!=null){
 <script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/collaboration.js"></script>
 <div id="header_menu" style="background-color: #D7E0ED;clear: left; position: relative;">
 	<div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
-<table width="810px">
+<table width="800px" style="">
 	<tr>
 		<td width="100%" colspan="4" class="caption" style="font-size: 0.7em;" align="right">
 			<table>
