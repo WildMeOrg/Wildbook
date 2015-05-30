@@ -1,11 +1,12 @@
 <jsp:include page="headerfull.jsp" flush="true"/>
 
-<%@ page import="java.util.GregorianCalendar,
+<%@ page contentType="text/html; charset=utf-8" import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties" %>
-
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -23,6 +24,9 @@ context=ServletUtilities.getContext(request);
     //set up the file input stream
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
     props = ShepherdProperties.getProperties("submit.properties", langCode, context);
+    
+    Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
+    
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
 %>
@@ -39,19 +43,33 @@ context=ServletUtilities.getContext(request);
     margin-bottom: 8px !important;
     
     
-    /* css for timepicker */
-    .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
-    .ui-timepicker-div dl { text-align: left; padding: 0 5px 0 0;}
-    .ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
-    .ui-timepicker-div dl dd { margin: 0 10px 10px 45%; }
-    .ui-timepicker-div td { font-size: 90%; }
-    .ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
-    
-    .ui-timepicker-rtl{ direction: rtl; }
-    .ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
-    .ui-timepicker-rtl dl dt{ float: right; clear: right; }
-    .ui-timepicker-rtl dl dd { margin: 0 45% 10px 10px; }
-    
+ .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+.ui-timepicker-div dl { text-align: left; }
+.ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
+.ui-timepicker-div dl dd { margin: 0 10px 10px 40%; }
+.ui-timepicker-div td { font-size: 90%; }
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+.ui-timepicker-div .ui_tpicker_unit_hide{ display: none; }
+
+.ui-timepicker-rtl{ direction: rtl; }
+.ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
+.ui-timepicker-rtl dl dt{ float: right; clear: right; }
+.ui-timepicker-rtl dl dd { margin: 0 40% 10px 10px; }
+
+/* Shortened version style */
+.ui-timepicker-div.ui-timepicker-oneLine { padding-right: 2px; }
+.ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_time, 
+.ui-timepicker-div.ui-timepicker-oneLine dt { display: none; }
+.ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_time_label { display: block; padding-top: 2px; }
+.ui-timepicker-div.ui-timepicker-oneLine dl { text-align: right; }
+.ui-timepicker-div.ui-timepicker-oneLine dl dd, 
+.ui-timepicker-div.ui-timepicker-oneLine dl dd > div { display:inline-block; margin:0; }
+.ui-timepicker-div.ui-timepicker-oneLine dl dd.ui_tpicker_minute:before,
+.ui-timepicker-div.ui-timepicker-oneLine dl dd.ui_tpicker_second:before { content:':'; display:inline-block; }
+.ui-timepicker-div.ui-timepicker-oneLine dl dd.ui_tpicker_millisec:before,
+.ui-timepicker-div.ui-timepicker-oneLine dl dd.ui_tpicker_microsec:before { content:'.'; display:inline-block; }
+.ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_unit_hide,
+.ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_unit_hide:before{ display: none; }
     /*customizations*/
     .ui_tpicker_hour_label {margin-bottom:5px !important;}
     .ui_tpicker_minute_label {margin-bottom:5px !important;}
@@ -62,6 +80,18 @@ context=ServletUtilities.getContext(request);
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 <script src="javascript/pages/submit.js"></script>
+
+<script type="text/javascript" src="javascript/animatedcollapse.js"></script>
+  <script type="text/javascript">
+    animatedcollapse.addDiv('advancedInformation', 'fade=1');
+
+    animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
+      //$: Access to jQuery
+      //divobj: DOM reference to DIV being expanded/ collapsed. Use "divobj.id" to get its ID
+      //state: "block" or "none", depending on state
+    }
+    animatedcollapse.init();
+  </script>
 
  <%
  if(!langCode.equals("en")){
@@ -122,9 +152,253 @@ console.log('url %o', iframeUrl);
 }
 </script>
 
+<script>
+
+
+$(function() {
+  function resetMap() {
+      var ne_lat_element = document.getElementById('lat');
+      var ne_long_element = document.getElementById('longitude');
+
+
+      ne_lat_element.value = "";
+      ne_long_element.value = "";
+
+    }
+
+    $(window).unload(resetMap);
+    
+    //
+    // Call it now on page load.
+    //
+    resetMap();
+    
+    
+
+    $( "#datepicker" ).datetimepicker({
+      changeMonth: true,
+      changeYear: true,
+      dateFormat: 'yy-mm-dd',
+      maxDate: '+1d',
+      controlType: 'select',
+      alwaysSetTime: false
+    });
+    $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+
+    $( "#releasedatepicker" ).datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'yy-mm-dd'
+    });
+    $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
+    $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
+});
+
+var center = new google.maps.LatLng(10.8, 160.8);
+
+var map;
+
+var marker;
+
+function placeMarker(location) {
+    if(marker!=null){marker.setMap(null);}  
+    marker = new google.maps.Marker({
+          position: location,
+          map: map
+      });
+
+      //map.setCenter(location);
+      
+        var ne_lat_element = document.getElementById('lat');
+        var ne_long_element = document.getElementById('longitude');
+
+
+        ne_lat_element.value = location.lat();
+        ne_long_element.value = location.lng();
+    }
+
+  function initialize() {
+    var mapZoom = 3;
+    if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+
+
+    if(marker!=null){
+        center = new google.maps.LatLng(10.8, 160.8);
+    }
+    
+    map = new google.maps.Map(document.getElementById('map_canvas'), {
+          zoom: mapZoom,
+          center: center,
+          mapTypeId: google.maps.MapTypeId.HYBRID
+        });
+    
+    if(marker!=null){
+        marker.setMap(map);    
+    }
+
+      //adding the fullscreen control to exit fullscreen
+      var fsControlDiv = document.createElement('DIV');
+      addFullscreenButton(fsControlDiv, map);
+      fsControlDiv.index = 1;
+      map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+
+      google.maps.event.addListener(map, 'click', function(event) {
+            placeMarker(event.latLng);
+          });
+}
+
+function fullScreen() {
+    $("#map_canvas").addClass('full_screen_map');
+    $('html, body').animate({scrollTop:0}, 'slow');
+    initialize();
+    
+    //hide header
+    $("#header_menu").hide();
+    
+    //if(overlaysSet){overlaysSet=false;setOverlays();}
+}
+
+
+function exitFullScreen() {
+    $("#header_menu").show();
+    $("#map_canvas").removeClass('full_screen_map');
+
+    initialize();
+    //if(overlaysSet){overlaysSet=false;setOverlays();}
+}
+
+
+//making the exit fullscreen button
+function addFullscreenButton(controlDiv, map) {
+    // Set CSS styles for the DIV containing the control
+    // Setting padding to 5 px will offset the control
+    // from the edge of the map
+    controlDiv.style.padding = '5px';
+
+    // Set CSS for the control border
+    var controlUI = document.createElement('DIV');
+    controlUI.style.backgroundColor = '#f8f8f8';
+    controlUI.style.borderStyle = 'solid';
+    controlUI.style.borderWidth = '1px';
+    controlUI.style.borderColor = '#a9bbdf';;
+    controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
+    controlUI.style.cursor = 'pointer';
+    controlUI.style.textAlign = 'center';
+    controlUI.title = 'Toggle the fullscreen mode';
+    controlDiv.appendChild(controlUI);
+
+    // Set CSS for the control interior
+    var controlText = document.createElement('DIV');
+    controlText.style.fontSize = '12px';
+    controlText.style.fontWeight = 'bold';
+    controlText.style.color = '#000000';
+    controlText.style.paddingLeft = '4px';
+    controlText.style.paddingRight = '4px';
+    controlText.style.paddingTop = '3px';
+    controlText.style.paddingBottom = '2px';
+    controlUI.appendChild(controlText);
+    
+    //toggle the text of the button
+    if($("#map_canvas").hasClass("full_screen_map")){
+        controlText.innerHTML = '<%=props.getProperty("exitFullscreen") %>';
+    } else {
+        controlText.innerHTML = '<%=props.getProperty("fullscreen") %>';
+    }
+
+    // Setup the click event listeners: toggle the full screen
+    google.maps.event.addDomListener(controlUI, 'click', function() {
+        if($("#map_canvas").hasClass("full_screen_map")) {
+            exitFullScreen();
+        } else {
+            fullScreen();
+        }
+    });
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+
+function buildPhotoThumnail(item) {
+    var o = document.createElement('img');
+    o.className='picture';
+    o.src = item.thumbnail;
+    o.title = item.name;
+
+    document.getElementById('socialphotos').appendChild(o);
+}
+
+function getPhotos(network, id) {
+    $("#socialphotos").empty();
+
+    hello( network ).api('me/album', {
+        id: id,
+        limit:10
+    }, function(resp){
+        if(resp.error){
+            wildbook.showAlert(resp.error.message);
+            return;
+        }
+        else if(!resp.data || resp.data.length === 0) {
+            wildbook.showAlert("There are no photos in this album");
+            return;
+        }
+
+        for (var i = 0; i < resp.data.length; i++) {
+            buildPhotoThumnail(resp.data[i]);
+        }
+    });
+}
+
+function showUploadBox() {
+    $("#submitsocialmedia").addClass("hidden");
+    $("#submitupload").removeClass("hidden");
+}
+
+function getAlbums(network) {
+    $("#submitsocialmedia").removeClass("hidden");
+    $("#submitupload").addClass("hidden");
+    
+    $("#socialalbums").empty();
+    $("#socialphotos").empty();
+    //
+    // Setting force:false means we'll only trigger auth flow if the user is not
+    // already signed in with the correct credentials
+    //
+    hello(network).login({force:false}, function(auth) {
+        // Get albums
+        hello.api(network + ':me/albums', function(resp) {
+            if(!resp || resp.error) {
+                wildbook.showAlert("Could not open albums from " + network + ": " + resp.error.message);
+                return;
+            } else if(!resp.data || resp.data.length === 0) {
+                wildbook.showAlert("There does not appear to be any photo albums in your account");
+                return
+            }
+
+            // Build buttons with the albums
+            $.each(resp.data, function() {                
+                var button = $('<button>').text(this.name).prop("title", this.name)
+                                     .addClass("btn btn-block btn-primary");
+                var id = this.id;
+                button.click(function() {
+                    getPhotos(network, id);
+                });
+
+                $('#socialalbums').append(button);
+            });
+        });
+    }, function(ex) {
+        wildbook.showAlert(ex.error.message);
+    });
+}
+
+
+
+</script>
+
 <div id="main">
 
-<div id="maincol-wide-solo">
+<div id="maincol-wide-solo" style="padding: 3px;">
 
 <div id="maintext">
   <h1 class="intro"><%=props.getProperty("submit_report")%>
@@ -139,18 +413,109 @@ console.log('url %o', iframeUrl);
 <p><%=props.getProperty("submit_overview")%>
 </p>
 
+
+
+
+
+<script>
+
+
+$('#social_files_iframe').on('load', function(ev) {
+	if (!ev || !ev.target) return;
+//console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
+//console.warn('doc is %o', doc);
+	if (!doc) return;
+//var x = $(doc).find('body').text();
+//console.warn('body %o', x);
+	var j = JSON.parse($(doc).find('body').text());
+	console.info('iframe returned %o', j);
+
+	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
+	//now do actual submit
+	document.forms['encounterForm'].submit();
+});
+
+
+function socialPhotoGrab() {
+}
+
+
+function updateList(inp) {
+    var f = '';
+    if (inp.files && inp.files.length) {
+        var all = [];
+        for (var i = 0 ; i < inp.files.length ; i++) {
+            if (inp.files[i].size > <%=maxSizeBytes%>) {
+                all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
+            } else {
+                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+            }
+        }
+        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
+    } else {
+        f = inp.value;
+    }
+    document.getElementById('input-file-list').innerHTML = f;
+}
+</script>
+
+<h3 align="center"><strong><%=props.getProperty("submit_image")%></strong></h3>
+<p><%=props.getProperty("submit_pleaseadd")%>
+<div class="container-fluid">
+    <div class="row">
+        <ul class="list-inline" style="text-align: center;">
+            <li class="active">
+                <button class="zocial icon" title="Upload from your computer" onclick="wildbook.submit.showUploadBox()"
+                        style="background:url(images/computer.png);">
+                </button>
+            </li>
+            <%
+			if(socialProps.getProperty("facebookAppId")!=null){
+			%>
+            <li><button class="zocial icon facebook" title="Import from Facebook" onclick="wildbook.submit.getAlbums('facebook')"/></button></li>
+            <%
+			}
+            %>
+            <!-- <li><button class="zocial icon twitter" title="Import from Twitter" onclick="wildbook.submit.getAlbums('twitter')"/></li> -->
+            <!-- <li><button class="zocial icon google" title="Import from Google+" onclick="wildbook.submit.getAlbums('google')"/></button></li> -->
+            <!-- <li><button class="zocial icon flickr" title="Import from Flickr" onclick="wildbook.submit.getAlbums('flickr')"/></button></li> -->
+        </ul>
+    </div>
+    <div class="row" >
+        <div id="submitupload" class="input-file-drop">
+            <% if (isIE) { %>
+            <div><%=props.getProperty("dragInstructionsIE")%></div>
+            <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            <% } else { %>
+            <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            <div><%=props.getProperty("dragInstructions")%></div>
+            <% } %>
+            <div id="input-file-list"></div>
+        </div>
+        <div id="submitsocialmedia" class="container-fluid hidden" style="height:300px;">
+            <div id="socialalbums" class="col-md-4" style="height:100%;overflow-y:auto;">
+            </div>
+            <div id="socialphotos" class="col-md-8" style="height:100%;overflow-y:auto;">
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<h3 align="center"><strong><%=props.getProperty("dateAndLocation")%></strong></h3>
+
 <p><%=props.getProperty("submit_note_red")%>
-</p>
+
 <table id="encounter_report" style="border:0">
 <tr class="form_row">
-  <td class="form_label"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%></font></strong>
+  <td class="form_label" style="border-bottom: #ffffff;"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%></font></strong>
   </td>
-  <td>
+  <td style="border-bottom: #ffffff;">
   
      <input type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
 
     </td>
-    <td>
+    <td style="border-bottom: #ffffff;">
     <%=props.getProperty("examples") %>
     <ul>
     <li>2014-01-05 12:30</li>
@@ -163,18 +528,224 @@ console.log('url %o', iframeUrl);
 </tr>
 
 <%
-  pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
+if(CommonConfiguration.showReleaseDate(context)){
 %>
-<c:if test="${showReleaseDate}">
+
     <tr class="form_row">
-    <td class="form_label"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
-    <td colspan="2">  
+    <td class="form_label" style="border-bottom: #ffffff;"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
+    <td colspan="2" style="border-bottom: #ffffff;">  
         <input type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" />
     </td>
     </tr>
-</c:if>
+<%
+}
+%>
 
 
+
+
+<tr>
+  <td class="form_label" rowspan="7" style="border-bottom: #ffffff;"><strong><font
+    color="#CC0000"><%=props.getProperty("submit_location")%></font></strong></td>
+    </tr>
+    
+    <tr>
+  <td ><em><%=props.getProperty("where") %></em><br /><input name="location" type="text" id="location" size="40"/></td>
+</tr>
+<%
+//add locationID to fields selectable
+
+
+if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()>0){
+%>
+<tr>
+            <td class="form_label1"><em><%=props.getProperty("locationID")%></em><br />
+              <select name="locationID" id="locationID">
+                  <option value="" selected="selected"></option>
+                  <%
+                         boolean hasMoreLocationsIDs=true;
+                         int locNum=0;
+                         
+                         while(hasMoreLocationsIDs){
+                               String currentLocationID = "locationID"+locNum;
+                               if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
+                                   %>
+                                    
+                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
+                                   <%
+                                 locNum++;
+                            }
+                            else{
+                               hasMoreLocationsIDs=false;
+                            }
+                            
+                       }
+                       
+     %>
+      </select>
+    
+</td>
+    </tr>
+<%
+}
+
+if(CommonConfiguration.showProperty("showCountry",context)){
+
+%>
+        <tr >
+            <td class="form_label1"><em><%=props.getProperty("country")%></em></td>
+        <td>
+              <select name="country" id="country">
+                  <option value="" selected="selected"></option>
+                  <%
+                         boolean hasMoreCountries=true;
+                         int taxNum=0;
+                         
+                         while(hasMoreCountries){
+                               String currentCountry = "country"+taxNum;
+                               if(CommonConfiguration.getProperty(currentCountry,context)!=null){
+                                   %>
+                                    
+                                     <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
+                                   <%
+                                 taxNum++;
+                            }
+                            else{
+                               hasMoreCountries=false;
+                            }
+                            
+                       }
+                       
+     %>
+      </select>
+    
+</td>
+    </tr>
+    
+    
+    
+
+<%
+}  //end if showCountry
+
+%>
+
+<tr><td colspan="2">
+    <p id="map">
+    <!--  
+      <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
+        a point to set the sighting location. You can also use the text boxes below the map to specify exact
+        latitude and longitude.</p>
+    -->
+    <p id="map_canvas" style="width: 578px; height: 383px; "></p>
+    <p id="map_overlay_buttons"></p>
+</td>
+</tr>
+
+<tr>
+        <td class="form_label1" colspan="2"><em><%=props.getProperty("submit_gpslatitude")%></em>
+        <input name="lat" type="text" id="lat" size="10" />
+        &deg;
+        &nbsp;<em><%=props.getProperty("submit_gpslongitude")%></em>
+            <input name="longitude" type="text" id="longitude" size="10" /> &deg;
+
+        <br/><br /> <%=props.getProperty("gpsConverter") %><br /><br />
+        </td>
+    </tr>
+    
+    
+          <%
+
+
+
+if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
+%>
+<tr class="">
+  <td colspan="2"><em><%=props.getProperty("submit_depth")%></em> 
+<input name="depth" type="text" id="depth" size="10" />
+  &nbsp;<%=props.getProperty("submit_meters")%> <br />
+    </td>
+</tr>
+<%
+}
+
+if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
+%>
+<tr>
+  <td class="form_label1" colspan="2"><em><%=props.getProperty("submit_elevation")%></em> 
+<input name="elevation" type="text" id="elevation" size="10" />
+  &nbsp;<%=props.getProperty("submit_meters")%>
+ 
+    </td>
+</tr>
+<%
+}
+%>
+
+</table>
+<br />
+<h3 align="center"><strong><%=props.getProperty("aboutYou")%></strong></h3>
+
+<table style="border:0;">
+<tr>
+    <td class="you" colspan="2"><strong><%=props.getProperty("submit_contactinfo")%>*</strong></td>
+    <td class="photo" colspan="2"><strong><%=props.getProperty("submit_contactphoto")%>
+    </strong><br/><%=props.getProperty("submit_ifyou")%>
+    </td>
+  </tr>
+    <%
+    //let's pre-populate important info for logged in users
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation="";
+    String project="";
+    if(request.getRemoteUser()!=null){
+        submitterName=request.getRemoteUser();
+        Shepherd myShepherd=new Shepherd(context);
+        if(myShepherd.getUser(submitterName)!=null){
+            User user=myShepherd.getUser(submitterName);
+            if(user.getFullName()!=null){submitterName=user.getFullName();}
+            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+            if(user.getUserProject()!=null){project=user.getUserProject();}
+        }
+    }
+    %>
+  <tr>
+    <td><font color="#CC0000"><%=props.getProperty("submit_name")%></font></td>
+    <td><input name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName%>"/></td>
+    <td><%=props.getProperty("submit_name")%></td>
+    <td><input name="photographerName" type="text" id="photographerName" size="24"/></td>
+  </tr>
+  <tr>
+    <td><font color="#CC0000"><%=props.getProperty("submit_email")%></font></td>
+
+    <td><input name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>"/></td>
+    <td><%=props.getProperty("submit_email")%>:</td>
+    <td><input name="photographerEmail" type="text" id="photographerEmail" size="24"/></td>
+  </tr>
+</table>
+<table style="border:0;">
+  <tr>
+    <td ><br /><strong><%=props.getProperty("submitterOrganization")%></strong><br />
+    <input name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation%>"/>
+    </td>
+  </tr>
+  
+    <tr>
+      <td><br /><strong><%=props.getProperty("submitterProject")%></strong><br />
+      <input name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project%>"/>
+      </td>
+  </tr>
+  </table>
+  
+  <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+      href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none"><img
+      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+      <font color="#000000"><%=props.getProperty("advancedInformation") %></font></a></h4>
+
+<div id="advancedInformation" style="display:none;">
+<table style="border:0;">
 <tr class="form_row">
   <td class="form_label"><strong><%=props.getProperty("submit_sex")%>:</strong></td>
   <td colspan="2" class="form_label"><label> <input type="radio" name="sex"
@@ -221,154 +792,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 </tr>
 <%
 }
-//test comment
-%>
 
-<tr class="form_row">
-  <td class="form_label" rowspan="5"><strong><font
-    color="#CC0000"><%=props.getProperty("submit_location")%>:</font></strong></td>
-  <td colspan="2"><input name="location" type="text" id="location" size="40"/></td>
-</tr>
-<%
-//add locationID to fields selectable
-
-
-if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()>0){
-%>
-<tr class="form_row">
-            <td class="form_label1"><strong><%=props.getProperty("locationID")%>:</strong></td>
-        <td>
-              <select name="locationID" id="locationID">
-                  <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreLocationsIDs=true;
-                         int locNum=0;
-                         
-                         while(hasMoreLocationsIDs){
-                               String currentLocationID = "locationID"+locNum;
-                               if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
-                                   %>
-                                    
-                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
-                                   <%
-                                 locNum++;
-                            }
-                            else{
-                               hasMoreLocationsIDs=false;
-                            }
-                            
-                       }
-                       
-     %>
-      </select>
-    
-</td>
-    </tr>
-<%
-}
-
-if(CommonConfiguration.showProperty("showCountry",context)){
-
-%>
-        <tr class="form_row">
-            <td class="form_label1"><strong><%=props.getProperty("country")%>:</strong></td>
-        <td>
-              <select name="country" id="country">
-                  <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreCountries=true;
-                         int taxNum=0;
-                         
-                         while(hasMoreCountries){
-                               String currentCountry = "country"+taxNum;
-                               if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-                                   %>
-                                    
-                                     <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-                                   <%
-                                 taxNum++;
-                            }
-                            else{
-                               hasMoreCountries=false;
-                            }
-                            
-                       }
-                       
-     %>
-      </select>
-    
-</td>
-    </tr>
-    
-    
-    
-
-<%
-}  //end if showCountry
-
-%>
-
-<tr class="form_row"><td colspan="2">
-    <p id="map">
-    <!--  
-      <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
-        a point to set the sighting location. You can also use the text boxes below the map to specify exact
-        latitude and longitude.</p>
-    -->
-    <p id="map_canvas" style="width: 578px; height: 383px; "></p>
-    <p id="map_overlay_buttons"></p>
-</td>
-</tr>
-
-<tr class="form_row">
-        <td class="form_label1"><strong><%=props.getProperty("submit_gpslatitude")%>:</strong></td>
-        <td>
-        <input name="lat" type="text" id="lat" size="10" />
-        &deg;
-        </td>
-    </tr>
-    
-    <tr class="form_row">
-        <td class="form_label1"><strong><%=props.getProperty("submit_gpslongitude")%>:</strong></td>
-        <td>
-            <input name="longitude" type="text" id="longitude" size="10" />
-    
-        &deg;
-        <br/>
-        <br/> <%=props.getProperty("gpsConverter") %>
-        </td>
-    </tr>
-    
-    
-          <%
-
-
-
-if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
-%>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_depth")%>:</strong></td>
-  <td colspan="2">
-<input name="depth" type="text" id="depth" size="10" />
-  &nbsp;<%=props.getProperty("submit_meters")%>
-    </td>
-</tr>
-<%
-}
-%>
-
-<%
-if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
-%>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_elevation")%>:</strong></td>
-  <td colspan="2">
-<input name="elevation" type="text" id="elevation" size="10" />
-  &nbsp;<%=props.getProperty("submit_meters")%>
-    </td>
-</tr>
-<%
-}
 %>
 
 <tr class="form_row">
@@ -546,68 +970,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </tr>
 </table>
 <table id="encounter_contact">
-  <tr>
-    <td class="you" colspan="2"><strong><%=props.getProperty("submit_contactinfo")%>*</strong></td>
-    <td class="photo" colspan="2"><strong><%=props.getProperty("submit_contactphoto")%>
-    </strong><br/><%=props.getProperty("submit_ifyou")%>
-    </td>
-  </tr>
-    <%
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation="";
-    String project="";
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-        Shepherd myShepherd=new Shepherd(context);
-        if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-    }
-    %>
-  <tr>
-    <td><font color="#CC0000"><%=props.getProperty("submit_name")%>:</font></td>
-    <td><input name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName%>"/></td>
-    <td><%=props.getProperty("submit_name")%>:</td>
-    <td><input name="photographerName" type="text" id="photographerName" size="24"/></td>
-  </tr>
-  <tr>
-    <td><font color="#CC0000"><%=props.getProperty("submit_email")%>:</font></td>
-
-    <td><input name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>"/></td>
-    <td><%=props.getProperty("submit_email")%>:</td>
-    <td><input name="photographerEmail" type="text" id="photographerEmail" size="24"/></td>
-  </tr>
-
-  <tr>
-    <td><%=props.getProperty("submit_address")%>:</td>
-    <td><input name="submitterAddress" type="text" id="submitterAddress" size="24"/></td>
-    <td><%=props.getProperty("submit_address")%>:</td>
-    <td><input name="photographerAddress" type="text" id="photographerAddress" size="24"/></td>
-  </tr>
-  <tr>
-    <td><%=props.getProperty("submit_telephone")%>:</td>
-    <td><input name="submitterPhone" type="text" id="submitterPhone" size="24"/></td>
-    <td><%=props.getProperty("submit_telephone")%>:</td>
-    <td><input name="photographerPhone" type="text" id="photographerPhone" size="24"/></td>
-  </tr>
-
-  <tr>
-    <td colspan="4"><br /><strong><%=props.getProperty("submitterOrganization")%></strong><br />
-    <input name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation%>"/>
-    </td>
-  </tr>
   
-    <tr>
-      <td colspan="4"><br /><strong><%=props.getProperty("submitterProject")%></strong><br />
-      <input name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project%>"/>
-      </td>
-  </tr>
 
   <tr>
     <td colspan="4"><br /><strong><%=props.getProperty("otherEmails")%></strong><br />
@@ -618,87 +981,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </table>
 <p><em><%=props.getProperty("multipleEmailNote")%></em>.</p>
 <hr/>
-
-<p><%=props.getProperty("submit_pleaseadd")%>
-</p>
-
-<script>
-
-
-$('#social_files_iframe').on('load', function(ev) {
-	if (!ev || !ev.target) return;
-//console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
-//console.warn('doc is %o', doc);
-	if (!doc) return;
-//var x = $(doc).find('body').text();
-//console.warn('body %o', x);
-	var j = JSON.parse($(doc).find('body').text());
-	console.info('iframe returned %o', j);
-
-	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
-	//now do actual submit
-	document.forms['encounterForm'].submit();
-});
-
-
-function socialPhotoGrab() {
-}
-
-
-function updateList(inp) {
-    var f = '';
-    if (inp.files && inp.files.length) {
-        var all = [];
-        for (var i = 0 ; i < inp.files.length ; i++) {
-            if (inp.files[i].size > <%=maxSizeBytes%>) {
-                all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
-            } else {
-                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
-            }
-        }
-        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
-    } else {
-        f = inp.value;
-    }
-    document.getElementById('input-file-list').innerHTML = f;
-}
-</script>
-
-<p align="center"><strong><%=props.getProperty("submit_image")%></strong></p>
-<div class="container-fluid">
-    <div class="row">
-        <ul class="list-inline" style="text-align: center;">
-            <li class="active">
-                <button class="zocial icon" title="Upload from your computer" onclick="wildbook.submit.showUploadBox()"
-                        style="background:url(images/computer.png);">
-                </button>
-            </li>
-            <li><button class="zocial icon facebook" title="Import from Facebook" onclick="wildbook.submit.getAlbums('facebook')"/></button></li>
-            <!-- <li><button class="zocial icon twitter" title="Import from Twitter" onclick="wildbook.submit.getAlbums('twitter')"/></li> -->
-            <li><button class="zocial icon google" title="Import from Google+" onclick="wildbook.submit.getAlbums('google')"/></button></li>
-            <li><button class="zocial icon flickr" title="Import from Flickr" onclick="wildbook.submit.getAlbums('flickr')"/></button></li>
-        </ul>
-    </div>
-    <div class="row" style="height:300px;">
-        <div id="submitupload" class="input-file-drop">
-            <% if (isIE) { %>
-            <div><%=props.getProperty("dragInstructionsIE")%></div>
-            <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-            <% } else { %>
-            <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-            <div><%=props.getProperty("dragInstructions")%></div>
-            <% } %>
-            <div id="input-file-list"></div>
-        </div>
-        <div id="submitsocialmedia" class="container-fluid hidden" style="height:100%;">
-            <div id="socialalbums" class="col-md-4" style="height:100%;overflow-y:auto;">
-            </div>
-            <div id="socialphotos" class="col-md-8" style="height:100%;overflow-y:auto;">
-            </div>
-        </div>
-    </div>
 </div>
+
 
 <p>&nbsp;</p>
 <%if (request.getRemoteUser() != null) {%> <input name="submitterID"
