@@ -398,7 +398,7 @@ function getAlbums(network) {
 
 <div id="main">
 
-<div id="maincol-wide-solo" style="padding: 3px;">
+<div id="maincol-wide-solo" style="padding: 5px;">
 
 <div id="maintext">
   <h1 class="intro"><%=props.getProperty("submit_report")%>
