@@ -220,7 +220,11 @@ public final class MantaMatcherUtilities {
       if (sbf.length() > 0)
         sbf.append(" && ");
       sbf.append("(this.patterningCode == null");
-      sbf.append(" || this.patterningCode == '").append(enc.getPatterningCode()).append("'");
+      // Normal & White mantas should always be compared.
+      if (enc.getPatterningCode().matches("^(normal|white).*$"))
+        sbf.append(" || this.patterningCode.startsWith('normal') || this.patterningCode.startsWith('white')");
+      else
+        sbf.append(" || this.patterningCode == '").append(enc.getPatterningCode()).append("'");
       sbf.append(")");
     }
     if (enc.getSex() != null) {
@@ -289,7 +293,11 @@ public final class MantaMatcherUtilities {
       if (sbf.length() > 0)
         sbf.append(" && ");
       sbf.append("(this.patterningCode == null");
-      sbf.append(" || this.patterningCode == '").append(enc.getPatterningCode()).append("'");
+      // Normal & White mantas should always be compared.
+      if (enc.getPatterningCode().matches("^(normal|white).*$"))
+        sbf.append(" || this.patterningCode.startsWith('normal') || this.patterningCode.startsWith('white')");
+      else
+        sbf.append(" || this.patterningCode == '").append(enc.getPatterningCode()).append("'");
       sbf.append(")");
     }
     if (enc.getSex() != null) {
