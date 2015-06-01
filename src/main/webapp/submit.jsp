@@ -738,8 +738,8 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       </td>
   </tr>
   <tr>
-  <td><br><strong><%=props.getProperty("submit_comments")%></strong><br><textarea name="comments" cols="40" id="comments"
-                            rows="10"></textarea></td>
+  <td><br><strong><%=props.getProperty("submit_comments")%></strong><br><textarea name="comments" cols="75" id="comments"
+                            rows="5"></textarea></td>
 </tr>
   </table>
   
@@ -768,7 +768,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
 <tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("species")%>:</strong></td>
+  <td class="form_label"><strong><%=props.getProperty("species")%></strong></td>
   <td colspan="2">
   <select name="genusSpecies" id="genusSpecies">
       <option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
