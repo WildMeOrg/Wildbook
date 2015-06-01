@@ -460,7 +460,7 @@ function updateList(inp) {
 }
 </script>
 
-<h3 align="center"><strong><%=props.getProperty("submit_image")%></strong></h3>
+<h3><strong><%=props.getProperty("submit_image")%></strong></h3>
 <p><%=props.getProperty("submit_pleaseadd")%>
 <div class="container-fluid">
     <div class="row">
@@ -502,7 +502,7 @@ function updateList(inp) {
     </div>
 </div>
 <br />
-<h3 align="center"><strong><%=props.getProperty("dateAndLocation")%></strong></h3>
+<h3><strong><%=props.getProperty("dateAndLocation")%></strong></h3>
 
 <p><%=props.getProperty("submit_note_red")%>
 
@@ -684,7 +684,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 </table>
 <br />
-<h3 align="center"><strong><%=props.getProperty("aboutYou")%></strong></h3>
+<h3><strong><%=props.getProperty("aboutYou")%></strong></h3>
 
 <table style="border:0;">
 <tr>
@@ -737,6 +737,10 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       <input name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project%>"/>
       </td>
   </tr>
+  <tr>
+  <td><br><strong><%=props.getProperty("submit_comments")%></strong><br><textarea name="comments" cols="40" id="comments"
+                            rows="10"></textarea></td>
+</tr>
   </table>
   
   <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
@@ -958,11 +962,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <td colspan="2">
     <input name="scars" type="text" id="scars" size="75"/></td>
 </tr>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_comments")%>:</strong></td>
-  <td colspan="2"><textarea name="comments" cols="40" id="comments"
-                            rows="10"></textarea></td>
-</tr>
+
 <tr>
   <td></td>
   <td></td>
