@@ -45,7 +45,7 @@ String requestUrl = "http://" + CommonConfiguration.getURLLocation(request);
     <script type="text/javascript" src="tools/jquery/javascript/jquery.min.js"></script>
     <script type="text/javascript" src="tools/jquery-ui/javascript/jquery-ui.min.js"></script>
 <%--     <script type="text/javascript" src="tools/hello/javascript/hello.all.min.js"></script> --%>
-    <script type="text/javascript" src="tools/hello/javascript/hello.js"></script>
+    <script type="text/javascript" src="tools/hello/javascript/hello.all.js"></script>
 </head>
 
 <body>
