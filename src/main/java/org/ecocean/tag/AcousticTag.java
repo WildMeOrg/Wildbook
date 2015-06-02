@@ -1,6 +1,7 @@
 package org.ecocean.tag;
 
 public class AcousticTag extends AbstractTag {
+  static final long serialVersionUID = -3502387833027576733L;
 
   private String serialNumber;
   

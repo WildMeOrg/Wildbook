@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 
 
 public class EncounterDelete extends HttpServlet {
+  /** SLF4J logger instance for writing log entries. */
+  public static Logger log = LoggerFactory.getLogger(EncounterDelete.class);
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -123,6 +125,7 @@ public class EncounterDelete extends HttpServlet {
 
         } catch (Exception edel) {
           locked = true;
+          log.warn("Failed to serialize encounter: " + request.getParameter("number"), edel);
           edel.printStackTrace();
           myShepherd.rollbackDBTransaction();
 
@@ -153,6 +156,7 @@ public class EncounterDelete extends HttpServlet {
           // Notify new-submissions address
           Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc2trash);
           tagMap.put("@USER@", request.getRemoteUser());
+          tagMap.put("@ENCOUNTER_ID@", request.getParameter("number"));
           String mailTo = CommonConfiguration.getNewSubmissionEmail(context);
           NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "encounterDelete", tagMap);
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
