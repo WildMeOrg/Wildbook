@@ -36,22 +36,22 @@ public class SocialAuth {
 
     public static FacebookClient getFacebookClient(String context) throws Exception {
         Properties props = authProps(context);
-        if ((props == null) || (props.getProperty("facebookAppId") == null) || (props.getProperty("facebookSecret") == null)) {
+        if ((props == null) || (props.getProperty("social.facebook.auth.appid") == null) || (props.getProperty("social.facebook.auth.secret") == null)) {
             //throw new Exception("facebookAppId or facebookSecret not set in socialAuth.properties");
             return null;
         }
-        return new FacebookClient(props.getProperty("facebookAppId"), props.getProperty("facebookSecret"));
+        return new FacebookClient(props.getProperty("social.facebook.auth.appid"), props.getProperty("social.facebook.auth.secret"));
     }
 
 
 
     public static OAuthService getFlickrOauth(String context, String callbackUrl) throws Exception {
         Properties props = authProps(context);
-        if ((props == null) || (props.getProperty("flickrKey") == null) || (props.getProperty("flickrSecret") == null)) {
+        if ((props == null) || (props.getProperty("social.flickr.auth.key") == null) || (props.getProperty("social.flickr.auth.secret") == null)) {
             //throw new Exception("facebookAppId or facebookSecret not set in socialAuth.properties");
             return null;
         }
-        return new ServiceBuilder().provider(FlickrApi.class).apiKey(props.getProperty("flickrKey")).apiSecret(props.getProperty("flickrSecret")).callback(callbackUrl).build();
+        return new ServiceBuilder().provider(FlickrApi.class).apiKey(props.getProperty("social.flickr.auth.key")).apiSecret(props.getProperty("social.flickr.auth.secret")).callback(callbackUrl).build();
     }
 
 
