@@ -317,83 +317,6 @@ function addFullscreenButton(controlDiv, map) {
 
 google.maps.event.addDomListener(window, 'load', initialize);
 
-
-function buildPhotoThumnail(item) {
-    var o = document.createElement('img');
-    o.className='picture';
-    o.src = item.thumbnail;
-    o.title = item.name;
-
-    document.getElementById('socialphotos').appendChild(o);
-}
-
-function getPhotos(network, id) {
-    $("#socialphotos").empty();
-
-    hello( network ).api('me/album', {
-        id: id,
-        limit:10
-    }, function(resp){
-        if(resp.error){
-            wildbook.showAlert(resp.error.message);
-            return;
-        }
-        else if(!resp.data || resp.data.length === 0) {
-            wildbook.showAlert("There are no photos in this album");
-            return;
-        }
-
-        for (var i = 0; i < resp.data.length; i++) {
-            buildPhotoThumnail(resp.data[i]);
-        }
-    });
-}
-
-function showUploadBox() {
-    $("#submitsocialmedia").addClass("hidden");
-    $("#submitupload").removeClass("hidden");
-}
-
-function getAlbums(network) {
-    $("#submitsocialmedia").removeClass("hidden");
-    $("#submitupload").addClass("hidden");
-    
-    $("#socialalbums").empty();
-    $("#socialphotos").empty();
-    //
-    // Setting force:false means we'll only trigger auth flow if the user is not
-    // already signed in with the correct credentials
-    //
-    hello(network).login({force:false}, function(auth) {
-        // Get albums
-        hello.api(network + ':me/albums', function(resp) {
-            if(!resp || resp.error) {
-                wildbook.showAlert("Could not open albums from " + network + ": " + resp.error.message);
-                return;
-            } else if(!resp.data || resp.data.length === 0) {
-                wildbook.showAlert("There does not appear to be any photo albums in your account");
-                return
-            }
-
-            // Build buttons with the albums
-            $.each(resp.data, function() {                
-                var button = $('<button>').text(this.name).prop("title", this.name)
-                                     .addClass("btn btn-block btn-primary");
-                var id = this.id;
-                button.click(function() {
-                    getPhotos(network, id);
-                });
-
-                $('#socialalbums').append(button);
-            });
-        });
-    }, function(ex) {
-        wildbook.showAlert(ex.error.message);
-    });
-}
-
-
-
 </script>
 
 <div id="main">
@@ -458,28 +381,24 @@ function updateList(inp) {
     }
     document.getElementById('input-file-list').innerHTML = f;
 }
+
+function showUploadBox() {
+    $("#submitsocialmedia").addClass("hidden");
+    $("#submitupload").removeClass("hidden");
+}
+
 </script>
 
 <h3><strong><%=props.getProperty("submit_image")%></strong></h3>
 <p><%=props.getProperty("submit_pleaseadd")%>
 <div class="container-fluid">
     <div class="row">
-        <ul class="list-inline" style="text-align: center;">
+        <ul id="social_image_buttons" class="list-inline" style="text-align: center;">
             <li class="active">
-                <button class="zocial icon" title="Upload from your computer" onclick="wildbook.submit.showUploadBox()"
+                <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()"
                         style="background:url(images/computer.png);">
                 </button>
             </li>
-            <%
-			if(socialProps.getProperty("facebookAppId")!=null){
-			%>
-            <li><button class="zocial icon facebook" title="Import from Facebook" onclick="wildbook.submit.getAlbums('facebook')"/></button></li>
-            <%
-			}
-            %>
-            <!-- <li><button class="zocial icon twitter" title="Import from Twitter" onclick="wildbook.submit.getAlbums('twitter')"/></li> -->
-            <!-- <li><button class="zocial icon google" title="Import from Google+" onclick="wildbook.submit.getAlbums('google')"/></button></li> -->
-            <!-- <li><button class="zocial icon flickr" title="Import from Flickr" onclick="wildbook.submit.getAlbums('flickr')"/></button></li> -->
         </ul>
     </div>
     <div class="row" >
