@@ -553,7 +553,7 @@ $(document).ready(function() {
           						<%
           						if(request.isUserInRole("admin")){
           						%>
-          						<tr>Advanced JDOQL: <input name="jdoql" type="text" id="jdoql" size="500"/> <i>(optional)</i></tr>
+          						<tr><i>Optional JDOQL filter: </i> <input name="jdoql" type="text" id="jdoql" size="80"/> </tr>
         						<%
           						}
         						%>
