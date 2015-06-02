@@ -1,6 +1,4 @@
 $(function() {
-    
-
     /* //Get User
     hello.on('auth.login', function(auth){
         // Get Profile
@@ -14,7 +12,12 @@ $(function() {
     });
      */
 
-    //Initiate hellojs
+    //
+    // For flickr you need to register your application domain with an auth-proxy. The aut-proxy that
+    // hello.js uses by default is https://auth-server.herokuapp.com/. Sign in and add your application.
+    // Reference = "flickr", domain is your server's domain, and cliend id and secret are those for flickr.
+    //
+    //Initiate hello.js
     /* hello.init({ facebook: {'wildme.org': '363791400412043'}}, { */ // Can base your keys off urls if the service allows/requires
     hello.init({facebook: wildbookGlobals.social.facebookAppId,
     /*             twitter: "UTEfL90bUGqXcsERcFbJRU4Ng", */
@@ -23,9 +26,7 @@ $(function() {
        scope: "files, photos"/* ,
        redirect_uri : "../redirect.html" */
     });
-});
 
-wildbook.submit = (function() {
     function toggleImage(photo) {
         var name = "socialphoto_" + photo.data("id");
 
@@ -38,12 +39,6 @@ wildbook.submit = (function() {
 
             var input = $("<input>").attr("type", "hidden").attr("name", name).attr("class", "social-photo-input").val(photo.data("source"));
             $("#encounterForm").append(input);
-
-//            reader = new FileReader();
-//            reader.onload = function (event) {
-//                $("#encounterForm input[name=' + name + ']").val(event.target.result);
-//            };
-//            reader.readAsDataURL(photo.data("source"));
         }
     }
 
@@ -87,48 +82,56 @@ wildbook.submit = (function() {
         });
     }
 
-    return {
-        showUploadBox: function() {
-            $("#submitsocialmedia").addClass("hidden");
-            $("#submitupload").removeClass("hidden");
-        },
+    function getAlbums(network) {
+        $("#submitsocialmedia").removeClass("hidden");
+        $("#submitupload").addClass("hidden");
 
-        getAlbums: function(network) {
-            $("#submitsocialmedia").removeClass("hidden");
-            $("#submitupload").addClass("hidden");
+        $("#socialalbums").empty();
+        $("#socialphotos").empty();
+        //
+        // Setting force:false means we'll only trigger auth flow if the user is not
+        // already signed in with the correct credentials
+        //
+        hello(network).login({force:false}, function(auth) {
+            // Get albums
+            hello.api(network + ':me/albums', function(resp) {
+                if(!resp || resp.error) {
+                    wildbook.showAlert("Could not open albums from " + network + ": " + resp.error.message);
+                    return;
+                } else if(!resp.data || resp.data.length === 0) {
+                    wildbook.showAlert("There does not appear to be any photo albums in your account");
+                    return
+                }
 
-            $("#socialalbums").empty();
-            $("#socialphotos").empty();
-            //
-            // Setting force:false means we'll only trigger auth flow if the user is not
-            // already signed in with the correct credentials
-            //
-            hello(network).login({force:false}, function(auth) {
-                // Get albums
-                hello.api(network + ':me/albums', function(resp) {
-                    if(!resp || resp.error) {
-                        wildbook.showAlert("Could not open albums from " + network + ": " + resp.error.message);
-                        return;
-                    } else if(!resp.data || resp.data.length === 0) {
-                        wildbook.showAlert("There does not appear to be any photo albums in your account");
-                        return
-                    }
-
-                    // Build buttons with the albums
-                    $.each(resp.data, function() {
-                        var button = $('<button>').text(this.name).prop("title", this.name)
-                                                  .addClass("btn btn-block btn-primary");
-                        var id = this.id;
-                        button.click(function() {
-                            getPhotos(network, id);
-                        });
-
-                        $('#socialalbums').append(button);
+                // Build buttons with the albums
+                $.each(resp.data, function() {
+                    var button = $('<button>').text(this.name).prop("title", this.name)
+                                              .addClass("btn btn-block btn-primary");
+                    var id = this.id;
+                    button.click(function() {
+                        getPhotos(network, id);
                     });
+
+                    $('#socialalbums').append(button);
                 });
-            }, function(ex) {
-                wildbook.showAlert(ex.error.message);
             });
-        }
-    };
-})();
+        }, function(ex) {
+            wildbook.showAlert(ex.error.message);
+        });
+    }
+
+    var services = ["facebook", "flickr", "google"];
+
+    $.each(services, function() {
+//        if (! wildbookGlobals.social[this].images.allow) {
+//            return;
+//        }
+        var service = this.toString(); //comes out a String obect
+        var button = $("<button>").attr("title", "Import from " + service).addClass("zocial").addClass("icon").addClass(service);
+        button.click(function() {
+            getAlbums(service);
+        });
+
+        $("#social_image_buttons").append($("<li>").append(button));
+    });
+});
