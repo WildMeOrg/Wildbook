@@ -55,7 +55,7 @@ while(allSharks.hasNext()){
 					String imagePath=(String)enc.getAdditionalImageNames().get(i);
 					%>
 		
-					<img href="http://www.whaleshark.org/shepherd_data_dir/encounters/<%=enc.getEncounterNumber()%>/<%=imagePath.replaceAll("&","&amp;")%>" />
+					<img href="<%=enc.dir("http://www.whaleshark.org/shepherd_data_dir") %>/<%=imagePath.replaceAll("&","&amp;")%>" />
 		
 					<%
 	
