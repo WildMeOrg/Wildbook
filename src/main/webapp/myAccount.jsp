@@ -363,6 +363,11 @@ String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+th
 %>
     <jsp:include page="encounters/encounterSearchResultsAnalysisEmbed.jsp" flush="true">
     	<jsp:param name="jdoqlString" value="<%=jdoqlString %>" />
+    	<jsp:param name="showTaxonomy" value="false" />
+    	<jsp:param name="showHaplotype" value="false" />
+    	<jsp:param name="showUsers" value="false" />
+    	<jsp:param name="showCountry" value="false" />
+    	<jsp:param name="showBioMeasurements" value="false" />
     </jsp:include>
     
     <p><strong>Links to My Data</strong></p>
