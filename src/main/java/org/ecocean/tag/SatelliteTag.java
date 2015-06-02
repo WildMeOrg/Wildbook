@@ -1,7 +1,8 @@
 package org.ecocean.tag;
 
 public class SatelliteTag extends AbstractTag {
-  
+  static final long serialVersionUID = 1623817087546820787L;
+
   private String name;
   private String serialNumber;
   private String argosPttNumber;
