@@ -96,7 +96,7 @@ hello.utils.extend( hello, {
 		//
 		// Page URL
 		// When `display=page` this property defines where the users page should end up after redirect_uri
-		// Ths could be problematic if the redirect_uri is indeed the final place, 
+		// Ths could be problematic if the redirect_uri is indeed the final place,
 		// Typically this circumvents the problem of the redirect_url being a dumb relay page.
 		page_uri : window.location.href
 	},
@@ -232,7 +232,7 @@ hello.utils.extend( hello, {
 		}
 
 		promise.proxy.then( emit.bind(this,"auth.login auth"), emit.bind(this,"auth.failed auth") );
-		
+
 
 		// Is our service valid?
 		if( typeof(p.network) !== 'string' || !( p.network in self.services ) ){
@@ -332,7 +332,7 @@ hello.utils.extend( hello, {
 		// SCOPES
 		// Authentication permisions
 		//
-		
+
 		// convert any array, or falsy value to a string.
 		var scope = (opts.scope||'').toString();
 
@@ -454,7 +454,7 @@ hello.utils.extend( hello, {
 			url = utils.qs( opts.oauth_proxy, p.qs, encodeFunction );
 		}
 
-		// 
+		//
 		else{
 
 			url = utils.qs( provider.oauth.auth, p.qs, encodeFunction );
@@ -573,7 +573,7 @@ hello.utils.extend( hello, {
 
 			//
 			// Run an async operation to remove the users session
-			// 
+			//
 			var _opts = {};
 			if(p.options.force){
 				var logout = self.services[p.name].logout;
@@ -670,7 +670,7 @@ hello.utils.extend( hello.utils, {
 		}
 		return url + (!this.isEmpty(params) ? ( url.indexOf('?') > -1 ? "&" : "?" ) + this.param(params,formatFunction) : '');
 	},
-	
+
 
 	//
 	// Param
@@ -681,7 +681,7 @@ hello.utils.extend( hello.utils, {
 		var b,
 			a = {},
 			m;
-		
+
 		if(typeof(s)==='string'){
 
 			formatFunction = formatFunction || decodeURIComponent;
@@ -700,7 +700,7 @@ hello.utils.extend( hello.utils, {
 			formatFunction = formatFunction || encodeURIComponent;
 
 			var o = s;
-		
+
 			a = [];
 
 			for( var x in o ){if(o.hasOwnProperty(x)){
@@ -712,7 +712,7 @@ hello.utils.extend( hello.utils, {
 			return a.join('&');
 		}
 	},
-	
+
 
 	//
 	// Local Storage Facade
@@ -836,7 +836,7 @@ hello.utils.extend( hello.utils, {
 				}}
 			}
 		}
-		
+
 		if(target==='body'){
 			(function self(){
 				if(document.body){
@@ -888,7 +888,7 @@ hello.utils.extend( hello.utils, {
 			i = 0,
 			t = null,
 			x = null;
-		
+
 		// define x
 		// x is the first key in the list of object parameters
 		for(x in o){if(o.hasOwnProperty(x)){
@@ -926,7 +926,7 @@ hello.utils.extend( hello.utils, {
 			){
 				p[x] = args[i++];
 			}
-			
+
 			else if( typeof( o[x] ) === 'string' && o[x].indexOf('!')>-1 ){
 				// ("Whoops! " + x + " not defined");
 				return false;
@@ -1065,7 +1065,7 @@ hello.utils.extend( hello.utils, {
 		};
 	})(),
 	*/
-	
+
 
 	/*!
 	**  Thenable -- Embeddable Minimum Strictly-Compliant Promises/A+ 1.1.1 Thenable
@@ -1468,7 +1468,7 @@ hello.utils.extend( hello.utils, {
 						location : {
 							// Change the location of the popup
 							assign : function(location){
-								
+
 								// Unfourtunatly an app is may not change the location of a InAppBrowser window.
 								// So to shim this, just open a new one.
 
@@ -1528,8 +1528,8 @@ hello.utils.extend( hello.utils, {
 		// OAuth redirect, fixes URI fragments from being lost in Safari
 		// (URI Fragments within 302 Location URI are lost over HTTPS)
 		// Loading the redirect.html before triggering the OAuth Flow seems to fix it.
-		// 
-		// FIREFOX, decodes URL fragments when calling location.hash. 
+		//
+		// FIREFOX, decodes URL fragments when calling location.hash.
 		//  - This is bad if the value contains break points which are escaped
 		//  - Hence the url must be encoded twice as it contains breakpoints.
 		if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
@@ -1564,7 +1564,7 @@ hello.utils.extend( hello.utils, {
 
 		//
 		// Is this an auth relay message which needs to call the proxy?
-		// 
+		//
 
 		p = utils.param(location.search);
 
@@ -1587,10 +1587,10 @@ hello.utils.extend( hello.utils, {
 		//
 		// FACEBOOK is returning auth errors within as a query_string... thats a stickler for consistency.
 		// SoundCloud is the state in the querystring and the token in the hashtag, so we'll mix the two together
-		
+
 		p = utils.merge(utils.param(location.search||''), utils.param(location.hash||''));
 
-		
+
 		// if p.state
 		if( p && "state" in p ){
 
@@ -1649,7 +1649,7 @@ hello.utils.extend( hello.utils, {
 			if( p.page_uri ){
 				window.location = p.page_uri;
 			}
-			
+
 
 		}
 		//
@@ -1784,7 +1784,7 @@ hello.utils.responseHandler( window, window.opener || window.parent );
 			old_session[auth.network] = hello.utils.store(auth.network) || {};
 		}
 	});
-	
+
 
 
 	(function self(){
@@ -1804,7 +1804,7 @@ hello.utils.responseHandler( window, window.opener || window.parent );
 				// we haven't attached an ID so dont listen.
 				continue;
 			}
-		
+
 			// Get session
 			var session = hello.utils.store(name) || {};
 			var provider = hello.services[name];
@@ -1831,14 +1831,14 @@ hello.utils.responseHandler( window, window.opener || window.parent );
 				}
 				catch(e){}
 			}
-			
+
 			//
 			// Refresh token
 			//
 			if( session && ("expires" in session) && session.expires < CURRENT_TIME ){
 
 				// If auto refresh is possible
-				// Either the browser supports 
+				// Either the browser supports
 				var refresh = provider.refresh || session.refresh_token;
 
 				// Has the refresh been run recently?
@@ -2001,7 +2001,7 @@ hello.api = function(){
 	if(!("proxy" in p)){
 		p.proxy = p.oauth_proxy && o.oauth && parseInt(o.oauth.version,10) === 1;
 	}
-	
+
 
 
 	// TIMEOUT
@@ -2097,7 +2097,7 @@ hello.api = function(){
 		// Else the URL is a string
 		getPath(url);
 	}
-	
+
 
 	return promise.proxy;
 
@@ -2223,7 +2223,7 @@ hello.utils.extend( hello.utils, {
 
 	//
 	// Make an HTTP request
-	// 
+	//
 	request : function( p, callback ){
 
 		var utils = this;
@@ -2366,7 +2366,7 @@ hello.utils.extend( hello.utils, {
 		// Format URL
 		// Constructs the request URL, optionally wraps the URL through a call to a proxy server
 		// Returns the formatted URL
-		// 
+		//
 		function formatUrl( p, callback ){
 
 			// Are we signing the request?
@@ -2660,7 +2660,7 @@ hello.utils.extend( hello.utils, {
 		// However: unable recreate the bug of firing off the onreadystatechange before the script content has been executed and the value of "result" has been defined.
 		// Inject script tag into the head element
 		head.appendChild(script);
-		
+
 		// Append Opera Fix to run after our script
 		if(operafix){
 			head.appendChild(operafix);
@@ -2897,7 +2897,7 @@ hello.utils.extend( hello.utils, {
 
 		// Build an iFrame and inject it into the DOM
 		//var ifm = _append('iframe',{id:'_'+Math.round(Math.random()*1e9), style:shy});
-		
+
 		// Build an HTML form, with a target attribute as the ID of the iFrame, and inject it into the DOM.
 		//var frm = _append('form',{ method: 'post', action: uri, target: ifm.id, style:shy});
 
@@ -2933,7 +2933,7 @@ hello.utils.extend( hello.utils, {
 
 	// DataURI to Blob
 	// Converts a Data-URI to a Blob string
-	
+
 	toBlob : function(dataURI){
 		var reg = /^data\:([^;,]+(\;charset=[^;,]+)?)(\;base64)?,/i;
 		var m = dataURI.match(reg);
@@ -3131,7 +3131,7 @@ function formatError(o){
 		};
 	}
 }
-	
+
 function format_file(o, headers, req){
 
 	if(typeof(o)!=='object' ||
@@ -3256,7 +3256,7 @@ hello.init({
 			}
 		},
 
-		// Map DELETE requests 
+		// Map DELETE requests
 		del : {
 			"me/files" : "fileops/delete?root=@{root|sandbox}&path=@{id}",
 			"me/folder" : "fileops/delete?root=@{root|sandbox}&path=@{id}"
@@ -3303,7 +3303,7 @@ hello.init({
 		xhr : function(p){
 
 			// the proxy supports allow-cross-origin-resource
-			// alas that's the only thing we're using. 
+			// alas that's the only thing we're using.
 			if( p.data && p.data.file ){
 				var file = p.data.file;
 				if( file ){
@@ -3416,7 +3416,7 @@ hello.init({
 			// undefined	- this function will handle the callback
 			// true			- throw a success, this callback isn't handling the callback
 			// false		- throw a error
-			
+
 			if(!token){
 				// if there isn't a token, the above wont return a response, so lets trigger a response
 				return false;
@@ -3433,7 +3433,7 @@ hello.init({
 			videos			: 'user_photos,user_videos',
 			friends			: 'user_friends',
 			files			: 'user_photos,user_videos',
-			
+
 			publish_files	: 'user_photos,user_videos,publish_actions',
 			publish			: 'publish_actions',
 
@@ -3460,7 +3460,7 @@ hello.init({
 			'me/album' : '@{id}/photos',
 			'me/photos' : 'me/photos',
 			'me/photo' : '@{id}',
-			
+
 			'friend/albums' : '@{id}/albums',
 			'friend/photos' : '@{id}/photos'
 
@@ -3690,6 +3690,7 @@ hello.init({
 			"me/following": sign("flickr.contacts.getList", {per_page:"@{limit|50}"}),
 			"me/followers": sign("flickr.contacts.getList", {per_page:"@{limit|50}"}),
 			"me/albums"	: sign("flickr.photosets.getList", {per_page:"@{limit|50}"}),
+            "me/album" : sign("flickr.photosets.getPhotos&photoset_id=@{id}"),
 			"me/photos" : sign("flickr.people.getPhotos", {per_page:"@{limit|50}"})
 		},
 
@@ -3777,7 +3778,7 @@ function formatUser(o){
 }
 
 function paging(res){
-	
+
 }
 
 
@@ -4241,7 +4242,7 @@ hello.init({
 	// PUT https://developers.google.com/drive/v2/reference/files/update
 	// POST https://developers.google.com/drive/manage-uploads
 	function uploadDrive(p, callback){
-		
+
 		var data = {};
 
 		// Test for DOM element
@@ -4368,7 +4369,7 @@ hello.init({
 				videos			: 'http://gdata.youtube.com',
 				friends			: 'https://www.google.com/m8/feeds, https://www.googleapis.com/auth/plus.login',
 				files			: 'https://www.googleapis.com/auth/drive.readonly',
-				
+
 				publish			: '',
 				publish_files	: 'https://www.googleapis.com/auth/drive',
 				create_event	: '',
@@ -4505,7 +4506,7 @@ hello.init({
 		}
 	});
 
-	
+
 	function toJSON(p){
 		if( typeof(p.data) === 'object' ){
 			// Convert the POST into a javascript object
@@ -4599,7 +4600,7 @@ hello.init({
 			'me/friends' : 'users/self/follows?count=@{limit|100}',
 			'me/following' : 'users/self/follows?count=@{limit|100}',
 			'me/followers' : 'users/self/followed-by?count=@{limit|100}',
-			
+
 			'friend/photos' : 'users/@{id}/media/recent?min_id=0&count=@{limit|100}'
 		},
 
@@ -5222,7 +5223,7 @@ hello.init({
 			videos			: 'wl.photos',
 			friends			: 'wl.contacts_emails',
 			files			: 'wl.skydrive',
-			
+
 			publish			: 'wl.share',
 			publish_files	: 'wl.skydrive_update',
 			create_event	: 'wl.calendars_update,wl.events_create',
