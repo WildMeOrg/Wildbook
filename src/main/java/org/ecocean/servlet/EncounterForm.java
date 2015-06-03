@@ -368,6 +368,7 @@ System.out.println("*** trying redirect?");
                 socialFiles.add(sf);
                 filesOK.add(sf.getName());
             }
+            filesBad = new HashMap<String, String>();
             fileSuccess = true;
         }
 
