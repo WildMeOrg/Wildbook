@@ -50,8 +50,16 @@ $(function() {
             photo.attr("title", item.name);
         }
 
+        //
+        // If an array of images are presented, it seems that the zeroth one
+        // is the full size one and the others are various smaller sizes.
+        //
         photo.data("id", index);
-        photo.data("source", item.images[0].source);
+        if (item.images && item.images[0]) {
+            photo.data("source", item.images[0].source);
+        } else {
+            photo.data("source", item.source);
+        }
 
         photo.click(function() {
             toggleImage(photo);
