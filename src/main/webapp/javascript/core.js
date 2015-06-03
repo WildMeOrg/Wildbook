@@ -99,6 +99,16 @@ console.log('is %o', ajax);
 
     errorDialog: false,
 
+		socialApiKey: function(svc) {
+			if (!wildbookGlobals || !wildbookGlobals.social || !wildbookGlobals.social[svc] || !wildbookGlobals.social[svc].auth) return false;
+			var keyMap = {
+				facebook: 'appid',
+				flickr: 'key',
+				google: 'FOO',
+			};
+			return wildbookGlobals.social[svc].auth[keyMap[svc]] || false;
+		},
+
     showError: function(ex) {
         var message;
         var details;
