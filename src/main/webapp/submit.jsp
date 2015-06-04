@@ -105,7 +105,7 @@ context=ServletUtilities.getContext(request);
  %>
 
 <script type="text/javascript">
-var foo = false;
+
 function validate() {
     var requiredfields = "";
 
@@ -135,15 +135,15 @@ function validate() {
       return false;
     }
 
-		$('#submit-button').attr('disabled', 'disabled');
+		$('#submit-button').prop('disabled', 'disabled').css('opacity', '0.3').after('<div class="throbbing" style="display: inline-block; width: 24px; vertical-align: top; margin-left: 10px; height: 24px;"></div>');
 		var s = $('.social-photo-input');
 		if (s.length) {
 			var iframeUrl = 'SocialGrabFiles?';
 			s.each(function(i, el) {
 				iframeUrl += '&fileUrl=' + escape($(el).val());
 			});
-foo = iframeUrl;
-console.log('url %o', iframeUrl);
+
+console.log('iframeUrl %o', iframeUrl);
 			document.getElementById('social_files_iframe').src = iframeUrl;
 			return false;  //on('load') for the iframe will do actual form submission
 		}
