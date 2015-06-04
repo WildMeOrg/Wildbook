@@ -105,7 +105,7 @@ try {
 %>
         <div class="resultsRegional">
           <p><%= MessageFormat.format(encprops.getProperty("mma.resultsFoundRegional"), enc.getLocationID()) %> <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>" target="_blank"><%= MessageFormat.format(encprops.getProperty("mma.resultsLinkRegional"), enc.getLocationID()) %></a></p>
-          <p class="smallish"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), new Date(matchOutputRegional.lastModified())) %>)</p>
+          <p class="smallish"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), new Date(matchOutputRegional.lastModified())) %></p>
           <div class="formRescanRegional">
             <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
               <input name="action" type="hidden" value="rescanRegional" id="actionRescanRegional"/>
