@@ -99,16 +99,6 @@ console.log('is %o', ajax);
 
     errorDialog: false,
 
-		socialApiKey: function(svc) {
-			if (!wildbookGlobals || !wildbookGlobals.social || !wildbookGlobals.social[svc] || !wildbookGlobals.social[svc].auth) return false;
-			var keyMap = {
-				facebook: 'appid',
-				flickr: 'key',
-				google: 'FOO',
-			};
-			return wildbookGlobals.social[svc].auth[keyMap[svc]] || false;
-		},
-
     showError: function(ex) {
         var message;
         var details;
@@ -174,7 +164,42 @@ console.log('is %o', ajax);
             width: 600,
             appendTo: "body",
             resizable: false } );
-    }
+    },
+
+		//making a whole social sub-object here, just cuz it seems like things might get busy
+		social: {
+			SERVICE_NOT_SUPPORTED: 'SERVICE_NOT_SUPPORTED',
+			enabled: function(svc) {  //svc is optional, but performs additional check that we have wildbookGlobals.social.FOO for that service
+				if (!wildbookGlobals || !wildbookGlobals.social) return false;
+				if (svc && !wildbookGlobals.social[svc]) return false;
+				return true;
+			},
+			allServices: function() {  //all possible supported by system
+				if (!wildbook.social.enabled()) return [];
+				return ['facebook', 'google', 'flickr'];
+			},
+			myServices: function() {  //based on what we have defined in socialAuth.properties file (various aspects may be en/disabled)
+				if (!wildbook.social.enabled()) return [];
+				return Object.keys(wildbookGlobals.social);
+			},
+			featureEnabled: function(svc, feature) {
+				if (!wildbook.social.enabled(svc)) return false;
+				if (wildbookGlobals.social[svc][feature] && wildbookGlobals.social[svc][feature].allow && (wildbookGlobals.social[svc][feature].allow != 'false')) return true;
+				return false;
+			},
+			//note: this is the public api key. secret keys are never made public (i.e. in js), so if you need that, talk to the backend.
+			apiKey: function(svc) {  //maps varying property name for each api key (from properties file)
+				if (svc == undefined) return wildbook.social.SERVICE_NOT_SUPPORTED;
+				if (!wildbook.social.enabled(svc)) return wildbook.social.SERVICE_NOT_SUPPORTED;
+				var keyMap = {
+					facebook: 'appid',
+					flickr: 'key',
+					google: 'FOO',  //TODO we dont have support for this yet
+				};
+				return wildbookGlobals.social[svc].auth[keyMap[svc]] || wildbook.social.SERVICE_NOT_SUPPORTED;
+			}
+		} //end social.
+
 };
 
 
