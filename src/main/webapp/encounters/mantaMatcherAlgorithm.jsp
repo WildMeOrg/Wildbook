@@ -1,4 +1,10 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.*, org.ecocean.mmutil.*, java.text.*, java.util.*,javax.jdo.*,java.io.File, org.ecocean.servlet.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.mmutil.*" %>
+<%@ page import="java.text.*" %>
+<%@ page import="java.util.*" %>
+<%@ page import="java.io.File" %>
+<%@ page import="org.ecocean.servlet.*" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -39,163 +45,191 @@ try {
 
   //let's set up references to our file system components
   File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext(), context);
-%>
 
-<%
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+
   if (isAuthorized && hasPhotos) {
 %>
-  <p><strong>Matching Algorithm</strong></p>
+  <div id="mma" class="section">
+    <p class="sectionTitle"><%= encprops.getProperty("mma.sectionTitle") %></p>
 <%
     List<SinglePhotoVideo> photos = enc.getSinglePhotoVideo();
-    for (int t = 0; t < photos.size(); t++){
+    for (int t = 0; t < photos.size(); t++) {
       SinglePhotoVideo spv = photos.get(t);
       if (!MediaUtilities.isAcceptableImageFile(spv.getFile()))
         continue;
       Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
-      DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
       File matchOutputRegional = mmFiles.get("TXT-REGIONAL");
       File matchOutputAll = mmFiles.get("TXT");
       File mmFT = mmFiles.get("FT");
-      if (MantaMatcherUtilities.checkMatcherFilesExist(spv.getFile())) {
+      if (!MantaMatcherUtilities.checkMatcherFilesExist(spv.getFile()))
+        continue;
 %>
-  <p style="background-color:#f0f0f0;"><em>Extracted Feature Image for Image <%=(t+1) %>.</em></p>
-  <p><img width="300px" height="*" src="/<%=shepherdDataDir.getName() %>/encounters/<%=Encounter.subdir(enc.getCatalogNumber()) %>/<%=mmFT.getName()%>"/></p>
-  <p><em>Remove the processed, cropped manta patterning image.</em></p>
-  <p>
-    <form action="../EncounterAddMantaPattern" method="post" name="EncounterRemoveMantaPattern">
-      <input name="action" type="hidden" value="imageremove" id="actionRemove" />
-      <input name="number" type="hidden" value="<%=encNum%>" id="number" />
-      <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
-      <p><input name="removeMMPatternFile" type="submit" id="removeMMPatternFile" value="Remove the file" /></p>
-    </form>
-  </p>
+    <div class="subSection featureRegion">
+      <p class="subSectionTitle featureRegionTitle"><%= MessageFormat.format(encprops.getProperty("mma.featureImage"), t + 1) %></p>
+
+      <%--Start: featureRegionImage--%>
+      <div class="subSubSection featureRegionImage">
+        <p><img src="/<%=shepherdDataDir.getName() %>/encounters/<%=Encounter.subdir(enc.getCatalogNumber()) %>/<%=mmFT.getName()%>"/></p>
+        <div class="formRemoveCR">
+          <form action="../EncounterAddMantaPattern" method="post" name="EncounterRemoveMantaPattern">
+            <input name="action" type="hidden" value="imageremove" id="actionRemove"/>
+            <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
+            <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+            <p><input name="removeMMPatternFile" type="submit" id="removeMMPatternFile" value="<%= encprops.getProperty("mma.submit.remove") %>"/></p>
+          </form>
+        </div>
+      </div>
+      <%--End: featureRegionImage--%>
+
+      <%--Start: featureRegionResults--%>
+      <div class="subSubSection featureRegionResults">
+        <p class="subSubSectionTitle"><%= encprops.getProperty("mma.inspectResults") %></p>
 <%
         if (enc.getLocationID() != null && !matchOutputRegional.exists()) {
 %>
-  <p>No regional &quot;<%=enc.getLocationID()%>&quot; match results file was found.</p>
-  <p><em>Scan patterning image against regional &quot;<%=enc.getLocationID()%>&quot; database.</em></p>
-  <p>
-    <form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
-      <input name="action" type="hidden" value="rescanRegional" id="actionScanRegional" />
-      <input name="number" type="hidden" value="<%=encNum%>" id="number" />
-      <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
-      <p><input name="scanFile" type="submit" id="scanRegionalFile" value="Scan (regional)" /></p>
-    </form>
-   </p>
+        <div class="resultsRegional">
+          <p><%= MessageFormat.format(encprops.getProperty("mma.resultsNotFoundRegional"), enc.getLocationID()) %></p>
+          <div class="scanRegionalForm">
+            <form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
+              <input name="action" type="hidden" value="rescanRegional" id="actionScanRegional"/>
+              <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
+              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+              <p><input name="scanFile" type="submit" id="scanRegionalFile" value="<%= MessageFormat.format(encprops.getProperty("mma.submit.scanRegional"), enc.getLocationID()) %>"/></p>
+            </form>
+          </div>
+        </div>
 <%
         } else if (enc.getLocationID() != null) {
 %>
-  <p><em>Inspect the algorithm results</em></p>
-  <p>A regional &quot;<%=enc.getLocationID()%>&quot; match results file was found: <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here</a> <span class="smallish">(created <%=dateFormat.format(new Date(matchOutputRegional.lastModified()))%>)</span></p>
-  <p><em>Rescan manta patterning image against regional &quot;<%=enc.getLocationID()%>&quot; database.</em></p>
-  <p>
-    <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
-      <input name="action" type="hidden" value="rescanRegional" id="actionRescanRegional" />
-      <input name="number" type="hidden" value="<%=encNum%>" id="number" />
-      <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
-      <p><input name="rescanFile" type="submit" id="rescanRegionalFile" value="Rescan (regional)" /></p>
-    </form>
-  </p>
+        <div class="resultsRegional">
+          <p><%= MessageFormat.format(encprops.getProperty("mma.resultsFoundRegional"), enc.getLocationID()) %> <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>" target="_blank"><%= MessageFormat.format(encprops.getProperty("mma.resultsLinkRegional"), enc.getLocationID()) %></a></p>
+          <p class="smallish"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), new Date(matchOutputRegional.lastModified())) %>)</p>
+          <div class="formRescanRegional">
+            <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
+              <input name="action" type="hidden" value="rescanRegional" id="actionRescanRegional"/>
+              <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
+              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+              <p><input name="rescanFile" type="submit" id="rescanRegionalFile" value="<%= MessageFormat.format(encprops.getProperty("mma.submit.rescanRegional"), enc.getLocationID()) %>"/></p>
+            </form>
+          </div>
+        </div>
 <%
         }
-%>
-<%
         if (!matchOutputAll.exists()) {
 %>
-  <p>No global database match results file was found.</p>
-  <p><em>Scan patterning image against global manta database.</em></p>
-  <p>
-    <form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
-      <input name="action" type="hidden" value="rescan" id="actionScan" />
-      <input name="number" type="hidden" value="<%=encNum%>" id="number" />
-      <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
-      <p><input name="scanFile" type="submit" id="scanFile" value="Scan (global)" /></p>
-    </form>
-  </p>
+        <div class="resultsGlobal">
+          <p><%= encprops.getProperty("mma.resultsNotFound") %></p>
+          <div class="formScan">
+            <form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
+              <input name="action" type="hidden" value="rescan" id="actionScan"/>
+              <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
+              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+              <p><input name="scanFile" type="submit" id="scanFile" value="<%= encprops.getProperty("mma.submit.scan") %>"/></p>
+            </form>
+          </div>
+        </div>
 <%
         } else {
 %>
-  <p><em>Inspect the algorithm results</em></p>
-  <p>A global database match results file was found: <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>" target="_blank">Click here</a> <span class="smallish">(created <%=dateFormat.format(new Date(matchOutputAll.lastModified()))%>)</span></p>
-  <p><em>Rescan manta patterning image against global manta database.</em></p>
-  <p>
-    <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
-      <input name="action" type="hidden" value="rescan" id="actionRescan" />
-      <input name="number" type="hidden" value="<%=encNum%>" id="number" />
-      <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID" />
-      <p><input name="rescanFile" type="submit" id="rescanFile" value="Rescan (global)" /></p>
-    </form>
-  </p>
+        <div class="resultsGlobal">
+          <p><%= encprops.getProperty("mma.resultsFound")%> <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>" target="_blank"><%= encprops.getProperty("mma.resultsLink") %></a></p>
+          <p class="smallish"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), new Date(matchOutputAll.lastModified())) %></p>
+          <div class="formRescan">
+            <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
+              <input name="action" type="hidden" value="rescan" id="actionRescan"/>
+              <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
+              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+              <p><input name="rescanFile" type="submit" id="rescanFile" value="<%= encprops.getProperty("mma.submit.rescan") %>"/></p>
+            </form>
+          </div>
+        </div>
 <%
         }
-      }
+%>
+      </div><%--End: featureRegionResults--%>
+    </div><%--End: featureRegion--%>
+<%
     }
 %>
-  <div id="dlgScan" title="MantaMatcher algorithm" style="display:none">
-  <table>
-    <tr>
-      <td align="left" valign="top">
-        Please wait while the algorithm completes the scan.
-      </td>
-    </tr>
-  </table>
-  </div>
-  <script>
-    var dlgScan = $("#dlgScan").dialog({
-      autoOpen: false,
-      draggable: false,
-      resizable: false,
-      modal: true,
-      width: 600,
-      close: function(event, ui) {
-        window.stop();
-      }
-    });
-    $("input#scanRegionalFile").click(function() {
-      dlgScan.dialog("open");
-    });
-    $("input#rescanRegionalFile").click(function() {
-      dlgScan.dialog("open");
-    });
-    $("input#scanFile").click(function() {
-      dlgScan.dialog("open");
-    });
-    $("input#rescanFile").click(function() {
-      dlgScan.dialog("open");
-    });
-  </script>
-  <br />
-  <p style="background-color:#f0f0f0;"><em>Upload or replace a processed, cropped manta patterning image.</em></p>
-  <p>
-    <form action="../EncounterAddMantaPattern" method="post" enctype="multipart/form-data" name="EncounterAddMantaPattern">
-      <input name="action" type="hidden" value="imageadd" id="actionUpload" />
-      <input name="number" type="hidden" value="<%=encNum%>" id="number" />
-<%
 
-    // If only one photo uploaded, we already know reference photo.
-    if (enc.getSinglePhotoVideo().size() == 1) {
-%>
-      <input name="photoNumber" type="hidden" value="<%=enc.getImages().get(0).getDataCollectionEventID()%>" id="photoNumber" />
+    <div class="subSection featureRegionUpload">
+      <p class="subSectionTitle"><%= encprops.getProperty("mma.upload") %></p>
+      <div class="formUpload">
+        <form action="../EncounterAddMantaPattern" method="post" enctype="multipart/form-data" name="EncounterAddMantaPattern">
+          <input name="action" type="hidden" value="imageadd" id="actionUpload"/>
+          <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
 <%
-    } else {
-    // Otherwise we need to ask user which uploaded photo is to be used for reference.
+    if (enc.getSinglePhotoVideo().size() == 1) { // If only one photo uploaded, we already know reference photo.
 %>
-      <p>Image to upload processed image for: <select name="photoNumber">
+          <input name="photoNumber" type="hidden" value="<%=enc.getImages().get(0).getDataCollectionEventID()%>" id="photoNumber"/>
+<%
+    } else { // Otherwise we need to ask user which uploaded photo is to be used for reference.
+%>
+          <p>
+            <%= encprops.getProperty("mma.uploadFor") %>
+            <select name="photoNumber">
 <%
       for (int rmi = 0; rmi < enc.getSinglePhotoVideo().size(); rmi++) {
 %>
-        <option value="<%=enc.getImages().get(rmi).getDataCollectionEventID()%>"><%=(rmi+1)%></option>
+              <option value="<%=enc.getImages().get(rmi).getDataCollectionEventID()%>"><%=(rmi+1)%></option>
 <%
       }
 %>
-      </select><p/>
+            </select>
+          </p>
 <%
     }
 %>
-      <p><strong><img align="absmiddle" src="../images/upload_small.gif"/> Select file:</strong>
-      <input name="file2add" type="file" size="20" /></p>
-      <p><input name="addtlMMFile" type="submit" id="addtlMMFile" value="Upload" /></p>
-    </form></p>
+          <p>
+            <strong><img align="absmiddle" src="../images/upload_small.gif"/> <%= encprops.getProperty("mma.upload.selectFile") %></strong>
+            <input name="file2add" type="file" size="20"/>
+          </p>
+          <p>
+            <input name="addtlMMFile" type="submit" id="addtlMMFile" value="<%= encprops.getProperty("mma.submit.upload") %>"/>
+          </p>
+        </form>
+      </div><%--End form--%>
+    </div><%--End featureRegionUpload--%>
+
+  </div><%--End section 'mma'--%>
+
+<%--Scan dialog--%>
+<div id="dlgScan" title="MantaMatcher algorithm" style="display:none">
+  <table>
+    <tr>
+      <td align="left" valign="top">
+        <%= encprops.getProperty("mma.waitForScan") %>
+      </td>
+    </tr>
+  </table>
+</div>
+<script>
+var dlgScan = $("#dlgScan").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  modal: true,
+  width: 600,
+  close: function(event, ui) {
+    window.stop();
+  }
+  });
+$("input#scanRegionalFile").click(function() {
+  dlgScan.dialog("open");
+});
+$("input#rescanRegionalFile").click(function() {
+  dlgScan.dialog("open");
+});
+$("input#scanFile").click(function() {
+  dlgScan.dialog("open");
+});
+$("input#rescanFile").click(function() {
+  dlgScan.dialog("open");
+});
+</script>
+<%--END: Scan dialog--%>
 <%
   }
 }

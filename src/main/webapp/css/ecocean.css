@@ -1738,8 +1738,52 @@ div.state-approved span.state {
 
 .user-bio-button:hover {
 	background-color: #FFE;
+}
 
 
-
-
-
+/* CSS for MantaMatcher algorithm results */
+#mma .sectionTitle {
+  font-weight: bold;
+}
+#mma .subSection {
+  clear: both;
+  font-size: 0.9em;
+}
+#mma .subSectionTitle {
+  background-color: #f0f0f0;
+  padding: 0.5em;
+  font-style: italic;
+}
+#mma .subSubSection {
+}
+#mma .subSubSectionTitle {
+  background-color: #f0f0f0;
+  padding: 0.5em;
+  font-style: italic;
+}
+#mma .featureRegion {
+  width: 100%;
+}
+#mma .featureRegionImage {
+  float: left;
+  width: 380px;
+  padding: 0 10px 0 0;
+}
+#mma .featureRegionImage img {
+  max-width: 100%;
+  height: auto;
+}
+#mma .featureRegionResults {
+  float: right;
+  width: 410px;
+  padding: 0 0 0 10px;
+}
+#mma .resultsGlobal, #mma .resultsRegional {
+  margin-top: 1em;
+  padding: 5px 10px;
+  background-color: #f0f0f0
+}
+#mma .featureRegionResults .smallish {
+  white-space: nowrap;
+  text-align: right;
+}
