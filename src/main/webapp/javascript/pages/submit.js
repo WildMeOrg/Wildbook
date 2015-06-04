@@ -127,7 +127,7 @@ $(function() {
         });
     }
 
-    var services = ["facebook", "flickr", "google"];
+    var services = ["facebook", "flickr"];
 
     $.each(services, function() {
 //        if (! wildbookGlobals.social[this].images.allow) {
