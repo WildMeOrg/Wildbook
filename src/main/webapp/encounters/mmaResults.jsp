@@ -42,11 +42,24 @@
     dirStr = dirStr.replaceFirst("^.*/encounters/", "");
     return String.format("%s/%s/%s", dataDirUrlPrefix, dirStr, URLEncoder.encode(file.getName(), "UTF-8"));
   }
+
+  private static final String findKeyFromValue(String val, Map<String, String> map) {
+    assert map != null;
+    if (val == null)
+      return null;
+    for (Map.Entry<String, String> me : map.entrySet()) {
+      if (me.getValue().equals(val))
+        return me.getKey();
+    }
+    return null;
+  }
 %>
 <%
   String context = "context0";
   context = ServletUtilities.getContext(request);
   Shepherd shepherd = new Shepherd(context);
+  // Get map for implementing i18n of pigmentation.
+  Map<String, String> mapPig = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
 
   // Page internationalization.
   String langCode = ServletUtilities.getLanguageCode(request);
@@ -171,6 +184,8 @@
       boolean encHasInd = true;
       if ((enc.getIndividualID() == null || "Unassigned".equals(enc.getIndividualID())))
         encHasInd = false;
+      String keyPig = findKeyFromValue(encMatch.getPatterningCode(), mapPig);
+      String pigMatch = keyPig == null ? keyPig : bundle.getProperty(keyPig);
 
       Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(match.getFileRef());
       File match_fCR = mmMap.get("CR");
@@ -190,7 +205,7 @@
           <tr><th><% out.print(bundle.getProperty("individual")); %></th><td>&nbsp;</td></tr>
 <%      } %>
           <tr><th><% out.print(bundle.getProperty("encounter.date")); %></th><td><% out.print(encMatch.getDate()); %></td></tr>
-          <tr><th>Pigmentation:</th><td><% out.print(match.getPigmentation() == null ? "&nbsp;" : match.getPigmentation()); %></td></tr>
+          <tr><th><% out.print(bundle.getProperty("pigmentation")); %></th><td><% out.print(pigMatch == null ? "&nbsp;" : pigMatch); %></td></tr>
 <%      if (indUrl != null && !encHasInd) { %>
           <tr><td colspan="2">
             <form action="../IndividualAddEncounter" method="post">
