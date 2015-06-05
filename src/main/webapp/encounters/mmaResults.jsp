@@ -139,7 +139,7 @@
     </tr>
     <tr>
       <th><% out.print(bundle.getProperty("matchCount")); %></th>
-      <td class="mma-count"><% out.print(results.getMapTests().size()); %></td>
+      <td class="mma-count"><% out.print(results.getMapTests().isEmpty() ? "&nbsp;" : results.getMapTests().entrySet().iterator().next().getValue().size()); %></td>
     </tr>
     <tr>
       <th><% out.print(bundle.getProperty("confidence")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("desc.worstBest")); %></span></th>
