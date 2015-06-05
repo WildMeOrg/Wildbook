@@ -25,10 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -37,8 +34,6 @@ import javax.servlet.ServletContext;
 
 
 import javax.servlet.http.HttpServletRequest;
-
-import java.util.Locale;
 
 public class CommonConfiguration {
   
@@ -502,7 +497,27 @@ public class CommonConfiguration {
     }
     return originalString;
   }
-  
+
+  public static Map<String, String> getIndexedValuesMap(String baseKey, String context) {
+    Map<String, String> map = new TreeMap<>();
+    boolean hasMore = true;
+    int index = 0;
+    while (hasMore) {
+      String key = baseKey + index++;
+      String value = CommonConfiguration.getProperty(key, context);
+      if (value != null) {
+        value = value.trim();
+        if (value.length() > 0) {
+          map.put(key, value.trim());
+        }
+      }
+      else {
+        hasMore = false;
+      }
+    }
+    return map;
+  }
+
   public static List<String> getIndexedValues(String baseKey, String context) {
     List<String> list = new ArrayList<String>();
     boolean hasMore = true;
