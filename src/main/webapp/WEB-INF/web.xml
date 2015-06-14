@@ -945,30 +945,6 @@
     </init-param>
   </servlet>
   
-    <servlet>
-    <servlet-name>FinTraceServlet</servlet-name>
-    <servlet-class>com.ecostats.flukes.FinTraceServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>FinTraceServlet</servlet-name>
-    <url-pattern>/FinTraceServlet</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <servlet-name>FlukeMatchServlet</servlet-name>
-    <servlet-class>com.ecostats.flukes.FlukeMatchServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>FlukeMatchServlet</servlet-name>
-    <url-pattern>/FlukeMatchServlet</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <servlet-name>FlukeGetTracing</servlet-name>
-    <servlet-class>com.ecostats.flukes.FlukeGetTracing</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>FlukeGetTracing</servlet-name>
-    <url-pattern>/FlukeGetTracing</url-pattern>
-  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>DataNucleus</servlet-name>
