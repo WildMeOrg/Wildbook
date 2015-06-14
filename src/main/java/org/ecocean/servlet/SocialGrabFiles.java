@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import java.util.Date;
+import java.util.HashMap;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -25,6 +26,8 @@ import org.pac4j.oauth.credentials.*;
 import org.pac4j.oauth.profile.facebook.*;
 */
 
+import org.apache.commons.io.FileUtils;
+
 import org.apache.shiro.web.util.WebUtils;
 //import org.ecocean.*;
 import org.ecocean.security.SocialAuth;
@@ -32,6 +35,7 @@ import org.ecocean.security.SocialAuth;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.ecocean.Util;
 import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.oauth.client.FacebookClient;
@@ -39,6 +43,10 @@ import org.pac4j.oauth.client.FacebookClient;
 import org.pac4j.oauth.credentials.OAuthCredentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
 //import org.pac4j.oauth.profile.yahoo.YahooProfile;
+
+import java.io.File;
+import java.net.URL;
+import com.google.gson.Gson;
 
 import org.scribe.builder.*;
 import org.scribe.builder.api.*;
@@ -57,13 +65,13 @@ import org.scribe.oauth.*;
  * an error message
  *
  */
- public class SocialConnect extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
+ public class SocialGrabFiles extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
    static final long serialVersionUID = 1L;
 
     /* (non-Java-doc)
      * @see javax.servlet.http.HttpServlet#HttpServlet()
      */
-    public SocialConnect() {
+    public SocialGrabFiles() {
         super();
     }
 
@@ -81,16 +89,44 @@ import org.scribe.oauth.*;
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    HttpSession session = request.getSession(true);
+        HttpSession session = request.getSession(true);
 
-    PrintWriter out = response.getWriter();
+        PrintWriter out = response.getWriter();
         String context = "context0";
         Shepherd myShepherd = new Shepherd(context);
         //myShepherd.beginDBTransaction();
 
-        String socialType = request.getParameter("type");
+        String[] fileUrls = request.getParameterValues("fileUrl");
+        if (fileUrls != null) {
+System.out.println("(A) fileUrls.length = " + fileUrls.length);
+for (int i = 0 ; i < fileUrls.length ; i++) {
+    System.out.println("- " + fileUrls[i]);
+}
+        } else {
+            Object urls = session.getAttribute("fileUrls");
+            if (urls != null) fileUrls = (String[])urls;
+        }
+
+        String socialType = "facebook";
+if (fileUrls != null) System.out.println("(B) fileUrls.length = " + fileUrls.length);
+
+        response.setHeader("Content-type", "application/json");
+        if ((fileUrls == null) || (fileUrls.length < 1)) {
+            out.println("{\"error\": \"no fileUrls\"}");
+            out.close();
+            return;
+        } else {
+            session.setAttribute("fileUrls", fileUrls);
+        }
+
+        //note: for now we can only accept all of one type (e.g. all flickr OR all facebook) -- could expand to group by type and do each
+        for (int i = 0 ; i < fileUrls.length ; i++) {
+            if (fileUrls[i].indexOf("flickr") > -1) socialType = "flickr";
+        }
 
         String username = null;
+User user = null;
+/*
         if (request.getUserPrincipal() != null) username = request.getUserPrincipal().getName();
         if (username == null) username = "";
         User user = myShepherd.getUser(username);
@@ -99,18 +135,21 @@ import org.scribe.oauth.*;
             response.sendRedirect("login.jsp");
             return;
         }
+*/
+
+        String rootDir = getServletContext().getRealPath("/");
+        String baseDir = ServletUtilities.dataDir(context, rootDir) + "/social_files";
 
         if ("facebook".equals(socialType)) {
-        FacebookClient fbclient = null;
-        try {
-            fbclient = SocialAuth.getFacebookClient(context);
-        } catch (Exception ex) {
-            System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
-        }
+            FacebookClient fbclient = null;
+            try {
+                fbclient = SocialAuth.getFacebookClient(context);
+            } catch (Exception ex) {
+                System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
+            }
             WebContext ctx = new J2EContext(request, response);
             //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
-            if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
+            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialGrabFiles";
             fbclient.setCallbackUrl(callbackUrl);
 
             OAuthCredentials credentials = null;
@@ -121,29 +160,32 @@ import org.scribe.oauth.*;
             }
 
             if (credentials != null) {
-                FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
-                User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
-                System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
-if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuser = " + fbuser.getUsername());
-                if ((fbuser != null) && (fbuser.getUsername().equals(user.getUsername())) && (request.getParameter("disconnect") != null)) {
-                    fbuser.unsetSocial("facebook");
-                    //myShepherd.getPM().makePersistent(user);
-                    session.setAttribute("message", "disconnected from facebook");
-                    response.sendRedirect("myAccount.jsp");
-                    return;
-
-                } else if (fbuser != null) {
-                    session.setAttribute("error", "looks like this account is already connected to an account");
-                    response.sendRedirect("myAccount.jsp");
-                    return;
-
-                } else {  //lets do this
-                    user.setSocial("facebook", facebookProfile.getId());
-                    //myShepherd.getPM().makePersistent(user);
-                    session.setAttribute("message", "connected to facebook");
-                    response.sendRedirect("myAccount.jsp");
-                    return;
+                HashMap rtn = new HashMap();
+                rtn.put("fileUrls", fileUrls);
+System.out.println("************ hey i think i am authorized???");
+                String id = Util.generateUUID();
+                session.setAttribute("socialFilesID", id);
+                rtn.put("id", id);
+                File dir = new File(baseDir, id);
+                if (!dir.exists()) dir.mkdirs();
+System.out.println(dir);
+                HashMap fmap = new HashMap();
+                for (int i = 0 ; i < fileUrls.length ; i++) {
+                    String fname = "img" + i;
+                    int f = fileUrls[i].lastIndexOf("/");
+                    if (f > -1) fname = fileUrls[i].substring(f+1);
+                    f = fname.indexOf("?");
+                    if (f > -1) fname = fname.substring(0, f);
+                    fmap.put(fname, fileUrls[i]);
+                    File imgf = new File(dir, fname);
+System.out.println(fname + ") --- " + fileUrls[i]);
+                    FileUtils.copyURLToFile(new URL(fileUrls[i]), imgf);
                 }
+                rtn.put("files", fmap);
+                String json = new Gson().toJson(rtn);
+                out.println(json);
+                out.close();
+                return;
             } else {
 
 System.out.println("*** trying redirect?");
@@ -157,6 +199,34 @@ System.out.println("*** trying redirect?");
 
 
         } else if ("flickr".equals(socialType)) {
+            //i *think* flickr image urls are not protected... (TODO confirm this) ... taking the easy way out for now!
+            HashMap rtn = new HashMap();
+            rtn.put("fileUrls", fileUrls);
+            String id = Util.generateUUID();
+            session.setAttribute("socialFilesID", id);
+            rtn.put("id", id);
+            File dir = new File(baseDir, id);
+            if (!dir.exists()) dir.mkdirs();
+System.out.println(dir);
+            HashMap fmap = new HashMap();
+            for (int i = 0 ; i < fileUrls.length ; i++) {
+                String fname = "img" + i;
+                int f = fileUrls[i].lastIndexOf("/");
+                if (f > -1) fname = fileUrls[i].substring(f+1);
+                f = fname.indexOf("?");
+                if (f > -1) fname = fname.substring(0, f);
+                fmap.put(fname, fileUrls[i]);
+                File imgf = new File(dir, fname);
+System.out.println(fname + ") --- " + fileUrls[i]);
+                FileUtils.copyURLToFile(new URL(fileUrls[i]), imgf);
+            }
+            rtn.put("files", fmap);
+            String json = new Gson().toJson(rtn);
+            out.println(json);
+            out.close();
+            return;
+
+/*  the HARD way in case we need it:
             String overif = request.getParameter("oauth_verifier");
             String otoken = request.getParameter("oauth_token");
 
@@ -168,13 +238,6 @@ System.out.println("*** trying redirect?");
             } catch (Exception ex) {
                 System.out.println("SocialAuth.getFlickrOauth() threw exception " + ex.toString());
             }
-            //WebContext ctx = new J2EContext(request, response);
-            //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
-/*
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=flickr";
-            if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
-            yclient.setCallbackUrl(callbackUrl);
-*/
 
             if (overif == null) {
                 Token requestToken = service.getRequestToken();
@@ -183,7 +246,6 @@ System.out.println("*** trying redirect?");
                 String authorizationUrl = service.getAuthorizationUrl(requestToken) + "&perms=read";
 System.out.println(authorizationUrl);
 
-//http://localhost.wildme.org/a/SocialConnect?type=xxflickr&oauth_token=72157652805581432-a5b8f3598c13e2a6&oauth_verifier=d3325223f923442e
                 response.sendRedirect(authorizationUrl);
                 return;
 
@@ -235,78 +297,7 @@ if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser 
 
             }
 
-///
-/*
-    Verifier verifier = new Verifier(in.nextLine());
-    System.out.println();
-
-    // Trade the Request Token and Verfier for the Access Token
-    System.out.println("Trading the Request Token for an Access Token...");
-    Token accessToken = service.getAccessToken(requestToken, verifier);
-    System.out.println("Got the Access Token!");
-    System.out.println("(if your curious it looks like this: " + accessToken + " )");
-    System.out.println("(you can get the username, full name, and nsid by parsing the rawResponse: " + accessToken.getRawResponse() + ")");
-    System.out.println();
-
-    // Now let's go and ask for a protected resource!
-    System.out.println("Now we're going to access a protected resource...");
-    OAuthRequest request = new OAuthRequest(Verb.GET, FLICKR_URL);
-    request.addQuerystringParameter("method", "flickr.test.login");
-    service.signRequest(accessToken, request);
-    Response response = request.send();
-    System.out.println("Got it! Lets see what we found...");
-    System.out.println();
-    System.out.println(response.getBody());
 */
-
-
-
-/*
-            OAuthCredentials credentials = null;
-            try {
-                credentials = yclient.getCredentials(ctx);
-            } catch (Exception ex) {
-                System.out.println("caught exception on yahoo credentials: " + ex.toString());
-            }
-
-            if (credentials != null) {
-                YahooProfile yahooProfile = yclient.getUserProfile(credentials, ctx);
-                User yuser = myShepherd.getUserBySocialId("yahoo", yahooProfile.getId());
-                System.out.println("getId() = " + yahooProfile.getId() + " -> user = " + yuser);
-if (yuser != null) System.out.println("user = " + user.getUsername() + "; yuser = " + yuser.getUsername());
-                if ((yuser != null) && (yuser.getUsername().equals(user.getUsername())) && (request.getParameter("disconnect") != null)) {
-                    yuser.unsetSocial("yahoo");
-                    //myShepherd.getPM().makePersistent(user);
-                    session.setAttribute("message", "disconnected from flickr");
-                    response.sendRedirect("myAccount.jsp");
-                    return;
-
-                } else if (yuser != null) {
-                    session.setAttribute("error", "looks like this account is already connected to an account");
-                    response.sendRedirect("myAccount.jsp");
-                    return;
-
-                } else {  //lets do this
-                    user.setSocial("flickr", yahooProfile.getId());
-                    //myShepherd.getPM().makePersistent(user);
-                    session.setAttribute("message", "connected to flickr");
-                    response.sendRedirect("myAccount.jsp");
-                    return;
-                }
-            } else {
-
-System.out.println("*** trying redirect?");
-                try {
-                    yclient.redirect(ctx, false, false);
-                } catch (Exception ex) {
-                    System.out.println("caught exception on yahoo processing: " + ex.toString());
-                }
-                return;
-            }
-
-*/
-
-
         } else {
             session.setAttribute("error", "invalid type");
          //response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp");

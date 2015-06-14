@@ -1,5 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.ArrayList,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, org.apache.commons.lang.WordUtils,org.ecocean.*, java.util.Properties" %>
+         import="java.util.ArrayList,org.ecocean.servlet.ServletUtilities,
+                 org.ecocean.security.Collaboration,
+                 org.apache.commons.lang.WordUtils,
+                 org.ecocean.*,
+                 java.util.Properties" %>
 
 <%--
   ~ Wildbook - A Mark-Recapture Framework
@@ -19,17 +23,12 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-  
-<style type="text/css">
-/* A class used by the jQuery UI CSS framework for their dialogs. */
-.ui-front {
-    z-index:1000000 !important; /* The default is 100. !important overrides the default. */
-}
-</style>
+
 <%
 
-String context="context0";
-context=ServletUtilities.getContext(request);
+String langCode=ServletUtilities.getLanguageCode(request);
+
+String context=ServletUtilities.getContext(request);
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -40,7 +39,7 @@ context=ServletUtilities.getContext(request);
 //setup our Properties object to hold all properties
   Properties props = new Properties();
   //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
+  //String langCode=ServletUtilities.getLanguageCode(request);
   
 
   //set up the file input stream
@@ -70,7 +69,7 @@ context=ServletUtilities.getContext(request);
       <ul>
         <li><a
           href="http://www.wildme.org/wildbook" class="enclose" target="_blank"
-          style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px; z-index:
+          style="margin: 0px 0 0px 0px; position: relative; width: 280px; height: 25px; z-index:
           100;"><strong><%=props.getProperty("learnAboutShepherd")%></strong></a>
         </li>
 
@@ -111,33 +110,33 @@ context=ServletUtilities.getContext(request);
       </ul>
       <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 <li class="drop"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=approved" style="margin:0px 0 0px 0px; position:relative; width:90px; height:25px; z-index:100;">
-	<strong><%=props.getProperty("encounters") %></strong>
-	<!--[if IE 7]><!--></a><!--<![endif]-->
-	<!--[if lte IE 6]><table><tr><td><![endif]-->
-	<ul>
+    <strong><%=props.getProperty("encounters") %></strong>
+    <!--[if IE 7]><!--></a><!--<![endif]-->
+    <!--[if lte IE 6]><table><tr><td><![endif]-->
+    <ul>
       
-      	<!-- list encounters by state -->
-      						<%
-      						boolean moreStates=true;
-      						int cNum=0;
-							while(moreStates){
-	  								String currentLifeState = "encounterState"+cNum;
-	  								if(CommonConfiguration.getProperty(currentLifeState,context)!=null){
-	  									%>
-										<li>
-        									<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState,context) %>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;">
-        										<%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState,context))+" "))%>
-        									</a>
-        								</li>
-										<%
-										cNum++;
-  									}
-  									else{
-     									moreStates=false;
-  									}
+          <!-- list encounters by state -->
+                              <%
+                              boolean moreStates=true;
+                              int cNum=0;
+                            while(moreStates){
+                                      String currentLifeState = "encounterState"+cNum;
+                                      if(CommonConfiguration.getProperty(currentLifeState,context)!=null){
+                                          %>
+                                        <li>
+                                            <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState,context) %>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;z-index: 100;">
+                                                <%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState,context))+" "))%>
+                                            </a>
+                                        </li>
+                                        <%
+                                        cNum++;
+                                      }
+                                      else{
+                                         moreStates=false;
+                                      }
   
-							} //end while
-      						%>
+                            } //end while
+                              %>
         
 
         <li><a
@@ -158,9 +157,9 @@ context=ServletUtilities.getContext(request);
       if(request.getUserPrincipal()!=null){
       %>
         <li>
-        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">
-        		<%=props.getProperty("viewMySubmissions")%>
-        	</a>
+            <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 210px; height: 25px;">
+                <%=props.getProperty("viewMySubmissions")%>
+            </a>
         </li>
      <%
      
@@ -185,26 +184,26 @@ context=ServletUtilities.getContext(request);
         <li>
           <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp"
              class="enclose"
-             style="margin: 0px 0 0px 0px; position: relative; width: 250px; height: 25px;">
+             style="margin: 0px 0 0px 0px; position: relative; width: 150px; height: 25px;">
             <%=props.getProperty("encounterSearch")%>
           </a></li>
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearch.jsp"
           class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 250px; height: 25px;"><%=props.getProperty("individualSearch")%>
+          style="margin: 0px 0 0px 0px; position: relative; width: 150px; height: 25px;"><%=props.getProperty("individualSearch")%>
         </a></li>
         
         <li>
-	          <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchComparison.jsp"
-	             class="enclose"
-	             style="margin: 0px 0 0px 0px; position: relative; width: 250px; height: 25px;">
-	            <%=props.getProperty("locationSearch")%>
+              <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchComparison.jsp"
+                 class="enclose"
+                 style="margin: 0px 0 0px 0px; position: relative; width: 150px; height: 25px;">
+                <%=props.getProperty("locationSearch")%>
         </a></li>
         
         <li><a
           href="http://<%=CommonConfiguration.getURLLocation(request) %>/googleSearch.jsp"
           class="enclose"
-          style="margin: 0px 0 0px 0px; position: relative; width: 250px; height: 25px;"><%=props.getProperty("googleSearch")%>
+          style="margin: 0px 0 0px 0px; position: relative; width: 150px; height: 25px;"><%=props.getProperty("googleSearch")%>
         </a></li>
 
       </ul>
@@ -235,13 +234,13 @@ context=ServletUtilities.getContext(request);
         </a></li>
         <% } %>
 
-	<%
+    <%
       if(request.getUserPrincipal()!=null){
       %>
         <li>
-        	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/myAccount.jsp" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">
-        		<%=props.getProperty("myAccount")%>
-        	</a>
+            <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/myAccount.jsp" class="enclose" style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;">
+                <%=props.getProperty("myAccount")%>
+            </a>
         </li>
      <%
      
@@ -255,32 +254,32 @@ context=ServletUtilities.getContext(request);
         </a></li>
         
         <li><a
-	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/logs.jsp"
-	          class="enclose"
-	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("logs")%>
+              href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/logs.jsp"
+              class="enclose"
+              style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("logs")%>
         </a></li>
                 
         <%
         if(CommonConfiguration.useSpotPatternRecognition(context)){
         %>
          <li><a
-	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/software/software.jsp"
-	          class="enclose"
-	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("gridSoftware")%>
+              href="http://<%=CommonConfiguration.getURLLocation(request) %>/software/software.jsp"
+              class="enclose"
+              style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("gridSoftware")%>
         </a></li>
 
-        	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/scanTaskAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Grid Administration</a></li>
-		<%
+            <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/scanTaskAdmin.jsp?langCode=<%=langCode%>" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Grid Administration</a></li>
+        <%
           }
-		%>
-		
-	<li><a
-	          href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp?context=context0"
-	          class="enclose"
-	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userManagement")%>
-        </a></li>	
-		
-		
+        %>
+        
+    <li><a
+              href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp?context=context0"
+              class="enclose"
+              style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("userManagement")%>
+        </a></li>    
+        
+        
         
         <%
           if (CommonConfiguration.getTapirLinkURL(context) != null) {
@@ -294,13 +293,13 @@ context=ServletUtilities.getContext(request);
         
         
                 <%
-	          if (CommonConfiguration.getIPTURL(context) != null) {
-	        %>
-	        <li><a
-	          href="<%=CommonConfiguration.getIPTURL(context) %>"
-	          class="enclose"
-	          style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("iptLink")%>
-	        </a></li>
+              if (CommonConfiguration.getIPTURL(context) != null) {
+            %>
+            <li><a
+              href="<%=CommonConfiguration.getIPTURL(context) %>"
+              class="enclose"
+              style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px;"><%=props.getProperty("iptLink")%>
+            </a></li>
         <% } %>
         
         
@@ -346,7 +345,7 @@ context=ServletUtilities.getContext(request);
           }
         %>
 
-	        <li><a
+            <li><a
           href="http://www.wildme.org/wildbook" class="enclose" target="_blank"
           style="margin: 0px 0 0px 0px; position: relative; width: 190px; height: 25px; z-index:
           100;"><strong><%=props.getProperty("shepherdDoc")%></strong></a>
@@ -355,11 +354,11 @@ context=ServletUtilities.getContext(request);
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/javadoc/index.html" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Javadoc</a></li>
 <%
 if(CommonConfiguration.isCatalogEditable(context)){
-%>						
+%>                        
 <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/import.jsp" class="enclose" style="margin:0px 0 0px 0px; position:relative; width:190px; height:25px;z-index:99;">Data Import</a></li>
 <%
 }
-%>					
+%>                    
 
         <!--[if lte IE 6]></td></tr></table></a><![endif]-->
 
@@ -372,170 +371,171 @@ if(CommonConfiguration.isCatalogEditable(context)){
     <%if (request.getRemoteUser() == null) {%>
     <li><a
       href="http://<%=CommonConfiguration.getURLLocation(request) %>/login.jsp"
-      style="margin: 0px 0 0px 0px; position: relative; width: 87px; height: 25px; z-index: 100;"><strong><%=props.getProperty("login")%>
+      style="margin: 0px 0 0px 0px; position: relative; width: 86px; height: 25px; z-index: 100;"><strong><%=props.getProperty("login")%>
     </strong></a></li>
     <%} else {%>
     <li><a
       href="http://<%=CommonConfiguration.getURLLocation(request) %>/LogoutUser"
-      style="margin: 0px 0 0px 0px; position: relative; width: 87px; height: 25px; z-index: 100;"><strong><%=props.getProperty("logout")%>
+      style="margin: 0px 0 0px 0px; position: relative; width: 86px; height: 25px; z-index: 100;"><strong><%=props.getProperty("logout")%>
     </strong></a></li>
     <%}%>
 
   </ul>
 </div>
 
+
 <!-- define our JavaScript -->
-	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/hello.all.min.js"></script>
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.blockUI.js"></script>
-	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
-	<script type="text/javascript">
+
+
+    <script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.blockUI.js"></script>
+    <script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
+    <script type="text/javascript">
   $(function() {
     var toTip = $( "[id^=flag_]" );
-		if (typeof toTip.tooltip != 'undefined') toTip.tooltip();
+        if (typeof toTip.tooltip != 'undefined') toTip.tooltip();
     //$( "[id^=flag_]" ).tooltip();
   });
 </script>
 <script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/JavascriptGlobals.js"></script>
 <script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/collaboration.js"></script>
 <div id="header_menu" style="background-color: #D7E0ED;clear: left; position: relative;">
-	<div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
-<table width="810px">
-	<tr>
-		<td width="100%" colspan="4" class="caption" style="font-size: 0.7em;" align="right">
-			<table>
-				<tr>
-					<td>
-						<a target="_blank" href="http://www.wildme.org/wildbook">Wildbook <%=ContextConfiguration.getVersion() %></a>
-					</td>
-				</tr>
-			</table>
-		</td>
-	</tr>	
-	<tr>
-		<td class="caption" class="caption" style="text-align: left;" align="left">
-		<table><tr><td><%=props.getProperty("findRecord") %></td><td><form name="form2" method="get" action="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp">
+    <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
+<table width="800px">
+    <tr>
+        <td width="100%" colspan="4" class="caption" style="font-size: 0.7em;" align="right">
+            <table>
+                <tr>
+                    <td>
+                        <a target="_blank" href="http://www.wildme.org/wildbook">Wildbook <%=ContextConfiguration.getVersion() %></a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>    
+    <tr>
+        <td class="caption" class="caption" style="text-align: left;" align="left">
+        <table><tr><td><%=props.getProperty("findRecord") %></td><td><form name="form2" method="get" action="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp">
             <input name="number" type="text" id="shark" size="25"/>
             <input type="hidden" name="langCode" value="<%=langCode%>"/>
             <input name="Go" type="submit" id="Go2" value="<%=props.getProperty("search")%>"/>
           </form></td></table>
-		 
-		          
-		</td>
-		
-		<%
-		ArrayList<String> supportedLanguages=CommonConfiguration.getSequentialPropertyValues("language", context);
-		int numSupportedLanguages=supportedLanguages.size();
-		
-		if(numSupportedLanguages>1){
-		%>
-			<td class="caption" class="caption" style="text-align: left;" align="left">
-				<table align="left">
-				<tr>
-					<td><%=props.getProperty("selectLanguage") %></td>
-					<td>
-					
-					<%
-					for(int h=0;h<numSupportedLanguages;h++){
-						String selected="";
-						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
-						String myLang=supportedLanguages.get(h);
-					%>
-						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
-						<script type="text/javascript">
-	
-							$( "#flag_<%=myLang%>" ).click(function() {
-		
-								//alert( "Handler for .change() called with new value: "+$( "#langCode option:selected" ).text() +" with value "+ $( "#langCode option:selected").val());
-								$.cookie("wildbookLangCode", "<%=myLang%>", {
-			   						path    : '/',          //The value of the path attribute of the cookie 
-			                           //(default: path of page that created the cookie).
-		   
-			   						secure  : false          //If set to true the secure attribute of the cookie
-			                           //will be set and the cookie transmission will
-			                           //require a secure protocol (defaults to false).
-								});
-			
-								//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
-								location.reload(true);
-			
-							});
-	
-						</script>
-					<%
-					}
-					%>
-				
-			
-					</td>
-				</tr>
-			</table>
-			
-			<td>
-		
-		<%
-		}
-		
-		
-		
-		ArrayList<String> contextNames=ContextConfiguration.getContextNames();
-		int numContexts=contextNames.size();
-		if(numContexts>1){
-		%>
-		
-		<td  class="caption" style="text-align: right;" align="right">
-			<table align="right">
-				<tr>
-					<td><%=props.getProperty("switchContext") %></td>
-					<td>
-						<form>
-							<select id="context" name="context">
-					<%
-					for(int h=0;h<numContexts;h++){
-						String selected="";
-						if(ServletUtilities.getContext(request).equals(("context"+h))){selected="selected=\"selected\"";}
-					%>
-					
-						<option value="context<%=h%>" <%=selected %>><%=contextNames.get(h) %></option>
-					<%
-					}
-					%>
-							</select>
-						</form>
-			
-					</td>
-				</tr>
-			</table>
-		 
-		</td>
-			<%
-		}
-		%>
-		
-	<script type="text/javascript">
-		
-	$( "#context" ).change(function() {
-			
-  			//alert( "Handler for .change() called with new value: "+$( "#context option:selected" ).text() +" with value "+ $( "#context option:selected").val());
-  			$.cookie("wildbookContext", $( "#context option:selected").val(), {
-  			   path    : '/',          //The value of the path attribute of the cookie 
-  			                           //(default: path of page that created the cookie).
-			   
-  			   secure  : false          //If set to true the secure attribute of the cookie
-  			                           //will be set and the cookie transmission will
-  			                           //require a secure protocol (defaults to false).
-  			});
-  			
-  			//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
-  			location.reload(true);
-  			
-		});
-	
-	</script>
+         
+                  
+        </td>
+        
+        <%
+        ArrayList<String> supportedLanguages=CommonConfiguration.getSequentialPropertyValues("language", context);
+        int numSupportedLanguages=supportedLanguages.size();
+        
+        if(numSupportedLanguages>1){
+        %>
+            <td class="caption" class="caption" style="text-align: left;" align="left">
+                <table align="left">
+                <tr>
+                    <td><%=props.getProperty("selectLanguage") %></td>
+                    <td>
+                    
+                    <%
+                    for(int h=0;h<numSupportedLanguages;h++){
+                        String selected="";
+                        if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
+                        String myLang=supportedLanguages.get(h);
+                    %>
+                        <img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+                        <script type="text/javascript">
+    
+                            $( "#flag_<%=myLang%>" ).click(function() {
+        
+                                //alert( "Handler for .change() called with new value: "+$( "#langCode option:selected" ).text() +" with value "+ $( "#langCode option:selected").val());
+                                $.cookie("wildbookLangCode", "<%=myLang%>", {
+                                       path    : '/',          //The value of the path attribute of the cookie 
+                                       //(default: path of page that created the cookie).
+           
+                                       secure  : false          //If set to true the secure attribute of the cookie
+                                       //will be set and the cookie transmission will
+                                       //require a secure protocol (defaults to false).
+                                });
+            
+                                //alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
+                                location.reload(true);
+            
+                            });
+    
+                        </script>
+                    <%
+                    }
+                    %>
+                
+            
+                    </td>
+                </tr>
+            </table>
+            
+            <td>
+        
+        <%
+        }
+        
+        
+        
+        ArrayList<String> contextNames=ContextConfiguration.getContextNames();
+        int numContexts=contextNames.size();
+        if(numContexts>1){
+        %>
+        
+        <td  class="caption" style="text-align: right;" align="right">
+            <table align="right">
+                <tr>
+                    <td><%=props.getProperty("switchContext") %></td>
+                    <td>
+                        <form>
+                            <select id="context" name="context">
+                    <%
+                    for(int h=0;h<numContexts;h++){
+                        String selected="";
+                        if(ServletUtilities.getContext(request).equals(("context"+h))){selected="selected=\"selected\"";}
+                    %>
+                    
+                        <option value="context<%=h%>" <%=selected %>><%=contextNames.get(h) %></option>
+                    <%
+                    }
+                    %>
+                            </select>
+                        </form>
+            
+                    </td>
+                </tr>
+            </table>
+         
+        </td>
+            <%
+        }
+        %>
+        
+    <script type="text/javascript">
+        
+    $( "#context" ).change(function() {
+            
+              //alert( "Handler for .change() called with new value: "+$( "#context option:selected" ).text() +" with value "+ $( "#context option:selected").val());
+              $.cookie("wildbookContext", $( "#context option:selected").val(), {
+                 path    : '/',          //The value of the path attribute of the cookie 
+                                         //(default: path of page that created the cookie).
+               
+                 secure  : false          //If set to true the secure attribute of the cookie
+                                         //will be set and the cookie transmission will
+                                         //require a secure protocol (defaults to false).
+              });
+              
+              //alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
+              location.reload(true);
+              
+        });
+    
+    </script>
  
 
-	
-	</tr>
+    
+    </tr>
 
-	</table>
+    </table>
 </div>
