@@ -107,12 +107,13 @@ public class JavascriptGlobals extends HttpServlet {
 		}
 		rtn.put("classDefinitions", classDefn);
 
-    HashMap soc = new HashMap();
+    //TODO we could do this for all sorts of property files too?
     Properties authprops = SocialAuth.authProps(context);
     if (authprops != null) {
-        if (authprops.getProperty("facebookAppId") != null) soc.put("facebookAppId", authprops.getProperty("facebookAppId"));
+        for (String pn : authprops.stringPropertyNames()) {
+            propvalToHashMap(pn, authprops.getProperty(pn), rtn);
+        }
     }
-    rtn.put("social", soc);
 
     response.setContentType("text/javascript");
     response.setCharacterEncoding("UTF-8");
@@ -124,6 +125,26 @@ public class JavascriptGlobals extends HttpServlet {
 
 
 //wildbookGlobals.properties.lang.collaboration.invitePromptOne
+
+
+
+    public void propvalToHashMap(String name, String val, HashMap h) {
+//System.out.println("name->" + name);
+        if (name.equals("secret")) return;  //TODO **totally** hactacular, but we dont want social secret keys sent out -- maybe pass in optional blacklist???
+        if (h == null) h = new HashMap();
+        int i = name.indexOf(".");
+        if (i < 0) {
+            h.put(name, val);
+            return;
+        }
+        String key = name.substring(0,i);
+//System.out.println("HASH key="+key);
+        if (h.get(key) == null) h.put(key, new HashMap());
+/* TODO handle case where prop file might have foo.bar = 1 and then foo.bar.baz = 2 */
+        HashMap sub = (HashMap)h.get(key);
+        propvalToHashMap(name.substring(i+1), val, sub);
+    }
+
 
 }
   
