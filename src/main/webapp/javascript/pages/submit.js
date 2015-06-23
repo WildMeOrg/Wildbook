@@ -21,10 +21,9 @@ $(function() {
     /* hello.init({ facebook: {'wildme.org': '363791400412043'}}, { */ // Can base your keys off urls if the service allows/requires
     hello.init({facebook: wildbook.social.apiKey('facebook'),
                 google: wildbook.social.apiKey('google'),
-                flickr: wildbook.social.apiKey('flickr'),
-       scope: "files, photos"/* ,
-       redirect_uri : "../redirect.html" */
-    });
+                flickr: wildbook.social.apiKey('flickr')},
+               {scope: "files,photos"}
+    );
 
     function toggleImage(photo) {
         var name = "socialphoto_" + photo.data("id");
