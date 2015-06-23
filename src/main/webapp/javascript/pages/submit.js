@@ -19,9 +19,9 @@ $(function() {
     //
     //Initiate hello.js
     /* hello.init({ facebook: {'wildme.org': '363791400412043'}}, { */ // Can base your keys off urls if the service allows/requires
-    hello.init({facebook: wildbook.socialApiKey('facebook'),
-                google: wildbook.socialApiKey('google'),
-                flickr: wildbook.socialApiKey('flickr'),
+    hello.init({facebook: wildbook.social.apiKey('facebook'),
+                google: wildbook.social.apiKey('google'),
+                flickr: wildbook.social.apiKey('flickr'),
        scope: "files, photos"/* ,
        redirect_uri : "../redirect.html" */
     });
@@ -127,13 +127,9 @@ $(function() {
         });
     }
 
-    var services = ["facebook", "flickr"];
-
-    $.each(services, function() {
-//        if (! wildbookGlobals.social[this].images.allow) {
-//            return;
-//        }
+    $.each(wildbook.social.myServices(), function() {
         var service = this.toString(); //comes out a String obect
+				if (!wildbook.social.featureEnabled(service, 'images')) return;
         var button = $("<button>").attr("title", "Import from " + service).addClass("zocial").addClass("icon").addClass(service);
         button.click(function() {
             getAlbums(service);
