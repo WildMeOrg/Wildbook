@@ -1,5 +1,3 @@
-        </div>
-
         <!-- footer -->
         <footer class="page-footer">
             <div class="container-fluid">
