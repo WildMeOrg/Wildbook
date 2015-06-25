@@ -192,5 +192,3 @@ if (users.size() == 0) {
             </nav>
         </header>
         <!-- ****/header**** -->
-
-        <div class="wbcontent">
