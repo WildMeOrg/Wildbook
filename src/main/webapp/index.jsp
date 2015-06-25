@@ -1,235 +1,163 @@
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
+<jsp:include page="header2.jsp" flush="true"/>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.apache.shiro.crypto.*,org.apache.shiro.util.*,org.apache.shiro.crypto.hash.*,org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.grid.GridManager,org.ecocean.grid.GridManagerFactory, java.util.Properties,java.util.ArrayList" %>
+<section class="hero container-fluid main-section relative">
+    <img src="cust/mantamatcher/img/hero_manta.jpg" class="background-image" alt="Manta from underneath in ocean" />
+    <div class="container relative">
+        <h1>Manta Matcher</h1>
+        <button>
+            Watch the movie
+        </button>
+        <button>
+            Report encounter
+        </button>
+        <p>
+            You can help photograph, identify and protect mantas!
+        </p>
+    </div>
+</section>
 
+<section class="container text-center main-section">
+    
+    <h2 class="section-header">How it works</h2>
+    <nav>
+        <ol class="content-slider-nav hor-nav">
+            <li>Photograh a manta</li>
+            <li>Submit photo/video</li>
+            <li>Researcher verification</li>
+            <li>Matching process</li>
+            <li>Match result</li>
+        </ol>
+    </nav>
 
-<%
+    <ul class="content-slider hor-nav">
+        <li>
+            <h3></h3>
+        </li>
+    </ul>
+</section>
 
-String context="context0";
-context=ServletUtilities.getContext(request);
+<div class="container-fluid relative">
+    <img src="cust/mantamatcher/img/hero_manta.jpg" class="background-image" alt="Manta from underneath in ocean" />
 
-  //grab a gridManager
-  GridManager gm = GridManagerFactory.getGridManager();
-  int numProcessors = gm.getNumProcessors();
-  int numWorkItems = gm.getIncompleteWork().size();
+    <aside class="container main-section">
+        <div class="row">
+            <section class="col-xs-4 padding focusBox">
+                <h2>Our researchers</h2>
 
-  Shepherd myShepherd = new Shepherd(context);
-  
-  	//check usernames and passwords
-	myShepherd.beginDBTransaction();
-  	ArrayList<User> users=myShepherd.getAllUsers();
-  	if(users.size()==0){
-  		String salt=ServletUtilities.getSalt().toHex();
-        String hashedPassword=ServletUtilities.hashAndSaltPassword("tomcat123", salt);
-        //System.out.println("Creating default hashed password: "+hashedPassword+" with salt "+salt);
-        
-        
-  		User newUser=new User("tomcat",hashedPassword,salt);
-  		myShepherd.getPM().makePersistent(newUser);
-  		System.out.println("Creating tomcat user account...");
-  		
-  	  	ArrayList<Role> roles=myShepherd.getAllRoles();
-  	  	if(roles.size()==0){
-  	  	System.out.println("Creating tomcat roles...");
-  	  		
-  	  		Role newRole1=new Role("tomcat","admin");
-  	  		newRole1.setContext("context0");
-  	  		myShepherd.getPM().makePersistent(newRole1);
-	  		Role newRole4=new Role("tomcat","destroyer");
-	  		newRole4.setContext("context0");
-	  		myShepherd.getPM().makePersistent(newRole4);
-	  		
-	  		Role newRole5=new Role("tomcat","manager");
-	  		newRole5.setContext("context0");
-	  		myShepherd.getPM().makePersistent(newRole5);
-	  		
-	  		Role newRole6=new Role("tomcat","adoption");
-	  		newRole6.setContext("context0");
-	  		myShepherd.getPM().makePersistent(newRole6);
-	  		
-	  		Role newRole7=new Role("tomcat","imageProcessor");
-	  		newRole7.setContext("context0");
-	  		myShepherd.getPM().makePersistent(newRole7);
-	  		
-	  		Role newRole8=new Role("tomcat","approve");
-	  		newRole8.setContext("context0");
-				  		myShepherd.getPM().makePersistent(newRole8);
-				  		
-				  		Role newRole9=new Role("tomcat","identifier");
-				  		newRole9.setContext("context0");
-							  		myShepherd.getPM().makePersistent(newRole9);
-							  		
-							  		Role newRole2=new Role("tomcat","researcher");
-							  		newRole2.setContext("context0");
-										  		myShepherd.getPM().makePersistent(newRole2);
-	  		
-	  		
-	  		
-	  		
-	  		System.out.println("Creating tomcat user account...");
-  	  	}
-  	}
-  	
-
-
-  	myShepherd.commitDBTransaction();
-  	
-
-//setup our Properties object to hold all properties
-
-  //language setup
-  String langCode = "en";
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
-
-  Properties props = new Properties();
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/overview.properties"));
-
-
-%>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <title><%=CommonConfiguration.getHTMLTitle(context)%>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-
-
-  <style type="text/css">
-    <!--
-
-    table.adopter {
-      border-width: 1px 1px 1px 1px;
-      border-spacing: 0px;
-      border-style: solid solid solid solid;
-      border-color: black black black black;
-      border-collapse: separate;
-      background-color: white;
-    }
-
-    table.adopter td {
-      border-width: 1px 1px 1px 1px;
-      padding: 3px 3px 3px 3px;
-      border-style: none none none none;
-      border-color: gray gray gray gray;
-      background-color: white;
-      -moz-border-radius: 0px 0px 0px 0px;
-      font-size: 12px;
-      color: #330099;
-    }
-
-    table.adopter td.name {
-      font-size: 12px;
-      text-align: center;
-    }
-
-    table.adopter td.image {
-      padding: 0px 0px 0px 0px;
-    }
-
-    .style2 {
-      font-size: x-small;
-      color: #000000;
-    }
-
-    -->
-  </style>
-
-</head>
-
-<body>
-<div id="wrapper">
-  <div id="page">
-    <jsp:include page="header.jsp" flush="true">
-      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-    </jsp:include>
-    <div id="main">
-      <div id="leftcol">
-        <div id="menu">
-
-		<div class="module">
-    	<h3>Data Sharing</h3>
-    	<p><a href="http://data.gbif.org/datasets/provider/261"><center><img src="images/gbif.gif" border="0" alt="Data sharing with the Global Biodiversity Information Facility"/></center></a></p>
-		
-		<p><a href="http://www.iobis.org/"><center><img src="images/OBIS_logo.gif" alt="Data sharing with the Ocean Biogeographic Information System" border="0" />
-		</center></a></p>
-		<p><a href="ttp://www.coml.org/"><center><img src="images/coml.gif" alt="Data sharing with the census of marine life" border="0" />
-		</center></a></p>
-	</div>
-
+                <a href="#" title="">Show me all the researchers</a>
+            </section>
+            <section class="col-xs-4 padding focusBox">
+                <h2>Latest encounters</h2>
+                <ul>
+                    <li>
+                        <a href="#" title="">Hooper</a>
+                        <time>23.12.14, Tofo Mozambique</time>
+                    </li>
+                    <li>
+                        <a href="#" title="">Daizy</a>
+                        <time>22.12.14, Tofo Mozambique</time>
+                    </li>
+                    <li>
+                        <a href="#" title="">Thomas</a>
+                        <time>20.12.14, Durban South-Africa</time>
+                    </li>
+                </ul>
+                <a href="#" title="">Latest encounters</a>
+            </section>
+            <section class="col-xs-4 padding focusBox">
+                <h2>Top spotter</h2>
+                <a href="#" title="">Show me all the researchers</a>
+            </section>
         </div>
-        <!-- end menu --></div>
-      <!-- end leftcol -->
-      <div id="maincol-wide">
+    </aside>
+</div>
 
-        <div id="maintext">
-          <h1 class="intro">Overview</h1>
+<div class="container-fluid">
+    <section class="container text-center  main-section">
+        <section class="col-md-push-4">
+            <h2>549</h2>
+            <p>identified individuals</p>
+        </section>
+        <section class="col-md-push-4">
+            <h2>5040</h2>
+            <p>reported encounters</p>
+        </section>
+        <section class="col-md-push-4">
+            <h2>480</h2>
+            <p>contributors</p>
+        </section>
+        
+        <hr/>
 
-          <p class="caption">
-Manta Matcher represents the first global online database for manta rays. This innovative site was specifically designed to manage manta ray sightings and identifications across their distribution. 
-</p><p class="caption">
-After the success of the <a href="http://www.whaleshark.org/">Wildbook for Whale Sharks</a> database, Manta Matcher was a logical follow-up for <a href="http://www.wildme.org/">WildMe</a> and partner organization <a href="http://www.marinemegafauna.org/">Marine Megafauna Foundation</a>. 
+        <main class="container">
+            <article class="text-center">
+              <h1>Why we do this</h1>
+              <p class="large-intro">
+                This is a large selling text, which should contain only the important most points about why this is done.
+              </p>
+              <a href="#" title="">I want to know more</a>
+            </article>
+        <main>
+        
+    </section>
+</div>
 
-</p><p class="caption">
-Manta rays are threatened species, vulnerable to extinction. Researchers across the globe are studying these animals in a bid to protect remaining populations. Monitoring wild populations can be difficult since manta rays are elusive, widely distributed and highly migratory. However, all manta rays have unique spot patterning on their undersides that can be used to permanently identify individuals. This ‘bellyprint’ allows researchers to track individuals over space and time and better monitor wild populations. 
+<div class="container-fluid main-section">
+    <h2 class="section-header">Encounters around the world</h2>
+    <div>
+        GOOGLE MAPS INTEGRATION
+    </div>
+</div>
 
-</p><p class="caption">
-Currently the Manta Matcher database enables researchers to upload, organize, and individually identify the manta rays in their populations. Manta Matcher was also intended to promote scientific collaboration by way of cross-referencing regional databases of manta rays to check for exchanges, learn more about their migratory patterns and life history traits and track long distance movements.
+<div class="container-fluid">
+    <section class="container main-section">
+        <h2 class="section-header">How can i help out of the water</h2>
+        <p class="large-intro">If you are not getting into the blue, there are still other ways to get engaged</p>
 
-</p><p class="caption">
-An automated algorithm, which matches the unique spot patterning of new entries to the existing global database is one of the novel features of this site. This component greatly enhances the functionality of the site by allowing faster and more accurate cross-referencing within and between manta ray databases.
+        <section>
+            <h3>Adopt a manta</h3>
+            <ul>
+                <li></li>
+                <li></li>
+                <li></li>
+            </ul>
+        </section>
+        <hr />
+        <section>
+            <h3>Donate</h3>
+            <p>Dontations, including in-kind donations, large and small are always welcome. For the research work we need equipment and funds. </p>
+            <a href="#" title="More information about donations">Learn more about how to donate</a>
+        </section>
+    </section>
+</div>
 
-</p><p class="caption">
-It is our expectation that researchers will ultimately be able use sightings data to determine the abundance, trends, movements, and population structure of manta ray populations at individual aggregation sites across the globe. This information will help to assess their conservation status and manage wild populations more effectively.
+<div class="container-fluid">
+    <section class="container main-section">
+        <h2 class="section-header">We share our data with</h2>
+        
+        <section class="col-md-4">
+            <a href="http://data.gbif.org/datasets/provider/261">
+                <center>
+                    <img src="images/gbif.gif" border="0" alt="Data sharing with the Global Biodiversity Information Facility"/>
+                </center>
+            </a>
+        </section>
+        <section class="col-md-4">
+            <a href="http://www.iobis.org/">
+                <center>
+                    <img src="images/OBIS_logo.gif" alt="Data sharing with the Ocean Biogeographic Information System" border="0" />
+                </center>
+            </a>
+        </section>
+        <section class="col-md-4">
+            <a href="ttp://www.coml.org/">
+                <center>
+                    <img src="images/coml.gif" alt="Data sharing with the census of marine life" border="0" />
+                </center>
+            </a>
+        </section>
+    </section>
+</div>
 
-</p><p class="caption">
-Manta Matcher, like all of the Wildbooks, encourages public contributions. If you have previously encountered a manta ray and you have images of the underside of the individual, please consider uploading it to the Manta Matcher database. Now that you know about Manta Matcher, we also hope that you choose to share images from your future encounters with manta rays with us! Your contributions can provide valuable information to our participating researchers. Remember, every image is important! 
-
-</p><p class="caption">
-Join us in supporting this important global project. By building a network of researchers and citizen scientists around the globe we really can start solving some of the mysteries of the manta rays!
-</p>
-
-        </div>
-
-
-      </div>
-      <!-- end maincol -->
-  </div>
-    <!-- end main -->
-    <jsp:include page="footer.jsp" flush="true"/>
-  </div>
-  <!-- end page --></div>
-<!--end wrapper -->
-
-</body>
-</html>
+<jsp:include page="footer2.jsp" flush="true"/>
+    

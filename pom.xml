@@ -351,7 +351,13 @@
     </dependency>
 
     <!-- END QR code generating dependencies -->
-
+<!-- 
+    <dependency>
+        <groupId>de.neuland-bfi</groupId>
+        <artifactId>jade4j</artifactId>
+        <version>0.4.3</version>
+    </dependency>
+ -->
   </dependencies>
 
   <build>
@@ -529,6 +535,27 @@
           </execution>
         </executions>
       </plugin>
+
+        <plugin>
+            <groupId>org.lesscss</groupId>
+            <artifactId>lesscss-maven-plugin</artifactId>
+            <version>1.7.0.1.1</version>
+            <configuration>
+                <sourceDirectory>${project.basedir}/src/main/webapp/cust/mantamatcher/less</sourceDirectory>
+                <outputDirectory>${project.build.directory}/${project.build.finalName}/cust/mantamatcher/css</outputDirectory>
+                <compress>true</compress>
+                <includes>
+                    <include>manta.less</include>
+                </includes>
+            </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>compile</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
     </plugins>
   </build>
 </project>

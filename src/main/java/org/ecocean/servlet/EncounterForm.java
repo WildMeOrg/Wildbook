@@ -21,29 +21,18 @@ package org.ecocean.servlet;
 
 //////
 //import java.io.*;
-import java.util.*;
-
-//import java.lang.*;
-//import java.util.List;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.output.*;
-/*
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
-import org.ecocean.User;
-*/
-import org.ecocean.*;
-import org.ecocean.tag.AcousticTag;
-import org.ecocean.tag.MetalTag;
-import org.ecocean.tag.SatelliteTag;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -52,15 +41,32 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Measurement;
+import org.ecocean.Shepherd;
+import org.ecocean.ShepherdProperties;
+import org.ecocean.SinglePhotoVideo;
+import org.ecocean.tag.AcousticTag;
+import org.ecocean.tag.MetalTag;
+import org.ecocean.tag.SatelliteTag;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+//import java.lang.*;
+//import java.util.List;
+/*
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
+import org.ecocean.SinglePhotoVideo;
+import org.ecocean.User;
+*/
 
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record
@@ -69,14 +75,16 @@ import org.slf4j.LoggerFactory;
  */
 public class EncounterForm extends HttpServlet {
 
+  @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
 
+  @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     doPost(request, response);
   }
- 
+
 private final String UPLOAD_DIRECTORY = "/tmp";
 
 	//little helper function for pulling values as strings even if null (not set via form)
@@ -128,7 +136,7 @@ private final String UPLOAD_DIRECTORY = "/tmp";
 
     //dynamically adapt to project-specific measurements
 		List<String> keys=CommonConfiguration.getSequentialPropertyValues("measurement", context);
-		
+
     for (String key : keys) {
       String value = getVal(fv, "measurement(" + key + ")");
       String units = getVal(fv, "measurement(" + key + "units)");
@@ -181,11 +189,12 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
   public static final String ERROR_PROPERTY_MAX_LENGTH_EXCEEDED = "The maximum upload length has been exceeded by the client.";
 
+  @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setCharacterEncoding("UTF-8");
 
 		HashMap fv = new HashMap();
-		
+
 		//IMPORTANT - processingNotes can be used to add notes on data handling (e.g., poorly formatted dates) that can be reconciled later by the reviewer
 		//Example usage: processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(fv, "datepicker")+"</p>");
 		StringBuffer processingNotes=new StringBuffer();
@@ -262,7 +271,7 @@ System.out.println("rootDir=" + rootDir);
 				fileSuccess = true;
 
 			} catch (Exception ex) {
-				doneMessage = "File Upload Failed due to " + ex;
+				doneMessage = "Feile Upload Failed due to " + ex;
 			}
 
 		} else {
@@ -309,9 +318,9 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 			if ((fv.get("locationID") != null) && !fv.get("locationID").toString().equals("")) {
 				locCode = fv.get("locationID").toString();
 
-			} 
+			}
 		//see if the location code can be determined and set based on the location String reported
-			else if (fv.get("location") != null) {  
+			else if (fv.get("location") != null) {
       	String locTemp = getVal(fv, "location").toLowerCase();
       	Properties props = new Properties();
 
@@ -368,32 +377,32 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 			//try { day = Integer.parseInt(getVal(fv, "day")); } catch (NumberFormatException e) { day = 0; }
 			//try { month = Integer.parseInt(getVal(fv, "month")); } catch (NumberFormatException e) { month = 0; }
 			//try { year = Integer.parseInt(getVal(fv, "year")); } catch (NumberFormatException e) { year = 0; }
-			
+
 			//switch to datepicker
-			
+
 			LocalDateTime dt = new LocalDateTime();
-			
+
 			if((getVal(fv, "datepicker")!=null)&&(!getVal(fv, "datepicker").trim().equals(""))){
 			  //System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
 			  //boolean badDate=false;
 			  try{
 			    DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
-	        
+
 			    LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(getVal(fv, "datepicker").replaceAll(" ", "T")));
-			    StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"-");        
-          
+			    StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"-");
+
           int numTokens=str.countTokens();
-          
-          
+
+
           if(numTokens>=1){
-            //try { 
+            //try {
             year=reportedDateTime.getYear();
               if(year>(dt.getYear()+1)){
                 //badDate=true;
                 year=0;
                 throw new Exception("    An unknown exception occurred during date processing in EncounterForm. The user may have input an improper format: "+year+" > "+dt.getYear());
               }
-               
+
            //} catch (Exception e) { year=-1;}
           }
           if(numTokens>=2){
@@ -405,31 +414,31 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
             try { day=reportedDateTime.getDayOfMonth(); } catch (Exception e) { day=0; }
           }
           else{day=0;}
-          
-          
-          
+
+
+
           //see if we can get a time and hour, because we do want to support only yyy-MM too
-          StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");        
+          StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");
           if(strTime.countTokens()>1){
             try { hour=reportedDateTime.getHourOfDay(); } catch (Exception e) { hour=-1; }
             try {minutes=(new Integer(reportedDateTime.getMinuteOfHour()).toString()); } catch (Exception e) {}
-          } 
+          }
           else{hour=-1;}
-        
-        
+
+
 			      //System.out.println("At the end of time processing I see: "+year+"-"+month+"-"+day+" "+hour+":"+minutes);
-        
+
 			  }
 			  catch(Exception e){
 			    System.out.println("    An unknown exception occurred during date processing in EncounterForm. The user may have input an improper format.");
 			    e.printStackTrace();
 			    processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(fv, "datepicker")+"</p>");
-		      
+
 			  }
 		 }
-			
-			
-			
+
+
+
 			String guess = "no estimate provided";
 			if ((fv.get("guess") != null) && !fv.get("guess").toString().equals("")) {
 				guess = fv.get("guess").toString();
@@ -765,10 +774,10 @@ System.out.println("depth --> " + fv.get("depth").toString());
       enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
       enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + request.getRemoteHost() + "</p>");
       //enc.approved = false;
-      
+
       enc.addComments(processingNotes.toString());
-      
-      
+
+
       if(CommonConfiguration.getProperty("encounterState0",context)!=null){
         enc.setState(CommonConfiguration.getProperty("encounterState0",context));
       }
@@ -793,7 +802,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
       enc.setDWCImageURL(("http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID));
 
       //populate DarwinCore dates
-      
+
       DateTimeFormatter fmt = ISODateTimeFormat.date();
       String strOutputDateTime = fmt.print(dt);
       enc.setDWCDateAdded(strOutputDateTime);
