@@ -34,62 +34,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-//grab a gridManager
-GridManager gm = GridManagerFactory.getGridManager();
-int numProcessors = gm.getNumProcessors();
-int numWorkItems = gm.getIncompleteWork().size();
 
-Shepherd myShepherd = new Shepherd(context);
-  
-//check usernames and passwords
-myShepherd.beginDBTransaction();
-ArrayList<User> users=myShepherd.getAllUsers();
-if (users.size() == 0) {
-    String salt=ServletUtilities.getSalt().toHex();
-    String hashedPassword=ServletUtilities.hashAndSaltPassword("tomcat123", salt);
-    //System.out.println("Creating default hashed password: "+hashedPassword+" with salt "+salt);
-    
-    User newUser = new User("tomcat",hashedPassword,salt);
-    myShepherd.getPM().makePersistent(newUser);
-    System.out.println("Creating tomcat user account...");
-    
-    ArrayList<Role> roles=myShepherd.getAllRoles();
-    if (roles.size()==0) {
-        System.out.println("Creating tomcat roles...");
-        
-        Role newRole1=new Role("tomcat","admin");
-        newRole1.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole1);
-        Role newRole4=new Role("tomcat","destroyer");
-        newRole4.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole4);
-        
-        Role newRole5=new Role("tomcat","manager");
-        newRole5.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole5);
-        
-        Role newRole6=new Role("tomcat","adoption");
-        newRole6.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole6);
-        
-        Role newRole7=new Role("tomcat","imageProcessor");
-        newRole7.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole7);
-        
-        Role newRole8=new Role("tomcat","approve");
-        newRole8.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole8);
-        Role newRole9=new Role("tomcat","identifier");
-        newRole9.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole9);
-        Role newRole2=new Role("tomcat","researcher");
-        newRole2.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole2);
-        System.out.println("Creating tomcat user account...");
-    }
-    
-    myShepherd.commitDBTransaction();
-}
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">

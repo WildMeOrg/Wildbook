@@ -51,8 +51,8 @@ context=ServletUtilities.getContext(request);
 %>
 
 <div id="header"><img name="masthead"
-                      src="<%=CommonConfiguration.getURLToMastheadGraphic(context) %>" width="810"
-                      height="150" border="0" usemap="#m_masthead" alt=""/></div>
+                      src="<%=CommonConfiguration.getURLToMastheadGraphic(context) %>" width="810px"
+                      height="150px" border="0" usemap="#m_masthead" alt=""/></div>
 <div id="header_menu">
   <ul id="pmenu">
     <li style="background: #000066;"><a
@@ -442,12 +442,12 @@ context=ServletUtilities.getContext(request);
     <%if (request.getRemoteUser() == null) {%>
     <li><a
       href="http://<%=CommonConfiguration.getURLLocation(request) %>/login.jsp"
-      style="margin: 0px 0 0px 0px; position: relative; width: 76px; height: 25px; z-index: 100;"><strong><%=props.getProperty("login")%>
+      style="margin: 0px 0 0px 0px; position: relative; width: 87px; height: 25px; z-index: 100;"><strong><%=props.getProperty("login")%>
     </strong></a></li>
     <%} else {%>
     <li><a
       href="http://<%=CommonConfiguration.getURLLocation(request) %>/LogoutUser"
-      style="margin: 0px 0 0px 0px; position: relative; width: 76px; height: 25px; z-index: 100;"><strong><%=props.getProperty("logout")%>
+      style="margin: 0px 0 0px 0px; position: relative; width: 87px; height: 25px; z-index: 100;"><strong><%=props.getProperty("logout")%>
     </strong></a></li>
     <%}%>
 
@@ -455,6 +455,7 @@ context=ServletUtilities.getContext(request);
 </div>
 
 <!-- define our JavaScript -->
+	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/hello.all.min.js"></script>
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.blockUI.js"></script>
 	<script type="text/javascript" src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/jquery.cookie.js"></script>
