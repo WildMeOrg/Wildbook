@@ -227,7 +227,7 @@ public final class MantaMatcherUtilities {
         sbf.append(" || this.patterningCode == '").append(enc.getPatterningCode()).append("'");
       sbf.append(")");
     }
-    if (enc.getSex() != null) {
+    if (enc.getSex() != null && !"unknown".equals(enc.getSex())) {
       if (sbf.length() > 0)
         sbf.append(" && ");
       sbf.append("(this.sex == null");
@@ -300,7 +300,7 @@ public final class MantaMatcherUtilities {
         sbf.append(" || this.patterningCode == '").append(enc.getPatterningCode()).append("'");
       sbf.append(")");
     }
-    if (enc.getSex() != null) {
+    if (enc.getSex() != null && !"unknown".equals(enc.getSex())) {
       if (sbf.length() > 0)
         sbf.append(" && ");
       sbf.append("(this.sex == null");
