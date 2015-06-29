@@ -117,11 +117,12 @@ context=ServletUtilities.getContext(request);
                     Keyword word = (Keyword) keys.next();
                 %>
 
-                <option value="<%=word.getReadableName()%>"><%=word.getReadableName()%>
+                <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
                 </option>
                 <%}%>
 
-              </select> <input name="action" type="hidden" id="action" value="removeWord"></p>
+              </select> 
+              <input name="action" type="hidden" id="action" value="removeWord"></p>
               <p><input name="Submit2" type="submit" id="Submit2" value="Remove"></p>
             </form>
           </td>

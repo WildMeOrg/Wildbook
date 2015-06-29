@@ -1755,6 +1755,11 @@ xxxxxx
 <br />
 <%
 if(CommonConfiguration.showUsersToPublic(context)){
+	
+	
+	Shepherd userShepherd=new Shepherd("context0");	
+	userShepherd.beginDBTransaction();
+
 %>
 <p>
   <strong><%=props.getProperty("collaboratingResearchers") %></strong> (click each to learn more)
@@ -1767,9 +1772,9 @@ if(CommonConfiguration.showUsersToPublic(context)){
                          
                          
                          <%
-                         myShepherd.beginDBTransaction();
+                         //myShepherd.beginDBTransaction();
                          
-                         ArrayList<User> relatedUsers =  myShepherd.getAllUsersForMarkedIndividual(sharky);
+                         ArrayList<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
                          int numUsers=relatedUsers.size();
                          if(numUsers>0){
                          for(int userNum=0;userNum<numUsers;userNum++){	
@@ -1785,7 +1790,7 @@ if(CommonConfiguration.showUsersToPublic(context)){
                                 	String profilePhotoURL="images/empty_profile.jpg";
                     		    
                          		if(thisUser.getUserImage()!=null){
-                         			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                         			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
 
                          		}
                          		%>
@@ -1872,7 +1877,12 @@ if(CommonConfiguration.showUsersToPublic(context)){
     
     </tr></table></p>
   <%
+  userShepherd.rollbackDBTransaction();
+  userShepherd.closeDBTransaction();
 } //end if showUsersToGeneralPublic
+
+//myShepherd.beginDBTransaction();
+
   %>
   
   

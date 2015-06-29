@@ -1590,7 +1590,8 @@ else {
 <td>
 
       <%
-        ArrayList<User> users = myShepherd.getAllUsers();
+      	Shepherd inShepherd=new Shepherd("context0");
+        ArrayList<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 
       %>
@@ -1611,7 +1612,11 @@ else {
           }
         %>
       </select>
+<%
+inShepherd.rollbackDBTransaction();
+inShepherd.closeDBTransaction();
 
+%>
 
 </td>
 </tr>

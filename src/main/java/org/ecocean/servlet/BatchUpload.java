@@ -774,7 +774,7 @@ public final class BatchUpload extends DispatchServlet {
           // Ensure encounter matches one already parsed.
           try {
             Encounter enc = mapEnc.get(x.getCorrespondingEncounterNumber());
-            enc.addMeasurement(x);
+            enc.setMeasurement(x,shepherd);
             // TODO: Fill shared data from encounter?
           } catch (Exception ex) {
             badMeaInvalidEnc.add(x.getCorrespondingEncounterNumber());

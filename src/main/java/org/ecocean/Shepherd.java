@@ -1508,6 +1508,30 @@ public class Shepherd {
     return null;
   }
 
+  public User getUserBySocialId(String service, String id) {
+        if ((id == null) || (service == null)) return null;
+        ArrayList<User> users = getAllUsers();
+        for (int i = 0 ; i < users.size() ; i++) {
+            if (id.equals(users.get(i).getSocial(service))) return users.get(i);
+        }
+        return null;
+
+/*   TODO figure out how to query on HashMaps within fields 
+    String filter="SELECT FROM org.ecocean.User WHERE social_" + service + " == \"" + id + "\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+
+    while(it.hasNext()){
+      User myUser=(User)it.next();
+      query.closeAll();
+      return myUser;
+    }
+    query.closeAll();
+    return null;
+*/
+  }
+
   public ArrayList<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
     HashMap<String,Integer> hmap = new HashMap<String,Integer>();
     //TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
@@ -1592,6 +1616,15 @@ public class Shepherd {
     samples.closeAll();
     return myArray;
   }
+  
+  public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
+	  String keywordQueryString="SELECT FROM org.ecocean.SinglePhotoVideo WHERE keywords.contains(word0) && ( word0.indexname == \""+word.getIndexname()+"\" ) VARIABLES org.ecocean.Keyword word0";
+      Query samples = pm.newQuery(keywordQueryString);
+	  Collection c = (Collection) (samples.execute());
+	    ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>(c);
+	    samples.closeAll();
+	    return myArray;
+	  }
   
   public int getNumSinglePhotoVideosForEncounter(String encNum) {
 	    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
