@@ -5,7 +5,7 @@
               <!-- Commenting this out until we know where to put it. This, as is is unbalanced.
                    Should it go in the footer at all or should it be only on the index page? -->
 <!--                 <a href="http://http://www.marinemegafauna.org/" title="Visit Marine Megafauna Foundation website">
-                  <img src="img/partnerlogo_mmf.png" alt=" logo" />
+                  <img src="img/partnerlogo_mmf.svg" alt=" logo" />
                 </a>
                 <hr/>
  -->

@@ -566,7 +566,7 @@
             <artifactId>lesscss-maven-plugin</artifactId>
             <version>1.7.0.1.1</version>
             <configuration>
-                <sourceDirectory>${project.basedir}/src/main/webapp/cust/mantamatcher/less</sourceDirectory>
+                <sourceDirectory>${project.basedir}/src/main/webapp/cust/mantamatcher/styles</sourceDirectory>
                 <outputDirectory>${project.build.directory}/${project.build.finalName}/cust/mantamatcher/css</outputDirectory>
                 <compress>true</compress>
                 <includes>
