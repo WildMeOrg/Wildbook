@@ -139,19 +139,39 @@ finally{
 
     <aside class="container main-section">
         <div class="row">
-            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                <div class="focusbox-inner">
-                    <h2>Our contributors</h2>
-                    <div>
-                        <img src="cust/mantamatcher/img/spotter_periperi.jpg" alt="" class="pull-left round" />
-                        <p>Jane Doe <i>Lead researcher</i></p>
-                        <p>
-                            Shark Diving in South Africa &amp; Mozambique! Dive the Aliwal Shoal &amp; Protea Banks in South Africa and Ponta do Oura in Mozambique!
-                        </p>
-                    </div>
-                    <a href="#" title="" class="cta">Show me all the contributers</a>
-                </div>
-            </section>
+        
+        	<!-- Random user profile to select -->
+        	<%
+        	myShepherd.beginDBTransaction();
+        	User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+        	if(featuredUser!=null){
+        		String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+        	%>
+	            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+	                <div class="focusbox-inner">
+	                    <h2>Our contributors</h2>
+	                    <div>
+	                        <img src="<%=profilePhotoURL %>" width="80px" height="80px" alt="" class="pull-left" />
+	                        <p><%=featuredUser.getFullName() %> 
+	                        	<%
+	                        	if(featuredUser.getAffiliation()!=null){
+	                        	%>
+	                        	<i><%=featuredUser.getAffiliation() %></i>
+	                        	<%
+	                        	}
+	                        	%>
+	                        </p>
+	                        <p><%=featuredUser.getUserStatement() %></p>
+	                    </div>
+	                    <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributers</a>
+	                </div>
+	            </section>
+            <%
+            }
+            myShepherd.rollbackDBTransaction();
+            %>
+            
+            
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner">
                     <h2>Latest manta encounters</h2>
@@ -292,3 +312,8 @@ finally{
 </div>
 
 <jsp:include page="footer2.jsp" flush="true"/>
+
+<%
+myShepherd.closeDBTransaction();
+myShepherd=null;
+%>

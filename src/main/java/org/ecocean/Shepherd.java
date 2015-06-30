@@ -3143,6 +3143,24 @@ public class Shepherd {
     if((c!=null)&&(c.size()>0)){return c.iterator();}
     else{return null;}
   }
+  
+  public User getRandomUserWithPhotoAndStatement(){
+    
+    String filter = "fullName != null && userImage != null && userStatement != null";
+    Extent encClass = pm.getExtent(User.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (q.execute());
+    if((c!=null)&&(c.size()>0)){
+      ArrayList<User> matchingUsers=new ArrayList<>(c);
+      q.closeAll();
+      int numUsers=matchingUsers.size();
+      Random rn = new Random();
+      int userNumber = rn.nextInt(numUsers);
+      return matchingUsers.get(userNumber);
+    }
+    q.closeAll();
+    return null;
+  }
 
   
 
