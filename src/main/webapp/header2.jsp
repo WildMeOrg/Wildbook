@@ -20,21 +20,21 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-     import="org.ecocean.Shepherd,
-             org.ecocean.User,
-             org.ecocean.Role,
+     import="org.ecocean.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
-             org.ecocean.grid.GridManager,
-             org.ecocean.grid.GridManagerFactory,
              org.ecocean.CommonConfiguration,
-             java.util.ArrayList"
+             java.util.ArrayList,
+             java.util.Properties,
+             org.apache.commons.lang.WordUtils
+   	       "
 %>
 
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
-
-
+String langCode=ServletUtilities.getLanguageCode(request);
+Properties props = new Properties();
+props = ShepherdProperties.getProperties("header.properties", langCode, context);
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -66,16 +66,27 @@ context=ServletUtilities.getContext(request);
                 <div class="container">
                   <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
-                      <li><a href="#" title="">English</a></li><li><a href="#" title="">Login</a></li><li><a href="#" title="">User wiki</a></li>
+                      <li><a href="#" title="">English</a></li><li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp" title="">Login</a></li>
+                      <%
+          					if (CommonConfiguration.getWikiLocation(context)!=null) {
+        					%>
+						        <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
+						        <% 
+						    } 
+                      %>
                     </ul>
                     <div class="search-wrapper">
                       <label class="search-field-header">
-                        <input placeholder="record nr., encounter nr., nickname or id" />
-                        <input type="submit" value="search" />
+                      	<form name="form2" method="get" action="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp">
+                        	<input placeholder="record nr., encounter nr., nickname or id" name="number" />
+                        	<input type="hidden" name="langCode" value="<%=langCode%>"/>
+                        	<input type="submit" value="search" />
+                        </form>
+
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" href="/">MantaMatcher the wildbook for manta rays</a>
+                  <a class="navbar-brand" href="/">MantaMatcher the Wildbook for Manta Rays</a>
                 </div>
               </div>
               <div class="nav-bar-wrapper">
@@ -91,45 +102,222 @@ context=ServletUtilities.getContext(request);
                   <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                                   <!--                -->
-                      <li class="active home text-hide"><a href="/">Home</a></li>
-                      <li><a href="#">Report Encounter</a></li>
+                      <li class="active home text-hide"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>"><%=props.getProperty("home")%></a></li>
+                      <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+                   
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Learn <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a href="#">Action</a></li>
-                          <li><a href="#">Another action</a></li>
+                        
+                          <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/photographing.jsp">How to Photograph</a></li>
+                          <li><a target="_blank" href="http://www.wildme.org/wildbook">Learn about Wildbook</a></li>
                         </ul>
                       </li>
+                      
+                      
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Participate <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a href="#">Action</a></li>
-                          <li><a href="#">Another action</a></li>
-                          <li><a href="#">Something else here</a></li>
+                          <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptamanta.jsp">Adopt a Manta</a></li>
+                             
+                          
+                          
+                          <li><a href="<%=CommonConfiguration.getWikiLocation(context) %>mantamatcher_library_access_policy"><%=props.getProperty("accessPolicy")%></a></li>
+                          <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+                          
+                          
+                          <!--  examples of navigation dividers
                           <li class="divider"></li>
                           <li class="dropdown-header">Nav header</li>
-                          <li><a href="#">Separated link</a></li>
-                          <li><a href="#">One more separated link</a></li>
+                           -->
+                          
                         </ul>
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Individuals <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a href="#">Action</a></li>
+                        
+                          <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
+
                         </ul>
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Encounters <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a href="#">Action</a></li>
+                        
+                          
+                          <li class="dropdown-header">By State</li>
+                        
+                        <!-- list encounters by state -->
+      						<%
+      						boolean moreStates=true;
+      						int cNum=0;
+							while(moreStates){
+	  								String currentLifeState = "encounterState"+cNum;
+	  								if(CommonConfiguration.getProperty(currentLifeState,context)!=null){
+	  									%>
+	  									<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState,context) %>"><%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState,context))+" "))%></a></li>
+										
+										<%
+										cNum++;
+	  									
+  									}
+  									else{
+     									moreStates=false;
+  									}
+  
+							} //end while
+      						%>
+      						
+      						<li class="divider"></li>
+      						
+      						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
+      						
+      						<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
+
+
+
+      						<%
+						     if(request.getUserPrincipal()!=null){
+						     %>
+						       
+						       <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySubmissions")%></a></li>
+						       
+						    <%
+						    }
+						    %>
+                          
+                        
                         </ul>
                       </li>
+                      
+                      
+                      
+                     
                       <li class="dropdown">
-                        <a href="#">About</a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+							  <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
+						      <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
+						      <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
+						       <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/googleSearch.jsp"><%=props.getProperty("googleSearch")%></a></li>
+						</ul>
                       </li>
+                      
+                      
+             
+                      <li class="dropdown">
+                        <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/overview.jsp">About</a>
+                      </li>
+                      
+     
+                      
                       <li>
-                        <a href="#">Contact </a>
+                        <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
                       </li>
+                      
+                      
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                        
+                        	<%
+          					if (CommonConfiguration.getWikiLocation(context)!=null) {
+        					%>
+						        <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>/photographing.jsp"><%=props.getProperty("userWiki")%></a></li>
+                          
+						        <% 
+						    } 	      
+                        	if(request.getUserPrincipal()!=null){
+						    %>
+						  	    <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
+
+						  	<%
+						  	     
+						  	}
+                        	
+                        	
+                        	if(request.isUserInRole("admin")){
+							%>
+	
+						    	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
+<%
+						        if(CommonConfiguration.allowBatchUpload(context)){
+						        %>
+						        	<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
+								<%
+						        }
+								%>
+								
+								<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
+								
+	                			<%
+						        if(CommonConfiguration.useSpotPatternRecognition(context)){
+						        %>
+						         <li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+								
+						        <%
+						        }
+						        %>
+
+								<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
+								
+						        <%
+						          if (CommonConfiguration.getTapirLinkURL(context) != null) {
+						        %>
+						        	<li><a href="<%=CommonConfiguration.getTapirLinkURL(context) %>"><%=props.getProperty("tapirLink")%></a></li>
+								
+						        <% 
+						        } 
+						        
+						        if (CommonConfiguration.getIPTURL(context) != null) {
+						        %>
+						        	<li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
+								<% 
+					        	} 
+					        	%>
+        
+	        					<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/kwAdmin.jsp"><%=props.getProperty("photoKeywords")%></a></li>
+								
+	        					<%
+								if (CommonConfiguration.allowAdoptions(context)) {
+						        %>
+						        
+							        <li class="divider"></li>
+						            <li class="dropdown-header"><%=props.getProperty("adoptions")%></li>
+		        					<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
+									<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
+									<li class="divider"></li>
+	        					<%
+	        					}
+	          					%>
+
+		     					<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("shepherdDoc")%></a></li>
+								<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/javadoc/index.html">Javadoc</a></li>
+								
+			
+								<%
+								if(CommonConfiguration.isCatalogEditable(context)){
+								%>			
+									<li class="divider"></li>			
+									<li><a href="http://<%=CommonConfiguration.getURLLocation(request) %>/appadmin/import.jsp">Data Import</a></li>
+								
+								<%
+								}
+			
+			
+			
+							} //end if admin
+	
+							%>	
+                        
+                        
+                          
+                          
+                        </ul>
+                      </li>
+                      
+                      
                     </ul>
                   </div>
                 </div>
