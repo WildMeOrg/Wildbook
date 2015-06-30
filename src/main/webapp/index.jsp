@@ -1,4 +1,46 @@
+<%@ page contentType="text/html; charset=utf-8" language="java"
+     import="org.ecocean.*,
+     		 org.ecocean.servlet.ServletUtilities
+   	       "
+%>
+
 <jsp:include page="header2.jsp" flush="true"/>
+
+<%
+
+String context=ServletUtilities.getContext(request);
+
+//let's quickly get the data we need from Shepherd
+
+int numMarkedIndividuals=0;
+int numEncounters=0;
+int numDataContributors=0;
+Shepherd myShepherd=null;
+
+try{
+	myShepherd=new Shepherd(context);
+	myShepherd.beginDBTransaction();
+	
+	numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+	numEncounters=myShepherd.getNumEncounters();
+	numDataContributors=myShepherd.getNumUsers();
+
+	
+}
+catch(Exception e){
+	e.printStackTrace();
+}
+finally{
+	if(myShepherd!=null){
+		if(myShepherd.getPM()!=null){
+			myShepherd.rollbackDBTransaction();
+			if(!myShepherd.getPM().isClosed()){myShepherd.closeDBTransaction();}
+		}
+	}
+}
+
+
+%>
 
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
@@ -165,14 +207,14 @@
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive">549</span> identified individuals</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals</i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive">5040</span> reported encounters</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 
-                <p class="brand-primary"><i><span class="massive">480</span> contributors</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
             </section>
         </div>
 
