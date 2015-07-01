@@ -1,10 +1,10 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
-     		 org.ecocean.servlet.ServletUtilities,
-     		 java.util.ArrayList,
-     		 java.util.Map,
-     		 java.util.Iterator
-   	       "
+              org.ecocean.servlet.ServletUtilities,
+              java.util.ArrayList,
+              java.util.Map,
+              java.util.Iterator
+              "
 %>
 
 <jsp:include page="header2.jsp" flush="true"/>
@@ -21,48 +21,40 @@ int numDataContributors=0;
 Shepherd myShepherd=null;
 
 try{
-	myShepherd=new Shepherd(context);
-	myShepherd.beginDBTransaction();
-	
-	numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-	numEncounters=myShepherd.getNumEncounters();
-	numDataContributors=myShepherd.getNumUsers();
+    myShepherd=new Shepherd(context);
+    myShepherd.beginDBTransaction();
+    
+    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    numEncounters=myShepherd.getNumEncounters();
+    numDataContributors=myShepherd.getNumUsers();
 
-	
+    
 }
 catch(Exception e){
-	e.printStackTrace();
+    e.printStackTrace();
 }
 finally{
-	if(myShepherd!=null){
-		if(myShepherd.getPM()!=null){
-			myShepherd.rollbackDBTransaction();
-			if(!myShepherd.getPM().isClosed()){myShepherd.closeDBTransaction();}
-		}
-	}
+    if(myShepherd!=null){
+        if(myShepherd.getPM()!=null){
+            myShepherd.rollbackDBTransaction();
+            if(!myShepherd.getPM().isClosed()){myShepherd.closeDBTransaction();}
+        }
+    }
 }
-
-
 %>
 
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
+            <h1 class="hidden">Manta Matcher</h1>
+            <h2>You can help photograph, <br/> identify and protect mantas!</h2>
             <button class="large light">
                 Watch the movie 
                 <span class="button-icon" aria-hidden="true">
             </button>
-            <form style="display: inline" action="submit.jsp" method="get">
-	            <button class="large">
-	                Report encounter
-	                <span class="button-icon" aria-hidden="true">
-	            </button>
-            </form>
-            <h1 class="hidden">Manta Matcher</h1>
-            
-            <h2>
-                You can help photograph, <br/> identify and protect mantas!
-            </h2>
+            <a href="submit.jsp">
+                <button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>
+            </a>
         </div>
     </div>
 </section>
@@ -145,32 +137,32 @@ finally{
     <aside class="container main-section">
         <div class="row">
         
-        	<!-- Random user profile to select -->
-        	<%
-        	myShepherd.beginDBTransaction();
-        	User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
-        	if(featuredUser!=null){
-        		String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-        	%>
-	            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-	                <div class="focusbox-inner">
-	                    <h2>Our contributors</h2>
-	                    <div>
-	                        <img src="<%=profilePhotoURL %>" width="80px" height="80px" alt="" class="pull-left" />
-	                        <p><%=featuredUser.getFullName() %> 
-	                        	<%
-	                        	if(featuredUser.getAffiliation()!=null){
-	                        	%>
-	                        	<i><%=featuredUser.getAffiliation() %></i>
-	                        	<%
-	                        	}
-	                        	%>
-	                        </p>
-	                        <p><%=featuredUser.getUserStatement() %></p>
-	                    </div>
-	                    <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributers</a>
-	                </div>
-	            </section>
+            <!-- Random user profile to select -->
+            <%
+            myShepherd.beginDBTransaction();
+            User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+            if(featuredUser!=null){
+                String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+            %>
+                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+                    <div class="focusbox-inner">
+                        <h2>Our contributors</h2>
+                        <div>
+                            <img src="<%=profilePhotoURL %>" width="80px" height="80px" alt="" class="pull-left" />
+                            <p><%=featuredUser.getFullName() %> 
+                                <%
+                                if(featuredUser.getAffiliation()!=null){
+                                %>
+                                <i><%=featuredUser.getAffiliation() %></i>
+                                <%
+                                }
+                                %>
+                            </p>
+                            <p><%=featuredUser.getUserStatement() %></p>
+                        </div>
+                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributers</a>
+                    </div>
+                </section>
             <%
             }
             myShepherd.rollbackDBTransaction();
@@ -187,25 +179,25 @@ finally{
                        int numResults=latestIndividuals.size();
                        myShepherd.beginDBTransaction();
                        for(int i=0;i<numResults;i++){
-                    	   Encounter thisEnc=latestIndividuals.get(i);
-	                       %>
-	                        <li>
-	                            <img src="cust/mantamatcher/img/manta-silhouette.svg" alt="" class="pull-left" />
-	                            <small>
-	                            	<time>
-	                            		<%=thisEnc.getDate() %>
-	                            		<%
-	                            		if((thisEnc.getLocation()!=null)&&(!thisEnc.getLocation().trim().equals(""))){
-	                            		%>/ <%=thisEnc.getLocation() %>
-	                            		<%
-                      					 }
-	                            		%>
-	                            	</time>
-	                            </small>
-	                            <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividualID() %></a></p>
-	                       
-	                       
-	                        </li>
+                           Encounter thisEnc=latestIndividuals.get(i);
+                           %>
+                            <li>
+                                <img src="cust/mantamatcher/img/manta-silhouette.svg" alt="" class="pull-left" />
+                                <small>
+                                    <time>
+                                        <%=thisEnc.getDate() %>
+                                        <%
+                                        if((thisEnc.getLocation()!=null)&&(!thisEnc.getLocation().trim().equals(""))){
+                                        %>/ <%=thisEnc.getLocation() %>
+                                        <%
+                                           }
+                                        %>
+                                    </time>
+                                </small>
+                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividualID() %></a></p>
+                           
+                           
+                            </li>
                         <%
                         }
                         myShepherd.rollbackDBTransaction();
@@ -233,31 +225,31 @@ finally{
                     Iterator<String> keys=spotters.keySet().iterator();
                     Iterator<Integer> values=spotters.values().iterator();
                     while((keys.hasNext())&&(numUsersToDisplay>0)){
-                  		String spotter=keys.next();
-                  		int numUserEncs=values.next().intValue();
-                  		if(myShepherd.getUser(spotter)!=null){
-                  			User thisUser=myShepherd.getUser(spotter);
-                  			String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-                        	//System.out.println(spotters.values().toString());
-                        	Integer myInt=spotters.get(spotter);
-                        	//System.out.println(spotters);
-                        	
-                  		%>
-		                        <li>
-		                            <img src="<%=profilePhotoURL %>" width="80px" height="80px" alt="" class="pull-left" />
-	                        		<%
-	                        		if(thisUser.getAffiliation()!=null){
-	                        		%>
-	                        		<small><%=thisUser.getAffiliation() %></small>
-	                        		<%
-                  					}
-	                        		%>
-		                            <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> encounters<span></p>
-		                        </li>
-		                        
-		                   <%
-		                   numUsersToDisplay--;
-                    }	}
+                          String spotter=keys.next();
+                          int numUserEncs=values.next().intValue();
+                          if(myShepherd.getUser(spotter)!=null){
+                              User thisUser=myShepherd.getUser(spotter);
+                              String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                            //System.out.println(spotters.values().toString());
+                            Integer myInt=spotters.get(spotter);
+                            //System.out.println(spotters);
+                            
+                          %>
+                                <li>
+                                    <img src="<%=profilePhotoURL %>" width="80px" height="80px" alt="" class="pull-left" />
+                                    <%
+                                    if(thisUser.getAffiliation()!=null){
+                                    %>
+                                    <small><%=thisUser.getAffiliation() %></small>
+                                    <%
+                                      }
+                                    %>
+                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> encounters<span></p>
+                                </li>
+                                
+                           <%
+                           numUsersToDisplay--;
+                    }    }
                    myShepherd.rollbackDBTransaction();
                    %>
                         
