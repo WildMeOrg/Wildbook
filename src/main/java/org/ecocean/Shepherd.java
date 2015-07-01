@@ -3167,7 +3167,7 @@ public class Shepherd {
     String filter = "individualID != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
-    q.setOrdering("dateInMilliseconds descending");
+    q.setOrdering("dwcDateAddedLong descending");
     Collection c = (Collection) (q.execute());
     if((c!=null)&&(c.size()>0)){
       
@@ -3183,6 +3183,52 @@ public class Shepherd {
     q.closeAll();
     return matchingEncounters;
   }
+  
+  public Map<String,Integer> getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(long startTime){
+
+    
+    Map<String,Integer> matchingUsers=new HashMap<String,Integer>();
+    
+    
+    String filter = "submitterID != null && dwcDateAddedLong >= "+startTime;
+    System.out.println("     My filter is: "+filter);
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    q.setResult("distinct submitterID");
+    Collection c = (Collection) (q.execute());
+    ArrayList<String> allUsers = new ArrayList<String>(c);
+    q.closeAll();
+    int numAllUsers=allUsers.size();
+    //System.out.println("     All users: "+numAllUsers);
+    for(int i=0;i<numAllUsers;i++){
+      String thisUser=allUsers.get(i);
+      if((!thisUser.trim().equals(""))&&(getUser(thisUser)!=null)){
+        
+        String userFilter = "submitterID == \"" + thisUser + "\" && dwcDateAddedLong >= "+startTime;
+        Extent userClass = pm.getExtent(Encounter.class, true);
+        Query subq = pm.newQuery(userClass, userFilter);
+        Collection userC = (Collection) (subq.execute());
+        matchingUsers.put(thisUser, (new Integer(userC.size())));
+        //System.out.println("     Adding user:"+thisUser+" with "+userC.size());
+        subq.closeAll();
+      }
+    }
+    
+    return sortByValues(matchingUsers);
+  }
+  
+  public static <K, V extends Comparable<V>> Map<K, V> sortByValues(final Map<K, V> map) {
+    Comparator<K> valueComparator =  new Comparator<K>() {
+        public int compare(K k1, K k2) {
+            int compare = map.get(k2).compareTo(map.get(k1));
+            if (compare == 0) return 1;
+            else return compare;
+        }
+    };
+    Map<K, V> sortedByValues = new TreeMap<K, V>(valueComparator);
+    sortedByValues.putAll(map);
+    return sortedByValues;
+}
 
   
 

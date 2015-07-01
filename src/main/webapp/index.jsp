@@ -1,7 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
      		 org.ecocean.servlet.ServletUtilities,
-     		 java.util.ArrayList
+     		 java.util.ArrayList,
+     		 java.util.Map,
+     		 java.util.Iterator
    	       "
 %>
 
@@ -215,26 +217,52 @@ finally{
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner">
-                    <h2>Top spotters</h2>
+                    <h2>Top spotters (past 30 days)</h2>
                     <ul class="encounter-list list-unstyled">
-                        <li>
-                            <img src="cust/mantamatcher/img/spotter_periperi.jpg" alt="" class="pull-left round" />
-                            <small>Divecenter</small>
-                            <p><a href="#" title="">Peri Peri</a>, <span>14 encounters<span></p>
-                        </li>
-                        <li>
-                            <img src="cust/mantamatcher/img/spotter_periperi.jpg" alt="" class="pull-left round" />
-                            <small>Research organisation
-</small>
-                            <p><a href="#" title="">Lamave Project</a>, <span>12 encounters<span></p>
-                        </li>
-                        <li>
-                            <img src="cust/mantamatcher/img/spotter_periperi.jpg" alt="" class="pull-left round" />
-                            <small>Divecenter</small>
-                            <p><a href="#" title="">Peri Peri</a>, <span>14 encounters<span></p>
-                        </li>
+                    <%
+                    myShepherd.beginDBTransaction();
+                    
+                    System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
+                    long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
+                    
+                    System.out.println("  I think my startTime is: "+startTime);
+                    
+                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+                    int numUsersToDisplay=3;
+                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
+                    Iterator<String> keys=spotters.keySet().iterator();
+                    Iterator<Integer> values=spotters.values().iterator();
+                    while((keys.hasNext())&&(numUsersToDisplay>0)){
+                  		String spotter=keys.next();
+                  		int numUserEncs=values.next().intValue();
+                  		if(myShepherd.getUser(spotter)!=null){
+                  			User thisUser=myShepherd.getUser(spotter);
+                  			String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                        	//System.out.println(spotters.values().toString());
+                        	Integer myInt=spotters.get(spotter);
+                        	//System.out.println(spotters);
+                        	
+                  		%>
+		                        <li>
+		                            <img src="<%=profilePhotoURL %>" width="80px" height="80px" alt="" class="pull-left" />
+	                        		<%
+	                        		if(thisUser.getAffiliation()!=null){
+	                        		%>
+	                        		<small><%=thisUser.getAffiliation() %></small>
+	                        		<%
+                  					}
+	                        		%>
+		                            <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> encounters<span></p>
+		                        </li>
+		                        
+		                   <%
+		                   numUsersToDisplay--;
+                    }	}
+                   myShepherd.rollbackDBTransaction();
+                   %>
+                        
                     </ul>   
-                    <a href="#" title="" class="cta">See all spotters</a>
+                    <a href="whoAreWe.jsp" title="" class="cta">See all spotters</a>
                 </div>
             </section>
         </div>
