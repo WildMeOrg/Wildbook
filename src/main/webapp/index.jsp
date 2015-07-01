@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
-     		 org.ecocean.servlet.ServletUtilities
+     		 org.ecocean.servlet.ServletUtilities,
+     		 java.util.ArrayList
    	       "
 %>
 
@@ -49,10 +50,12 @@ finally{
                 Watch the movie 
                 <span class="button-icon" aria-hidden="true">
             </button>
-            <button class="large">
-                Report encounter
-                <span class="button-icon" aria-hidden="true">
-            </button>
+            <form style="display: inline" action="submit.jsp" method="get">
+	            <button class="large">
+	                Report encounter
+	                <span class="button-icon" aria-hidden="true">
+	            </button>
+            </form>
             <h1 class="hidden">Manta Matcher</h1>
             
             <h2>
@@ -176,23 +179,38 @@ finally{
                 <div class="focusbox-inner">
                     <h2>Latest manta encounters</h2>
                     <ul class="encounter-list list-unstyled">
-                        <li>
-                            <img src="cust/mantamatcher/img/manta-silhouette.svg" alt="" class="pull-left" />
-                            <small><time>23.12.14, Tofo Mozambique</time></small>
-                            <p><a href="#" title="">Hooper</a></p>
-                        </li>
-                        <li>
-                            <img src="cust/mantamatcher/img/manta-silhouette.svg" alt="" class="pull-left" />
-                            <small><time>22.12.14, Tofo Mozambique</time></small>
-                            <p><a href="#" title="">Daizy</a></p>
-                        </li>
-                        <li>
-                            <img src="cust/mantamatcher/img/manta-silhouette.svg" alt="" class="pull-left" />
-                            <small><time>20.12.14, Durban South-Africa</time></small>
-                            <p><a href="#" title="">Thomas</a></p>
-                        </li>
+                       
+                       <%
+                       ArrayList<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                       int numResults=latestIndividuals.size();
+                       myShepherd.beginDBTransaction();
+                       for(int i=0;i<numResults;i++){
+                    	   Encounter thisEnc=latestIndividuals.get(i);
+	                       %>
+	                        <li>
+	                            <img src="cust/mantamatcher/img/manta-silhouette.svg" alt="" class="pull-left" />
+	                            <small>
+	                            	<time>
+	                            		<%=thisEnc.getDate() %>
+	                            		<%
+	                            		if((thisEnc.getLocation()!=null)&&(!thisEnc.getLocation().trim().equals(""))){
+	                            		%>/ <%=thisEnc.getLocation() %>
+	                            		<%
+                      					 }
+	                            		%>
+	                            	</time>
+	                            </small>
+	                            <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividualID() %></a></p>
+	                       
+	                       
+	                        </li>
+                        <%
+                        }
+                        myShepherd.rollbackDBTransaction();
+                        %>
+                       
                     </ul>
-                    <a href="#" title="" class="cta">See more encounters</a>
+                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta">See more encounters</a>
                 </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">

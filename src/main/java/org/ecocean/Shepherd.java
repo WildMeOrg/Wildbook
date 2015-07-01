@@ -3161,6 +3161,28 @@ public class Shepherd {
     q.closeAll();
     return null;
   }
+  
+  public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
+    ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();
+    String filter = "individualID != null";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    q.setOrdering("dateInMilliseconds descending");
+    Collection c = (Collection) (q.execute());
+    if((c!=null)&&(c.size()>0)){
+      
+      int numAdded=0;
+      while(numAdded<numToReturn){
+        ArrayList<Encounter> results=new ArrayList<Encounter>(c); 
+        matchingEncounters.add(results.get(numAdded));
+        numAdded++;
+      }
+      
+    }
+    
+    q.closeAll();
+    return matchingEncounters;
+  }
 
   
 
