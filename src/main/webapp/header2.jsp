@@ -25,7 +25,8 @@
              org.ecocean.CommonConfiguration,
              java.util.ArrayList,
              java.util.Properties,
-             org.apache.commons.lang.WordUtils
+             org.apache.commons.lang.WordUtils,
+             org.ecocean.security.Collaboration
    	       "
 %>
 
@@ -102,7 +103,15 @@ props = ShepherdProperties.getProperties("header.properties", langCode, context)
                       <span class="icon-bar"></span>
                     </button>
                   </div>
+                  
+                  <script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/JavascriptGlobals.js"></script>
+				<script type="text/javascript"  src="http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/collaboration.js"></script>
+
+                  
+                  
+                  
                   <div id="navbar" class="navbar-collapse collapse">
+                  <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
                     <ul class="nav navbar-nav">
                                   <!--                -->
                       <li class="active home text-hide"><a href="http://<%=CommonConfiguration.getURLLocation(request) %>"><%=props.getProperty("home")%></a></li>
