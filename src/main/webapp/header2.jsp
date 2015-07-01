@@ -54,10 +54,9 @@ String urlLoc = CommonConfiguration.getURLLocation(request);
             rel="stylesheet" type="text/css"/>
       <link rel="shortcut icon"
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-      <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+      <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="cust/mantamatcher/css/manta.css" />
-      <link href="tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css">
-	  
+      <link href="tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
 
       <script src="tools/jquery/js/jquery.min.js"></script>
       <script src="tools/bootstrap/js/bootstrap.min.js"></script>
