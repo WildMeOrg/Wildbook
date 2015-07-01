@@ -1,12 +1,15 @@
-<jsp:include page="headerfull.jsp" flush="true"/>
 
-<%@ page contentType="text/html; charset=utf-8" import="java.util.GregorianCalendar,
+<%@ page contentType="text/html; charset=utf-8" 
+		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties" %>
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
+<jsp:include page="header2.jsp" flush="true"/>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -319,14 +322,13 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
 </script>
 
-<div id="main">
 
-<div id="maincol-wide-solo" style="padding: 5px;">
 
-<div id="maintext">
+<div class="container maincontent">
+<p>&nbsp;</p>
   <h1 class="intro"><%=props.getProperty("submit_report")%>
   </h1>
-</div>
+
 <iframe id="social_files_iframe" style="display: none;" ></iframe>
 <form id="encounterForm" action="EncounterForm" method="post" enctype="multipart/form-data"
       name="encounter_submission" target="_self" dir="ltr" lang="en"
@@ -389,7 +391,7 @@ function showUploadBox() {
 
 </script>
 
-<h3><strong><%=props.getProperty("submit_image")%></strong></h3>
+<h3><%=props.getProperty("submit_image")%></h3>
 <p><%=props.getProperty("submit_pleaseadd")%>
 <div class="container-fluid">
     <div class="row">
@@ -916,6 +918,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <p>&nbsp;</p>
 </form>
 </div>
-<!-- end maintext --></div>
-<!-- end maincol -->
-<jsp:include page="footerfull.jsp" flush="true"/>
+
+
+<jsp:include page="footer2.jsp" flush="true"/>

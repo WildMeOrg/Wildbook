@@ -56,6 +56,9 @@ props = ShepherdProperties.getProperties("header.properties", langCode, context)
 
       <script src="tools/jquery/js/jquery.min.js"></script>
       <script src="tools/bootstrap/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="javascript/core.js"></script>
+	  <script type="text/javascript" src="tools/jquery-ui/javascript/jquery-ui.min.js"></script>
+ 	  <script type="text/javascript" src="tools/hello/javascript/hello.all.js"></script>
 
     </head>
     <body role="document">
