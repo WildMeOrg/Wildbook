@@ -145,21 +145,24 @@ public final class MMAResultsProcessor {
             res.bestMatchPath = mr.group(5);
             // Parse/assign encounter number.
             res.matchEncounterNumber = mr.group(2);
-            // Obtain encounter dir for matched image.
-            File dir = new File(Encounter.dir(dataDir, res.matchEncounterNumber));
-            // Find matched image file (base image, not CR).
-            res.fileRef = findReferenceFile(dir, res.bestMatch, res.bestMatchPath);
-            // Fill details from encounter object.
-            Encounter enc = shepherd.getEncounter(res.matchEncounterNumber);
-            res.individualId = enc.getIndividualID();
-//            if (enc.getIndividualID() != null && !"".equals(enc.getIndividualID()) && !"Unassigned".equals(enc.getIndividualID())) {
-//              String indUrl = String.format(pageUrlFormatInd, enc.getIndividualID());
-//              modelMatch.put("individualIdLink", indUrl);
-//            }
-            res.encounterDate = enc.getDate();
-            res.pigmentation = enc.getPatterningCode();
-            // Only add items with a non-zero score (only lines with 'best match' anyway).
-            matches.add(res);
+            try {
+              // Obtain encounter dir for matched image.
+              File dir = new File(Encounter.dir(dataDir, res.matchEncounterNumber));
+              // Find matched image file (base image, not CR).
+              res.fileRef = findReferenceFile(dir, res.bestMatch, res.bestMatchPath);
+              // Fill details from encounter object.
+              Encounter enc = shepherd.getEncounter(res.matchEncounterNumber);
+              if (enc != null) {
+                res.individualId = enc.getIndividualID();
+                res.encounterDate = enc.getDate();
+                res.pigmentation = enc.getPatterningCode();
+                // Only add items with a non-zero score (only lines with 'best match' anyway).
+                matches.add(res);
+              }
+            } catch (Exception ex) {
+              // Ignore; just means previously matched encounter can't now be found.
+              log.trace("Failed to find encounter for match: " + res.matchEncounterNumber);
+            }
           }
           try
           {
