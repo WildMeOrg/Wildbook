@@ -144,7 +144,11 @@ finally{
             myShepherd.beginDBTransaction();
             User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
-                String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+                String profilePhotoURL="images/empty_profile.jpg";
+                if(featuredUser.getUserImage()!=null){
+                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+                } 
+            
             %>
                 <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                     <div class="focusbox-inner opec">
@@ -230,9 +234,12 @@ finally{
                           String spotter=keys.next();
                           int numUserEncs=values.next().intValue();
                           if(myShepherd.getUser(spotter)!=null){
+                        	  String profilePhotoURL="images/empty_profile.jpg";
                               User thisUser=myShepherd.getUser(spotter);
-                              String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-                            //System.out.println(spotters.values().toString());
+                              if(thisUser.getUserImage()!=null){
+                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                              } 
+                              //System.out.println(spotters.values().toString());
                             Integer myInt=spotters.get(spotter);
                             //System.out.println(spotters);
                             
