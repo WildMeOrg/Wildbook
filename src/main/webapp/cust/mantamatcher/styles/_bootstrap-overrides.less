@@ -15,36 +15,47 @@ h1, h2 {
 
 .page-header { margin: 52px 0 26px; }
 
-@media (min-width: 768px) {
-	.page-header { margin: 50px 0 20px; }
+@media (min-width: @screen-sm) {
+	.page-header { margin: 47px 0 20px; }
 }
 
 /* nav bar */
 .navbar-default { background: none; }
 
-@media (min-width: 768px) {
+.navbar-default .navbar-nav>.home.active>a,
+ .navbar-default .navbar-nav>.home >a { 
+    background: transparent;
+    color: @brand-dark;
+    }
+
+@media (min-width: @screen-sm) {
   .navbar-default .navbar-nav>.home.active>a,
   .navbar-default .navbar-nav>.home >a { 
-    background-color: transparent;
     background-image: url(../img/icon_home.png); 
     background-repeat: no-repeat;
     background-position: center;
+    text-indent: -999em;
     }
 }
 
 .navbar-brand {
-  	height: 80px;
-  	width: 100%;
+  	height: 60px;
+  	width: 243px;
   	margin-bottom: 10px;
+  	margin-left: auto;
+  	margin-right: auto;
   	text-indent: -999em;
   	clear: both;
+  	float: none;
   	display: block;
   	background: url(../img/mantamatcher_logo_white.svg) no-repeat;
 	}
 
-@media (min-width: 768px) {
+@media (min-width: @screen-sm) {
 	.navbar-brand {
-		max-width: 355px;
+		height: 80px;
+		width: 100%;
+		max-width: 350px;
 		clear: none;
 		float: left;
 		}
@@ -61,6 +72,7 @@ h1, h2 {
 .navbar-default .navbar-nav > li > a {
 	color: @brand-dark;
 	font-size: .9em;
+	text-shadow: 0;
 	}
 
 .navbar-default .navbar-nav > li > a:hover,
@@ -75,6 +87,18 @@ h1, h2 {
 	color: @mainColor;
 	background-color: @brand-primary;
 	}
+
+.navbar-default .navbar-nav>.open>a, 
+.navbar-default .navbar-nav>.open>a:hover, 
+.navbar-default .navbar-nav>.open>a:focus {
+	color: @brand-dark;
+	background: transparent;
+	}
+
+	.navbar-default .navbar-nav .open .dropdown-menu>li>a { 
+		color: @brand-dark; 
+		font-weight: 300;
+		}
 
 /* Reset - not wanting bullets */
 .carousel-indicators {
@@ -104,10 +128,18 @@ h1, h2 {
 	border-bottom: 4px solid @mainColor;
 	border-radius: 0;
 	font-weight: 300;
+	font-size: .8em; 
 	}
 
-.carousel-indicators li, .carousel-indicators .active { margin: 0 20px 25px; }
+	@media (min-width: @screen-sm) {
+		.carousel-indicators li { font-size: 1em; }
+	}
 
+.carousel-indicators li, .carousel-indicators .active { margin: 0 5px 15px; }
+
+@media (min-width: @screen-sm) {
+	.carousel-indicators li, .carousel-indicators .active { margin: 0 20px 25px; }
+}
 	.carousel-indicators li .caret { display: none; }
 
 .carousel-indicators .active {
