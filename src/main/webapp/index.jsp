@@ -89,7 +89,9 @@ finally{
             <div class="item">
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                     <h3>Submit photo/video</h3>
-                    <p>Page 2</p>
+                    <p class="lead">
+                        Text needed here, dui velit iaculis ex, et maximus mi felis in mauris. Vivamus id finibus urna. Aliquam erat volutpat. Etiam vesti
+                    </p>
                 </div>
                 <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
                     <img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
@@ -145,7 +147,7 @@ finally{
                 String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
             %>
                 <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                    <div class="focusbox-inner">
+                    <div class="focusbox-inner opec">
                         <h2>Our contributors</h2>
                         <div>
                             <img src="<%=profilePhotoURL %>" width="80px" height="80px" alt="" class="pull-left" />
@@ -170,7 +172,7 @@ finally{
             
             
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                <div class="focusbox-inner">
+                <div class="focusbox-inner opec">
                     <h2>Latest manta encounters</h2>
                     <ul class="encounter-list list-unstyled">
                        
@@ -208,7 +210,7 @@ finally{
                 </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                <div class="focusbox-inner">
+                <div class="focusbox-inner opec">
                     <h2>Top spotters (past 30 days)</h2>
                     <ul class="encounter-list list-unstyled">
                     <%
@@ -298,6 +300,7 @@ finally{
 
 <div class="container-fluid main-section">
     <h2 class="section-header">Encounters around the world</h2>
+    <div id="map-canvas"></div>
     <div>
         GOOGLE MAPS INTEGRATION
     </div>
@@ -306,21 +309,41 @@ finally{
 <div class="container-fluid">
     <section class="container main-section">
         <h2 class="section-header">How can i Help out of the water</h2>
-        <p class="large-intro">If you are not getting into the blue, there are still other ways to get engaged</p>
+        <p class="lead text-center">If you are not getting into the blue, there are still other ways to get engaged</p>
 
-        <section>
-            <h3>Adopt a manta</h3>
-            <ul>
-                <li></li>
-                <li></li>
-                <li></li>
-            </ul>
+        <section class="adopt-section row">
+            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <h3 class="uppercase">Adopt a manta</h3>
+                <ul>
+                    <li>Support cutting-edge manta research through MantaMatcher</li>
+                    <li>Receive email updates of resightings of your adopted manta</li>
+                    <li>Display your photo and a quote from you on the manta's page in our library</li>
+                </ul>
+                <a href="#" title="">Learn more about adopting a manta</a>
+            </div>
+            <div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <div class="focusbox-inner">
+                    <img src="cust/mantamatcher/img/adopter_casaberry.jpg" alt="" class="pull-right round">
+                    <h2><small>Meet an adopter:</small>Casa Berry</h2>
+                    <blockquote>
+                        “We just fell in love with the manta Angel. She made us interested in mantas, and made us relise their importance in the eco syste
+                    </blockquote>
+                </div>
+            </div>
         </section>
         <hr />
-        <section>
-            <h3>Donate</h3>
-            <p>Dontations, including in-kind donations, large and small are always welcome. For the research work we need equipment and funds. </p>
-            <a href="#" title="More information about donations">Learn more about how to donate</a>
+        <section class="donate-section">
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <h3>Donate</h3>
+                <p>Dontations, including in-kind donations, large and small are always welcome. For the research work we need equipment and funds. </p>
+                <a href="#" title="More information about donations">Learn more about how to donate</a>
+            </div>
+            <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
+                <button class="large contrast">
+                    Become a sponsor
+                    <span class="button-icon" aria-hidden="true">
+                </button>
+            </div>
         </section>
     </section>
 </div>

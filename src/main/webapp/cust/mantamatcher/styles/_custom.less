@@ -19,7 +19,11 @@
 .page-content hr { 
 	border: 3px solid @brand-primary; 
 	width: 80%;
+	margin-top: 60px;
+	margin-bottom: 60px;
 	}
+
+.page-content a { text-decoration: underline; }
 
 img { max-width: 100%; }
 
@@ -40,6 +44,8 @@ input[type="submit"] {
 	padding: 7px 13px;
 	font-weight: 300;
 	vertical-align: middle;
+	margin-right: 10px;
+	margin-top: 15px;
 	}
 
 button.large, html input[type="button"].large, 
@@ -104,9 +110,7 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 	text-align: left;
 	}
 
-.no-bullets li {
-	list-style: none;
-	}
+.no-bullets li { list-style: none; }
 
 /* Images */
 .background-image {
@@ -121,10 +125,11 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 
 /* Standout sections */
 .focusbox .focusbox-inner {
-	background: @brand-primary-opec;
+	background: @brand-primary;
 	margin: 5px; 
 	padding: 10px 20px 30px;
 	}
+.focusbox .focusbox-inner.opec { background: @brand-primary-opec; }
 
 	.focusbox, .focusbox h2 { color: @mainColor; }
 
@@ -146,12 +151,7 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
  		display: block;
 		}
 
-	.focusbox img { 
-		max-width: 81px; 
-		}
-
-/* carousel overrides how-to */
-
+	.focusbox img { max-width: 81px; }
 
 /* Header */
 .page-header { 
@@ -178,7 +178,7 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 
 		#wild-me-badge { display: none; }
 
-		@media (min-width: 992px) { 
+		@media (min-width: @screen-md) { 
 			#wild-me-badge {
 				display: block;
 				width: 130px;
@@ -197,7 +197,7 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 			margin-bottom: 10px;
 			}
 
-			@media (min-width: 768px) {
+			@media (min-width: @screen-sm-min) {
 				.search-and-secondary-wrapper { 
 					float: right; 
 					width: auto;
@@ -208,7 +208,8 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 		.page-header .secondary-nav {
 			width: auto;
 			float: right;
-			margin-top: 3px;
+			margin-top: 7px;
+			margin-left: -20px; /* compensates for left margin menu items */
 			}
 
 			.secondary-nav li {
@@ -216,8 +217,12 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 				text-transform: uppercase;
 				padding: 0 0 0 20px;
 				font-family: tahoma, sans-serif;
-				font-size: .8em;
+				font-size: .6em;
 				}
+
+			@media screen and (min-width: @screen-xs-min) {
+				.secondary-nav li { font-size: .8em; }
+			}
 
 		.search-wrapper {
 			white-space: nowrap;
@@ -237,20 +242,21 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 				font-weight: 300;
 				text-indent: 5px;
 				letter-spacing: 1px;
-				width: 100px;
+				width: 75px;
 				padding: 3px 0;
 				}
-			@media (min-width: 992px) {
+			@media (min-width: @screen-md) {
 				.search-field-header input { width: 150px; }
 			}
 
 			.search-field-header input[type="submit"] {
 				text-indent: -999em;
 				border: 0;
-				background: url(../img/icon_magnifier.png) center no-repeat;
+				background: url(../img/icon_magnifier.svg) center no-repeat;
 				width: 31px;
 				height: 22px;
 				padding-left: 4px;
+				margin: 0;
 				}
 
 		.nav-bar-wrapper {
@@ -298,6 +304,8 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
     background-position: 50% 50%;
 	}
 
+.hero { padding-top: 10%; }
+
 .hero .container { 
 	margin-top: 60px;
 	margin-bottom: 60px;
@@ -306,9 +314,13 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 .hero h2 {
 	color: @mainColor;
 	font-weight: 300;
-	font-size: 3.3em;
+	font-size: 1.6em;
 	text-shadow: 1px 2px 2px #333;
 	}
+
+@media screen and (min-width: @screen-sm-min) {
+	.hero h2 { font-size: 3.3em; }
+}
 
 .encounter-list {}
 
@@ -333,3 +345,31 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 			}
 
 		.encounter-list span { display: block; }
+
+.adopter-badge {
+
+	}
+
+	.adopter-badge h2 small { 
+		display: block; 
+		color: @mainColor;
+		}
+
+	.adopter-badge blockquote {
+		border-left: 0;
+		padding-left: 0;
+		padding-top: 0;
+		padding-bottom: 0;
+		margin-bottom: 0;
+		font-size: 1em;
+		line-height: 1.5em;
+		}
+
+	.adopter-badge img { 
+		margin-top: 25px;
+		width: 168px; 
+		max-width: 168px;
+		}
+
+/* Google maps */
+#map-canvas { height: 100%; margin: 0; padding: 0;}
