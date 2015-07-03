@@ -1787,3 +1787,14 @@ div.state-approved span.state {
   white-space: nowrap;
   text-align: right;
 }
+
+
+.socialphoto {
+    margin: 5px;
+    padding: 5px;
+}
+
+.socialphoto.selected {
+    background-color: greenyellow;
+}
+
