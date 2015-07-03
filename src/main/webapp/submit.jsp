@@ -398,7 +398,7 @@ function showUploadBox() {
         <ul id="social_image_buttons" class="list-inline" style="text-align: center;">
             <li class="active">
                 <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()"
-                        style="background:url(images/computer.png);">
+                        style="background:url(images/computer.png);background-repeat: no-repeat;">
                 </button>
             </li>
         </ul>
@@ -423,13 +423,13 @@ function showUploadBox() {
     </div>
 </div>
 <br />
-<h3><strong><%=props.getProperty("dateAndLocation")%></strong></h3>
+<h3><%=props.getProperty("dateAndLocation")%></h3>
 
 <p><%=props.getProperty("submit_note_red")%>
 
-<table id="encounter_report" style="border:0">
-<tr class="form_row">
-  <td class="form_label" style="border-bottom: #ffffff;"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%></font></strong>
+<table class="table borderless">
+<tr>
+  <td   style="border-bottom: #ffffff;"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%></font></strong>
   </td>
   <td style="border-bottom: #ffffff;">
   
@@ -452,8 +452,8 @@ function showUploadBox() {
 if(CommonConfiguration.showReleaseDate(context)){
 %>
 
-    <tr class="form_row">
-    <td class="form_label" style="border-bottom: #ffffff;"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
+    <tr>
+    <td   style="border-bottom: #ffffff;"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
     <td colspan="2" style="border-bottom: #ffffff;">  
         <input type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" />
     </td>
@@ -466,12 +466,12 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 
 <tr>
-  <td class="form_label" rowspan="7" style="border-bottom: #ffffff;"><strong><font
+  <td   rowspan="7" style="border-bottom: #ffffff;vertical-align: top;"><strong><font
     color="#CC0000"><%=props.getProperty("submit_location")%></font></strong></td>
     </tr>
     
     <tr>
-  <td ><em><%=props.getProperty("where") %></em><br /><input name="location" type="text" id="location" size="40"/></td>
+  <td><em><%=props.getProperty("where") %></em><br /><input name="location" type="text" id="location" size="40"/></td>
 </tr>
 <%
 //add locationID to fields selectable
@@ -513,7 +513,7 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
 if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
-        <tr >
+        <tr>
             <td class="form_label1"><em><%=props.getProperty("country")%></em></td>
         <td>
               <select name="country" id="country">
@@ -605,9 +605,9 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 </table>
 <br />
-<h3><strong><%=props.getProperty("aboutYou")%></strong></h3>
+<h3><%=props.getProperty("aboutYou")%></h3>
 
-<table style="border:0;">
+<table class="table borderless">
 <tr>
     <td class="you" colspan="2"><strong><%=props.getProperty("submit_contactinfo")%>*</strong></td>
     <td class="photo" colspan="2"><strong><%=props.getProperty("submit_contactphoto")%>
@@ -646,9 +646,9 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     <td><input name="photographerEmail" type="text" id="photographerEmail" size="24"/></td>
   </tr>
 </table>
-<table style="border:0;">
+<table class="table borderless">
   <tr>
-    <td ><br /><strong><%=props.getProperty("submitterOrganization")%></strong><br />
+    <td><br /><strong><%=props.getProperty("submitterOrganization")%></strong><br />
     <input name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation%>"/>
     </td>
   </tr>
@@ -670,10 +670,10 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       <font color="#000000"><%=props.getProperty("advancedInformation") %></font></a></h4>
 
 <div id="advancedInformation" style="display:none;">
-<table style="border:0;">
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_sex")%>:</strong></td>
-  <td colspan="2" class="form_label"><label> <input type="radio" name="sex"
+<table class="table borderless">
+<tr>
+  <td  ><strong><%=props.getProperty("submit_sex")%>:</strong></td>
+  <td colspan="2"  ><label> <input type="radio" name="sex"
                                  value="male"/> <%=props.getProperty("submit_male")%>
   </label> <label>
     <input type="radio" name="sex" value="female"/> <%=props.getProperty("submit_female")%>
@@ -688,8 +688,8 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("species")%></strong></td>
+<tr>
+  <td  ><strong><%=props.getProperty("species")%></strong></td>
   <td colspan="2">
   <select name="genusSpecies" id="genusSpecies">
       <option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
@@ -720,16 +720,16 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
 
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("status") %></strong></td>
+<tr>
+  <td  ><strong><%=props.getProperty("status") %></strong></td>
   <td colspan="2"><select name="livingStatus" id="livingStatus">
     <option value="alive" selected="selected">Alive</option>
     <option value="dead">Dead</option>
   </select></td>
 </tr>
 
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_behavior")%></strong></td>
+<tr>
+  <td  ><strong><%=props.getProperty("submit_behavior")%></strong></td>
   <td colspan="2">
     <input name="behavior" type="text" id="scars" size="75"/></td>
 </tr>
@@ -738,8 +738,8 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 if(CommonConfiguration.showProperty("showLifestage",context)){
 
 %>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("lifeStage")%></strong></td>
+<tr>
+  <td  ><strong><%=props.getProperty("lifeStage")%></strong></td>
   <td colspan="2">
   <select name="lifeStage" id="lifeStage">
       <option value="" selected="selected"></option>
@@ -776,8 +776,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
     pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
 %>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("measurements")%>:</strong></td>
+<tr>
+  <td  ><strong><%=props.getProperty("measurements")%>:</strong></td>
   <td colspan="2">
   <table class="measurements">
   <tr>
@@ -811,8 +811,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 
 <c:if test="${showMetalTags and !empty metalTags}">
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("physicalTags") %></strong></td>
+<tr>
+  <td  ><strong><%=props.getProperty("physicalTags") %></strong></td>
   <td colspan="2">
     <table class="metalTags">
     <tr>
@@ -830,8 +830,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:if>
 
 <c:if test="${showAcousticTag}">
-<tr class="form_row">
-    <td class="form_label"><strong><%=props.getProperty("acousticTag") %></strong></td>
+<tr>
+    <td  ><strong><%=props.getProperty("acousticTag") %></strong></td>
     <td colspan="2">
       <table class="acousticTag">
       <tr>
@@ -851,8 +851,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <%
   pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
 %>
-<tr class="form_row">
-    <td class="form_label"><strong><%=props.getProperty("satelliteTag") %></strong></td>
+<tr>
+    <td  ><strong><%=props.getProperty("satelliteTag") %></strong></td>
     <td colspan="2">
       <table class="satelliteTag">
       <tr>
@@ -878,8 +878,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </tr>
 </c:if>
 
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>
+<tr>
+  <td  ><strong><%=props.getProperty("submit_scars")%></strong></td>
   <td colspan="2">
     <input name="scars" type="text" id="scars" size="75"/></td>
 </tr>
@@ -890,7 +890,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <td></td>
 </tr>
 </table>
-<table id="encounter_contact">
+<table class="table borderless">
   
 
   <tr>
@@ -912,7 +912,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <input
   name="submitterID" type="hidden" value="N/A"/> <%}%>
 <p align="center">
-<button id="submit-button" onclick="if (validate()) {document.forms['encounterForm'].submit();}"><%=props.getProperty("submit_send")%></button>
+<button type="submit" form="encounterForm" id="submit-button" onclick="if (validate()) {document.forms['encounterForm'].submit();}"><%=props.getProperty("submit_send")%></button>
 </p>
 
 <p>&nbsp;</p>
