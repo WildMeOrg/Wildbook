@@ -629,6 +629,11 @@
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportExcelFile</servlet-class>
   </servlet>
   
+       <servlet>
+        <servlet-name>SonicPiFormat</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.SonicPiFormat</servlet-class>
+  </servlet>
+  
   
   <servlet>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
@@ -1310,6 +1315,11 @@
       <servlet-mapping>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
         <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
+  </servlet-mapping>
+  
+       <servlet-mapping>
+        <servlet-name>SonicPiFormat</servlet-name>
+        <url-pattern>/SonicPiFormat</url-pattern>
   </servlet-mapping>
   
     <servlet-mapping>

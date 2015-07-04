@@ -188,6 +188,10 @@
 <%=map_props.getProperty("exportedOBISLocales")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=map_props.getProperty("clickHere")%></a>
 </p>
 
+
+<p>Sonic Pi: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/SonicPiFormat?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+</p>
+
 <p><%=map_props.getProperty("exportedEmail")%>: <a
   href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportEmailAddresses?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%>
 </a>
