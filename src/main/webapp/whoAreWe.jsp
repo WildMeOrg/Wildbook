@@ -3,15 +3,16 @@
 
 //setup our Properties object to hold all properties
 	Properties props=new Properties();
-	String langCode="en";
+	String langCode=ServletUtilities.getLanguageCode(request);
 	
 	String context="context0";
 	context=ServletUtilities.getContext(request);
 	
 	//set up the file input stream
 	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
-	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/whoweare.properties"));
-	
+	//props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/whoweare.properties"));
+	props=ShepherdProperties.getProperties("whoweare.properties", langCode, context);
+    
 	
 %>
 
@@ -60,7 +61,7 @@
 			<tr>
 				<td>
 					<div style="height: 50px">
-						<a><img class="pull-left" height="80px" width="80px" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
+						<a><img class="pull-left" height="*" width="80px" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
 					</div>
 				</td>
 				<td style="border:none">
