@@ -276,9 +276,14 @@
  		 }
  		 
  		 //weekly frequency tabulation
- 		 if((thisEnc.getYear()>0)&&(thisEnc.getMonth()>0)&&(thisEnc.getDay()>0)){
- 			 GregorianCalendar cal=new GregorianCalendar(thisEnc.getYear(),thisEnc.getMonth(), thisEnc.getDay());
+ 		 if((thisEnc.getYear()>-1)&&(thisEnc.getMonth()>-1)&&(thisEnc.getDay()>-1)){
+ 			 GregorianCalendar cal=new GregorianCalendar(thisEnc.getYear(),thisEnc.getMonth()-1, thisEnc.getDay());
  			 int weekOfYear=cal.get(Calendar.WEEK_OF_YEAR);
+ 			 %>
+ 			 
+ 			 <!-- zzzAdding this date: week of year is <%=weekOfYear  %> for date: <%=thisEnc.getDate() %> -->
+ 			 
+ 			 <%
  			 Integer valueForWeek=frequencyWeeks.get(weekOfYear)+1;
  			 frequencyWeeks.put(weekOfYear, valueForWeek);
  		 }
