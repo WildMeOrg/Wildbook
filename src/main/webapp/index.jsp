@@ -154,7 +154,7 @@ finally{
                     <div class="focusbox-inner opec">
                         <h2>Our contributors</h2>
                         <div>
-                            <img src="<%=profilePhotoURL %>" width="80px" height="80px" alt="" class="pull-left" />
+                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
                             <p><%=featuredUser.getFullName() %> 
                                 <%
                                 if(featuredUser.getAffiliation()!=null){
@@ -245,7 +245,7 @@ finally{
                             
                           %>
                                 <li>
-                                    <img src="<%=profilePhotoURL %>" width="80px" height="80px" alt="" class="pull-left" />
+                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
                                     <%
                                     if(thisUser.getAffiliation()!=null){
                                     %>
