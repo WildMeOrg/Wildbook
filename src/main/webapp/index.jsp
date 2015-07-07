@@ -326,7 +326,7 @@ finally{
                     <li>Receive email updates of resightings of your adopted manta</li>
                     <li>Display your photo and a quote from you on the manta's page in our library</li>
                 </ul>
-                <a href="#" title="">Learn more about adopting a manta</a>
+                <a href="adoptamanta.jsp" title="">Learn more about adopting a manta</a>
             </div>
             <div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <div class="focusbox-inner">
