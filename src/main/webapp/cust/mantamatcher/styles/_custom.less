@@ -3,11 +3,19 @@
 	padding-bottom: 80px;
 	}
 
+	.main-section h1, .main-section h2 {
+		font-weight: 700;
+		font-size: 36px;
+		line-height: 1.3em;
+		}
+
 .section-header {
 	text-transform: uppercase;
 	text-align: center;
 	margin-top: 60px;
 	}
+
+h5 { text-decoration: underline; }
 
 .massive { 
 	font-size: 6em; 
@@ -15,6 +23,8 @@
 	font-weight: 700;
 	display: block;
 	}
+
+.text-no-break { white-space: nowrap; }
 
 .page-content hr { 
 	border: 3px solid @brand-primary; 
@@ -25,13 +35,40 @@
 
 .page-content a { text-decoration: underline; }
 
+.maincontent { 
+	margin-top: 70px; 
+	margin-bottom: 80px;
+	}
+
+@media (min-width: @screen-md) { 
+	.maincontent { margin-top: 100px; }
+}
+
 img { max-width: 100%; }
 
 img.pull-left { margin-right: 15px; }
 
 img.pull-right { margin-left: 15px; }
 
-img.round { border-radius: 100%; }
+img.round-small { 
+	-webkit-clip-path: url("#smallClip");
+	clip-path: url("#smallClip");
+	}
+
+img.round-large { 
+	/*-webkit-clip-path: circle();
+	clip-path: circle();*/
+	-webkit-clip-path: url("#largeClip");
+	clip-path: url("#largeClip");
+	}
+
+figure { margin-bottom: 30px; }
+
+figcaption { 
+	font-style: italic; 
+	text-align: center;
+	padding-top: 5px;
+	}
 
 /* Buttons */
 button, html input[type="button"], 
@@ -92,6 +129,16 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 	Custom modules 
 */
 
+/* Accordion */
+.accordion {
+	background-color: @brand-primary; 
+	padding: 3px; 
+	border: 1px solid @brand-dark;
+	font-weight: 300; 
+	}
+
+	.accordion a { color: @mainColor; }
+
 /* Positioning */
 .relative { position: relative; }
 
@@ -112,6 +159,87 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 
 .no-bullets li { list-style: none; }
 
+.block-list li {
+	vertical-align: top;
+	margin-bottom: 20px;
+	}
+
+	.block-list a { 
+		text-decoration: none; 
+		display: block;
+		padding: 3px;
+		}	
+
+	.block-list a:hover,
+	.block-list a:focus { 
+		background-color: @brand-primary-opec; 
+		cursor: pointer;
+		}
+
+.volunteer-list li { max-width: 120px; }
+
+@media (min-width: @screen-sm) {
+	.volunteer-list li { max-width: 157px; }
+}
+
+	.volunteer-list .name {
+		font-size: .9em; 
+		font-weight: 400;
+		}
+
+	.img-container img {
+		overflow: hidden;
+		margin-bottom: 5px;
+		/* Tests for rounded images
+		max-height: 80px;
+		width: 80px;
+		-webkit-clip-path: url("#smallClip");
+				clip-path: url("#smallClip");
+		-webkit-clip-path: circle();
+				clip-path: circle();*/
+		}
+
+	@media (min-width: @screen-sm) {
+		.volunteer-list .name { font-size: 1.1em; }
+	}
+
+	.volunteer-list i { font-size: .9em; }
+
+/* Forms */
+form table td, form table th {
+	padding-left: 4px;
+	padding-bottom: 4px;
+	}
+
+	form table th { 
+		padding-bottom: 0; 
+		font-size: .8em;
+		}
+
+.input-file-drop {
+	position: relative;
+	overflow: hidden;
+	border-radius: 8px;
+	background-color: rgba(50,50,50,0.2);
+	padding: 30px 10px 10px 10px;
+	text-align: center;
+	min-width: 50%;
+	min-height: 100px;
+	margin: 0 20px 0 2px;
+	cursor: pointer;
+	}
+
+	.input-file-drop input.nonIE {
+		cursor: pointer;
+		position: absolute;
+		left: 0;
+		top: 0;
+		opacity: 0;
+		filter: alpha(opacity=0);
+		width: 100%;
+		height: 100%;
+		}
+
 /* Images */
 .background-image {
 	display: block;
@@ -122,6 +250,24 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 	min-width: 100%;
 	min-height: 100%;
 	}
+
+/* Vimeo video embed */
+.embed-container { 
+	position: relative; 
+	padding-bottom: 56.25%; 
+	height: 0; 
+	overflow: hidden; 
+	max-width: 100%; 
+	} 
+
+	.embed-container iframe, .embed-container object, 
+	.embed-container embed { 
+		position: absolute; 
+		top: 0; 
+		left: 0; 
+		width: 100%; 
+		height: 100%; 
+		}  
 
 /* Standout sections */
 .focusbox .focusbox-inner {
@@ -161,9 +307,7 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 
 	.page-header a { color: @mainColor; }
 
-	.header-top-wrapper {
-		background: @brand-dark;
-		}
+	.header-top-wrapper { background: @brand-dark; }
 
 		.header-top-wrapper .container { 
 			padding-top: 10px; 
@@ -175,6 +319,18 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 			background-color: @brand-primary;
 			color: @mainColor;
 			}
+
+		@media (max-width: @screen-md) { 
+			.navbar-fixed-top {
+				top: 0;
+				transition: top 1s ease;
+				}
+
+			.scrolled .navbar-fixed-top {
+				top: -45px;
+				transition: top 1s ease;
+				}
+		}
 
 		#wild-me-badge { display: none; }
 
@@ -289,7 +445,10 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 			width: 200px;
 			}
 
-			.partner-list li img { max-width: 100%; }
+			.partner-list li img { 
+				max-width: 100%; 
+				height: auto;
+				}
 
 		.partner-list.large li { width: 300px; }
 /*
@@ -371,5 +530,9 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 		max-width: 168px;
 		}
 
-/* Google maps */
-#map-canvas { height: 100%; margin: 0; padding: 0;}
+/* Submit encounter page */
+.social-media-btn {
+	height:300px;
+	height:100%;
+	overflow-y:auto;
+	}

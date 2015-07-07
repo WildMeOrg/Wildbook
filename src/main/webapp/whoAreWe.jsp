@@ -20,9 +20,18 @@
 
 <div class="container maincontent">
 
-		  <h1 class="intro"><%=props.getProperty("title") %></h1>
-	
-		
+   <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+        <h1><%=props.getProperty("title") %></h1>
+        <p class="lead">
+            Here are our fantastic researchers and volunteers.
+        </p>
+   </div>
+   
+    <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
+    	<h3>We have 62 collaborating researchers and volunteers</h3>
+        <p>Want to be a part of this team? <a>Become a volunteer!</a></p>
+          
+        <ul class="list-unstyled list-inline block-list volunteer-list">
 
 			
 	<%
@@ -32,24 +41,15 @@
 	 myShepherd.beginDBTransaction();
      ArrayList<User> allUsers=myShepherd.getAllUsers();
      int numUsers=allUsers.size();
-     
- 	%>		
-	<a name="collaborators"></a>
-	<h3><%=props.getProperty("collaborators") %> (<%=numUsers %>)</h3>
-<table>
-<%
+
      
      
      int userNum=-1;
      for(int i=0;i<numUsers;i++){
-    	 userNum++;
+    	userNum++;
        	User thisUser=allUsers.get(i);
        	String username=thisUser.getUsername();
-    	 %>
-          <tr class="who"><td> 
-           <table align="left">
-           	<%
-    	
+    
     		
            	String profilePhotoURL="images/empty_profile.jpg";
 		    
@@ -58,78 +58,49 @@
 
     		}
     		%>
-			<tr>
-				<td>
-					<div style="height: 50px">
-						<a><img class="pull-left" height="*" width="80px" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
-					</div>
-				</td>
-				<td style="border:none">
-					<table>
-					<%
+    		<li>
+                <a>
+                    <div class="img-container">
+                        <img class="pull-left" src="<%=profilePhotoURL%>"  />
+                    </div>
+                    <%
 					if(thisUser.getFullName()!=null){
 		    			String displayName=thisUser.getFullName();
 					%>
-						<tr>
-							<td>
-    				
-    							<a style="font-weight:normal;border:none"><%=displayName %></a>
-    				
-    						</td>
-    					</tr>
-    					<%
-     					}
-    					if(thisUser.getAffiliation()!=null){
-    					%>
-    					<tr>
-							<td>
-	    						<%=thisUser.getAffiliation() %>
-    						</td>
-    					</tr>
-    					<%
-    					}
-    					if(thisUser.getUserStatement()!=null){
-    					%>
-    					    					<tr>
-							<td>
-	    						<p><%=thisUser.getUserStatement() %></p>
-    						</td>
-    					</tr>
-    					<%
-    					}
-    					%>
-    				</table>
-    			</td>
-			</tr>
-			<%
-    		String displayName="";
-    		if(thisUser.getFullName()!=null){
-    			displayName=thisUser.getFullName();
-    		
-    		}
-    		
-    		%>
-    	</table>
-    
+                    <div class="name"><%=displayName %></div>
+                    <%
+					}
+                    
+                    if(thisUser.getAffiliation()!=null){
+    				%>
+                    <i><%=thisUser.getAffiliation() %></i>
+                    <% 
+                    }
+                    %>
+                </a>
+            </li>
 
-	</td></tr>
+    	
     		
     		<% 
        	
        	
      } //end looping through users
-     %>
-     </table>
-     <%
+     
      myShepherd.rollbackDBTransaction();
      myShepherd.closeDBTransaction();
      myShepherd=null;
      
+     %>
+     </ul>
+     
+    <% 
 	} //end if(CommonConfiguration.showUsersToPublic()){
 	%>
 
 
 <p>&nbsp;</p>
+	</div>
   </div>
 
 <jsp:include page="footer2.jsp" flush="true" />
