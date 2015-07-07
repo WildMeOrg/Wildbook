@@ -73,6 +73,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
+                <a href="#" id="wild-me-badge">A Wild me project</a>
                   <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
                       <li><a href="#" title="">English</a></li>
