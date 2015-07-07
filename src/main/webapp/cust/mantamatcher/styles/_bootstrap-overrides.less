@@ -1,11 +1,16 @@
 body { font-weight: 300; }
 
-h1, h2 {
-	color: @brand-primary;
-	font-weight: 700;
-	font-size: 36px;
-	line-height: 1.3em;
+h1, h2 { color:  @brand-primary; }
+
+h1 {
+ 	-webkit-text-fill-color: transparent;
+ 	background: -webkit-linear-gradient(transparent, transparent),
+             url(../img/hero_manta.jpg) repeat;
+ 	background: -o-linear-gradient(transparent, transparent);
+ 	-webkit-background-clip: text;
 	}
+
+label { font-weight: normal; }
 
 .container-fluid { 
 	padding-left: 0;
@@ -159,3 +164,8 @@ h1, h2 {
 		bottom: -15px;
 		}
 /* /Reset */
+
+/* Form */
+.form-inline .form-group { margin-bottom: 8px; }
+
+.form-inline .row { width: 100%; }
