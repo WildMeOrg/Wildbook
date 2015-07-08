@@ -7,7 +7,14 @@
               "
 %>
 
+
+
 <jsp:include page="header2.jsp" flush="true"/>
+
+
+
+<script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
+
 
 <%
 
@@ -48,15 +55,22 @@ finally{
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
             <h1 class="hidden">Manta Matcher</h1>
             <h2>You can help photograph, <br/> identify and protect mantas!</h2>
-            <button class="large light">
-                Watch the movie 
-                <span class="button-icon" aria-hidden="true">
-            </button>
+            <button id="watch-movie" class="large light">
+				Watch the movie 
+				<span class="button-icon" aria-hidden="true">
+			</button>
             <a href="submit.jsp">
                 <button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>
             </a>
         </div>
-    </div>
+
+	</div>
+	 <div class="video-wrapper">
+		<div class="embed-container">
+			<iframe id="herovideo" src="http://player.vimeo.com/video/123083341?api=1&amp;player_id=herovideo" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+		</div>
+	</div>
+    
 </section>
 
 <section class="container text-center main-section">
