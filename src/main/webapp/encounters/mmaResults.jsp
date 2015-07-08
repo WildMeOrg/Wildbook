@@ -213,7 +213,7 @@
 <%      } else { %>
           <tr><th><% out.print(bundle.getProperty("individual")); %></th><td>&nbsp;</td></tr>
 <%      } %>
-          <tr><th><% out.print(bundle.getProperty("encounter.date")); %></th><td><% out.print(encMatch.getDate()); %></td></tr>
+          <tr><th><% out.print(bundle.getProperty("encounter.date")); %></th><td><span class="enc-date"><% out.print(encMatch.getDate()); %></span></td></tr>
           <tr><th><% out.print(bundle.getProperty("pigmentation")); %></th><td><% out.print(pigMatch == null ? "&nbsp;" : pigMatch); %></td></tr>
 <%      if (indUrl != null && !encIsAssigned) { %>
           <tr><td colspan="2">
