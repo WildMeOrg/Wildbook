@@ -26,6 +26,8 @@ h5 { text-decoration: underline; }
 
 .text-no-break { white-space: nowrap; }
 
+.brand-primary { color: @brand-primary; }
+
 .page-content hr { 
 	border: 3px solid @brand-primary; 
 	width: 80%;
@@ -44,6 +46,18 @@ h5 { text-decoration: underline; }
 	.maincontent { margin-top: 100px; }
 }
 
+.img-container img {
+	overflow: hidden;
+	margin-bottom: 5px;
+	/* Tests for rounded images
+	max-height: 80px;
+	width: 80px;
+	-webkit-clip-path: url("#smallClip");
+			clip-path: url("#smallClip");
+	-webkit-clip-path: circle();
+			clip-path: circle();*/
+	}
+
 img { max-width: 100%; }
 
 img.pull-left { margin-right: 15px; }
@@ -52,14 +66,14 @@ img.pull-right { margin-left: 15px; }
 
 img.round-small { 
 	-webkit-clip-path: url("#smallClip");
-	clip-path: url("#smallClip");
+			clip-path: url("#smallClip");
 	}
 
 img.round-large { 
 	/*-webkit-clip-path: circle();
 	clip-path: circle();*/
 	-webkit-clip-path: url("#largeClip");
-	clip-path: url("#largeClip");
+			clip-path: url("#largeClip");
 	}
 
 figure { margin-bottom: 30px; }
@@ -123,8 +137,6 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 	background-size: 50%;
 	}
 
-.brand-primary { color: @brand-primary; }
-
 /* 
 	Custom modules 
 */
@@ -185,18 +197,6 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 	.volunteer-list .name {
 		font-size: .9em; 
 		font-weight: 400;
-		}
-
-	.img-container img {
-		overflow: hidden;
-		margin-bottom: 5px;
-		/* Tests for rounded images
-		max-height: 80px;
-		width: 80px;
-		-webkit-clip-path: url("#smallClip");
-				clip-path: url("#smallClip");
-		-webkit-clip-path: circle();
-				clip-path: circle();*/
 		}
 
 	@media (min-width: @screen-sm) {
@@ -415,14 +415,10 @@ form table td, form table th {
 				margin: 0;
 				}
 
-		.nav-bar-wrapper {
-			background: rgba(255, 255, 255, .7);
-			}
+		.nav-bar-wrapper { background: rgba(255, 255, 255, .7); }
 
 /* Footer */
-.page-footer .container-fluid { 
-	background: @brand-light;
-	}
+.page-footer .container-fluid { background: @brand-light; }
 
 	.footer-section-header { 
 		margin-top: 100px; 
@@ -433,9 +429,7 @@ form table td, form table th {
 		padding-bottom: 3px;
 		}
 
-	.partner-list { 
-		margin: 40px 0 80px; 
-		}	
+	.partner-list { margin: 40px 0 80px; }	
 
 		.partner-list li { 
 			margin-right: 30px; 
@@ -463,23 +457,35 @@ form table td, form table th {
     background-position: 50% 50%;
 	}
 
-.hero { padding-top: 10%; }
-
-.hero .container { 
-	margin-top: 60px;
-	margin-bottom: 60px;
+.hero { 
+	position: relative; 
+	padding-top: 10%;
 	}
 
-.hero h2 {
-	color: @mainColor;
-	font-weight: 300;
-	font-size: 1.6em;
-	text-shadow: 1px 2px 2px #333;
-	}
+	.hero .container { 
+		margin-top: 60px;
+		margin-bottom: 60px;
+		}
 
-@media screen and (min-width: @screen-sm-min) {
-	.hero h2 { font-size: 3.3em; }
-}
+		.hero h2 {
+			color: @mainColor;
+			font-weight: 300;
+			font-size: 1.6em;
+			text-shadow: 1px 2px 2px #333;
+			}
+
+		@media screen and (min-width: @screen-sm-min) {
+			.hero h2 { font-size: 3.3em; }
+		}
+
+		.hero .video-wrapper {
+			position: absolute;
+			top: 0;
+			width: 100%;
+			margin-top: 10%;
+			display: none;
+			}
+
 
 .encounter-list {}
 
@@ -488,9 +494,7 @@ form table td, form table th {
 		margin-bottom: 20px;
 		}
 
-		.encounter-list img {
-			margin-bottom: 5px;
-			}
+		.encounter-list img { margin-bottom: 5px; }
 
 		.encounter-list small { 
 			font-size: .8em; 
@@ -505,9 +509,7 @@ form table td, form table th {
 
 		.encounter-list span { display: block; }
 
-.adopter-badge {
-
-	}
+.adopter-badge {}
 
 	.adopter-badge h2 small { 
 		display: block; 
