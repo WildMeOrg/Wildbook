@@ -254,10 +254,11 @@ form table td, form table th {
 /* Vimeo video embed */
 .embed-container { 
 	position: relative; 
-	padding-bottom: 56.25%; 
-	height: 0; 
 	overflow: hidden; 
-	max-width: 100%; 
+	max-width: @screen-lg; 
+	max-height: 100%;
+	margin-left: auto;
+	margin-right: auto;
 	} 
 
 	.embed-container iframe, .embed-container object, 
@@ -457,14 +458,10 @@ form table td, form table th {
     background-position: 50% 50%;
 	}
 
-.hero { 
-	position: relative; 
-	padding-top: 10%;
-	}
+.hero { position: relative; }
 
 	.hero .container { 
-		margin-top: 60px;
-		margin-bottom: 60px;
+		margin-top: 10%;
 		}
 
 		.hero h2 {
@@ -482,10 +479,9 @@ form table td, form table th {
 			position: absolute;
 			top: 0;
 			width: 100%;
-			margin-top: 10%;
+			margin-top: 50px;
 			display: none;
 			}
-
 
 .encounter-list {}
 
