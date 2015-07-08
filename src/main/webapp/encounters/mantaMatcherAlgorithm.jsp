@@ -104,7 +104,7 @@ try {
         } else if (enc.getLocationID() != null) {
 %>
         <div class="resultsRegional">
-          <p><%= MessageFormat.format(encprops.getProperty("mma.resultsFoundRegional"), enc.getLocationID()) %> <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>" target="_blank"><%= MessageFormat.format(encprops.getProperty("mma.resultsLinkRegional"), enc.getLocationID()) %></a></p>
+          <p><%= MessageFormat.format(encprops.getProperty("mma.resultsFoundRegional"), enc.getLocationID()) %> <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>"><%= MessageFormat.format(encprops.getProperty("mma.resultsLinkRegional"), enc.getLocationID()) %></a></p>
           <p class="smallish"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), new Date(matchOutputRegional.lastModified())) %></p>
           <div class="formRescanRegional">
             <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
@@ -134,7 +134,7 @@ try {
         } else {
 %>
         <div class="resultsGlobal">
-          <p><%= encprops.getProperty("mma.resultsFound")%> <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>" target="_blank"><%= encprops.getProperty("mma.resultsLink") %></a></p>
+          <p><%= encprops.getProperty("mma.resultsFound")%> <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>"><%= encprops.getProperty("mma.resultsLink") %></a></p>
           <p class="smallish"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), new Date(matchOutputAll.lastModified())) %></p>
           <div class="formRescan">
             <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
