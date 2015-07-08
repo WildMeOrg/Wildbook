@@ -83,7 +83,7 @@
   if (results == null) {
     // FIXME: handle
   }
-  DateFormat DF = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+  DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm Z");
   // Derive data folder info.
 //  String rootDir = getServletContext().getRealPath("/");
 //  File dataDir = new File(ServletUtilities.dataDir(context, rootDir));
