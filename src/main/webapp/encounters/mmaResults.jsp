@@ -158,6 +158,10 @@
       <th><% out.print(bundle.getProperty("confidence")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("desc.worstBest")); %></span></th>
       <td class="mma-confidence"><% out.print(String.format("%.6f", results.getConfidence())); %></td>
     </tr>
+    <tr>
+      <th><% out.print(bundle.getProperty("queryEncounter")); %></th>
+      <td class="mma-queryEncounter"><a href="<% out.print(encUrl); %>"><% out.print(results.getTestEncounterNumber()); %></a></td>
+    </tr>
   </table>
 </div>
 <div id="mma-results">
