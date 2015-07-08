@@ -183,8 +183,11 @@
       if (encMatch == null)
         continue;
       String indUrl = null;
+      boolean indMatch = false;
       if (encMatch.getIndividualID() != null && !"".equals(encMatch.getIndividualID()) && !"Unassigned".equals(encMatch.getIndividualID())) {
         indUrl = String.format(pageUrlFormatInd, encMatch.getIndividualID());
+        if (encIsAssigned && encMatch.getIndividualID().equals(enc.getIndividualID()))
+          indMatch = true;
       }
       String keyPig = findKeyFromValue(encMatch.getPatterningCode(), mapPig);
       String pigMatch = keyPig == null ? keyPig : bundle.getProperty(keyPig);
@@ -196,7 +199,11 @@
       String match_linkEH = match_linkCR.replace("_CR", "_EH");
       String match_encUrl = String.format(pageUrlFormatEnc, match_encId);
 %>
+<%  if (indMatch) { %>
+    <tr class="ind-match">
+<%  } else { %>
     <tr>
+<%  } %>
       <td class="rank"><% out.print(match.getRank()); %></td>
       <td class="similarity"><% out.print(String.format("%.6f", match.getScore())); %></td>
       <td class="filename">
