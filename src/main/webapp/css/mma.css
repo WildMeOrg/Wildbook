@@ -98,6 +98,10 @@ body {
 }
 #mma-resultDetailsTable td {
 }
+#mma-resultDetailsTable td .enc-date {
+  word-break: keep-all;
+  -ms-word-break: keep-all;
+}
 #mma-resultDetailsTable a {
   text-decoration: none;
 }
