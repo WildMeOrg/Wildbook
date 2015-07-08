@@ -1,5 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-        <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*" %>
 <%
 
 //setup our Properties object to hold all properties
@@ -10,36 +9,12 @@
 	
 %>
 
-<html>
-<head>
-<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>" />
-<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>" />
-<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>" />
-<link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>" rel="stylesheet" type="text/css" />
-<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>" />
 
+<jsp:include page="header2.jsp" flush="true"/>
 
-
-</head>
-
-<body>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="header.jsp" flush="true">
-	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
-	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
-	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
-	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-</jsp:include>	
-<div id="main">
-
-	<div id="maincol-wide-solo">
-
-		<div id="maintext">
+<div class="container maincontent">
 		  <h2>Photographing a Manta</h2>
-		</div>
+	
 			
 			<p>Did you know that by photographing a manta ray you can directly contribute to a global effort to better understand and protect these amazing animals? 
 
@@ -161,7 +136,7 @@
 						</td>
 						</tr>
 		</table>
-		
+		<p>&nbsp;</p>
 		<p>
 		Once you have edited your manta photos, or frame grabs from video, you are ready do <a href="http://www.mantamatcher.org/submit.jsp">directly upload your photos to the manta matchers website</a>. Every contribution is extremely important, so even if you only have a single photo to upload, you're helping to enhance our knowledge about these mysterious animals. 
 		</p>
@@ -175,12 +150,7 @@
 		
 			<p>&nbsp;</p>
 	</div>
-	<!-- end maintext -->
+	
 
-  </div><!-- end maincol -->
+<jsp:include page="footer2.jsp" flush="true" />
 
-<jsp:include page="footer.jsp" flush="true" />
-</div><!-- end page -->
-</div><!--end wrapper -->
-</body>
-</html>
