@@ -133,6 +133,7 @@
     String linkCR = convertFileToURL(dataDirUrlPrefix, fCR);
     String linkEH = linkCR.replace("_CR", "_EH");
     String encUrl = String.format(pageUrlFormatEnc, encId);
+    boolean encIsAssigned = (enc.getIndividualID() != null && !"Unassigned".equals(enc.getIndividualID()));
 %>
 
 <div id="mma-queryImage">
@@ -171,7 +172,7 @@
       <th><% out.print(bundle.getProperty("table.column.similarity")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("table.column.similarityDesc")); %></span></td>
       <th><% out.print(bundle.getProperty("table.column.matchDetails")); %></td>
       <th><% out.print(bundle.getProperty("table.column.matchedImage")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("desc.newWindow")); %></span></td>
-      <th><% out.print(bundle.getProperty("table.column.queryImage")); %></td>
+      <th><% out.print(bundle.getProperty("table.column.queryImage")); %><br/><span class="mma-small"><% out.print(encIsAssigned ? MessageFormat.format(bundle.getProperty("desc.assignedTo"), enc.getIndividualID()) : bundle.getProperty("desc.unassigned")); %></span></td>
     </tr>
 <%
   if (!mmaTest.getValue().isEmpty()) {
@@ -185,9 +186,6 @@
       if (encMatch.getIndividualID() != null && !"".equals(encMatch.getIndividualID()) && !"Unassigned".equals(encMatch.getIndividualID())) {
         indUrl = String.format(pageUrlFormatInd, encMatch.getIndividualID());
       }
-      boolean encHasInd = true;
-      if ((enc.getIndividualID() == null || "Unassigned".equals(enc.getIndividualID())))
-        encHasInd = false;
       String keyPig = findKeyFromValue(encMatch.getPatterningCode(), mapPig);
       String pigMatch = keyPig == null ? keyPig : bundle.getProperty(keyPig);
 
@@ -210,7 +208,7 @@
 <%      } %>
           <tr><th><% out.print(bundle.getProperty("encounter.date")); %></th><td><% out.print(encMatch.getDate()); %></td></tr>
           <tr><th><% out.print(bundle.getProperty("pigmentation")); %></th><td><% out.print(pigMatch == null ? "&nbsp;" : pigMatch); %></td></tr>
-<%      if (indUrl != null && !encHasInd) { %>
+<%      if (indUrl != null && !encIsAssigned) { %>
           <tr><td colspan="2">
             <form action="../IndividualAddEncounter" method="post">
               <input type="hidden" name="number" value="<% out.print(enc.getCatalogNumber()); %>"/>
