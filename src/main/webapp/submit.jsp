@@ -138,20 +138,25 @@ function validate() {
       return false;
     }
 
-		$('#submit-button').prop('disabled', 'disabled').css('opacity', '0.3').after('<div class="throbbing" style="display: inline-block; width: 24px; vertical-align: top; margin-left: 10px; height: 24px;"></div>');
-		var s = $('.social-photo-input');
-		if (s.length) {
-			var iframeUrl = 'SocialGrabFiles?';
-			s.each(function(i, el) {
-				iframeUrl += '&fileUrl=' + escape($(el).val());
-			});
+	//this is negated cuz we want to halt validation (submit action) if we are sending via background iframe --
+	// it will do the submit via on('load')
+	return !sendSocialPhotosBackground();
+}
+
+
+//returns true if we are sending stuff via iframe background magic
+function sendSocialPhotosBackground() {
+	$('#submit-button').prop('disabled', 'disabled').css('opacity', '0.3').after('<div class="throbbing" style="display: inline-block; width: 24px; vertical-align: top; margin-left: 10px; height: 24px;"></div>');
+	var s = $('.social-photo-input');
+	if (s.length < 1) return false;
+	var iframeUrl = 'SocialGrabFiles?';
+	s.each(function(i, el) {
+		iframeUrl += '&fileUrl=' + escape($(el).val());
+	});
 
 console.log('iframeUrl %o', iframeUrl);
-			document.getElementById('social_files_iframe').src = iframeUrl;
-			return false;  //on('load') for the iframe will do actual form submission
-		}
-
-		return true;
+	document.getElementById('social_files_iframe').src = iframeUrl;
+	return true;
 }
 </script>
 
@@ -341,9 +346,17 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
   <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 <iframe id="social_files_iframe" style="display: none;" ></iframe>
-<form id="encounterForm" action="EncounterForm" method="post" enctype="multipart/form-data"
-      name="encounter_submission" target="_self" dir="ltr" lang="en"
-      onsubmit="return false;">
+<form id="encounterForm" 
+	  action="EncounterForm" 
+	  method="post" 
+	  enctype="multipart/form-data"
+      name="encounter_submission" 
+      target="_self" dir="ltr" 
+      lang="en"
+      onsubmit="return false;"
+      class="form-horizontal"
+>
+      
 <div class="dz-message"></div>
 
 
@@ -366,12 +379,27 @@ $('#social_files_iframe').on('load', function(ev) {
 
 	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
 	//now do actual submit
-	document.forms['encounterForm'].submit();
+	submitForm();
 });
 
 
-function socialPhotoGrab() {
+//this is a simple wrapper to this, as it is called from 2 places (so far)
+function submitForm() {
+	document.forms['encounterForm'].submit();
 }
+
+
+//we need to first check here if we need to do the background social image send... in which case,
+// we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
+function sendButtonClicked() {
+console.log('sendButtonClicked()');
+	if (sendSocialPhotosBackground()) return false;
+console.log('fell through -- must be no social!');
+	submitForm();
+	return true;
+}
+
+
 
 
 function updateList(inp) {
@@ -1032,7 +1060,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </div>
 
       <p class="text-center">
-        <button class="large" type="submit" onclick="document.forms['encounterForm'].submit();">
+        <button class="large" type="submit" onclick="return sendButtonClicked();">
           Send encounter report 
           <span class="button-icon" aria-hidden="true" />
         </button>
