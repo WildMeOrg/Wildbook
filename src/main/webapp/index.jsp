@@ -2,14 +2,27 @@
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
               java.util.ArrayList,
+              java.util.List,
               java.util.Map,
-              java.util.Iterator
+              java.util.Iterator,
+              java.util.Properties,
+              java.util.StringTokenizer
               "
 %>
 
 
 
 <jsp:include page="header2.jsp" flush="true"/>
+
+<%
+String context=ServletUtilities.getContext(request);
+
+//set up our Shepherd
+
+Shepherd myShepherd=null;
+myShepherd=new Shepherd(context);
+
+%>
 
 <style type="text/css">
 .full_screen_map {
@@ -27,9 +40,72 @@ margin-bottom: 8px !important;
 
 
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
+<script src="cust/mantamatcher/js/markerwithlabel_packed.js"></script>
+
 
 
   <script type="text/javascript">
+  
+//Define the overlay, derived from google.maps.OverlayView
+  function Label(opt_options) {
+   // Initialization
+   this.setValues(opt_options);
+
+   // Label specific
+   var span = this.span_ = document.createElement('span');
+   span.style.cssText = 'font-weight: bold;' +
+                        'white-space: nowrap; ' +
+                        'padding: 2px; z-index: 999 !important;';
+   span.style.zIndex=999;
+
+   var div = this.div_ = document.createElement('div');
+   div.style.zIndex=999;
+   
+   div.appendChild(span);
+   div.style.cssText = 'position: absolute; display: none;z-index: 999 !important;';
+  };
+  Label.prototype = new google.maps.OverlayView;
+
+  // Implement onAdd
+  Label.prototype.onAdd = function() {
+   var pane = this.getPanes().overlayLayer;
+   pane.appendChild(this.div_);
+
+   // Ensures the label is redrawn if the text or position is changed.
+   var me = this;
+   this.listeners_ = [
+     google.maps.event.addListener(this, 'position_changed',
+         function() { me.draw(); }),
+     google.maps.event.addListener(this, 'text_changed',
+         function() { me.draw(); })
+   ];
+  };
+
+  // Implement onRemove
+  Label.prototype.onRemove = function() {
+   this.div_.parentNode.removeChild(this.div_);
+
+   // Label is removed from the map, stop updating its position/text.
+   for (var i = 0, I = this.listeners_.length; i < I; ++i) {
+     google.maps.event.removeListener(this.listeners_[i]);
+   }
+  };
+
+  // Implement draw
+  Label.prototype.draw = function() {
+   var projection = this.getProjection();
+   var position = projection.fromLatLngToDivPixel(this.get('position'));
+
+   var div = this.div_;
+   div.style.left = position.x + 'px';
+   div.style.top = position.y + 'px';
+   div.style.display = 'block';
+   div.style.zIndex=999;
+
+   this.span_.innerHTML = this.get('text').toString();
+  };
+  
+  
       function initialize() {
     	  
     	  
@@ -77,7 +153,84 @@ margin-bottom: 8px !important;
  			    }
  			    
  		});
- 	 
+ 		
+ 		//var mantaIcon = new google.maps.MarkerImage("http://www.mantamatcher.org/cust/mantamatcher/img/icon_manta_shape_white.png");
+		//mantaIcon.size = new google.maps.Size(35, 35);
+			
+		
+		
+		var image = {
+				  url: 'http://www.mantamatcher.org/cust/mantamatcher/img/icon_manta_shape_white.svg',
+				  size: new google.maps.Size(606, 492),
+				  origin: new google.maps.Point(0, 0),
+				  anchor: new google.maps.Point(00, 0),
+				  scaledSize: new google.maps.Size(60, 49)
+				  
+				};
+
+ 		
+ 		//let's add map points for our locationIDs
+ 		<%
+ 		List<String> locs=CommonConfiguration.getIndexedValues("locationID", context);
+ 		int numLocationIDs = locs.size();
+ 		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
+ 		myShepherd.beginDBTransaction();
+ 		
+ 		for(int i=0;i<numLocationIDs;i++){
+ 			
+ 			String locID = locs.get(i);
+ 			if((locProps.getProperty(locID)!=null)&&(locProps.getProperty(locID).indexOf(",")!=-1)){
+ 				
+ 				StringTokenizer st = new StringTokenizer(locProps.getProperty(locID), ",");
+ 				String lat = st.nextToken();
+ 				String longit=st.nextToken();
+ 				String thisLatLong=lat+","+longit;
+ 				String markerText="Hello";
+ 				
+%>
+				var latLng = new google.maps.LatLng(<%=thisLatLong%>);
+ 		          bounds.extend(latLng);
+ 		          var marker<%=i%> = new google.maps.Marker({
+ 		        	   icon:  image,
+ 		        	   position:latLng,
+ 		        	   map:map,
+ 		        	   title: 'Hello',
+ 		        	   zIndex: 1,
+ 		        	   optimized: false
+ 				  });
+ 		          
+ 		          <%
+ 		          
+ 		          //now  let's calculate how many
+ 		          int numSightings=myShepherd.getNumEncounters(locID);
+ 		          Integer numSightingsInteger=new Integer(numSightings);
+ 		          
+ 		          
+ 		          %>
+ 		          
+ 		          
+ 		         var label<%=i%> = new Label({
+ 		            map: map,
+ 		            text: '<%=numSightingsInteger.toString() %>',
+ 		            position: latLng,
+ 		            zIndex: 999
+ 		          });
+ 		          
+ 		          
+ 		               
+ 		          
+ 		          
+ 			      markers.push(marker<%=i%>);
+ 		          map.fitBounds(bounds); 
+ 				
+ 				<%
+ 				
+ 				
+ 			}
+ 			
+ 		}  //end for
+ 		myShepherd.rollbackDBTransaction();
+ 	 	%>
  	 
 
  	 } // end initialize function
@@ -169,17 +322,15 @@ margin-bottom: 8px !important;
 
 <%
 
-String context=ServletUtilities.getContext(request);
 
 //let's quickly get the data we need from Shepherd
 
 int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
-Shepherd myShepherd=null;
+
 
 try{
-    myShepherd=new Shepherd(context);
     myShepherd.beginDBTransaction();
     
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
