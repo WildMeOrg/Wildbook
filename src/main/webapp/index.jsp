@@ -90,10 +90,9 @@ finally{
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                     <h3>Photograph the belly of a manta</h3>
                     <p class="lead">
-                        The mantas fingerprint is the pattern of spots on its belly. Get an image or video of this part and we are able to make a match - if not we have a new manta in our database.
-                    </p>
+                        Each manta has an individual fingerprint: the pattern of spots on its belly. Get an image or video of their “bellyprint" and we can match that pattern to mantas already in the database, or your manta might be completely new to the database.</p>
                     <p class="lead">
-                        <a href="#" title="">See the photography guide</a>
+                        <a href="photographing.jsp" title="">See the photography guide</a>
                     </p>
                 </div>
                 <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -104,8 +103,7 @@ finally{
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                     <h3>Submit photo/video</h3>
                     <p class="lead">
-                        Text needed here, dui velit iaculis ex, et maximus mi felis in mauris. Vivamus id finibus urna. Aliquam erat volutpat. Etiam vesti
-                    </p>
+                        You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the manta, and add other information, such as species or sex, if you can. You will receive email updates when your manta is processed by a researcher.</p>
                 </div>
                 <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
                     <img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
@@ -115,8 +113,7 @@ finally{
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                     <h3>Researcher verfication</h3>
                     <p class="lead">
-                        Text needed here, dui velit iaculis ex, et maximus mi felis in mauris. Vivamus id finibus urna. Aliquam erat volutpat. Etiam vestibulum lorem sit amet leo varius, vitae pharetra libero cursus. Nam in nisl tincidunt, pharetra eros in, consequat leo. Praesent sit amet pharetra orci. 
-                    </p>
+                        When you submit a manta identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don’t worry if you are unsure about which species you saw!). </p>
                 </div>
                 <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
                     <img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
@@ -126,8 +123,7 @@ finally{
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                     <h3>Matching process</h3>
                     <p class="lead">
-                        Text needed here, dui velit iaculis ex, et maximus mi felis in mauris. Vivamus id finibus urna. Aliquam erat volutpat. Etiam vestibulum lorem sit amet leo varius, vitae pharetra libero cursus. Nam in nisl tincidunt, pharetra eros in, consequat leo. Praesent sit amet pharetra orci. 
-                    </p>
+                        Once a researcher is happy with all the data accompanying the identification photo, they will run the Manta Matcher algorithm. The algorithm is like facial recognition software for manta bellies. </p>
                 </div>
                 <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
                     <img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
@@ -137,8 +133,7 @@ finally{
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                     <h3>Match Result</h3>
                     <p class="lead">
-                        Text needed here, dui velit iaculis ex, et maximus mi felis in mauris. Vivamus id finibus urna. Aliquam erat volutpat. Etiam vestibulum lorem sit amet leo varius, vitae pharetra libero cursus. Nam in nisl tincidunt, pharetra eros in, consequat leo. Praesent sit amet pharetra orci. 
-                    </p>
+                        The algorithm provides researchers with a ranked selection of possible matches. Researchers will then visually confirm a match to an existing manta in the database, or create a new manta profile. </p>
                 </div>
                 <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
                     <img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
@@ -308,8 +303,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
                         <p class="lead">
-                            This is a large selling text, which should contain only the important most points about why this is done.
-                        </p>
+                            <i>"Manta Matcher will revolutionize global research on these threatened rays and help change the way field researchers approach scientific research on wild animals by means of successful and meaningful public involvement.”</i> - Andrea Marshall</p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>
@@ -336,10 +330,10 @@ finally{
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3 class="uppercase">Adopt a manta</h3>
                 <ul>
-                    <li>Support cutting-edge manta research through MantaMatcher</li>
-                    <li>Receive email updates of resightings of your adopted manta</li>
-                    <li>Display your photo and a quote from you on the manta's page in our library</li>
-                </ul>
+                    <li>Support individual research programs in different regions</li>
+					<li>Receive email updates when we resight your adopted manta</li>
+					<li>Display your photo and a quote on the manta's page in our database</li>
+</ul>
                 <a href="adoptamanta.jsp" title="">Learn more about adopting a manta</a>
             </div>
             <div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
@@ -356,7 +350,7 @@ finally{
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3>Donate</h3>
-                <p>Dontations, including in-kind donations, large and small are always welcome. For the research work we need equipment and funds. </p>
+                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of MantaMatcher and can support effective, science-based conservation management, and safeguard these rays.</p>
                 <a href="#" title="More information about donations">Learn more about how to donate</a>
             </div>
             <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
@@ -369,29 +363,6 @@ finally{
     </section>
 </div>
 
-<div class="container-fluid">
-    <section class="container main-section">
-        <h2 class="section-header">We share our data with</h2>
-        
-        <ul class="list-unstyled partner-list">
-          <li>
-            <a href="http://www.iobis.org/" title="Global Biodiversity Information Facility">
-              <img src="images/OBIS_logo.gif"/>
-            </a>
-          </li>
-          <li>
-            <a href="http://www.gbif.org/" title="Ocean Biogeographic Information System">
-              <img src="images/partnerlogo_gbif.svg"/>
-            </a>
-          </li>
-          <li>
-            <a href="http://www.coml.org/" title="Census of Marine life">
-              <img src="images/coml.gif"/>
-            </a>
-          </li>
-        </ul>
-    </section>
-</div>
 
 <jsp:include page="footer2.jsp" flush="true"/>
 
