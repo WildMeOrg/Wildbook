@@ -40,7 +40,7 @@ margin-bottom: 8px !important;
 
 
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
-<script src="cust/mantamatcher/js/markerwithlabel_packed.js"></script>
+<script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
 
 
 
@@ -153,20 +153,6 @@ margin-bottom: 8px !important;
  			    }
  			    
  		});
- 		
- 		//var mantaIcon = new google.maps.MarkerImage("http://www.mantamatcher.org/cust/mantamatcher/img/icon_manta_shape_white.png");
-		//mantaIcon.size = new google.maps.Size(35, 35);
-			
-		
-		
-		var image = {
-				  url: 'http://www.mantamatcher.org/cust/mantamatcher/img/icon_manta_shape_white.svg',
-				  size: new google.maps.Size(606, 492),
-				  origin: new google.maps.Point(0, 0),
-				  anchor: new google.maps.Point(00, 0),
-				  scaledSize: new google.maps.Size(60, 49)
-				  
-				};
 
  		
  		//let's add map points for our locationIDs
@@ -185,38 +171,29 @@ margin-bottom: 8px !important;
  				String lat = st.nextToken();
  				String longit=st.nextToken();
  				String thisLatLong=lat+","+longit;
- 				String markerText="Hello";
  				
-%>
-				var latLng = new google.maps.LatLng(<%=thisLatLong%>);
- 		          bounds.extend(latLng);
- 		          var marker<%=i%> = new google.maps.Marker({
- 		        	   icon:  image,
- 		        	   position:latLng,
- 		        	   map:map,
- 		        	   title: 'Hello',
- 		        	   zIndex: 1,
- 		        	   optimized: false
- 				  });
- 		          
- 		          <%
- 		          
- 		          //now  let's calculate how many
- 		          int numSightings=myShepherd.getNumEncounters(locID);
- 		          Integer numSightingsInteger=new Integer(numSightings);
+ 		        //now  let's calculate how many
+ 		        int numSightings=myShepherd.getNumEncounters(locID);
+ 		        if(numSightings>0){
+ 		        
+ 		        	Integer numSightingsInteger=new Integer(numSightings);
  		          
  		          
  		          %>
  		          
+ 		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
+		          bounds.extend(latLng);
  		          
- 		         var label<%=i%> = new Label({
- 		            map: map,
- 		            text: '<%=numSightingsInteger.toString() %>',
+ 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.mantamatcher.org/cust/mantamatcher/img/icon_manta_shape_white.svg');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+ 		          
+ 		         
+ 		         var marker<%=i%> = new RichMarker({
  		            position: latLng,
- 		            zIndex: 999
- 		          });
- 		          
- 		          
+ 		            map: map,
+ 		            draggable: false,
+ 		           content: divString<%=i%>,
+ 		           flat: true
+ 		        });
  		               
  		          
  		          
@@ -224,9 +201,9 @@ margin-bottom: 8px !important;
  		          map.fitBounds(bounds); 
  				
  				<%
+ 			} //end if
  				
- 				
- 			}
+ 			}  //end if
  			
  		}  //end for
  		myShepherd.rollbackDBTransaction();
@@ -276,7 +253,7 @@ margin-bottom: 8px !important;
   	  controlUI.style.cursor = 'pointer';
   	  controlUI.style.textAlign = 'center';
   	  controlUI.title = 'Toggle the fullscreen mode';
-  	  controlDiv.appendChild(controlUI);
+  	  //controlDiv.appendChild(controlUI);
 
   	  // Set CSS for the control interior
   	  var controlText = document.createElement('DIV');
@@ -288,8 +265,10 @@ margin-bottom: 8px !important;
   	  controlText.style.paddingTop = '3px';
   	  controlText.style.paddingBottom = '2px';
   	  controlUI.appendChild(controlText);
+  	  controlText.style.visibility='hidden';
   	  //toggle the text of the button
-  	   if($("#map_canvas").hasClass("full_screen_map")){
+  	   
+  	  if($("#map_canvas").hasClass("full_screen_map")){
   	      controlText.innerHTML = 'Exit Fullscreen';
   	    } else {
   	      controlText.innerHTML = 'Fullscreen';
