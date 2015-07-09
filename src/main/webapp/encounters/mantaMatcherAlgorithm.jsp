@@ -4,6 +4,7 @@
 <%@ page import="java.text.*" %>
 <%@ page import="java.util.*" %>
 <%@ page import="java.io.File" %>
+<%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.ecocean.servlet.*" %>
 
 <%--
@@ -71,7 +72,7 @@ try {
 
       <%--Start: featureRegionImage--%>
       <div class="subSubSection featureRegionImage">
-        <p><img src="/<%=shepherdDataDir.getName() %>/encounters/<%=Encounter.subdir(enc.getCatalogNumber()) %>/<%=mmFT.getName()%>"/></p>
+        <p><img src="/<%=shepherdDataDir.getName() %>/encounters/<%=Encounter.subdir(enc.getCatalogNumber()) %>/<%=URLEncoder.encode(mmFT.getName(), "UTF-8")%>"/></p>
         <div class="formRemoveCR">
           <form action="../EncounterAddMantaPattern" method="post" name="EncounterRemoveMantaPattern">
             <input name="action" type="hidden" value="imageremove" id="actionRemove"/>
