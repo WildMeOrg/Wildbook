@@ -9,6 +9,7 @@
         
         <!-- footer -->
         <footer class="page-footer">
+         <h2 class="section-header">Created in partnership with</h2>
             <div class="container-fluid">
               <div class="container main-section">
                       <ul class="list-unstyled partner-list large">
@@ -45,7 +46,7 @@
                   <p class="col-sm-8 col-md-8 col-lg-8">
                     <small>This software is distributed under the GPL v3 license and is intended to support mark-recapture field studies. Open source and commercially licensed products used in this framework are listed here.</small>
                   </p>
-                  <a href="#" class="col-sm-4 col-md-4 col-lg-4" title="This site is Powered by Wildbook">
+                  <a href="http://www.wildme.org/wildbook" class="col-sm-4 col-md-4 col-lg-4" title="This site is Powered by Wildbook">
                       <img src="<%=urlLoc %>/images/logo_wildbook.jpg" alt=" logo" class="pull-right" />
                   </a>
                 </div>
