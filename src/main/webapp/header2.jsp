@@ -23,6 +23,8 @@
      import="org.ecocean.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
              org.ecocean.CommonConfiguration,
+             org.ecocean.Shepherd,
+             org.ecocean.User,
              java.util.ArrayList,
              java.util.Properties,
              org.apache.commons.lang.WordUtils,
@@ -66,7 +68,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
       
      <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>    
-  <script src="<%=urlLoc %>/cust/mantamatcher/js/behaviour.js"></script>
+  	<script src="<%=urlLoc %>/cust/mantamatcher/js/behaviour.js"></script>
  
   
     </head>
@@ -81,12 +83,50 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                 <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a>
                   <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
+                    
+                   
+                                            <%
+                      if(request.getUserPrincipal()!=null){
+                    	  String username = request.getUserPrincipal().toString();
+                    	  Shepherd myShepherd = new Shepherd(context);
+                    	  User user = myShepherd.getUser(username);
+                    	  String fullname=username;
+                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
+                    	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+                          if(user.getUserImage()!=null){
+                          	profilePhotoURL=urlLoc+"/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+                          } 
+                      %>
+                      
+                      	<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img class="pull-left" title="Your Account" style="vertical-align: middle;border-radius: 5px;border:1px solid #ffffff;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a><a href="<%=urlLoc %>/logout.jsp" >Logout</a></li>
+             
+                      
+                      <%
+                      }
+                      else{
+                      %>
+                      
+                      	<li><a href="<%=urlLoc %>/welcome.jsp" title="">Login</a></li>
+                      
+                      <%
+                      }
+                      %>
+                      
+                       <!--  
                       <li><a href="#" title="">English</a></li>
-                      <li><a href="<%=urlLoc %>/welcome.jsp" title="">Login</a></li>
-                      <% if (CommonConfiguration.getWikiLocation(context)!=null) { %>
+                     --> 
+
+                      
+                      
+                      <% 
+                      if (CommonConfiguration.getWikiLocation(context)!=null) { 
+                      %>
                         <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
-                      <% } %>
+                      <% 
+                      } 
+                      %>
                     </ul>
+                    
                     <div class="search-wrapper">
                       <label class="search-field-header">
                               <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
