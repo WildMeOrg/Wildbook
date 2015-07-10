@@ -18,6 +18,7 @@ $(function() {
 
   var vimeoPlayer = document.querySelector('iframe');
   $f(vimeoPlayer).addEvent('ready', ready);
+  var videoIsPlaying = false;
 
     function ready(vimeoPlayer) {
 
@@ -28,16 +29,21 @@ $(function() {
           $(".hero .container").fadeOut("slow");
           $(".hero .video-wrapper").fadeIn("slow", function(){
               froogaloop.api("play");
+              videoIsPlaying = true;
           });
         });
 
         $("html").on("click", function(event) {
-          event.stopPropagation();
-          $(".hero .container").fadeIn("slow");
-          $(".hero .video-wrapper").fadeOut("slow", function(){
-            froogaloop.api("pause");
-          });
+          if (videoIsPlaying === true) {
+            event.stopPropagation();
+            $(".hero .container").fadeIn("slow");
+            $(".hero .video-wrapper").fadeOut("slow", function(){
+              froogaloop.api("pause");
+              videoIsPlaying = false;
+            });
+          }
         });
+        
     }
 
 }); // document ready
