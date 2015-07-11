@@ -106,6 +106,9 @@ margin-bottom: 8px !important;
   };
   
   
+  		//map
+  		var map;
+  
       function initialize() {
     	  
     	  
@@ -118,7 +121,7 @@ margin-bottom: 8px !important;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
     	var bounds = new google.maps.LatLngBounds();
         
-        var map = new google.maps.Map(document.getElementById('map_canvas'), {
+        map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
           center: center,
           mapTypeId: google.maps.MapTypeId.HYBRID
@@ -192,7 +195,7 @@ margin-bottom: 8px !important;
  		            map: map,
  		            draggable: false,
  		           content: divString<%=i%>,
- 		           flat: true
+ 		           flat: true 
  		        });
  		               
  		          
@@ -233,6 +236,8 @@ margin-bottom: 8px !important;
   		if(overlaysSet){overlaysSet=false;setOverlays();}
   		//alert("Trying to execute exitFullScreen!");
   	}
+  	
+  	
 
 
   	//making the exit fullscreen button
@@ -292,7 +297,11 @@ margin-bottom: 8px !important;
   	
     
     google.maps.event.addDomListener(window, 'load', initialize);
-    
+    google.maps.event.addDomListener(window, "resize", function() {
+    	 var center = map.getCenter();
+    	 google.maps.event.trigger(map, "resize");
+    	 map.setCenter(center); 
+    	});
     
     
     
@@ -336,10 +345,12 @@ finally{
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
             <h1 class="hidden">Manta Matcher</h1>
             <h2>You can help photograph, <br/> identify and protect mantas!</h2>
+            <!--
             <button id="watch-movie" class="large light">
 				Watch the movie 
 				<span class="button-icon" aria-hidden="true">
 			</button>
+			-->
             <a href="submit.jsp">
                 <button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>
             </a>
@@ -584,7 +595,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
                         <p class="lead">
-                            <i>"Manta Matcher will revolutionize global research on these threatened rays and help change the way field researchers approach scientific research on wild animals by means of successful and meaningful public involvement.”</i> - Andrea Marshall</p>
+                            <i>"Manta Matcher will revolutionize global research on these threatened rays and help change the way field researchers approach scientific research on wild animals by means of successful and meaningful public involvement.”</i> - Dr. Andrea Marshall, co-founder</p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>

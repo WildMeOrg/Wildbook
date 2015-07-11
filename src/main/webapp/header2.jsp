@@ -46,6 +46,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
     <head>
       <title><%=CommonConfiguration.getHTMLTitle(context)%>
       </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
       <meta name="Description"
             content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
@@ -98,8 +99,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                           } 
                       %>
                       
-                      	<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img class="pull-left" title="Your Account" style="vertical-align: middle;border-radius: 5px;border:1px solid #ffffff;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a><a href="<%=urlLoc %>/logout.jsp" >Logout</a></li>
-             
+                      	<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
+             			<li><a href="<%=urlLoc %>/logout.jsp" >Logout</a></li>
                       
                       <%
                       }
