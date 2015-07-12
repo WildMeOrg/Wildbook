@@ -366,73 +366,78 @@ finally{
 </section>
 
 <section class="container text-center main-section">
-    
-    <h2 class="section-header">How it works</h2>
+	
+	<h2 class="section-header">How it works</h2>
 
-    <div id="howtocarousel" class="carousel slide" data-ride="carousel">
-        <ol class="list-inline carousel-indicators slide-nav">
-            <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph a manta<span class="caret"></span></li>
-            <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
-            <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
-            <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
-            <li data-target="#howtocarousel" data-slide-to="4" class="">5. Match result<span class="caret"></span></li>
-        </ol> 
-        <div class="carousel-inner text-left">
-            <div class="item active">
-                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                    <h3>Photograph the belly of a manta</h3>
-                    <p class="lead">
-                        Each manta has an individual fingerprint: the pattern of spots on its belly. Get an image or video of their “bellyprint" and we can match that pattern to mantas already in the database, or your manta might be completely new to the database.</p>
-                    <p class="lead">
-                        <a href="photographing.jsp" title="">See the photography guide</a>
-                    </p>
-                </div>
-                <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-                    <img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
-                </div>
-            </div>
-            <div class="item">
-                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                    <h3>Submit photo/video</h3>
-                    <p class="lead">
-                        You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the manta, and add other information, such as species or sex, if you can. You will receive email updates when your manta is processed by a researcher.</p>
-                </div>
-                <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-                    <img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
-                </div>
-            </div>
-            <div class="item">
-                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                    <h3>Researcher verfication</h3>
-                    <p class="lead">
-                        When you submit a manta identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don’t worry if you are unsure about which species you saw!). </p>
-                </div>
-                <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-                    <img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
-                </div>
-            </div>
-            <div class="item">
-                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                    <h3>Matching process</h3>
-                    <p class="lead">
-                        Once a researcher is happy with all the data accompanying the identification photo, they will run the Manta Matcher algorithm. The algorithm is like facial recognition software for manta bellies. </p>
-                </div>
-                <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-                    <img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
-                </div>
-            </div>
-            <div class="item">
-                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                    <h3>Match Result</h3>
-                    <p class="lead">
-                        The algorithm provides researchers with a ranked selection of possible matches. Researchers will then visually confirm a match to an existing manta in the database, or create a new manta profile. </p>
-                </div>
-                <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-                    <img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
-                </div>
-            </div>
-        </div>
-    </div>
+	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
+		<ol class="list-inline carousel-indicators slide-nav">
+	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph a manta<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. Match result<span class="caret"></span></li>
+	    </ol> 
+		<div class="carousel-inner text-left">
+			<div class="item active">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Photograph the belly of a manta</h3>
+					<p class="lead">
+						Each manta has an individual fingerprint: the pattern of spots on its belly. Get an image or video of their “bellyprint" and we can match that pattern to mantas already in the database, or your manta might be completely new to the database.
+					</p>
+					<p class="lead">
+						<a href="photographing.jsp" title="">See the photography guide</a>
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Submit photo/video</h3>
+					<p class="lead">
+						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the manta, and add other information, such as species or sex, if you can. You will receive email updates when your manta is processed by a researcher.
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Researcher verfication</h3>
+					<p class="lead">
+						When you submit a manta identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don’t worry if you are unsure about which species you saw!).
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Matching process</h3>
+					<p class="lead">
+						Once a researcher is happy with all the data accompanying the identification photo, they will run the Manta Matcher algorithm. The algorithm is like facial recognition software for manta bellies.
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Match Result</h3>
+					<p class="lead">
+						The algorithm provides researchers with a ranked selection of possible matches. Researchers will then visually confirm a match to an existing manta in the database, or create a new manta profile. 
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
+				</div>
+			</div>
+		</div>
+	</div>
 </section>
 
 <div class="container-fluid relative data-section">
