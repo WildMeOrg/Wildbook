@@ -3229,6 +3229,24 @@ public class Shepherd {
     sortedByValues.putAll(map);
     return sortedByValues;
 }
+  
+  
+  public Adoption getRandomAdoptionWithPhotoAndStatement(){
+    String filter = "adopterName != null && adopterImage != null && adopterQuote != null";
+    Extent encClass = pm.getExtent(Adoption.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (q.execute());
+    if((c!=null)&&(c.size()>0)){
+      ArrayList<Adoption> matchingAdoptions=new ArrayList<>(c);
+      q.closeAll();
+      int numUsers=matchingAdoptions.size();
+      Random rn = new Random();
+      int adoptNumber = rn.nextInt(numUsers);
+      return matchingAdoptions.get(adoptNumber);
+    }
+    q.closeAll();
+    return null;
+  }
 
   
 

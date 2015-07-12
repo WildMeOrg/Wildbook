@@ -467,7 +467,7 @@ finally{
                             </p>
                             <p><%=featuredUser.getUserStatement() %></p>
                         </div>
-                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributers</a>
+                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
                     </div>
                 </section>
             <%
@@ -494,8 +494,8 @@ finally{
                                     <time>
                                         <%=thisEnc.getDate() %>
                                         <%
-                                        if((thisEnc.getLocation()!=null)&&(!thisEnc.getLocation().trim().equals(""))){
-                                        %>/ <%=thisEnc.getLocation() %>
+                                        if((thisEnc.getLocationID()!=null)&&(!thisEnc.getLocationID().trim().equals(""))){
+                                        %>/ <%=thisEnc.getLocationID() %>
                                         <%
                                            }
                                         %>
@@ -521,7 +521,7 @@ finally{
                     <%
                     myShepherd.beginDBTransaction();
                     
-                    System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
+                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                     long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
                     
                     System.out.println("  I think my startTime is: "+startTime);
@@ -627,15 +627,37 @@ finally{
 </ul>
                 <a href="adoptamanta.jsp" title="">Learn more about adopting a manta</a>
             </div>
-            <div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <div class="focusbox-inner">
-                    <img src="cust/mantamatcher/img/adopter_casaberry.jpg" alt="" class="pull-right round">
-                    <h2><small>Meet an adopter:</small>Casa Berry</h2>
-                    <blockquote>
-                        “We just fell in love with the manta Angel. She made us interested in mantas, and made us relise their importance in the eco syste
-                    </blockquote>
-                </div>
-            </div>
+            <%
+            myShepherd.beginDBTransaction();
+            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
+            if(adopt!=null){
+            %>
+            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
+	                <div class="focusbox-inner" style="overflow: hidden;">
+	                	<%
+	                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
+	                    
+	                	%>
+	                    <img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
+	                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
+	                    <%
+	                    if(adopt.getAdopterQuote()!=null){
+	                    %>
+		                    <blockquote>
+		                        <%=adopt.getAdopterQuote() %>
+		                    </blockquote>
+	                    <%
+	                    }
+	                    %>
+	                </div>
+	            </div>
+            
+            <%
+			}
+            myShepherd.rollbackDBTransaction();
+            %>
+            
+            
         </section>
         <hr />
         <section class="donate-section">
@@ -646,7 +668,7 @@ finally{
             </div>
             <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
                 <button class="large contrast">
-                    Become a sponsor
+                    Donate
                     <span class="button-icon" aria-hidden="true">
                 </button>
             </div>
