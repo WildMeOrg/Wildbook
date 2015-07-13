@@ -86,7 +86,7 @@ div.scroll {
 -->
 </style>
 <hr width="100%"/>
-  <p><strong>Adopters</strong></p>
+  <h2>Adopters</strong></h2>
 
 
 <%

@@ -56,15 +56,15 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <link rel="shortcut icon"
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
       <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
-      <link rel="stylesheet" href="cust/mantamatcher/css/manta.css" />
-      <link href="tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
-      <link href="tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+      <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
+      <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
+      <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
 
-      <script src="tools/jquery/js/jquery.min.js"></script>
-      <script src="tools/bootstrap/js/bootstrap.min.js"></script>
-      <script type="text/javascript" src="javascript/core.js"></script>
-      <script type="text/javascript" src="tools/jquery-ui/javascript/jquery-ui.min.js"></script>
-      <script type="text/javascript" src="tools/hello/javascript/hello.all.js"></script>
+      <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
+      <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/core.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/tools/jquery-ui/javascript/jquery-ui.min.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
       

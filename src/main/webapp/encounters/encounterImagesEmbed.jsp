@@ -62,9 +62,9 @@ String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + ima
 %>
 
 
-<p><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px"
-                     height="25px"><strong>&nbsp;<%=encprops.getProperty("images")%>
-</strong><br/> <%
+<h2><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px"
+                     height="25px">&nbsp;<%=encprops.getProperty("images")%></h2>
+<p> <%
   if (session.getAttribute("logged") != null) {
 %> <em><%=encprops.getProperty("click2view")%>
 </em>
