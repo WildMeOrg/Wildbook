@@ -163,9 +163,10 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Learn <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        
-                          <li><a href="<%=urlLoc %>/photographing.jsp">How to Photograph</a></li>
-                          <li><a target="_blank" href="http://www.wildme.org/wildbook">Learn about Wildbook</a></li>
+                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp">About Mantas</a></li>
+                          	<li><a href="<%=urlLoc %>/photographing.jsp">How to Photograph</a></li>
+                                 
+                          	<li><a target="_blank" href="http://www.wildme.org/wildbook">Learn about Wildbook</a></li>
                         </ul>
                       </li>
                       
@@ -224,9 +225,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                                <li><a href="<%=urlLoc %>/googleSearch.jsp"><%=props.getProperty("googleSearch")%></a></li>
                         </ul>
                       </li>
-                      <li class="dropdown">
-                        <a href="<%=urlLoc %>/overview.jsp">About</a>
-                      </li>
+               
                       <li>
                         <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
                       </li>

@@ -3145,8 +3145,8 @@ public class Shepherd {
   }
   
   public User getRandomUserWithPhotoAndStatement(){
-    
-    String filter = "fullName != null && userImage != null && userStatement != null";
+    //(username.toLowerCase().indexOf('demo') == -1)
+    String filter = "fullName != null && userImage != null && userStatement != null && (username.toLowerCase().indexOf('demo') == -1) && (username.toLowerCase().indexOf('test') == -1)";
     Extent encClass = pm.getExtent(User.class, true);
     Query q = pm.newQuery(encClass, filter);
     Collection c = (Collection) (q.execute());

@@ -82,43 +82,7 @@
 		
 		<a name="sex"><h3>Determining sex in your photo</h3></a>
 		
-		<p>Determining the sex of a manta is usually quick and easy. If you have taken a good ID shot of the standardized area, you will be able to ID the animal's sex from this photo. If not, check your other photos to see if you can see the pelvic fins. Pelvic fins are the two small fins located at the rear of the animal by the tail. 
-		</p>
 		
-		
-		<table>
-		<tr>
-		<td>
-		<img width="810px" height="*" src="images/determining_sex.jpg" />
-		</td>
-		</tr>
-		<tr>
-		<td align="center">
-		<strong>Fig 4. Determining sex</strong>
-		</td>
-		</tr>
-		</table>
-		
-		
-		<p>
-		Female manta rays do not have any external reproductive organs so all that you will see in the image will be fins. Because there are no organs to judge by, determining the maturity status of a female ray can be difficult. If the individual was visibly pregnant or possessed reproductive scars (bite marks obtained during mating) on either or their wing tips then they can be classified as mature.  
-		</p>
-		
-				<table>
-				<tr>
-				<td>
-				<img width="810px" height="*" src="images/female_maturity.jpg" />
-				</td>
-				</tr>
-				<tr>
-				<td align="center">
-				<strong>Fig 5. Sexual maturity in females</strong>
-				</td>
-				</tr>
-		</table>
-		<p>
-		Male manta rays do have external reproductive organs, call claspers, that protrude off of these pelvic fins. Immature males will have small claspers and mature males will have large claspers that protrude past the edge of the pelvic fins. 
-		</p>
 		
 		<p>
 		The preparation of your pictures to upload is simple, yet critical to the identification process. If they are not prepared correctly it may result in a false positive or misidentification. Ideally when editing photos, you may want to alter several things. Cropping the photo so that the manta is full frame will make viewing the natural spot pattern easier. When cropping, you may also have to simultaneously rotate the photo so that the body is centered within the frame.  Using photo editing programs like Photoshop or Picasa, you can also alter the contrast and color saturation to make patterns stand out.
