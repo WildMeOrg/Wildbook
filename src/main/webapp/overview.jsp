@@ -4,16 +4,14 @@
 
         <h2>Overview</h2>
             
-        <p>
-        Manta Matcher represents the first global manta ray database. This site was specifically designed to manage manta ray sightings and identifications across their distribution. After the success of the Wildbook for Whale Sharks database, Manta Matcher was a logical follow-up. Manta rays are widely distributed, migratory, and have unique spot patterning on their ventral surface that can be used to permanently identify individuals.  At the present time, this database will enable researchers to upload and organize individually identified manta rays in their populations. This system is also intended to promote collaborations by way of cross-referencing databases to check for both regional and long distance movement. 
-        </p>
-        <p>
-        An automated component to this site is currently in development. This component will greatly enhance the functionality of the site by allowing faster and more accurate cross- referencing. 
-        </p>
-        <p>It is our expectation that researchers will ultimately be able use sightings data to determine the abundance, trends, movements, and population structure of manta ray populations at individual aggregation sites across the globe. Using encounter photos and encounter information with mantas, you too can help update and maintain this global database. 
-        </p>
-        </p>
-        
+          <p>Manta rays are widely distributed, migratory, and have unique spot patterning on their underside that can be used to identify individuals. Manta Matcher is the first global online manta ray database, managing manta ray sighting and identifications worldwide. Any diver or snorkeler with a camera can take and upload a manta identification photo. Researchers can also upload and organize individually identified manta rays in the regional populations they are managing. Manta Matcher also promotes collaborations by way of cross-referencing different study sites. Scientists can now examine if populations are shared between neighboring countries, examine regional and long distance movements, and examine the lifespans of manta rays.</p> 
+
+		<p>A sophisticated algorithm is used to match manta identification photos automatically. The algorithm works like facial recognition software for manta bellies. By automating much of the identification process researchers can match mantas regionally, and even globally, with ease. Researchers will ultimately be able use sightings data to determine the abundance, trends, movements, and population structure of manta ray populations at individual aggregation sites across the globe.</p>
+		
+		<p>Uploads to Manta Matcher have already contributed to our better scientific understanding of these species. A paper on manta migrations in Indonesia, using data sourced from Manta Matcher, was instrumental in achieving protection for mantas across all of Indonesia’s waters. Data from Manta Matcher were also used as scientific justification for Convention on Migratory Species listing of reef mantas (Manta alfredi) in November 2014.</p>
+		
+		<p>You don’t need to be a researcher to contribute. Any diver or snorkeler with a camera can identify an individual manta ray. By uploading your manta identification photos, and information about your manta encounter, you too can help global manta ray research and conservation.</p>
+		   
         <h2>About Mantas</h2>
         <p>
         Did you know that the natural spot patterns on the underside of manta rays can be used to distinguish between individuals like a fingerprint? Researchers are now using these natural markings to keep track of different population and examine their movements around the world. Contributing to this ongoing work is a way for the public to engage in what we like to call 'Citizen Science'. We cannot do this alone and we are asking for the public to help us solve some of the mysteries of mantas by adding photos to our global database.
@@ -159,7 +157,45 @@
             </td>
             </tr>
         </table>
-            <p>&nbsp;</p>
+            <h3>Determining sex and maturity</h3>
+            
+            <p>Determining the sex of a manta is usually quick and easy. If you have taken a good ID shot of the standardized area, you will be able to ID the animal's sex from this photo. If not, check your other photos to see if you can see the pelvic fins. Pelvic fins are the two small fins located at the rear of the animal by the tail. 
+		</p>
+		
+		
+		<table>
+		<tr>
+		<td>
+		<img width="810px" height="*" src="images/determining_sex.jpg" />
+		</td>
+		</tr>
+		<tr>
+		<td align="center">
+		<strong>Fig 4. Determining sex</strong>
+		</td>
+		</tr>
+		</table>
+		
+		
+		<p>
+		Female manta rays do not have any external reproductive organs so all that you will see in the image will be fins. Because there are no organs to judge by, determining the maturity status of a female ray can be difficult. If the individual was visibly pregnant or possessed reproductive scars (bite marks obtained during mating) on either or their wing tips then they can be classified as mature.  
+		</p>
+		
+				<table>
+				<tr>
+				<td>
+				<img width="810px" height="*" src="images/female_maturity.jpg" />
+				</td>
+				</tr>
+				<tr>
+				<td align="center">
+				<strong>Fig 5. Sexual maturity in females</strong>
+				</td>
+				</tr>
+		</table>
+		<p>
+		Male manta rays do have external reproductive organs, call claspers, that protrude off of these pelvic fins. Immature males will have small claspers and mature males will have large claspers that protrude past the edge of the pelvic fins. 
+		</p>
 </div>
 
 <jsp:include page="footer2.jsp" flush="true"/>
