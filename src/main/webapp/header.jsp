@@ -222,8 +222,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
-                               <li><a href="<%=urlLoc %>/googleSearch.jsp"><%=props.getProperty("googleSearch")%></a></li>
-                        </ul>
+                           </ul>
                       </li>
                
                       <li>
