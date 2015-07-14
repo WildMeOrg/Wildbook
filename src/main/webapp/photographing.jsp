@@ -10,7 +10,7 @@
 %>
 
 
-<jsp:include page="header2.jsp" flush="true"/>
+<jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
 		  <h2>Photographing a Manta</h2>
@@ -116,5 +116,5 @@
 	</div>
 	
 
-<jsp:include page="footer2.jsp" flush="true" />
+<jsp:include page="footer.jsp" flush="true" />
 

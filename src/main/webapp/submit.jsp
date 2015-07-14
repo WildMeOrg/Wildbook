@@ -9,7 +9,7 @@
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
-<jsp:include page="header2.jsp" flush="true"/>
+<jsp:include page="header.jsp" flush="true"/>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -615,12 +615,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
           <label class="control-label pull-left">GPS Latitude</label>
-          <input class="form-control" name="lat" type="text" id="lat"> °
+          <input class="form-control" name="lat" type="text" id="lat"> ??
         </div>
 
         <div class="col-xs-12 col-sm-6">
           <label class="control-label  pull-left">GPS Longitude</label>
-          <input class="form-control" name="longitude" type="text" id="longitude"> °
+          <input class="form-control" name="longitude" type="text" id="longitude"> ??
         </div>
       </div>
 
@@ -1085,4 +1085,4 @@ else {%>
 </div>
 </div>
 
-<jsp:include page="footer2.jsp" flush="true"/>
+<jsp:include page="footer.jsp" flush="true"/>

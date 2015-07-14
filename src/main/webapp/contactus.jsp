@@ -59,7 +59,7 @@
   context=ServletUtilities.getContext(request);
 
 %>
-<jsp:include page="header2.jsp" flush="true"/>
+<jsp:include page="header.jsp" flush="true"/>
 <div class="container maincontent">
           <h1 class="intro">Contact us </h1>
      
@@ -71,5 +71,5 @@
       <!-- end maintext -->
       </div>
 
-    <jsp:include page="footer2.jsp" flush="true"/>
+    <jsp:include page="footer.jsp" flush="true"/>
 
