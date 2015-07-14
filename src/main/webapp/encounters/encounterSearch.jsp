@@ -13,7 +13,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 %>
 
-<jsp:include page="header.jsp" flush="true"/>
+<jsp:include page="../header.jsp" flush="true"/>
 
   <!-- Sliding div content: STEP1 Place inside the head section -->
   <script type="text/javascript" src="../javascript/animatedcollapse.js"></script>
