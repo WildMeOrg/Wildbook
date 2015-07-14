@@ -1,84 +1,10 @@
 
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
-<%!
 
-  //shepherd must have an open trasnaction when passed in
-  public String getNextIndividualNumber(Encounter enc, Shepherd myShepherd) {
-    String returnString = "";
-    try {
-      String lcode = enc.getLocationCode();
-      if ((lcode != null) && (!lcode.equals(""))) {
-
-        //let's see if we can find a string in the mapping properties file
-        Properties props = new Properties();
-        //set up the file input stream
-        props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
-
-
-        //let's see if the property is defined
-        if (props.getProperty(lcode) != null) {
-          returnString = props.getProperty(lcode);
-
-
-          int startNum = 1;
-          boolean keepIterating = true;
-
-          //let's iterate through the potential individuals
-          while (keepIterating) {
-            String startNumString = Integer.toString(startNum);
-            if (startNumString.length() < 3) {
-              while (startNumString.length() < 3) {
-                startNumString = "0" + startNumString;
-              }
-            }
-            String compositeString = returnString + startNumString;
-            if (!myShepherd.isMarkedIndividual(compositeString)) {
-              keepIterating = false;
-              returnString = compositeString;
-            } else {
-              startNum++;
-            }
-
-          }
-          return returnString;
-
-        }
-
-
-      }
-      return returnString;
-    } 
-    catch (Exception e) {
-      e.printStackTrace();
-      return returnString;
-    }
-  }
-
-%>
 
 <%
 
@@ -141,29 +67,7 @@ String crExistsUrl = null;
   boolean haveRendered = false;
 
   pageContext.setAttribute("set", encprops.getProperty("set"));
-%>
 
-<html>
-
-<head prefix="og:http://ogp.me/ns#">
-  <title><%=CommonConfiguration.getHTMLTitle(context) %> - Candidate Region Tool - <%=encprops.getProperty("encounter") %> <%=num%>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  
-  
-<!-- social meta start -->
-<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
-
-<link rel="canonical" href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
-
-<meta itemprop="name" content="<%=encprops.getProperty("encounter")%> <%=request.getParameter("number")%>" />
-<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
-<%
 if (request.getParameter("number")!=null) {
 	
 		if(myShepherd.isEncounter(num)){
@@ -172,31 +76,13 @@ if (request.getParameter("number")!=null) {
 			if((metaEnc.getImages()!=null)&&(numImgs>0)){
 				for(int b=0;b<numImgs;b++){
 				SinglePhotoVideo metaSPV=metaEnc.getImages().get(b);
-%>
-<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=(metaEnc.dir(baseDir)+"/"+metaSPV.getFilename())%>" />
-<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=(metaEnc.dir(baseDir)+"/"+metaSPV.getFilename())%>" / >
-<%
+
 			}
 		}
 		}
 }
 %>
 
-<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
-<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
-
-<meta property="og:url" content="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
-
-
-<meta property="og:type" content="website" />
-
-<!-- social meta end -->
-
-  
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
   <style type="text/css">
     <!--
 
@@ -286,12 +172,7 @@ margin-bottom: 8px !important;
 
 </style>
 
-
-
-
-<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>
+<jsp:include page="header.jsp" flush="true"/>
 
 <link href="../css/cr.css" rel="stylesheet" type="text/css" />
 <script src="../javascript/cr.js"></script>
@@ -302,35 +183,8 @@ margin-bottom: 8px !important;
 </script>
 
 
-<!--  FACEBOOK LIKE BUTTON -->
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
 
-<!-- GOOGLE PLUS-ONE BUTTON -->
-<script type="text/javascript">
-  (function() {
-    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-    po.src = 'https://apis.google.com/js/plusone.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-  })();
-</script>
-</head>
-
-<body>
-<div id="candidate-full-zoom"></div>
-
-	<div id="wrapper">
-		<div id="page">
-			<jsp:include page="../header.jsp" flush="true">
-  				<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-			</jsp:include>
-			<div id="main">
+<div class="container maincontent">
 			<%
   			myShepherd.beginDBTransaction();
 
@@ -475,8 +329,7 @@ catch(Exception e){
 	%>
 	<p>Hit an error.<br /> <%=e.toString()%></p>
 
-</body>
-</html>
+
 <%
 }
 
@@ -506,16 +359,5 @@ catch(Exception e){
 
 <jsp:include page="../footer.jsp" flush="true"/>
 
-</div>
-<!-- end page -->
-
-</div>
-
-<!--end wrapper -->
-
-
-
-</body>
-</html>
 
 

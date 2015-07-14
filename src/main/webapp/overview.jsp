@@ -1,4 +1,4 @@
-<jsp:include page="header2.jsp" flush="true"/>
+<jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
 
@@ -8,9 +8,9 @@
 
 		<p>A sophisticated algorithm is used to match manta identification photos automatically. The algorithm works like facial recognition software for manta bellies. By automating much of the identification process researchers can match mantas regionally, and even globally, with ease. Researchers will ultimately be able use sightings data to determine the abundance, trends, movements, and population structure of manta ray populations at individual aggregation sites across the globe.</p>
 		
-		<p>Uploads to Manta Matcher have already contributed to our better scientific understanding of these species. A paper on manta migrations in Indonesia, using data sourced from Manta Matcher, was instrumental in achieving protection for mantas across all of Indonesia’s waters. Data from Manta Matcher were also used as scientific justification for Convention on Migratory Species listing of reef mantas (Manta alfredi) in November 2014.</p>
+		<p>Uploads to Manta Matcher have already contributed to our better scientific understanding of these species. A paper on manta migrations in Indonesia, using data sourced from Manta Matcher, was instrumental in achieving protection for mantas across all of Indonesia's waters. Data from Manta Matcher were also used as scientific justification for Convention on Migratory Species listing of reef mantas (Manta alfredi) in November 2014.</p>
 		
-		<p>You don’t need to be a researcher to contribute. Any diver or snorkeler with a camera can identify an individual manta ray. By uploading your manta identification photos, and information about your manta encounter, you too can help global manta ray research and conservation.</p>
+		<p>You don't need to be a researcher to contribute. Any diver or snorkeler with a camera can identify an individual manta ray. By uploading your manta identification photos, and information about your manta encounter, you too can help global manta ray research and conservation.</p>
 		   
         <h2>About Mantas</h2>
         <p>
@@ -198,5 +198,5 @@
 		</p>
 </div>
 
-<jsp:include page="footer2.jsp" flush="true"/>
+<jsp:include page="footer.jsp" flush="true"/>
 

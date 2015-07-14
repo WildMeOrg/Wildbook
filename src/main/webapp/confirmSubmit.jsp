@@ -2,7 +2,7 @@
          import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.Dimension, java.io.File, java.util.*, java.util.concurrent.ThreadPoolExecutor, javax.servlet.http.HttpSession" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
-<jsp:include page="header2.jsp" flush="true"/>
+<jsp:include page="header.jsp" flush="true"/>
 
 <%
 String context="context0";
@@ -271,5 +271,5 @@ myShepherd=null;
 %>
 </div>
 
-<jsp:include page="footer2.jsp" flush="true"/>
+<jsp:include page="footer.jsp" flush="true"/>
 

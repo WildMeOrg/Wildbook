@@ -121,7 +121,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
 
-<jsp:include page="../header2.jsp" flush="true"/>
+<jsp:include page="../header.jsp" flush="true"/>
 
   <style type="text/css">
     <!--
@@ -5168,7 +5168,7 @@ catch(Exception e){
 
 
 
-<jsp:include page="../footer2.jsp" flush="true"/>
+<jsp:include page="../footer.jsp" flush="true"/>
 
 
 

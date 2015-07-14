@@ -36,7 +36,7 @@ context=ServletUtilities.getContext(request);
     // -->
 
   </script>
-<jsp:include page="header2.jsp" flush="true"/>
+<jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
 
@@ -143,4 +143,4 @@ if((CommonConfiguration.getProperty("allowSocialMediaAccountCreation", "context0
               
             </div>
             
-          <jsp:include page="footer2.jsp" flush="true"/>
+          <jsp:include page="footer.jsp" flush="true"/>

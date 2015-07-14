@@ -1,57 +1,58 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,org.ecocean.ContextConfiguration,org.ecocean.servlet.ServletUtilities, java.util.Properties" %>
-
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<%
-
-  //setup our Properties object to hold all properties
-  Properties props = new Properties();
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-  String context="context0";
-  context=ServletUtilities.getContext(request);
-
+<%@ page 
+		contentType="text/html; charset=utf-8" 
+		language="java"
+     	import="org.ecocean.CommonConfiguration"
 %>
-<div id="footer">
- 
+        <%
+        String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+        %>
+        
+        <!-- footer -->
+        <footer class="page-footer">
+         <h2 class="section-header">Created in partnership with</h2>
+            <div class="container-fluid">
+              <div class="container main-section">
+                      <ul class="list-unstyled partner-list large">
+          <li>
+            <a href="http://http://www.marinemegafauna.org/" class="partner" title="Visit Marine Megafauna Foundation website">
+              <img src="<%=urlLoc %>/cust/mantamatcher/img/partnerlogo_mmf.svg" alt=" logo" />
+            </a>
+          </li>
+        </ul>
 
-          <p align="left"><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/<%=ContextConfiguration.getDataDirForContext(context) %>/rss.xml"><img src="http://<%=CommonConfiguration.getURLLocation(request)%>/images/rssfeed.gif"
-                                                 width="80" height="15" border="0"
-                                                 alt="RSS News Feed"/></a> &nbsp;<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/<%=ContextConfiguration.getDataDirForContext(context) %>/atom.xml"><img
-            src="http://<%=CommonConfiguration.getURLLocation(request)%>/images/atom-feed-icon.gif" border="0" alt="ATOM News Feed"/></a></p>
-  
-  <p class="credit">This software is distributed under the <a
-    href="http://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPL v3 license</a> and is
-    intended to support mark-recapture field studies. Open source and commercially licensed products
-    used in this framework are listed <a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/thirdparty.jsp">here</a>.</p>
+        <h3 class="footer-section-header">We share our data with</h3>
+        
+        <ul class="list-unstyled partner-list">
+          <li>
+            <a href="http://www.iobis.org/" title="Global Biodiversity Information Facility">
+              <img src="<%=urlLoc %>/cust/mantamatcher/img/partnerlogo_obis.jpg" alt=" logo" />
+            </a>
+          </li>
+          <li>
+            <a href="http://www.gbif.org/" title="Ocean Biogeographic Information System">
+              <img src="<%=urlLoc %>/cust/mantamatcher/img/partnerlogo_gbif.svg" alt=" logo" />
+            </a>
+          </li>
+          <li>
+            <a href="http://www.coml.org/" title="Census of Marine life">
+              <img src="<%=urlLoc %>/cust/mantamatcher/img/partnerlogo_censusofmarinelife.jpg" alt=" logo" />
+            </a>
+          </li>
+        </ul>
 
+        <hr />
 
-  <p>
-  	<a href="http://www.wildme.org/shepherd" target="_blank">
-    		<img border="0" src="http://<%=CommonConfiguration.getURLLocation(request)%>/images/lib_bottom.gif" alt="Powered by Wildbook"/>
-    	</a>
-  </p>
-
-
-</div>
-<!-- end footer -->
+                <div class="row">
+                  <p class="col-sm-8 col-md-8 col-lg-8">
+                    <small>This software is distributed under the GPL v3 license and is intended to support mark-recapture field studies. Open source and commercially licensed products used in this framework are listed here.</small>
+                  </p>
+                  <a href="http://www.wildme.org/wildbook" class="col-sm-4 col-md-4 col-lg-4" title="This site is Powered by Wildbook">
+                      <img src="<%=urlLoc %>/images/logo_wildbook.jpg" alt=" logo" class="pull-right" />
+                  </a>
+                </div>
+              </div>
+            </div>
+        </footer>
+        <!-- /footer -->
+    </body>
+</html>
