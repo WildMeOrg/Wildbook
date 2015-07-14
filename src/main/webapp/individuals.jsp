@@ -222,6 +222,9 @@ table.tissueSample td {
   </style>
 
 
+    <jsp:include page="header.jsp" flush="true"/>
+
+
   <!--
     1 ) Reference to the files containing the JavaScript and CSS.
     These files must be located on your server.
@@ -292,17 +295,10 @@ table.tissueSample td {
   })();
 </script>
 
-<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
-
-
-    <jsp:include page="header.jsp" flush="true"/>
-
-    <div class="container maincontent">
 
 
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
 
-<jsp:include page="header.jsp" flush="true"/>
 
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
@@ -764,25 +760,6 @@ function dataTypes(obj, fieldName) {
 <%=blocker%>
 
 <%
-  if (CommonConfiguration.allowAdoptions(context)) {
-	  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
-	  int numAdoptions = adoptions.size();
-	  if(numAdoptions>0){
-%>
-<div class="container maincontent">
-    
-<%
-}
-  }
-  else {
-%>
-<div class="container maincontent">
-    
-<%
-}
-%>
-
-<%
   myShepherd.beginDBTransaction();
   try {
     if (myShepherd.isMarkedIndividual(name)) {
@@ -793,9 +770,7 @@ function dataTypes(obj, fieldName) {
 
 %>
 
-
-
- <h1><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps %> <%=sharky.getIndividualID()%></h1>
+<h1><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps %> <%=sharky.getIndividualID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
  
  <p> <table><tr valign="middle">  
@@ -2498,8 +2473,7 @@ else {
 </td>
 </tr>
 </table>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
+
 <%
   if (CommonConfiguration.allowAdoptions(context)) {
 %>
@@ -2670,7 +2644,8 @@ else {
       
       <%
     }
-  } catch (Exception eSharks_jsp) {
+  } 
+  catch (Exception eSharks_jsp) {
     System.out.println("Caught and handled an exception in individuals.jsp!");
     eSharks_jsp.printStackTrace();
   }
@@ -2683,7 +2658,7 @@ else {
   
 %>
 </div>
-</div>
+
 
 
 

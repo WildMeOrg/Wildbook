@@ -564,7 +564,8 @@ finally{
                                 
                            <%
                            numUsersToDisplay--;
-                    }    }
+                    }    
+                   } //end while
                    myShepherd.rollbackDBTransaction();
                    %>
                         
