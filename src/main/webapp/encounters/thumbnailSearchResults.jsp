@@ -114,8 +114,9 @@
 
   <script type="text/javascript">
   hs.graphicsDir = '../highslide/highslide/graphics/';
-  hs.align = 'center';
+  hs.align = 'auto';
   hs.showCredits = false;
+  hs.anchor = 'top';
 
   //transition behavior
   hs.transitions = ['expand', 'crossfade'];
@@ -130,7 +131,7 @@
   // define the restraining box
   hs.useBox = true;
   hs.width = 810;
-  hs.height=500;
+  hs.height=250;
 
     //block right-click user copying if no permissions available
     <%
@@ -368,13 +369,7 @@
             }
             %>
             >
-			<%
-            if(!thumbLink.endsWith("video.jpg")){
-            	%>
-              <h3><%=(countMe + startNum) %></h3>
-            <%
-            }
-            %>
+			
               <%
                 if ((request.getParameter("referenceImageName") != null)&&(!thumbLink.endsWith("video.jpg"))) {
                 	if(myShepherd.isSinglePhotoVideo(request.getParameter("referenceImageName"))){

@@ -240,16 +240,19 @@ table.tissueSample td {
 
   <script type="text/javascript">
     hs.graphicsDir = 'highslide/highslide/graphics/';
-    hs.align = 'center';
+    
     hs.transitions = ['expand', 'crossfade'];
     hs.outlineType = 'rounded-white';
     hs.fadeInOut = true;
     //hs.dimmingOpacity = 0.75;
 
+    hs.align = 'auto';
+  	hs.anchor = 'top';
+    
     //define the restraining box
     hs.useBox = true;
     hs.width = 810;
-    hs.height = 500;
+    hs.height = 250;
 
     //block right-click user copying if no permissions available
     <%
