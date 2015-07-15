@@ -256,49 +256,7 @@ td.measurement{
 	}
 	</script>
 
-  <script type="text/javascript">
-  
-
-  
-      hs.graphicsDir = '../highslide/highslide/graphics/';
-      hs.align = 'center';
-      hs.transitions = ['expand', 'crossfade'];
-      hs.outlineType = 'rounded-white';
-      hs.fadeInOut = true;
-
-
-    //block right-click user copying if no permissions available
-    <%
-    if(request.getUserPrincipal()!=null){
-    %>
-    hs.blockRightClick = false;
-    <%
-    }
-    else{
-    %>
-    hs.blockRightClick = true;
-	<%
-    }
-	%>
-    // Add the controlbar
-    hs.addSlideshow({
-      //slideshowGroup: 'group1',
-      interval: 5000,
-      repeat: false,
-      useControls: true,
-      fixedControls: 'fit',
-      overlayOptions: {
-        opacity: 0.75,
-        position: 'bottom center',
-        hideOnMouseOut: true
-      }
-    });
-    
-    //test comment
-    
-
-
-  </script>
+ 
   
   <script>
             function initialize() {
