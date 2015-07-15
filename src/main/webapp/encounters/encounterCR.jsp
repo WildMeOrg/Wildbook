@@ -172,7 +172,7 @@ margin-bottom: 8px !important;
 
 </style>
 
-<jsp:include page="header.jsp" flush="true"/>
+<jsp:include page="../header.jsp" flush="true"/>
 
 <link href="../css/cr.css" rel="stylesheet" type="text/css" />
 <script src="../javascript/cr.js"></script>
