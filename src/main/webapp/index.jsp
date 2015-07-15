@@ -382,7 +382,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Photograph the belly of a manta</h3>
 					<p class="lead">
-						Each manta has an individual fingerprint: the pattern of spots on its belly. Get an image or video of their ???bellyprint" and we can match that pattern to mantas already in the database, or your manta might be completely new to the database.
+						Each manta has an individual fingerprint: the pattern of spots on its belly. Get an image or video of their &ldquo;bellyprint&rdquo; and we can match that pattern to mantas already in the database, or your manta might be completely new to the database.
 					</p>
 					<p class="lead">
 						<a href="photographing.jsp" title="">See the photography guide</a>
@@ -407,7 +407,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Researcher verfication</h3>
 					<p class="lead">
-						When you submit a manta identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don???t worry if you are unsure about which species you saw!).
+						When you submit a manta identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don't worry if you are unsure about which species you saw!).
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -601,7 +601,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
                         <p class="lead">
-                            <i>"Manta Matcher will revolutionize global research on these threatened rays and help change the way field researchers approach scientific research on wild animals by means of successful and meaningful public involvement.</i> - Dr. Andrea Marshall, co-founder</p>
+                            <i>&ldquo;Manta Matcher will revolutionize global research on these threatened rays and help change the way field researchers approach scientific research on wild animals by means of successful and meaningful public involvement.&rdquo;</i> - Dr. Andrea Marshall, co-founder</p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>
