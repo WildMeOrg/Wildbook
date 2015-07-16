@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
 <%
 
 //setup our Properties object to hold all properties
@@ -37,25 +37,22 @@
 	<%
 	if(CommonConfiguration.showUsersToPublic(context)){
 
-	Shepherd myShepherd = new Shepherd(context);
-	 myShepherd.beginDBTransaction();
-     ArrayList<User> allUsers=myShepherd.getAllUsers();
-     int numUsers=allUsers.size();
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.beginDBTransaction();
+    ArrayList<User> allUsers=myShepherd.getAllUsers();
+    for (ListIterator<User> it = allUsers.listIterator(); it.hasNext();) {
+      User u = it.next();
+      if (u.getFullName() != null && u.getFullName().matches("(?i).*\\b(test|demo)\\b.*")
+              || u.getUsername() != null && u.getUsername().matches("(?i).*\\b(test|demo)\\b.*"))
+        it.remove();
+    }
 
-     
-     
-     int userNum=-1;
-     for(int i=0;i<numUsers;i++){
-    	userNum++;
-       	User thisUser=allUsers.get(i);
-       	String username=thisUser.getUsername();
-    
-    		
-           	String profilePhotoURL="images/empty_profile.jpg";
+    for (User thisUser : allUsers) {
+
+      String profilePhotoURL="images/empty_profile.jpg";
 		    
     		if(thisUser.getUserImage()!=null){
     			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-
     		}
     		%>
     		<li>
