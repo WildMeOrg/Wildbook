@@ -42,8 +42,8 @@
     ArrayList<User> allUsers=myShepherd.getAllUsers();
     for (ListIterator<User> it = allUsers.listIterator(); it.hasNext();) {
       User u = it.next();
-      if (u.getFullName() != null && u.getFullName().matches("(?i).*\\b(test|demo)\\b.*")
-              || u.getUsername() != null && u.getUsername().matches("(?i).*\\b(test|demo)\\b.*"))
+      if (u.getFullName() != null && u.getFullName().matches("(?i).*\\b(test|demo|rest)\\b.*")
+              || u.getUsername() != null && u.getUsername().matches("(?i).*\\b(test|demo|rest)\\b.*"))
         it.remove();
     }
 
