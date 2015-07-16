@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,org.ecocean.*,java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+         import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,org.ecocean.*,java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory,org.apache.commons.lang3.StringEscapeUtils" %>
 
 <%
 String context="context0";
@@ -40,7 +40,7 @@ context=ServletUtilities.getContext(request);
           </h1>
 
 
-          <p><%=props.getProperty("loggedInAs")%> <strong><%=request.getRemoteUser()%>
+          <p><%=props.getProperty("loggedInAs")%> <strong><%=StringEscapeUtils.escapeHtml4(request.getRemoteUser())%>
           </strong>.
           </p>
 

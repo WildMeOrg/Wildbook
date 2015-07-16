@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
-<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.util.Properties" %>
+<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.util.Properties,org.apache.commons.lang3.StringEscapeUtils" %>
 
 
 <%
@@ -80,8 +80,8 @@ String context="context0";
       		}
       		%>
       		</td>
-      		<td style="font-size:small"><%=user.getUsername()%></td>
-      		<td style="font-size:small"><%=fullName%></td>
+      		<td style="font-size:small"><%=StringEscapeUtils.escapeHtml4(user.getUsername())%></td>
+      		<td style="font-size:small"><%=StringEscapeUtils.escapeHtml4(fullName)%></td>
       		<td style="font-size:small"><a href="mailto:<%=emailAddress%>"><img height="20px" width="20px" src="../images/Crystal_Clear_app_email.png" /></a></td>
       		<td style="font-size:small"><%=affiliation%></td>
       		<td style="font-size:x-small"><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()).replaceAll("\r","<br />") %></em></td>

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
 <%
 
 //setup our Properties object to hold all properties
@@ -67,7 +67,7 @@
 					if(thisUser.getFullName()!=null){
 		    			String displayName=thisUser.getFullName();
 					%>
-                    <div class="name"><%=displayName %></div>
+                    <div class="name"><%= StringEscapeUtils.escapeHtml4(displayName) %></div>
                     <%
 					}
                     
