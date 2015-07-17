@@ -1,5 +1,7 @@
-<%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
-<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.util.Properties,org.apache.commons.lang3.StringEscapeUtils" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 
 
 <%
