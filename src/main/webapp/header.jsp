@@ -238,11 +238,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
                             <% }
+                            if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin") || request.isUserInRole("RegionalManager"))) { %>
+                              <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
+                            <% }
                             if(request.isUserInRole("admin")) { %>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
-                              <% if (CommonConfiguration.allowBatchUpload(context)) { %>
-                                <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
-                              <% } %>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                                 <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
                                  <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
