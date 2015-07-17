@@ -68,7 +68,7 @@ public class UserCreate extends HttpServlet {
     if(!usersDir.exists()){usersDir.mkdirs();}
     
     //set up for response
-    response.setContentType("text/html");
+    response.setContentType("text/html; charset=UTF-8");
     PrintWriter out = response.getWriter();
     boolean createThisUser = false;
 
