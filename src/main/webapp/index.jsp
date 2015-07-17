@@ -670,13 +670,15 @@ finally{
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3>Donate</h3>
                 <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of MantaMatcher and can support effective, science-based conservation management, and safeguard these rays.</p>
-                <a href="#" title="More information about donations">Learn more about how to donate</a>
+                <a href="adoptamanta.jsp" title="More information about donations">Learn more about how to donate</a>
             </div>
             <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <button class="large contrast">
-                    Donate
-                    <span class="button-icon" aria-hidden="true">
-                </button>
+                <a href="adoptamanta.jsp">
+	                <button class="large contrast">
+	                    Donate
+	                    <span class="button-icon" aria-hidden="true">
+	                </button>
+                </a>
             </div>
         </section>
     </section>
