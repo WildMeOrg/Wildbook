@@ -122,7 +122,6 @@
 		          /logs/** = authc, roles[admin]
 		         /UserCreate = authc, roles[admin]
 				 /UserDelete = authc, roles[admin]
-				/appadmin/batch* = authc, roles[admin]
 				/ResetCommonConfiguration = authc, roles[admin]
 				/ResurrectDeletedEncounter = authc, roles[admin]
                	/UserResetAcceptedUserAgreement = authc, roles[admin]
@@ -135,8 +134,8 @@
 				   /UpdateEmailAddress = authc, roles[admin]
 		      			
 				
-				/BatchUpload/** = authc, roles[admin]
-				/appadmin/batch* = authc, roles[admin]
+				/BatchUpload/** = authc, roles[RegionalManager]
+				/appadmin/batch* = authc, roles[RegionalManager]
 				/MantaMatcher = authc, roles[admin]
 				/EncounterSetSubmitterID = authc, roles[manager]
 				 
