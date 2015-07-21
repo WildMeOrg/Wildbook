@@ -23,10 +23,16 @@ package org.ecocean.grid;
 
 //another unenhanced comment
 
+import com.fastdtw.timeseries.TimeSeries;
+import com.fastdtw.timeseries.TimeSeriesBase;
+import com.fastdtw.timeseries.TimeSeriesBase.Builder;
+import com.fastdtw.dtw.FastDTW;
+import com.fastdtw.util.Distances;
 import com.reijns.I3S.Affine;
 import com.reijns.I3S.Compare;
 import com.reijns.I3S.FingerPrint;
 import com.reijns.I3S.Point2D;
+
 import org.ecocean.Encounter;
 import org.ecocean.Spot;
 import org.ecocean.SuperSpot;
@@ -1434,6 +1440,35 @@ public class EncounterLite implements java.io.Serializable {
     //affine transform for scale adjustment
     doAffine(newPrint);
     doAffine(thisPrint);
+    
+    
+    //start DTW array creation
+    int sizeNewPrint=newPrint.fpp.length;
+    int sizeThisPrint=thisPrint.fpp.length;
+
+    //also create two arrays for FastDTW
+    Builder b1 = TimeSeriesBase.builder();
+    for (int t = 0; t < sizeNewPrint; t++) {
+      b1.add(newPrint.fpp[t].getX(), newPrint.fpp[t].getY());     
+    }
+    TimeSeries ts1=b1.build();
+    
+    Builder b2 = TimeSeriesBase.builder();
+    for (int t = 0; t < sizeThisPrint; t++) {
+      b2.add(thisPrint.fpp[t].getX(), thisPrint.fpp[t].getY()); 
+    }
+    TimeSeries ts2=b2.build();
+    
+    Double distance = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());
+    
+    System.out.println("    I found a FastDTW score of: "+distance);
+    
+    //end DTW array creation
+    
+    
+    
+    
+    
 
     Compare wsCompare = new Compare(thisPrint);
     FingerPrint[] fpBest = new FingerPrint[1];
@@ -1452,7 +1487,7 @@ public class EncounterLite implements java.io.Serializable {
 
 
     //now return an I3S match object
-    return (new I3SMatchObject(belongsToMarkedIndividual, fpBest[0].getScore(), encounterNumber, sex, getDate(), size, hm, 0));
+    return (new I3SMatchObject(belongsToMarkedIndividual, fpBest[0].getScore(), encounterNumber, sex, getDate(), size, hm, 0, distance));
   }
 
   private void doAffine(FingerPrint fp) {

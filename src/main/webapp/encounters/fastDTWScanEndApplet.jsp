@@ -150,9 +150,9 @@ context=ServletUtilities.getContext(request);
   <%
     }
   %>
-  <li><a class="active">I3S</a></li>
-  <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
+    <li><a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
   </li>
+  <li><a class="active">FastDTW</a></li>
 
 
 </ul>
@@ -174,12 +174,12 @@ context=ServletUtilities.getContext(request);
     try {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightI3SScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightFastDTWScan.xml");
 
         side = "right";
       } else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullFastDTWScan.xml");
       }
       doc = xmlReader.read(file);
       root = doc.getRootElement();
@@ -226,44 +226,10 @@ context=ServletUtilities.getContext(request);
 <p><em>Date of scan: <%=scanDate%>
 </em></p>
 
-<%}%>
+<%
+}
+%>
 
-<p><a href="#resultstable">See the table below for score breakdowns.</a></p>
-		  <%
-		  
-
-		    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
-		    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
-		    System.out.println("Base URL is: " + baseURL);
-		    if (xmlOK) {
-		      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-		        feedURL = baseURL + encSubdir + "/lastFullRightI3SScan.xml?";
-		      } else {
-		        feedURL = baseURL + encSubdir + "/lastFullI3SScan.xml?";
-		      }
-		    }
-		    String rightSA = "";
-		    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-		      rightSA = "&filePrefix=extractRight";
-		    }
-		    System.out.println("I made it to the Flash without exception.");
-		  %>
-		  <OBJECT id="sharkflash"
-		          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
-		          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
-		    <PARAM NAME="movie"
-		           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
-		    <PARAM NAME="quality" VALUE="high">
-		    <PARAM NAME="scale" VALUE="exactfit">
-		    <PARAM NAME="bgcolor" VALUE="#ddddff">
-		    <EMBED
-		      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
-		      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
-		      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
-		      TYPE="application/x-shockwave-flash"
-		      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
-		  </OBJECT>
-		</p>
 <a name="resultstable" /><table class="tablesorter">
   <thead>
   
@@ -271,7 +237,7 @@ context=ServletUtilities.getContext(request);
           <th><strong>Shark</strong></th>
           <th><strong> Encounter</strong></th>
           <th><strong>Match Score </strong></th>
-	
+		<th><strong>FastDTW Score </strong></th>
 
     </tr>
         </thead>
@@ -298,7 +264,7 @@ context=ServletUtilities.getContext(request);
           </a></td>
           <%
             }
-            String finalscore2 = (new Double(results[p].matchValue)).toString();
+            String finalscore2 = results[p].getDTWResult().toString();
 
             //trim the length of finalscore
             if (finalscore2.length() > 7) {
@@ -308,7 +274,7 @@ context=ServletUtilities.getContext(request);
           <td><%=finalscore2%>
           </td>
 
-		
+		<td><%=results[p].getDTWResult() %></td>
 
         </tr>
 
@@ -359,8 +325,8 @@ context=ServletUtilities.getContext(request);
             }
 
           %>
-          <td><%=finalscore%>
-          </td>
+          
+          
 
 
           <%

@@ -44,6 +44,8 @@ public class MatchObject implements java.io.Serializable {
   //add I3S match values
   public Vector Points = new Vector();
   public double i3sMatchValue;
+  
+  public Double fastDTWResult;
 
   //used for JDO enhance
   public MatchObject() {
@@ -255,5 +257,7 @@ public class MatchObject implements java.io.Serializable {
   public String getTaskID() {
     return this.taskID;
   }
+  
+  public Double getFastDTWResult(){return fastDTWResult;}
 
 }

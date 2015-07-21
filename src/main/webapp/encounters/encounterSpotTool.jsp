@@ -336,12 +336,13 @@ console.log(imgEl);
 
 var spotTypes = [ 'ref1', 'ref2', 'ref3', 'spot' ];
 var spotTypeNames = {
-	ref1: '5th gill top',
-	ref2: 'posterior pectoral',
-	ref3: '5th gill bottom',
-	spot: 'spot',
+	ref1: 'left tip',
+	ref2: 'divet',
+	ref3: 'right tip',
+	spot: 'point',
 };
 var side = false;
+var sctx;
 
 function startImageTools() {
 	var opts = {
@@ -379,7 +380,7 @@ function startImageTools() {
 	opts.sourceEl = document.createElement('canvas');
 	opts.sourceEl.width = sw * 2;
 	opts.sourceEl.height = sh * 2;
-	var sctx = opts.sourceEl.getContext("2d");
+	sctx = opts.sourceEl.getContext("2d");
 	sctx.rect(0, 0, sw * 2, sh * 2);
 	sctx.fillStyle = '#69D';
 	sctx.fill();
@@ -625,58 +626,402 @@ function allGood(d) {
   </script>
 
 
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold%7CInconsolata%7CPT+Sans:400,700">
+    <link rel="stylesheet" href="https://inspirit.github.io/jsfeat/css/bootstrap.css">
+    <link rel="stylesheet" href="https://inspirit.github.io/jsfeat/css/jsfeat.css">
+    <script type="text/javascript" async="" src="../javascript/jsfeat/ga.js"></script>
+    <style type="text/css">
+    	.dg ul{list-style:none;margin:0;padding:0;width:100%;clear:both}.dg.ac{position:fixed;top:0;left:0;right:0;height:0;z-index:0}.dg:not(.ac) .main{overflow:hidden}.dg.main{-webkit-transition:opacity 0.1s linear;-o-transition:opacity 0.1s linear;-moz-transition:opacity 0.1s linear;transition:opacity 0.1s linear}.dg.main.taller-than-window{overflow-y:auto}.dg.main.taller-than-window .close-button{opacity:1;margin-top:-1px;border-top:1px solid #2c2c2c}.dg.main ul.closed .close-button{opacity:1 !important}.dg.main:hover .close-button,.dg.main .close-button.drag{opacity:1}.dg.main .close-button{-webkit-transition:opacity 0.1s linear;-o-transition:opacity 0.1s linear;-moz-transition:opacity 0.1s linear;transition:opacity 0.1s linear;border:0;position:absolute;line-height:19px;height:20px;cursor:pointer;text-align:center;background-color:#000}.dg.main .close-button:hover{background-color:#111}.dg.a{float:right;margin-right:15px;overflow-x:hidden}.dg.a.has-save ul{margin-top:27px}.dg.a.has-save ul.closed{margin-top:0}.dg.a .save-row{position:fixed;top:0;z-index:1002}.dg li{-webkit-transition:height 0.1s ease-out;-o-transition:height 0.1s ease-out;-moz-transition:height 0.1s ease-out;transition:height 0.1s ease-out}.dg li:not(.folder){cursor:auto;height:27px;line-height:27px;overflow:hidden;padding:0 4px 0 5px}.dg li.folder{padding:0;border-left:4px solid rgba(0,0,0,0)}.dg li.title{cursor:pointer;margin-left:-4px}.dg .closed li:not(.title),.dg .closed ul li,.dg .closed ul li > *{height:0;overflow:hidden;border:0}.dg .cr{clear:both;padding-left:3px;height:27px}.dg .property-name{cursor:default;float:left;clear:left;width:40%;overflow:hidden;text-overflow:ellipsis}.dg .c{float:left;width:60%}.dg .c input[type=text]{border:0;margin-top:4px;padding:3px;width:100%;float:right}.dg .has-slider input[type=text]{width:30%;margin-left:0}.dg .slider{float:left;width:66%;margin-left:-5px;margin-right:0;height:19px;margin-top:4px}.dg .slider-fg{height:100%}.dg .c input[type=checkbox]{margin-top:9px}.dg .c select{margin-top:5px}.dg .cr.function,.dg .cr.function .property-name,.dg .cr.function *,.dg .cr.boolean,.dg .cr.boolean *{cursor:pointer}.dg .selector{display:none;position:absolute;margin-left:-9px;margin-top:23px;z-index:10}.dg .c:hover .selector,.dg .selector.drag{display:block}.dg li.save-row{padding:0}.dg li.save-row .button{display:inline-block;padding:0px 6px}.dg.dialogue{background-color:#222;width:460px;padding:15px;font-size:13px;line-height:15px}#dg-new-constructor{padding:10px;color:#222;font-family:Monaco, monospace;font-size:10px;border:0;resize:none;box-shadow:inset 1px 1px 1px #888;word-wrap:break-word;margin:12px 0;display:block;width:440px;overflow-y:scroll;height:100px;position:relative}#dg-local-explain{display:none;font-size:11px;line-height:17px;border-radius:3px;background-color:#333;padding:8px;margin-top:10px}#dg-local-explain code{font-size:10px}#dat-gui-save-locally{display:none}.dg{color:#eee;font:11px 'Lucida Grande', sans-serif;text-shadow:0 -1px 0 #111}.dg.main::-webkit-scrollbar{width:5px;background:#1a1a1a}.dg.main::-webkit-scrollbar-corner{height:0;display:none}.dg.main::-webkit-scrollbar-thumb{border-radius:5px;background:#676767}.dg li:not(.folder){background:#1a1a1a;border-bottom:1px solid #2c2c2c}.dg li.save-row{line-height:25px;background:#dad5cb;border:0}.dg li.save-row select{margin-left:5px;width:108px}.dg li.save-row .button{margin-left:5px;margin-top:1px;border-radius:2px;font-size:9px;line-height:7px;padding:4px 4px 5px 4px;background:#c5bdad;color:#fff;text-shadow:0 1px 0 #b0a58f;box-shadow:0 -1px 0 #b0a58f;cursor:pointer}.dg li.save-row .button.gears{background:#c5bdad url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAANCAYAAAB/9ZQ7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAQJJREFUeNpiYKAU/P//PwGIC/ApCABiBSAW+I8AClAcgKxQ4T9hoMAEUrxx2QSGN6+egDX+/vWT4e7N82AMYoPAx/evwWoYoSYbACX2s7KxCxzcsezDh3evFoDEBYTEEqycggWAzA9AuUSQQgeYPa9fPv6/YWm/Acx5IPb7ty/fw+QZblw67vDs8R0YHyQhgObx+yAJkBqmG5dPPDh1aPOGR/eugW0G4vlIoTIfyFcA+QekhhHJhPdQxbiAIguMBTQZrPD7108M6roWYDFQiIAAv6Aow/1bFwXgis+f2LUAynwoIaNcz8XNx3Dl7MEJUDGQpx9gtQ8YCueB+D26OECAAQDadt7e46D42QAAAABJRU5ErkJggg==) 2px 1px no-repeat;height:7px;width:8px}.dg li.save-row .button:hover{background-color:#bab19e;box-shadow:0 -1px 0 #b0a58f}.dg li.folder{border-bottom:0}.dg li.title{padding-left:16px;background:#000 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 10px no-repeat;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.2)}.dg .closed li.title{background-image:url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlGIWqMCbWAEAOw==)}.dg .cr.boolean{border-left:3px solid #806787}.dg .cr.function{border-left:3px solid #e61d5f}.dg .cr.number{border-left:3px solid #2fa1d6}.dg .cr.number input[type=text]{color:#2fa1d6}.dg .cr.string{border-left:3px solid #1ed36f}.dg .cr.string input[type=text]{color:#1ed36f}.dg .cr.function:hover,.dg .cr.boolean:hover{background:#111}.dg .c input[type=text]{background:#303030;outline:none}.dg .c input[type=text]:hover{background:#3c3c3c}.dg .c input[type=text]:focus{background:#494949;color:#fff}.dg .c .slider{background:#303030;cursor:ew-resize}.dg .c .slider-fg{background:#2fa1d6}.dg .c .slider:hover{background:#3c3c3c}.dg .c .slider:hover .slider-fg{background:#44abda}
+	</style>
+	<script src="../javascript/jsfeat/webfont.js" type="text/javascript" async=""></script>
 
-
-<!--added below for improved map selection -->
-
-
-
-<!--  FACEBOOK LIKE BUTTON -->
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
-
-<!-- GOOGLE PLUS-ONE BUTTON -->
-<script type="text/javascript">
-  (function() {
-    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-    po.src = 'https://apis.google.com/js/plusone.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-  })();
-</script>
 </head>
 
 
 
 <body <%if (request.getParameter("noscript") == null) {%>
   xonload="initialize()" <%}%>>
+  
+   <script type="text/javascript" src="../javascript/jsfeat/jsfeat-min.js"></script>
+    <script type="text/javascript" src="../javascript/jsfeat/compatibility.js"></script>
+    <script type="text/javascript" src="../javascript/jsfeat/profiler.js"></script>
+    <script type="text/javascript" src="../javascript/jsfeat/dat.gui.min.js"></script>
+    <script type="text/javascript" src="../javascript/jsfeat/custom.jsfeat.js"></script>
+  <script type="text/javascript">
+      
+      //var patternImage = document.getElementById("imageTools-img");
+      //var patternImage2 = document.getElementById("patternImage2");
+      
+      function getURLParameter(name){
+         if(name=(new RegExp('[?&]'+encodeURIComponent(name)+'=([^&]*)')).exec(location.search))
+          return decodeURIComponent(name[1]);
+      }
+                 
+
+            var gui,options,canvasWidth,canvasHeight;
+            var img_u8, img_u8_smooth, screen_corners, num_corners, screen_descriptors;
+            var pattern_corners, pattern_descriptors, pattern_preview;
+            var matches, homo3x3, match_mask;
+            var num_train_levels = 4;
+
+
+      var stat = new profiler();
+      
+      
+      
+      function render_corners(corners, count, img, step) {
+			//alert("render_corners");
+          var pix = (0xff << 24) | (0x00 << 16) | (0xff << 8) | 0x00;
+console.warn('step = %d', step);
+//console.warn(corners); return;
+          
+          //var spotScale=itool.wCanvas.width/itool.imgEl.naturalWidth;
+          var spotScale = $(itool.wCanvas).width() / itool.wCanvas.width;
+          //var spotScale=1.1;
+          //alert(spotScale);
+//spotScale = 1;
+console.warn('spotScale = %f', spotScale);
+          itool.spots=[];
+					itool.lCtx.clearRect(0,0,itool.lCanvas.width, itool.lCanvas.height);
+          
+          for(var i=0; i < count; ++i){
+        	  if(i<options.maxspots){
+        	  	//old spot creating with JSFeat - replace this
+              
+              	var x = corners[i].x;
+              	var y = corners[i].y;
+							var xy = itool.xyWorkToOrig([x*spotScale, y*spotScale]);
+							//if (itool.isNearSpot(xy[0],xy[1])) continue;
+              	console.info("(%d,%d) -> (%d,%d)",x,y, xy[0],xy[1]);
+              
+              //Jon - how can I create your spots here instead of those above?
+             	itool.spots.push({xy: xy, type: 'spot'});
+             //itool.spots.push({xy: [(x-itool.wCanvas.width), (y-itool.wCanvas.height)], type: 'spot'});
+              
+              
+              //itool.spots.push({xy: [(x), (y)], type: 'spot'});
+              
+              //push({xy:  itool.xyOrigToWork([x,y]) .....})                                                        
+            //push({xy: [x * this.scale, y * this.scale] ..})    		  
+        	  }	  
+              
+          }
+          itool.drawSpots();
+			//alert("done render_corners");
+      }
+      
+      
+      function findSpots() {
+    	  
+    	  return;
+    	  
+          canvasWidth=itool.wCanvas.width;
+          canvasHeight=itool.wCanvas.height;
+          
+          //alert("width: "+itool.wCanvas.width+" height: "+itool.wCanvas.height);
+
+          //sctx.fillStyle = "rgb(0,255,0)";
+          //sctx.strokeStyle = "rgb(0,255,0)";
+
+          img_u8 = new jsfeat.matrix_t(canvasWidth, canvasHeight, jsfeat.U8_t | jsfeat.C1_t);
+          // after blur
+          img_u8_smooth = new jsfeat.matrix_t(canvasWidth, canvasHeight, jsfeat.U8_t | jsfeat.C1_t);
+          // we wll limit to 500 strongest points
+          screen_descriptors = new jsfeat.matrix_t(32, 500, jsfeat.U8_t | jsfeat.C1_t);
+          pattern_descriptors = [];
+          
+          screen_corners = [];
+          pattern_corners = [];
+          matches = [];
+
+          var i = canvasWidth*canvasHeight;
+          while(--i >= 0) {
+              screen_corners[i] = new jsfeat.keypoint_t(0,0,0,0,-1);
+              matches[i] = new match_t();
+          }
+    	  //screen_corners = [];
+          //pattern_corners = [];
+          //matches = [];
+              	//compatibility.requestAnimationFrame(tick);
+              	//stat.new_frame();
+              	//if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        		//alert("about to draw image!");
+              	//sctx.drawImage(localPatternImage, 0, 0, 640, 480);
+              	
+              	var myWidth=itool.wCanvas.width;
+               var myHeight=itool.wCanvas.height;
+               //var myWidth=800;
+               //var myHeight=600;
+               //var myWidth=itool.imgEl.naturalWidth;
+               //var myHeight=itool.imgEl.naturalHeight;
+console.warn('myW, myH = (%d, %d)', myWidth, myHeight);
+               
+               //alert("width: "+itool.imgEl.naturalWidth+" height: "+itool.imgEl.naturalHeight);
+              	
+                    //var imageData = sctx.getImageData(0, 0, myWidth, myHeight);
+                    var imageData = itool.wCtx.getImageData(0, 0, myWidth, myHeight);
+       			//alert("Retrieved image data!");
+
+                    stat.start("grayscale");
+                    jsfeat.imgproc.grayscale(imageData.data, myWidth, myHeight, img_u8);
+                    stat.stop("grayscale");
+                    //alert("post grayscale");
+
+                    stat.start("gauss blur");
+                    jsfeat.imgproc.gaussian_blur(img_u8, img_u8_smooth, options.blur_size|0);
+                    stat.stop("gauss blur");
+                    //alert("post gauss lur");
+
+                    jsfeat.yape06.laplacian_threshold = options.lap_thres|0;
+                    jsfeat.yape06.min_eigen_value_threshold = options.eigen_thres|0;
+                    //alert("post yape06");
+
+                    stat.start("keypoints");
+                    num_corners = detect_keypoints(img_u8_smooth, screen_corners, 5000);
+                    stat.stop("keypoints");
+
+                    stat.start("orb descriptors");
+                    jsfeat.orb.describe(img_u8_smooth, screen_corners, num_corners, screen_descriptors);
+                    stat.stop("orb descriptors");
+
+                    // render result back to canvas
+                    var data_u32 = new Uint32Array(imageData.data.buffer);
+                    //console.log("%d,%d",itool.wCanvas.width,itool.wCanvas.height);
+                    render_corners(screen_corners, num_corners, data_u32, myWidth);
+        
+        //alert("end render_corners!");
+
+                    // render pattern and matches
+                    var num_matches = 0;
+                    var good_matches = 0;
+                    //if(pattern_preview) {
+                    //    render_mono_image(pattern_preview.data, data_u32, pattern_preview.cols, pattern_preview.rows, 800);
+                      //alert("end render_mono_image");
+                     //   stat.start("matching");
+                     //   num_matches = match_pattern();
+                     //   good_matches = find_transform(matches, num_matches);
+                     //   stat.stop("matching");
+                    //}
+        
+        //alert("end render pattern and matches!");
+        
+                    sctx.putImageData(imageData, 0, 0);
+
+                    if(num_matches) {
+                        render_matches(sctx, matches, num_matches);
+                        if(good_matches > 8)
+                            render_pattern_shape(sctx);
+                    }
+
+                    $('#log').html(stat.log());
+                  //}
+              	//itool.wCanvas.onmouseup();
+            }
+      
+         
+
+            // our point match structure
+            var match_t = (function () {
+                function match_t(screen_idx, pattern_lev, pattern_idx, distance) {
+                    if (typeof screen_idx === "undefined") { screen_idx=0; }
+                    if (typeof pattern_lev === "undefined") { pattern_lev=0; }
+                    if (typeof pattern_idx === "undefined") { pattern_idx=0; }
+                    if (typeof distance === "undefined") { distance=0; }
+
+                    this.screen_idx = screen_idx;
+                    this.pattern_lev = pattern_lev;
+                    this.pattern_idx = pattern_idx;
+                    this.distance = distance;
+                }
+                return match_t;
+            })();
+      
+       var demo_opt = function(){
+             //alert("Starting demo_opt!");
+                this.blur_size = 5;
+                this.lap_thres = 30;
+                this.eigen_thres = 25;
+                this.match_threshold = 48;
+                this.maxspots=80;
+
+                this.train_pattern = function() {
+return findSpots();
+                    //alert("Starting train_pattern!");
+                    var lev=0, i=0;
+                    var sc = 1.0;
+                    var max_pattern_size = 512;
+                    var max_per_level = 300;
+                    var sc_inc = Math.sqrt(2.0); // magic number ;)
+                    var lev0_img = new jsfeat.matrix_t(img_u8.cols, img_u8.rows, jsfeat.U8_t | jsfeat.C1_t);
+                    var lev_img = new jsfeat.matrix_t(img_u8.cols, img_u8.rows, jsfeat.U8_t | jsfeat.C1_t);
+                    var new_width=0, new_height=0;
+                    var lev_corners, lev_descr;
+                    var corners_num=0;
+
+                    var sc0 = Math.min(max_pattern_size/img_u8.cols, max_pattern_size/img_u8.rows);
+                    new_width = (img_u8.cols*sc0)|0;
+                    new_height = (img_u8.rows*sc0)|0;
+
+                    jsfeat.imgproc.resample(img_u8, lev0_img, new_width, new_height);
+
+                    // prepare preview
+                    pattern_preview = new jsfeat.matrix_t(new_width>>1, new_height>>1, jsfeat.U8_t | jsfeat.C1_t);
+                    jsfeat.imgproc.pyrdown(lev0_img, pattern_preview);
+
+                    for(lev=0; lev < num_train_levels; ++lev) {
+                        pattern_corners[lev] = [];
+                        lev_corners = pattern_corners[lev];
+
+                        // preallocate corners array
+                        i = (new_width*new_height) >> lev;
+                        while(--i >= 0) {
+                            lev_corners[i] = new jsfeat.keypoint_t(0,0,0,0,-1);
+                        }
+
+                        pattern_descriptors[lev] = new jsfeat.matrix_t(32, max_per_level, jsfeat.U8_t | jsfeat.C1_t);
+                    }
+
+                    // do the first level
+                    lev_corners = pattern_corners[0];
+                    lev_descr = pattern_descriptors[0];
+
+                    jsfeat.imgproc.gaussian_blur(lev0_img, lev_img, options.blur_size|0); // this is more robust
+                    corners_num = detect_keypoints(lev_img, lev_corners, max_per_level);
+                    jsfeat.orb.describe(lev_img, lev_corners, corners_num, lev_descr);
+
+                    console.log("train " + lev_img.cols + "x" + lev_img.rows + " points: " + corners_num);
+
+                    sc /= sc_inc;
+
+                    // lets do multiple scale levels
+                    // we can use Canvas context draw method for faster resize 
+                    // but its nice to demonstrate that you can do everything with jsfeat
+                    for(lev = 1; lev < num_train_levels; ++lev) {
+                        lev_corners = pattern_corners[lev];
+                        lev_descr = pattern_descriptors[lev];
+
+                        new_width = (lev0_img.cols*sc)|0;
+                        new_height = (lev0_img.rows*sc)|0;
+
+                        jsfeat.imgproc.resample(lev0_img, lev_img, new_width, new_height);
+                        jsfeat.imgproc.gaussian_blur(lev_img, lev_img, options.blur_size|0);
+                        corners_num = detect_keypoints(lev_img, lev_corners, max_per_level);
+                        jsfeat.orb.describe(lev_img, lev_corners, corners_num, lev_descr);
+
+                        // fix the coordinates due to scale level
+                        for(i = 0; i < corners_num; ++i) {
+                            lev_corners[i].x *= 1./sc;
+                            lev_corners[i].y *= 1./sc;
+                        }
+
+                        console.log("train " + lev_img.cols + "x" + lev_img.rows + " points: " + corners_num);
+
+                        sc /= sc_inc;
+                    }
+                    //alert("Ending train_pattern!");
+                  //tick(patternImage2);
+                };
+         
+            }
+
+      
+      function startJFeat() {
+        //alert("Starting demo_app");
+                //canvasWidth  = itool.wCanvas.width;
+                //canvasHeight = itool.wCanvas.height;
+                
+                //canvasWidth=itool.imgEl.naturalWidth;
+                //canvasHeight=itool.imgEl.naturalHeight;
+                
+
+        
+
+                // transform matrix
+                homo3x3 = new jsfeat.matrix_t(3,3,jsfeat.F32C1_t);
+                match_mask = new jsfeat.matrix_t(500,1,jsfeat.U8C1_t);
+
+                options = new demo_opt();
+                //alert("completed demo_opt!");
+                gui = new dat.GUI();
+        		//alert("completed dat.GUI!");
+        
+        
+
+                var blurController = gui.add(options, "blur_size", 3, 12).step(1);
+                var lapController = gui.add(options, "lap_thres", 1, 100);
+                var eigenController = gui.add(options, "eigen_thres", 1, 100);
+                //var thresholdController = gui.add(options, "match_threshold", 16, 128);
+                var maxspots=gui.add(options, "maxspots",1,150).name("max # spots").step(5);
+                var trainer=gui.add(options, "train_pattern").name("find spots");
+                
+                
+        		//alert("completed dat.GUI add options!");
+        		blurController.onFinishChange(findSpots);
+         		eigenController.onFinishChange(findSpots);
+              	lapController.onFinishChange(findSpots);
+              	maxspots.onFinishChange(findSpots);
+              	//thresholdController.onFinishChange(findSpots);
+                
+        
+                
+        
+        
+                stat.add("grayscale");
+                stat.add("gauss blur");
+                stat.add("keypoints");
+                stat.add("orb descriptors");
+                stat.add("matching");
+              //alert("Completed demo_app!");
+            }
+
+
+
+        </script>
 
 	<div id="wrapper">
 		<div id="page">
 			<jsp:include page="../header.jsp" flush="true">
   				<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 			</jsp:include>
-			
-			
-			<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 
 <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
- <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
  <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
  
-  <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+
  
 <script src="../javascript/imageTools.js"></script>
 <script>
+window.alert = function(a) { console.debug(a); }
+
 $(document).ready(function() {
 	checkImage($('#imageTools-img'));
+    "use strict";
+
+    // lets do some fun
+    //document.getElementById("patternImage").src = getURLParameter("patternImage");
+  //document.getElementById("patternImage2").src = getURLParameter("patternImage2");
+    
+    try {
+        
+        
+        
+        
+       // var onDimensionsReady = function(width, height) {
+          //alert("Starting onDimensionsReady!");
+            startJFeat();
+          //alert("Completing onDimensionsReady!");
+          //compatibility.requestAnimationFrame(tick);
+     //   };
+      
+     // onDimensionsReady(640, 480);
+      findSpots();
+
+        
+    } catch (error) {
+		alert("error!");
+    }
 });
 </script>
 
@@ -705,15 +1050,61 @@ $(document).ready(function() {
 		<div id="imageTools-spot-type-picker"></div>
 
 	</div>
+	
+
+
 
 
 </div>
 
+	    <div class="dg ac">
+      <div class="dg main a" style="width: 245px;">
+        <ul style="height: auto;">
+          <li class="cr number has-slider">
+            <div><span class="property-name">blur_size</span>
+              <div class="c">
+                <div><input type="text"></div>
+                <div class="slider"> </div>
+              </div>
+            </div>
+          </li>
+          <li class="cr number has-slider">
+            <div><span class="property-name">lap_thres</span>
+              <div class="c">
+                <div><input type="text"></div>
+                <div class="slider"> </div>
+              </div>
+            </div>
+          </li>
+          <li class="cr number has-slider">
+            <div><span class="property-name">eigen_thres</span>
+              <div class="c">
+                <div><input type="text"></div>
+                <div class="slider"> </div>
+              </div>
+            </div>
+          </li>
+          
+          <li class="cr number has-slider">
+            <div><span class="property-name">maxspots</span>
+              <div class="c">
+                <div><input type="text"></div>
+                <div class="slider"> </div>
+              </div>
+            </div>
+          </li>
+      
+          <li class="cr function">
+            <div><span class="property-name">train_pattern</span>
+              <div class="c"> </div>
+            </div>
+          </li>
+        </ul>
+      
+      </div>
 
 
 </div>
-
-
 
 <jsp:include page="../footer.jsp" flush="true"/>
 

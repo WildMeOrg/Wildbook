@@ -47,8 +47,8 @@ public class GridManager {
 
   //Modified Groth algorithm parameters
   private String epsilon = "0.01";
-  private String R = "8";
-  private String Sizelim = "0.85";
+  private String R = "100";
+  private String Sizelim = "0.99";
   private String maxTriangleRotation = "10";
   private String C = "0.99";
   private String secondRun = "true";

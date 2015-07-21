@@ -166,6 +166,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     }
 
   %>
+  <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
+  </li>
 
 
 </ul>

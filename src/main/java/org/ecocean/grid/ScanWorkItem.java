@@ -24,10 +24,15 @@ package org.ecocean.grid;
 //test 3
 
 
-import com.reijns.I3S.Pair;
+import com.reijns.I3S.*;
+
 import org.ecocean.Encounter;
 import org.ecocean.Spot;
 import org.ecocean.SuperSpot;
+import com.fastdtw.timeseries.*;
+import com.fastdtw.timeseries.TimeSeriesBase.*;
+import com.fastdtw.dtw.FastDTW;
+import com.fastdtw.util.Distances;
 
 import java.util.*;
 
@@ -59,6 +64,7 @@ public class ScanWorkItem implements java.io.Serializable {
   public boolean rightScan;
   private MatchObject result;
   private I3SMatchObject i3sResult;
+  private Double fastDTWResult;
   private int totalWorkItemsInTask;
   private int workItemsCompleteInTask;
 
@@ -165,6 +171,34 @@ public class ScanWorkItem implements java.io.Serializable {
     for (int t = 0; t < spotLength2; t++) {
       existingGrothSpots.add(new SuperSpot(new Spot(0, oldspotsTemp[t].getTheSpot().getCentroidX(), oldspotsTemp[t].getTheSpot().getCentroidY())));
     }
+    
+    
+    
+    //start DTW array creation
+    
+    //com.reijns.I3S.Point2D[] newEncRefSpots=newEncounter.getThreeRightFiducialPoints();
+    //com.reijns.I3S.Point2D[] existingEncRefSpots=existingEncounter.getThreeRightFiducialPoints();
+    
+    //we need to create a 0 to 1 time series for each one using the right hand spot
+    
+    //also create two arrays for FastDTW
+    Builder b1 = TimeSeriesBase.builder();
+    for (int t = 0; t < spotLength; t++) {
+      b1.add(newspotsTemp[t].getTheSpot().getCentroidX(), newspotsTemp[t].getTheSpot().getCentroidY());     
+    }
+    TimeSeries ts1=b1.build();
+    
+    Builder b2 = TimeSeriesBase.builder();
+    for (int t = 0; t < spotLength2; t++) {
+      b2.add(oldspotsTemp[t].getTheSpot().getCentroidX(), oldspotsTemp[t].getTheSpot().getCentroidY());     
+    }
+    TimeSeries ts2=b2.build();
+
+    //end DTW array creation
+    
+    
+    
+    
 
 
     MatchObject result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan);
@@ -205,6 +239,9 @@ public class ScanWorkItem implements java.io.Serializable {
 
     //add the I3S results to the matchObject sent back
     result.setI3SValues(points, i3sResult.getI3SMatchValue());
+    
+    //calculate FastDTW
+    Double fastDTWResult = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());
 
 
     done = true;
@@ -313,5 +350,8 @@ public class ScanWorkItem implements java.io.Serializable {
   public void setNewEncounter(EncounterLite el) {
     this.newEncounter = el;
   }
+  
+  public Double getFastDTWResult(){return fastDTWResult;}
+  
 }
 	
