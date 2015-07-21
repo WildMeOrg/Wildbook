@@ -205,7 +205,42 @@ context=ServletUtilities.getContext(request);
   }
 %>
 
-<p>
+<p><a href="#resultstable">See the table below for score breakdowns.</a></p>
+		  <%
+		  
+
+		    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
+		    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
+		    System.out.println("Base URL is: " + baseURL);
+		    if (xmlOK) {
+		      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+		        feedURL = baseURL + encSubdir + "/lastFullRightFastDTWScan.xml?";
+		      } else {
+		        feedURL = baseURL + encSubdir + "/lastFullFastDTWScan.xml?";
+		      }
+		    }
+		    String rightSA = "";
+		    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+		      rightSA = "&filePrefix=extractRight";
+		    }
+		    System.out.println("I made it to the Flash without exception.");
+		  %>
+		  <OBJECT id="sharkflash"
+		          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
+		          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
+		    <PARAM NAME="movie"
+		           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
+		    <PARAM NAME="quality" VALUE="high">
+		    <PARAM NAME="scale" VALUE="exactfit">
+		    <PARAM NAME="bgcolor" VALUE="#ddddff">
+		    <EMBED
+		      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
+		      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
+		      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
+		      TYPE="application/x-shockwave-flash"
+		      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
+		  </OBJECT>
+		</p>
 
 <h2>I3S Scan Results <a
   href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
@@ -234,9 +269,9 @@ context=ServletUtilities.getContext(request);
   <thead>
   
         <tr align="left" valign="top">
-          <th><strong>Shark</strong></th>
+          <th><strong>Individual</strong></th>
           <th><strong> Encounter</strong></th>
-          <th><strong>Match Score </strong></th>
+        
 		<th><strong>FastDTW Score </strong></th>
 
     </tr>
@@ -264,7 +299,7 @@ context=ServletUtilities.getContext(request);
           </a></td>
           <%
             }
-            String finalscore2 = results[p].getDTWResult().toString();
+            String finalscore2 = (new Double(results[p].getI3SMatchValue())).toString();
 
             //trim the length of finalscore
             if (finalscore2.length() > 7) {
@@ -274,7 +309,7 @@ context=ServletUtilities.getContext(request);
           <td><%=finalscore2%>
           </td>
 
-		<td><%=results[p].getDTWResult() %></td>
+		
 
         </tr>
 
@@ -326,7 +361,7 @@ context=ServletUtilities.getContext(request);
 
           %>
           
-          
+          <td><%=finalscore %></td>
 
 
           <%
