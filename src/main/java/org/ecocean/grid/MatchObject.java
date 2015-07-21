@@ -259,5 +259,7 @@ public class MatchObject implements java.io.Serializable {
   }
   
   public Double getFastDTWResult(){return fastDTWResult;}
+  
+  public void setFastDTWResult(Double value){fastDTWResult=value;}
 
 }

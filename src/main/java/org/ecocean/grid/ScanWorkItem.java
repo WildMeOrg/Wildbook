@@ -242,7 +242,7 @@ public class ScanWorkItem implements java.io.Serializable {
     
     //calculate FastDTW
     Double fastDTWResult = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());
-
+    result.setFastDTWResult(fastDTWResult);
 
     done = true;
     return result;

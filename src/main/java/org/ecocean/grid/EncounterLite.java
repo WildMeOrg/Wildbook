@@ -1436,17 +1436,11 @@ public class EncounterLite implements java.io.Serializable {
 
     FingerPrint thisPrint = new FingerPrint(origThisEncounterSpots, thisEncounterSpots, thisEncControlSpots);
     //System.out.println("I have constructed the existing fingerprint!");
-
-    //affine transform for scale adjustment
-    doAffine(newPrint);
-    doAffine(thisPrint);
-    
     
     //start DTW array creation
     int sizeNewPrint=newPrint.fpp.length;
     int sizeThisPrint=thisPrint.fpp.length;
 
-    //also create two arrays for FastDTW
     Builder b1 = TimeSeriesBase.builder();
     for (int t = 0; t < sizeNewPrint; t++) {
       b1.add(newPrint.fpp[t].getX(), newPrint.fpp[t].getY());     
@@ -1460,14 +1454,12 @@ public class EncounterLite implements java.io.Serializable {
     TimeSeries ts2=b2.build();
     
     Double distance = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());
-    
-    System.out.println("    I found a FastDTW score of: "+distance);
-    
+    //System.out.println("    !!!!I found a FastDTW score of: "+distance);
     //end DTW array creation
-    
-    
-    
-    
+
+    //affine transform for scale adjustment
+    doAffine(newPrint);
+    doAffine(thisPrint);
     
 
     Compare wsCompare = new Compare(thisPrint);
