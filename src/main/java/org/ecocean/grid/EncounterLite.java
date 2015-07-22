@@ -40,6 +40,9 @@ import org.ecocean.SuperSpot;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeMap;
+import java.awt.geom.Line2D;
+import java.lang.Double;
+
 
 //a class...
 //more description..
@@ -1440,16 +1443,58 @@ public class EncounterLite implements java.io.Serializable {
     //start DTW array creation
     int sizeNewPrint=newPrint.fpp.length;
     int sizeThisPrint=thisPrint.fpp.length;
+    
+    //Point2D[] thisEncControlSpots = new Point2D[3];
+    //Point2D[] newEncControlSpots = new Point2D[3];
+    
+    
+    Line2D.Double newLeftLine=new Line2D.Double(newEncControlSpots[0].getX(),newEncControlSpots[0].getY(),newEncControlSpots[1].getX(),newEncControlSpots[1].getY());
+    Line2D.Double newRightLine=new Line2D.Double(newEncControlSpots[1].getX(),newEncControlSpots[1].getY(),newEncControlSpots[2].getX(),newEncControlSpots[2].getY());
+    
 
     Builder b1 = TimeSeriesBase.builder();
     for (int t = 0; t < sizeNewPrint; t++) {
-      b1.add(newPrint.fpp[t].getX(), newPrint.fpp[t].getY());     
+      double myX=(newPrint.fpp[t].getX()-newEncControlSpots[0].getX())/(newEncControlSpots[2].getX()-newEncControlSpots[0].getX());
+      double myY=0;
+      
+      if(myX<=newEncControlSpots[1].getX()){
+        myY=newLeftLine.ptLineDist(new java.awt.geom.Point2D.Double(newPrint.fpp[t].getX(),newPrint.fpp[t].getY())); 
+      }
+      else{
+        myY=newRightLine.ptLineDist(new java.awt.geom.Point2D.Double(newPrint.fpp[t].getX(),newPrint.fpp[t].getY())); 
+        
+      }
+      System.out.println("     myY new distance to line is: "+myY);
+      b1.add(myX,myY);     
     }
     TimeSeries ts1=b1.build();
     
+    Line2D.Double thisLeftLine=new Line2D.Double(thisEncControlSpots[0].getX(),thisEncControlSpots[0].getY(),thisEncControlSpots[1].getX(),thisEncControlSpots[1].getY());
+    Line2D.Double thisRightLine=new Line2D.Double(thisEncControlSpots[1].getX(),thisEncControlSpots[1].getY(),thisEncControlSpots[2].getX(),thisEncControlSpots[2].getY());
+    
+    
     Builder b2 = TimeSeriesBase.builder();
     for (int t = 0; t < sizeThisPrint; t++) {
-      b2.add(thisPrint.fpp[t].getX(), thisPrint.fpp[t].getY()); 
+      double myX=(thisPrint.fpp[t].getX()-thisEncControlSpots[0].getX())/(thisEncControlSpots[2].getX()-thisEncControlSpots[0].getX());
+      
+      
+      double myY=0;
+      
+      if(myX<=thisEncControlSpots[1].getX()){
+        myY=thisLeftLine.ptLineDist(new java.awt.geom.Point2D.Double(thisPrint.fpp[t].getX(),thisPrint.fpp[t].getY())); 
+        double s = (thisLeftLine.y2 - thisLeftLine.y1) * thisPrint.fpp[t].getX() + (thisLeftLine.x1 - thisLeftLine.x2) * thisPrint.fpp[t].getY() + (thisLeftLine.x2 * thisLeftLine.y1 - thisLeftLine.x1 * thisLeftLine.y2);
+        if(s<0){myY=myY*-1;}
+      }
+      else{
+        myY=thisRightLine.ptLineDist(new java.awt.geom.Point2D.Double(thisPrint.fpp[t].getX(),thisPrint.fpp[t].getY())); 
+        double s = (thisRightLine.y2 - thisRightLine.y1) * thisPrint.fpp[t].getX() + (thisRightLine.x1 - thisRightLine.x2) * thisPrint.fpp[t].getY() + (thisRightLine.x2 * thisRightLine.y1 - thisRightLine.x1 * thisRightLine.y2);
+        if(s<0){myY=myY*-1;}
+      }
+      System.out.println("     myY this distance to line is: "+myY);
+      
+      //run an above/below the line tes
+      
+      b2.add(myX,myY); 
     }
     TimeSeries ts2=b2.build();
     
