@@ -1453,17 +1453,30 @@ public class EncounterLite implements java.io.Serializable {
     
 
     Builder b1 = TimeSeriesBase.builder();
+    double newHighestControlSpot=newEncControlSpots[0].getY();
+    if(newEncControlSpots[2].getY()>newHighestControlSpot){newHighestControlSpot=newEncControlSpots[2].getY();}
+    
     for (int t = 0; t < sizeNewPrint; t++) {
       double myX=(newPrint.fpp[t].getX()-newEncControlSpots[0].getX())/(newEncControlSpots[2].getX()-newEncControlSpots[0].getX());
       double myY=0;
       
       if(myX<=newEncControlSpots[1].getX()){
-        myY=newLeftLine.ptLineDist(new java.awt.geom.Point2D.Double(newPrint.fpp[t].getX(),newPrint.fpp[t].getY())); 
+        myY=newLeftLine.ptLineDist(new java.awt.geom.Point2D.Double(newPrint.fpp[t].getX(),newPrint.fpp[t].getY()))/(newHighestControlSpot-newEncControlSpots[1].getY()); 
+        double s = (newLeftLine.y2 - newLeftLine.y1) * newPrint.fpp[t].getX() + (newLeftLine.x1 - newLeftLine.x2) * newPrint.fpp[t].getY() + (newLeftLine.x2 * newLeftLine.y1 - newLeftLine.x1 * newLeftLine.y2);
+        //myY=(myY-newEncControlSpots[1].getY())/(newHighestControlSpot-newEncControlSpots[1].getY());
+        
+        if(s<0){myY=myY*-1;}
       }
       else{
-        myY=newRightLine.ptLineDist(new java.awt.geom.Point2D.Double(newPrint.fpp[t].getX(),newPrint.fpp[t].getY())); 
+        myY=newRightLine.ptLineDist(new java.awt.geom.Point2D.Double(newPrint.fpp[t].getX(),newPrint.fpp[t].getY()))/(newHighestControlSpot-newEncControlSpots[1].getY()); 
+        double s = (newRightLine.y2 - newRightLine.y1) * newPrint.fpp[t].getX() + (newRightLine.x1 - newRightLine.x2) * newPrint.fpp[t].getY() + (newRightLine.x2 * newRightLine.y1 - newRightLine.x1 * newRightLine.y2);
+        //myY=(myY-newEncControlSpots[1].getY())/(newHighestControlSpot-newEncControlSpots[1].getY());
         
+        if(s<0){myY=myY*-1;}
       }
+      
+      
+      
       System.out.println("     myY new distance to line is: "+myY);
       b1.add(myX,myY);     
     }
@@ -1474,20 +1487,28 @@ public class EncounterLite implements java.io.Serializable {
     
     
     Builder b2 = TimeSeriesBase.builder();
+    double thisHighestControlSpot=thisEncControlSpots[0].getY();
+    if(thisEncControlSpots[2].getY()>thisHighestControlSpot){thisHighestControlSpot=thisEncControlSpots[2].getY();}
+    
+    
     for (int t = 0; t < sizeThisPrint; t++) {
       double myX=(thisPrint.fpp[t].getX()-thisEncControlSpots[0].getX())/(thisEncControlSpots[2].getX()-thisEncControlSpots[0].getX());
-      
+      if(thisEncControlSpots[2].getY()>thisHighestControlSpot){thisHighestControlSpot=thisEncControlSpots[2].getY();}
       
       double myY=0;
       
       if(myX<=thisEncControlSpots[1].getX()){
-        myY=thisLeftLine.ptLineDist(new java.awt.geom.Point2D.Double(thisPrint.fpp[t].getX(),thisPrint.fpp[t].getY())); 
+        myY=thisLeftLine.ptLineDist(new java.awt.geom.Point2D.Double(thisPrint.fpp[t].getX(),thisPrint.fpp[t].getY()))/(thisHighestControlSpot-thisEncControlSpots[1].getY()); 
         double s = (thisLeftLine.y2 - thisLeftLine.y1) * thisPrint.fpp[t].getX() + (thisLeftLine.x1 - thisLeftLine.x2) * thisPrint.fpp[t].getY() + (thisLeftLine.x2 * thisLeftLine.y1 - thisLeftLine.x1 * thisLeftLine.y2);
+       // myY=(myY-thisEncControlSpots[1].getY())/(thisHighestControlSpot-thisEncControlSpots[1].getY());
+        
         if(s<0){myY=myY*-1;}
       }
       else{
-        myY=thisRightLine.ptLineDist(new java.awt.geom.Point2D.Double(thisPrint.fpp[t].getX(),thisPrint.fpp[t].getY())); 
+        myY=thisRightLine.ptLineDist(new java.awt.geom.Point2D.Double(thisPrint.fpp[t].getX(),thisPrint.fpp[t].getY()))/(thisEncControlSpots[2].getX()-thisEncControlSpots[0].getX())/(thisHighestControlSpot-thisEncControlSpots[1].getY()); 
         double s = (thisRightLine.y2 - thisRightLine.y1) * thisPrint.fpp[t].getX() + (thisRightLine.x1 - thisRightLine.x2) * thisPrint.fpp[t].getY() + (thisRightLine.x2 * thisRightLine.y1 - thisRightLine.x1 * thisRightLine.y2);
+       // myY=(myY-thisEncControlSpots[1].getY())/(thisHighestControlSpot-thisEncControlSpots[1].getY());
+        
         if(s<0){myY=myY*-1;}
       }
       System.out.println("     myY this distance to line is: "+myY);
@@ -1498,7 +1519,7 @@ public class EncounterLite implements java.io.Serializable {
     }
     TimeSeries ts2=b2.build();
     
-    Double distance = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());
+    Double distance = new Double(FastDTW.compare(ts1, ts2, 1, Distances.EUCLIDEAN_DISTANCE).getDistance());
     //System.out.println("    !!!!I found a FastDTW score of: "+distance);
     //end DTW array creation
 
