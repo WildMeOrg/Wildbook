@@ -123,7 +123,7 @@ public class WorkAppletHeadlessEpic {
 
       //check the number of processors
       Runtime rt = Runtime.getRuntime();
-      int numProcessors = rt.availableProcessors();
+      int numProcessors = 1;
 
 
       System.out.println();

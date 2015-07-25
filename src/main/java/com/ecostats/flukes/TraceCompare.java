@@ -59,6 +59,7 @@ public class TraceCompare {
    */
   public TraceCompare() {
     //this.points=points;
+    System.out.println("         Starting TraceCompare in ctor");
     this.doSetup();
   }
   
@@ -66,6 +67,8 @@ public class TraceCompare {
    * Sets up basic reused matrix and array parameters used in the class.
    */
   public void doSetup(){
+    
+    //System.out.println("          Starting doSetup!");
     // loads values for V and D matrices (original matrix values from matrix.m Matlab file)
     double[][] vmat={ { 1.0, 1.5, 1.5, 0.7, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3},
                       { 1.5, 2.0, 0.0, 1.5, 0.0, 0.8, 0.0, 0.5, 0.0, 0.0, 0.0},
@@ -78,6 +81,9 @@ public class TraceCompare {
                       { 0.0, 0.0, 0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0},
                       { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0},
                       { 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0} };
+    
+    //System.out.println("          vmat done!");
+    
     double[][] dmat={ { 0.025, 0.04, 0.04, 0.04, 0.04, 0.0, 0.0, 0.0, 0.0, 0.0, 0.025},
                       { 0.04, 0.04, 0.0, 0.04, 0.0, 0.06, 0.0, 0.04, 0.0, 0.0, 0.0},
                       { 0.04, 0.0, 0.04 , 0.0, 0.04 , 0.0, 0.06 , 0.0, 0.04 , 0.0, 0.0},
@@ -89,20 +95,26 @@ public class TraceCompare {
                       { 0.0, 0.0, 0.04 , 0.0, 0.045, 0.0, 0.0, 0.0, 0.04, 0.0, 0.0},
                       { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06 , 0.0},
                       { 0.025, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.04} };
+    
+    //System.out.println("          dmat done!");
+    
     // Create a 13x13 matrix for local variables ddm and vvm.
     Matrix2D ddm=new Matrix2D(13,13);
     Matrix2D vvm=new Matrix2D(13,13);
+    //System.out.println("          Mid-way through doSetup!");
     // set all values to zero 
     ddm.fillMatrix(0);
     vvm.fillMatrix(0);
     // Replace the first 11x11 matrix values of ddm and vvm  
     // starting at row (0), column (0) using matrix data dmat and vmat.
+    //System.out.println("          Matrices filled!");
     ddm.setSubMatrix(dmat, 0, 0);
     vvm.setSubMatrix(vmat, 0, 0);
     // using the above variables, set the public parameters
     this.vvl=(ArrayRealVector) vvm.getDiagonalVector(); 
     this.vv=this.matrixToColumnVector(vvm); // creates a single column vector from the 13x13 matrix
     this.dd=this.matrixToColumnVector(ddm); // creates a single column vector from the 13x13 matrix
+    //System.out.println("          doSetup done!");
   }
   
   /* 
