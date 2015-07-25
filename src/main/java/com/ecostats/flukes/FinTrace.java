@@ -148,30 +148,37 @@ public class FinTrace implements java.io.Serializable {
   
   public FinTrace(EncounterLite enc, String side) {
     
+    ArrayList<SuperSpot> allSpots=enc.getRightSpots();
+    SuperSpot[] refSpots=enc.getRightReferenceSpots();
+    SuperSpot divet=refSpots[1];
     ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
-    ArrayList<SuperSpot> refSpots=new ArrayList<SuperSpot>();
+    int numAllSpots=allSpots.size();
     
-    if(side.equals("right")){
-      spots=enc.getRightSpots();
-      //refSpots=enc.getRightReferenceSpots()
+    for(int i=0;i<numAllSpots;i++){
+      SuperSpot thisSpot=(SuperSpot)allSpots.get(i);
+      if(side.equals("right")){
+        if(thisSpot.getCentroidX()>divet.getCentroidX()){spots.add(thisSpot);}
+      }
+      else if(side.equals("left")){
+        if(thisSpot.getCentroidX()<divet.getCentroidX()){spots.add(thisSpot);}
+      }
+    
     }
-    else if(side.equals("left")){
-      spots=enc.getSpots();
-      //refSpots=enc.getLeftReferenceSpots();
-    }
+    
+    System.out.println("     Fin Trace "+side+" created: "+spots.toString());
     
     int numSpots=spots.size();
-    double[] x=new double[numSpots];
-    double[] y=new double[numSpots];
-    double[] types=new double[numSpots];
+    this.x=new double[numSpots];
+    this.y=new double[numSpots];
+    this.mark_types=new double[numSpots];
     for(int i=0;i<numSpots;i++){
       SuperSpot theSpot=spots.get(i);
-      x[i]=theSpot.getCentroidX();
-      y[i]=theSpot.getCentroidY();
+      this.x[i]=theSpot.getCentroidX();
+      this.y[i]=theSpot.getCentroidY();
       if(theSpot.getType()!=null){
-        types[i]=theSpot.getType();
+        this.mark_types[i]=theSpot.getType();
       }
-      else{types[i]=POINT;}
+      else{this.mark_types[i]=POINT;}
       
     }
     
@@ -192,30 +199,34 @@ public class FinTrace implements java.io.Serializable {
   
   public FinTrace(Encounter enc, String side) {
     
+    ArrayList<SuperSpot> allSpots=enc.getRightSpots();
+    ArrayList<SuperSpot> refSpots=enc.getRightReferenceSpots();
+    SuperSpot divet=refSpots.get(1);
     ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
-    ArrayList<SuperSpot> refSpots=new ArrayList<SuperSpot>();
+    int numAllSpots=allSpots.size();
     
-    if(side.equals("right")){
-      spots=enc.getRightSpots();
-      refSpots=enc.getRightReferenceSpots();
-    }
-    else if(side.equals("left")){
-      spots=enc.getSpots();
-      refSpots=enc.getLeftReferenceSpots();
-    }
+    for(int i=0;i<numAllSpots;i++){
+      SuperSpot thisSpot=allSpots.get(i);
+      if(side.equals("right")){
+        if(thisSpot.getCentroidX()>divet.getCentroidX()){spots.add(thisSpot);}
+      }
+      else if(side.equals("left")){
+        if(thisSpot.getCentroidX()<divet.getCentroidX()){spots.add(thisSpot);}
+      }
     
+    }
     int numSpots=spots.size();
-    double[] x=new double[numSpots];
-    double[] y=new double[numSpots];
-    double[] types=new double[numSpots];
+    this.x=new double[numSpots];
+    this.y=new double[numSpots];
+    this.mark_types=new double[numSpots];
     for(int i=0;i<numSpots;i++){
       SuperSpot theSpot=spots.get(i);
-      x[i]=theSpot.getCentroidX();
-      y[i]=theSpot.getCentroidY();
+      this.x[i]=theSpot.getCentroidX();
+      this.y[i]=theSpot.getCentroidY();
       if(theSpot.getType()!=null){
-        types[i]=theSpot.getType();
+        this.mark_types[i]=theSpot.getType();
       }
-      else{types[i]=POINT;}
+      else{this.mark_types[i]=POINT;}
       
     }
     

@@ -23,8 +23,7 @@ package org.ecocean.grid;
 
 //another unenhanced comment
 
-import com.ecostats.flukes.Fluke;
-import com.ecostats.flukes.TraceCompare;
+import com.ecostats.flukes.*;
 import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.timeseries.TimeSeriesBase;
 import com.fastdtw.timeseries.TimeSeriesBase.Builder;
@@ -1545,22 +1544,26 @@ public class EncounterLite implements java.io.Serializable {
     double geroMatchValue=0;
     
     try{
-      //TraceCompare tc = new TraceCompare();
-      //Fluke newFluke=new Fluke(newEnc);
-      //Fluke thisFluke=new Fluke(this);
+      //System.out.println("     About to start TraceCompare!");
+      Fluke newFluke=new Fluke(newEnc);
+      //System.out.println("     newFluke created!");
+      Fluke thisFluke=new Fluke(this);
+      //System.out.println("     thisFluke created!");
+      TraceCompare tc = new TraceCompare();
+      //System.out.println("     TraceComapre done!");
+      ArrayList<Fluke> flukes=new ArrayList<Fluke>();
+      flukes.add(thisFluke);
+      TreeSet<Fluke> matches = tc.processCatalog(flukes,newFluke);
       
-      //ArrayList<Fluke> flukes=new ArrayList<Fluke>();
+      if(matches.size()>0){
+        geroMatchValue=matches.first().getMatchValue();
+      }
     }
     catch(Exception fe){fe.printStackTrace();}
-    /*
-    flukes.add(thisFluke);
-    TreeSet<Fluke> matches = tc.processCatalog(flukes,newFluke);
     
-    if(matches.size()>0){
-      geroMatchValue=matches.first().getMatchValue();
-    }
+    
     System.out.println("    !!!!I found a Gero score of: "+geroMatchValue);
-    */
+    
 
     //affine transform for scale adjustment
     doAffine(newPrint);
