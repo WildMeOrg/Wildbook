@@ -607,7 +607,7 @@ public class WriteOutScanTask extends HttpServlet {
       //now setup the XML write for the encounter
       //int resultsSize=results.size();
 
-      Arrays.sort(matches, new NewFastDTWMatchComparator());
+      Arrays.sort(matches, new FastDTWMatchComparator());
       StringBuffer resultsXML = new StringBuffer();
       Document document = DocumentHelper.createDocument();
       Element root = document.addElement("matchSet");
@@ -620,11 +620,18 @@ public class WriteOutScanTask extends HttpServlet {
           //System.out.println("I3S match value: "+mo.getI3SMatchValue());
           //if ((mo.getI3SMatchValue() > 0.001) && (mo.getI3SMatchValue() <= 2.0)) {
             Element match = root.addElement("match");
-            String finalscore = mo.getFastDTWResult().toString();
-            if (finalscore.length() > 7) {
-              finalscore = finalscore.substring(0, 6);
+            String leftFinalscore = mo.getLeftFastDTWResult().toString();
+            if (leftFinalscore.length() > 7) {
+              leftFinalscore = leftFinalscore.substring(0, 6);
             }
-            match.addAttribute("finalscore", finalscore);
+            match.addAttribute("finalscoreLeft", leftFinalscore);
+            
+            String rightFinalscore = mo.getRightFastDTWResult().toString();
+            if (leftFinalscore.length() > 7) {
+              rightFinalscore = rightFinalscore.substring(0, 6);
+            }
+            match.addAttribute("finalscoreRight", rightFinalscore);
+            
             match.addAttribute("evaluation", mo.getEvaluation());
 
             Element enc = match.addElement("encounter");

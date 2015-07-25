@@ -22,14 +22,35 @@ package org.ecocean.grid;
 import java.util.Comparator;
 
 
-public class NewFastDTWMatchComparator implements Comparator {
+
+public class FastDTWMatchComparator implements Comparator {
+  
+  public FastDTWMatchComparator(String side){
+    this.side=side;
+  }
+  
+  public FastDTWMatchComparator(){}
+  
+  private String side="left";
 
   public int compare(Object a, Object b) {
     MatchObject a1 = (MatchObject) a;
     MatchObject b1 = (MatchObject) b;
 
-    double a1_adjustedValue = a1.getFastDTWResult().doubleValue();
-    double b1_adjustedValue = b1.getFastDTWResult().doubleValue();
+
+    double a1_adjustedValue = 0;
+    double b1_adjustedValue=0;
+    
+    //right side or
+    if(side.equals("right")){
+      a1.getRightFastDTWResult().doubleValue();
+      b1_adjustedValue = b1.getRightFastDTWResult().doubleValue();
+    }
+    //assume left
+    else{
+      a1.getLeftFastDTWResult().doubleValue();
+      b1_adjustedValue = b1.getLeftFastDTWResult().doubleValue();
+    }
 
     if (a1_adjustedValue < b1_adjustedValue) {
       return -1;
@@ -41,6 +62,9 @@ public class NewFastDTWMatchComparator implements Comparator {
 
 
   }
+  
+  public String getSide(){return side;}
+  public void setSide(String newSide){side=newSide;}
 
 
 }

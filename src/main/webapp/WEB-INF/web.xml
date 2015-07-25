@@ -690,6 +690,12 @@
     <servlet-name>RelationshipDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.RelationshipDelete</servlet-class>
   </servlet>
+  
+   <servlet>
+    <servlet-name>FinTraceServlet</servlet-name>
+    <servlet-class>com.ecostats.flukes.FinTraceServlet</servlet-class>
+  </servlet>
+
 
   <servlet>
     <servlet-name>OccurrenceAddEncounter</servlet-name>
@@ -1122,6 +1128,11 @@
     <servlet-mapping>
       <servlet-name>EncounterSetTissueSample</servlet-name>
       <url-pattern>/EncounterSetTissueSample</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+      <servlet-name>FinTraceServlet</servlet-name>
+      <url-pattern>/FinTraceServlet</url-pattern>
   </servlet-mapping>
   
     

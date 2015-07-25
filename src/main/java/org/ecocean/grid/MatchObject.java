@@ -45,7 +45,8 @@ public class MatchObject implements java.io.Serializable {
   public Vector Points = new Vector();
   public double i3sMatchValue;
   
-  public Double fastDTWResult;
+  public Double leftFastDTWResult;
+  public Double rightFastDTWResult;
 
   //used for JDO enhance
   public MatchObject() {
@@ -258,8 +259,12 @@ public class MatchObject implements java.io.Serializable {
     return this.taskID;
   }
   
-  public Double getFastDTWResult(){return fastDTWResult;}
+  public Double getLeftFastDTWResult(){return leftFastDTWResult;}
+  public void setLeftFastDTWResult(Double value){leftFastDTWResult=value;}
   
-  public void setFastDTWResult(Double value){fastDTWResult=value;}
+  public Double getRightFastDTWResult(){return rightFastDTWResult;}
+  public void setRightFastDTWResult(Double value){rightFastDTWResult=value;}
+  
+  
 
 }

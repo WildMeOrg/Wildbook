@@ -1479,7 +1479,7 @@ public class EncounterLite implements java.io.Serializable {
       
       
       
-      System.out.println("     myY new distance to line is: "+myY);
+      //System.out.println("     myY new distance to line is: "+myY);
       b1.add(myX,myY);     
     }
     TimeSeries ts1=b1.build();
