@@ -23,6 +23,8 @@ package org.ecocean.grid;
 
 //another unenhanced comment
 
+import com.ecostats.flukes.Fluke;
+import com.ecostats.flukes.TraceCompare;
 import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.timeseries.TimeSeriesBase;
 import com.fastdtw.timeseries.TimeSeriesBase.Builder;
@@ -39,7 +41,9 @@ import org.ecocean.SuperSpot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.awt.geom.Line2D;
 import java.lang.Double;
 
@@ -68,6 +72,7 @@ public class EncounterLite implements java.io.Serializable {
   private String encounterNumber = "";
   private String belongsToMarkedIndividual;
   String date = "";
+  public String dynamicProperties;
 
   public EncounterLite() {
   }
@@ -79,6 +84,7 @@ public class EncounterLite implements java.io.Serializable {
     if(enc.getSex()!=null){
       this.sex = enc.getSex();
     }
+    if(enc.getDynamicProperties()!=null){this.dynamicProperties=enc.getDynamicProperties();}
     //this.size = enc.getSize();
     /*if(enc.getSpots()!=null) {
         this.spots=new superSpot[enc.getSpots().length];
@@ -201,7 +207,7 @@ public class EncounterLite implements java.io.Serializable {
     return encounterNumber;
   }
 
-  public MatchObject getPointsForBestMatch(SuperSpot[] newspotsTemp, double epsilon, double R, double Sizelim, double maxTriangleRotation, double C, boolean secondRun, boolean rightScan) {
+  public MatchObject getPointsForBestMatch(SuperSpot[] newspotsTemp, double epsilon, double R, double Sizelim, double maxTriangleRotation, double C, boolean secondRun, boolean rightScan, SuperSpot newReferenceSpot) {
     System.out.println("\nNow comparing against encounter " + encounterNumber + " of " + belongsToMarkedIndividual + "...");
     try {
 
@@ -288,15 +294,18 @@ public class EncounterLite implements java.io.Serializable {
       newClosePairDist = 9999;
       int numSpots = newspots.length;
       //System.out.println("     I expect "+(numSpots*(numSpots-1)*(numSpots-2)/6)+" triangles.");
-      ArrayList newTriangles = new ArrayList(numSpots * (numSpots - 1) * (numSpots - 2) / 6);
+      ArrayList newTriangles = new ArrayList(numSpots * (numSpots - 1) * 1 / 6);
       int newSpotArrayL = newspots.length - 2;
       for (int i = 0; i < newSpotArrayL; i++) {
 
         for (int j = i + 1; j < (newspots.length - 1); j++) {
           int newArrayL = newspots.length;
-          for (int k = j + 1; k < newArrayL; k++) {
-            SpotTriangle tempTriangle = new SpotTriangle(newspots[i].getTheSpot(), newspots[j].getTheSpot(), newspots[k].getTheSpot(), epsilon);
-            orient = 0;
+         // for (int k = j + 1; k < newArrayL; k++) {
+           
+          
+          SpotTriangle tempTriangle = new SpotTriangle(newspots[i].getTheSpot(), newspots[j].getTheSpot(), newReferenceSpot.getTheSpot(), epsilon);
+          
+          orient = 0;
             if (tempTriangle.clockwise) orient = 1;
 
 
@@ -312,7 +321,7 @@ public class EncounterLite implements java.io.Serializable {
               newTriangles.add(tempTriangle);
 
             }
-          }
+         // }
         }
       }
       //System.out.println("     I found "+newTriangles.size()+" new encounter triangles.\n Filtering for Sizelim...");
@@ -338,15 +347,15 @@ public class EncounterLite implements java.io.Serializable {
       SuperSpot[] baseSpots = spots;
       int spotAL = baseSpots.length;
       //System.out.println("      I expect "+(spotAL*(spotAL-1)*(spotAL-2)/6)+" triangles.");
-      ArrayList baseTriangles = new ArrayList(spotAL * (spotAL - 1) * (spotAL - 2) / 6);
+      ArrayList baseTriangles = new ArrayList(spotAL * (spotAL - 1) * 1 / 6);
       int spotArrayL = baseSpots.length - 2;
       int ensureNumIterations = 0;
       for (int i = 0; i < spotArrayL; i++) {
 
         for (int j = i + 1; j < (baseSpots.length - 1); j++) {
 
-          for (int k = j + 1; k < baseSpots.length; k++) {
-            SpotTriangle tempTriangle = new SpotTriangle(baseSpots[i].getTheSpot(), baseSpots[j].getTheSpot(), baseSpots[k].getTheSpot(), epsilon);
+          //for (int k = j + 1; k < baseSpots.length; k++) {
+            SpotTriangle tempTriangle = new SpotTriangle(baseSpots[i].getTheSpot(), baseSpots[j].getTheSpot(), getRightReferenceSpots()[1].getTheSpot(), epsilon);
             orient = 0;
             if (tempTriangle.clockwise) orient = 1;
             //System.out.println("New "+i+" "+j+" "+k+" "+tempTriangle.C+" "+tempTriangle.tC2+" "+tempTriangle.R+" "+tempTriangle.tR2+" "+tempTriangle.D13+" "+orient);
@@ -360,7 +369,7 @@ public class EncounterLite implements java.io.Serializable {
             if ((tempTriangle.R <= R) && (tempTriangle.C <= C)) {
               baseTriangles.add(tempTriangle);
             }
-          }
+          //}
         }
       }
       //System.out.println("     I found "+baseTriangles.size()+" base encounter triangles.\n Filtering for Sizelim...");
@@ -1373,6 +1382,9 @@ public class EncounterLite implements java.io.Serializable {
   public I3SMatchObject i3sScan(EncounterLite newEnc, boolean scanRight) {
 
     //superSpot objects are my equivalent in my DB of Point2D
+    
+    System.out.println("     Starting I3S scan...");
+    
     //these spots are for the unknown encounter
     SuperSpot[] newspotsTemp = new SuperSpot[0];
 
@@ -1516,7 +1528,7 @@ public class EncounterLite implements java.io.Serializable {
         //myY=amplifyY(myY,s);
         
       }
-      System.out.println("     myY this distance to line is: "+myY);
+      //System.out.println("     myY this distance to line is: "+myY);
       
       //run an above/below the line tes
       
@@ -1525,8 +1537,30 @@ public class EncounterLite implements java.io.Serializable {
     TimeSeries ts2=b2.build();
     
     Double distance = new Double(FastDTW.compare(ts1, ts2, 0, Distances.EUCLIDEAN_DISTANCE).getDistance());
-    //System.out.println("    !!!!I found a FastDTW score of: "+distance);
+    System.out.println("    !!!!I found a FastDTW score of: "+distance);
     //end DTW array creation
+    
+    
+    //insert Shane's algorithm
+    double geroMatchValue=0;
+    
+    try{
+      //TraceCompare tc = new TraceCompare();
+      //Fluke newFluke=new Fluke(newEnc);
+      //Fluke thisFluke=new Fluke(this);
+      
+      //ArrayList<Fluke> flukes=new ArrayList<Fluke>();
+    }
+    catch(Exception fe){fe.printStackTrace();}
+    /*
+    flukes.add(thisFluke);
+    TreeSet<Fluke> matches = tc.processCatalog(flukes,newFluke);
+    
+    if(matches.size()>0){
+      geroMatchValue=matches.first().getMatchValue();
+    }
+    System.out.println("    !!!!I found a Gero score of: "+geroMatchValue);
+    */
 
     //affine transform for scale adjustment
     doAffine(newPrint);
@@ -1543,14 +1577,14 @@ public class EncounterLite implements java.io.Serializable {
 
 
     if (successfulCompare) {
-      //System.out.println("Successful compare!");
+      System.out.println("Successful I3S compare!");
     } else {
       System.out.println("Error in compare!");
     }
 
 
     //now return an I3S match object
-    return (new I3SMatchObject(belongsToMarkedIndividual, fpBest[0].getScore(), encounterNumber, sex, getDate(), size, hm, 0, distance));
+    return (new I3SMatchObject(belongsToMarkedIndividual, fpBest[0].getScore(), encounterNumber, sex, getDate(), size, hm, 0, distance, geroMatchValue));
   }
 
   private void doAffine(FingerPrint fp) {
@@ -1761,6 +1795,23 @@ private double amplifyY(double origValue, double s){
   
 }
 
+public String getDynamicPropertyValue(String name) {
+  if (dynamicProperties != null) {
+    name = name.replaceAll("%20", " ");
+    //let's create a TreeMap of the properties
+    TreeMap<String, String> tm = new TreeMap<String, String>();
+    StringTokenizer st = new StringTokenizer(dynamicProperties, ";");
+    while (st.hasMoreTokens()) {
+      String token = st.nextToken();
+      int equalPlace = token.indexOf("=");
+      tm.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));
+    }
+    if (tm.containsKey(name)) {
+      return tm.get(name);
+    }
+  }
+  return null;
+}
 
 }
 

@@ -21,6 +21,11 @@ package com.ecostats.flukes;
 
 import java.lang.reflect.Array;
 
+import org.ecocean.*;
+import org.ecocean.grid.*;
+
+import java.util.ArrayList;
+
 
 /**
  * FinTrace
@@ -138,6 +143,95 @@ public class FinTrace implements java.io.Serializable {
     this.y = this.copyarray(orig.getY());
     this.mark_types = this.copyarray(orig.getTypes());
     this.mark_positions = this.copyarray(orig.getPositions());
+  }
+  
+  
+  public FinTrace(EncounterLite enc, String side) {
+    
+    ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
+    ArrayList<SuperSpot> refSpots=new ArrayList<SuperSpot>();
+    
+    if(side.equals("right")){
+      spots=enc.getRightSpots();
+      //refSpots=enc.getRightReferenceSpots()
+    }
+    else if(side.equals("left")){
+      spots=enc.getSpots();
+      //refSpots=enc.getLeftReferenceSpots();
+    }
+    
+    int numSpots=spots.size();
+    double[] x=new double[numSpots];
+    double[] y=new double[numSpots];
+    double[] types=new double[numSpots];
+    for(int i=0;i<numSpots;i++){
+      SuperSpot theSpot=spots.get(i);
+      x[i]=theSpot.getCentroidX();
+      y[i]=theSpot.getCentroidY();
+      if(theSpot.getType()!=null){
+        types[i]=theSpot.getType();
+      }
+      else{types[i]=POINT;}
+      
+    }
+    
+    if((side.equals("left"))&&(enc.getDynamicPropertyValue("leftCurled")!=null)){
+      if(enc.getDynamicPropertyValue("leftCurled").equals("true")){curled=true;}
+      else{curled=false;}
+    }
+    else if((side.equals("right"))&&(enc.getDynamicPropertyValue("rightCurled")!=null)){
+      if(enc.getDynamicPropertyValue("rightCurled").equals("true")){curled=true;}
+      else{curled=false;}
+    }
+    else{curled=false;}
+    this.mark_positions = new double[x.length];
+    this.trace_type=this.FEATURE_POINTS;
+    this.transform=new String("0 0 0;0 0 0;0 0 0");
+
+  }
+  
+  public FinTrace(Encounter enc, String side) {
+    
+    ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
+    ArrayList<SuperSpot> refSpots=new ArrayList<SuperSpot>();
+    
+    if(side.equals("right")){
+      spots=enc.getRightSpots();
+      refSpots=enc.getRightReferenceSpots();
+    }
+    else if(side.equals("left")){
+      spots=enc.getSpots();
+      refSpots=enc.getLeftReferenceSpots();
+    }
+    
+    int numSpots=spots.size();
+    double[] x=new double[numSpots];
+    double[] y=new double[numSpots];
+    double[] types=new double[numSpots];
+    for(int i=0;i<numSpots;i++){
+      SuperSpot theSpot=spots.get(i);
+      x[i]=theSpot.getCentroidX();
+      y[i]=theSpot.getCentroidY();
+      if(theSpot.getType()!=null){
+        types[i]=theSpot.getType();
+      }
+      else{types[i]=POINT;}
+      
+    }
+    
+    if((side.equals("left"))&&(enc.getDynamicPropertyValue("leftCurled")!=null)){
+      if(enc.getDynamicPropertyValue("leftCurled").equals("true")){curled=true;}
+      else{curled=false;}
+    }
+    else if((side.equals("right"))&&(enc.getDynamicPropertyValue("rightCurled")!=null)){
+      if(enc.getDynamicPropertyValue("rightCurled").equals("true")){curled=true;}
+      else{curled=false;}
+    }
+    else{curled=false;}
+    this.mark_positions = new double[x.length];
+    this.trace_type=this.FEATURE_POINTS;
+    this.transform=new String("0 0 0;0 0 0;0 0 0");
+
   }
   
   private double[] copyarray(double[] a){

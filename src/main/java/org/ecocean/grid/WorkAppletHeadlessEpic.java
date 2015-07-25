@@ -266,6 +266,7 @@ public class WorkAppletHeadlessEpic {
 
               } 
               catch (NullPointerException npe) {
+                npe.printStackTrace();
                 //generic, non-specific applet operation
                 //just sleep because there are no other tasks to do
                 //if(!getParameter("encounter").equals("null")) status.setValue(0);
@@ -307,6 +308,7 @@ public class WorkAppletHeadlessEpic {
 
                   //if(!getParameter("encounter").equals("null")) status.setValue(swi.getWorkItemsCompleteInTask()+d);
                 } catch (NullPointerException npe) {
+                  npe.printStackTrace();
                 }
                 ScanWorkItemResult swir = (ScanWorkItemResult) workItemResults.get(d);
                 MatchObject thisResult = swir.getResult();
@@ -376,6 +378,7 @@ public class WorkAppletHeadlessEpic {
                 catch(Exception except){
                   if(outputToFinalServlet!=null){outputToFinalServlet.close();}
                   if(inputStreamFromServlet!=null){inputStreamFromServlet.close();}
+                  except.printStackTrace();
                 }
                 
                 if (line.equals("success")) {
@@ -419,6 +422,7 @@ public class WorkAppletHeadlessEpic {
     catch (Exception mue) {
       System.out.println("I hit an Exception while trying to create the recoverURL for OutOfMemoryErrors");
       //mue.printStackTrace();
+      mue.printStackTrace();
       System.exit(0);
 
     }
