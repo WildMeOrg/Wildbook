@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.*, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 <html>
 <%
 
@@ -152,7 +152,11 @@ context=ServletUtilities.getContext(request);
   %>
     <li><a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
   </li>
-  <li><a class="active">FastDTW</a></li>
+  
+    <li><a class="active">FastDTW</a></li>
+  
+    <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a>
+  
 
 
 </ul>
@@ -193,13 +197,13 @@ context=ServletUtilities.getContext(request);
     }
 
   }
-  I3SMatchObject[] matches = new I3SMatchObject[0];
+  MatchObject[] matches = new MatchObject[0];
   if (!xmlOK) {
     int resultsSize = initresults.size();
     System.out.println(resultsSize);
-    matches = new I3SMatchObject[resultsSize];
+    matches = new MatchObject[resultsSize];
     for (int a = 0; a < resultsSize; a++) {
-      matches[a] = (I3SMatchObject) initresults.get(a);
+      matches[a] = (MatchObject) initresults.get(a);
     }
 
   }
@@ -242,13 +246,13 @@ context=ServletUtilities.getContext(request);
 		  </OBJECT>
 		</p>
 
-<h2>I3S Scan Results <a
+<h2>FastDTW Scan Results <a
   href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
   target="_blank"><img src="../images/information_icon_svg.gif"
                        alt="Help" border="0" align="absmiddle"></a></h2>
 </p>
 <p>The following encounter(s) received the best
-  match values using the I3S algorithm against a <%=side%>-side scan of
+  match values using the FastDTW algorithm against a <%=side%>-side scan of
   encounter <a href="encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
@@ -270,7 +274,7 @@ context=ServletUtilities.getContext(request);
   
         <tr align="left" valign="top">
           <th><strong>Individual</strong></th>
-          <th><strong> Encounter</strong></th>
+          <th><strong>Encounter</strong></th>
         
 		<th><strong>FastDTW Score </strong></th>
 
@@ -280,11 +284,12 @@ context=ServletUtilities.getContext(request);
         <%
           if (!xmlOK) {
 
-            I3SMatchObject[] results = new I3SMatchObject[1];
+            MatchObject[] results = new MatchObject[1];
             results = matches;
-            Arrays.sort(results, new I3SMatchComparator());
+            Arrays.sort(results, new FastDTWMatchComparator());
             for (int p = 0; p < results.length; p++) {
-              if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
+              //if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {
+              %>
         <tr align="left" valign="top">
          
                 <td width="60" align="left"><a
@@ -299,7 +304,7 @@ context=ServletUtilities.getContext(request);
           </a></td>
           <%
             }
-            String finalscore2 = (new Double(results[p].getI3SMatchValue())).toString();
+            String finalscore2 = (new Double(results[p].getRightFastDTWResult())).toString();
 
             //trim the length of finalscore
             if (finalscore2.length() > 7) {
@@ -315,7 +320,7 @@ context=ServletUtilities.getContext(request);
 
         <%
               //end if matchValue!=0 loop
-            }
+            //}
             //end for loop
           }
 

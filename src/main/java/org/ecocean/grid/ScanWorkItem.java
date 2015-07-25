@@ -181,28 +181,15 @@ public class ScanWorkItem implements java.io.Serializable {
     
     //we need to create a 0 to 1 time series for each one using the right hand spot
     
-    //also create two arrays for FastDTW
-    Builder b1 = TimeSeriesBase.builder();
-    for (int t = 0; t < spotLength; t++) {
-      b1.add(newspotsTemp[t].getTheSpot().getCentroidX(), newspotsTemp[t].getTheSpot().getCentroidY());     
-    }
-    TimeSeries ts1=b1.build();
-    
-    Builder b2 = TimeSeriesBase.builder();
-    for (int t = 0; t < spotLength2; t++) {
-      b2.add(oldspotsTemp[t].getTheSpot().getCentroidX(), oldspotsTemp[t].getTheSpot().getCentroidY());     
-    }
-    TimeSeries ts2=b2.build();
 
-    //end DTW array creation
-    
     
     
     
 
 
-    MatchObject result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan);
-
+    MatchObject result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan, newEncounter.getRightReferenceSpots()[1]);
+    System.out.println("     Groth score was: "+result.getAdjustedMatchValue());
+    
     //I3S processing
 
     //reset the spot patterns after Groth processing
@@ -227,6 +214,7 @@ public class ScanWorkItem implements java.io.Serializable {
     //lookForThisEncounterPoints=newEncounter.getThreeLeftFiducialPoints();
     //}
     i3sResult = existingEncounter.i3sScan(newEncounter, rightScan);
+    System.out.println("     I3S score is: "+i3sResult.getI3SMatchValue());
 
     //create a Vector of Points
     Vector points = new Vector();
@@ -241,8 +229,13 @@ public class ScanWorkItem implements java.io.Serializable {
     result.setI3SValues(points, i3sResult.getI3SMatchValue());
     
     //calculate FastDTW
-    Double fastDTWResult = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());
-    result.setFastDTWResult(fastDTWResult);
+    //Double fastDTWResult = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());
+    result.setRightFastDTWResult(i3sResult.getDTWResult());
+    System.out.println("     FastDTW result is: "+i3sResult.getDTWResult());
+    
+    
+    result.setGeroMatchDistance(i3sResult.getGeroMatchDistance());
+    System.out.println("     Gero result is: "+i3sResult.getGeroMatchDistance());
 
     done = true;
     return result;

@@ -34,12 +34,13 @@ public class I3SMatchObject implements java.io.Serializable {
   public String encounterNumber = "N/A";
   private TreeMap map;
   public String newSex = "Unknown", catalogSex = "Unknown";
-  public Double fastDTWResult;
+  public Double fastDTWResult=null;
+  public Double geroMatchDistance=null;;
 
   public I3SMatchObject() {
   }
 
-  public I3SMatchObject(String individualName, double score, String encounterNumber, String catalogSex, String date, double size, TreeMap map, double mahalSum, Double fastDTWDistance) {
+  public I3SMatchObject(String individualName, double score, String encounterNumber, String catalogSex, String date, double size, TreeMap map, double mahalSum, Double fastDTWDistance, Double geroMatchDistance) {
     this.matchValue = score;
     this.individualName = individualName;
     this.map = map;
@@ -49,6 +50,7 @@ public class I3SMatchObject implements java.io.Serializable {
     this.size = size;
     //this.mahalSum=mahalSum;
     this.fastDTWResult=fastDTWDistance;
+    this.geroMatchDistance=geroMatchDistance;
   }
 
   public TreeMap getMap() {
@@ -116,5 +118,9 @@ public class I3SMatchObject implements java.io.Serializable {
   public Double getDTWResult(){return fastDTWResult;}
   
   public void setFastDTWResult(Double value){fastDTWResult=value;}
+  
+  public Double getGeroMatchDistance(){return geroMatchDistance;}
+  
+  public void setGeroMatchDistance(Double value){this.geroMatchDistance=value;}
   
 }

@@ -47,6 +47,8 @@ public class MatchObject implements java.io.Serializable {
   
   public Double leftFastDTWResult;
   public Double rightFastDTWResult;
+  
+  public Double geroMatchDistance;
 
   //used for JDO enhance
   public MatchObject() {
@@ -264,6 +266,9 @@ public class MatchObject implements java.io.Serializable {
   
   public Double getRightFastDTWResult(){return rightFastDTWResult;}
   public void setRightFastDTWResult(Double value){rightFastDTWResult=value;}
+  
+  public Double getGeroMatchDistance(){return geroMatchDistance;}
+  public void setGeroMatchDistance(Double value){geroMatchDistance=value;}
   
   
 

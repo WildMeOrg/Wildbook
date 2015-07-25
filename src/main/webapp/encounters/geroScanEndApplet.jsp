@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.*, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 <html>
 <%
 
@@ -150,11 +150,11 @@ context=ServletUtilities.getContext(request);
   <%
     }
   %>
-  <li><a class="active">I3S</a></li>
-  <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
-  <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a>
-  
+    <li><a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
   </li>
+   <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
+  </li>
+  <li><a class="active">Gero</a></li>
 
 
 </ul>
@@ -176,12 +176,12 @@ context=ServletUtilities.getContext(request);
     try {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightI3SScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightGeroScan.xml");
 
         side = "right";
       } else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullGeroScan.xml");
       }
       doc = xmlReader.read(file);
       root = doc.getRootElement();
@@ -195,40 +195,21 @@ context=ServletUtilities.getContext(request);
     }
 
   }
-  I3SMatchObject[] matches = new I3SMatchObject[0];
+  %>
+  
+  
+  <%
+  MatchObject[] matches = new MatchObject[0];
   if (!xmlOK) {
     int resultsSize = initresults.size();
-    System.out.println(resultsSize);
-    matches = new I3SMatchObject[resultsSize];
+    System.out.println("My results size is: "+resultsSize);
+    matches = new MatchObject[resultsSize];
     for (int a = 0; a < resultsSize; a++) {
-      matches[a] = (I3SMatchObject) initresults.get(a);
+      matches[a] = (MatchObject) initresults.get(a);
     }
 
   }
 %>
-
-<p>
-
-<h2>I3S Scan Results <a
-  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
-  target="_blank"><img src="../images/information_icon_svg.gif"
-                       alt="Help" border="0" align="absmiddle"></a></h2>
-</p>
-<p>The following encounter(s) received the best
-  match values using the I3S algorithm against a <%=side%>-side scan of
-  encounter <a href="encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
-
-
-<%
-  if (xmlOK) {%>
-<p><img src="../images/Crystal_Clear_action_flag.png" width="28px" height="28px" hspace="2" vspace="2" align="absmiddle"><strong>&nbsp;Saved
-  scan data may be old and invalid. Check the date below and run a fresh
-  scan for the latest results.</strong></p>
-
-<p><em>Date of scan: <%=scanDate%>
-</em></p>
-
-<%}%>
 
 <p><a href="#resultstable">See the table below for score breakdowns.</a></p>
 		  <%
@@ -239,9 +220,9 @@ context=ServletUtilities.getContext(request);
 		    System.out.println("Base URL is: " + baseURL);
 		    if (xmlOK) {
 		      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-		        feedURL = baseURL + encSubdir + "/lastFullRightI3SScan.xml?";
+		        feedURL = baseURL + encSubdir + "/lastFullRightGeroScan.xml?";
 		      } else {
-		        feedURL = baseURL + encSubdir + "/lastFullI3SScan.xml?";
+		        feedURL = baseURL + encSubdir + "/lastFullGerocan.xml?";
 		      }
 		    }
 		    String rightSA = "";
@@ -266,14 +247,38 @@ context=ServletUtilities.getContext(request);
 		      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
 		  </OBJECT>
 		</p>
+
+<h2>Gero Scan Results <a
+  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
+  target="_blank"><img src="../images/information_icon_svg.gif"
+                       alt="Help" border="0" align="absmiddle"></a></h2>
+</p>
+<p>The following encounter(s) received the best
+  match values using the Gero algorithm against a <%=side%>-side scan of
+  encounter <a href="encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
+
+
+<%
+  if (xmlOK) {%>
+<p><img src="../images/Crystal_Clear_action_flag.png" width="28px" height="28px" hspace="2" vspace="2" align="absmiddle"><strong>&nbsp;Saved
+  scan data may be old and invalid. Check the date below and run a fresh
+  scan for the latest results.</strong></p>
+
+<p><em>Date of scan: <%=scanDate%>
+</em></p>
+
+<%
+}
+%>
+
 <a name="resultstable" /><table class="tablesorter">
   <thead>
   
         <tr align="left" valign="top">
-          <th><strong>Shark</strong></th>
+          <th><strong>Individual</strong></th>
           <th><strong> Encounter</strong></th>
-          <th><strong>Match Score </strong></th>
-	
+        
+		<th><strong>Gero Score </strong></th>
 
     </tr>
         </thead>
@@ -281,7 +286,7 @@ context=ServletUtilities.getContext(request);
         <%
           if (!xmlOK) {
 
-            I3SMatchObject[] results = new I3SMatchObject[1];
+            MatchObject[] results = new MatchObject[1];
             results = matches;
             Arrays.sort(results, new I3SMatchComparator());
             for (int p = 0; p < results.length; p++) {
@@ -300,7 +305,7 @@ context=ServletUtilities.getContext(request);
           </a></td>
           <%
             }
-            String finalscore2 = (new Double(results[p].matchValue)).toString();
+            String finalscore2 = (new Double(results[p].getGeroMatchDistance())).toString();
 
             //trim the length of finalscore
             if (finalscore2.length() > 7) {
@@ -353,6 +358,7 @@ context=ServletUtilities.getContext(request);
                 finalscore = match.attributeValue("finalscore");
               }
             } catch (NullPointerException npe) {
+            	npe.printStackTrace();
             }
 
             //trim the length of finalscore
@@ -361,8 +367,8 @@ context=ServletUtilities.getContext(request);
             }
 
           %>
-          <td><%=finalscore%>
-          </td>
+          
+          <td><%=finalscore %></td>
 
 
           <%

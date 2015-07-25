@@ -116,6 +116,9 @@ public class WriteOutScanTask extends HttpServlet {
 
         boolean fastDTWWriteThis=fastDTWWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
         
+        boolean geroWriteThis=geroWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
+        
+        
         //write out the boosted results
         //if(request.getParameter("boost")!=null){
         //    Properties props = new Properties();
@@ -182,7 +185,7 @@ public class WriteOutScanTask extends HttpServlet {
       root.addAttribute("C", C);
       for (int i = 0; i < matches.length; i++) {
         MatchObject mo = matches[i];
-        if ((mo.getMatchValue() > 0) && ((mo.getMatchValue() * mo.getAdjustedMatchValue()) > 2)) {
+        //if ((mo.getMatchValue() > 0) && ((mo.getMatchValue() * mo.getAdjustedMatchValue()) > 2)) {
 
           Element match = root.addElement("match");
           match.addAttribute("points", (new Double(mo.getMatchValue())).toString());
@@ -261,7 +264,7 @@ public class WriteOutScanTask extends HttpServlet {
           }
 
 
-        } //end if
+        //} //end if
       } //end for
 
       //prep for writing out the XML
@@ -630,7 +633,7 @@ public class WriteOutScanTask extends HttpServlet {
             if (leftFinalscore.length() > 7) {
               rightFinalscore = rightFinalscore.substring(0, 6);
             }
-            match.addAttribute("finalscoreRight", rightFinalscore);
+            match.addAttribute("finalscore", rightFinalscore);
             
             match.addAttribute("evaluation", mo.getEvaluation());
 
@@ -697,6 +700,113 @@ public class WriteOutScanTask extends HttpServlet {
       writer.write(document);
       writer.close();
       System.out.println("writeOutScanTask: Successful FastDTW write.");
+      return true;
+    } catch (Exception e) {
+      System.out.println("writeOutScanTask: Failed to write out FastDTW results!");
+      e.printStackTrace();
+      return false;
+    }
+
+  }
+  
+  public boolean geroWriteThis(Shepherd myShepherd, MatchObject[] matches, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, String context) {
+    try {
+
+      System.out.println("scanWorkItemResultsHandler: Prepping to write Gero XML file for encounter " + num);
+
+      //now setup the XML write for the encounter
+      //int resultsSize=results.size();
+
+      Arrays.sort(matches, new GeroMatchComparator());
+      StringBuffer resultsXML = new StringBuffer();
+      Document document = DocumentHelper.createDocument();
+      Element root = document.addElement("matchSet");
+      root.addAttribute("scanDate", (new java.util.Date()).toString());
+      //System.out.println("Total num matches for I3S printing: "+matches.length);
+      for (int i = 0; i < matches.length; i++) {
+        try {
+          //System.out.println();
+          MatchObject mo = matches[i];
+          //System.out.println("I3S match value: "+mo.getI3SMatchValue());
+          //if ((mo.getI3SMatchValue() > 0.001) && (mo.getI3SMatchValue() <= 2.0)) {
+            Element match = root.addElement("match");
+            String leftFinalscore = mo.getGeroMatchDistance().toString();
+            if (leftFinalscore.length() > 7) {
+              leftFinalscore = leftFinalscore.substring(0, 6);
+            }
+            match.addAttribute("finalscoreLeft", leftFinalscore);
+            
+            String rightFinalscore = mo.getGeroMatchDistance().toString();
+            if (leftFinalscore.length() > 7) {
+              rightFinalscore = rightFinalscore.substring(0, 6);
+            }
+            match.addAttribute("finalscore", rightFinalscore);
+            
+            match.addAttribute("evaluation", mo.getEvaluation());
+
+            Element enc = match.addElement("encounter");
+            enc.addAttribute("number", mo.getEncounterNumber());
+            enc.addAttribute("date", mo.getDate());
+            
+            if(mo.getSex()!=null){enc.addAttribute("sex", mo.getSex());}
+            else{enc.addAttribute("sex", "unknown");}
+            
+            
+            
+            enc.addAttribute("assignedToShark", mo.getIndividualName());
+            //enc.addAttribute("size", (new Double(mo.getSize())).toString());
+
+            //get the Map
+            Vector map = mo.getMap2();
+            int mapSize = map.size();
+            Encounter e1 = myShepherd.getEncounter(mo.getEncounterNumber());
+
+
+            Element enc2 = match.addElement("encounter");
+            enc2.addAttribute("number", num);
+            enc2.addAttribute("date", newEncDate);
+            enc2.addAttribute("sex", mo.getNewSex());
+            enc2.addAttribute("assignedToShark", newEncShark);
+            //enc2.addAttribute("size", newEncSize);
+
+            //reset the Iterator
+            Encounter e2 = myShepherd.getEncounter(num);
+
+
+          //}
+        } catch (NullPointerException npe) {
+          npe.printStackTrace();
+        }
+      }
+
+
+      //prep for writing out the XML
+
+      //in case this is a right-side scan, change file name to save to
+      String fileAddition = "";
+      if (rightSide) {
+        fileAddition = "Right";
+      }
+      
+      //setup data dir
+      String rootWebappPath = getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
+      File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+      //if(!encountersDir.exists()){encountersDir.mkdirs();}
+      
+      //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"I3SScan.xml");
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "GeroScan.xml");
+
+
+      FileWriter mywriter = new FileWriter(file);
+      org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
+      format.setLineSeparator(System.getProperty("line.separator"));
+      org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(mywriter, format);
+      writer.write(document);
+      writer.close();
+      System.out.println("writeOutScanTask: Successful Gero write.");
       return true;
     } catch (Exception e) {
       System.out.println("writeOutScanTask: Failed to write out FastDTW results!");
