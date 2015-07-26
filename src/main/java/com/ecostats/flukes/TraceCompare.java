@@ -183,11 +183,35 @@ public class TraceCompare {
    *   result = {17,58}
    */
   private RealVector subsetVector(RealVector v, double[] indicies, int index_start){
+    
+    
+    System.out.print("     v values: "+v.toString());
+
+    System.out.print("     index values: {");
+    for(int i=0;i<indicies.length;i++){
+      System.out.print(indicies[i]+",");
+    }
+    System.out.println("}");
+    
+    
     RealVector r = new ArrayRealVector(indicies.length);
     for (int i=0;i<indicies.length;i++){
       int index = (int) Math.floor(indicies[i]); 
+      System.out.println("           Inside subsetVector with index: "+index);
       // note: had to subtract 1 from index since in Matlab vectors indexes start at 1, but Java vectors start as 0.
-       r.setEntry(i, v.getEntry(index - index_start)); 
+      
+      //jason note: this makes no sense. why would the value of a mark-type be a positional index in another array?
+      //especially since some mark_types have a negative value.
+      try{
+        r.setEntry(i, v.getEntry(index - index_start)); 
+      }
+      catch(Exception e){
+        
+        //now what? how do we handle common points, like FinTrace.POINT and FinTrace.TIP?
+        
+      }
+    
+    
     }
     return r;
   }
@@ -461,6 +485,9 @@ public class TraceCompare {
   public double getPtx(Fluke fluke){
     // value of fluke
     RealVector urttx = this.markTypesNoNotchTip(fluke);
+    System.out.println("     RealVector urttx is: "+urttx.toString());
+    System.out.println("     about to callSumVector with: "+(this.subsetVector(vvl,urttx)));
+    System.out.println("     and then going to add: "+HALF_VALUE*this.sumVector(fluke.notchCurlVector()));
     double ptx=this.sumVector(this.subsetVector(vvl,urttx))+HALF_VALUE*this.sumVector(fluke.notchCurlVector());
     return ptx;
   }
