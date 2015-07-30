@@ -35,6 +35,7 @@ public class I3SMatchObject implements java.io.Serializable {
   private TreeMap map;
   public String newSex = "Unknown", catalogSex = "Unknown";
   public Double fastDTWResult=null;
+  public String fastDTWPath="";
   public Double geroMatchDistance=null;;
 
   public I3SMatchObject() {
@@ -122,5 +123,10 @@ public class I3SMatchObject implements java.io.Serializable {
   public Double getGeroMatchDistance(){return geroMatchDistance;}
   
   public void setGeroMatchDistance(Double value){this.geroMatchDistance=value;}
+  
+  public String getFastDTWPath(){return fastDTWPath;}
+  
+  public void setFastDTWPath(String path){this.fastDTWPath=path;}
+  
   
 }

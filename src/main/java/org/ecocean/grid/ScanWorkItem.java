@@ -187,7 +187,7 @@ public class ScanWorkItem implements java.io.Serializable {
     
 
 
-    MatchObject result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan, newEncounter.getRightReferenceSpots()[1]);
+    MatchObject result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan);
     System.out.println("     Groth score was: "+result.getAdjustedMatchValue());
     
     //I3S processing
@@ -227,6 +227,8 @@ public class ScanWorkItem implements java.io.Serializable {
 
     //add the I3S results to the matchObject sent back
     result.setI3SValues(points, i3sResult.getI3SMatchValue());
+    
+    result.setFastDTWPath(i3sResult.getFastDTWPath());
     
     //calculate FastDTW
     //Double fastDTWResult = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());

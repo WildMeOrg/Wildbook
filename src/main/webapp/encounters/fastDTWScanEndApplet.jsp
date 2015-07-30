@@ -277,6 +277,8 @@ context=ServletUtilities.getContext(request);
           <th><strong>Encounter</strong></th>
         
 		<th><strong>FastDTW Score </strong></th>
+		
+		<th><strong>FastDTW Path </strong></th>
 
     </tr>
         </thead>
@@ -305,7 +307,7 @@ context=ServletUtilities.getContext(request);
           <%
             }
             String finalscore2 = (new Double(results[p].getRightFastDTWResult())).toString();
-
+			String path=results[p].getFastDTWPath();
             //trim the length of finalscore
             if (finalscore2.length() > 7) {
               finalscore2 = finalscore2.substring(0, 6);
@@ -313,7 +315,10 @@ context=ServletUtilities.getContext(request);
           %>
           <td><%=finalscore2%>
           </td>
+               <td><%=path%>
+          </td>
 
+		
 		
 
         </tr>

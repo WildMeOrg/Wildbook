@@ -48,6 +48,8 @@ public class MatchObject implements java.io.Serializable {
   public Double leftFastDTWResult;
   public Double rightFastDTWResult;
   
+ public String fastDTWPath="";
+  
   public Double geroMatchDistance;
 
   //used for JDO enhance
@@ -270,6 +272,9 @@ public class MatchObject implements java.io.Serializable {
   public Double getGeroMatchDistance(){return geroMatchDistance;}
   public void setGeroMatchDistance(Double value){geroMatchDistance=value;}
   
+  public String getFastDTWPath(){return fastDTWPath;}
+  
+  public void setFastDTWPath(String path){this.fastDTWPath=path;}
   
 
 }

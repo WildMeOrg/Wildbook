@@ -27,7 +27,7 @@ import com.ecostats.flukes.*;
 import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.timeseries.TimeSeriesBase;
 import com.fastdtw.timeseries.TimeSeriesBase.Builder;
-import com.fastdtw.dtw.FastDTW;
+import com.fastdtw.dtw.*;
 import com.fastdtw.util.Distances;
 import com.reijns.I3S.Affine;
 import com.reijns.I3S.Compare;
@@ -206,7 +206,7 @@ public class EncounterLite implements java.io.Serializable {
     return encounterNumber;
   }
 
-  public MatchObject getPointsForBestMatch(SuperSpot[] newspotsTemp, double epsilon, double R, double Sizelim, double maxTriangleRotation, double C, boolean secondRun, boolean rightScan, SuperSpot newReferenceSpot) {
+  public MatchObject getPointsForBestMatch(SuperSpot[] newspotsTemp, double epsilon, double R, double Sizelim, double maxTriangleRotation, double C, boolean secondRun, boolean rightScan) {
     System.out.println("\nNow comparing against encounter " + encounterNumber + " of " + belongsToMarkedIndividual + "...");
     try {
 
@@ -292,17 +292,17 @@ public class EncounterLite implements java.io.Serializable {
       newSpan = -1;
       newClosePairDist = 9999;
       int numSpots = newspots.length;
-      //System.out.println("     I expect "+(numSpots*(numSpots-1)*(numSpots-2)/6)+" triangles.");
-      ArrayList newTriangles = new ArrayList(numSpots * (numSpots - 1) * 1 / 6);
+      //System.out.println("     I expect "+(numSpots * (numSpots - 1) * 1 / 6)+" triangles.");
+      ArrayList newTriangles = new ArrayList(numSpots * (numSpots - 1) * (numSpots - 2) / 6);
       int newSpotArrayL = newspots.length - 2;
       for (int i = 0; i < newSpotArrayL; i++) {
 
         for (int j = i + 1; j < (newspots.length - 1); j++) {
           int newArrayL = newspots.length;
-         // for (int k = j + 1; k < newArrayL; k++) {
+          for (int k = j + 1; k < newArrayL; k++) {
            
           
-          SpotTriangle tempTriangle = new SpotTriangle(newspots[i].getTheSpot(), newspots[j].getTheSpot(), newReferenceSpot.getTheSpot(), epsilon);
+          SpotTriangle tempTriangle = new SpotTriangle(newspots[i].getTheSpot(), newspots[j].getTheSpot(), newspots[k].getTheSpot(), epsilon);
           
           orient = 0;
             if (tempTriangle.clockwise) orient = 1;
@@ -316,18 +316,21 @@ public class EncounterLite implements java.io.Serializable {
             if (tempTriangle.D12 < newClosePairDist) {
               newClosePairDist = tempTriangle.D12;
             }
+            System.out.println("      Triangle R is "+tempTriangle.R+" and C is "+tempTriangle.C);
+            
             if ((tempTriangle.R <= R) && (tempTriangle.C <= C)) {
               newTriangles.add(tempTriangle);
 
             }
-         // }
+          }
         }
       }
-      //System.out.println("     I found "+newTriangles.size()+" new encounter triangles.\n Filtering for Sizelim...");
+      System.out.println("     I found "+newTriangles.size()+" new encounter triangles.\n Filtering for Sizelim...");
       for (int i = 0; i < newTriangles.size(); i++) {
         SpotTriangle tempTriangle = (SpotTriangle) newTriangles.get(i);
 
         //old sizelim computation
+        System.out.println("      Evaluating a triangle with Sizelim of: "+(tempTriangle.D13 / newSpan));
         if (tempTriangle.D13 / newSpan >= Sizelim) {
 
           //System.out.println("Removing large triangle: "+tempTriangle.D13+" "+newSpan+" "+tempTriangle.D13/newSpan);
@@ -336,6 +339,11 @@ public class EncounterLite implements java.io.Serializable {
 
         }
       }
+      
+      System.out.println("     After Sizelim filering there are now "+newTriangles.size()+" new encounter triangles.");
+      
+      
+      
       if (newClosePairDist < (3 * epsilon)) {
         System.out.println("WARNING!!!! Spots in the new encounter are too close together to support this high of an epsilon value!!!");
       }
@@ -346,15 +354,15 @@ public class EncounterLite implements java.io.Serializable {
       SuperSpot[] baseSpots = spots;
       int spotAL = baseSpots.length;
       //System.out.println("      I expect "+(spotAL*(spotAL-1)*(spotAL-2)/6)+" triangles.");
-      ArrayList baseTriangles = new ArrayList(spotAL * (spotAL - 1) * 1 / 6);
+      ArrayList baseTriangles = new ArrayList(spotAL * (spotAL - 1) * (spotAL - 2) / 6);
       int spotArrayL = baseSpots.length - 2;
       int ensureNumIterations = 0;
       for (int i = 0; i < spotArrayL; i++) {
 
         for (int j = i + 1; j < (baseSpots.length - 1); j++) {
 
-          //for (int k = j + 1; k < baseSpots.length; k++) {
-            SpotTriangle tempTriangle = new SpotTriangle(baseSpots[i].getTheSpot(), baseSpots[j].getTheSpot(), getRightReferenceSpots()[1].getTheSpot(), epsilon);
+          for (int k = j + 1; k < baseSpots.length; k++) {
+            SpotTriangle tempTriangle = new SpotTriangle(baseSpots[i].getTheSpot(), baseSpots[j].getTheSpot(), baseSpots[k].getTheSpot(), epsilon);
             orient = 0;
             if (tempTriangle.clockwise) orient = 1;
             //System.out.println("New "+i+" "+j+" "+k+" "+tempTriangle.C+" "+tempTriangle.tC2+" "+tempTriangle.R+" "+tempTriangle.tR2+" "+tempTriangle.D13+" "+orient);
@@ -368,7 +376,7 @@ public class EncounterLite implements java.io.Serializable {
             if ((tempTriangle.R <= R) && (tempTriangle.C <= C)) {
               baseTriangles.add(tempTriangle);
             }
-          //}
+          }
         }
       }
       //System.out.println("     I found "+baseTriangles.size()+" base encounter triangles.\n Filtering for Sizelim...");
@@ -482,7 +490,7 @@ public class EncounterLite implements java.io.Serializable {
           bestSums.add(new Double(bestsum));
         }
       }
-      //System.out.println("I am now about to start filtering with "+VmatchesA.size()+" triangles!");
+      System.out.println("     I am now about to start filtering with "+VmatchesA.size()+" triangles!");
       //now begin filtering
       ArrayList logM = new ArrayList(VmatchesA.size());
       int nPLUS = 0;
@@ -503,7 +511,7 @@ public class EncounterLite implements java.io.Serializable {
       double multiple = 0;
       boolean stillIterate = true;
       int numIterations = 0;
-      //System.out.println("   Going into the logM filter with "+VmatchesA.size()+" matching triangles. Before filtering, N+="+nPLUS+" N-="+nMINUS);
+      System.out.println("   Going into the logM filter with "+VmatchesA.size()+" matching triangles. Before filtering, N+="+nPLUS+" N-="+nMINUS);
 
       double oldStdDeviationLogM = 10000;
       while (stillIterate && (numIterations < 20) && (VmatchesA.size() > 0)) {
@@ -526,7 +534,7 @@ public class EncounterLite implements java.io.Serializable {
           }
         }
         meanLogM = meanLogM / nPLUS;
-        //System.out.println("Found a mean of: "+meanLogM);
+        System.out.println("Found a mean of: "+meanLogM);
 
 
         //weighted method
@@ -548,9 +556,9 @@ public class EncounterLite implements java.io.Serializable {
             stdDeviationLogM += Math.pow((((Double) logM.get(iter5)).doubleValue() - meanLogM), 2);
           }
         }
-        //System.out.println("Almost standard deviation is: "+stdDeviationLogM);
-        //System.out.println("LogM list size minus one is: "+(logM.size()-1));
-        //System.out.println("The real std dev. should be: "+Math.pow((stdDeviationLogM/(logM.size()-1)), 0.5));
+        System.out.println("Almost standard deviation is: "+stdDeviationLogM);
+        System.out.println("LogM list size minus one is: "+(logM.size()-1));
+        System.out.println("The real std dev. should be: "+Math.pow((stdDeviationLogM/(logM.size()-1)), 0.5));
 
 
         if (nPLUS > 1) {
@@ -669,7 +677,7 @@ public class EncounterLite implements java.io.Serializable {
 
       }
 
-      //System.out.println("Going into scoring with "+VmatchesA.size()+" matching triangles.");
+      System.out.println("Going into Groth scoring with "+VmatchesA.size()+" matching triangles.");
       if (VmatchesA.size() == 0) {
         return (new MatchObject(belongsToMarkedIndividual, 0, 0, encounterNumber));
       }
@@ -760,7 +768,7 @@ public class EncounterLite implements java.io.Serializable {
       VertexPointMatch[] scoredSpots = new VertexPointMatch[0];
       scoredSpots = (VertexPointMatch[]) (secondRunSpots.toArray(scoredSpots));
 
-      //System.out.print("     Scoring going into second pass: ");
+      System.out.print("     Scoring going into second pass: ");
       for (int iter40 = 0; iter40 < scoredSpots.length; iter40++) {
         //System.out.print(scoredSpots[iter40].points+"+");
       }
@@ -793,8 +801,8 @@ public class EncounterLite implements java.io.Serializable {
       SuperSpot[] secondBaseSpots = new SuperSpot[0];
       secondBaseSpots = (SuperSpot[]) (secondRunSpotsB.toArray(secondBaseSpots));
 
-      //System.out.println("secondNewSpots is :"+secondNewSpots.length);
-      //System.out.println("secondBaseSpots is :"+secondBaseSpots.length);
+      System.out.println("secondNewSpots is :"+secondNewSpots.length);
+      System.out.println("secondBaseSpots is :"+secondBaseSpots.length);
 
       //now run Groth's algorithm again if there are enough spots. if not, exit as this is not a match.
       VertexPointMatch[] secondPassSpots = scoredSpots;
@@ -803,12 +811,12 @@ public class EncounterLite implements java.io.Serializable {
         //run recursion on these spots now
         secondPassSpots = secondGrothPass(secondNewSpots, secondBaseSpots, epsilon, R, Sizelim, maxTriangleRotation, C);
         if (secondPassSpots.length < 3) {
-          //System.out.println("Exiting after the second pass because the returned number of spots was less than three. "+scoredSpots.length+"-"+(scoredSpots.length-secondPassSpots.length)+"="+secondPassSpots.length);
+          System.out.println("Exiting after the second pass because the returned number of spots was less than three. "+scoredSpots.length+"-"+(scoredSpots.length-secondPassSpots.length)+"="+secondPassSpots.length);
           return (new MatchObject(belongsToMarkedIndividual, 0, 0, encounterNumber));
         }
         //System.out.println("     The second pass cut out "+(scoredSpots.length-secondPassSpots.length)+" spots.");
       } else {
-        //System.out.println("Exiting processing because there were less than three spots going into the second filter pass. This is not a match.");
+        System.out.println("Exiting processing because there were less than three spots going into the second filter pass. This is not a match.");
         return (new MatchObject(belongsToMarkedIndividual, 0, 0, encounterNumber));
       }
       // end second run
@@ -1535,7 +1543,10 @@ public class EncounterLite implements java.io.Serializable {
     }
     TimeSeries ts2=b2.build();
     
-    Double distance = new Double(FastDTW.compare(ts1, ts2, 0, Distances.EUCLIDEAN_DISTANCE).getDistance());
+    TimeWarpInfo twi=FastDTW.compare(ts1, ts2, 0, Distances.EUCLIDEAN_DISTANCE);
+    WarpPath wp=twi.getPath();
+    String myPath=wp.toString();
+    Double distance = new Double(twi.getDistance());
     System.out.println("    !!!!I found a FastDTW score of: "+distance);
     //end DTW array creation
     
@@ -1587,7 +1598,9 @@ public class EncounterLite implements java.io.Serializable {
 
 
     //now return an I3S match object
-    return (new I3SMatchObject(belongsToMarkedIndividual, fpBest[0].getScore(), encounterNumber, sex, getDate(), size, hm, 0, distance, geroMatchValue));
+    I3SMatchObject i3smo=new I3SMatchObject(belongsToMarkedIndividual, fpBest[0].getScore(), encounterNumber, sex, getDate(), size, hm, 0, distance, geroMatchValue);
+    i3smo.setFastDTWPath(wp.toString());
+    return i3smo;
   }
 
   private void doAffine(FingerPrint fp) {
