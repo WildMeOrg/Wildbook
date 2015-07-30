@@ -330,6 +330,9 @@ public class WriteOutScanTask extends HttpServlet {
             match.addAttribute("finalscore", finalscore);
             match.addAttribute("evaluation", mo.getEvaluation());
 
+            
+            match.addAttribute("dtwPath", mo.getFastDTWPath());
+            
             Element enc = match.addElement("encounter");
             enc.addAttribute("number", mo.getEncounterNumber());
             enc.addAttribute("date", mo.getDate());

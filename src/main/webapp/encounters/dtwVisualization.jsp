@@ -149,8 +149,6 @@ if(theEnc.getRightSpots()!=null){
 	        chart.draw(data, options);
 	      }
 	    </script>
-	
-<h2><%=encNum %></h2>
 
 
 	<%

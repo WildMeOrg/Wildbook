@@ -657,14 +657,20 @@ var comEcostatsTracing = (function(){
 		addFlukeTrace : function(src_img_class,encounterid){
 			addCss();
 			var imgs=$(src_img_class);
-			for (var i=0;imgs.length;i++){
+			for (var i=0;i<imgs.length;i++){
+				//alert("addFlukeTrace: "+encounterid);
 				// set an ID value for each image, so the same image does not get more than one button
-				var id = imgs[i].getAttribute("href").replace(/[://\\.]/g, "");
-				var button = document.getElementById(id);
-				if (button == null || button == undefined){
+				
+				//var id = imgs[i].getAttribute("href").replace(/[://\\.]/g, "");
+				
+				var id = imgs[i].getAttribute("id");
+				console.log(id);
+				
+				//var button = null;
+				//if (button == null || button == undefined){
 					// create a button element above each image that will be used to open the tracing window
 					var button=document.createElement('input');
-					button.setAttribute("id",id);
+					button.setAttribute("id",(id+'-button'));
 					button.setAttribute("type","button");
 					button.setAttribute("class","fluke_trace");
 					button.setAttribute("value","Trace Fluke");
@@ -676,7 +682,7 @@ var comEcostatsTracing = (function(){
 					p.appendChild(button);
 					// insert the button just above the image
 					imgs[i].parentNode.insertBefore(p,imgs[i]);
-				}
+				//}
 			}
 		},
 		
@@ -685,7 +691,7 @@ var comEcostatsTracing = (function(){
 			var target = event_target(event);
 			imgurl = target.getAttribute('imgurl');
 			encounter_id = target.getAttribute('encounter_id');
-			photo_id = target.getAttribute('id'); // uninque path and name for an encounter's photo
+			photo_id = target.getAttribute('id').replace('-button',''); 
 			var fluke_tracer = $("#fluke_tracer");
 			if (fluke_tracer.length==0){
 				// if the fluke_tracer div (pseudo-window) does not yet exist, create it
