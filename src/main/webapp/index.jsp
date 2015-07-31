@@ -405,7 +405,7 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Researcher verfication</h3>
+					<h3>Researcher verification</h3>
 					<p class="lead">
 						When you submit a manta identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don't worry if you are unsure about which species you saw!).
 					</p>
