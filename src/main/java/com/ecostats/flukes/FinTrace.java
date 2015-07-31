@@ -49,10 +49,14 @@ public class FinTrace implements java.io.Serializable {
    * for each point type.
    */
   public final static int DBL_INIT = -1000000000; // default XY point location if one is not provided at construction
-  /* Mark Types */
+  
+  
+  /* Non-computed Mark Types */
   public final static int POINT = -2;         // normal point, no special notation
   public final static int TIP = -1;           // fin tip
   public final static int NOTCH = 0;          // fluke notch
+  
+  /*computed mark types */
   public final static int NICK = 1;           // small nick
   public final static int GOUGE = 2;          // large nick, start=2 end=3
   public final static int GOUGE_END= 3;       // large nick, start=2 end=3
@@ -66,6 +70,8 @@ public class FinTrace implements java.io.Serializable {
   public final static int HOLE = 11;          // hole in fin
   public final static int INVISIBLE = 12;     // invisible parts, start=12 end=13  
   public final static int INVISIBLE_END = 13; // invisible parts, start=12 end=13
+  
+  
   /* Trace Type */
   public final static int FEATURE_POINTS = 1;   // only points are recorded at features of interest, no actual tracing
   public final static int COUNTOUR_TRACING = 2; // the fin countour is fully traced
