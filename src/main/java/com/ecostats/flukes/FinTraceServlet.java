@@ -98,6 +98,13 @@ public class FinTraceServlet extends HttpServlet {
 		    	ArrayList<SuperSpot> leftSpots=convertFinTraceToSuperSpotArray(finTraceLeft);
 		    	ArrayList<SuperSpot> rightSpots=convertFinTraceToSuperSpotArray(finTraceRight);
 		    	
+		    	ArrayList<SuperSpot> referenceSpots=convertFinTraceToReferenceSuperSpotArray(finTraceLeft, finTraceRight);
+		    	
+		    	//since one pattern is used to set left and right spot patterns, 
+		    	//then the same reference points can be used for each
+		    	enc.setLeftReferenceSpots(referenceSpots);
+		    	enc.setRightReferenceSpots(referenceSpots);
+		    	
 		    	enc.setSpots(leftSpots);
 		    	SinglePhotoVideo spv=myShepherd.getSinglePhotoVideo(photo_id);
 		    	enc.setSpotImageFileName(spv.getFilename());
@@ -144,6 +151,10 @@ public class FinTraceServlet extends HttpServlet {
 	      myShepherd.closeDBTransaction();
 	    	out.close();
 	    }
+	    
+	    out.println("Tracing successfully saved!");
+	    
+	    
 	}
 
 	/**
@@ -167,7 +178,8 @@ public class FinTraceServlet extends HttpServlet {
 		for (int i=0;i<pathArray.length();i++){
 			x[i]=pathArray.getJSONArray(i).getInt(0);
 			y[i]=pathArray.getJSONArray(i).getInt(1);
-			n[i]=nodeArray.getInt(i);
+			//shift down 2 integers to match Javascript node types values to the node type values of the paper/Java 
+			n[i]=nodeArray.getInt(i)-2;
 		}
 		// create new fin tracings from the passed tracing node X,Y locations and node Types 
 		FinTrace finTrace = new FinTrace(x,y,n);
@@ -209,11 +221,47 @@ public class FinTraceServlet extends HttpServlet {
 	  int size=x.length;
 	  for(int i=0;i<size;i++){
 	    superspots.add(new SuperSpot(x[i],y[i],new Double(types[i])));
+	    System.out.println("[Spot:"+x[i]+","+y[i]+","+types[i]+"]");
 	  }
-	  
-	  
-	  
 	  return superspots;
 	}
+	
+	//Retrieve the spots of type tip and notch
+	 private ArrayList<SuperSpot> convertFinTraceToReferenceSuperSpotArray(FinTrace fintraceLeft,FinTrace fintraceRight){
+	    ArrayList<SuperSpot> superspots=new ArrayList<SuperSpot>();
+	    
+	    
+	    //get any reference point on the left side
+	    double[] x=fintraceLeft.getX();
+	    double[] y=fintraceLeft.getY();
+	    double[] types=fintraceLeft.getTypes();
+	    int size=x.length;
+	    for(int i=0;i<size;i++){
+	      if((types[i]==-1)||(types[i]==0)){
+	        superspots.add(new SuperSpot(x[i],y[i],new Double(types[i])));
+	      }
+	    }
+	    
+	    
+	    //get any reference point on the right side
+	     x=fintraceRight.getX();
+	     y=fintraceRight.getY();
+	     types=fintraceRight.getTypes();
+	     size=x.length;
+	     
+	      for(int i=0;i<size;i++){
+	        if((types[i]==-1)||(types[i]==0)){
+	          superspots.add(new SuperSpot(x[i],y[i],new Double(types[i])));
+	        }
+	      }
+	    
+	    
+	    
+	    
+	    return superspots;
+	  }
+	
+	
+	
 
 }

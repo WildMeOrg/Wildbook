@@ -30,7 +30,9 @@ var comEcostatsTracing = (function(){
 			tolerance: 5
 		};
 	var first_load=true;
+	//var node_types={0:'point',1:'tip',2:'notch',3:'nick',4:'gouge_start',5:'gouge_end',6:'scallop_start',7:'scallop_end',8:'wave_start',9:'wave_end',10:'missing_start',11:'missing_end',12:'scar',13:'hole',14:'invisible_start',15:'invisible_end'};
 	var node_types={0:'point',1:'tip',2:'notch',3:'nick',4:'gouge_start',5:'gouge_end',6:'scallop_start',7:'scallop_end',8:'wave_start',9:'wave_end',10:'missing_start',11:'missing_end',12:'scar',13:'hole',14:'invisible_start',15:'invisible_end'};
+
 	var segment, path, current_point;
 	var movePath=false;
 	var is_drawing=false;
@@ -638,6 +640,7 @@ var comEcostatsTracing = (function(){
 		modified = false;
 		var fluke_tracer = $("#fluke_tracer");
 		fluke_tracer.hide('fast');
+		location.reload();
 	};
 
 	// dynamically add needed CSS for the menus
