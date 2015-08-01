@@ -200,7 +200,7 @@ context=ServletUtilities.getContext(request);
   MatchObject[] matches = new MatchObject[0];
   if (!xmlOK) {
     int resultsSize = initresults.size();
-    System.out.println(resultsSize);
+    //System.out.println(resultsSize);
     matches = new MatchObject[resultsSize];
     for (int a = 0; a < resultsSize; a++) {
       matches[a] = (MatchObject) initresults.get(a);
@@ -315,7 +315,7 @@ context=ServletUtilities.getContext(request);
           %>
           <td><%=finalscore2%>
           </td>
-               <td><%=path%>
+               <td><%=path%>&nbsp;
           </td>
 
 		
@@ -372,6 +372,8 @@ context=ServletUtilities.getContext(request);
           %>
           
           <td><%=finalscore %></td>
+          
+          <td><%=match.attributeValue("dtwPath") %></td>
 
 
           <%

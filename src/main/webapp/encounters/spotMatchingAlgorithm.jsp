@@ -271,12 +271,14 @@ try {
 		 			
 		 			if((uploadedFile.exists())&&(uploadedFile.isFile())&&(uploadedFile.length()>0)&&(enc.getNumSpots()>0)) {
 
+		 				System.out.println("     uploadedFile exists!");
+		 				
 		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
 		 				
-/*
+
 		 				//iInfo.setInput(new FileInputStream(uploadedFile));
 		 				if (!extractImage.exists()) {
-		 					//System.out.println("Made it here.");
+		 					System.out.println("Made it here.");
 		 					
 		 					height+=Double.toString(imageDimensions.getHeight());
 		 					width+=Double.toString(imageDimensions.getWidth());
@@ -301,7 +303,7 @@ try {
   							
   							<%
 							}
-*/
+
 						}
 									//set the right file
 									
@@ -310,10 +312,10 @@ try {
 									//iInfo=new ImageInfo();
 									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
 		 				
-/*
+
 									//iInfo.setInput(new FileInputStream(uploadedRightFile));
 									if (!extractRightImage.exists()) {
-										//System.out.println("Made it here.");
+										System.out.println("extractRight does not exist: Made it here.");
 										//heightR+=iInfo.getHeight();
 										//widthR+=iInfo.getWidth();
 										//System.out.println(height+"and"+width);
@@ -334,7 +336,11 @@ try {
   										</di:img> 
   									<%
 									}
-*/
+									else{
+										System.out.println("extractRight exists at: "+extractRightImage.getAbsolutePath());
+										
+									}
+
 								}
 									
 								String fileloc="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getSpotImageFileName());
