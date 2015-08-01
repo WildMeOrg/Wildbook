@@ -165,12 +165,8 @@ context=ServletUtilities.getContext(request);
   });
 </script>
 
-	<div id="header"><img name="masthead" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/masthead.jpg" width="810px" height="300px" border="0" usemap="#m_masthead" alt="">
+	<div id="header"><img name="masthead" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/masthead.jpg" width="810px" height="1px" border="0" alt="">
 
-<map name="m_masthead">
-	<area shape="rect" coords="649,156,785,295" href="http://www.wildme.org" alt="Sun" />
-	<area shape="rect" coords="12,218,380,288" href="http://www.wildme.org/wildbook" alt="Sun" />
-</map>
 
 </div>
 
