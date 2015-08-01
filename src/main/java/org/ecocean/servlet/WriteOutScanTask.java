@@ -626,17 +626,22 @@ public class WriteOutScanTask extends HttpServlet {
           //System.out.println("I3S match value: "+mo.getI3SMatchValue());
           //if ((mo.getI3SMatchValue() > 0.001) && (mo.getI3SMatchValue() <= 2.0)) {
             Element match = root.addElement("match");
-            String leftFinalscore = mo.getLeftFastDTWResult().toString();
-            if (leftFinalscore.length() > 7) {
-              leftFinalscore = leftFinalscore.substring(0, 6);
-            }
-            match.addAttribute("finalscoreLeft", leftFinalscore);
+            String finalscore="";
             
-            String rightFinalscore = mo.getRightFastDTWResult().toString();
-            if (leftFinalscore.length() > 7) {
-              rightFinalscore = rightFinalscore.substring(0, 6);
+            if(rightSide){finalscore = mo.getRightFastDTWResult().toString();}
+            else{
+              finalscore = mo.getLeftFastDTWResult().toString();
             }
-            match.addAttribute("finalscore", rightFinalscore);
+            
+            
+            if (finalscore.length() > 7) {
+              finalscore = finalscore.substring(0, 6);
+            }
+            //match.addAttribute("finalscore", finalscore);
+            
+            
+            match.addAttribute("finalscore", finalscore);
+            match.addAttribute("dtwPath", mo.getFastDTWPath());
             
             match.addAttribute("evaluation", mo.getEvaluation());
 

@@ -316,7 +316,7 @@ public class EncounterLite implements java.io.Serializable {
             if (tempTriangle.D12 < newClosePairDist) {
               newClosePairDist = tempTriangle.D12;
             }
-            System.out.println("      Triangle R is "+tempTriangle.R+" and C is "+tempTriangle.C);
+            //System.out.println("      Triangle R is "+tempTriangle.R+" and C is "+tempTriangle.C);
             
             if ((tempTriangle.R <= R) && (tempTriangle.C <= C)) {
               newTriangles.add(tempTriangle);
@@ -325,12 +325,12 @@ public class EncounterLite implements java.io.Serializable {
           }
         }
       }
-      System.out.println("     I found "+newTriangles.size()+" new encounter triangles.\n Filtering for Sizelim...");
+      //System.out.println("     I found "+newTriangles.size()+" new encounter triangles.\n Filtering for Sizelim...");
       for (int i = 0; i < newTriangles.size(); i++) {
         SpotTriangle tempTriangle = (SpotTriangle) newTriangles.get(i);
 
         //old sizelim computation
-        System.out.println("      Evaluating a triangle with Sizelim of: "+(tempTriangle.D13 / newSpan));
+        //System.out.println("      Evaluating a triangle with Sizelim of: "+(tempTriangle.D13 / newSpan));
         if (tempTriangle.D13 / newSpan >= Sizelim) {
 
           //System.out.println("Removing large triangle: "+tempTriangle.D13+" "+newSpan+" "+tempTriangle.D13/newSpan);
@@ -1467,83 +1467,48 @@ public class EncounterLite implements java.io.Serializable {
     //Point2D[] newEncControlSpots = new Point2D[3];
     
     
-    Line2D.Double newLeftLine=new Line2D.Double(newEncControlSpots[0].getX(),newEncControlSpots[0].getY(),newEncControlSpots[1].getX(),newEncControlSpots[1].getY());
-    Line2D.Double newRightLine=new Line2D.Double(newEncControlSpots[1].getX(),newEncControlSpots[1].getY(),newEncControlSpots[2].getX(),newEncControlSpots[2].getY());
+    //Line2D.Double newLeftLine=new Line2D.Double(newEncControlSpots[0].getX(),newEncControlSpots[0].getY(),newEncControlSpots[1].getX(),newEncControlSpots[1].getY());
+    //Line2D.Double newRightLine=new Line2D.Double(newEncControlSpots[1].getX(),newEncControlSpots[1].getY(),newEncControlSpots[2].getX(),newEncControlSpots[2].getY());
     
 
     Builder b1 = TimeSeriesBase.builder();
-    double newHighestControlSpot=newEncControlSpots[0].getY();
-    if(newEncControlSpots[2].getY()>newHighestControlSpot){newHighestControlSpot=newEncControlSpots[2].getY();}
+    //double newHighestControlSpot=newEncControlSpots[0].getY();
+    //if(newEncControlSpots[2].getY()>newHighestControlSpot){newHighestControlSpot=newEncControlSpots[2].getY();}
     
     for (int t = 0; t < sizeNewPrint; t++) {
-      double myX=(newPrint.fpp[t].getX()-newEncControlSpots[0].getX())/(newEncControlSpots[2].getX()-newEncControlSpots[0].getX());
-      double myY=0;
-      
-      if(myX<=newEncControlSpots[1].getX()){
-        //myY=newLeftLine.ptLineDist(new java.awt.geom.Point2D.Double(newPrint.fpp[t].getX(),newPrint.fpp[t].getY()))/(newHighestControlSpot-newEncControlSpots[1].getY()); 
-        //double s = (newLeftLine.y2 - newLeftLine.y1) * newPrint.fpp[t].getX() + (newLeftLine.x1 - newLeftLine.x2) * newPrint.fpp[t].getY() + (newLeftLine.x2 * newLeftLine.y1 - newLeftLine.x1 * newLeftLine.y2);
-        myY=(newPrint.fpp[t].getY()-newEncControlSpots[1].getY())/(newHighestControlSpot-newEncControlSpots[1].getY());
-        
-        //myY=amplifyY(myY,s);
-      }
-      else{
-        //myY=newRightLine.ptLineDist(new java.awt.geom.Point2D.Double(newPrint.fpp[t].getX(),newPrint.fpp[t].getY()))/(newHighestControlSpot-newEncControlSpots[1].getY()); 
-        //double s = (newRightLine.y2 - newRightLine.y1) * newPrint.fpp[t].getX() + (newRightLine.x1 - newRightLine.x2) * newPrint.fpp[t].getY() + (newRightLine.x2 * newRightLine.y1 - newRightLine.x1 * newRightLine.y2);
-        myY=(newPrint.fpp[t].getY()-newEncControlSpots[1].getY())/(newHighestControlSpot-newEncControlSpots[1].getY());
-        
-        //myY=amplifyY(myY,s);
-        
-        
-      }
+      double myX=newPrint.fpp[t].getX();
+      double myY=newPrint.fpp[t].getY();
+    
       
       
       
-      //System.out.println("     myY new distance to line is: "+myY);
+      System.out.println(" builder: "+myX+","+myY);
       b1.add(myX,myY);     
     }
     TimeSeries ts1=b1.build();
     
-    Line2D.Double thisLeftLine=new Line2D.Double(thisEncControlSpots[0].getX(),thisEncControlSpots[0].getY(),thisEncControlSpots[1].getX(),thisEncControlSpots[1].getY());
-    Line2D.Double thisRightLine=new Line2D.Double(thisEncControlSpots[1].getX(),thisEncControlSpots[1].getY(),thisEncControlSpots[2].getX(),thisEncControlSpots[2].getY());
+    //Line2D.Double thisLeftLine=new Line2D.Double(thisEncControlSpots[0].getX(),thisEncControlSpots[0].getY(),thisEncControlSpots[1].getX(),thisEncControlSpots[1].getY());
+    //Line2D.Double thisRightLine=new Line2D.Double(thisEncControlSpots[1].getX(),thisEncControlSpots[1].getY(),thisEncControlSpots[2].getX(),thisEncControlSpots[2].getY());
     
     
     Builder b2 = TimeSeriesBase.builder();
-    double thisHighestControlSpot=thisEncControlSpots[0].getY();
-    if(thisEncControlSpots[2].getY()>thisHighestControlSpot){thisHighestControlSpot=thisEncControlSpots[2].getY();}
+    //double thisHighestControlSpot=thisEncControlSpots[0].getY();
+    //if(thisEncControlSpots[2].getY()>thisHighestControlSpot){thisHighestControlSpot=thisEncControlSpots[2].getY();}
     
     
     for (int t = 0; t < sizeThisPrint; t++) {
-      double myX=(thisPrint.fpp[t].getX()-thisEncControlSpots[0].getX())/(thisEncControlSpots[2].getX()-thisEncControlSpots[0].getX());
-      if(thisEncControlSpots[2].getY()>thisHighestControlSpot){thisHighestControlSpot=thisEncControlSpots[2].getY();}
+      double myX=thisPrint.fpp[t].getX();
       
-      double myY=0;
+      double myY=thisPrint.fpp[t].getY();
       
-      if(myX<=thisEncControlSpots[1].getX()){
-        myY=thisLeftLine.ptLineDist(new java.awt.geom.Point2D.Double(thisPrint.fpp[t].getX(),thisPrint.fpp[t].getY()))/(thisHighestControlSpot-thisEncControlSpots[1].getY()); 
-        //double s = (thisLeftLine.y2 - thisLeftLine.y1) * thisPrint.fpp[t].getX() + (thisLeftLine.x1 - thisLeftLine.x2) * thisPrint.fpp[t].getY() + (thisLeftLine.x2 * thisLeftLine.y1 - thisLeftLine.x1 * thisLeftLine.y2);
-        myY=(thisPrint.fpp[t].getY()-thisEncControlSpots[1].getY())/(thisHighestControlSpot-thisEncControlSpots[1].getY());
-        
-        //myY=amplifyY(myY,s);
-      }
-      else{
-        //myY=thisRightLine.ptLineDist(new java.awt.geom.Point2D.Double(thisPrint.fpp[t].getX(),thisPrint.fpp[t].getY()))/(thisEncControlSpots[2].getX()-thisEncControlSpots[0].getX())/(thisHighestControlSpot-thisEncControlSpots[1].getY()); 
-        //double s = (thisRightLine.y2 - thisRightLine.y1) * thisPrint.fpp[t].getX() + (thisRightLine.x1 - thisRightLine.x2) * thisPrint.fpp[t].getY() + (thisRightLine.x2 * thisRightLine.y1 - thisRightLine.x1 * thisRightLine.y2);
-       myY=(thisPrint.fpp[t].getY()-thisEncControlSpots[1].getY())/(thisHighestControlSpot-thisEncControlSpots[1].getY());
-        
-        
-        
-        //myY=amplifyY(myY,s);
-        
-      }
-      //System.out.println("     myY this distance to line is: "+myY);
       
       //run an above/below the line tes
-      
+      System.out.println(" builder: "+myX+","+myY);
       b2.add(myX,myY); 
     }
     TimeSeries ts2=b2.build();
     
-    TimeWarpInfo twi=FastDTW.compare(ts1, ts2, 0, Distances.EUCLIDEAN_DISTANCE);
+    TimeWarpInfo twi=FastDTW.compare(ts1, ts2, 30, Distances.EUCLIDEAN_DISTANCE);
     WarpPath wp=twi.getPath();
     String myPath=wp.toString();
     Double distance = new Double(twi.getDistance());
