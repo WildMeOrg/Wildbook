@@ -20,7 +20,7 @@
 html{
 
  background-color: rgb(30, 30, 30);
-     background-image: url('http://www.whaleshark.org/images/backgrounds/_1200881.jpg');
+    
      background-repeat: no-repeat;
      background-attachment: fixed;
 background-size: cover;
@@ -141,7 +141,7 @@ a.launchPopup {
   float: left;
   margin: 0;
   padding: 0;
-  height: 300px;
+  height: 120px;
   width: 810px;
   background-color: #03f;
   clear: both;

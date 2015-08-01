@@ -159,7 +159,7 @@ var comEcostatsTracing = (function(){
 		// save tracing
 		add_menu_option(main_menu,'Save All','fluke_trace_save');
 		// save tracing
-		add_menu_option(main_menu,'Try Matching','fluke_trace_match');
+		//add_menu_option(main_menu,'Try Matching','fluke_trace_match');
 		// close window menu item
 		add_menu_option(main_menu,'Close','fluke_trace_close');
 		var dmenu=document.createElement('div');
@@ -684,7 +684,7 @@ var comEcostatsTracing = (function(){
 					var p=document.createElement('p');
 					p.appendChild(button);
 					// insert the button just above the image
-					imgs[i].parentNode.insertBefore(p,imgs[i]);
+					//imgs[i].parentNode.insertBefore(p,imgs[i]);
 				//}
 			}
 		},
