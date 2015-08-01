@@ -52,7 +52,7 @@ public class FastDTWMatchComparator implements Comparator {
       b1_adjustedValue = b1.getLeftFastDTWResult().doubleValue();
     }
 
-    if (a1_adjustedValue < b1_adjustedValue) {
+    if (a1_adjustedValue > b1_adjustedValue) {
       return -1;
     } else if (a1_adjustedValue == b1_adjustedValue) {
       return 0;
