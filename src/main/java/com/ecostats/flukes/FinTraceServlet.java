@@ -179,7 +179,7 @@ public class FinTraceServlet extends HttpServlet {
 			x[i]=pathArray.getJSONArray(i).getInt(0);
 			y[i]=pathArray.getJSONArray(i).getInt(1);
 			//shift down 2 integers to match Javascript node types values to the node type values of the paper/Java 
-			n[i]=nodeArray.getInt(i)-2;
+			n[i]=nodeArray.getInt(i);
 		}
 		// create new fin tracings from the passed tracing node X,Y locations and node Types 
 		FinTrace finTrace = new FinTrace(x,y,n);
