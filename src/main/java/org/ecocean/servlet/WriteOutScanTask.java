@@ -608,12 +608,14 @@ public class WriteOutScanTask extends HttpServlet {
   public boolean fastDTWWriteThis(Shepherd myShepherd, MatchObject[] matches, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, String context) {
     try {
 
-      System.out.println("scanWorkItemResultsHandler: Prepping to write fast DTW XML file for encounter " + num);
+      //System.out.println("scanWorkItemResultsHandler: Prepping to write fast DTW XML file for encounter " + num);
 
       //now setup the XML write for the encounter
       //int resultsSize=results.size();
 
-      Arrays.sort(matches, new FastDTWMatchComparator());
+      if(rightSide){Arrays.sort(matches, new FastDTWMatchComparator("right"));}
+      else{Arrays.sort(matches, new FastDTWMatchComparator());}
+      
       StringBuffer resultsXML = new StringBuffer();
       Document document = DocumentHelper.createDocument();
       Element root = document.addElement("matchSet");

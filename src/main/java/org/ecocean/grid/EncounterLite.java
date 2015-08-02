@@ -1475,16 +1475,28 @@ public class EncounterLite implements java.io.Serializable {
     //double newHighestControlSpot=newEncControlSpots[0].getY();
     //if(newEncControlSpots[2].getY()>newHighestControlSpot){newHighestControlSpot=newEncControlSpots[2].getY();}
     
+    //add the tip
+    if(scanRight){
+      b1.add(newEncControlSpots[1].getX(),newEncControlSpots[1].getY());  
+    }
+    else{
+      b1.add(newEncControlSpots[0].getX(),newEncControlSpots[0].getY());  
+    }
+    
     for (int t = 0; t < sizeNewPrint; t++) {
       double myX=newPrint.fpp[t].getX();
       double myY=newPrint.fpp[t].getY();
-    
-      
-      
-      
       System.out.println(" builder: "+myX+","+myY);
       b1.add(myX,myY);     
     }
+    //add the notch
+    if(scanRight){
+      b1.add(newEncControlSpots[2].getX(),newEncControlSpots[2].getY());  
+    }
+    else{
+      b1.add(newEncControlSpots[1].getX(),newEncControlSpots[1].getY());  
+    }
+    
     TimeSeries ts1=b1.build();
     
     //Line2D.Double thisLeftLine=new Line2D.Double(thisEncControlSpots[0].getX(),thisEncControlSpots[0].getY(),thisEncControlSpots[1].getX(),thisEncControlSpots[1].getY());
@@ -1495,7 +1507,12 @@ public class EncounterLite implements java.io.Serializable {
     //double thisHighestControlSpot=thisEncControlSpots[0].getY();
     //if(thisEncControlSpots[2].getY()>thisHighestControlSpot){thisHighestControlSpot=thisEncControlSpots[2].getY();}
     
-    
+    if(scanRight){
+      b2.add(thisEncControlSpots[1].getX(),thisEncControlSpots[1].getY());  
+    }
+    else{
+      b2.add(thisEncControlSpots[0].getX(),thisEncControlSpots[0].getY());  
+    }
     for (int t = 0; t < sizeThisPrint; t++) {
       double myX=thisPrint.fpp[t].getX();
       
@@ -1506,6 +1523,15 @@ public class EncounterLite implements java.io.Serializable {
       System.out.println(" builder: "+myX+","+myY);
       b2.add(myX,myY); 
     }
+    
+    //add end control point
+    if(scanRight){
+      b2.add(thisEncControlSpots[2].getX(),thisEncControlSpots[2].getY());  
+    }
+    else{
+      b2.add(thisEncControlSpots[1].getX(),thisEncControlSpots[1].getY());  
+    }
+    
     TimeSeries ts2=b2.build();
     
     TimeWarpInfo twi=FastDTW.compare(ts1, ts2, 30, Distances.EUCLIDEAN_DISTANCE);
