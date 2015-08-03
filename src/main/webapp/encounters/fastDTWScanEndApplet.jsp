@@ -22,6 +22,8 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.*, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 <html>
+
+
 <%
 
 String context="context0";
@@ -115,7 +117,8 @@ context=ServletUtilities.getContext(request);
   }
   
 </style>
-
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    
 <body>
 <div id="wrapper">
 <div id="page">
@@ -373,7 +376,19 @@ context=ServletUtilities.getContext(request);
           
           <td><%=finalscore %></td>
           
-          <td><%=match.attributeValue("dtwPath") %></td>
+          
+          <td>
+          
+          <%=match.attributeValue("dtwPath") %>
+          
+          
+          <!-- google chart -->
+          
+          
+          
+          
+          
+          </td>
 
 
           <%
