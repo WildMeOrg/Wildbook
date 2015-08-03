@@ -80,20 +80,26 @@ public class ShepherdProperties {
 
     Properties myProps=new Properties();
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+langCode);
-    //System.out.println(configDir.getAbsolutePath());
+    System.out.println(configDir.getAbsolutePath());
     //sometimes this ends up being the "bin" directory of the J2EE container
     //we need to fix that
     if((configDir.getAbsolutePath().contains("/bin/")) || (configDir.getAbsolutePath().contains("\\bin\\"))){
       String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
       configDir=new File(fixedPath);
-      //System.out.println("Fixing the bin issue in Shepherd PMF. ");
-      //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+      System.out.println("Fixing the bin issue in Shepherd PMF. ");
+      System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
     }
-    //System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
+    if((configDir.getAbsolutePath().contains("/logs/")) || (configDir.getAbsolutePath().contains("\\logs\\"))){
+      String fixedPath=configDir.getAbsolutePath().replaceAll("/logs", "").replaceAll("\\\\logs", "");
+      configDir=new File(fixedPath);
+      System.out.println("Fixing the logs directory issue in Shepherd PMF. ");
+      System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+    }
+    System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, fileName);
     if (configFile.exists()) {
-      //System.out.println("ShepherdProps: "+"Overriding default properties with " + configFile.getAbsolutePath());
+      System.out.println("ShepherdProps: "+"Overriding default properties with " + configFile.getAbsolutePath());
       FileInputStream fileInputStream = null;
       try {
         fileInputStream = new FileInputStream(configFile);
@@ -110,6 +116,9 @@ public class ShepherdProperties {
           }
         }
       }
+    }
+    else{
+      System.out.println("I could not find the override files that I was expecting at: "+configFile.getAbsolutePath());
     }
     return myProps;
   }
