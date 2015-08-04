@@ -20,7 +20,19 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.*, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,
+         org.dom4j.Document, 
+         org.dom4j.Element, 
+         org.dom4j.io.SAXReader, 
+         org.ecocean.*, 
+         org.ecocean.grid.*, 
+         java.io.File, 
+         java.util.Arrays, 
+         java.util.Iterator, 
+         java.util.List, 
+         java.util.Vector,
+         java.util.StringTokenizer" 
+  %>
 <html>
 
 
@@ -117,15 +129,30 @@ context=ServletUtilities.getContext(request);
   }
   
 </style>
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    
+
 <body>
+ 
 <div id="wrapper">
 <div id="page">
 <jsp:include page="../header.jsp" flush="true">
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
 <div id="main">
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    
+<script>
+	var chartWidth=300;
+	var chartHeight=300;
+	// Set chart options
+	var options = {'title':'FastDTW Path',
+	               'width':chartWidth,
+	               'height':chartHeight,
+	               'pointSize': 5
+	               };
+	
+	
+	google.load('visualization', '1.1', {packages: ['line', 'corechart']});
+</script>
 
 <ul id="tabmenu">
   <li><a
@@ -333,12 +360,15 @@ context=ServletUtilities.getContext(request);
           }
 
 //or use XML output here	
-        } else {
+        } 
+        else {
           doc = xmlReader.read(file);
           root = doc.getRootElement();
 
           Iterator matchsets = root.elementIterator("match");
+          int chartNum=0;
           while (matchsets.hasNext()) {
+        	  chartNum++;
             Element match = (Element) matchsets.next();
             List encounters = match.elements("encounter");
             Element enc1 = (Element) encounters.get(0);
@@ -379,26 +409,58 @@ context=ServletUtilities.getContext(request);
           
           <td>
           
-          <%=match.attributeValue("dtwPath") %>
-          
-          
-          <!-- google chart -->
-          
-          
-          
-          
-          
-          </td>
-
-
           <%
-            String evaluation = "No Adj.";
-            evaluation = match.attributeValue("evaluation");
-            if (evaluation == null) {
-              evaluation = "&nbsp;";
-            }
-
+          
+          String dtwPath=match.attributeValue("dtwPath").replaceAll("\\[","");
+          System.out.println(dtwPath);
+          StringTokenizer str=new StringTokenizer(dtwPath,"(");
+          
           %>
+          
+         
+          
+          
+	          <!-- google chart -->
+	          <script type="text/javascript">
+	    
+				    
+				    google.setOnLoadCallback(drawChart<%=chartNum %>);
+				
+				      // Callback that creates and populates a data table,
+				      // instantiates the pie chart, passes in the data and
+				      // draws it.
+				      function drawChart<%=chartNum %>() {
+				
+				        // Create the data table.
+				        var data<%=chartNum %> = new google.visualization.DataTable();
+				      	data<%=chartNum %>.addColumn('number', 'x');
+				      	data<%=chartNum %>.addColumn('number', 'y');
+				      	data<%=chartNum %>.addRows([
+				        
+						<%
+						while(str.hasMoreTokens()){
+							
+							String token=str.nextToken();
+						%>
+				          [<%=token.replaceAll("\\),","").replace("]","").replaceAll("\\)","")%>],
+				        <%
+				      	}  
+				        %>
+						]);
+				
+				        
+				
+				        // Instantiate and draw our chart, passing in some options.
+				        var chart<%=chartNum %> = new google.visualization.LineChart(document.getElementById('chart_div<%=chartNum %>'));
+				        chart<%=chartNum %>.draw(data<%=chartNum %>, options);
+				      }
+	   			</script>
+	   			
+	   			<div id="chart_div<%=chartNum %>"></div>
+	   			
+          	</td>
+
+
 
         </tr>
 
