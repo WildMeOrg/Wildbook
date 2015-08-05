@@ -273,7 +273,7 @@ context=ServletUtilities.getContext(request);
           <th><strong>Shark</strong></th>
           <th><strong> Encounter</strong></th>
           <th><strong>Match Score </strong></th>
-	
+	<th><strong>Intersection Count</strong></th>
 
     </tr>
         </thead>
@@ -373,6 +373,19 @@ context=ServletUtilities.getContext(request);
             }
 
           %>
+          
+          <td>
+          <%
+          String intersectionCount = "&nbsp;";
+          try {
+              if (match.attributeValue("intersectionCount") != null) {
+            	  intersectionCount = match.attributeValue("intersectionCount");
+              }
+            } catch (NullPointerException npe) {
+            }
+          %>
+          <%=intersectionCount %>
+          </td>
 
         </tr>
 

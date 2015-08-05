@@ -51,6 +51,8 @@ public class MatchObject implements java.io.Serializable {
  public String fastDTWPath="";
   
   public Double geroMatchDistance;
+  
+  public int intersectionCount=0;
 
   //used for JDO enhance
   public MatchObject() {
@@ -275,6 +277,9 @@ public class MatchObject implements java.io.Serializable {
   public String getFastDTWPath(){return fastDTWPath;}
   
   public void setFastDTWPath(String path){this.fastDTWPath=path;}
+  
+  public void setIntersectionCount(int count){intersectionCount=count;}
+  public int getIntersectionCount(){return intersectionCount;}
   
 
 }
