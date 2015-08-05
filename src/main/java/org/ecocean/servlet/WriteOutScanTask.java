@@ -333,6 +333,8 @@ public class WriteOutScanTask extends HttpServlet {
             
             match.addAttribute("dtwPath", mo.getFastDTWPath());
             
+            match.addAttribute("intersectionCount", (new Integer(mo.getIntersectionCount())).toString());
+            
             Element enc = match.addElement("encounter");
             enc.addAttribute("number", mo.getEncounterNumber());
             enc.addAttribute("date", mo.getDate());

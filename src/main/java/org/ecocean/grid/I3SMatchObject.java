@@ -36,7 +36,8 @@ public class I3SMatchObject implements java.io.Serializable {
   public String newSex = "Unknown", catalogSex = "Unknown";
   public Double fastDTWResult=null;
   public String fastDTWPath="";
-  public Double geroMatchDistance=null;;
+  public Double geroMatchDistance=null;
+  public int intersectionCount=0;
 
   public I3SMatchObject() {
   }
@@ -127,6 +128,9 @@ public class I3SMatchObject implements java.io.Serializable {
   public String getFastDTWPath(){return fastDTWPath;}
   
   public void setFastDTWPath(String path){this.fastDTWPath=path;}
+  
+  public void setIntersectionCount(int count){intersectionCount=count;}
+  public int getIntersectionCount(){return intersectionCount;}
   
   
 }

@@ -43,7 +43,8 @@ import java.util.Arrays;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.awt.geom.Line2D;
+import java.awt.geom.Line2D.*;
+import java.awt.geom.Point2D.*;
 import java.lang.Double;
 
 
@@ -1571,6 +1572,54 @@ public class EncounterLite implements java.io.Serializable {
     doAffine(newPrint);
     doAffine(thisPrint);
     
+    //let's try some fun intersection analysis
+    int newPrintSize=newPrint.fpp.length;
+    int thisPrintSize=thisPrint.fpp.length;
+    int numIntersections=0;
+    for(int i=0;i<(newPrintSize-1);i++){
+      //for(int j=i+1;j<newPrintSize;j++){
+      int j=i+1;
+        
+        java.awt.geom.Point2D.Double newStart=(new  java.awt.geom.Point2D.Double(newPrint.getFpp(i).getX(),newPrint.getFpp(i).getY()));
+        java.awt.geom.Point2D.Double newEnd=(new  java.awt.geom.Point2D.Double(newPrint.getFpp(j).getX(),newPrint.getFpp(j).getY()) ) ;
+        java.awt.geom.Line2D.Double newLine=new java.awt.geom.Line2D.Double(newStart,newEnd  );
+      
+        //now compare to thisPattern
+        for(int m=0;m<(thisPrintSize-1);m++){
+          
+            
+            
+              int n=m+1;
+              
+              java.awt.geom.Point2D.Double thisStart=(new  java.awt.geom.Point2D.Double(thisPrint.getFpp(m).getX(),thisPrint.getFpp(m).getY()));
+              java.awt.geom.Point2D.Double thisEnd=(new  java.awt.geom.Point2D.Double(thisPrint.getFpp(n).getX(),thisPrint.getFpp(n).getY()) );   
+              java.awt.geom.Line2D.Double thisLine=new java.awt.geom.Line2D.Double(thisStart,thisEnd);
+              
+              if(((newStart.getX()<=thisEnd.getX()))){
+                if(newLine.intersectsLine(thisLine)){numIntersections++;}
+                //else{System.out.println("["+newStart.getX()+","+newStart.getY()+","+newEnd.getX()+","+newEnd.getY()+"]"+" does not intersect with "+"["+thisStart.getX()+","+thisStart.getY()+","+thisEnd.getX()+","+thisEnd.getY()+"]");}
+                
+                //short circuit to end if the comparison line is past the new line
+                if(newEnd.getX()<thisStart.getX()){
+                  m=thisPrintSize;
+                }
+              }
+            
+           
+            
+            
+            
+          
+        }
+        
+      
+      //}
+      
+      
+    }
+    System.out.println("     Num intersections is: "+numIntersections);
+    
+    
 
     Compare wsCompare = new Compare(thisPrint);
     FingerPrint[] fpBest = new FingerPrint[1];
@@ -1591,6 +1640,7 @@ public class EncounterLite implements java.io.Serializable {
     //now return an I3S match object
     I3SMatchObject i3smo=new I3SMatchObject(belongsToMarkedIndividual, fpBest[0].getScore(), encounterNumber, sex, getDate(), size, hm, 0, distance, geroMatchValue);
     i3smo.setFastDTWPath(wp.toString());
+    i3smo.setIntersectionCount(numIntersections);
     return i3smo;
   }
 
