@@ -150,12 +150,16 @@ public class ScanWorkItem implements java.io.Serializable {
     //determine which spots to pass in
     SuperSpot[] newspotsTemp = new SuperSpot[0];
     SuperSpot[] oldspotsTemp = new SuperSpot[0];
+    SuperSpot[] newRefSpots = new SuperSpot[0];
+    
     if (!rightScan) {
       newspotsTemp = (SuperSpot[]) newEncounter.getSpots().toArray(newspotsTemp);
       oldspotsTemp = (SuperSpot[]) existingEncounter.getSpots().toArray(oldspotsTemp);
+      newRefSpots=newEncounter.getLeftReferenceSpots();
     } else {
       newspotsTemp = (SuperSpot[]) newEncounter.getRightSpots().toArray(newspotsTemp);
       oldspotsTemp = (SuperSpot[]) existingEncounter.getRightSpots().toArray(oldspotsTemp);
+      newRefSpots=newEncounter.getRightReferenceSpots();
     }
 
     //create a re-write of the new spots
@@ -187,7 +191,7 @@ public class ScanWorkItem implements java.io.Serializable {
     
 
 
-    MatchObject result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan);
+    MatchObject result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan, newRefSpots);
     System.out.println("     Groth score was: "+result.getAdjustedMatchValue());
     
     //I3S processing
