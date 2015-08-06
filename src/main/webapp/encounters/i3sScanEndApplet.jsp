@@ -127,7 +127,7 @@ context=ServletUtilities.getContext(request);
 <ul id="tabmenu">
   <li><a
     href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
-    <%=request.getParameter("number")%>
+    
   </a></li>
   <%
     String fileSider = "";

@@ -138,7 +138,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 <ul id="tabmenu">
   <li><a
     href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
-    <%=request.getParameter("number")%>
+   
   </a></li>
   <li><a class="active">Modified Groth</a></li>
 
@@ -168,9 +168,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   %>
   <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
   </li>
-  <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a>
+  <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a></li>
   
-   <li><a href="intersectionScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Intersection</a>
+   <li><a href="intersectionScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Intersection</a></li>
   
  
 </ul>
