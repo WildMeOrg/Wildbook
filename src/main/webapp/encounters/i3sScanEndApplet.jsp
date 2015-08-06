@@ -153,6 +153,8 @@ context=ServletUtilities.getContext(request);
   <li><a class="active">I3S</a></li>
   <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
   <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a>
+   <li><a href="intersectionScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Intersection</a>
+  
   
   </li>
 
@@ -273,7 +275,7 @@ context=ServletUtilities.getContext(request);
           <th><strong>Shark</strong></th>
           <th><strong> Encounter</strong></th>
           <th><strong>Match Score </strong></th>
-	<th><strong>Intersection Count</strong></th>
+
 
     </tr>
         </thead>
@@ -374,18 +376,7 @@ context=ServletUtilities.getContext(request);
 
           %>
           
-          <td>
-          <%
-          String intersectionCount = "&nbsp;";
-          try {
-              if (match.attributeValue("intersectionCount") != null) {
-            	  intersectionCount = match.attributeValue("intersectionCount");
-              }
-            } catch (NullPointerException npe) {
-            }
-          %>
-          <%=intersectionCount %>
-          </td>
+        
 
         </tr>
 

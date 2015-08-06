@@ -187,6 +187,8 @@ context=ServletUtilities.getContext(request);
   
     <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a>
   
+  <li><a href="intersectionScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Intersection</a>
+  
 
 
 </ul>
