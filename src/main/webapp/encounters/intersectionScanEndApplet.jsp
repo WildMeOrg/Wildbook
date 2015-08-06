@@ -31,7 +31,8 @@
          java.util.Iterator, 
          java.util.List, 
          java.util.Vector,
-         java.util.StringTokenizer" 
+         java.util.StringTokenizer,
+         org.apache.commons.math.stat.descriptive.SummaryStatistics" 
   %>
 <html>
 
@@ -157,7 +158,7 @@ context=ServletUtilities.getContext(request);
 <ul id="tabmenu">
   <li><a
     href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
-    <%=request.getParameter("number")%>
+    
   </a></li>
   <%
     String fileSider = "";
@@ -310,7 +311,7 @@ context=ServletUtilities.getContext(request);
         
 		<th><strong># Intersections </strong></th>
 		
-		<th><strong>Angles of Intersection </strong></th>
+		<th><strong>Std. Dev. Angles of Intersection (radians) </strong></th>
 
     </tr>
         </thead>
@@ -391,33 +392,49 @@ context=ServletUtilities.getContext(request);
           <%
             }
 
-           %>
-           
-             <td>
-          <%
+          
+          SummaryStatistics stats=new SummaryStatistics();
           String intersectionCount = "&nbsp;";
           String anglesOfIntersection="";
+          
           try {
               if (match.attributeValue("intersectionCount") != null) {
             	  intersectionCount = match.attributeValue("intersectionCount");
               }
-              if (match.attributeValue("anglesOfIntersection") != null) {
-            	  anglesOfIntersection = match.attributeValue("anglesOfIntersection");
+              if (match.attributeValue("anglesofIntersection") != null) {
+            	  anglesOfIntersection = match.attributeValue("anglesofIntersection");
               }
-            } catch (NullPointerException npe) {
-            }
-          %>
-          <%=intersectionCount %>
-          </td>
+            
           
-          
-          
-          
-          <td>
-          &nbsp;
-          	</td>
+	          String dtwPath=match.attributeValue("anglesofIntersection");
+	          //System.out.println("Angles: "+dtwPath);
+	          StringTokenizer str=new StringTokenizer(dtwPath,",");
+	          
+	
+		          while(str.hasMoreTokens()){
+						
+						String token=str.nextToken();
+						double value=(new Double(token)).doubleValue();
+						stats.addValue(value);
+		          }
+		          %>
+		          
 
-
+				<%
+				
+				} 
+          		catch (NullPointerException npe) {
+				    npe.printStackTrace();
+				}
+				 %>
+				 
+				 <td>
+				 	<%=intersectionCount %>
+				 </td>
+				 
+				 <td>
+		          <%=stats.getStandardDeviation() %>
+	          	</td>
 
         </tr>
 
@@ -436,9 +453,10 @@ context=ServletUtilities.getContext(request);
 </table>
 
 
-<p>
 
 <p>
+<a href="<%=feedURL %>">Link to XML data</a>
+</p>
   <%
 
 

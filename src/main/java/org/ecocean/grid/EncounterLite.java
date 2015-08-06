@@ -1880,7 +1880,7 @@ private double amplifyY(double origValue, double s){
                                  line1.getX1() - line1.getX2());
       double angle2 = Math.atan2(line2.getY1() - line2.getY2(),
                                  line2.getX1() - line2.getX2());
-      return Math.abs(angle1-angle2);
+      return Math.abs(angle1)-Math.abs(angle2);
   }
 
 }
