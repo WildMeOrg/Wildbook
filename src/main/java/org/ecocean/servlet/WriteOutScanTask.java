@@ -116,6 +116,9 @@ public class WriteOutScanTask extends HttpServlet {
 
         boolean fastDTWWriteThis=fastDTWWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
         
+        boolean intersectionWriteThis=intersectionWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
+        
+        
         boolean geroWriteThis=geroWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
         
         
@@ -334,6 +337,8 @@ public class WriteOutScanTask extends HttpServlet {
             match.addAttribute("dtwPath", mo.getFastDTWPath());
             
             match.addAttribute("intersectionCount", (new Integer(mo.getIntersectionCount())).toString());
+            match.addAttribute("anglesOfIntersection", (mo.getAnglesOfIntersection())).toString();
+            
             
             Element enc = match.addElement("encounter");
             enc.addAttribute("number", mo.getEncounterNumber());
@@ -827,5 +832,111 @@ public class WriteOutScanTask extends HttpServlet {
     }
 
   }
+  
+  public boolean intersectionWriteThis(Shepherd myShepherd, MatchObject[] matches, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, String context) {
+    try {
+
+      //System.out.println("scanWorkItemResultsHandler: Prepping to write fast DTW XML file for encounter " + num);
+
+      //now setup the XML write for the encounter
+      //int resultsSize=results.size();
+
+      if(rightSide){Arrays.sort(matches, new IntersectionMatchComparator("right"));}
+      else{Arrays.sort(matches, new IntersectionMatchComparator());}
+      
+      StringBuffer resultsXML = new StringBuffer();
+      Document document = DocumentHelper.createDocument();
+      Element root = document.addElement("matchSet");
+      root.addAttribute("scanDate", (new java.util.Date()).toString());
+      //System.out.println("Total num matches for I3S printing: "+matches.length);
+      for (int i = 0; i < matches.length; i++) {
+        try {
+          //System.out.println();
+          MatchObject mo = matches[i];
+          //System.out.println("I3S match value: "+mo.getI3SMatchValue());
+          //if ((mo.getI3SMatchValue() > 0.001) && (mo.getI3SMatchValue() <= 2.0)) {
+            Element match = root.addElement("match");
+            String finalscore="";
+            
+            
+            
+            match.addAttribute("intersectionCount", Integer.toBinaryString(mo.getIntersectionCount()));
+            match.addAttribute("anglesofIntersection", mo.getAnglesOfIntersection());
+            
+            match.addAttribute("evaluation", mo.getEvaluation());
+
+            Element enc = match.addElement("encounter");
+            enc.addAttribute("number", mo.getEncounterNumber());
+            enc.addAttribute("date", mo.getDate());
+            
+            if(mo.getSex()!=null){enc.addAttribute("sex", mo.getSex());}
+            else{enc.addAttribute("sex", "unknown");}
+            
+            
+            
+            enc.addAttribute("assignedToShark", mo.getIndividualName());
+            //enc.addAttribute("size", (new Double(mo.getSize())).toString());
+
+            //get the Map
+            Vector map = mo.getMap2();
+            int mapSize = map.size();
+            Encounter e1 = myShepherd.getEncounter(mo.getEncounterNumber());
+
+
+            Element enc2 = match.addElement("encounter");
+            enc2.addAttribute("number", num);
+            enc2.addAttribute("date", newEncDate);
+            enc2.addAttribute("sex", mo.getNewSex());
+            enc2.addAttribute("assignedToShark", newEncShark);
+            //enc2.addAttribute("size", newEncSize);
+
+            //reset the Iterator
+            Encounter e2 = myShepherd.getEncounter(num);
+
+
+          //}
+        } 
+        catch (NullPointerException npe) {
+          npe.printStackTrace();
+        }
+      }
+
+
+      //prep for writing out the XML
+
+      //in case this is a right-side scan, change file name to save to
+      String fileAddition = "";
+      if (rightSide) {
+        fileAddition = "Right";
+      }
+      
+      //setup data dir
+      String rootWebappPath = getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+      //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
+      File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+      //if(!encountersDir.exists()){encountersDir.mkdirs();}
+      
+      //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"I3SScan.xml");
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "IntersectionScan.xml");
+
+
+      FileWriter mywriter = new FileWriter(file);
+      org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
+      format.setLineSeparator(System.getProperty("line.separator"));
+      org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(mywriter, format);
+      writer.write(document);
+      writer.close();
+      System.out.println("writeOutScanTask: Successful Intersection write.");
+      return true;
+    } catch (Exception e) {
+      System.out.println("writeOutScanTask: Failed to write out Intersection results!");
+      e.printStackTrace();
+      return false;
+    }
+
+  }
+  
 
 }

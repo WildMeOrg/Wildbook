@@ -53,6 +53,7 @@ public class MatchObject implements java.io.Serializable {
   public Double geroMatchDistance;
   
   public int intersectionCount=0;
+  public String anglesOfIntersection="";
 
   //used for JDO enhance
   public MatchObject() {
@@ -281,5 +282,7 @@ public class MatchObject implements java.io.Serializable {
   public void setIntersectionCount(int count){intersectionCount=count;}
   public int getIntersectionCount(){return intersectionCount;}
   
-
+  public String getAnglesOfIntersection(){return anglesOfIntersection;}
+  public void setAnglesOfIntersections(String angles){this.anglesOfIntersection=angles;}
+  
 }

@@ -245,6 +245,8 @@ public class ScanWorkItem implements java.io.Serializable {
     
     result.setGeroMatchDistance(i3sResult.getGeroMatchDistance());
     result.setIntersectionCount(i3sResult.getIntersectionCount());
+    result.setAnglesOfIntersections(i3sResult.getAnglesOfIntersection());
+    
     System.out.println("     Gero result is: "+i3sResult.getGeroMatchDistance());
 
     done = true;

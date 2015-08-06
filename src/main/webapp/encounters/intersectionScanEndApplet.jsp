@@ -20,8 +20,22 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.*, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,
+         org.dom4j.Document, 
+         org.dom4j.Element, 
+         org.dom4j.io.SAXReader, 
+         org.ecocean.*, 
+         org.ecocean.grid.*, 
+         java.io.File, 
+         java.util.Arrays, 
+         java.util.Iterator, 
+         java.util.List, 
+         java.util.Vector,
+         java.util.StringTokenizer" 
+  %>
 <html>
+
+
 <%
 
 String context="context0";
@@ -117,12 +131,28 @@ context=ServletUtilities.getContext(request);
 </style>
 
 <body>
+ 
 <div id="wrapper">
 <div id="page">
 <jsp:include page="../header.jsp" flush="true">
   <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
 </jsp:include>
 <div id="main">
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    
+<script>
+	var chartWidth=300;
+	var chartHeight=300;
+	// Set chart options
+	var options = {'title':'FastDTW Path',
+	               'width':chartWidth,
+	               'height':chartHeight,
+	               'pointSize': 5
+	               };
+	
+	
+	google.load('visualization', '1.1', {packages: ['line', 'corechart']});
+</script>
 
 <ul id="tabmenu">
   <li><a
@@ -152,12 +182,14 @@ context=ServletUtilities.getContext(request);
   %>
     <li><a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
   </li>
-   <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
-  </li>
-  <li><a class="active">Gero</a></li>
- <li><a href="intersectionScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Intersection</a>
   
-
+   <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
+  
+    <li><a class="active">FastDTW</a></li>
+  
+    <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a>
+  
+<li><a class="active">Intersection</a></li>
 
 </ul>
 
@@ -178,12 +210,12 @@ context=ServletUtilities.getContext(request);
     try {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightGeroScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightIntersectionScan.xml");
 
         side = "right";
       } else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullGeroScan.xml");
+        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullIntersectionScan.xml");
       }
       doc = xmlReader.read(file);
       root = doc.getRootElement();
@@ -197,14 +229,10 @@ context=ServletUtilities.getContext(request);
     }
 
   }
-  %>
-  
-  
-  <%
   MatchObject[] matches = new MatchObject[0];
   if (!xmlOK) {
     int resultsSize = initresults.size();
-    System.out.println("My results size is: "+resultsSize);
+    //System.out.println(resultsSize);
     matches = new MatchObject[resultsSize];
     for (int a = 0; a < resultsSize; a++) {
       matches[a] = (MatchObject) initresults.get(a);
@@ -222,9 +250,9 @@ context=ServletUtilities.getContext(request);
 		    System.out.println("Base URL is: " + baseURL);
 		    if (xmlOK) {
 		      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-		        feedURL = baseURL + encSubdir + "/lastFullRightGeroScan.xml?";
+		        feedURL = baseURL + encSubdir + "/lastFullRightIntersectionScan.xml?";
 		      } else {
-		        feedURL = baseURL + encSubdir + "/lastFullGerocan.xml?";
+		        feedURL = baseURL + encSubdir + "/lastFullIntersectionScan.xml?";
 		      }
 		    }
 		    String rightSA = "";
@@ -250,13 +278,13 @@ context=ServletUtilities.getContext(request);
 		  </OBJECT>
 		</p>
 
-<h2>Gero Scan Results <a
+<h2>FastDTW Scan Results <a
   href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
   target="_blank"><img src="../images/information_icon_svg.gif"
                        alt="Help" border="0" align="absmiddle"></a></h2>
 </p>
 <p>The following encounter(s) received the best
-  match values using the Gero algorithm against a <%=side%>-side scan of
+  match values using the FastDTW algorithm against a <%=side%>-side scan of
   encounter <a href="encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
@@ -278,9 +306,11 @@ context=ServletUtilities.getContext(request);
   
         <tr align="left" valign="top">
           <th><strong>Individual</strong></th>
-          <th><strong> Encounter</strong></th>
+          <th><strong>Encounter</strong></th>
         
-		<th><strong>Gero Score </strong></th>
+		<th><strong># Intersections </strong></th>
+		
+		<th><strong>Angles of Intersection </strong></th>
 
     </tr>
         </thead>
@@ -290,9 +320,10 @@ context=ServletUtilities.getContext(request);
 
             MatchObject[] results = new MatchObject[1];
             results = matches;
-            Arrays.sort(results, new I3SMatchComparator());
+            Arrays.sort(results, new FastDTWMatchComparator());
             for (int p = 0; p < results.length; p++) {
-              if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
+              //if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {
+              %>
         <tr align="left" valign="top">
          
                 <td width="60" align="left"><a
@@ -307,8 +338,8 @@ context=ServletUtilities.getContext(request);
           </a></td>
           <%
             }
-            String finalscore2 = (new Double(results[p].getGeroMatchDistance())).toString();
-
+            String finalscore2 = (new Double(results[p].getRightFastDTWResult())).toString();
+			String path=results[p].getFastDTWPath();
             //trim the length of finalscore
             if (finalscore2.length() > 7) {
               finalscore2 = finalscore2.substring(0, 6);
@@ -316,24 +347,30 @@ context=ServletUtilities.getContext(request);
           %>
           <td><%=finalscore2%>
           </td>
+               <td><%=path%>&nbsp;
+          </td>
 
+		
 		
 
         </tr>
 
         <%
               //end if matchValue!=0 loop
-            }
+            //}
             //end for loop
           }
 
 //or use XML output here	
-        } else {
+        } 
+        else {
           doc = xmlReader.read(file);
           root = doc.getRootElement();
 
           Iterator matchsets = root.elementIterator("match");
+          int chartNum=0;
           while (matchsets.hasNext()) {
+        	  chartNum++;
             Element match = (Element) matchsets.next();
             List encounters = match.elements("encounter");
             Element enc1 = (Element) encounters.get(0);
@@ -354,33 +391,33 @@ context=ServletUtilities.getContext(request);
           <%
             }
 
-            String finalscore = "&nbsp;";
-            try {
-              if (match.attributeValue("finalscore") != null) {
-                finalscore = match.attributeValue("finalscore");
+           %>
+           
+             <td>
+          <%
+          String intersectionCount = "&nbsp;";
+          String anglesOfIntersection="";
+          try {
+              if (match.attributeValue("intersectionCount") != null) {
+            	  intersectionCount = match.attributeValue("intersectionCount");
+              }
+              if (match.attributeValue("anglesOfIntersection") != null) {
+            	  anglesOfIntersection = match.attributeValue("anglesOfIntersection");
               }
             } catch (NullPointerException npe) {
-            	npe.printStackTrace();
             }
-
-            //trim the length of finalscore
-            if (finalscore.length() > 7) {
-              finalscore = finalscore.substring(0, 6);
-            }
-
           %>
+          <%=intersectionCount %>
+          </td>
           
-          <td><%=finalscore %></td>
+          
+          
+          
+          <td>
+          &nbsp;
+          	</td>
 
 
-          <%
-            String evaluation = "No Adj.";
-            evaluation = match.attributeValue("evaluation");
-            if (evaluation == null) {
-              evaluation = "&nbsp;";
-            }
-
-          %>
 
         </tr>
 

@@ -38,6 +38,7 @@ public class I3SMatchObject implements java.io.Serializable {
   public String fastDTWPath="";
   public Double geroMatchDistance=null;
   public int intersectionCount=0;
+  public String anglesOfIntersection="";
 
   public I3SMatchObject() {
   }
@@ -132,5 +133,7 @@ public class I3SMatchObject implements java.io.Serializable {
   public void setIntersectionCount(int count){intersectionCount=count;}
   public int getIntersectionCount(){return intersectionCount;}
   
+  public String getAnglesOfIntersection(){return anglesOfIntersection;}
+  public void setAnglesOfIntersections(String angles){this.anglesOfIntersection=angles;}
   
 }

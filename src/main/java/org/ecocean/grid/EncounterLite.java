@@ -1576,6 +1576,7 @@ public class EncounterLite implements java.io.Serializable {
     int newPrintSize=newPrint.fpp.length;
     int thisPrintSize=thisPrint.fpp.length;
     int numIntersections=0;
+    StringBuffer anglesOfIntersection=new StringBuffer("");
     for(int i=0;i<(newPrintSize-1);i++){
       //for(int j=i+1;j<newPrintSize;j++){
       int j=i+1;
@@ -1586,9 +1587,7 @@ public class EncounterLite implements java.io.Serializable {
       
         //now compare to thisPattern
         for(int m=0;m<(thisPrintSize-1);m++){
-          
-            
-            
+ 
               int n=m+1;
               
               java.awt.geom.Point2D.Double thisStart=(new  java.awt.geom.Point2D.Double(thisPrint.getFpp(m).getX(),thisPrint.getFpp(m).getY()));
@@ -1596,7 +1595,11 @@ public class EncounterLite implements java.io.Serializable {
               java.awt.geom.Line2D.Double thisLine=new java.awt.geom.Line2D.Double(thisStart,thisEnd);
               
               if(((newStart.getX()<=thisEnd.getX()))){
-                if(newLine.intersectsLine(thisLine)){numIntersections++;}
+                if(newLine.intersectsLine(thisLine)){
+                  numIntersections++;
+                  String intersectionAngle=Double.toString(angleBetween2Lines(newLine, thisLine));
+                  anglesOfIntersection.append(intersectionAngle+",");
+                 }
                 //else{System.out.println("["+newStart.getX()+","+newStart.getY()+","+newEnd.getX()+","+newEnd.getY()+"]"+" does not intersect with "+"["+thisStart.getX()+","+thisStart.getY()+","+thisEnd.getX()+","+thisEnd.getY()+"]");}
                 
                 //short circuit to end if the comparison line is past the new line
@@ -1618,6 +1621,7 @@ public class EncounterLite implements java.io.Serializable {
       
     }
     System.out.println("     Num intersections is: "+numIntersections);
+    System.out.println("     Intersection angles: "+anglesOfIntersection.toString());
     
     
 
@@ -1641,6 +1645,7 @@ public class EncounterLite implements java.io.Serializable {
     I3SMatchObject i3smo=new I3SMatchObject(belongsToMarkedIndividual, fpBest[0].getScore(), encounterNumber, sex, getDate(), size, hm, 0, distance, geroMatchValue);
     i3smo.setFastDTWPath(wp.toString());
     i3smo.setIntersectionCount(numIntersections);
+    i3smo.setAnglesOfIntersections(anglesOfIntersection.toString());
     return i3smo;
   }
 
@@ -1852,23 +1857,31 @@ private double amplifyY(double origValue, double s){
   
 }
 
-public String getDynamicPropertyValue(String name) {
-  if (dynamicProperties != null) {
-    name = name.replaceAll("%20", " ");
-    //let's create a TreeMap of the properties
-    TreeMap<String, String> tm = new TreeMap<String, String>();
-    StringTokenizer st = new StringTokenizer(dynamicProperties, ";");
-    while (st.hasMoreTokens()) {
-      String token = st.nextToken();
-      int equalPlace = token.indexOf("=");
-      tm.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));
+  public String getDynamicPropertyValue(String name) {
+    if (dynamicProperties != null) {
+      name = name.replaceAll("%20", " ");
+      //let's create a TreeMap of the properties
+      TreeMap<String, String> tm = new TreeMap<String, String>();
+      StringTokenizer st = new StringTokenizer(dynamicProperties, ";");
+      while (st.hasMoreTokens()) {
+        String token = st.nextToken();
+        int equalPlace = token.indexOf("=");
+        tm.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));
+      }
+      if (tm.containsKey(name)) {
+        return tm.get(name);
+      }
     }
-    if (tm.containsKey(name)) {
-      return tm.get(name);
-    }
+    return null;
   }
-  return null;
-}
+
+  public static double angleBetween2Lines(java.awt.geom.Line2D.Double line1, java.awt.geom.Line2D.Double line2){
+      double angle1 = Math.atan2(line1.getY1() - line1.getY2(),
+                                 line1.getX1() - line1.getX2());
+      double angle2 = Math.atan2(line2.getY1() - line2.getY2(),
+                                 line2.getX1() - line2.getX2());
+      return Math.abs(angle1-angle2);
+  }
 
 }
 
