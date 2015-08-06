@@ -63,8 +63,8 @@ context=ServletUtilities.getContext(request);
       out.write("<tr><td>Score</td><td>epsilon</td><td>R</td><td>Sizelim</td><td>logM</td><td>Fraction Matched</td></tr>\r\n");
 
 
-double epsilon=0.001;
-int R=10;
+double epsilon=0.1;
+int R=5;
 double Sizelim=1.0;
 double maxTriangleRotation=10;
 double C=0.99;
@@ -79,7 +79,7 @@ while(epsilon>0){
 			SuperSpot[] newspotsTemp = new SuperSpot[0];
 			newspotsTemp=(SuperSpot[])el2.getRightSpots().toArray(newspotsTemp);
 			System.out.println("Newspotstemp is: "+newspotsTemp.toString());
-			MatchObject mo=el1.getPointsForBestMatch(newspotsTemp, epsilon, R, Sizelim, maxTriangleRotation, C, true, true);
+			MatchObject mo=el1.getPointsForBestMatch(newspotsTemp, epsilon, R, Sizelim, maxTriangleRotation, C, true, true, el2.getRightReferenceSpots());
 			String adjustedMatchValueString = (new Double(mo.adjustedMatchValue)).toString();
 			String finalscore2 = (new Double(mo.matchValue * mo.adjustedMatchValue)).toString();
 
@@ -106,10 +106,10 @@ while(epsilon>0){
 			Sizelim=Sizelim-0.1;
 		}
 	
-		R=R+10;
+		R=R+5;
 	}
 	
-	epsilon=epsilon-0.0001;
+	epsilon=epsilon-0.001;
 }
 
 

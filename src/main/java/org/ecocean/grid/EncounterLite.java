@@ -207,7 +207,7 @@ public class EncounterLite implements java.io.Serializable {
     return encounterNumber;
   }
 
-  public MatchObject getPointsForBestMatch(SuperSpot[] newspotsTemp, double epsilon, double R, double Sizelim, double maxTriangleRotation, double C, boolean secondRun, boolean rightScan) {
+  public MatchObject getPointsForBestMatch(SuperSpot[] newspotsTemp, double epsilon, double R, double Sizelim, double maxTriangleRotation, double C, boolean secondRun, boolean rightScan, SuperSpot[] newRefSpots) {
     System.out.println("\nNow comparing against encounter " + encounterNumber + " of " + belongsToMarkedIndividual + "...");
     try {
 
@@ -300,10 +300,10 @@ public class EncounterLite implements java.io.Serializable {
 
         for (int j = i + 1; j < (newspots.length - 1); j++) {
           int newArrayL = newspots.length;
-          for (int k = j + 1; k < newArrayL; k++) {
+          //for (int k = j + 1; k < newArrayL; k++) {
            
           
-          SpotTriangle tempTriangle = new SpotTriangle(newspots[i].getTheSpot(), newspots[j].getTheSpot(), newspots[k].getTheSpot(), epsilon);
+          SpotTriangle tempTriangle = new SpotTriangle(newspots[i].getTheSpot(), newspots[j].getTheSpot(), newRefSpots[1].getTheSpot(), epsilon);
           
           orient = 0;
             if (tempTriangle.clockwise) orient = 1;
@@ -323,7 +323,7 @@ public class EncounterLite implements java.io.Serializable {
               newTriangles.add(tempTriangle);
 
             }
-          }
+          //}
         }
       }
       //System.out.println("     I found "+newTriangles.size()+" new encounter triangles.\n Filtering for Sizelim...");
