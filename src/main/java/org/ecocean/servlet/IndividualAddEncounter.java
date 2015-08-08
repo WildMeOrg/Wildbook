@@ -180,6 +180,7 @@ public class IndividualAddEncounter extends HttpServlet {
               for (String emailTo : cAdopters) {
                 tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
                 tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, tagMap.get("@ENCOUNTER_LINK@"));
                 es.execute(new NotificationMailer(context, null, emailTo, emailTemplate + "-adopter", tagMap));
               }
 
