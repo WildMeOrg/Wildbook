@@ -47,6 +47,10 @@ import java.awt.geom.Line2D.*;
 import java.awt.geom.Point2D.*;
 import java.lang.Double;
 
+import java.awt.geom.*;
+import org.apache.commons.math3.linear.LUDecomposition;
+import org.apache.commons.math3.linear.*;
+
 
 //a class...
 //more description..
@@ -1649,7 +1653,7 @@ public class EncounterLite implements java.io.Serializable {
     return i3smo;
   }
 
-  private void doAffine(FingerPrint fp) {
+  public void doAffine(FingerPrint fp) {
     double[] matrix = new double[6];
     Affine.calcAffine(fp.control[0].getX(), fp.control[0].getY(), fp.control[1].getX(), fp.control[1].getY(), fp.control[2].getX(), fp.control[2].getY(), 100, 100, 900, 100, 500, 700, matrix);
 
@@ -1883,5 +1887,33 @@ private double amplifyY(double origValue, double s){
       return Math.abs(angle1-angle2);
   }
 
+  
+  public static AffineTransform deriveAffineTransform(
+      double oldX1, double oldY1,
+      double oldX2, double oldY2,
+      double oldX3, double oldY3,
+      double newX1, double newY1,
+      double newX2, double newY2,
+      double newX3, double newY3) {
+
+  double[][] oldData = { {oldX1, oldX2, oldX3}, {oldY1, oldY2, oldY3}, {1, 1, 1} };
+  RealMatrix oldMatrix = MatrixUtils.createRealMatrix(oldData);
+
+  double[][] newData = { {newX1, newX2, newX3}, {newY1, newY2, newY3} };
+  RealMatrix newMatrix = MatrixUtils.createRealMatrix(newData);
+
+  RealMatrix inverseOld = new LUDecomposition(oldMatrix).getSolver().getInverse();
+  RealMatrix transformationMatrix = newMatrix.multiply(inverseOld);
+
+  double m00 = transformationMatrix.getEntry(0, 0);
+  double m01 = transformationMatrix.getEntry(0, 1);
+  double m02 = transformationMatrix.getEntry(0, 2);
+  double m10 = transformationMatrix.getEntry(1, 0);
+  double m11 = transformationMatrix.getEntry(1, 1);
+  double m12 = transformationMatrix.getEntry(1, 2);
+
+  return new AffineTransform(m00, m10, m01, m11, m02, m12);       
+}
+  
 }
 
