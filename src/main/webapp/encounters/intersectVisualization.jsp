@@ -1,7 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" 
 	language="java" 
 	import="java.awt.geom.*,
-	com.reijns.I3S.*,java.awt.geom.Point2D.Double ,org.ecocean.servlet.ServletUtilities,org.ecocean.grid.*,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
+	com.reijns.I3S.*,
+	org.apache.commons.math.stat.descriptive.SummaryStatistics,
+	java.awt.geom.Point2D.Double ,org.ecocean.servlet.ServletUtilities,org.ecocean.grid.*,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
@@ -310,9 +312,84 @@ try {
 	    </script>
 	    
 	    
+	  <h2>intersectionScore</h2>  
+	    <%
+	    //let's try some fun intersection analysis
+	    int newPrintSize=spots2.size();
+	    int thisPrintSize=spots.size();
+	    int numIntersections=0;
+	    StringBuffer anglesOfIntersection=new StringBuffer("");
+	    for(int i=0;i<(newPrintSize-1);i++){
+	      //for(int j=i+1;j<newPrintSize;j++){
+	      int j=i+1;
+	      
+	         java.awt.geom.Point2D.Double originalStartPoint=new java.awt.geom.Point2D.Double(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());
+			 java.awt.geom.Point2D.Double transformedStartPoint=new java.awt.geom.Point2D.Double();
+			 at.transform(originalStartPoint, transformedStartPoint);
+			 
+			 java.awt.geom.Point2D.Double originalEndPoint=new java.awt.geom.Point2D.Double(spots2.get(j).getCentroidX(),spots2.get(j).getCentroidY());
+			 java.awt.geom.Point2D.Double transformedEndPoint=new java.awt.geom.Point2D.Double();
+			 at.transform(originalEndPoint, originalStartPoint);
+	        
+	        java.awt.geom.Point2D.Double newStart=(new  java.awt.geom.Point2D.Double(transformedStartPoint.getX(),transformedStartPoint.getY()));
+	        java.awt.geom.Point2D.Double newEnd=(new  java.awt.geom.Point2D.Double(transformedEndPoint.getX(),transformedEndPoint.getY()) ) ;
+	        java.awt.geom.Line2D.Double newLine=new java.awt.geom.Line2D.Double(newStart,newEnd  );
+	      
+	        //now compare to thisPattern
+	        for(int m=0;m<(thisPrintSize-1);m++){
+	 
+	              int n=m+1;
+	              
+	              java.awt.geom.Point2D.Double thisStart=(new  java.awt.geom.Point2D.Double(spots.get(m).getCentroidX(),spots.get(m).getCentroidY()));
+	              java.awt.geom.Point2D.Double thisEnd=(new  java.awt.geom.Point2D.Double(spots.get(n).getCentroidX(),spots.get(n).getCentroidY()) );   
+	              java.awt.geom.Line2D.Double thisLine=new java.awt.geom.Line2D.Double(thisStart,thisEnd);
+	              
+	             // if(((newStart.getX()<=thisEnd.getX()))){
+	                if(newLine.intersectsLine(thisLine)){
+	                  numIntersections++;
+	                  String intersectionAngle=java.lang.Double.toString(EncounterLite.angleBetween2Lines(newLine, thisLine));
+	                  anglesOfIntersection.append(intersectionAngle+",");
+	                 }
+	                //else{System.out.println("["+newStart.getX()+","+newStart.getY()+","+newEnd.getX()+","+newEnd.getY()+"]"+" does not intersect with "+"["+thisStart.getX()+","+thisStart.getY()+","+thisEnd.getX()+","+thisEnd.getY()+"]");}
+	                
+	                //short circuit to end if the comparison line is past the new line
+	                //if(newEnd.getX()<thisStart.getX()){
+	                //  m=thisPrintSize;
+	                //}
+	             // }
+	            
+	           
+	            
+	            
+	            
+	          
+	        }
+	        
+	      
+	      //}
+	      
+	      
+	    }
 	    
+	    %>
 	    
+	    <p>Num. intersections is: <%=numIntersections %><br />
+	    <%
+	    SummaryStatistics stats=new SummaryStatistics();
+	    String angles=anglesOfIntersection.toString();
+	    StringTokenizer str=new StringTokenizer(angles,",");
+        
+		
+        while(str.hasMoreTokens()){
+				
+				String token=str.nextToken();
+				double value=(new java.lang.Double(token)).doubleValue();
+				stats.addValue(value);
+        }
+	    %>
 	    
+	    Std Dev. of Intersection angles: <%=stats.getStandardDeviation()/(2*Math.PI) %> degrees
+	    </p>
 	    
 
 
