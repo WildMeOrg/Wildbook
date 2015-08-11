@@ -36,6 +36,12 @@ import com.fastdtw.util.Distances;
 
 import java.util.*;
 
+import com.fastdtw.timeseries.TimeSeries;
+import com.fastdtw.timeseries.TimeSeriesBase;
+import com.fastdtw.timeseries.TimeSeriesBase.Builder;
+import com.fastdtw.dtw.*;
+import com.fastdtw.util.Distances;
+
 
 /**
  * A class description...
@@ -63,7 +69,7 @@ public class ScanWorkItem implements java.io.Serializable {
   private boolean secondRun;
   public boolean rightScan;
   private MatchObject result;
-  private I3SMatchObject i3sResult;
+  //private I3SMatchObject i3sResult;
   private Double fastDTWResult;
   private int totalWorkItemsInTask;
   private int workItemsCompleteInTask;
@@ -217,12 +223,20 @@ public class ScanWorkItem implements java.io.Serializable {
     //comapare2mePoints=existingEncounter.getThreeLeftFiducialPoints();
     //lookForThisEncounterPoints=newEncounter.getThreeLeftFiducialPoints();
     //}
-    i3sResult = existingEncounter.i3sScan(newEncounter, rightScan);
-    System.out.println("     I3S score is: "+i3sResult.getI3SMatchValue());
+    //i3sResult = existingEncounter.i3sScan(newEncounter, rightScan);
+    java.lang.Double newDScore=EncounterLite.improvedI3SScan(existingEncounter, newEncounter);
+    double newScore=-1;
+    if(newDScore!=null){newScore=newDScore.doubleValue();}
+    System.out.println("     I3S score is: "+newScore);
 
     //create a Vector of Points
     Vector points = new Vector();
+    
+    
+    //TBD_CRAP WE NEED
     TreeMap map = i3sResult.getMap();
+    
+    
     //int treeSize=map.size();
     Iterator map_iter = map.values().iterator();
     while (map_iter.hasNext()) {
@@ -230,21 +244,30 @@ public class ScanWorkItem implements java.io.Serializable {
     }
 
     //add the I3S results to the matchObject sent back
-    result.setI3SValues(points, i3sResult.getI3SMatchValue());
+    result.setI3SValues(points, newScore);
     
-    result.setFastDTWPath(i3sResult.getFastDTWPath());
+    TimeWarpInfo twi=EncounterLite.fastDTW(existingEncounter, newEncounter, 30);
+    
+    java.lang.Double distance = new java.lang.Double(-1);
+    if(twi!=null){
+      WarpPath wp=twi.getPath();
+        String myPath=wp.toString();
+      distance=new java.lang.Double(twi.getDistance());
+    }   
+    
+    result.setFastDTWPath(distance.toString());
     
     //calculate FastDTW
     //Double fastDTWResult = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());
     
     if(rightScan){
-      result.setRightFastDTWResult(i3sResult.getDTWResult());
+      result.setRightFastDTWResult(distance);
     }
     else{
-      result.setLeftFastDTWResult(i3sResult.getDTWResult());
+      result.setLeftFastDTWResult(distance);
     }
     
-    System.out.println("     FastDTW result is: "+i3sResult.getDTWResult());
+    System.out.println("     FastDTW result is: "+distance);
     
     
     result.setGeroMatchDistance(i3sResult.getGeroMatchDistance());
@@ -310,9 +333,6 @@ public class ScanWorkItem implements java.io.Serializable {
     return result;
   }
 
-  public I3SMatchObject getI3SResult() {
-    return i3sResult;
-  }
 
   public void setResult(MatchObject newResult) {
     newResult.setTaskID(this.taskID);
