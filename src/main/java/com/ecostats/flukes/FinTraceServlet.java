@@ -239,6 +239,7 @@ public class FinTraceServlet extends HttpServlet {
 	    for(int i=0;i<size;i++){
 	      if((types[i]==-1)||(types[i]==0)){
 	        superspots.add(new SuperSpot(x[i],y[i],new Double(types[i])));
+	        System.out.println("[Reference Spot created:"+x[i]+","+y[i]+","+types[i]+"]");
 	      }
 	    }
 	    
@@ -252,6 +253,7 @@ public class FinTraceServlet extends HttpServlet {
 	      for(int i=0;i<size;i++){
 	        if((types[i]==-1)||(types[i]==0)){
 	          superspots.add(new SuperSpot(x[i],y[i],new Double(types[i])));
+	          System.out.println("[Reference Spot created:"+x[i]+","+y[i]+","+types[i]+"]");
 	        }
 	      }
 	    

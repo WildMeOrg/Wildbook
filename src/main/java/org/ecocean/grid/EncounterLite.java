@@ -50,6 +50,7 @@ import java.lang.Double;
 import java.awt.geom.*;
 import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.*;
+import org.apache.commons.math.linear.LUDecompositionImpl;
 
 
 //a class...
@@ -1914,6 +1915,21 @@ private double amplifyY(double origValue, double s){
 
   return new AffineTransform(m00, m10, m01, m11, m02, m12);       
 }
+  
+  public static AffineTransform calculateTransform(java.awt.geom.Point2D.Double[] src, java.awt.geom.Point2D.Double[] dst) {
+    Array2DRowRealMatrix x = new Array2DRowRealMatrix(new double[][] {
+    { src[0].getX(), src[1].getX(), src[2].getX() }, { src[0].getY(), src[1].getY(), src[2].getY() },
+    { 1, 1, 1 } });
+    Array2DRowRealMatrix y = new Array2DRowRealMatrix(new double[][] {
+    { dst[0].getX(), dst[1].getX(), dst[2].getX() }, { dst[0].getY(), dst[1].getY(), dst[2].getY() },
+    { 0, 0, 0 } });
+    
+    double[][] data = y.multiply(new LUDecomposition(x).getSolver().getInverse()).getData();
+    
+    return new AffineTransform(
+        new double[] { data[0][0], data[1][0], data[0][1], data[1][1], data[0][2], data[1][2] }
+     );
+    }
   
 }
 
