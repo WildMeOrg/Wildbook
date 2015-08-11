@@ -1931,5 +1931,128 @@ private double amplifyY(double origValue, double s){
      );
     }
   
+  
+  
+  //start new I3S
+  public static double improvedI3SScan(Encounter newEnc, Encounter oldEnc) {
+
+    //superSpot objects are my equivalent in my DB of Point2D
+    
+    //System.out.println("     Starting I3S scan...");
+    
+    //these spots are for the unknown encounter
+    //SuperSpot[] newspotsTemp = new SuperSpot[0];
+    //SuperSpot[] oldspotsTemp = new SuperSpot[0];
+
+    //populate the reference points...depending on whether right
+    //or left-side patterning is to be used.
+   
+    ArrayList<SuperSpot> spots2=newEnc.getSpots();
+    spots2.addAll(newEnc.getRightSpots());
+    //newspotsTemp=(SuperSpot[])spots2.toArray();
+    
+    ArrayList<SuperSpot> spots=oldEnc.getSpots();
+    spots.addAll(oldEnc.getRightSpots());
+    //oldspotsTemp=(SuperSpot[])spots.toArray();
+    
+    com.reijns.I3S.Point2D[] newEncControlSpots=new com.reijns.I3S.Point2D[3];
+    newEncControlSpots[0]=new com.reijns.I3S.Point2D(9999999,0);
+    newEncControlSpots[1]=new com.reijns.I3S.Point2D(0,-999999);
+    newEncControlSpots[2]=new com.reijns.I3S.Point2D(-99999,0);
+    for(int i=0;i<spots2.size();i++){
+      SuperSpot mySpot=spots2.get(i);
+      
+      //get the rightmost spot
+      if(mySpot.getCentroidX()>newEncControlSpots[2].getX()){newEncControlSpots[2]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());}
+      
+      //get the bottommost spot
+      if(mySpot.getCentroidY()>newEncControlSpots[1].getY()){newEncControlSpots[1]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());}
+      
+      //get the leftmost spot
+      if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());} 
+    } 
+    
+    
+    com.reijns.I3S.Point2D[] theEncControlSpots=new com.reijns.I3S.Point2D[3];
+    theEncControlSpots[0]=new com.reijns.I3S.Point2D(9999999,0);
+    theEncControlSpots[1]=new com.reijns.I3S.Point2D(0,-999999);
+    theEncControlSpots[2]=new com.reijns.I3S.Point2D(-99999,0);
+    for(int i=0;i<spots.size();i++){
+      SuperSpot mySpot=spots.get(i);
+      
+      //get the rightmost spot
+      if(mySpot.getCentroidX()>theEncControlSpots[2].getX()){theEncControlSpots[2]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());}
+      
+      //get the bottommost spot
+      if(mySpot.getCentroidY()>theEncControlSpots[1].getY()){theEncControlSpots[1]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());}
+      
+      //get the leftmost spot
+      if(mySpot.getCentroidX()<theEncControlSpots[0].getX()){theEncControlSpots[0]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());} 
+    } 
+  
+    //convert the new encounter's spots into a Point2D array
+    //previously I determined which side's spots to grab and populated
+    int newSpotsLength = spots2.size();
+    Point2D[] newEncounterSpots = new Point2D[newSpotsLength];
+    Point2D[] newOrigEncounterSpots = new Point2D[newSpotsLength];
+    
+    //Do our affine here
+    AffineTransform at=deriveAffineTransform(
+        newEncControlSpots[0].getX(),
+        newEncControlSpots[0].getY(),
+        newEncControlSpots[1].getX(),
+        newEncControlSpots[1].getY(),
+        newEncControlSpots[2].getX(),
+        newEncControlSpots[2].getY(),
+        theEncControlSpots[0].getX(),
+        theEncControlSpots[0].getY(),
+        theEncControlSpots[1].getX(),
+        theEncControlSpots[1].getY(),
+        theEncControlSpots[2].getX(),
+        theEncControlSpots[2].getY()
+   );   
+    
+    // clearly, newEncounterSpots and newOrigEncounterSpots must be of
+    // the same length, and newOrigEncounterSpots must already have the data
+    for (int z = 0; z < newOrigEncounterSpots.length; z++) {
+      
+      java.awt.geom.Point2D.Double originalPoint=new java.awt.geom.Point2D.Double(spots2.get(z).getCentroidX(),spots2.get(z).getCentroidY());
+      java.awt.geom.Point2D.Double transformedPoint=new java.awt.geom.Point2D.Double();
+      at.transform(originalPoint, transformedPoint);
+      
+      newOrigEncounterSpots[z] = new Point2D(transformedPoint.getX(), transformedPoint.getY());
+      newEncounterSpots[z] = new Point2D(transformedPoint.getX(), transformedPoint.getY());
+      
+    }
+    FingerPrint newPrint = new FingerPrint(newOrigEncounterSpots, newEncounterSpots, newEncControlSpots);
+    //System.out.println("I have constructed the new fingerprint!");
+
+
+    //let's create the existing encounter fingerprint
+    int spotsSize=spots.size();
+    Point2D[] origThisEncounterSpots = new Point2D[spotsSize];
+    Point2D[] theEncounterSpots = new Point2D[spotsSize];
+    //System.arraycopy(thisEncounterSpots, 0, origThisEncounterSpots, 0, thisSpotsLength);
+    for (int e = 0; e < spotsSize; e++) {
+           origThisEncounterSpots[e] = new Point2D(spots.get(e).getCentroidX(), spots.get(e).getCentroidY());
+           theEncounterSpots[e] = new Point2D(spots.get(e).getCentroidX(), spots.get(e).getCentroidY());
+    }
+
+    FingerPrint thisPrint = new FingerPrint(origThisEncounterSpots, theEncounterSpots, theEncControlSpots);
+    
+    Compare wsCompare = new Compare(thisPrint);
+    FingerPrint[] fpBest = new FingerPrint[1];
+
+    TreeMap hm = new TreeMap();
+
+    boolean successfulCompare = wsCompare.find(newPrint, fpBest, 1, true, hm);
+    //boolean successfulCompare=wsCompare.compareTwo(newPrint, thisPrint, hm,true);
+
+    return fpBest[0].getScore();
+  }
+  //end new I3S with affine
+  
+  
+  
 }
 

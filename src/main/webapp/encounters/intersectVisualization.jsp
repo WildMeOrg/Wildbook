@@ -3,7 +3,15 @@
 	import="java.awt.geom.*,
 	com.reijns.I3S.*,
 	org.apache.commons.math.stat.descriptive.SummaryStatistics,
-	java.awt.geom.Point2D.Double ,org.ecocean.servlet.ServletUtilities,org.ecocean.grid.*,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
+	java.awt.geom.Point2D.Double,
+	org.ecocean.servlet.ServletUtilities,org.ecocean.grid.*,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,
+	java.io.File,
+	com.fastdtw.timeseries.TimeSeriesBase.*,
+	com.fastdtw.dtw.*,
+	com.fastdtw.util.Distances,
+	com.fastdtw.timeseries.TimeSeriesBase.Builder,
+	com.fastdtw.timeseries.*" 
+	%>
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
@@ -65,8 +73,10 @@ try {
  
   //set up the JDO pieces and Shepherd
   myShepherd.beginDBTransaction();
-  EncounterLite theEnc=new EncounterLite(myShepherd.getEncounter(encNum));
-  EncounterLite theEnc2=new EncounterLite(myShepherd.getEncounter(encNum2));
+  Encounter enc1=myShepherd.getEncounter(encNum);
+  Encounter enc2=myShepherd.getEncounter(encNum2);
+  EncounterLite theEnc=new EncounterLite(enc1);
+  EncounterLite theEnc2=new EncounterLite(enc2);
   
   
 
@@ -100,6 +110,7 @@ try {
 	  theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
 	  theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
 	  theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
+	  Builder theBuilder = TimeSeriesBase.builder();
 	  for(int i=0;i<spots.size();i++){
 		  SuperSpot mySpot=spots.get(i);
 		  
@@ -112,14 +123,14 @@ try {
 		  //get the leftmost spot
 		  if(mySpot.getCentroidX()<theEncControlSpots[0].getX()){theEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
 		  
+		  //let's do our FastDTW stuff too
+			
+			theBuilder.add(spots.get(i).getCentroidX(),spots.get(i).getCentroidY());  
+		    
 		  
 	  }	
 	  
-	  System.out.print("old Enc Control spots: ");
-	  for(int t=0;t<3;t++){
-		  System.out.print(" ("+theEncControlSpots[t].getX()+","+theEncControlSpots[t].getY()+" )");
-	  }
-	  System.out.println("");
+	  TimeSeries theTimeSeries=theBuilder.build();
 	  
 
 	//affine creation
@@ -209,6 +220,8 @@ try {
 	  newEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
 	  newEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
 	  newEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
+	  Builder newBuilder = TimeSeriesBase.builder();
+	  
 	  for(int i=0;i<spots2.size();i++){
 		  SuperSpot mySpot=spots2.get(i);
 		  
@@ -221,14 +234,11 @@ try {
 		  //get the leftmost spot
 		  if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
 		  
+		  newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
 		  
 	  }	
-	  System.out.print("new Enc Control spots: ");
-	  for(int t=0;t<3;t++){
-		  System.out.print(" ("+newEncControlSpots[t].getX()+","+newEncControlSpots[t].getY()+" )");
-	  }
-	  System.out.println("");
-
+	  
+	  TimeSeries newTimeSeries=newBuilder.build();
     
     AffineTransform at=EncounterLite.deriveAffineTransform(
     		newEncControlSpots[0].getX(),
@@ -311,8 +321,17 @@ try {
 	      }
 	    </script>
 	    
+	    <%
+	    String enc1MI="Unknown";
+	    if(enc1.getIndividualID()!=null){enc1MI=enc1.getIndividualID();}
+	    String enc2MI="Unknown";
+	    if(enc2.getIndividualID()!=null){enc2MI=enc2.getIndividualID();}
+	    %>
 	    
-	  <h2>intersectionScore</h2>  
+	    <h1>Intersection and FastDTW Comparisons: <%=enc1MI %> vs <%=enc2MI %></h1>
+	    
+	    
+	  <h2>Holmberg intersection</h2>  
 	    <%
 	    //let's try some fun intersection analysis
 	    int newPrintSize=spots2.size();
@@ -390,14 +409,35 @@ try {
 	    
 	    Std Dev. of Intersection angles: <%=stats.getStandardDeviation()/(2*Math.PI) %> degrees
 	    </p>
-	    
-
-
 
 	<%
+	
+	 TimeWarpInfo twi=FastDTW.compare(theTimeSeries, newTimeSeries, 30, Distances.EUCLIDEAN_DISTANCE);
+    WarpPath wp=twi.getPath();
+    String myPath=wp.toString();
+    java.lang.Double distance = new java.lang.Double(twi.getDistance());
+    
+%>
+<h2>Fast DTW</h2>	
+<p>
+FastDTW distance: <%=distance %>
+</p>
 
+<h2>I3S</h2>
+<%
+I3SMatchObject left=theEnc.i3sScan(theEnc2, false);
+I3SMatchObject right=theEnc.i3sScan(theEnc2, true);
 
+double newScore=EncounterLite.improvedI3SScan(enc1, enc2);
 
+%>
+<p>
+Score=<%=(left.getI3SMatchValue()+right.getI3SMatchValue()) %>
+</p>
+<p>
+New Score=<%=newScore %>
+</p>
+<%
 }	//end try
 catch(Exception e) {
   e.printStackTrace();
@@ -412,6 +452,6 @@ finally {
 
 
 <div id="chart_div"></div>
-<p>Hello!</p>
+
 
 
