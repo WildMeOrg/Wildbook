@@ -110,7 +110,7 @@ try {
 	  theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
 	  theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
 	  theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
-	  Builder theBuilder = TimeSeriesBase.builder();
+	  //Builder theBuilder = TimeSeriesBase.builder();
 	  for(int i=0;i<spots.size();i++){
 		  SuperSpot mySpot=spots.get(i);
 		  
@@ -125,12 +125,12 @@ try {
 		  
 		  //let's do our FastDTW stuff too
 			
-			theBuilder.add(spots.get(i).getCentroidX(),spots.get(i).getCentroidY());  
+			//theBuilder.add(spots.get(i).getCentroidX(),spots.get(i).getCentroidY());  
 		    
 		  
 	  }	
 	  
-	  TimeSeries theTimeSeries=theBuilder.build();
+	  //TimeSeries theTimeSeries=theBuilder.build();
 	  
 
 	//affine creation
@@ -234,11 +234,11 @@ try {
 		  //get the leftmost spot
 		  if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
 		  
-		  newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
+		  //newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
 		  
 	  }	
 	  
-	  TimeSeries newTimeSeries=newBuilder.build();
+	  //TimeSeries newTimeSeries=newBuilder.build();
     
     AffineTransform at=EncounterLite.deriveAffineTransform(
     		newEncControlSpots[0].getX(),
@@ -336,86 +336,26 @@ try {
 	    //let's try some fun intersection analysis
 	    int newPrintSize=spots2.size();
 	    int thisPrintSize=spots.size();
-	    int numIntersections=0;
-	    StringBuffer anglesOfIntersection=new StringBuffer("");
-	    for(int i=0;i<(newPrintSize-1);i++){
-	      //for(int j=i+1;j<newPrintSize;j++){
-	      int j=i+1;
-	      
-	         java.awt.geom.Point2D.Double originalStartPoint=new java.awt.geom.Point2D.Double(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());
-			 java.awt.geom.Point2D.Double transformedStartPoint=new java.awt.geom.Point2D.Double();
-			 at.transform(originalStartPoint, transformedStartPoint);
-			 
-			 java.awt.geom.Point2D.Double originalEndPoint=new java.awt.geom.Point2D.Double(spots2.get(j).getCentroidX(),spots2.get(j).getCentroidY());
-			 java.awt.geom.Point2D.Double transformedEndPoint=new java.awt.geom.Point2D.Double();
-			 at.transform(originalEndPoint, originalStartPoint);
-	        
-	        java.awt.geom.Point2D.Double newStart=(new  java.awt.geom.Point2D.Double(transformedStartPoint.getX(),transformedStartPoint.getY()));
-	        java.awt.geom.Point2D.Double newEnd=(new  java.awt.geom.Point2D.Double(transformedEndPoint.getX(),transformedEndPoint.getY()) ) ;
-	        java.awt.geom.Line2D.Double newLine=new java.awt.geom.Line2D.Double(newStart,newEnd  );
-	      
-	        //now compare to thisPattern
-	        for(int m=0;m<(thisPrintSize-1);m++){
-	 
-	              int n=m+1;
-	              
-	              java.awt.geom.Point2D.Double thisStart=(new  java.awt.geom.Point2D.Double(spots.get(m).getCentroidX(),spots.get(m).getCentroidY()));
-	              java.awt.geom.Point2D.Double thisEnd=(new  java.awt.geom.Point2D.Double(spots.get(n).getCentroidX(),spots.get(n).getCentroidY()) );   
-	              java.awt.geom.Line2D.Double thisLine=new java.awt.geom.Line2D.Double(thisStart,thisEnd);
-	              
-	             // if(((newStart.getX()<=thisEnd.getX()))){
-	                if(newLine.intersectsLine(thisLine)){
-	                  numIntersections++;
-	                  String intersectionAngle=java.lang.Double.toString(EncounterLite.angleBetween2Lines(newLine, thisLine));
-	                  anglesOfIntersection.append(intersectionAngle+",");
-	                 }
-	                //else{System.out.println("["+newStart.getX()+","+newStart.getY()+","+newEnd.getX()+","+newEnd.getY()+"]"+" does not intersect with "+"["+thisStart.getX()+","+thisStart.getY()+","+thisEnd.getX()+","+thisEnd.getY()+"]");}
-	                
-	                //short circuit to end if the comparison line is past the new line
-	                //if(newEnd.getX()<thisStart.getX()){
-	                //  m=thisPrintSize;
-	                //}
-	             // }
-	            
-	           
-	            
-	            
-	            
-	          
-	        }
-	        
-	      
-	      //}
-	      
-	      
-	    }
-	    
+	    Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(theEnc, theEnc2);
+	    int finalInter=-1;
+	   	if(numIntersections!=null){finalInter=numIntersections.intValue();}
 	    %>
 	    
-	    <p>Num. intersections is: <%=numIntersections %><br />
-	    <%
-	    SummaryStatistics stats=new SummaryStatistics();
-	    String angles=anglesOfIntersection.toString();
-	    StringTokenizer str=new StringTokenizer(angles,",");
-        
-		
-        while(str.hasMoreTokens()){
-				
-				String token=str.nextToken();
-				double value=(new java.lang.Double(token)).doubleValue();
-				stats.addValue(value);
-        }
-	    %>
+	    <p>Num. intersections is: <%=finalInter %>
 	    
-	    Std Dev. of Intersection angles: <%=stats.getStandardDeviation()/(2*Math.PI) %> degrees
 	    </p>
 
 	<%
 	
-	 TimeWarpInfo twi=FastDTW.compare(theTimeSeries, newTimeSeries, 30, Distances.EUCLIDEAN_DISTANCE);
-    WarpPath wp=twi.getPath();
-    String myPath=wp.toString();
-    java.lang.Double distance = new java.lang.Double(twi.getDistance());
+	 TimeWarpInfo twi=EncounterLite.fastDTW(theEnc, theEnc2, 30);
+    
+    java.lang.Double distance = new java.lang.Double(-1);
+    if(twi!=null){
+    	WarpPath wp=twi.getPath();
+        String myPath=wp.toString();
+    	distance=new java.lang.Double(twi.getDistance());
+    }		
+    		
     
 %>
 <h2>Fast DTW</h2>	
@@ -423,19 +363,16 @@ try {
 FastDTW distance: <%=distance %>
 </p>
 
-<h2>I3S</h2>
+<h2>Modified I3S (Improved Affine Transformation)</h2>
 <%
-I3SMatchObject left=theEnc.i3sScan(theEnc2, false);
-I3SMatchObject right=theEnc.i3sScan(theEnc2, true);
 
-double newScore=EncounterLite.improvedI3SScan(enc1, enc2);
-
+java.lang.Double newDScore=EncounterLite.improvedI3SScan(new EncounterLite(enc1), new EncounterLite(enc2));
+double newScore=-1;
+if(newDScore!=null){newScore=newDScore.doubleValue();}
 %>
+
 <p>
-Score=<%=(left.getI3SMatchValue()+right.getI3SMatchValue()) %>
-</p>
-<p>
-New Score=<%=newScore %>
+Score: <%=newScore %>
 </p>
 <%
 }	//end try

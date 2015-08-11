@@ -1390,8 +1390,9 @@ public class EncounterLite implements java.io.Serializable {
   }
 
   /**
-   * This method allows us to use the I3S match algorithm as well.
+   * OLD-DEPRECATED_SCREWY AFFINE - This method allows us to use the I3S match algorithm as well.
    */
+  /*
   public I3SMatchObject i3sScan(EncounterLite newEnc, boolean scanRight) {
 
     //superSpot objects are my equivalent in my DB of Point2D
@@ -1653,6 +1654,7 @@ public class EncounterLite implements java.io.Serializable {
     i3smo.setAnglesOfIntersections(anglesOfIntersection.toString());
     return i3smo;
   }
+  */
 
   public void doAffine(FingerPrint fp) {
     double[] matrix = new double[6];
@@ -1934,8 +1936,9 @@ private double amplifyY(double origValue, double s){
   
   
   //start new I3S
-  public static double improvedI3SScan(Encounter newEnc, Encounter oldEnc) {
+  public static Double improvedI3SScan(EncounterLite newEnc, EncounterLite oldEnc) {
 
+    try{
     //superSpot objects are my equivalent in my DB of Point2D
     
     //System.out.println("     Starting I3S scan...");
@@ -2048,10 +2051,289 @@ private double amplifyY(double origValue, double s){
     boolean successfulCompare = wsCompare.find(newPrint, fpBest, 1, true, hm);
     //boolean successfulCompare=wsCompare.compareTwo(newPrint, thisPrint, hm,true);
 
-    return fpBest[0].getScore();
+    return new Double(fpBest[0].getScore());
+    }
+    catch(Exception e){
+      e.printStackTrace();
+      return null;
+    }
   }
   //end new I3S with affine
   
+  
+  public static TimeWarpInfo fastDTW(EncounterLite theEnc,EncounterLite theEnc2, int radius){
+    try{
+      ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
+      if(theEnc.getSpots()!=null){spots.addAll(theEnc.getSpots());}
+      if(theEnc.getRightSpots()!=null){spots.addAll(theEnc.getRightSpots());}
+        //newEncControlSpots = theEnc.getThreeLeftFiducialPoints();
+        
+        
+        java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
+        theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
+        theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
+        theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
+        Builder theBuilder = TimeSeriesBase.builder();
+        for(int i=0;i<spots.size();i++){
+          SuperSpot mySpot=spots.get(i);
+          
+          //get the rightmost spot
+          if(mySpot.getCentroidX()>theEncControlSpots[2].getX()){theEncControlSpots[2]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+          
+          //get the bottommost spot
+          if(mySpot.getCentroidY()>theEncControlSpots[1].getY()){theEncControlSpots[1]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+          
+          //get the leftmost spot
+          if(mySpot.getCentroidX()<theEncControlSpots[0].getX()){theEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+          
+          //let's do our FastDTW stuff too
+          
+          theBuilder.add(spots.get(i).getCentroidX(),spots.get(i).getCentroidY());  
+            
+          
+        } 
+        
+        TimeSeries theTimeSeries=theBuilder.build();
+        
+        
+        //let's create theEnc fingerprint
+        SuperSpot[] newspotsTemp = new SuperSpot[0];
+        newspotsTemp = (SuperSpot[]) spots.toArray(newspotsTemp);
+        int newSpotsLength = newspotsTemp.length;
+        java.awt.geom.Point2D.Double[] newEncounterSpots = new java.awt.geom.Point2D.Double[newSpotsLength];
+        for (int i = 0; i < newSpotsLength; i++) {
+          newEncounterSpots[i] = new java.awt.geom.Point2D.Double(newspotsTemp[i].getTheSpot().getCentroidX(), newspotsTemp[i].getTheSpot().getCentroidY());
+        }
+        java.awt.geom.Point2D.Double[] newOrigEncounterSpots = new java.awt.geom.Point2D.Double[spots.size()];
+         for (int z = 0; z < newOrigEncounterSpots.length; z++) {
+          newOrigEncounterSpots[z] = new java.awt.geom.Point2D.Double(spots.get(z).getCentroidX(), spots.get(z).getCentroidY());
+        }
+  
+  
+      
+      //EncounterLite enc=new EncounterLite(theEnc);
+      // = new Point2D[3];
+      //SuperSpot[] newspotsTemp = new SuperSpot[0];
+      //newspotsTemp = (SuperSpot[]) enc.getRightSpots().toArray(newspotsTemp);
+      ArrayList<SuperSpot> spots2=new ArrayList<SuperSpot>();
+      if(theEnc2.getSpots()!=null){spots2.addAll(theEnc2.getSpots());}
+      if(theEnc2.getRightSpots()!=null){spots2.addAll(theEnc2.getRightSpots());}
+        //newEncControlSpots = theEnc2.getThreeLeftFiducialPoints();
+        
+        java.awt.geom.Point2D.Double[] newEncControlSpots=new java.awt.geom.Point2D.Double[3];
+        newEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
+        newEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
+        newEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
+        Builder newBuilder = TimeSeriesBase.builder();
+        
+        for(int i=0;i<spots2.size();i++){
+          SuperSpot mySpot=spots2.get(i);
+          
+          //get the rightmost spot
+          if(mySpot.getCentroidX()>newEncControlSpots[2].getX()){newEncControlSpots[2]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+          
+          //get the bottommost spot
+          if(mySpot.getCentroidY()>newEncControlSpots[1].getY()){newEncControlSpots[1]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+          
+          //get the leftmost spot
+          if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+          
+          newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
+          
+        } 
+        
+        TimeSeries newTimeSeries=newBuilder.build();
+        
+        AffineTransform at=EncounterLite.deriveAffineTransform(
+            newEncControlSpots[0].getX(),
+            newEncControlSpots[0].getY(),
+            newEncControlSpots[1].getX(),
+            newEncControlSpots[1].getY(),
+            newEncControlSpots[2].getX(),
+            newEncControlSpots[2].getY(),
+            theEncControlSpots[0].getX(),
+            theEncControlSpots[0].getY(),
+            theEncControlSpots[1].getX(),
+            theEncControlSpots[1].getY(),
+            theEncControlSpots[2].getX(),
+            theEncControlSpots[2].getY()
+       );     
+       
+        return FastDTW.compare(theTimeSeries, newTimeSeries, radius, Distances.EUCLIDEAN_DISTANCE);
+        
+    }
+    catch(Exception e){
+      e.printStackTrace();
+      return null;
+    }
+  }
+    
+    public static Integer getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2){
+      
+      try{
+        ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
+        if(theEnc.getSpots()!=null){spots.addAll(theEnc.getSpots());}
+        if(theEnc.getRightSpots()!=null){spots.addAll(theEnc.getRightSpots());}
+          //newEncControlSpots = theEnc.getThreeLeftFiducialPoints();
+          
+          
+          java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
+          theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
+          theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
+          theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
+          Builder theBuilder = TimeSeriesBase.builder();
+          for(int i=0;i<spots.size();i++){
+            SuperSpot mySpot=spots.get(i);
+            
+            //get the rightmost spot
+            if(mySpot.getCentroidX()>theEncControlSpots[2].getX()){theEncControlSpots[2]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+            
+            //get the bottommost spot
+            if(mySpot.getCentroidY()>theEncControlSpots[1].getY()){theEncControlSpots[1]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+            
+            //get the leftmost spot
+            if(mySpot.getCentroidX()<theEncControlSpots[0].getX()){theEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+            
+            //let's do our FastDTW stuff too
+            
+            theBuilder.add(spots.get(i).getCentroidX(),spots.get(i).getCentroidY());  
+              
+            
+          } 
+          
+          TimeSeries theTimeSeries=theBuilder.build();
+          
+          
+          //let's create theEnc fingerprint
+          SuperSpot[] newspotsTemp = new SuperSpot[0];
+          newspotsTemp = (SuperSpot[]) spots.toArray(newspotsTemp);
+          int newSpotsLength = newspotsTemp.length;
+          java.awt.geom.Point2D.Double[] newEncounterSpots = new java.awt.geom.Point2D.Double[newSpotsLength];
+          for (int i = 0; i < newSpotsLength; i++) {
+            newEncounterSpots[i] = new java.awt.geom.Point2D.Double(newspotsTemp[i].getTheSpot().getCentroidX(), newspotsTemp[i].getTheSpot().getCentroidY());
+          }
+          java.awt.geom.Point2D.Double[] newOrigEncounterSpots = new java.awt.geom.Point2D.Double[spots.size()];
+           for (int z = 0; z < newOrigEncounterSpots.length; z++) {
+            newOrigEncounterSpots[z] = new java.awt.geom.Point2D.Double(spots.get(z).getCentroidX(), spots.get(z).getCentroidY());
+          }
+    
+    
+        
+        //EncounterLite enc=new EncounterLite(theEnc);
+        // = new Point2D[3];
+        //SuperSpot[] newspotsTemp = new SuperSpot[0];
+        //newspotsTemp = (SuperSpot[]) enc.getRightSpots().toArray(newspotsTemp);
+        ArrayList<SuperSpot> spots2=new ArrayList<SuperSpot>();
+        if(theEnc2.getSpots()!=null){spots2.addAll(theEnc2.getSpots());}
+        if(theEnc2.getRightSpots()!=null){spots2.addAll(theEnc2.getRightSpots());}
+          //newEncControlSpots = theEnc2.getThreeLeftFiducialPoints();
+          
+          java.awt.geom.Point2D.Double[] newEncControlSpots=new java.awt.geom.Point2D.Double[3];
+          newEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
+          newEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
+          newEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
+          Builder newBuilder = TimeSeriesBase.builder();
+          
+          for(int i=0;i<spots2.size();i++){
+            SuperSpot mySpot=spots2.get(i);
+            
+            //get the rightmost spot
+            if(mySpot.getCentroidX()>newEncControlSpots[2].getX()){newEncControlSpots[2]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+            
+            //get the bottommost spot
+            if(mySpot.getCentroidY()>newEncControlSpots[1].getY()){newEncControlSpots[1]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+            
+            //get the leftmost spot
+            if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+            
+            newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
+            
+          } 
+          
+          TimeSeries newTimeSeries=newBuilder.build();
+          
+          AffineTransform at=EncounterLite.deriveAffineTransform(
+              newEncControlSpots[0].getX(),
+              newEncControlSpots[0].getY(),
+              newEncControlSpots[1].getX(),
+              newEncControlSpots[1].getY(),
+              newEncControlSpots[2].getX(),
+              newEncControlSpots[2].getY(),
+              theEncControlSpots[0].getX(),
+              theEncControlSpots[0].getY(),
+              theEncControlSpots[1].getX(),
+              theEncControlSpots[1].getY(),
+              theEncControlSpots[2].getX(),
+              theEncControlSpots[2].getY()
+         );     
+          
+          //let's try some fun intersection analysis
+          int newPrintSize=spots2.size();
+          int thisPrintSize=spots.size();
+          int numIntersections=0;
+          StringBuffer anglesOfIntersection=new StringBuffer("");
+          for(int i=0;i<(newPrintSize-1);i++){
+            //for(int j=i+1;j<newPrintSize;j++){
+            int j=i+1;
+            
+               java.awt.geom.Point2D.Double originalStartPoint=new java.awt.geom.Point2D.Double(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());
+           java.awt.geom.Point2D.Double transformedStartPoint=new java.awt.geom.Point2D.Double();
+           at.transform(originalStartPoint, transformedStartPoint);
+           
+           java.awt.geom.Point2D.Double originalEndPoint=new java.awt.geom.Point2D.Double(spots2.get(j).getCentroidX(),spots2.get(j).getCentroidY());
+           java.awt.geom.Point2D.Double transformedEndPoint=new java.awt.geom.Point2D.Double();
+           at.transform(originalEndPoint, originalStartPoint);
+              
+              java.awt.geom.Point2D.Double newStart=(new  java.awt.geom.Point2D.Double(transformedStartPoint.getX(),transformedStartPoint.getY()));
+              java.awt.geom.Point2D.Double newEnd=(new  java.awt.geom.Point2D.Double(transformedEndPoint.getX(),transformedEndPoint.getY()) ) ;
+              java.awt.geom.Line2D.Double newLine=new java.awt.geom.Line2D.Double(newStart,newEnd  );
+            
+              //now compare to thisPattern
+              for(int m=0;m<(thisPrintSize-1);m++){
+       
+                    int n=m+1;
+                    
+                    java.awt.geom.Point2D.Double thisStart=(new  java.awt.geom.Point2D.Double(spots.get(m).getCentroidX(),spots.get(m).getCentroidY()));
+                    java.awt.geom.Point2D.Double thisEnd=(new  java.awt.geom.Point2D.Double(spots.get(n).getCentroidX(),spots.get(n).getCentroidY()) );   
+                    java.awt.geom.Line2D.Double thisLine=new java.awt.geom.Line2D.Double(thisStart,thisEnd);
+                    
+                   // if(((newStart.getX()<=thisEnd.getX()))){
+                      if(newLine.intersectsLine(thisLine)){
+                        numIntersections++;
+                        String intersectionAngle=java.lang.Double.toString(EncounterLite.angleBetween2Lines(newLine, thisLine));
+                        anglesOfIntersection.append(intersectionAngle+",");
+                       }
+                      //else{System.out.println("["+newStart.getX()+","+newStart.getY()+","+newEnd.getX()+","+newEnd.getY()+"]"+" does not intersect with "+"["+thisStart.getX()+","+thisStart.getY()+","+thisEnd.getX()+","+thisEnd.getY()+"]");}
+                      
+                      //short circuit to end if the comparison line is past the new line
+                      //if(newEnd.getX()<thisStart.getX()){
+                      //  m=thisPrintSize;
+                      //}
+                   // }
+                  
+                 
+                  
+                  
+                  
+                
+              }
+              
+            
+            //}
+            
+            
+          }
+          return (new Integer(numIntersections));
+         
+      
+    }
+     catch(Exception e){
+       e.printStackTrace();
+       return null;
+     }
+    
+    
+  }
   
   
 }
