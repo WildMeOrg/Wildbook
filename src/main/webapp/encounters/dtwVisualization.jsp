@@ -97,7 +97,7 @@ if((theEnc.getRightSpots()!=null)||(theEnc.getSpots()!=null)){
  
 	    for (int t = 0; t < newSpotsLength; t++) {
 	    %>  
-	      [<%=spots.get(t).getTheSpot().getCentroidX() %>,(chartHeight-<%=spots.get(t).getTheSpot().getCentroidY() %>),'<%=spots.get(t).getType() %>'],
+	      [<%=spots.get(t).getTheSpot().getCentroidX() %>,(<%=spots.get(t).getTheSpot().getCentroidY() %>),'<%=spots.get(t).getType() %>'],
 	      <%
 	    }
 
@@ -134,7 +134,7 @@ if((theEnc.getRightSpots()!=null)||(theEnc.getSpots()!=null)){
 	    %>
 	    <p>Right control spots</p>
 	    <%
-	    newEncControlSpots=theEnc.getThreeLeftFiducialPoints();
+	    newEncControlSpots=theEnc.getThreeRightFiducialPoints();
 	    if(newEncControlSpots!=null){
 	    	for(int i=0;i<newEncControlSpots.length;i++){
 	    		Point2D theSpot=newEncControlSpots[i];

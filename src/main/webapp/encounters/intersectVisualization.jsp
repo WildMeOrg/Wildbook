@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" 
 	language="java" 
-	import="java.awt.geom.*,com.reijns.I3S.*,com.reijns.I3S.Point2D,org.ecocean.servlet.ServletUtilities,org.ecocean.grid.*,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
+	import="java.awt.geom.*,
+	com.reijns.I3S.*,java.awt.geom.Point2D.Double ,org.ecocean.servlet.ServletUtilities,org.ecocean.grid.*,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
@@ -65,6 +66,9 @@ try {
   EncounterLite theEnc=new EncounterLite(myShepherd.getEncounter(encNum));
   EncounterLite theEnc2=new EncounterLite(myShepherd.getEncounter(encNum2));
   
+  
+
+  
 
 
 
@@ -72,7 +76,7 @@ try {
   
 
   
-  java.awt.geom.Point2D.Double[] newEncControlSpots=null;
+  //java.awt.geom.Point2D.Double[] newEncControlSpots=null;
   
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 //handle translation
@@ -88,6 +92,40 @@ try {
 	if(theEnc.getSpots()!=null){spots.addAll(theEnc.getSpots());}
 	if(theEnc.getRightSpots()!=null){spots.addAll(theEnc.getRightSpots());}
     //newEncControlSpots = theEnc.getThreeLeftFiducialPoints();
+    
+	  
+	  java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
+	  theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
+	  theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
+	  theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
+	  for(int i=0;i<spots.size();i++){
+		  SuperSpot mySpot=spots.get(i);
+		  
+		  //get the rightmost spot
+		  if(mySpot.getCentroidX()>theEncControlSpots[2].getX()){theEncControlSpots[2]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+		  
+		  //get the bottommost spot
+		  if(mySpot.getCentroidY()>theEncControlSpots[1].getY()){theEncControlSpots[1]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+		  
+		  //get the leftmost spot
+		  if(mySpot.getCentroidX()<theEncControlSpots[0].getX()){theEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+		  
+		  
+	  }	
+	  
+	  System.out.print("old Enc Control spots: ");
+	  for(int t=0;t<3;t++){
+		  System.out.print(" ("+theEncControlSpots[t].getX()+","+theEncControlSpots[t].getY()+" )");
+	  }
+	  System.out.println("");
+	  
+
+	//affine creation
+	  //AffineTransform atInvert =new AffineTransform(at2);
+	  //atInvert.invert();
+	  //end affinbe creation
+    
+    
     
     
     //let's create theEnc fingerprint
@@ -114,12 +152,19 @@ try {
 	//double rightHighestSpot=theEnc.getHighestRightSpot();
 	
 
- 
-	    for (int t = 0; t < spots.size(); t++) {
-	    %>  
-	      [<%=spots.get(t).getCentroidX() %>,<%=spots.get(t).getCentroidY() %>],
-	      <%
-	    }
+		//map the transformed points
+		for (int t = 0; t < newSpotsLength; t++) {
+			 java.awt.geom.Point2D.Double originalPoint=new java.awt.geom.Point2D.Double(spots.get(t).getCentroidX(),spots.get(t).getCentroidY());
+			 java.awt.geom.Point2D.Double transformedPoint=new java.awt.geom.Point2D.Double();
+			 //at2.transform(originalPoint, transformedPoint);
+			 %>  
+			 [
+			  <%=spots.get(t).getCentroidX() %>,
+			  <%=spots.get(t).getCentroidY() %>
+			  ],
+		 
+			 <%
+		}
 
 	    
 	    
@@ -158,46 +203,72 @@ try {
 	if(theEnc2.getRightSpots()!=null){spots2.addAll(theEnc2.getRightSpots());}
     //newEncControlSpots = theEnc2.getThreeLeftFiducialPoints();
     
-    //let's create theEnc2 fingerprint
-    newspotsTemp = new SuperSpot[0];
-    newspotsTemp = (SuperSpot[]) spots2.toArray(newspotsTemp);
-    newSpotsLength = newspotsTemp.length;
-    newEncounterSpots = new java.awt.geom.Point2D.Double[newSpotsLength];
-    for (int i = 0; i < newSpotsLength; i++) {
-      newEncounterSpots[i] = new java.awt.geom.Point2D.Double(spots2.get(i).getTheSpot().getCentroidX(), spots2.get(i).getTheSpot().getCentroidY());
-    }
-    newOrigEncounterSpots = new java.awt.geom.Point2D.Double[spots2.size()];
-     for (int z = 0; z < newOrigEncounterSpots.length; z++) {
-      newOrigEncounterSpots[z] = new java.awt.geom.Point2D.Double(spots2.get(z).getCentroidX(), spots2.get(z).getCentroidY());
-    }
-    
+	  java.awt.geom.Point2D.Double[] newEncControlSpots=new java.awt.geom.Point2D.Double[3];
+	  newEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
+	  newEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
+	  newEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
+	  for(int i=0;i<spots2.size();i++){
+		  SuperSpot mySpot=spots2.get(i);
+		  
+		  //get the rightmost spot
+		  if(mySpot.getCentroidX()>newEncControlSpots[2].getX()){newEncControlSpots[2]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+		  
+		  //get the bottommost spot
+		  if(mySpot.getCentroidY()>newEncControlSpots[1].getY()){newEncControlSpots[1]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+		  
+		  //get the leftmost spot
+		  if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
+		  
+		  
+	  }	
+	  System.out.print("new Enc Control spots: ");
+	  for(int t=0;t<3;t++){
+		  System.out.print(" ("+newEncControlSpots[t].getX()+","+newEncControlSpots[t].getY()+" )");
+	  }
+	  System.out.println("");
 
     
-    AffineTransform at=new AffineTransform(
-    		theEnc.getLeftReferenceSpots()[0].getCentroidX(),
-    		theEnc.getLeftReferenceSpots()[0].getCentroidY(),
-    		theEnc.getLeftReferenceSpots()[1].getCentroidX(),
-    		theEnc.getLeftReferenceSpots()[1].getCentroidY(),
-    		theEnc.getLeftReferenceSpots()[2].getCentroidX(),
-    		theEnc.getLeftReferenceSpots()[2].getCentroidY()
-   	);
+    AffineTransform at=EncounterLite.deriveAffineTransform(
+    		newEncControlSpots[0].getX(),
+    		newEncControlSpots[0].getY(),
+    		newEncControlSpots[1].getX(),
+    		newEncControlSpots[1].getY(),
+    		newEncControlSpots[2].getX(),
+    		newEncControlSpots[2].getY(),
+    		theEncControlSpots[0].getX(),
+    		theEncControlSpots[0].getY(),
+    		theEncControlSpots[1].getX(),
+    		theEncControlSpots[1].getY(),
+    		theEncControlSpots[2].getX(),
+    		theEncControlSpots[2].getY()
+   ); 		
     
+    
+   // AffineTransform at2=EncounterLite.calculateTransform(theEncControlSpots,newEncControlSpots);
+	  
+    
+    
+
     int newSpotsLength2 = spots2.size();
     //java.awt.geom.Point2D.Double[] transformedSpots=new java.awt.geom.Point2D.Double[newSpotsLength2];
-    /*
-    at.transform(newOrigEncounterSpots,
-            0,
-            transformedSpots,
-            0,
-            newSpotsLength2);
-*/
+    
  
- 
-	 for (int t = 0; t < newSpotsLength2; t++) {
+ //just map the points
+	
+
+
+	for (int t = 0; t < newSpotsLength2; t++) {
+		 java.awt.geom.Point2D.Double originalPoint=new java.awt.geom.Point2D.Double(spots2.get(t).getCentroidX(),spots2.get(t).getCentroidY());
+		 java.awt.geom.Point2D.Double transformedPoint=new java.awt.geom.Point2D.Double();
+		 at.transform(originalPoint, transformedPoint);
 		 %>  
-		 [<%=spots2.get(t).getCentroidX() %>,<%=spots2.get(t).getCentroidY() %>],
+		 [
+		  <%=transformedPoint.getX() %>, <%=transformedPoint.getY() %>
+		  ],
 		 <%
 	}
+
+
 
 	    
 	    
@@ -225,6 +296,8 @@ try {
                     series: {
                         0: { color: 'blue' },
                      	1: {color: 'yellow'},
+                     	2: {color: 'green'},
+                     	3: {color: 'green'}
                        
                       }
                     };
