@@ -356,19 +356,29 @@ public class WriteOutScanTask extends HttpServlet {
             Vector map = mo.getMap2();
             int mapSize = map.size();
             Encounter e1 = myShepherd.getEncounter(mo.getEncounterNumber());
+            ArrayList<SuperSpot> spts = new ArrayList<SuperSpot>();
+            //if (rightSide) {
+            //  spts = e1.getRightSpots();
+              //elegantly handle if this is a whole pattern (left+right) analysis
+            //  if(mapSize>spts.size()){spts.addAll(e1.getSpots());}
+           // } 
+            //else {
+              spts = e1.getSpots();
+            //elegantly handle if this is a whole pattern (left+right) analysis
+              //if(mapSize>spts.size()){spts.addAll(e1.getRightSpots());}
+              spts.addAll(e1.getRightSpots());
+            //}
+            int sptsSize=spts.size();
             for (int f = 0; f < mapSize; f++) {
-              Pair tempPair = (com.reijns.I3S.Pair) map.get(f);
-              int M1 = tempPair.getM1();
-              ArrayList<SuperSpot> spts = new ArrayList<SuperSpot>();
-              if (rightSide) {
-                spts = e1.getRightSpots();
-              } else {
-                spts = e1.getSpots();
+              if(f<sptsSize){
+                Pair tempPair = (com.reijns.I3S.Pair) map.get(f);
+                int M1 = tempPair.getM1();
+                
+                //System.out.println("scanWorkItemResultsHandler: I3S spots: "+spts.size()+" vs mapSize: "+mapSize);
+                //Element spot = enc.addElement("spot");
+                //spot.addAttribute("x", (new Double(spts.get(M1).getTheSpot().getCentroidX())).toString());
+                //spot.addAttribute("y", (new Double(spts.get(M1).getTheSpot().getCentroidY())).toString());
               }
-              //System.out.println("scanWorkItemResultsHandler: I3S spots: "+spts.size()+" vs mapSize: "+mapSize);
-              Element spot = enc.addElement("spot");
-              spot.addAttribute("x", (new Double(spts.get(M1).getTheSpot().getCentroidX())).toString());
-              spot.addAttribute("y", (new Double(spts.get(M1).getTheSpot().getCentroidY())).toString());
             }
 
             Element enc2 = match.addElement("encounter");
@@ -379,21 +389,32 @@ public class WriteOutScanTask extends HttpServlet {
             enc2.addAttribute("size", newEncSize);
 
             //reset the Iterator
+        
             Encounter e2 = myShepherd.getEncounter(num);
+            ArrayList<SuperSpot> spts2 = new ArrayList<SuperSpot>();
+            //if (rightSide) {
+              //spts2 = e2.getRightSpots();
+              //elegantly handle if this is a whole pattern (left+right) analysis
+              //if(mapSize>spts2.size()){spts2.addAll(e2.getSpots());}
+            //} 
+            //else {
+              spts2 = e2.getSpots();
+            //elegantly handle if this is a whole pattern (left+right) analysis
+              //if(mapSize>spts2.size()){spts2.addAll(e2.getRightSpots());}
+              spts2.addAll(e2.getRightSpots());
+           //}
+            int spts2Size=spts2.size();
             for (int g = 0; g < mapSize; g++) {
-              Pair tempPair = (com.reijns.I3S.Pair) map.get(g);
-              int M2 = tempPair.getM2();
-              ArrayList<SuperSpot> spts = new ArrayList<SuperSpot>();
-              if (rightSide) {
-                spts = e2.getRightSpots();
-              } else {
-                spts = e2.getSpots();
+              if(g<spts2Size){
+                Pair tempPair = (com.reijns.I3S.Pair) map.get(g);
+                int M2 = tempPair.getM2();
+               
+                //Element spot = enc2.addElement("spot");
+                //System.out.println("scanWorkItemResultsHandler: I3S next spots: "+spts.size()+" vs mapSize: "+mapSize);
+                //spot.addAttribute("x", (new Double(spts2.get(M2).getTheSpot().getCentroidX())).toString());
+                //spot.addAttribute("y", (new Double(spts2.get(M2).getTheSpot().getCentroidY())).toString());
               }
-              Element spot = enc2.addElement("spot");
-              //System.out.println("scanWorkItemResultsHandler: I3S next spots: "+spts.size()+" vs mapSize: "+mapSize);
-              spot.addAttribute("x", (new Double(spts.get(M2).getTheSpot().getCentroidX())).toString());
-              spot.addAttribute("y", (new Double(spts.get(M2).getTheSpot().getCentroidY())).toString());
-            }
+           }
 
           }
         } catch (NullPointerException npe) {

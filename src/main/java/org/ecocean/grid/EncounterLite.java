@@ -2023,7 +2023,7 @@ private double amplifyY(double origValue, double s){
       java.awt.geom.Point2D.Double transformedPoint=new java.awt.geom.Point2D.Double();
       at.transform(originalPoint, transformedPoint);
       
-      newOrigEncounterSpots[z] = new Point2D(transformedPoint.getX(), transformedPoint.getY());
+      newOrigEncounterSpots[z] = new Point2D(originalPoint.getX(), originalPoint.getY());
       newEncounterSpots[z] = new Point2D(transformedPoint.getX(), transformedPoint.getY());
       
     }

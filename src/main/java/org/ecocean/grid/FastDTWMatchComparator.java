@@ -43,20 +43,23 @@ public class FastDTWMatchComparator implements Comparator {
     
     //right side or
     if(side.equals("right")){
-      a1.getRightFastDTWResult().doubleValue();
+      a1_adjustedValue=a1.getRightFastDTWResult().doubleValue();
       b1_adjustedValue = b1.getRightFastDTWResult().doubleValue();
     }
     //assume left
     else{
-      a1.getLeftFastDTWResult().doubleValue();
+      a1_adjustedValue=a1.getLeftFastDTWResult().doubleValue();
       b1_adjustedValue = b1.getLeftFastDTWResult().doubleValue();
     }
 
-    if (a1_adjustedValue > b1_adjustedValue) {
+    if (a1_adjustedValue < b1_adjustedValue) {
+      //System.out.println(a1_adjustedValue+" > "+b1_adjustedValue);
       return -1;
     } else if (a1_adjustedValue == b1_adjustedValue) {
+      //System.out.println(a1_adjustedValue+" = "+b1_adjustedValue);
       return 0;
     } else {
+      //System.out.println(a1_adjustedValue+" < "+b1_adjustedValue);
       return 1;
     }
 
