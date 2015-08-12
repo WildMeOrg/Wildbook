@@ -39,7 +39,7 @@ public class I3SMatchObject implements java.io.Serializable {
   public I3SMatchObject() {
   }
 
-  public I3SMatchObject(double score, TreeMap map,double size) {
+  public I3SMatchObject(double score, TreeMap map) {
     this.matchValue = score;
     this.individualName = individualName;
     this.map = map;
