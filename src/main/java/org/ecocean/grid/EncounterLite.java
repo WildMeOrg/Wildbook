@@ -1936,7 +1936,7 @@ private double amplifyY(double origValue, double s){
   
   
   //start new I3S
-  public static Double improvedI3SScan(EncounterLite newEnc, EncounterLite oldEnc) {
+  public static I3SMatchObject improvedI3SScan(EncounterLite newEnc, EncounterLite oldEnc) {
 
     try{
     //superSpot objects are my equivalent in my DB of Point2D
@@ -2051,7 +2051,12 @@ private double amplifyY(double origValue, double s){
     boolean successfulCompare = wsCompare.find(newPrint, fpBest, 1, true, hm);
     //boolean successfulCompare=wsCompare.compareTwo(newPrint, thisPrint, hm,true);
 
-    return new Double(fpBest[0].getScore());
+    //fpBest[0].getScore();
+    
+  //now return an I3S match object
+    I3SMatchObject i3smo=new I3SMatchObject(fpBest[0].getScore(),hm);
+    return i3smo;
+    
     }
     catch(Exception e){
       e.printStackTrace();
@@ -2334,6 +2339,42 @@ private double amplifyY(double origValue, double s){
     
     
   }
+    
+    
+    public static Double geroMatch(EncounterLite existingEncounter,EncounterLite newEnc) {
+
+      
+      
+      //insert Shane's algorithm
+      Double geroMatchValue=new Double(0);
+      
+      try{
+        //System.out.println("     About to start TraceCompare!");
+        Fluke newFluke=new Fluke(newEnc);
+        //System.out.println("     newFluke created!");
+        Fluke thisFluke=new Fluke(existingEncounter);
+        //System.out.println("     thisFluke created!");
+        TraceCompare tc = new TraceCompare();
+        //System.out.println("     TraceComapre done!");
+        ArrayList<Fluke> flukes=new ArrayList<Fluke>();
+        flukes.add(thisFluke);
+        TreeSet<Fluke> matches = tc.processCatalog(flukes,newFluke);
+        
+        if(matches.size()>0){
+          geroMatchValue=matches.first().getMatchValue();
+        }
+        System.out.println("    !!!!I found a Gero score of: "+geroMatchValue);
+        
+        return geroMatchValue;
+      }
+      catch(Exception fe){
+        fe.printStackTrace(); 
+        return null;
+      }
+      
+      
+      
+}
   
   
 }

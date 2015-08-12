@@ -186,9 +186,7 @@ context=ServletUtilities.getContext(request);
   
    <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
   
-    <li><a class="active">FastDTW</a></li>
-  
-    <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a>
+   <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a>
   
 <li><a class="active">Intersection</a></li>
 
@@ -311,8 +309,6 @@ context=ServletUtilities.getContext(request);
         
 		<th><strong># Intersections </strong></th>
 		
-		<th><strong>Std. Dev. Angles of Intersection (radians) </strong></th>
-
     </tr>
         </thead>
         <tbody>
@@ -432,9 +428,7 @@ context=ServletUtilities.getContext(request);
 				 	<%=intersectionCount %>
 				 </td>
 				 
-				 <td>
-		          <%=stats.getStandardDeviation() %>
-	          	</td>
+				 
 
         </tr>
 

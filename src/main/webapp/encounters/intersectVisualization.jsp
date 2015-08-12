@@ -10,7 +10,8 @@
 	com.fastdtw.dtw.*,
 	com.fastdtw.util.Distances,
 	com.fastdtw.timeseries.TimeSeriesBase.Builder,
-	com.fastdtw.timeseries.*" 
+	com.fastdtw.timeseries.*,
+	org.ecocean.grid.*" 
 	%>
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
@@ -366,9 +367,9 @@ FastDTW distance: <%=distance %>
 <h2>Modified I3S (Improved Affine Transformation)</h2>
 <%
 
-java.lang.Double newDScore=EncounterLite.improvedI3SScan(new EncounterLite(enc1), new EncounterLite(enc2));
+I3SMatchObject newDScore=EncounterLite.improvedI3SScan(new EncounterLite(enc1), new EncounterLite(enc2));
 double newScore=-1;
-if(newDScore!=null){newScore=newDScore.doubleValue();}
+if(newDScore!=null){newScore=newDScore.getI3SMatchValue();}
 %>
 
 <p>
