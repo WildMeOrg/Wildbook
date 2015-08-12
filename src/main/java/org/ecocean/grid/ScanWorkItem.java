@@ -224,27 +224,32 @@ public class ScanWorkItem implements java.io.Serializable {
     //lookForThisEncounterPoints=newEncounter.getThreeLeftFiducialPoints();
     //}
     //i3sResult = existingEncounter.i3sScan(newEncounter, rightScan);
-    java.lang.Double newDScore=EncounterLite.improvedI3SScan(existingEncounter, newEncounter);
+    I3SMatchObject newDScore=EncounterLite.improvedI3SScan(existingEncounter, newEncounter);
+    newDScore.setEncounterNumber(getNewEncNumber());
+    //newDScore.setIndividualID(id);
     double newScore=-1;
-    if(newDScore!=null){newScore=newDScore.doubleValue();}
+    if(newDScore!=null){
+      newScore=newDScore.getI3SMatchValue();
+      //create a Vector of Points
+      Vector points = new Vector();
+      
+      
+      //TBD_CRAP WE NEED
+      TreeMap map = newDScore.getMap();
+      
+      
+      //int treeSize=map.size();
+      Iterator map_iter = map.values().iterator();
+      while (map_iter.hasNext()) {
+        points.add((Pair) map_iter.next());
+      }
+
+      //add the I3S results to the matchObject sent back
+      result.setI3SValues(points, newScore);
+    }
     System.out.println("     I3S score is: "+newScore);
 
-    //create a Vector of Points
-    Vector points = new Vector();
     
-    
-    //TBD_CRAP WE NEED
-    TreeMap map = i3sResult.getMap();
-    
-    
-    //int treeSize=map.size();
-    Iterator map_iter = map.values().iterator();
-    while (map_iter.hasNext()) {
-      points.add((Pair) map_iter.next());
-    }
-
-    //add the I3S results to the matchObject sent back
-    result.setI3SValues(points, newScore);
     
     TimeWarpInfo twi=EncounterLite.fastDTW(existingEncounter, newEncounter, 30);
     
@@ -269,13 +274,20 @@ public class ScanWorkItem implements java.io.Serializable {
     
     System.out.println("     FastDTW result is: "+distance);
     
+    Double geroMatch=new Double(-1);
+    result.setGeroMatchDistance(geroMatch);
+    geroMatch=EncounterLite.geroMatch(existingEncounter, newEncounter);
     
-    result.setGeroMatchDistance(i3sResult.getGeroMatchDistance());
-    result.setIntersectionCount(i3sResult.getIntersectionCount());
-    result.setAnglesOfIntersections(i3sResult.getAnglesOfIntersection());
+    if(geroMatch!=null)result.setGeroMatchDistance(geroMatch);
     
-    System.out.println("     Gero result is: "+i3sResult.getGeroMatchDistance());
-
+    Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter);
+    int finalInter=-1;
+    if(numIntersections!=null){finalInter=numIntersections.intValue();}
+    
+    
+    result.setIntersectionCount(finalInter);
+    result.setAnglesOfIntersections("");
+    
     done = true;
     return result;
   }

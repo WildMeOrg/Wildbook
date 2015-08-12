@@ -334,10 +334,10 @@ public class WriteOutScanTask extends HttpServlet {
             match.addAttribute("evaluation", mo.getEvaluation());
 
             
-            match.addAttribute("dtwPath", mo.getFastDTWPath());
+            //match.addAttribute("dtwPath", mo.getFastDTWPath());
             
-            match.addAttribute("intersectionCount", (new Integer(mo.getIntersectionCount())).toString());
-            match.addAttribute("anglesOfIntersection", (mo.getAnglesOfIntersection())).toString();
+            //match.addAttribute("intersectionCount", (new Integer(mo.getIntersectionCount())).toString());
+            //match.addAttribute("anglesOfIntersection", (mo.getAnglesOfIntersection())).toString();
             
             
             Element enc = match.addElement("encounter");
@@ -860,7 +860,7 @@ public class WriteOutScanTask extends HttpServlet {
             
             
             
-            match.addAttribute("intersectionCount", Integer.toBinaryString(mo.getIntersectionCount()));
+            match.addAttribute("intersectionCount", Integer.toString(mo.getIntersectionCount()));
             match.addAttribute("anglesofIntersection", mo.getAnglesOfIntersection());
             
             match.addAttribute("evaluation", mo.getEvaluation());

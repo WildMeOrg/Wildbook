@@ -29,31 +29,27 @@ import java.util.TreeMap;
  */
 public class I3SMatchObject implements java.io.Serializable {
   static final long serialVersionUID = 9122107217335010239L;
-  public String individualName = "N/A", date;
-  public double matchValue, size;
+  public String individualName = "N/A", date="";
+  public double matchValue=-1, size=-1;
   public String encounterNumber = "N/A";
-  private TreeMap map;
+  private TreeMap map=new TreeMap();;
   public String newSex = "Unknown", catalogSex = "Unknown";
-  public Double fastDTWResult=null;
-  public String fastDTWPath="";
-  public Double geroMatchDistance=null;
-  public int intersectionCount=0;
-  public String anglesOfIntersection="";
+
 
   public I3SMatchObject() {
   }
 
-  public I3SMatchObject(String individualName, double score, String encounterNumber, String catalogSex, String date, double size, TreeMap map, double mahalSum, Double fastDTWDistance, Double geroMatchDistance) {
+  public I3SMatchObject(double score, TreeMap map,double size) {
     this.matchValue = score;
     this.individualName = individualName;
     this.map = map;
     this.encounterNumber = encounterNumber;
-    this.catalogSex = catalogSex;
-    this.date = date;
+    //this.catalogSex = catalogSex;
+    //this.date = date;
     this.size = size;
     //this.mahalSum=mahalSum;
-    this.fastDTWResult=fastDTWDistance;
-    this.geroMatchDistance=geroMatchDistance;
+    //this.fastDTWResult=fastDTWDistance;
+    //this.geroMatchDistance=geroMatchDistance;
   }
 
   public TreeMap getMap() {
@@ -118,22 +114,10 @@ public class I3SMatchObject implements java.io.Serializable {
     return individualName;
   }
   
-  public Double getDTWResult(){return fastDTWResult;}
+
+  public double getMatchValue(){return matchValue;}
   
-  public void setFastDTWResult(Double value){fastDTWResult=value;}
-  
-  public Double getGeroMatchDistance(){return geroMatchDistance;}
-  
-  public void setGeroMatchDistance(Double value){this.geroMatchDistance=value;}
-  
-  public String getFastDTWPath(){return fastDTWPath;}
-  
-  public void setFastDTWPath(String path){this.fastDTWPath=path;}
-  
-  public void setIntersectionCount(int count){intersectionCount=count;}
-  public int getIntersectionCount(){return intersectionCount;}
-  
-  public String getAnglesOfIntersection(){return anglesOfIntersection;}
-  public void setAnglesOfIntersections(String angles){this.anglesOfIntersection=angles;}
+  public void setEncounterNumber(String num){this.encounterNumber=num;}
+  public void setIndividualID(String id){this.individualName=id;}
   
 }
