@@ -375,6 +375,25 @@ if(newDScore!=null){newScore=newDScore.getI3SMatchValue();}
 <p>
 Score: <%=newScore %>
 </p>
+
+<h2>Natural (Pre-affine) Fluke Proportions (Width1/height1-to-Width2/height2)</h2>
+<%
+//widths are easy!
+double width1=theEncControlSpots[2].getX()-theEncControlSpots[0].getX();
+double width2=newEncControlSpots[2].getX()-newEncControlSpots[0].getX();
+
+//heights are from control spot 1 to intersection with line formed by control spots 0 and 2
+java.awt.geom.Point2D.Double notchControlPoint1=theEncControlSpots[1];
+java.awt.geom.Line2D.Double widthLine1=new java.awt.geom.Line2D.Double(theEncControlSpots[0],theEncControlSpots[2]);
+double height1=widthLine1.ptLineDist(theEncControlSpots[1]);
+
+//heights are from control spot 1 to intersection with line formed by control spots 0 and 2
+java.awt.geom.Point2D.Double notchControlPoint2=newEncControlSpots[1];
+java.awt.geom.Line2D.Double widthLine2=new java.awt.geom.Line2D.Double(newEncControlSpots[0],newEncControlSpots[2]);
+double height2=widthLine2.ptLineDist(newEncControlSpots[1]);
+
+%>
+Ratio: <%=(width1/height1)/(width2/height2) %>
 <%
 }	//end try
 catch(Exception e) {
