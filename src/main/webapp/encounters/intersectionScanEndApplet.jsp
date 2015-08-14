@@ -173,22 +173,49 @@ context=ServletUtilities.getContext(request);
 
     }
     if (finalXMLFile.exists()) {
-  %>
-  <li><a
-    href="scanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%><%=fileSider%>">Modified
-    Groth</a></li>
-
-  <%
+    	if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("ModifiedGroth")!=-1)){
+			  %>
+			  <li><a
+			    href="scanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%><%=fileSider%>">Modified
+			    Groth</a></li>
+			
+			  <%
+    	}
     }
+    
+    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("I3S")!=-1)){
+		 
   %>
     <li><a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
   </li>
+  <%
+    }
+    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("FastDTW")!=-1)){
+		 
+  %>
   
-   <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
+    <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a></li>
   
-   <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a>
+    <%
+    }
+    
+    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("Whitehead")!=-1)){
+		 
+    %>
   
-<li><a class="active">Intersection</a></li>
+    <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a></li>
+  
+  
+  <%
+    }
+    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("HolmbergIntersection")!=-1)){
+		 
+  %>
+  <li><a class="active">Intersection</a>
+  
+<%
+    }
+%>
 
 </ul>
 

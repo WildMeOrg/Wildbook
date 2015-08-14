@@ -118,7 +118,7 @@ public class FalseMatchCreationThread implements Runnable, ISharkGridThread {
 
                   String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
                   //System.out.println("Creating workItem: "+wiIdentifier);
-                  ScanWorkItem swi = new ScanWorkItem(enc, enc2, wiIdentifier, taskID, props2);
+                  ScanWorkItem swi = new ScanWorkItem(enc, enc2, wiIdentifier, taskID, props2,"");
 
                   //System.out.println("Elephant: "+swi.getExistingEncNumber()+" "+swi.getNewEncNumber());
 
@@ -156,7 +156,7 @@ public class FalseMatchCreationThread implements Runnable, ISharkGridThread {
                 if ((done.indexOf(option1) == -1) && (done.indexOf(option2) == -1)) {
 
                   String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
-                  ScanWorkItem swi = new ScanWorkItem(enc, enc2, wiIdentifier, taskID, props2);
+                  ScanWorkItem swi = new ScanWorkItem(enc, enc2, wiIdentifier, taskID, props2,"");
                   gm.addWorkItem(swi);
                   //System.out.println("RElephant: "+swi.getExistingEncNumber()+" "+swi.getNewEncNumber());
 

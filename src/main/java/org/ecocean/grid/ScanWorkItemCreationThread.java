@@ -20,7 +20,7 @@
 package org.ecocean.grid;
 
 import org.ecocean.Encounter;
-import org.ecocean.Occurrence;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 
 import java.util.Collection;
@@ -42,6 +42,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
   GridManager gm;
   String context="context0";
   String jdoql="SELECT FROM org.ecocean.Encounter";
+  String algorithms="";
 
   /**
    * Constructor to create a new thread object
@@ -57,6 +58,9 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
     
     if((jdoql!=null)&&(!jdoql.trim().equals(""))){
       this.jdoql=jdoql;
+    }
+    if(CommonConfiguration.getProperty("algorithms", context)!=null){
+      algorithms=CommonConfiguration.getProperty("algorithms", context);
     }
     
   }
@@ -112,7 +116,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
       
       query=myShepherd.getPM().newQuery(jdoql);
       Collection c = (Collection) (query.execute());
-      System.out.println("Num scans to do: "+c.size());
+      //System.out.println("Num scans to do: "+c.size());
       Iterator encounters = c.iterator();
       
 
@@ -126,7 +130,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
           String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
           if (rightSide && (enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {
             //add the workItem
-            ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2);
+            ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2, algorithms);
             String uniqueNum = swi.getUniqueNumber();
 
             gm.addWorkItem(swi);
@@ -135,7 +139,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
             count++;
           } else if (!rightSide && (enc.getSpots() != null) && (enc.getSpots().size() > 0)) {
             //add the workItem
-            ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2);
+            ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2,algorithms);
 
             String uniqueNum = swi.getUniqueNumber();
 
