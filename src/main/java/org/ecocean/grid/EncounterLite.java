@@ -52,6 +52,8 @@ import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.*;
 import org.apache.commons.math.linear.LUDecompositionImpl;
 
+import java.util.Collections;
+
 
 //a class...
 //more description..
@@ -2181,12 +2183,17 @@ private double amplifyY(double origValue, double s){
         if(theEnc.getRightSpots()!=null){spots.addAll(theEnc.getRightSpots());}
           //newEncControlSpots = theEnc.getThreeLeftFiducialPoints();
           
+        
+        //sort the Array - lowest x to highest X coordinate
+        Collections.sort(spots, new XComparator());
+        for(int i=0;i<spots.size();i++){System.out.println(spots.get(i).getCentroidX());}
+        
           
           java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
           theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
           theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
           theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
-          Builder theBuilder = TimeSeriesBase.builder();
+          //Builder theBuilder = TimeSeriesBase.builder();
           for(int i=0;i<spots.size();i++){
             SuperSpot mySpot=spots.get(i);
             
@@ -2201,27 +2208,12 @@ private double amplifyY(double origValue, double s){
             
             //let's do our FastDTW stuff too
             
-            theBuilder.add(spots.get(i).getCentroidX(),spots.get(i).getCentroidY());  
+            //theBuilder.add(spots.get(i).getCentroidX(),spots.get(i).getCentroidY());  
               
             
           } 
           
-          TimeSeries theTimeSeries=theBuilder.build();
-          
-          
-          //let's create theEnc fingerprint
-          SuperSpot[] newspotsTemp = new SuperSpot[0];
-          newspotsTemp = (SuperSpot[]) spots.toArray(newspotsTemp);
-          int newSpotsLength = newspotsTemp.length;
-          java.awt.geom.Point2D.Double[] newEncounterSpots = new java.awt.geom.Point2D.Double[newSpotsLength];
-          for (int i = 0; i < newSpotsLength; i++) {
-            newEncounterSpots[i] = new java.awt.geom.Point2D.Double(newspotsTemp[i].getTheSpot().getCentroidX(), newspotsTemp[i].getTheSpot().getCentroidY());
-          }
-          java.awt.geom.Point2D.Double[] newOrigEncounterSpots = new java.awt.geom.Point2D.Double[spots.size()];
-           for (int z = 0; z < newOrigEncounterSpots.length; z++) {
-            newOrigEncounterSpots[z] = new java.awt.geom.Point2D.Double(spots.get(z).getCentroidX(), spots.get(z).getCentroidY());
-          }
-    
+
     
         
         //EncounterLite enc=new EncounterLite(theEnc);
@@ -2237,7 +2229,7 @@ private double amplifyY(double origValue, double s){
           newEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
           newEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
           newEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
-          Builder newBuilder = TimeSeriesBase.builder();
+          //Builder newBuilder = TimeSeriesBase.builder();
           
           for(int i=0;i<spots2.size();i++){
             SuperSpot mySpot=spots2.get(i);
@@ -2251,11 +2243,15 @@ private double amplifyY(double origValue, double s){
             //get the leftmost spot
             if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
             
-            newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
+            //newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
             
           } 
           
-          TimeSeries newTimeSeries=newBuilder.build();
+          //TimeSeries newTimeSeries=newBuilder.build();
+          
+          Collections.sort(spots2, new XComparator());
+          for(int i=0;i<spots2.size();i++){System.out.println(spots2.get(i).getCentroidX());}
+          
           
           AffineTransform at=EncounterLite.deriveAffineTransform(
               newEncControlSpots[0].getX(),
@@ -2281,13 +2277,13 @@ private double amplifyY(double origValue, double s){
             //for(int j=i+1;j<newPrintSize;j++){
             int j=i+1;
             
-               java.awt.geom.Point2D.Double originalStartPoint=new java.awt.geom.Point2D.Double(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());
-           java.awt.geom.Point2D.Double transformedStartPoint=new java.awt.geom.Point2D.Double();
-           at.transform(originalStartPoint, transformedStartPoint);
+            java.awt.geom.Point2D.Double originalStartPoint=new java.awt.geom.Point2D.Double(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());
+            java.awt.geom.Point2D.Double transformedStartPoint=new java.awt.geom.Point2D.Double();
+            at.transform(originalStartPoint, transformedStartPoint);
            
-           java.awt.geom.Point2D.Double originalEndPoint=new java.awt.geom.Point2D.Double(spots2.get(j).getCentroidX(),spots2.get(j).getCentroidY());
-           java.awt.geom.Point2D.Double transformedEndPoint=new java.awt.geom.Point2D.Double();
-           at.transform(originalEndPoint, originalStartPoint);
+            java.awt.geom.Point2D.Double originalEndPoint=new java.awt.geom.Point2D.Double(spots2.get(j).getCentroidX(),spots2.get(j).getCentroidY());
+            java.awt.geom.Point2D.Double transformedEndPoint=new java.awt.geom.Point2D.Double();
+            at.transform(originalEndPoint, transformedEndPoint);
               
               java.awt.geom.Point2D.Double newStart=(new  java.awt.geom.Point2D.Double(transformedStartPoint.getX(),transformedStartPoint.getY()));
               java.awt.geom.Point2D.Double newEnd=(new  java.awt.geom.Point2D.Double(transformedEndPoint.getX(),transformedEndPoint.getY()) ) ;
@@ -2302,7 +2298,7 @@ private double amplifyY(double origValue, double s){
                     java.awt.geom.Point2D.Double thisEnd=(new  java.awt.geom.Point2D.Double(spots.get(n).getCentroidX(),spots.get(n).getCentroidY()) );   
                     java.awt.geom.Line2D.Double thisLine=new java.awt.geom.Line2D.Double(thisStart,thisEnd);
                     
-                   // if(((newStart.getX()<=thisEnd.getX()))){
+                    //if((thisEnd.getX()>=newStart.getX()) && (thisStart.getX()<=newEnd.getX())){
                       if(newLine.intersectsLine(thisLine)){
                         numIntersections++;
                         String intersectionAngle=java.lang.Double.toString(EncounterLite.angleBetween2Lines(newLine, thisLine));
@@ -2312,15 +2308,9 @@ private double amplifyY(double origValue, double s){
                       
                       //short circuit to end if the comparison line is past the new line
                       //if(newEnd.getX()<thisStart.getX()){
-                      //  m=thisPrintSize;
-                      //}
+                       // m=thisPrintSize;
+                     // }
                    // }
-                  
-                 
-                  
-                  
-                  
-                
               }
               
             
@@ -3164,7 +3154,7 @@ private double amplifyY(double origValue, double s){
     
     public String getIndividualID(){return belongsToMarkedIndividual;}
     
-   
+
   
 }
 
