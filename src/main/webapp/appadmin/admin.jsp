@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.*" %>
 
 
 
@@ -71,6 +71,18 @@ context=ServletUtilities.getContext(request);
       <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
     </jsp:include>
     <div id="main">
+      <h1 class="intro">Server Details</h1>
+      <%
+      PersistenceManagerFactory myPMF=ShepherdPMF.getPMF(context);
+      %>
+  
+      <p>Database details:
+      	<ul>
+      		<li>Driver name: <%=myPMF.getConnectionDriverName() %></li>
+      		<li>Connection URL: <%=myPMF.getConnectionURL() %></li>
+      		<li>Connection Username: <%=myPMF.getConnectionUserName() %></li>
+      	</ul>
+      </p>
       <p>
 
       <h1 class="intro">Library Administration</h1>
