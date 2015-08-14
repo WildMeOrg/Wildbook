@@ -79,7 +79,8 @@ while(epsilon>0){
 			SuperSpot[] newspotsTemp = new SuperSpot[0];
 			newspotsTemp=(SuperSpot[])el2.getRightSpots().toArray(newspotsTemp);
 			System.out.println("Newspotstemp is: "+newspotsTemp.toString());
-			MatchObject mo=el1.getPointsForBestMatch(newspotsTemp, epsilon, R, Sizelim, maxTriangleRotation, C, true, true, el2.getRightReferenceSpots());
+			//MatchObject mo=el1.getPointsForBestMatch(newspotsTemp, epsilon, R, Sizelim, maxTriangleRotation, C, true, false);
+			MatchObject mo=EncounterLite.getModifiedGroth4Flukes(el1, el2, epsilon, R, Sizelim, maxTriangleRotation, C, true);
 			String adjustedMatchValueString = (new Double(mo.adjustedMatchValue)).toString();
 			String finalscore2 = (new Double(mo.matchValue * mo.adjustedMatchValue)).toString();
 

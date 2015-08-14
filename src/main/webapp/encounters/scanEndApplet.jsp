@@ -138,41 +138,64 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 <ul id="tabmenu">
   <li><a
     href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
-   
+    
   </a></li>
-  <li><a class="active">Modified Groth</a></li>
-
   <%
     String fileSider = "";
     File finalXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightI3SScan.xml");
-
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightScan.xml");
 
       side2 = "right";
       fileSider = "&rightSide=true";
     } else {
-      //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
+
     }
     if (finalXMLFile.exists()) {
+    	if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("ModifiedGroth")!=-1)){
+			  %>
+			  <li><a class="active" >Modified Groth</a></li>
+			
+			  <%
+    	}
+    }
+    
+    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("I3S")!=-1)){
+		 
   %>
-
-  <li><a
-    href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
+    <li><a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
   </li>
   <%
     }
-
+    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("FastDTW")!=-1)){
+		 
   %>
-  <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a>
-  </li>
-  <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a></li>
   
-   <li><a href="intersectionScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Intersection</a></li>
+    <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a></li>
   
- 
+    <%
+    }
+    
+    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("Whitehead")!=-1)){
+		 
+    %>
+  
+    <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a></li>
+  
+  
+  <%
+    }
+    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("HolmbergIntersection")!=-1)){
+		 
+  %>
+  <li><a href="intersectionScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Intersection</a>
+  
+  
+<%
+    }
+%>
+
 </ul>
 
 <%
