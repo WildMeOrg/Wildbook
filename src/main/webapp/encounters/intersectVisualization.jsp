@@ -14,10 +14,14 @@
 	org.ecocean.grid.*" 
 	%>
 
+
+<%
+int chartWidth=810;
+%>
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
     
-    var chartWidth=810;
+    var chartWidth=<%=chartWidth %>;
     var chartHeight=500;
     
 
@@ -174,7 +178,7 @@ try {
 			 %>  
 			 [
 			  <%=spots.get(t).getCentroidX() %>,
-			  <%=spots.get(t).getCentroidY() %>
+			  -<%=spots.get(t).getCentroidY() %>
 			  ],
 		 
 			 <%
@@ -276,7 +280,7 @@ try {
 		 at.transform(originalPoint, transformedPoint);
 		 %>  
 		 [
-		  <%=transformedPoint.getX() %>, <%=transformedPoint.getY() %>
+		  <%=transformedPoint.getX() %>, -<%=transformedPoint.getY() %>
 		  ],
 		 <%
 	}
@@ -397,6 +401,23 @@ double height2=widthLine2.ptLineDist(newEncControlSpots[1]);
 
 %>
 Ratio: <%=(width1/height1)/(width2/height2) %>
+
+<%
+String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
+String thisEncounterDir = enc1.subdir();
+String newEncounterDir = enc2.subdir();
+%>
+
+<div id="chart_div"></div>
+
+<table width="<%=chartWidth %>px">
+<tr>
+<td><img src="http://localhost:8080/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=thisEncounterDir.replaceAll("\\\\", "/") %>/<%=enc1.getSpotImageFileName() %>" width="<%=((int)(chartWidth/2)) %>px" height="*" /></td>
+<td><img src="http://localhost:8080/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=newEncounterDir.replaceAll("\\\\", "/") %>/<%=enc2.getSpotImageFileName() %>" width="<%=((int)(chartWidth/2)) %>px" height="*" /></td>
+</tr>
+
+</table>
+
 <%
 }	//end try
 catch(Exception e) {
@@ -409,9 +430,4 @@ finally {
 
 }
 %>
-
-
-<div id="chart_div"></div>
-
-
 
