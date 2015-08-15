@@ -327,17 +327,20 @@ try {
 	    if(enc1.getIndividualID()!=null){enc1MI=enc1.getIndividualID();}
 	    String enc2MI="Unknown";
 	    if(enc2.getIndividualID()!=null){enc2MI=enc2.getIndividualID();}
+	    
+	    double intersectionProportion=0.2;
+	    
 	    %>
 	    
 	    <h1>Intersection and FastDTW Comparisons: <%=enc1MI %> vs <%=enc2MI %></h1>
 	    
 	    
-	  <h2>Holmberg intersection</h2>  
+	  <h2>Holmberg Intersection (prop=<%=intersectionProportion %>)</h2>  
 	    <%
 	    //let's try some fun intersection analysis
 	    int newPrintSize=spots2.size();
 	    int thisPrintSize=spots.size();
-	    Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(theEnc, theEnc2);
+	    Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(theEnc, theEnc2,intersectionProportion);
 	    int finalInter=-1;
 	   	if(numIntersections!=null){finalInter=numIntersections.intValue();}
 	    %>

@@ -337,7 +337,7 @@ console.log(imgEl);
 var spotTypes = [ 'ref1', 'ref2', 'ref3', 'spot' ];
 var spotTypeNames = {
 	ref1: 'left tip',
-	ref2: 'divet',
+	ref2: 'notch',
 	ref3: 'right tip',
 	spot: 'point',
 };
@@ -713,7 +713,7 @@ console.warn('spotScale = %f', spotScale);
       
       function findSpots() {
     	  
-    	  return;
+    	 
     	  
           canvasWidth=itool.wCanvas.width;
           canvasHeight=itool.wCanvas.height;
@@ -1016,7 +1016,7 @@ $(document).ready(function() {
      //   };
       
      // onDimensionsReady(640, 480);
-      findSpots();
+      //findSpots();
 
         
     } catch (error) {

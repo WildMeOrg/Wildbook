@@ -2175,7 +2175,7 @@ private double amplifyY(double origValue, double s){
     }
   }
     
-    public static Integer getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2){
+    public static Integer getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2, double allowedIntersectionWarpProportion){
       
       try{
         ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
@@ -2186,7 +2186,6 @@ private double amplifyY(double origValue, double s){
         
         //sort the Array - lowest x to highest X coordinate
         Collections.sort(spots, new XComparator());
-        for(int i=0;i<spots.size();i++){System.out.println(spots.get(i).getCentroidX());}
         
           
           java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
@@ -2266,7 +2265,13 @@ private double amplifyY(double origValue, double s){
               theEncControlSpots[1].getY(),
               theEncControlSpots[2].getX(),
               theEncControlSpots[2].getY()
-         );     
+         );   
+          
+          AffineTransform atInverse=at.createInverse();
+          
+          //in advance of any intersection
+          //create a list of Poin2DDouble Pair proportional distances from the notch
+          ArrayList<Double> intersectionsProportionalDistances=new ArrayList<Double>();
           
           //let's try some fun intersection analysis
           int newPrintSize=spots2.size();
@@ -2303,7 +2308,36 @@ private double amplifyY(double origValue, double s){
                         numIntersections++;
                         String intersectionAngle=java.lang.Double.toString(EncounterLite.angleBetween2Lines(newLine, thisLine));
                         anglesOfIntersection.append(intersectionAngle+",");
-                       }
+                        
+                        //calculate proportional distance to test if intersection was valid in original space
+                        //untranslate new points since they were mapped into this points
+                        java.awt.geom.Point2D.Double intersectionPoint=getIntersectionPoint(newLine,thisLine);
+                        if(intersectionPoint!=null){
+                          
+                          double theDistanceToLine=Math.abs(theEncControlSpots[0].distance(intersectionPoint));
+                          java.awt.geom.Line2D.Double theWidthLine=new java.awt.geom.Line2D.Double(theEncControlSpots[0],theEncControlSpots[2]);
+                          double theHeight=theWidthLine.ptLineDist(theEncControlSpots[1]);
+                          double theProportion = theDistanceToLine/theHeight;
+                          
+                          //now the newLine detangle
+                          java.awt.geom.Point2D.Double transformedIntersectionPoint=new java.awt.geom.Point2D.Double();
+                          atInverse.transform(intersectionPoint,  transformedIntersectionPoint);
+                          double newDistanceToLine=Math.abs(newEncControlSpots[0].distance(transformedIntersectionPoint));
+                          java.awt.geom.Line2D.Double newWidthLine=new java.awt.geom.Line2D.Double(newEncControlSpots[0],newEncControlSpots[2]);
+                          double newHeight=newWidthLine.ptLineDist(newEncControlSpots[1]);
+                          
+                          double newProportion = newDistanceToLine/newHeight;
+                          
+                          double proportionalDistance=Math.abs(1-newProportion/theProportion);
+                          
+                          
+                          
+                          //if this proprtional distance is too warped, don't count it
+                          if(proportionalDistance>allowedIntersectionWarpProportion){numIntersections--;}
+                          
+                        }
+                        
+                      }
                       //else{System.out.println("["+newStart.getX()+","+newStart.getY()+","+newEnd.getX()+","+newEnd.getY()+"]"+" does not intersect with "+"["+thisStart.getX()+","+thisStart.getY()+","+thisEnd.getX()+","+thisEnd.getY()+"]");}
                       
                       //short circuit to end if the comparison line is past the new line
@@ -3154,7 +3188,27 @@ private double amplifyY(double origValue, double s){
     
     public String getIndividualID(){return belongsToMarkedIndividual;}
     
+    public static java.awt.geom.Point2D.Double getIntersectionPoint(Line2D.Double line1, Line2D.Double line2) {
+      if (! line1.intersectsLine(line2) ) return null;
+      double px = line1.getX1(),
+          py = line1.getY1(),
+          rx = line1.getX2()-px,
+          ry = line1.getY2()-py;
+        double qx = line2.getX1(),
+              qy = line2.getY1(),
+              sx = line2.getX2()-qx,
+              sy = line2.getY2()-qy;
 
+        double det = sx*ry - sy*rx;
+        if (det == 0) {
+          return null;
+        } else {
+          double z = (sx*(qy-py)+sy*(px-qx))/det;
+          if (z==0 ||  z==1) return null;  // intersection at end point!
+          return new java.awt.geom.Point2D.Double(
+            (float)(px+z*rx), (float)(py+z*ry));
+        }
+   } // end intersection line-line
   
 }
 
