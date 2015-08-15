@@ -336,10 +336,14 @@ try {
 	    
 	    %>
 	    
-	    <h1>Intersection and FastDTW Comparisons: <%=enc1MI %> vs <%=enc2MI %></h1>
+	    <h2>Comparison: <%=enc1MI %> vs <%=enc2MI %></h2>
+	    
+	    <table><tr>
+	    
+	    <td valign="top">
 	    
 	    
-	  <h2>Holmberg Intersection (prop=<%=intersectionProportion %>)</h2>  
+	  <h3>Holmberg Intersection (prop=<%=intersectionProportion %>)</h3>  
 	    <%
 	    //let's try some fun intersection analysis
 	    int newPrintSize=spots2.size();
@@ -366,12 +370,12 @@ try {
     		
     
 %>
-<h2>Fast DTW</h2>	
+<h3>Fast DTW</h3>	
 <p>
 FastDTW distance: <%=distance %>
 </p>
 
-<h2>Modified I3S (Improved Affine Transformation)</h2>
+<h3>Modified I3S (Improved Affine)</h3>
 <%
 
 I3SMatchObject newDScore=EncounterLite.improvedI3SScan(new EncounterLite(enc1), new EncounterLite(enc2));
@@ -383,7 +387,10 @@ if(newDScore!=null){newScore=newDScore.getI3SMatchValue();}
 Score: <%=newScore %>
 </p>
 
-<h2>Natural (Pre-affine) Fluke Proportions (Width1/height1-to-Width2/height2)</h2>
+<h3>Natural (Pre-affine) Fluke Proportions</h3>
+<p><i>(Width1/height1-to-Width2/height2)</i></p>
+
+
 <%
 //widths are easy!
 double width1=theEncControlSpots[2].getX()-theEncControlSpots[0].getX();
@@ -401,6 +408,10 @@ double height2=widthLine2.ptLineDist(newEncControlSpots[1]);
 
 %>
 Ratio: <%=(width1/height1)/(width2/height2) %>
+
+</td>
+
+<td valign="top">
 
 <%
 String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
@@ -430,4 +441,5 @@ finally {
 
 }
 %>
+</td></tr></table>
 
