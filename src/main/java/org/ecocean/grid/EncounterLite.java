@@ -2249,7 +2249,7 @@ private double amplifyY(double origValue, double s){
           //TimeSeries newTimeSeries=newBuilder.build();
           
           Collections.sort(spots2, new XComparator());
-          for(int i=0;i<spots2.size();i++){System.out.println(spots2.get(i).getCentroidX());}
+          //for(int i=0;i<spots2.size();i++){System.out.println(spots2.get(i).getCentroidX());}
           
           
           AffineTransform at=EncounterLite.deriveAffineTransform(
