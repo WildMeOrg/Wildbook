@@ -39,6 +39,12 @@
        <name>Open Source Geospatial Foundation Repository</name>
        <url>http://download.osgeo.org/webdav/geotools/</url>
     </repository>
+	
+	<repository>
+		<id>neuroph.sourceforge.net</id>
+		<url>http://neuroph.sourceforge.net/maven2/</url>
+</repository>
+	
   </repositories>
 
   <dependencies>
@@ -404,6 +410,12 @@
 	<groupId>com.github.davidmoten</groupId>
 	<artifactId>fastdtw</artifactId>
 	<version>0.1</version>
+</dependency>
+
+<dependency>
+<groupId>org.neuroph</groupId>
+<artifactId>neuroph-core</artifactId>
+<version>2.9</version>
 </dependency>
 
     

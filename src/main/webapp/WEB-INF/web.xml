@@ -1759,6 +1759,16 @@
     <servlet-name>LoginUserSocial</servlet-name>
     <url-pattern>/LoginUserSocial</url-pattern>
   </servlet-mapping>
+  
+        <servlet>
+      	<servlet-name>TrainNetwork</servlet-name>
+      	<servlet-class>org.ecocean.neural.TrainNetwork</servlet-class>
+   </servlet>
+   
+ <servlet-mapping>
+    <servlet-name>TrainNetwork</servlet-name>
+    <url-pattern>/TrainNetwork</url-pattern>
+  </servlet-mapping>
    
   
 </web-app>
