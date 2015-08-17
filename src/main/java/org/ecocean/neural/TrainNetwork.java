@@ -75,12 +75,22 @@ public class TrainNetwork extends HttpServlet {
     
     double intersectionProportion=0.2;
     
+  //create text file so we can also use this training data in the Neuroph UI
+    BufferedWriter writer = null;
+    
     myShepherd.beginDBTransaction();
     
       try {
        
         
-     // create new perceptron network
+        
+        
+        File trainingFile = new File(shepherdDataDir.getAbsolutePath()+"/fluke_perceptron.input");
+        writer = new BufferedWriter(new FileWriter(trainingFile));
+        
+        StringBuffer writeMe=new StringBuffer();
+        
+        // create new perceptron network
         NeuralNetwork neuralNetwork = new Perceptron(4, 1);
         // create training set
         DataSet trainingSet = new DataSet(4, 1);
@@ -95,54 +105,66 @@ public class TrainNetwork extends HttpServlet {
             
             Encounter enc1=(Encounter)encounters.get(i);
             Encounter enc2=(Encounter)encounters.get(j);
-            if(((enc1.getSpots()!=null)&&(enc1.getRightSpots()!=null))&&((enc1.getSpots()!=null)&&(enc1.getRightSpots()!=null))){
-              
-              System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
-              
-              //if both have spots, then we need to compare them
-           
-              //first, are they the same animal?
-              //default is 1==no
-              double output=1;
-              if((enc1.getIndividualID()!=null)&&(!enc1.getIndividualID().toLowerCase().equals("unassigned"))){
-                if((enc2.getIndividualID()!=null)&&(!enc2.getIndividualID().toLowerCase().equals("unassigned"))){
-                  //train a match
-                  if(enc1.getIndividualID().equals(enc2.getIndividualID())){output=0;}
+            //make sure both have spots!
+            if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
+              try{
+                System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
+                
+                //if both have spots, then we need to compare them
+             
+                //first, are they the same animal?
+                //default is 1==no
+                double output=1;
+                if((enc1.getIndividualID()!=null)&&(!enc1.getIndividualID().toLowerCase().equals("unassigned"))){
+                  if((enc2.getIndividualID()!=null)&&(!enc2.getIndividualID().toLowerCase().equals("unassigned"))){
+                    //train a match
+                    if(enc1.getIndividualID().equals(enc2.getIndividualID())){output=0;}
+                  }
+                  
                 }
                 
-              }
+                
+                EncounterLite el1=new EncounterLite(enc1);
+                EncounterLite el2=new EncounterLite(enc2);
+                
+                //HolmbergIntersection
+                Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
+                double finalInter=-1;
+                if(numIntersections!=null){finalInter=numIntersections.intValue();}
+               
+                
+                //FastDTW
+                TimeWarpInfo twi=EncounterLite.fastDTW(el1, el2, 30);
+                
+                java.lang.Double distance = new java.lang.Double(-1);
+                if(twi!=null){
+                  WarpPath wp=twi.getPath();
+                    String myPath=wp.toString();
+                  distance=new java.lang.Double(twi.getDistance());
+                }   
+                
+                //I3S
+                I3SMatchObject newDScore=EncounterLite.improvedI3SScan(el1, el2);
+                double i3sScore=-1;
+                if(newDScore!=null){i3sScore=newDScore.getI3SMatchValue();}
+                
+                //Proportion metric
+                Double proportion=EncounterLite.getFlukeProportion(el1,el2);
+                
+                trainingSet. addRow (
+                    new DataSetRow (new double[]{finalInter, distance, i3sScore, proportion},
+                    new double[]{output}));
+                
+                //write the line too
+                writeMe.append(round(finalInter,4)+","+round(distance,4)+","+round(i3sScore,4)+","+round(proportion,4)+","+output+"\n");
               
+                
               
-              EncounterLite el1=new EncounterLite(enc1);
-              EncounterLite el2=new EncounterLite(enc2);
-              
-              //HolmbergIntersection
-              Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
-              double finalInter=-1;
-              if(numIntersections!=null){finalInter=numIntersections.intValue();}
-             
-              
-              //FastDTW
-              TimeWarpInfo twi=EncounterLite.fastDTW(el1, el2, 30);
-              
-              java.lang.Double distance = new java.lang.Double(-1);
-              if(twi!=null){
-                WarpPath wp=twi.getPath();
-                  String myPath=wp.toString();
-                distance=new java.lang.Double(twi.getDistance());
-              }   
-              
-              //I3S
-              I3SMatchObject newDScore=EncounterLite.improvedI3SScan(el1, el2);
-              double i3sScore=-1;
-              if(newDScore!=null){i3sScore=newDScore.getI3SMatchValue();}
-              
-              //Proportion metric
-              Double proportion=EncounterLite.getFlukeProportion(el1,el2);
-              
-              trainingSet. addRow (
-                  new DataSetRow (new double[]{finalInter, distance, i3sScore, proportion},
-                  new double[]{output}));
+            }
+            catch(Exception e){
+              e.printStackTrace();
+            }
+
               
               
             }
@@ -152,13 +174,15 @@ public class TrainNetwork extends HttpServlet {
           
         }
        
+        //write out the training set
+        writer.write(writeMe.toString());
         
         
        
         System.out.println("Trying to learn the data set...");
         PerceptronLearning kl=new PerceptronLearning();
         kl.setLearningRate(0.5);
-        kl.setMaxError(5);
+        kl.setMaxError(9);
         
         // learn the training set
         neuralNetwork.learn(trainingSet,kl);
@@ -169,12 +193,20 @@ public class TrainNetwork extends HttpServlet {
         
 
 
-      } catch (Exception le) {
+      } 
+      catch (Exception le) {
         locked = true;
         le.printStackTrace();
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
       }
+      finally {
+        try {
+            // Close the writer regardless of what happens...
+            writer.close();
+        } catch (Exception e) {
+        }
+    }
 
       if (!locked) {
         myShepherd.commitDBTransaction();
@@ -198,6 +230,15 @@ public class TrainNetwork extends HttpServlet {
 
     out.close();
   }
+  
+  public static double round(double value, int places) {
+    if (places < 0) throw new IllegalArgumentException();
+
+    long factor = (long) Math.pow(10, places);
+    value = value * factor;
+    long tmp = Math.round(value);
+    return (double) tmp / factor;
+}
 
 
 }

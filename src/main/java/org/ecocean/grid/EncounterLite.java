@@ -3279,15 +3279,11 @@ private double amplifyY(double origValue, double s){
             //get the leftmost spot
             if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
             
-            //newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
             
           } 
           
-          //TimeSeries newTimeSeries=newBuilder.build();
           
           Collections.sort(spots2, new XComparator());
-          //for(int i=0;i<spots2.size();i++){System.out.println(spots2.get(i).getCentroidX());}
-          
           
           AffineTransform at=EncounterLite.deriveAffineTransform(
               newEncControlSpots[0].getX(),
@@ -3316,8 +3312,8 @@ private double amplifyY(double origValue, double s){
           java.awt.geom.Point2D.Double notchControlPoint2=newEncControlSpots[1];
           java.awt.geom.Line2D.Double widthLine2=new java.awt.geom.Line2D.Double(newEncControlSpots[0],newEncControlSpots[2]);
           double height2=widthLine2.ptLineDist(newEncControlSpots[1]);
-
-          return (new Double((width1/height1)/(width2/height2)));
+          double finalNum=Math.abs(1-new Double((width1/height1)/(width2/height2)));
+          return finalNum;
 
          
       
