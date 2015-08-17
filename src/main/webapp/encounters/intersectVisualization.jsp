@@ -356,7 +356,7 @@ try {
 	    int finalInter=-1;
 	   	if(numIntersections!=null){finalInter=numIntersections.intValue();}
 	    %>
-	    
+	    <p><i>Higher is better</i></p>
 	    <p>Num. intersections is: <%=finalInter %>
 	    
 	    </p>
@@ -375,6 +375,7 @@ try {
     
 %>
 <h3>Fast DTW</h3>	
+<p><i>Lower is better</i></p>
 <p>
 FastDTW distance: <%=distance %>
 </p>
@@ -386,19 +387,19 @@ I3SMatchObject newDScore=EncounterLite.improvedI3SScan(new EncounterLite(enc1), 
 double newScore=-1;
 if(newDScore!=null){newScore=newDScore.getI3SMatchValue();}
 %>
-
+<p><i>Lower is better</i></p>
 <p>
 Score: <%=newScore %>
 </p>
 
 <h3>Natural (Pre-affine) Fluke Proportions</h3>
-<p><i>(Width1/height1-to-Width2/height2)</i></p>
+<p><i>Lower is better</i></p>
 
 <%
 double propor=EncounterLite.getFlukeProportion(theEnc,theEnc2);
 %>
 
-Ratio: <%=propor %>
+Proportional difference: <%=propor %>
 
 <h3>Neural Net: Match?</h3>
 <p>0=match, 1=no match</p>
