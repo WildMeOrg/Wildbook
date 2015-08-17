@@ -15,7 +15,8 @@
 	org.neuroph.core.*,
 	org.neuroph.nnet.*,
 	org.neuroph.nnet.learning.*,
-	org.neuroph.core.data.*"
+	org.neuroph.core.data.*,
+	org.ecocean.neural.TrainNetwork"
 	%>
 
 
@@ -401,9 +402,11 @@ double propor=EncounterLite.getFlukeProportion(theEnc,theEnc2);
 
 Proportional difference: <%=propor %>
 
-<h3>Neural Net: Match?</h3>
-<p>0=match, 1=no match</p>
+<h3>Overall: Match?</h3>
+<p><i>higher is better</i></p>
+<p><%=TrainNetwork.getOverallFlukeMatchScore(request, finalInter, distance, newScore, propor, 1.0) %></p>
 <%
+/*
 //load the saved network
 
     
@@ -414,9 +417,10 @@ neuralNetwork.setInput(finalInter, distance,newScore,propor);
 neuralNetwork.calculate();
 //get network output
 double[] networkOutput = neuralNetwork.getOutput();
+*/
 
 %>
-<p><%=networkOutput %></p>
+<p></p>
 </td>
 
 <td valign="top">
