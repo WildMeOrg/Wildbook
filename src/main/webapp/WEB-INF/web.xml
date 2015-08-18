@@ -1769,6 +1769,16 @@
     <servlet-name>TrainNetwork</servlet-name>
     <url-pattern>/TrainNetwork</url-pattern>
   </servlet-mapping>
+  
+          <servlet>
+      	<servlet-name>TrainStdDev</servlet-name>
+      	<servlet-class>org.ecocean.neural.TrainStdDev</servlet-class>
+   </servlet>
+   
+ <servlet-mapping>
+    <servlet-name>TrainStdDev</servlet-name>
+    <url-pattern>/TrainStdDev</url-pattern>
+  </servlet-mapping>
    
   
 </web-app>

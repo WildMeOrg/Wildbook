@@ -339,32 +339,17 @@ try {
 	    
 	    double intersectionProportion=0.2;
 	    
-	    %>
 	    
-	    <h2>Comparison: <%=enc1MI %> vs <%=enc2MI %></h2>
-	    
-	    <table><tr>
-	    
-	    <td valign="top">
-	    
-	    
-	  <h3>Holmberg Intersection (prop=<%=intersectionProportion %>)</h3>  
-	    <%
 	    //let's try some fun intersection analysis
 	    int newPrintSize=spots2.size();
 	    int thisPrintSize=spots.size();
 	    Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(theEnc, theEnc2,intersectionProportion);
 	    int finalInter=-1;
 	   	if(numIntersections!=null){finalInter=numIntersections.intValue();}
-	    %>
-	    <p><i>Higher is better</i></p>
-	    <p>Num. intersections is: <%=finalInter %>
-	    
-	    </p>
-
-	<%
-	
-	 TimeWarpInfo twi=EncounterLite.fastDTW(theEnc, theEnc2, 30);
+	   
+	   	
+	   	//Fast DTW analysis
+	   	 TimeWarpInfo twi=EncounterLite.fastDTW(theEnc, theEnc2, 30);
     
     java.lang.Double distance = new java.lang.Double(-1);
     if(twi!=null){
@@ -372,55 +357,57 @@ try {
         String myPath=wp.toString();
     	distance=new java.lang.Double(twi.getDistance());
     }		
-    		
     
-%>
-<h3>Fast DTW</h3>	
+    //modified I3S analysis
+    I3SMatchObject newDScore=EncounterLite.improvedI3SScan(new EncounterLite(enc1), new EncounterLite(enc2));
+    double newScore=-1;
+    if(newDScore!=null){newScore=newDScore.getI3SMatchValue();}
+
+    //proportional analysis
+    double propor=EncounterLite.getFlukeProportion(theEnc,theEnc2);
+
+    
+    
+    %>
+	    
+	    <h2>Comparison: <%=enc1MI %> vs <%=enc2MI %></h2>
+	    <h3>Overall: <%=TrainNetwork.getOverallFlukeMatchScore(request, finalInter, distance, newScore, propor, 0.1) %>
+</h3>
+<p><i>higher is better. score is out of a maximum for 12 points.</i></p>
+
+	    
+	    <table><tr>
+	    
+	    <td valign="top">
+	    
+	    
+	  <h4>Holmberg Intersection (prop=<%=intersectionProportion %>)</h4>  
+	    
+	    <p><i>Higher is better</i></p>
+	    <p>Num. intersections is: <%=finalInter %>
+	    
+	    </p>
+
+	
+<h4>Fast DTW</h4>	
 <p><i>Lower is better</i></p>
 <p>
 FastDTW distance: <%=distance %>
 </p>
 
-<h3>Modified I3S (Improved Affine)</h3>
-<%
+<h4>Modified I3S (Improved Affine)</h4>
 
-I3SMatchObject newDScore=EncounterLite.improvedI3SScan(new EncounterLite(enc1), new EncounterLite(enc2));
-double newScore=-1;
-if(newDScore!=null){newScore=newDScore.getI3SMatchValue();}
-%>
 <p><i>Lower is better</i></p>
 <p>
 Score: <%=newScore %>
 </p>
 
-<h3>Natural (Pre-affine) Fluke Proportions</h3>
+<h4>Natural (Pre-affine) Fluke Proportions</h4>
 <p><i>Lower is better</i></p>
-
-<%
-double propor=EncounterLite.getFlukeProportion(theEnc,theEnc2);
-%>
 
 Proportional difference: <%=propor %>
 
-<h3>Overall: Match?</h3>
-<p><i>higher is better</i></p>
-<p><%=TrainNetwork.getOverallFlukeMatchScore(request, finalInter, distance, newScore, propor, 1.0) %></p>
-<%
-/*
-//load the saved network
 
-    
-NeuralNetwork neuralNetwork = NeuralNetwork.load(shepherdDataDir.getAbsolutePath()+"/fluke_perceptron.nnet");
-//set network input
-neuralNetwork.setInput(finalInter, distance,newScore,propor);
-//calculate network
-neuralNetwork.calculate();
-//get network output
-double[] networkOutput = neuralNetwork.getOutput();
-*/
-
-%>
-<p></p>
 </td>
 
 <td valign="top">
